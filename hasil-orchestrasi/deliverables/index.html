@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PM Dashboard 2026</title>
+<link rel="stylesheet" href="wireframes/wf.css">
+<style>
+.wrap{max-width:960px;margin:32px auto;padding:0 16px;display:flex;flex-direction:column;gap:16px}
+.wrap h1{margin:0;font-size:24px}.links a.card{display:block;text-decoration:none}.links a.card:hover{border-color:var(--ink)}
+.links h4{font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>PM Dashboard — Modernisasi Oktober 2026</h1>
+    <p class="muted">Hasil orkestrasi multi-agen (Run <code>run_16f58567a2c7</code>): 4 analis → review → keputusan → workflow &amp; wireframe → review akhir.</p>
+  </div>
+  <div class="grid3 links">
+    <a class="card" href="workflow.html"><h4>Workflow</h4><p class="muted small">11 alur (W-0…W-10), 21 diagram, matriks izin, roadmap P0a/P0b/P1/P2.</p></a>
+    <a class="card" href="wireframes/01-beranda-proyek.html"><h4>Wireframe 01</h4><p class="muted small">Shell &amp; navigasi, Beranda, Inbox, Proyek, Planner AI, Detail Proyek (13 layar).</p></a>
+    <a class="card" href="wireframes/02-pekerjaan-rapat-tim.html"><h4>Wireframe 02</h4><p class="muted small">Pekerjaan, Tiket, Ide, Detail item, Import, Rapat &amp; Hasil Rapat AI, Tim, ⌘K, Pengaturan AI, PWA (19 layar, termasuk Tampilan Guest, Sampah, Pengaturan Notifikasi &amp; Peran).</p></a>
+  </div>
+  <div class="card">
+    <h4>Dokumen pendukung (Markdown)</h4>
+    <ul class="small">
+      <li><a href="../orchestration/DECISIONS.md">DECISIONS.md</a>: keputusan final, glosarium, IA</li>
+      <li><a href="../reviews/R1-review-analisis.md">R1</a>: review analisis (skor, konflik, celah)</li>
+      <li><a href="../reviews/R2-review-deliverables.md">R2</a>: review workflow &amp; wireframe · <a href="../reviews/R3-verifikasi.md">R3</a>: verifikasi ulang</li>
+      <li>Analisis: <a href="../analysis/A1-dashboard-tim-events.md">A1</a> · <a href="../analysis/A2-proyek-detail.md">A2</a> · <a href="../analysis/A3-work-items.md">A3</a> · <a href="../analysis/A4-ai-landscape-crosscutting.md">A4</a></li>
+      <li><a href="../note.md">note.md</a>: catatan fitur lama (sumber)</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
