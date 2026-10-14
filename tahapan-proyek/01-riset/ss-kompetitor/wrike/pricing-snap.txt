@@ -1,0 +1,794 @@
+[p1 "Plans and Pricing | Wrike" | space "research wrike website"(6): 1 managed, 0 untracked — p1* "Plans and Pricing | Wrike"]
+root
+  container
+    container
+      anchor [ref=512, url=https://www.wrike.com/]
+        image
+      unordered_list
+        list_item
+          button [ref=513]
+            text "Products"
+        list_item [ref=514]
+          button [ref=515]
+            text "Try Wrike for free"
+          button [ref=516]
+            text "Contact Sales"
+        list_item
+          button [ref=517]
+            text "Solutions"
+        list_item [ref=518]
+          button [ref=519]
+            text "Try Wrike for free"
+          button [ref=520]
+            text "Contact Sales"
+        list_item
+          button [ref=521]
+            text "Resources"
+        list_item [ref=522]
+          button [ref=523]
+            text "Try Wrike for free"
+          button [ref=524]
+            text "Contact Sales"
+        list_item
+          anchor [ref=525, url=https://www.wrike.com/price/]
+            text "Pricing"
+        list_item
+        list_item
+          anchor [ref=526, url=https://www.wrike.com/enterprise/]
+            text "Enterprise"
+        list_item
+    container
+      anchor [ref=527, loc=href:/contact-sales/, url=https://www.wrike.com/contact-sales/]
+        text "Contact Sales"
+      container
+        button [ref=528]
+          svg_root
+          text "EN"
+        container [ref=529]
+          unordered_list
+            list_item
+              image
+              anchor [ref=530, loc=href:/price-vag/, url=https://www.wrike.com/price-vag/]
+                text "English"
+              anchor [ref=531, loc=href:/da/, url=https://www.wrike.com/da/]
+                text "Dansk"
+              anchor [ref=532, loc=href:/de/, url=https://www.wrike.com/de/]
+                text "Deutsch"
+              anchor [ref=533, loc=href:/es/, url=https://www.wrike.com/es/]
+                text "Español"
+              anchor [ref=534, loc=href:/fr/, url=https://www.wrike.com/fr/]
+                text "Français"
+              anchor [ref=535, loc=href:/id/, url=https://www.wrike.com/id/]
+                text "Bahasa Indonesia"
+              anchor [ref=536, loc=href:/it/, url=https://www.wrike.com/it/]
+                text "Italiano"
+              anchor [ref=537, loc=href:/ms/, url=https://www.wrike.com/ms/]
+                text "Bahasa Melayu"
+              anchor [ref=538, loc=href:/nl/, url=https://www.wrike.com/nl/]
+                text "Nederlands"
+              anchor [ref=539, loc=href:/no/, url=https://www.wrike.com/no/]
+                text "Norsk"
+              anchor [ref=540, loc=href:/pl/, url=https://www.wrike.com/pl/]
+                text "Polski"
+              anchor [ref=541, loc=href:/pt-br/, url=https://www.wrike.com/pt-br/]
+                text "Português (BR)"
+              anchor [ref=542, loc=href:/sv/, url=https://www.wrike.com/sv/]
+                text "Svenska"
+              anchor [ref=543, loc=href:/ru/, url=https://www.wrike.com/ru/]
+                text "Русский"
+              anchor [ref=544, loc=href:/ja/, url=https://www.wrike.com/ja/]
+                text "日本語"
+              anchor [ref=545, loc=href:/ko/, url=https://www.wrike.com/ko/]
+                text "한국어"
+              anchor [ref=546, loc=href:/zh-cn/, url=https://www.wrike.com/zh-cn/]
+                text "中文 (简体)"
+              anchor [ref=547, loc=href:/zh-tw/, url=https://www.wrike.com/zh-tw/]
+                text "中文 (繁體)"
+      anchor [ref=548, loc=href:https://login.wrike.com/login/, url=https://login.wrike.com/login/]
+        text "Log in"
+      button [ref=549]
+        text "Try Wrike for free"
+  container
+    container
+      anchor [ref=550, loc=href:/price-vag/#pricing, url=https://www.wrike.com/price-vag/#pricing]
+        text "Core Plans"
+      anchor [ref=551, loc=href:/price-vag/#addon, url=https://www.wrike.com/price-vag/#addon]
+        text "Add-Ons"
+      anchor [ref=552, loc=href:/price-vag/#ai, url=https://www.wrike.com/price-vag/#ai]
+        text "Wrike AI"
+      anchor [ref=553, loc=href:/price-vag/#faq, url=https://www.wrike.com/price-vag/#faq]
+        text "FAQs"
+    container
+      heading
+        text "Plans built to drive"
+        text "work delivery"
+        text "at scale"
+      container
+        button [ref=554]
+          text "Request a demo"
+        paragraph
+          text "Response within 24 hours • Tailored walk-through • Zero commitment"
+    container
+      container
+        group "1 / 5"
+          container
+            heading
+              text "Free"
+            paragraph
+              text "Essential task management"
+          container
+            container
+              text "$0"
+              text "user/ month"
+            button [ref=555]
+              text "Get started"
+            paragraph
+              text "No credit card required"
+          paragraph
+            text "Key features:"
+          unordered_list
+            list_item
+              container [ref=556]
+                text "Web, desktop, and mobile"
+                text "apps"
+            list_item
+              container [ref=557]
+                text "Project & task"
+                text "management"
+            list_item
+              container [ref=558]
+                text "Board"
+                text "view"
+            list_item
+              container [ref=559]
+                text "Table"
+                text "view"
+            list_item
+              text "Active task limitations apply"
+          unordered_list
+            list_item
+        group "2 / 5"
+          container
+            heading
+              text "Team"
+            paragraph
+              text "Intelligent project management"
+          container
+            container
+              text "$10"
+              text "user/month"
+            button [ref=560]
+              text "Try for free"
+            paragraph
+              text "No credit card required"
+          paragraph
+            text "All of Free, plus:"
+          unordered_list
+            list_item
+              text "2 to 15 users"
+            list_item
+              container [ref=561]
+                text "AI"
+                text "Essentials"
+            list_item
+              container [ref=562]
+                text "Shareable"
+                text "dashboard"
+            list_item
+              container [ref=563]
+                text "Interactive Gantt"
+                text "charts"
+            list_item
+              container [ref=564]
+                text "Custom fields and"
+                text "workflows"
+          unordered_list
+            list_item
+        group "3 / 5"
+          container
+            heading
+              text "Business"
+            paragraph
+              text "Customizable platform to manage your workflows"
+          container
+            container
+              text "$25"
+              text "user/month"
+            button [ref=565]
+              text "Try for free"
+            paragraph
+              text "No credit card required"
+          paragraph
+            text "All of Team, plus:"
+          unordered_list
+            list_item
+              text "5 to 200 users"
+            list_item
+              container [ref=566]
+                text "AI Elite"
+                text "features"
+            list_item
+              container [ref=567]
+                text "Templatize your"
+                text "work"
+            list_item
+              text "Standard integration"
+            list_item
+              container [ref=568]
+                text "Resource and capacity"
+                text "planning"
+            list_item
+              text "Workflow customizations"
+          unordered_list
+            list_item
+        group "4 / 5"
+          paragraph
+            text "MOST POPULAR"
+          container
+            heading
+              text "Pinnacle"
+            paragraph
+              text "Built for complex workflows"
+          container
+            button [ref=569]
+              text "Contact us"
+            paragraph
+              text "Connect with us for pricing"
+          paragraph
+            text "All of Business, plus:"
+          unordered_list
+            list_item
+              container [ref=570]
+                text "AI Elite"
+                text "features"
+            list_item
+              container [ref=571]
+                text "Advanced resource and capacity"
+                text "planning"
+            list_item
+              container [ref=572]
+                text "Budgeting (track"
+                text "financials)"
+            list_item
+              container [ref=573]
+                text "Advanced reporting and"
+                text "BI"
+            list_item
+              container [ref=574]
+                text "Single sign-on"
+                text "SSO"
+            list_item
+              container [ref=575]
+                text "Advanced security and"
+                text "compliance"
+            list_item
+              container [ref=576]
+                text "Wrike Datahub (10K"
+                text "records)"
+          unordered_list
+            list_item
+        group "5 / 5"
+          paragraph
+            text "NEW!"
+          container
+            heading
+              text "Apex"
+            paragraph
+              text "Powering human and AI-led enterprise workflows"
+          container
+            button [ref=577]
+              text "Contact us"
+            paragraph
+              text "Connect with us for pricing"
+          paragraph
+            text "All of Pinnacle, plus:"
+          unordered_list
+            list_item
+              container [ref=578]
+                text "AI Elite"
+                text "features"
+            list_item
+              text "Unlimited Whiteboards"
+            list_item
+              text "Integrations and automations with Wrike Integrate"
+            list_item
+              container [ref=579]
+                text "Bi-directional integrations with third-party solutions with Wrike"
+                text "Sync"
+            list_item
+              text "Wrike Datahub (30M records)"
+          unordered_list
+            list_item
+      anchor [ref=580, loc=href:/comparison-table/, url=https://www.wrike.com/comparison-table/]
+        text "Compare all features"
+        svg_root
+      paragraph
+        text "The pricing outlined herein is valid only for new purchases occurring on or after January 21, 2026. It is not offered and does not apply to any prior purchases. Wrike reserves the right to adjust its ..."
+      paragraph
+        text "The amount shown is priced per month and billed on an annual per-user basis."
+    container
+      paragraph
+        text "TRUSTED BY 20,000+ ORGANIZATIONS WORLDWIDE"
+      container
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+        image
+    heading
+      text "Scale work delivery with"
+      text "Wrike add-ons"
+    paragraph
+      text "The following premium features give your teams the additional context, control, and collaboration capabilities they need to put AI to work at enterprise scale. They are included with an Apex subscript..."
+    container
+      image
+      container
+        heading
+          text "New!"
+          text "Wrike Whiteboard"
+        paragraph
+          text "Collaborate on a visual canvas, run brainstorming sessions, visualize complex ideas, and action on those together in a highly engaging environment."
+    container
+      text "$15"
+      text "user/month"
+      button [ref=581]
+        text "Contact us"
+      anchor [ref=582, url=https://www.wrike.com/features/whiteboard/]
+        text "Learn more"
+        svg_root
+    image
+    container
+      image
+      container
+        heading
+          text "Wrike Integrate "
+        text "Connect Wrike to your apps, build no-code automations, and run end-to-end workflows from one secure platform."
+    container
+      text "Custom pricing"
+      button [ref=583]
+        text "Contact us"
+      anchor [ref=584, loc=href:/add-on-wrike-integrate/, url=https://www.wrike.com/add-on-wrike-integrate/]
+        text "Learn more"
+        svg_root
+    image
+    container
+      image
+      container
+        heading
+          text "Wrike Two-Way Sync"
+        text "Set up two-way syncs between your Wrike account and 22 integrated systems, including Jira, GitHub, and more."
+    container
+      text "Custom pricing"
+      button [ref=585]
+        text "Contact us"
+      anchor [ref=586, loc=href:/features/wrike-sync/, url=https://www.wrike.com/features/wrike-sync/]
+        text "Learn more"
+        svg_root
+    image
+    container
+      image
+      container
+        heading
+          text "Wrike Datahub"
+        paragraph
+          text "Simplify your data connection and reporting to get the context you need and align seamlessly with your workflows."
+    container
+      text "Custom pricing"
+      button [ref=587]
+        text "Contact us"
+      anchor [ref=588, loc=href:/features/datahub/, url=https://www.wrike.com/features/datahub/]
+        text "Learn more"
+        svg_root
+    image
+    container
+      image
+      container
+        heading
+          text "Wrike Lock"
+        text "Control access to your Wrike data by managing your own encryption keys."
+    container
+      text "Custom pricing"
+      button [ref=589]
+        text "Contact us"
+      anchor [ref=590, loc=href:/add-on-wrike-lock/, url=https://www.wrike.com/add-on-wrike-lock/]
+        text "Learn more"
+        svg_root
+    image
+    container
+      image
+      container
+        heading
+          text "New!"
+          text "AI Elite action pack"
+        paragraph
+          text "Tailor your AI capacity in Wrike with AI Elite action packs, a fully scalable solution that grows with your business needs."
+    container
+      text "Custom pricing"
+      button [ref=591]
+        text "Contact us"
+      anchor [ref=592, url=https://www.wrike.com/ai/]
+        text "Learn more"
+        svg_root
+    image
+    heading
+      text "Governed AI"
+      text ". Unleashed productivity."
+    paragraph
+      text "When people trust AI to handle work reliably, they delegate more. When they delegate more, delivery scales. Here's how Wrike makes that happen."
+    anchor "Explore AI agents" [ref=593, loc=css:a[aria-label="Explore AI agents"], url=https://www.wrike.com/ai/agents/]
+      container
+        text "AI agents"
+        paragraph
+          text "Wrike agents are delivering outstanding results in production and in real customer workflows with real operational outcomes."
+      container
+        text "Explore AI agents"
+        svg_root
+      image
+    anchor "Discover Copilot" [ref=594, loc=css:a[aria-label="Discover Copilot"], url=https://www.wrike.com/ai/copilot/]
+      container
+        text "Wrike Copilot"
+        paragraph
+          text "Wrike Copilot is an AI assistant built into your projects that answers questions, summarizes work, and keeps your team moving without the back-and-forth."
+      container
+        text "Discover Copilot"
+        svg_root
+      image
+    anchor "Learn more" [ref=595, loc=css:a[aria-label="Learn more"], url=https://www.wrike.com/ai/features/#productivity]
+      container
+        text "Productivity features"
+        paragraph
+          text "Dramatically increase output with built-in features that reduce clicks and creation time."
+      container
+        text "Learn more"
+        svg_root
+      image
+    anchor "Unlock new insights" [ref=596, loc=css:a[aria-label="Unlock new insights"], url=https://www.wrike.com/ai/features/]
+      container
+        text "AI insights"
+        paragraph
+          text "Save hours of digging to find what you need. Wrike AI insights turn raw work data into clear, actionable intelligence."
+      container
+        text "Unlock new insights"
+        svg_root
+      image
+    anchor "Connect your AI" [ref=597, loc=css:a[aria-label="Connect your AI"], url=https://www.wrike.com/ai/mcp/]
+      container
+        text "MCP Server"
+        paragraph
+          text "Connect Wrike to your AI assistants and ramp productivity safely with a single seamless experience."
+      container
+        text "Connect your AI"
+        svg_root
+      image
+    anchor [ref=598, url=https://www.wrike.com/ai/features/]
+      text "See all Wrike AI features"
+      svg_root
+    container
+      image
+      heading
+        text "Try our trusted work management platform for free"
+      paragraph
+        text "Sign up for a free two-week trial of Wrike today — no credit card required."
+      form
+        container
+          textbox [ref=599]
+          text "Enter your business email"
+          container [ref=600]
+        button [ref=601]
+          text "Try Wrike for free"
+      image
+    container
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+      image
+    heading
+      text "FAQ"
+    heading
+      button [ref=602]
+        text "What are the different types of licenses?"
+    heading
+      button [ref=603]
+        text "What happens when my trial has expired?"
+    heading
+      button [ref=604]
+        text "How do I purchase a subscription?"
+    heading
+      button [ref=605]
+        text "Can I pay in my local currency and what kind of taxes apply?"
+    heading
+      button [ref=606]
+        text "Where will my data be hosted?"
+    heading
+      button [ref=607]
+        text "Does Wrike have an on-premise solution or is it just cloud-based?"
+    heading
+      button [ref=608]
+        text "What does Wrike do to ensure GDPR compliance?"
+    heading
+      button [ref=609]
+        text "What is a Professional Services deployment add-on?"
+    heading
+      button [ref=610]
+        text "From what team size do you recommend adding a Professional Services deployment to my solution?"
+    heading
+      button [ref=611]
+        text "Do I need to pay extra to have access to Wrike Copilot and AI agents?"
+    heading
+      button [ref=612]
+        text "If I exceed my plan’s AI action limit, will I be invoiced automatically?"
+  container
+    unordered_list
+      list_item
+        text "PRODUCT"
+        unordered_list "Product"
+          list_item
+            anchor [ref=613, url=https://www.wrike.com/tour/]
+              text "Product tour"
+          list_item
+            anchor [ref=614, url=https://www.wrike.com/price/]
+              text "Pricing"
+          list_item
+            anchor [ref=615, url=https://www.wrike.com/ai/]
+              text "Wrike AI"
+          list_item
+            anchor [ref=616, url=https://www.wrike.com/templates/]
+              text "Templates"
+          list_item
+            anchor [ref=617, url=https://www.wrike.com/apps/]
+              text "Apps & Integrations"
+          list_item
+            anchor [ref=618, loc=href:/features/ease-of-use/, url=https://www.wrike.com/features/ease-of-use/]
+              text "Ease of use"
+          list_item
+            anchor [ref=619, url=https://www.wrike.com/features/gantt-chart/]
+              text "Gantt Chart Tool"
+          list_item
+            anchor [ref=620, url=https://www.wrike.com/security/]
+              text "Security"
+          list_item
+            anchor [ref=621, url=https://developers.wrike.com/]
+              text "Wrike API"
+          list_item
+            anchor [ref=622, loc=href:/compare/, url=https://www.wrike.com/compare/]
+              text "Compare"
+          list_item
+            anchor [ref=623, url=https://www.wrike.com/features/]
+              text "Features"
+      list_item
+        text "SOLUTIONS"
+        unordered_list "Solutions"
+          list_item
+            anchor [ref=624, url=https://www.wrike.com/enterprise/]
+              text "Enterprise"
+          list_item
+            anchor [ref=625, url=https://www.wrike.com/marketing/]
+              text "Marketing"
+          list_item
+            anchor [ref=626, url=https://www.wrike.com/teams/creative-project-management/]
+              text "Creative"
+          list_item
+            anchor [ref=627, url=https://www.wrike.com/project-management-office/]
+              text "Project Management"
+          list_item
+            anchor [ref=628, url=https://www.wrike.com/teams/product-management/]
+              text "Product Development"
+          list_item
+            anchor [ref=629, url=https://www.wrike.com/teams/business-operations/]
+              text "Business Operations"
+          list_item
+            anchor [ref=630, url=https://www.wrike.com/professional-services-management/]
+              text "Professional Services"
+          list_item
+            anchor [ref=631, url=https://www.wrike.com/teams/it-project-management/]
+              text "IT Management"
+          list_item
+            anchor [ref=632, loc=href:/use-cases/collaboration-tool-for-students/, url=https://www.wrike.com/use-cases/collaboration-tool-for-students/]
+              text "Students"
+          list_item
+            anchor [ref=633, loc=href:/solutions/, url=https://www.wrike.com/solutions/]
+              text "All solutions"
+      list_item
+        text "RESOURCES"
+        unordered_list "Resources"
+          list_item
+            anchor [ref=634, url=https://help.wrike.com/hc/en-us/]
+              text "Help Center"
+          list_item
+            anchor [ref=635, url=https://community.wrike.com/]
+              text "Community"
+          list_item
+            anchor [ref=636, url=https://www.wrike.com/blog/]
+              text "Blog"
+          list_item
+            anchor [ref=637, url=https://www.wrike.com/webinars/]
+              text "Webinars"
+          list_item
+            anchor [ref=638, url=https://www.wrike.com/discover/]
+              text "Interactive Training"
+          list_item
+            anchor [ref=639, url=https://www.wrike.com/support-packages/]
+              text "Support Packages"
+          list_item
+            anchor [ref=640, loc=href:https://status.wrike.com/, url=https://status.wrike.com/]
+              text "Wrike Status"
+          list_item
+            anchor [ref=641, loc=href:/partners/reseller-locator/, url=https://www.wrike.com/partners/reseller-locator/]
+              text "Find a Reseller"
+          list_item
+            anchor [ref=642, loc=href:/google-apps/, url=https://www.wrike.com/google-apps/]
+              text "Google Project Management Tools"
+          list_item
+            anchor [ref=643, loc=href:/security/privacy/#details-for-california-residents, url=https://www.wrike.com/security/privacy/#details-for-california-residents]
+              text "CA Notice at Collection"
+      list_item
+        text "COMPANY"
+        unordered_list "Company"
+          list_item
+            anchor [ref=644, loc=href:/company/, url=https://www.wrike.com/company/]
+              text "About Us"
+          list_item
+            anchor [ref=645, loc=href:/newsroom/executive-bios/, url=https://www.wrike.com/newsroom/executive-bios/]
+              text "Leadership"
+          list_item
+            anchor [ref=646, loc=href:/jobs/, url=https://www.wrike.com/jobs/]
+              text "Careers"
+          list_item
+            anchor [ref=647, url=https://www.wrike.com/customer-stories/]
+              text "Our Customers"
+          list_item
+            anchor [ref=648, loc=href:/events/, url=https://www.wrike.com/events/]
+              text "Events"
+          list_item
+            anchor [ref=649, loc=href:/newsroom/, url=https://www.wrike.com/newsroom/]
+              text "Newsroom"
+          list_item
+            anchor [ref=650, url=https://www.wrike.com/partners/]
+              text "Partner Program"
+          list_item
+            anchor [ref=651, url=https://www.wrike.com/collaborate/conference/]
+              text "Collaborate - User Conference"
+          list_item
+            anchor [ref=652, loc=href:https://klaxoon.com/, url=https://klaxoon.com/]
+              text "Klaxoon by Wrike"
+          list_item
+            anchor [ref=653, url=https://www.wrike.com/contact-us/]
+              text "Contact Us"
+    unordered_list
+      list_item
+        text "GUIDES"
+        unordered_list "Guides"
+          list_item
+            anchor [ref=654, loc=href:/project-management-guide/, url=https://www.wrike.com/project-management-guide/]
+              text "Project Management Guide"
+          list_item
+            anchor [ref=655, loc=href:/professional-services-guide/, url=https://www.wrike.com/professional-services-guide/]
+              text "Professional Services Guide"
+          list_item
+            anchor [ref=656, loc=href:/workflow-guide/, url=https://www.wrike.com/workflow-guide/]
+              text "Workflow Guide"
+          list_item
+            anchor [ref=657, loc=href:/kanban-guide/, url=https://www.wrike.com/kanban-guide/]
+              text "Kanban Guide"
+          list_item
+            anchor [ref=658, loc=href:/agile-guide/, url=https://www.wrike.com/agile-guide/]
+              text "Agile Guide"
+          list_item
+            anchor [ref=659, loc=href:/scrum-guide/, url=https://www.wrike.com/scrum-guide/]
+              text "Scrum Guide"
+          list_item
+            anchor [ref=660, loc=href:/marketing-guide/, url=https://www.wrike.com/marketing-guide/]
+              text "Marketing Project Management Guide"
+          list_item
+            anchor [ref=661, loc=href:/collaborative-work-guide/, url=https://www.wrike.com/collaborative-work-guide/]
+              text "Collaborative Work Management Guide"
+          list_item
+            anchor [ref=662, loc=href:/digital-marketing-guide/, url=https://www.wrike.com/digital-marketing-guide/]
+              text "Digital Marketing Guide"
+          list_item
+            anchor [ref=663, loc=href:/go-to-market-guide/, url=https://www.wrike.com/go-to-market-guide/]
+              text "Go-to-Market Guide"
+          list_item
+            anchor [ref=664, loc=href:/remote-work-guide/, url=https://www.wrike.com/remote-work-guide/]
+              text "Remote Work Guide"
+          list_item
+            anchor [ref=665, loc=href:/return-to-work-guide/, url=https://www.wrike.com/return-to-work-guide/]
+              text "Return to Work Guide"
+          list_item
+            anchor [ref=666, loc=href:/product-management-guide/, url=https://www.wrike.com/product-management-guide/]
+              text "Product Management Guide"
+          list_item
+            anchor [ref=667, loc=href:/goal-setting-guide/, url=https://www.wrike.com/goal-setting-guide/]
+              text "Goal Setting Guide"
+    unordered_list
+      list_item
+        text "Latest in Wrike Blog"
+        unordered_list "Latest in Wrike Blog"
+          list_item
+            anchor [ref=668, loc=href:/blog/manufacturing-project-management-software/, url=https://www.wrike.com/blog/manufacturing-project-management-software/]
+              text "Manufacturing project management software: 9 top tools"
+          list_item
+            anchor [ref=669, loc=href:/blog/wrike-ai-news/, url=https://www.wrike.com/blog/wrike-ai-news/]
+              text "Wrike AI: Our freshest features and newest innovations"
+          list_item
+            anchor [ref=670, loc=href:/blog/salesforce-integration/, url=https://www.wrike.com/blog/salesforce-integration/]
+              text "7 best project management tools that integrate with Salesforce"
+          list_item
+            anchor [ref=671, loc=href:/blog/how-an-ai-agent-protects-deep-work-for-one-creative-team/, url=https://www.wrike.com/blog/how-an-ai-agent-protects-deep-work-for-one-creative-team/]
+              text "How an AI agent protects deep work for one creative team"
+        button [ref=672]
+          text "Show more"
+    heading
+      text "Subscribe to Wrike news and updates"
+    text "Stay informed with the latest news and updates by subscribing to our marketing emails."
+    svg_root
+    unordered_list
+      list_item
+        anchor [ref=673, loc=href:https://itunes.apple.com/us/app/wrike/id890048871?mt=8, url=https://itunes.apple.com/us/app/wrike/id890048871?mt=8]
+          image
+      list_item
+        anchor [ref=674, loc=href:https://play.google.com/store/apps/details?id=com.wrike, url=https://play.google.com/store/apps/details?id=com.wrike]
+          image
+    unordered_list
+      list_item
+        anchor [ref=675, loc=href:https://x.com/wrike, url=https://x.com/wrike]
+          image
+      list_item
+        anchor [ref=676, loc=href:https://www.facebook.com/Wrike, url=https://www.facebook.com/Wrike]
+          image
+      list_item
+        anchor [ref=677, loc=href:https://www.linkedin.com/company/wrike, url=https://www.linkedin.com/company/wrike]
+          image
+      list_item
+        anchor [ref=678, loc=href:https://www.youtube.com/user/WrikeTeam, url=https://www.youtube.com/user/WrikeTeam]
+          image
+      list_item
+        anchor [ref=679, loc=href:https://www.instagram.com/wriketeam/, url=https://www.instagram.com/wriketeam/]
+          image
+    image
+    image
+    image
+    paragraph
+      text "Enterprise-Grade Security."
+      anchor [ref=680, url=https://www.wrike.com/security/]
+        text "Uptime Over 99.9%"
+    text "©2006-2026 Wrike, Inc. All rights reserved. Patented."
+    anchor [ref=681, loc=href:/security/privacy/, url=https://www.wrike.com/security/privacy/]
+      text "Privacy Policy"
+    text "."
+    anchor [ref=682, loc=href:/security/terms/, url=https://www.wrike.com/security/terms/]
+      text "Terms of Service"
+    text "."
+    button [ref=683]
+      text "Cookie Preferences."
+    anchor [ref=684, loc=href:/security/privacy-choices/, url=https://www.wrike.com/security/privacy-choices/]
+      text "Your Privacy Choices"
+    svg_root
+    paragraph
+      anchor [ref=685, url=https://www.wrike.com/]

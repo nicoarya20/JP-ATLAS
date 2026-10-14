@@ -1,0 +1,86 @@
+{
+  "id": "8e6edb14-b45a-4f24-9ebd-73bbe5716826",
+  "ok": true,
+  "result": {
+    "runId": "run_16f58567a2c7",
+    "taskId": "task_f014098d0528",
+    "dispatchId": "ctx_714f012b912c",
+    "state": "ready",
+    "stage": "input_accepted",
+    "turnStart": "observed",
+    "setup": {
+      "requested": "not_applicable",
+      "effective": "not_applicable",
+      "source": "existing_worktree",
+      "hookFound": false,
+      "startupPolicy": "start-immediately",
+      "state": "not_applicable"
+    },
+    "launch": {
+      "requested": {
+        "agent": "claude",
+        "model": null,
+        "effort": null
+      },
+      "effective": {
+        "agent": "claude",
+        "model": null,
+        "effort": null
+      }
+    },
+    "mode": {
+      "mode": "terminal",
+      "preferred": "terminal",
+      "reason": "user_default",
+      "detail": "Started a terminal agent worker, the default for new agent tabs in your settings."
+    },
+    "timeoutMs": 60000,
+    "effects": [
+      {
+        "kind": "worktree",
+        "action": "reused",
+        "id": "0ffb3aea-6bea-41a6-b89f-b3835daabad2::/Users/lukman/orca/projects/new-pm"
+      },
+      {
+        "kind": "setup",
+        "action": "not_applicable",
+        "state": "not_applicable"
+      },
+      {
+        "kind": "terminal",
+        "role": "agent",
+        "action": "created",
+        "id": "term_f41a9289-8bab-40b3-8d24-6df6c0b2ccad",
+        "surface": "visible"
+      },
+      {
+        "kind": "dispatch_input",
+        "role": "agent",
+        "id": "term_f41a9289-8bab-40b3-8d24-6df6c0b2ccad",
+        "state": "accepted"
+      }
+    ],
+    "prompt": {
+      "requestId": "3a87945b-afc4-41cd-941a-c1f77d1c7d80",
+      "stages": [
+        "input_accepted",
+        "turn_started"
+      ],
+      "provider": "claude",
+      "observation": "supported",
+      "processIncarnation": "3e05dff3-935c-4bee-bac1-116ae1e7f447",
+      "generation": 22,
+      "baselineWorkingSequence": 0,
+      "baselineExplicitWorkingStartedAt": null,
+      "baselinePermissionSequence": 0
+    },
+    "residualResources": [],
+    "mutation": {
+      "requestId": "3a87945b-afc4-41cd-941a-c1f77d1c7d80",
+      "replayed": false
+    }
+  },
+  "_meta": {
+    "runtimeId": "d6554230-2e6e-4f18-8a6b-2c362f9c365d"
+  }
+}
