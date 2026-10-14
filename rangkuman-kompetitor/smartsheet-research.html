@@ -1,0 +1,1168 @@
+<title>Smartsheet Research</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --bg: #F0F3FF;
+    --surface: #FFFFFF;
+    --surface-2: #E8ECFB;
+    --border: #D0D8F5;
+    --text: #0F1A6E;
+    --text-muted: #5A6A9E;
+    --accent: #3B4FE0;
+    --accent-subtle: #EEF0FF;
+    --green: #12A36B;
+    --green-bg: #E8FBF3;
+    --red: #D93025;
+    --red-bg: #FEF0EF;
+    --orange: #E07B00;
+    --orange-bg: #FFF6E5;
+    --tag-bg: #E0E5FF;
+    --tag-text: #2D3DBF;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #07102B;
+      --surface: #0F1C42;
+      --surface-2: #162048;
+      --border: #253070;
+      --text: #D5DCF8;
+      --text-muted: #7E92CC;
+      --accent: #6878F5;
+      --accent-subtle: #1A2255;
+      --green: #2DD98D;
+      --green-bg: #0B2B1F;
+      --red: #F47066;
+      --red-bg: #2D100E;
+      --orange: #F5A524;
+      --orange-bg: #2B1C00;
+      --tag-bg: #1E2A60;
+      --tag-text: #9AAAF8;
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #07102B;
+    --surface: #0F1C42;
+    --surface-2: #162048;
+    --border: #253070;
+    --text: #D5DCF8;
+    --text-muted: #7E92CC;
+    --accent: #6878F5;
+    --accent-subtle: #1A2255;
+    --green: #2DD98D;
+    --green-bg: #0B2B1F;
+    --red: #F47066;
+    --red-bg: #2D100E;
+    --orange: #F5A524;
+    --orange-bg: #2B1C00;
+    --tag-bg: #1E2A60;
+    --tag-text: #9AAAF8;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    background: var(--bg);
+    color: var(--text);
+    padding-inline: 20px;
+    padding-block: 0;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Epilogue', system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+
+  /* Header */
+  .page-header {
+    background: var(--accent);
+    margin-inline: -20px;
+    padding: 40px 28px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+  }
+
+  .header-label {
+    font-family: 'Epilogue', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    margin-bottom: 10px;
+  }
+
+  .page-header h1 {
+    font-size: clamp(26px, 5vw, 42px);
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .page-header p {
+    color: rgba(255,255,255,0.80);
+    max-width: 56ch;
+    font-size: 14.5px;
+  }
+
+  .header-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  .meta-chip {
+    background: rgba(255,255,255,0.15);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.90);
+    font-weight: 500;
+  }
+
+  /* Nav */
+  .sticky-nav {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    margin-inline: -20px;
+    padding-inline: 20px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sticky-nav::-webkit-scrollbar { display: none; }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 14px 10px 12px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .nav-btn:hover { color: var(--text); }
+  .nav-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Content */
+  .content-area { padding-block: 28px; max-width: 900px; margin-inline: auto; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .section-desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  /* Menu Cards */
+  .menu-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .menu-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 0 14px;
+    align-items: start;
+  }
+
+  .menu-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--accent-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .menu-info { grid-column: 2; }
+  .menu-name {
+    font-family: 'Epilogue', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .menu-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .route-badge {
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-size: 11px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-weight: 600;
+    grid-column: 3;
+    margin-top: 2px;
+  }
+
+  .sub-items {
+    grid-column: 2 / 4;
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .sub-chip {
+    font-size: 12px;
+    padding: 3px 10px;
+    background: var(--surface-2);
+    border-radius: 100px;
+    color: var(--text-muted);
+    font-weight: 500;
+    border: 1px solid var(--border);
+  }
+
+  /* Two col layout for features */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 580px) {
+    .two-col { grid-template-columns: 1fr; }
+    .menu-card { grid-template-columns: 40px 1fr; }
+    .route-badge { grid-column: 1 / 3; margin-top: 4px; }
+    .sub-items { grid-column: 1 / 3; }
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .feature-card h4 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .feature-card h4 span { font-size: 16px; }
+
+  .feature-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .feature-list li {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding-left: 14px;
+    position: relative;
+  }
+  .feature-list li::before {
+    content: '·';
+    position: absolute;
+    left: 2px;
+    color: var(--accent);
+    font-size: 18px;
+    line-height: 1;
+    top: 1px;
+  }
+
+  /* Pros & Cons */
+  .pros-cons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 580px) {
+    .pros-cons-grid { grid-template-columns: 1fr; }
+  }
+
+  .pros-card {
+    background: var(--green-bg);
+    border: 1px solid var(--green);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+
+  .cons-card {
+    background: var(--red-bg);
+    border: 1px solid var(--red);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+
+  .card-header {
+    font-family: 'Epilogue', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pros-card .card-header { color: var(--green); }
+  .cons-card .card-header { color: var(--red); }
+
+  .pros-cons-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pros-cons-list li {
+    font-size: 13.5px;
+    padding-left: 20px;
+    position: relative;
+    color: var(--text);
+    line-height: 1.55;
+  }
+
+  .pros-card .pros-cons-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-weight: 700;
+    font-size: 12px;
+    top: 2px;
+  }
+
+  .cons-card .pros-cons-list li::before {
+    content: '✗';
+    position: absolute;
+    left: 0;
+    color: var(--red);
+    font-weight: 700;
+    font-size: 12px;
+    top: 2px;
+  }
+
+  .audience-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .label-general {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+  }
+
+  .label-elderly {
+    background: var(--orange-bg);
+    color: var(--orange);
+  }
+
+  .orange-card {
+    background: var(--orange-bg);
+    border: 1px solid var(--orange);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .orange-card .card-header { color: var(--orange); }
+
+  /* Summary section */
+  .summary-block {
+    background: var(--accent-subtle);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+
+  .summary-block h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .summary-block p {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .verdict-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 580px) {
+    .verdict-row { grid-template-columns: 1fr; }
+  }
+
+  .verdict-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+
+  .verdict-score {
+    font-family: 'Epilogue', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .verdict-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin-block: 24px;
+  }
+
+  .tag-new {
+    background: #E8F9EE;
+    color: #18813E;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+
+  .tag-premium {
+    background: #FFF3DC;
+    color: #A06B00;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .tag-new {
+      background: #0A2B18;
+      color: #44D97F;
+    }
+    :root:not([data-theme="light"]) .tag-premium {
+      background: #2A1800;
+      color: #F5B73E;
+    }
+  }
+  :root[data-theme="dark"] .tag-new { background: #0A2B18; color: #44D97F; }
+  :root[data-theme="dark"] .tag-premium { background: #2A1800; color: #F5B73E; }
+
+  .bottom-pad { height: 60px; }
+</style>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div class="header-label">Riset Kompetitor · Project Management Tools</div>
+  <h1>Smartsheet</h1>
+  <p>Dokumentasi mendalam menu, fungsi, route path, keunggulan dan kelemahan — khususnya untuk pengguna awam dan orang tua.</p>
+  <div class="header-meta">
+    <span class="meta-chip">🔗 app.smartsheet.com</span>
+    <span class="meta-chip">📅 September 2026</span>
+    <span class="meta-chip">📊 Trial 30 hari aktif</span>
+    <span class="meta-chip">Business Plan</span>
+  </div>
+</div>
+
+<!-- STICKY NAV -->
+<nav class="sticky-nav" id="main-nav">
+  <button class="nav-btn active" data-section="overview">Overview</button>
+  <button class="nav-btn" data-section="main-menu">Menu Utama</button>
+  <button class="nav-btn" data-section="browse">Browse & Sub-menu</button>
+  <button class="nav-btn" data-section="sheet">Sheet Editor</button>
+  <button class="nav-btn" data-section="general">Orang Awam</button>
+  <button class="nav-btn" data-section="elderly">Orang Tua</button>
+  <button class="nav-btn" data-section="verdict">Kesimpulan</button>
+</nav>
+
+<!-- CONTENT -->
+<div class="content-area">
+
+  <!-- OVERVIEW -->
+  <section class="section active" id="overview">
+    <h2 class="section-title">Overview Smartsheet</h2>
+    <p class="section-desc">Platform manajemen proyek berbasis spreadsheet dengan fitur Gantt, Board, Form, dan Automation.</p>
+
+    <div class="summary-block">
+      <h3>Apa itu Smartsheet?</h3>
+      <p>Smartsheet adalah platform manajemen kerja berbasis cloud yang menggunakan tampilan spreadsheet sebagai fondasi. Tidak seperti PM tools lain, Smartsheet terasa seperti Excel yang bisa berkolaborasi real-time, dengan fitur Gantt chart, Automation, Form digital, dan Dashboard pelaporan. Didesain untuk tim enterprise, namun tersedia trial untuk UKM.</p>
+    </div>
+
+    <div class="verdict-row">
+      <div class="verdict-tile">
+        <div class="verdict-score">9</div>
+        <div class="verdict-label">Menu Utama</div>
+      </div>
+      <div class="verdict-tile">
+        <div class="verdict-score">5</div>
+        <div class="verdict-label">Tipe View</div>
+      </div>
+      <div class="verdict-tile">
+        <div class="verdict-score">4</div>
+        <div class="verdict-label">Menu Sheet Editor</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="two-col">
+      <div class="feature-card">
+        <h4><span>🧩</span> Tipe Konten yang Bisa Dibuat</h4>
+        <ul class="feature-list">
+          <li>Sheet (tabel/spreadsheet)</li>
+          <li>Report (laporan lintas sheet)</li>
+          <li>Dashboard (visualisasi data)</li>
+          <li>Form (pengisian data dari luar)</li>
+          <li>WorkApp (aplikasi khusus)</li>
+          <li>Workspace (folder proyek)</li>
+          <li>Scenario Plan (perencanaan skenario)</li>
+          <li>Portfolio (kumpulan proyek)</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4><span>🤖</span> Fitur AI & Automation</h4>
+        <ul class="feature-list">
+          <li>Smart Assist — chatbot AI di homepage & dalam sheet</li>
+          <li>Build with AI — buat sheet/form dari deskripsi teks</li>
+          <li>Automation dari template atau dari awal</li>
+          <li>Trigger berbasis kondisi (status berubah, tanggal lewat, dll)</li>
+          <li>Notifikasi otomatis ke email/Slack</li>
+          <li>Data Shuttle — sinkronisasi data antar sistem</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN MENU -->
+  <section class="section" id="main-menu">
+    <h2 class="section-title">Menu Navigasi Utama</h2>
+    <p class="section-desc">9 item di sidebar kiri + 3 item di bagian bawah sidebar (Launcher, Help, Account).</p>
+
+    <div class="menu-grid">
+      <div class="menu-card">
+        <div class="menu-icon">🏠</div>
+        <div class="menu-info">
+          <div class="menu-name">Home</div>
+          <div class="menu-desc">Halaman utama berisi Smart Assist (chatbot AI), Quick Links (pintasan ke file yang di-pin), dan Mentions (sebutan user di komentar). Tampilan dashboard pribadi setiap login.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Smart Assist AI</span>
+            <span class="sub-chip">Quick Links</span>
+            <span class="sub-chip">Mentions</span>
+            <span class="sub-chip">Create a Workspace</span>
+          </div>
+        </div>
+        <span class="route-badge">/b/home</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">🔔</div>
+        <div class="menu-info">
+          <div class="menu-name">Notifications</div>
+          <div class="menu-desc">Panel slide-in dari kiri. Menampilkan semua notifikasi (perubahan sheet, komentar, approval) dengan tab "All" dan "Requests". Tidak berpindah URL — overlay di atas halaman aktif.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Tab: All</span>
+            <span class="sub-chip">Tab: Requests</span>
+            <span class="sub-chip">More Options</span>
+          </div>
+        </div>
+        <span class="route-badge">overlay (panel)</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">🔍</div>
+        <div class="menu-info">
+          <div class="menu-name">Search</div>
+          <div class="menu-desc">Dialog pencarian global yang muncul sebagai overlay. Menampilkan riwayat item yang baru dibuka (Recents) dan hasil pencarian real-time. Bisa cari sheet, report, dashboard, form, dll.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Cari semua aset</span>
+            <span class="sub-chip">Riwayat recent</span>
+            <span class="sub-chip">Clear recent searches</span>
+          </div>
+        </div>
+        <span class="route-badge">overlay (dialog)</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">📁</div>
+        <div class="menu-info">
+          <div class="menu-name">Browse</div>
+          <div class="menu-desc">Halaman navigasi file dengan panel sidebar kiri yang dapat di-expand. Menampilkan semua konten dalam akun: Portfolios, WorkApps, Scenario Plans, Sheets, Workspaces, dan Deleted Items.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Portfolios <span class="tag-new">New</span></span>
+            <span class="sub-chip">WorkApps</span>
+            <span class="sub-chip">Scenario Plans</span>
+            <span class="sub-chip">Sheets</span>
+            <span class="sub-chip">Workspaces</span>
+            <span class="sub-chip">Deleted Items</span>
+          </div>
+        </div>
+        <span class="route-badge">/browse/workspaces</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">🕐</div>
+        <div class="menu-info">
+          <div class="menu-name">Recents</div>
+          <div class="menu-desc">Flyout panel yang menampilkan item yang baru-baru ini dibuka. Bisa search by name dalam list recents. Setiap item bisa di-pin atau dibuka options menu. Tidak berpindah URL.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Search by name</span>
+            <span class="sub-chip">Pin item</span>
+            <span class="sub-chip">Open options</span>
+          </div>
+        </div>
+        <span class="route-badge">overlay (flyout)</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">⭐</div>
+        <div class="menu-info">
+          <div class="menu-name">Favorites</div>
+          <div class="menu-desc">Flyout panel berisi item yang sudah di-bintangi (favorit). Cara menambahkan: klik ikon bintang di sebelah nama sheet/workspace. Empty state dengan instruksi yang jelas.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Item berbintang</span>
+            <span class="sub-chip">Empty state guide</span>
+          </div>
+        </div>
+        <span class="route-badge">overlay (flyout)</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">👥</div>
+        <div class="menu-info">
+          <div class="menu-name">Resource Management <span class="tag-premium">Premium</span></div>
+          <div class="menu-desc">Modul manajemen sumber daya manusia untuk mengalokasikan anggota tim ke proyek. Memiliki 5 sub-tab: My Work, People, Schedule, Projects, Reports. Fitur ini memerlukan upgrade/trial tersendiri.</div>
+          <div class="sub-items">
+            <span class="sub-chip">My Work</span>
+            <span class="sub-chip">People</span>
+            <span class="sub-chip">Schedule</span>
+            <span class="sub-chip">Projects</span>
+            <span class="sub-chip">Reports</span>
+          </div>
+        </div>
+        <span class="route-badge">/r/rm</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">📱</div>
+        <div class="menu-info">
+          <div class="menu-name">WorkApps</div>
+          <div class="menu-desc">Platform khusus untuk membangun aplikasi web ringkas dari data Smartsheet. Dapat difilter "Shared with you" dan "Recently updated". Membuka subaplikasi di dalam iframe terpisah (workapps.smartsheet.com).</div>
+          <div class="sub-items">
+            <span class="sub-chip">Shared with you</span>
+            <span class="sub-chip">Recently updated</span>
+            <span class="sub-chip">Search WorkApps</span>
+          </div>
+        </div>
+        <span class="route-badge">/workapps</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">➕</div>
+        <div class="menu-info">
+          <div class="menu-name">Create</div>
+          <div class="menu-desc">Dropdown menu untuk membuat konten baru. Tersedia opsi Build with AI (buat dari deskripsi), pilih lokasi, lalu pilih jenis konten. Lebih banyak opsi tersedia di "More options".</div>
+          <div class="sub-items">
+            <span class="sub-chip">🤖 Build with AI</span>
+            <span class="sub-chip">Sheet</span>
+            <span class="sub-chip">Report</span>
+            <span class="sub-chip">Dashboard</span>
+            <span class="sub-chip">Form</span>
+            <span class="sub-chip">Import</span>
+            <span class="sub-chip">Workspace</span>
+            <span class="sub-chip">More options...</span>
+          </div>
+        </div>
+        <span class="route-badge">overlay (dropdown)</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:16px;margin-bottom:14px;">Menu Bagian Bawah Sidebar</h3>
+
+    <div class="menu-grid">
+      <div class="menu-card">
+        <div class="menu-icon">⚡</div>
+        <div class="menu-info">
+          <div class="menu-name">Launcher (Ikon Grid)</div>
+          <div class="menu-desc">Dialog berisi shortcut ke produk Smartsheet lainnya. Saat ini hanya menampilkan link ke WorkApps (workapps.smartsheet.com).</div>
+        </div>
+        <span class="route-badge">overlay (dialog)</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">❓</div>
+        <div class="menu-info">
+          <div class="menu-name">Help (Resource Center)</div>
+          <div class="menu-desc">Panel "Resource Center" yang bisa di-resize. Berisi search artikel, video hero cards, quick links (Community, Feedback, Training, Sales, University), rekomendasi artikel kontekstual, dan tombol Chat with Support.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Search artikel</span>
+            <span class="sub-chip">Video cards</span>
+            <span class="sub-chip">Smartsheet Community</span>
+            <span class="sub-chip">Get training</span>
+            <span class="sub-chip">Chat with support</span>
+          </div>
+        </div>
+        <span class="route-badge">overlay (panel)</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">👤</div>
+        <div class="menu-info">
+          <div class="menu-name">Account (Avatar)</div>
+          <div class="menu-desc">Dropdown menu pengaturan akun dengan dua kelompok: pengaturan organisasi (Plan, Billing, User Management, Group Management) dan pengaturan personal (Settings, Integrations, Colors & Logo, Contacts).</div>
+          <div class="sub-items">
+            <span class="sub-chip">Upgrade Plan</span>
+            <span class="sub-chip">Plan & Billing</span>
+            <span class="sub-chip">User Management</span>
+            <span class="sub-chip">Group Management</span>
+            <span class="sub-chip">Personal Settings</span>
+            <span class="sub-chip">Apps & Integrations</span>
+            <span class="sub-chip">Colors & Logo</span>
+            <span class="sub-chip">My Contacts</span>
+            <span class="sub-chip">Sign Out</span>
+          </div>
+        </div>
+        <span class="route-badge">overlay (dropdown)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- BROWSE -->
+  <section class="section" id="browse">
+    <h2 class="section-title">Browse & Sub-menu Navigasi</h2>
+    <p class="section-desc">Halaman Browse adalah pusat navigasi file dengan sidebar kiri yang kaya sub-item.</p>
+
+    <div class="menu-grid">
+      <div class="menu-card">
+        <div class="menu-icon">🗂️</div>
+        <div class="menu-info">
+          <div class="menu-name">Portfolios <span class="tag-new">New</span></div>
+          <div class="menu-desc">Fitur terbaru untuk mengelompokkan dan melihat progress beberapa proyek sekaligus dalam satu tampilan. Berguna untuk manajer yang mengawasi banyak proyek paralel.</div>
+        </div>
+        <span class="route-badge">/r/portfolios</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">📱</div>
+        <div class="menu-info">
+          <div class="menu-name">WorkApps (dari Browse)</div>
+          <div class="menu-desc">Shortcut ke halaman WorkApps juga tersedia dalam Browse sidebar, konsisten dengan navigasi utama.</div>
+        </div>
+        <span class="route-badge">/browse/workapps</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">🧮</div>
+        <div class="menu-info">
+          <div class="menu-name">Scenario Plans</div>
+          <div class="menu-desc">Alat perencanaan skenario "what-if" — simulasikan berbagai skenario anggaran atau timeline sebelum memutuskan. Fitur perencanaan strategis tingkat lanjut.</div>
+        </div>
+        <span class="route-badge">/browse/scenario-plans</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">📋</div>
+        <div class="menu-info">
+          <div class="menu-name">Sheets (Personal Folder)</div>
+          <div class="menu-desc">Daftar semua sheet milik akun yang belum masuk ke workspace tertentu. Termasuk file-file personal di luar kolaborasi. Tampilan tabel dengan kolom Name, Sharing Status, Owner, Last Update.</div>
+        </div>
+        <span class="route-badge">/folders/personal</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">🏢</div>
+        <div class="menu-info">
+          <div class="menu-name">Workspaces</div>
+          <div class="menu-desc">Container utama untuk mengorganisir proyek. Setiap workspace bisa berisi sheet, report, dashboard, form, dan folder. Tampilan dengan info sharing status, owner, dan last update.</div>
+          <div class="sub-items">
+            <span class="sub-chip">Actions dropdown</span>
+            <span class="sub-chip">Select all</span>
+            <span class="sub-chip">Delete selected</span>
+            <span class="sub-chip">Create...</span>
+          </div>
+        </div>
+        <span class="route-badge">/browse/workspaces</span>
+      </div>
+
+      <div class="menu-card">
+        <div class="menu-icon">🗑️</div>
+        <div class="menu-info">
+          <div class="menu-name">Deleted Items</div>
+          <div class="menu-desc">Recycle bin berisi file yang sudah dihapus. Memungkinkan restore file yang tidak sengaja terhapus.</div>
+        </div>
+        <span class="route-badge">/deleted</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:16px;margin-bottom:6px;">Workspace Detail View</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Saat masuk ke workspace, URL berubah ke pattern berikut:</p>
+
+    <div class="feature-card">
+      <h4><span>🔗</span> Pola URL Workspace & Sheet</h4>
+      <ul class="feature-list">
+        <li><code style="font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:3px;">/browse/workspaces/{workspaceId}</code> — isi workspace tertentu</li>
+        <li><code style="font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:3px;">/sheets/{sheetId}?view=gantt</code> — sheet terbuka di view Gantt</li>
+        <li><code style="font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:3px;">/sheets/{sheetId}?view=table</code> — sheet terbuka di view Table</li>
+        <li>View type tersimpan dalam query param <code style="font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:3px;">?view=</code></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SHEET EDITOR -->
+  <section class="section" id="sheet">
+    <h2 class="section-title">Sheet Editor — Fitur & Menu</h2>
+    <p class="section-desc">Saat membuka sebuah sheet, antarmuka berubah total dengan toolbar dan menu bar tersendiri.</p>
+
+    <div class="two-col">
+      <div class="feature-card">
+        <h4><span>📄</span> Menu Bar Sheet: File</h4>
+        <ul class="feature-list">
+          <li>Create New...</li>
+          <li>Import (dari Excel, CSV, Google Sheets, dll)</li>
+          <li>Open... <em style="font-size:11px;opacity:.6;">(⌘+/)</em></li>
+          <li>Save <em style="font-size:11px;opacity:.6;">(⌘+S)</em></li>
+          <li>Save as New...</li>
+          <li>Save as Template...</li>
+          <li>Rename...</li>
+          <li>Refresh</li>
+          <li>Share...</li>
+          <li>Send as Attachment...</li>
+          <li>Email Shared Users...</li>
+          <li>Export (ke Excel, PDF, CSV, HTML)</li>
+          <li>Print...</li>
+          <li>Delete...</li>
+          <li>View Activity Log...</li>
+          <li>Properties...</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4><span>⚡</span> Menu Bar Sheet: Automation</h4>
+        <ul class="feature-list">
+          <li>Create from template (banyak template workflow)</li>
+          <li>Create from scratch (custom trigger & action)</li>
+          <li>Manage automation workflows (kelola semua workflow)</li>
+          <li>Learn more (dokumentasi)</li>
+        </ul>
+
+        <div style="height:16px;"></div>
+        <h4><span>📝</span> Menu Bar Sheet: Forms</h4>
+        <ul class="feature-list">
+          <li>Create Form... (buat form dari kolom sheet)</li>
+          <li>Manage Forms... (kelola semua form)</li>
+          <li>Learn about Forms</li>
+        </ul>
+
+        <div style="height:16px;"></div>
+        <h4><span>🔌</span> Menu Bar Sheet: Connections</h4>
+        <ul class="feature-list">
+          <li>Data Shuttle — Create workflow</li>
+          <li>Data Shuttle — Manage workflows</li>
+          <li>Learn more</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:16px;margin-bottom:14px;">5 Tipe View dalam Sheet</h3>
+
+    <div class="two-col">
+      <div class="menu-card" style="grid-template-columns:40px 1fr;">
+        <div class="menu-icon" style="width:40px;height:40px;">📊</div>
+        <div class="menu-info">
+          <div class="menu-name">Table <span class="tag-new">New</span></div>
+          <div class="menu-desc">Grid spreadsheet klasik. Kolom horizontal, baris data. Mirip Excel/Google Sheets. Tipe paling familiar untuk pemula.</div>
+        </div>
+      </div>
+      <div class="menu-card" style="grid-template-columns:40px 1fr;">
+        <div class="menu-icon" style="width:40px;height:40px;">📌</div>
+        <div class="menu-info">
+          <div class="menu-name">Board</div>
+          <div class="menu-desc">Kanban board — kolom berdasarkan status/kategori. Cocok untuk workflow visual seperti Trello.</div>
+        </div>
+      </div>
+      <div class="menu-card" style="grid-template-columns:40px 1fr;">
+        <div class="menu-icon" style="width:40px;height:40px;">➡️</div>
+        <div class="menu-info">
+          <div class="menu-name">Timeline</div>
+          <div class="menu-desc">Visualisasi tugas berdasarkan waktu tanpa hierarki task parent-child. Lebih sederhana dari Gantt.</div>
+        </div>
+      </div>
+      <div class="menu-card" style="grid-template-columns:40px 1fr;">
+        <div class="menu-icon" style="width:40px;height:40px;">📅</div>
+        <div class="menu-info">
+          <div class="menu-name">Gantt</div>
+          <div class="menu-desc">View default untuk project management. Menampilkan tugas + bar waktu + hierarki (parent/subtask) + Baselines.</div>
+        </div>
+      </div>
+      <div class="menu-card" style="grid-template-columns:40px 1fr;">
+        <div class="menu-icon" style="width:40px;height:40px;">🗓️</div>
+        <div class="menu-info">
+          <div class="menu-name">Calendar</div>
+          <div class="menu-desc">Tampilan kalender bulanan berdasarkan kolom tanggal. Berguna untuk melihat deadline dan event dalam kalender.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:16px;margin-bottom:14px;">Panel Kanan Sheet (Icon Toolbar)</h3>
+    <div class="feature-card">
+      <h4><span>🛠️</span> Ikon-ikon Panel Kanan</h4>
+      <ul class="feature-list">
+        <li><strong>Comments</strong> — thread diskusi per baris/cell</li>
+        <li><strong>Attachments</strong> — lampirkan file ke baris</li>
+        <li><strong>Activity Log</strong> — riwayat semua perubahan</li>
+        <li><strong>Add Row</strong> — tambah baris baru</li>
+        <li><strong>Alerts & Actions</strong> — pengaturan notifikasi</li>
+        <li><strong>Publish</strong> — publikasikan sheet sebagai halaman web</li>
+        <li><strong>Automations</strong> — akses cepat ke automation</li>
+        <li><strong>Connectors</strong> — integrasi dengan tool eksternal</li>
+        <li><strong>Smart Assist ✨</strong> — AI assistant dalam konteks sheet</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- GENERAL USER -->
+  <section class="section" id="general">
+    <h2 class="section-title">Untuk Orang Awam (Pengguna Umum)</h2>
+    <p class="section-desc">Analisis berdasarkan kemudahan penggunaan, kurva belajar, dan kejelasan antarmuka.</p>
+
+    <div class="audience-label label-general">Pengguna Umum / Baru Mengenal PM Tools</div>
+
+    <div class="pros-cons-grid">
+      <div class="pros-card">
+        <div class="card-header">👍 Keunggulan</div>
+        <ul class="pros-cons-list">
+          <li><strong>Tampilan familiar seperti Excel</strong> — orang yang terbiasa spreadsheet akan langsung merasa nyaman dengan grid/tabel</li>
+          <li><strong>Smart Assist AI membantu orientasi</strong> — bisa tanya "apa yang bisa dilakukan Smartsheet" langsung dari homepage</li>
+          <li><strong>Build with AI mempercepat onboarding</strong> — user bisa buat sheet dari deskripsi teks, tidak perlu mulai dari nol</li>
+          <li><strong>Template berlimpah</strong> — ratusan template siap pakai untuk project, HR, marketing, dll</li>
+          <li><strong>Multiple view dalam satu data</strong> — cukup satu sheet, bisa dilihat sebagai Gantt, Kanban, Kalender sekaligus</li>
+          <li><strong>Form mudah dibuat</strong> — Forms menu di sheet editor memudahkan pengumpulan data dari orang luar tim</li>
+          <li><strong>Help Center kontekstual</strong> — Resource Center menampilkan artikel relevan berdasarkan halaman yang sedang dibuka</li>
+          <li><strong>Quick Links di homepage</strong> — bisa pin file yang sering dipakai agar mudah diakses</li>
+        </ul>
+      </div>
+      <div class="cons-card">
+        <div class="card-header">👎 Kelemahan</div>
+        <ul class="pros-cons-list">
+          <li><strong>Terlalu banyak fitur untuk pemula</strong> — 9 item di sidebar, 5 view, 4 menu bar sheet, panel kanan — sangat overwhelm di awal</li>
+          <li><strong>Terminologi teknis membingungkan</strong> — "Workspace", "WorkApp", "Scenario Plan", "Portfolio", "Data Shuttle" tidak jelas tanpa konteks</li>
+          <li><strong>Resource Management membutuhkan upgrade</strong> — muncul di sidebar tapi langsung diblokir upsell — membuat frustasi</li>
+          <li><strong>Tidak ada onboarding walkthrough step-by-step</strong> — tidak ada tour interaktif yang memandu user baru langkah demi langkah</li>
+          <li><strong>URL tidak intuitif</strong> — path seperti /b/home atau /r/rm tidak membantu user memahami posisi mereka</li>
+          <li><strong>Switching antar halaman butuh orientasi ulang</strong> — layout Browse berbeda dengan homepage, butuh adaptasi</li>
+          <li><strong>Import/Export tersembunyi di File menu</strong> — user baru sering tidak tahu bisa import Excel langsung</li>
+          <li><strong>Automation terasa teknis</strong> — meskipun ada template, setup automation butuh pemahaman konsep trigger-action</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:15px;margin-bottom:12px;">Kesimpulan untuk Orang Awam</h3>
+    <div class="summary-block">
+      <p>Smartsheet <strong>cocok untuk orang awam yang sudah familiar dengan Excel/Google Sheets</strong>, karena tampilan dasarnya identik. Namun untuk orang yang benar-benar baru dengan konsep project management digital, kurva belajarnya cukup tinggi. Butuh waktu 1–2 minggu untuk benar-benar nyaman menggunakannya secara mandiri. Fitur AI (Smart Assist + Build with AI) sangat membantu memperpendek kurva belajar ini.</p>
+    </div>
+  </section>
+
+  <!-- ELDERLY USER -->
+  <section class="section" id="elderly">
+    <h2 class="section-title">Untuk Orang Tua / Senior</h2>
+    <p class="section-desc">Analisis aksesibilitas, kejelasan visual, dan kompleksitas navigasi untuk pengguna senior (55+ tahun).</p>
+
+    <div class="audience-label label-elderly">Pengguna 55+ / Orang Tua</div>
+
+    <div class="pros-cons-grid">
+      <div class="pros-card">
+        <div class="card-header">👍 Yang Membantu</div>
+        <ul class="pros-cons-list">
+          <li><strong>Label teks di setiap ikon sidebar</strong> — tidak hanya ikon saja, ada tulisan "Home", "Browse", dll di bawah ikon — sangat membantu</li>
+          <li><strong>Warna brand konsisten</strong> — biru-ungu Smartsheet konsisten di seluruh antarmuka sehingga mudah dikenali</li>
+          <li><strong>Struktur folder mirip File Explorer Windows</strong> — hierarchi Workspace > Folder > Sheet terasa familiar</li>
+          <li><strong>Sheet mirip Excel yang sudah dikenal</strong> — orang tua yang pernah pakai Excel di kantor akan merasa sedikit familiar</li>
+          <li><strong>Notifikasi "All clear!" yang positif</strong> — feedback visual yang jelas dan tidak menakutkan</li>
+          <li><strong>Tombol Share dan Upgrade terlihat jelas</strong> — CTA utama menggunakan warna kontras tinggi</li>
+        </ul>
+      </div>
+      <div class="orange-card">
+        <div class="card-header">⚠️ Hambatan Serius</div>
+        <ul class="pros-cons-list">
+          <li><strong>Font sangat kecil (10px default)</strong> — toolbar sheet menggunakan font 10pt — sangat melelahkan bagi mata senior</li>
+          <li><strong>Ikon-ikon di panel kanan sheet tidak berlabel</strong> — 10 ikon tanpa teks memaksa user menghafal fungsinya</li>
+          <li><strong>Terlalu banyak konsep baru sekaligus</strong> — "WorkApp", "Scenario Plan", "Gantt", "Automation" — vocabulary yang asing dan banyak</li>
+          <li><strong>Tidak ada mode sederhana / mode pemula</strong> — selalu menampilkan versi penuh dengan semua fitur, tidak bisa disederhanakan</li>
+          <li><strong>Tooltip muncul dengan hover</strong> — pengguna mobile/tablet atau yang tidak biasa hover mouse sering melewatkan penjelasan ini</li>
+          <li><strong>Pesan error dan loading tersembunyi</strong> — indikator loading hanya teks kecil "Please stand by..." di sudut</li>
+          <li><strong>Smart Assist menambah kebingungan</strong> — box AI yang menonjol di tengah homepage bisa membingungkan — "ini untuk apa?"</li>
+          <li><strong>Shortcut keyboard tidak diajarkan</strong> — shortcut (⌘+S, ⌘+/) ada tapi tidak diperkenalkan secara proaktif</li>
+          <li><strong>Tidak ada panduan visual yang jelas saat pertama kali login</strong> — langsung masuk ke antarmuka penuh tanpa guide</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="font-size:15px;margin-bottom:12px;">Rekomendasi untuk Orang Tua</h3>
+    <div class="summary-block">
+      <p>Smartsheet <strong>tidak direkomendasikan sebagai alat pertama</strong> bagi pengguna senior yang belum familiar dengan software project management. Antarmukanya kaya fitur tapi tidak ramah onboarding untuk kelompok ini. Jika harus digunakan, disarankan pendampingan awal atau pelatihan minimal 3–4 sesi. Yang terbaik: batasi dulu akses hanya ke fungsi utama (membuka sheet, mengisi baris, melihat Gantt) sambil fitur lain dikenalkan bertahap.</p>
+    </div>
+  </section>
+
+  <!-- VERDICT -->
+  <section class="section" id="verdict">
+    <h2 class="section-title">Kesimpulan & Positioning</h2>
+    <p class="section-desc">Ringkasan objektif Smartsheet sebagai referensi pengembangan produk.</p>
+
+    <div class="verdict-row">
+      <div class="verdict-tile">
+        <div class="verdict-score" style="color:var(--green);">7/10</div>
+        <div class="verdict-label">Untuk Pengguna Umum</div>
+      </div>
+      <div class="verdict-tile">
+        <div class="verdict-score" style="color:var(--orange);">4/10</div>
+        <div class="verdict-label">Untuk Orang Tua / Senior</div>
+      </div>
+      <div class="verdict-tile">
+        <div class="verdict-score" style="color:var(--accent);">9/10</div>
+        <div class="verdict-label">Untuk Tim Enterprise</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="menu-grid">
+      <div class="feature-card">
+        <h4><span>🎯</span> Target Pengguna Sesungguhnya</h4>
+        <ul class="feature-list">
+          <li>Project Manager di perusahaan menengah-besar</li>
+          <li>Tim yang sudah familiar dengan Excel/Google Sheets</li>
+          <li>Organisasi yang butuh otomasi workflow dan pelaporan</li>
+          <li>Tim IT/Ops yang membangun tool internal (WorkApps)</li>
+          <li>Perusahaan yang butuh integrasi banyak sistem (Connections/Data Shuttle)</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4><span>💡</span> Celah yang Bisa Kita Ambil</h4>
+        <ul class="feature-list">
+          <li>Onboarding yang lebih guided dan step-by-step</li>
+          <li>Mode "Simple" vs "Advanced" untuk sembunyikan fitur kompleks</li>
+          <li>Label ikon yang selalu terlihat (bukan hanya tooltip hover)</li>
+          <li>Terminologi yang lebih Indonesia/kontekstual</li>
+          <li>Font dan ukuran teks yang lebih besar untuk aksesibilitas</li>
+          <li>Fitur premium yang tidak muncul sebagai upsell mengejutkan</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <h4><span>💪</span> Yang Perlu Kita Benchmark</h4>
+        <ul class="feature-list">
+          <li>Multiple view dalam satu data (Table/Board/Gantt/Calendar)</li>
+          <li>Forms yang terintegrasi langsung ke sheet</li>
+          <li>Automation workflow dengan banyak template</li>
+          <li>Smart Assist AI yang kontekstual</li>
+          <li>Workspace + struktur folder yang jelas</li>
+          <li>Resource Center dengan artikel kontekstual</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="summary-block">
+      <h3>Catatan Riset</h3>
+      <p>Data dikumpulkan melalui eksplorasi langsung akun Smartsheet Business Plan trial (September 2026). Semua screenshot tersimpan di folder <code style="font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:3px;">ss-kompetitor/</code>. Fitur premium seperti Resource Management tidak bisa dijelajahi sepenuhnya karena memerlukan upgrade terpisah.</p>
+    </div>
+  </section>
+
+</div>
+
+<div class="bottom-pad"></div>
+
+<script>
+  const nav = document.getElementById('main-nav');
+  const btns = nav.querySelectorAll('.nav-btn');
+  const sections = document.querySelectorAll('.section');
+
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.section;
+      btns.forEach(b => b.classList.remove('active'));
+      sections.forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(target).classList.add('active');
+
+      try { localStorage.setItem('ss-tab', target); } catch(e) {}
+    });
+  });
+
+  // Restore last tab
+  try {
+    const saved = localStorage.getItem('ss-tab');
+    if (saved) {
+      const btn = nav.querySelector(`[data-section="${saved}"]`);
+      if (btn) btn.click();
+    }
+  } catch(e) {}
+</script>

@@ -6,6 +6,10 @@
       "headers": {
         "Authorization": "Bearer ${MCP_ADMIN_TOKEN}"
       }
+    },
+    "penpot": {
+      "type": "http",
+      "url": "https://penpot.wibudev.com/mcp/stream?userToken=${PENPOT_TOKEN}"
     }
   }
 }

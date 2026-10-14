@@ -1,0 +1,193 @@
+[p1 "Project Management Software Features by Wrike" | space "research wrike website"(6): 1 managed, 0 untracked — p1* "Project Management Software Features by Wrike"]
+root
+  container
+    container
+      svg_root
+      container
+        text "Hands-on practice with agentic AI and real Wrike instances in action."
+        anchor [ref=466, url=https://www.wrike.com/collaborate/conference/]
+          text "Register for Collaborate 2026 today"
+        text "."
+    container
+      container
+        anchor [ref=467, url=https://www.wrike.com/]
+          image
+        unordered_list
+          list_item
+            button [ref=468]
+              text "Products"
+          list_item
+            button [ref=469]
+              text "Solutions"
+          list_item
+            button [ref=470]
+              text "Resources"
+          list_item
+            unordered_list
+              list_item
+                container
+                  paragraph
+                    text "LEARN"
+                  unordered_list
+                    list_item
+                      anchor [ref=487, loc=href:/resources/, url=https://www.wrike.com/resources/]
+                        paragraph
+                          text "Resource hub"
+                    list_item
+                      anchor [ref=488, url=https://www.wrike.com/blog/]
+                        paragraph
+                          text "Blog"
+                    list_item
+                      anchor [ref=489, loc=href:/guides/, url=https://www.wrike.com/guides/]
+                        paragraph
+                          text "Guides"
+                    list_item
+                      anchor [ref=490, url=https://www.wrike.com/webinars/]
+                        paragraph
+                          text "Webinars"
+                    list_item
+                      anchor [ref=491, url=https://www.wrike.com/discover/]
+                        paragraph
+                          text "Trainings & certification"
+              list_item
+                container
+                  paragraph
+                    text "COMMUNITY"
+                  unordered_list
+                    list_item
+                      anchor [ref=492, url=https://www.wrike.com/customer-stories/]
+                        paragraph
+                          text "Customer stories"
+                    list_item
+                      anchor [ref=493, url=https://community.wrike.com/]
+                        paragraph
+                          text "Wrike Community"
+                    list_item
+                      anchor [ref=494, url=https://www.wrike.com/partners/]
+                        paragraph
+                          text "Partners"
+                    list_item
+                      anchor [ref=495, url=https://developers.wrike.com/]
+                        paragraph
+                          text "Developers"
+              list_item
+                container
+                  paragraph
+                    text "SUPPORT"
+                  unordered_list
+                    list_item
+                      anchor [ref=496, url=https://help.wrike.com/hc/en-us/]
+                        paragraph
+                          text "Help Center"
+                    list_item
+                      anchor [ref=497, url=https://www.wrike.com/support-packages/]
+                        paragraph
+                          text "Premium Support Packages"
+                    list_item
+                      anchor [ref=498, loc=href:/professional-services/, url=https://www.wrike.com/professional-services/]
+                        paragraph
+                          text "Professional services"
+                    list_item
+                      anchor [ref=499, url=https://www.wrike.com/templates/]
+                        paragraph
+                          text "Templates"
+              list_item
+                container [ref=500]
+                  anchor [ref=501, url=https://www.wrike.com/collaborate/conference/]
+                    paragraph
+                      text "Join The Workflow Builder track at Collaborate 2026!"
+                    paragraph
+                      text "Built for project managers and workflow architects."
+                    text "Register now"
+                    image
+            container
+              button [ref=502]
+                text "Try Wrike for free"
+              button [ref=503]
+                text "Contact Sales"
+          list_item
+            anchor [ref=471, url=https://www.wrike.com/price/]
+              text "Pricing"
+          list_item
+            anchor [ref=472, url=https://www.wrike.com/enterprise/]
+              text "Enterprise"
+      container
+        anchor [ref=473, loc=href:/contact-sales/, url=https://www.wrike.com/contact-sales/]
+          text "Contact Sales"
+        button [ref=474]
+          svg_root
+          text "EN"
+        anchor [ref=475, loc=href:https://login.wrike.com/login/, url=https://login.wrike.com/login/]
+          text "Log in"
+        button [ref=476]
+          text "Try Wrike for free"
+    container
+      container
+        container
+          container
+            heading
+              text "Wrike features enable"
+              text "work to flow"
+              text "for any workflow"
+            paragraph
+              text "Wrike’s award-winning, intelligent, and flexible features are unmatched at scaling work, results, and growth."
+          container
+            button [ref=477]
+              text "Try Wrike for free"
+            button [ref=478]
+              text "Request a demo"
+        container
+          video
+          button [ref=479]
+      container
+        anchor [ref=480, loc=href:/features/#ideate, url=https://www.wrike.com/features/#ideate]
+          text "Ideate & align"
+        anchor [ref=481, loc=href:/features/#plan, url=https://www.wrike.com/features/#plan]
+          text "Plan & resource"
+        anchor [ref=482, loc=href:/features/#execute, url=https://www.wrike.com/features/#execute]
+          text "Execute"
+        anchor [ref=483, loc=href:/features/#report, url=https://www.wrike.com/features/#report]
+          text "Report & analyze"
+        anchor [ref=484, loc=href:/features/#learn, url=https://www.wrike.com/features/#learn]
+          text "Learn & adapt"
+        anchor [ref=485, loc=href:/features/#integrate, url=https://www.wrike.com/features/#integrate]
+          text "Integrate"
+        anchor [ref=486, loc=href:/features/#safeguard, url=https://www.wrike.com/features/#safeguard]
+          text "Safeguard"
+  iframe [ref=504]
+    root
+      log
+        button "Close messenger" [ref=505, loc=css:button[aria-label="Close messenger"]]
+          svg_root
+        container
+          container
+            container
+              container [ref=506]
+                container
+                  image
+                  heading
+                    text "Kate"
+                    text "AI Product Expert"
+                button "Message preview - click to open messenger and view options. Message preview contents: Welcome back! I'm Kate, an AI Product Expert at Wrike. What questions do you have about our features?"
+                  paragraph
+                    text "Welcome back! I'm Kate, an AI Product Expert at Wrike. What questions do you have about our features?"
+              container [ref=507]
+                button "Message preview - click to open messenger and view options. Message preview contents: Saw that you're interested in the first project with Wrike. I'm available if you have questions!"
+                  paragraph
+                    text "Saw that you're interested in the first project with Wrike. I'm available if you have questions!"
+            form
+              container
+                button [ref=508]
+                  text "Contact Sales"
+                container
+                  textbox "Ask a question" [ref=509, loc=css:textarea[placeholder="Ask a question"]]
+                    text "Ask a question"
+                  button "Send" [ref=510, loc=css:button[aria-label="Send"]]
+                    svg_root
+          container "Messenger footer"
+            list
+              list_item
+                paragraph
+                  text "By continuing to chat, you consent to this chat being stored and its contents used in accordance with our"
+                  anchor [ref=511, url=https://www.wrike.com/security/privacy/]
+                    text "Privacy Policy"
