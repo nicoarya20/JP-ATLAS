@@ -31,14 +31,17 @@ export async function purgeLegacyDemoUsers(): Promise<number> {
   }
 }
 
-/** One-off sweep shortly after boot; failures are logged (no PII) and never stop the server. */
+/** Run the sweep once; a failure is logged (error object only, no PII) and never propagates. */
+export async function runLegacyDemoPurge(): Promise<void> {
+  try {
+    const deleted = await purgeLegacyDemoUsers();
+    logger.info({ deleted }, 'legacy demo users purged');
+  } catch (err) {
+    logger.warn({ err }, 'legacy demo user purge failed');
+  }
+}
+
+/** One-off sweep shortly after boot so a failure can never stop the server from starting. */
 export function schedulePurgeLegacyDemoUsers(): void {
-  setTimeout(async () => {
-    try {
-      const deleted = await purgeLegacyDemoUsers();
-      logger.info({ deleted }, 'legacy demo users purged');
-    } catch (err) {
-      logger.warn({ err }, 'legacy demo user purge failed');
-    }
-  }, BOOT_DELAY_MS).unref?.();
+  setTimeout(() => void runLegacyDemoPurge(), BOOT_DELAY_MS).unref?.();
 }

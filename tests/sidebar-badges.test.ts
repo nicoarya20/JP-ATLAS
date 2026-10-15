@@ -34,6 +34,10 @@ describe('devSidebarBadges', () => {
     );
     expect(badges['/dev/visits'].tone).toBe('info');
   });
+  test('the settings badge no longer counts demo users (feature retired in S0A-13)', async () => {
+    const tip = (await devSidebarBadges({ fresh: true }))['/dev/settings'].tooltip ?? '';
+    expect(tip.toLowerCase()).not.toContain('demo');
+  });
   test('serves the same promise within the cache window', async () => {
     const a = devSidebarBadges();
     const b = devSidebarBadges();

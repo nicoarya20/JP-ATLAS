@@ -13,7 +13,6 @@ type SessionUser = {
   email: string;
   banned?: boolean;
   banExpires?: Date | null;
-  isAnonymous?: boolean;
   createdAt?: Date;
   approvalStatus?: string;
 } | null;
@@ -155,22 +154,16 @@ describe('requireAnyRole', () => {
   });
 });
 
-describe('resolveActor — demo expiry', () => {
-  // Past the max TTL (7 days) / brand new, so the result holds for any stored demo TTL.
+describe('resolveActor — session lookup', () => {
   const longAgo = new Date(Date.now() - 8 * 86_400_000);
 
-  test('anonymous user past the TTL → signed out; fresh one passes as demo', async () => {
-    ctx.user = { id: 'd1', email: 'd1@test.local', isAnonymous: true, createdAt: longAgo };
-    expect(await resolveActor(request())).toBeNull();
-    ctx.user = { id: 'd2', email: 'd2@test.local', isAnonymous: true, createdAt: new Date() };
-    expect((await resolveActor(request()))?.isDemo).toBe(true);
-  });
-
-  test('regular user never triggers the demo settings lookup', async () => {
+  test('an old session resolves without any settings lookup and carries no demo flag', async () => {
     const readSpy = spyOn(settingsCore, 'readSettingsRow');
     try {
       ctx.user = { id: 'u6', email: 'u6@test.local', createdAt: longAgo };
-      expect((await resolveActor(request()))?.user.id).toBe('u6');
+      const actor = await resolveActor(request());
+      expect(actor?.user.id).toBe('u6');
+      expect(actor).not.toHaveProperty('isDemo');
       expect(readSpy).not.toHaveBeenCalled();
     } finally {
       readSpy.mockRestore();

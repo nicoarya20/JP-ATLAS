@@ -226,15 +226,6 @@ describe('beforeCreateUser with injected policy', () => {
     expect(JSON.stringify(warn.mock.calls)).not.toContain('a@kantor.id');
     warn.mockRestore();
   });
-
-  test('anonymous demo visitors are left on the schema default', async () => {
-    const r = await beforeCreateUser(
-      { email: 'temp@x.test', emailVerified: false, isAnonymous: true },
-      null,
-      policy({ allowedDomains: new Set(['kantor.id']) }),
-    );
-    expect(r).toBeUndefined();
-  });
 });
 
 describe('afterCreateUser is soft', () => {
