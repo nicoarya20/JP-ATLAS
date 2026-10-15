@@ -119,6 +119,7 @@ describe('ACCESS_RULES', () => {
       T_A5_MEMBER_ENABLES_REVIEW: true,
       PROJECT_CLOSED_ALLOWS_TASK_WRITES: true,
       MEMBER_CAN_LEAVE_PROJECT: false,
+      MEMBER_MANAGER_CAN_TRASH_PROJECT: false,
     });
     expect(Object.isFrozen(ACCESS_RULES)).toBe(true);
   });

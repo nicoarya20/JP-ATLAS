@@ -20,6 +20,8 @@ export type AccessRules = {
   PROJECT_CLOSED_ALLOWS_TASK_WRITES: boolean;
   /** Default D: a member may remove themselves from a project. */
   MEMBER_CAN_LEAVE_PROJECT: boolean;
+  /** 15 Oct 2026 decision: a Member who manages a project may also move it to the Trash; false = only Admin/PM can. */
+  MEMBER_MANAGER_CAN_TRASH_PROJECT: boolean;
 };
 
 export const ACCESS_RULES: Readonly<AccessRules> = Object.freeze({
@@ -30,4 +32,5 @@ export const ACCESS_RULES: Readonly<AccessRules> = Object.freeze({
   T_A5_MEMBER_ENABLES_REVIEW: true,
   PROJECT_CLOSED_ALLOWS_TASK_WRITES: true,
   MEMBER_CAN_LEAVE_PROJECT: false,
+  MEMBER_MANAGER_CAN_TRASH_PROJECT: false,
 });
