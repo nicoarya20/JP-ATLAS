@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parseEmailDomains } from './account/signup-gate';
 import { assertSecretStrength } from './env-secret';
 import { invalidProxyEntries, splitProxyList } from './middleware/trusted-proxy';
 
@@ -26,6 +27,8 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   // Comma-separated emails granted super-admin (env is the source of truth).
   SUPER_ADMIN_EMAILS: z.string().optional(),
+  // Comma-separated email domains allowed to sign in (e.g. kantor.id). Empty = every domain (KEPUTUSAN Q2).
+  ALLOWED_EMAIL_DOMAINS: z.string().optional(),
   // MCP debug server — if not set, /api/mcp returns 503.
   // Generate: openssl rand -hex 32
   MCP_ADMIN_TOKEN: z.string().min(32).optional(),
@@ -58,4 +61,9 @@ export const superAdminEmails: ReadonlySet<string> = new Set(
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
+);
+
+/** Lower-cased set of email domains allowed to sign up; empty means any domain. */
+export const allowedEmailDomains: ReadonlySet<string> = parseEmailDomains(
+  env.ALLOWED_EMAIL_DOMAINS,
 );
