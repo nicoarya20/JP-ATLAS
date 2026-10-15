@@ -79,7 +79,7 @@ describe('rewriteMigrationSql', () => {
 
   test('does not alter already-guarded real migrations (0004-0013 are fixpoints)', () => {
     const dir = path.join(ROOT, 'server/db/migrations');
-    const files = readdirSync(dir).filter((f) => /^00(0[4-9]|1\d)_.*\.sql$/.test(f));
+    const files = readdirSync(dir).filter((f) => /^00(0[4-9]|1[0-3])_.*\.sql$/.test(f));
     expect(files.length).toBe(10);
     for (const f of files) {
       const original = readFileSync(path.join(dir, f), 'utf8');

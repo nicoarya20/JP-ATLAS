@@ -11,6 +11,8 @@ describe('introspectDrizzleSchema', () => {
     expect(names).toContain('account');
     expect(names).toContain('post');
     expect(names).toContain('verification');
+    expect(names).toContain('profile');
+    expect(names).toContain('user_invitation');
   });
 
   test('user table has expected columns', () => {
