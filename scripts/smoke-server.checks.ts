@@ -94,6 +94,32 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     contentType: 'application/json',
   },
   {
+    // The smoke server runs with NODE_ENV=production: email sign-up must be shut at the HTTP edge (R12 F1).
+    name: 'auth-signup-closed',
+    path: '/api/auth/sign-up/email',
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{}',
+    status: 404,
+    bodyIncludes: '"code":"NOT_FOUND"',
+  },
+  {
+    // Better Auth's admin endpoints skip our role matrix, so only impersonate/stop may pass the gate (R12 R3).
+    name: 'auth-admin-closed',
+    path: '/api/auth/admin/ban-user',
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{}',
+    status: 404,
+    bodyIncludes: '"code":"NOT_FOUND"',
+  },
+  {
+    name: 'auth-admin-list-closed',
+    path: '/api/auth/admin/list-users',
+    status: 404,
+    bodyIncludes: '"code":"NOT_FOUND"',
+  },
+  {
     name: 'API key palsu ditolak',
     path: '/api/me/logins',
     headers: { 'x-api-key': 'sp_live_bogus' },
