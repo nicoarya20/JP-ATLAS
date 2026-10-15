@@ -16,13 +16,19 @@ const ROLLBACK = path.join(import.meta.dir, `../../server/db/rollback/${TAG}.dow
 const STATEMENTS = readFileSync(MIGRATION, 'utf8')
   .split('--> statement-breakpoint')
   .filter((chunk) => chunk.replace(/^\s*--.*$/gm, '').trim().length > 0);
-const DOWN_STATEMENTS = readFileSync(ROLLBACK, 'utf8')
-  .split('\n')
-  .filter((line) => !line.startsWith('--'))
-  .join('\n')
-  .split(';')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const downStatements = (file: string) =>
+  readFileSync(file, 'utf8')
+    .split('\n')
+    .filter((line) => !line.startsWith('--'))
+    .join('\n')
+    .split(';')
+    .map((s) => s.trim())
+    .filter(Boolean);
+const DOWN_STATEMENTS = downStatements(ROLLBACK);
+// Migrations are rolled back newest first: 0016's `task` tables reference `project`, so they must go before it.
+const TASK_DOWN_STATEMENTS = downStatements(
+  path.join(import.meta.dir, '../../server/db/rollback/0016_task_core.down.sql'),
+);
 
 const TABLES = ['project', 'project_member', 'project_activity'];
 const INDEXES = [
@@ -66,7 +72,7 @@ const runMigration = async (tx: Tx) => {
   for (const stmt of STATEMENTS) await exec(tx, stmt);
 };
 const runRollback = async (tx: Tx) => {
-  for (const stmt of DOWN_STATEMENTS) await exec(tx, stmt);
+  for (const stmt of [...TASK_DOWN_STATEMENTS, ...DOWN_STATEMENTS]) await exec(tx, stmt);
 };
 
 const listNames = async (tx: Tx, query: string) =>

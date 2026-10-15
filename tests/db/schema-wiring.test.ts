@@ -4,11 +4,20 @@ import path from 'node:path';
 import { is } from 'drizzle-orm';
 import { getTableConfig, PgDialect, PgTable } from 'drizzle-orm/pg-core';
 import * as barrel from '../../server/db/schema';
-import { project, projectActivity, projectMember } from '../../server/db/schema';
+import {
+  project,
+  projectActivity,
+  projectMember,
+  task,
+  taskActivity,
+  taskChecklistItem,
+  taskComment,
+  taskKind,
+} from '../../server/db/schema';
 
 const DB_DIR = path.join(import.meta.dir, '../../server/db');
 const SCHEMA_FILE = /^schema\.[a-z][a-z-]*\.ts$/;
-// Empty modules registered up front so later tasks never edit the barrel or the drizzle config.
+// Modules registered up front so later tasks never edit the barrel or the drizzle config.
 const PROJECT_STUBS = ['profile', 'project', 'project-history', 'task', 'task-detail'];
 
 const schemaModules = readdirSync(DB_DIR)
@@ -72,18 +81,18 @@ describe('drizzle.config.ts schema glob', () => {
   });
 });
 
-describe('project tables (S0B-02)', () => {
-  const dialect = new PgDialect();
-  const cfg = (t: PgTable) => getTableConfig(t);
-  const col = (t: PgTable, name: string) => cfg(t).columns.find((c) => c.name === name);
-  const checkSql = (t: PgTable, name: string) => {
-    const c = cfg(t).checks.find((x) => x.name === name);
-    return c ? dialect.sqlToQuery(c.value).sql : undefined;
-  };
-  const fk = (t: PgTable, column: string) =>
-    cfg(t).foreignKeys.find((f) => f.reference().columns[0].name === column);
-  const indexOf = (t: PgTable, name: string) => cfg(t).indexes.find((i) => i.config.name === name);
+const dialect = new PgDialect();
+const cfg = (t: PgTable) => getTableConfig(t);
+const col = (t: PgTable, name: string) => cfg(t).columns.find((c) => c.name === name);
+const checkSql = (t: PgTable, name: string) => {
+  const c = cfg(t).checks.find((x) => x.name === name);
+  return c ? dialect.sqlToQuery(c.value).sql : undefined;
+};
+const fk = (t: PgTable, column: string) =>
+  cfg(t).foreignKeys.find((f) => f.reference().columns[0].name === column);
+const indexOf = (t: PgTable, name: string) => cfg(t).indexes.find((i) => i.config.name === name);
 
+describe('project tables (S0B-02)', () => {
   test('table names are singular snake_case', () => {
     expect(cfg(project).name).toBe('project');
     expect(cfg(projectMember).name).toBe('project_member');
@@ -171,6 +180,164 @@ describe('project tables (S0B-02)', () => {
       for (const [, t] of await tablesOf(mod)) names.add(cfg(t as PgTable).name);
     }
     for (const n of ['project_phase', 'project_milestone', 'project_deadline_extension']) {
+      expect(names.has(n)).toBe(false);
+    }
+  });
+});
+
+const colNames = (cols: unknown[]) => cols.map((c) => (c as { name: string }).name);
+const whereSql = (idx?: ReturnType<typeof indexOf>) =>
+  dialect.sqlToQuery(idx?.config.where as never).sql;
+
+describe('task tables (S0B-05)', () => {
+  test('table names are singular snake_case', () => {
+    expect(cfg(taskKind).name).toBe('task_kind');
+    expect(cfg(task).name).toBe('task');
+    expect(cfg(taskChecklistItem).name).toBe('task_checklist_item');
+    expect(cfg(taskComment).name).toBe('task_comment');
+    expect(cfg(taskActivity).name).toBe('task_activity');
+  });
+
+  test('task.number is a bigint BY DEFAULT identity on task_number_seq with a unique index', () => {
+    const number = col(task, 'number');
+    expect(number?.getSQLType()).toBe('bigint');
+    expect(number?.generatedIdentity?.type).toBe('byDefault');
+    expect(number?.generatedIdentity?.sequenceName).toBe('task_number_seq');
+    const idx = indexOf(task, 'task_number_uidx');
+    expect(idx?.config.unique).toBe(true);
+    expect(colNames(idx?.config.columns ?? [])).toEqual(['number']);
+  });
+
+  test('task: documented defaults and column types', () => {
+    expect(col(task, 'id')?.defaultFn?.()).toMatch(/^[0-9a-f-]{36}$/);
+    expect(col(task, 'status')?.default).toBe('todo');
+    expect(col(task, 'priority')?.default).toBe('medium');
+    expect(col(task, 'needs_review')?.default).toBe(false);
+    expect(col(task, 'reopen_count')?.default).toBe(0);
+    expect(col(task, 'return_count')?.default).toBe(0);
+    expect(col(task, 'last_activity_at')?.hasDefault).toBe(true);
+    expect(col(task, 'last_activity_at')?.notNull).toBe(true);
+    expect(col(task, 'estimate_hours')?.getSQLType()).toBe('numeric(6, 1)');
+    for (const name of ['start_date', 'due_date']) {
+      expect(col(task, name)?.getSQLType()).toBe('date');
+    }
+    for (const name of ['started_at', 'review_requested_at', 'completed_at', 'canceled_at']) {
+      expect(col(task, name)?.getSQLType()).toBe('timestamp with time zone');
+    }
+  });
+
+  test('task: kind_id is NOT NULL with NO ACTION and project_id cascades', () => {
+    expect(col(task, 'kind_id')?.notNull).toBe(true);
+    expect(fk(task, 'kind_id')?.onDelete).toBe('no action');
+    expect(fk(task, 'project_id')?.onDelete).toBe('cascade');
+    expect(fk(taskKind, 'project_id')?.onDelete).toBe('cascade');
+  });
+
+  test('task: actor FKs are nullable and ON DELETE SET NULL', () => {
+    for (const name of ['assignee_id', 'reviewer_id', 'created_by', 'deleted_by']) {
+      expect(col(task, name)?.notNull).toBe(false);
+      expect(fk(task, name)?.onDelete).toBe('set null');
+    }
+    expect(col(task, 'deleted_with_project_id')?.notNull).toBe(false);
+    expect(fk(task, 'deleted_with_project_id')?.onDelete).toBe('set null');
+  });
+
+  test('task: phase_id is not created while project_phase is deferred', () => {
+    expect(col(task, 'phase_id')).toBeUndefined();
+  });
+
+  test('task: the S2 transition columns stay in the table', () => {
+    for (const name of [
+      'reviewer_id',
+      'needs_review',
+      'review_requested_at',
+      'reopen_count',
+      'return_count',
+      'cancel_category',
+      'cancel_note',
+    ]) {
+      expect(col(task, name)).toBeDefined();
+    }
+  });
+
+  test('task: enum CHECK constraints use the shared tuples', () => {
+    expect(checkSql(task, 'task_status_check')).toContain(
+      "in ('todo', 'in_progress', 'in_review', 'done', 'canceled')",
+    );
+    expect(checkSql(task, 'task_priority_check')).toContain(
+      "in ('low', 'medium', 'high', 'critical')",
+    );
+    expect(checkSql(task, 'task_cancel_category_check')).toContain(
+      "in ('duplicate', 'not_needed', 'out_of_scope', 'created_by_mistake', 'other')",
+    );
+    expect(checkSql(taskKind, 'task_kind_base_kind_check')).toContain(
+      "in ('task', 'issue', 'idea')",
+    );
+  });
+
+  test('task: relational CHECK constraints', () => {
+    expect(checkSql(task, 'task_due_after_start_check')).toContain('>=');
+    expect(checkSql(task, 'task_reviewer_not_assignee_check')).toContain('<>');
+    expect(checkSql(task, 'task_canceled_needs_category_check')).toContain("<> 'canceled'");
+    expect(checkSql(task, 'task_other_needs_note_check')).toContain("IS DISTINCT FROM 'other'");
+    expect(checkSql(task, 'task_counters_check')).toContain('>= 0');
+    expect(cfg(task).checks).toHaveLength(8);
+  });
+
+  test('task: partial indexes for live lists, review queue and trash', () => {
+    const byStatus = indexOf(task, 'task_project_id_status_idx');
+    expect(colNames(byStatus?.config.columns ?? [])).toEqual(['project_id', 'status']);
+    expect(whereSql(byStatus)).toContain('IS NULL');
+    const mine = indexOf(task, 'task_assignee_id_status_due_date_idx');
+    expect(colNames(mine?.config.columns ?? [])).toEqual(['assignee_id', 'status', 'due_date']);
+    expect(whereSql(mine)).toContain('IS NULL');
+    const review = indexOf(task, 'task_project_id_reviewer_id_idx');
+    expect(colNames(review?.config.columns ?? [])).toEqual(['project_id', 'reviewer_id']);
+    expect(whereSql(review)).toContain("'in_review'");
+    expect(whereSql(indexOf(task, 'task_deleted_at_idx'))).toContain('IS NOT NULL');
+    expect(whereSql(indexOf(task, 'task_deleted_with_project_id_idx'))).toContain('IS NOT NULL');
+  });
+
+  test('task_kind: unique index on (project_id, lower(name)) and a required position', () => {
+    const idx = indexOf(taskKind, 'task_kind_project_id_name_uidx');
+    expect(idx?.config.unique).toBe(true);
+    expect(idx?.config.columns).toHaveLength(2);
+    const rendered = dialect.sqlToQuery(idx?.config.columns[1] as never).sql;
+    expect(rendered.toLowerCase()).toContain('lower(');
+    expect(col(taskKind, 'position')?.notNull).toBe(true);
+    expect(col(taskKind, 'archived_at')?.notNull).toBe(false);
+  });
+
+  test('task_checklist_item: cascade task, set-null done_by and (task_id, position) index', () => {
+    expect(fk(taskChecklistItem, 'task_id')?.onDelete).toBe('cascade');
+    expect(fk(taskChecklistItem, 'done_by')?.onDelete).toBe('set null');
+    expect(col(taskChecklistItem, 'is_done')?.default).toBe(false);
+    const idx = indexOf(taskChecklistItem, 'task_checklist_item_task_id_position_idx');
+    expect(colNames(idx?.config.columns ?? [])).toEqual(['task_id', 'position']);
+  });
+
+  test('task_comment and task_activity: snapshot names, set-null actors and timeline indexes', () => {
+    expect(fk(taskComment, 'task_id')?.onDelete).toBe('cascade');
+    expect(fk(taskComment, 'author_id')?.onDelete).toBe('set null');
+    expect(col(taskComment, 'author_name')?.notNull).toBe(false);
+    expect(col(taskComment, 'deleted_at')?.notNull).toBe(false);
+    expect(fk(taskActivity, 'task_id')?.onDelete).toBe('cascade');
+    expect(fk(taskActivity, 'actor_id')?.onDelete).toBe('set null');
+    expect(col(taskActivity, 'payload')?.getSQLType()).toBe('jsonb');
+    for (const [t, name] of [
+      [taskComment, 'task_comment_task_id_created_at_idx'],
+      [taskActivity, 'task_activity_task_id_created_at_idx'],
+    ] as const) {
+      expect(colNames(indexOf(t, name)?.config.columns ?? [])).toEqual(['task_id', 'created_at']);
+    }
+  });
+
+  test('the out-of-scope task tables are not defined yet', async () => {
+    const names = new Set<string>();
+    for (const mod of schemaModules) {
+      for (const [, t] of await tablesOf(mod)) names.add(cfg(t as PgTable).name);
+    }
+    for (const n of ['task_review', 'task_dependency', 'task_attachment', 'tag', 'task_tag']) {
       expect(names.has(n)).toBe(false);
     }
   });
