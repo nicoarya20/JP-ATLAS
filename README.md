@@ -32,7 +32,7 @@ Ketiga URL dokumentasi dilayani sebelum SSR, ber-ETag (`304` bila tidak berubah)
 |---|---|
 | **Single-port** | API + SSR dalam satu Elysia server, dev dan prod identik |
 | **Type safety end-to-end** | Eden Treaty: tipe client diekstrak dari route Elysia, tanpa codegen |
-| **Auth lengkap** | Better Auth: Google OAuth, email+password, multi-session, sistem role |
+| **Auth lengkap** | Better Auth: Google OAuth (email+password hanya di dev/test), multi-session, sistem role |
 | **SSR tanpa waterfall** | React Router v8 loader berjalan server-side, session tersedia di loader |
 | **ORM type-safe** | Drizzle ORM + PostgreSQL, schema-as-code, migration files, Drizzle Studio |
 | **Penyimpanan file** | S3-compatible lewat `Bun.S3Client`; RustFS lokal otomatis tanpa server terpisah, foto profil siap pakai |
@@ -306,7 +306,7 @@ Area `/app` dan `/profile` terbuka untuk semua role yang sudah masuk; admin dan 
 - **Undangan awal:** Admin membuat undangan berisi email dan role (berlaku 14 hari, maksimal 100 undangan aktif). Saat pemilik email itu pertama kali masuk dengan Google, akunnya langsung `approved` dengan role undangan. Email undangan harus sama dengan email Google; bila tidak cocok, akun jatuh ke `pending`.
 - **Persetujuan manual:** Admin melihat antrean `pending` di `/dashboard/users`, lalu **menyetujui** (memilih Member atau Project Manager) atau **menolak** dengan alasan 3–200 karakter yang ditampilkan kepada orang itu di `/waiting`. Akun yang ditolak bisa disetujui kemudian; akun yang sudah disetujui dicabut aksesnya dengan blokir (suspend), bukan penolakan.
 
-Batas wewenang berasal dari satu kebijakan murni (`server/access/user.policy.ts`) yang dipakai API **dan** tombol di layar: Admin hanya mengelola Member dan Project Manager (bukan sesama Admin, bukan Super-admin, bukan dirinya sendiri), hanya memberi role Member atau Project Manager, dan tidak bisa menghapus akun; Super-admin juga boleh memberi role Admin dan menghapus akun. Role `super-admin` hanya dari `SUPER_ADMIN_EMAILS`. Semua aksi ini ditolak (`IMPERSONATING`) selama sesi menyamar, tidak bisa dilakukan dengan API key, dan tercatat di audit log dengan email dimasker.
+Batas wewenang berasal dari satu kebijakan murni (`server/access/user.policy.ts`) yang dipakai API **dan** tombol di layar: Admin hanya mengelola Member dan Project Manager (bukan sesama Admin, bukan Super-admin, bukan dirinya sendiri), hanya memberi role Member atau Project Manager, dan tidak bisa menghapus akun; Super-admin juga boleh memberi role Admin dan menghapus akun. Role `super-admin` hanya dari `SUPER_ADMIN_EMAILS`. Semua aksi ini ditolak (`IMPERSONATING`) selama sesi menyamar dan tercatat di audit log dengan email dimasker. Menyetujui, menolak, mengubah role, dan mengundang juga tidak bisa dilakukan dengan API key; blokir dan hapus akun tetap mengikuti scope `users:write`.
 
 Endpoint admin (`/api/admin`, hanya Admin dan Super-admin; galat berbentuk `{ error, code }` berbahasa Indonesia):
 
@@ -327,14 +327,14 @@ Google OAuth: set `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`. Authorized redire
 - Saat admin memblokir (`POST /api/admin/users/:id/ban`), semua sesi aktif user itu dicabut seketika (tercatat di audit). Request berikutnya dari perangkat user diarahkan ke `/login?notice=session` dengan pesan bahwa sesi berakhir.
 - Bila user yang diblokir masih memegang sesi (misalnya diblokir lewat jalur lain), guard (`server/guard.ts`) menolaknya dan mengarahkan ke **`/banned`**: halaman yang menampilkan alasan, apakah permanen atau sampai kapan (dengan hitung mundur), langkah yang bisa dilakukan, tautan dukungan dari branding, tombol keluar, dan ke beranda. Ban yang sudah lewat waktunya diperlakukan sebagai dicabut.
 - Saat mencoba masuk lagi, halaman login menerjemahkan kode Better Auth (`BANNED_USER`, `INVALID_EMAIL_OR_PASSWORD`, `USER_NOT_FOUND`, …) ke pesan bahasa Indonesia yang actionable; login Google yang ditolak kembali ke `/login?error=<kode>` (bukan halaman error mentah Better Auth) berkat `errorCallbackURL`.
-- User yang **dihapus permanen** kehilangan sesinya (cascade), sehingga perangkatnya mendapat notice "sesi berakhir" di login; mencoba masuk dengan email lama menghasilkan "akun tidak ditemukan", dan login Google akan membuat akun baru yang bersih. Tidak ada jejak yang disimpan tentang akun yang dihapus (selain audit log admin).
+- User yang **dihapus permanen** kehilangan sesinya (cascade), sehingga perangkatnya mendapat notice "sesi berakhir" di login; mencoba masuk dengan email lama menghasilkan "akun tidak ditemukan", dan login Google akan membuat akun baru yang bersih (berstatus `pending`, kecuali ada undangan aktif). Tidak ada jejak yang disimpan tentang akun yang dihapus (selain audit log admin).
 
 ## Membangun fitur produk (`/app`)
 
 Template ini dipakai sebagai dasar project lain, jadi fitur produk punya satu tempat default:
 
 - **Halaman** — `app/routes/app/<nama>.tsx`, didaftarkan sebagai child layout `routes/app/layout.tsx` di `app/routes.ts`, plus item `NAV` di layout itu. Setiap loader **wajib** memanggil `requireUser(request)` (`server/guard.ts`), atau `requireAnyRole(request, [...])` bila fitur khusus role tertentu — loader layout dan halaman berjalan paralel, jadi guard layout saja tidak melindungi data halaman. `tests/app-routes.test.ts` memeriksa ini.
-- **Endpoint** — tambahkan ke `server/api/app.ts` (prefix `/api/app`); semua route di sana otomatis menolak pemanggil tanpa sesi dengan `401 UNAUTHORIZED`. Contoh: `GET /api/app/whoami` → `{ userId, name, role }`. Batasan per role: cek `actor.role` di handler dan kembalikan 403. Dari client pakai Eden: `client.api.app.whoami.get()` (`app/lib/eden.ts`).
+- **Endpoint** — tambahkan ke `server/api/app.ts` (prefix `/api/app`); semua route di sana otomatis menolak pemanggil tanpa sesi dengan `401 UNAUTHORIZED` dan akun yang belum disetujui dengan `403 ACCOUNT_PENDING`/`ACCOUNT_REJECTED`. Contoh: `GET /api/app/whoami` → `{ userId, name, role }`. Batasan per role: cek `actor.role` di handler dan kembalikan 403. Dari client pakai Eden: `client.api.app.whoami.get()` (`app/lib/eden.ts`).
 - **API key** — `/api/app/*` dipetakan ke scope `app:read` (GET/HEAD) dan `app:write` (lainnya), tersedia untuk semua role.
 - `/dev` untuk operasional dan `/dashboard` untuk admin — jangan taruh fitur produk di sana.
 
