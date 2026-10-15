@@ -1,0 +1,10 @@
+/* Settings module (st-). */
+.st-card.card.react-cupertino-ui-card { --card-padding-block: 0; gap: 0; }
+.st-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; border-bottom: 1px solid var(--separator); }
+.st-row:last-child { border-bottom: 0; }
+.st-text { gap: 2px; min-width: 0; }
+.st-row > :last-child { flex: none; }
+.st-photo { justify-items: center; }
+.st-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.st-acts, .st-foot { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--sp-3); }
+.st-foot { position: sticky; bottom: 0; padding: var(--sp-3) 0 var(--sp-4); background: var(--bg); }
