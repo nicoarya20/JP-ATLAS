@@ -82,7 +82,7 @@ beforeAll(async () => {
     name: `MCP Seed ${runId}`,
     email: seededEmail,
     emailVerified: false,
-    role: 'user',
+    role: 'member',
     createdAt: new Date(),
     updatedAt: new Date(),
   });

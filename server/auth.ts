@@ -35,7 +35,7 @@ export const auth = betterAuth({
       ac,
       roles,
       adminRoles: [ROLES.ADMIN, ROLES.SUPER_ADMIN],
-      defaultRole: ROLES.USER,
+      defaultRole: ROLES.MEMBER,
       impersonationSessionDuration: 60 * 60,
     }),
     // Lets a browser stay signed in to several accounts at once and switch

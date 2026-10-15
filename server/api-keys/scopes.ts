@@ -49,7 +49,7 @@ export const SCOPES = [
     id: 'posts:write',
     label: 'Posts (tulis)',
     description: 'Buat, ubah, hapus post (baca selalu publik)',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
   {
     id: 'audit:read',
@@ -97,19 +97,19 @@ export const SCOPES = [
     id: 'me:read',
     label: 'Profil sendiri (baca)',
     description: 'Data dan riwayat login akun pemilik kunci',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
   {
     id: 'app:read',
     label: 'App (baca)',
     description: 'Endpoint produk /api/app/* — baca',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
   {
     id: 'app:write',
     label: 'App (tulis)',
     description: 'Endpoint produk /api/app/* — buat, ubah, hapus',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
 ] as const;
 
@@ -119,7 +119,12 @@ export function isScope(v: string): v is Scope {
   return SCOPE_IDS.includes(v);
 }
 
-const ROLE_RANK: Record<Role, number> = { user: 0, admin: 1, 'super-admin': 2 };
+const ROLE_RANK: Record<Role, number> = {
+  member: 0,
+  project_manager: 1,
+  admin: 2,
+  'super-admin': 3,
+};
 
 /** A key can never grant more than its owner's role allows. */
 export function roleAllowsScope(role: unknown, scope: Scope): boolean {

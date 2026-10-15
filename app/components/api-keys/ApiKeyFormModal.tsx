@@ -85,7 +85,7 @@ export function ApiKeyFormModal({
   });
   const ownerOptions = (owners.data?.users ?? []).map((u) => ({
     value: u.id,
-    label: `${u.name} · ${u.email} (${u.role ?? 'user'})`,
+    label: `${u.name} · ${u.email} (${u.role ?? 'member'})`,
   }));
   const set = (patch: Partial<Draft>) => setD((x) => ({ ...x, ...patch }));
   const isSuper = d.ownerRole === 'super-admin';
@@ -155,12 +155,12 @@ export function ApiKeyFormModal({
         />
         {edit ? (
           <Text size="sm" c="dimmed">
-            Pemilik: <strong>{edit.ownerEmail ?? edit.ownerId}</strong> ({edit.ownerRole ?? 'user'})
-            — tidak bisa diubah setelah dibuat.
+            Pemilik: <strong>{edit.ownerEmail ?? edit.ownerId}</strong> (
+            {edit.ownerRole ?? 'member'}) — tidak bisa diubah setelah dibuat.
           </Text>
         ) : self ? (
           <Text size="sm" c="dimmed">
-            Kunci ini bertindak atas nama akun Anda (role {self.ownerRole ?? 'user'}).
+            Kunci ini bertindak atas nama akun Anda (role {self.ownerRole ?? 'member'}).
           </Text>
         ) : (
           <Select

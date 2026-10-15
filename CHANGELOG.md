@@ -21,6 +21,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Semua paket Mantine kini dikunci ke satu versi persis (9.6.3) dan `@mantine/dates` serta `dayjs` ditambahkan untuk input tanggal berbahasa Indonesia (pekan mulai Senin). Jalankan `bun install` setelah menarik perubahan ini; ketidaksesuaian versi `modals`/`notifications` dengan `core` yang sebelumnya terjadi kini hilang.
 
 ### Changed
+- Role akun kini ada empat: `member` (menggantikan `user`), `project_manager`, `admin`, dan `super-admin`. Akun lama berrole `user` otomatis dibaca sebagai `member`, tanpa tindakan dari operator. Akses `super-admin` lewat `SUPER_ADMIN_EMAILS` sekarang juga mensyaratkan email yang sudah terverifikasi, dan `/dev` hanya untuk `super-admin`. API key mengikuti urutan role baru.
 - Nama produk berubah menjadi **Simple PM**: judul halaman, sidebar, landing, README, dan metadata situs memakai nama baru. Nama package, binary, dan unit systemd kini `simple-pm` (sebelumnya `makuro-template`).
 - Semua variabel lingkungan `MAKURO_*` berganti menjadi `SIMPLE_PM_*` (`SIMPLE_PM_PG_REGISTRY`, `SIMPLE_PM_RUSTFS_RELEASES`, `SIMPLE_PM_REPO`, `SIMPLE_PM_DOWNLOAD_BASE`, `SIMPLE_PM_MCP_KEY`, `SIMPLE_PM_VERSION`, `SIMPLE_PM_INSTALL_DIR`). Perbarui `.env`, `.mcp.json`, dan skrip deploy yang masih memakai nama lama.
 - Prefix API key berubah dari `mk_live_` menjadi `sp_live_`. **API key lama berprefix `mk_live_` tidak dikenali lagi** — buat ulang key di halaman API Keys.

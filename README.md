@@ -288,13 +288,16 @@ Karena FE dan BE satu origin: Eden client dan Better Auth client pakai relative 
 
 ## Auth & roles
 
-Sistem role: `user` → `admin` → `super-admin`. Role tersimpan di tabel `user` via Better Auth admin plugin.
+Sistem role: `member` → `project_manager` → `admin` → `super-admin`. Role tersimpan di tabel `user` via Better Auth admin plugin. Nilai `user` dari versi lama dibaca sebagai `member`.
 
 | Role | Home | Area |
 |---|---|---|
-| `user` | `/app` | Fitur produk (`/app`), profil, keamanan akun, sesi perangkat, API key pribadi |
+| `member` | `/app` | Fitur produk (`/app`), profil, keamanan akun, sesi perangkat, API key pribadi |
+| `project_manager` | `/app` | Sama dengan `member`; kewenangan mengelola proyek menyusul di tahap proyek |
 | `admin` | `/dashboard` | Dashboard, manajemen user (ban, role change), API key pribadi |
 | `super-admin` | `/dev` | Overview, users, sessions, posts, DB schema, visitor/login/rate-limit/server/audit logs, file health, tools & MCP, settings |
+
+`super-admin` hanya diberikan lewat `SUPER_ADMIN_EMAILS` **dan** hanya bila email akunnya sudah terverifikasi; email yang cocok tetapi belum terverifikasi tetap berperan sebagai `member`.
 
 Area `/app` dan `/profile` terbuka untuk semua role yang sudah masuk; admin dan super-admin membukanya lewat tautan **App** di sidebar.
 
@@ -318,7 +321,7 @@ Template ini dipakai sebagai dasar project lain, jadi fitur produk punya satu te
 
 ## Mode demo
 
-Tombol **Coba Demo** di `/login` memasukkan pengunjung ke `/app` sebagai user anonim sementara (Better Auth `anonymous`, `user.isAnonymous = true`, role `user`) yang sudah berisi data contoh. Setelah masa berlaku habis (default 24 jam, 1–168 jam) sesi demo dianggap keluar dan job per jam menghapus user beserta datanya (cascade). Saklar dan masa berlaku diatur super-admin di `/dev/settings`; user demo tidak ikut statistik/daftar user admin.
+Tombol **Coba Demo** di `/login` memasukkan pengunjung ke `/app` sebagai user anonim sementara (Better Auth `anonymous`, `user.isAnonymous = true`, role `member`) yang sudah berisi data contoh. Setelah masa berlaku habis (default 24 jam, 1–168 jam) sesi demo dianggap keluar dan job per jam menghapus user beserta datanya (cascade). Saklar dan masa berlaku diatur super-admin di `/dev/settings`; user demo tidak ikut statistik/daftar user admin.
 
 | Endpoint | Akses | Respons |
 |---|---|---|

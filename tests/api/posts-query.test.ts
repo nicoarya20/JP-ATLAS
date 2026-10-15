@@ -15,7 +15,9 @@ const ctx: { actor: Actor; role: string | null } = { actor: null, role: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
     ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => (ctx.role ?? 'user') as 'user'),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(
+    async () => (ctx.role ?? 'member') as 'member',
+  ),
 ];
 const app = new Elysia().use(postsApi);
 const TAG = `pq-${crypto.randomUUID().slice(0, 8)}`;
@@ -54,7 +56,7 @@ beforeAll(async () => {
       name: id,
       email: `${id}@test.local`,
       emailVerified: false,
-      role: id === admin ? 'admin' : 'user',
+      role: id === admin ? 'admin' : 'member',
       createdAt: new Date(),
       updatedAt: new Date(),
     });

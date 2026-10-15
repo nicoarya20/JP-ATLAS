@@ -8,7 +8,7 @@ const ctx: { actor: { id: string; name: string; email: string } | null } = { act
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
     ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'user'),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member'),
 ];
 afterAll(() => {
   for (const s of spies) s.mockRestore();
@@ -33,6 +33,6 @@ describe('/api/app', () => {
     ctx.actor = { id: 'app-u1', name: 'App User', email: 'app-u1@test.local' };
     const { status, body } = await whoami();
     expect(status).toBe(200);
-    expect(body).toEqual({ userId: 'app-u1', name: 'App User', role: 'user' });
+    expect(body).toEqual({ userId: 'app-u1', name: 'App User', role: 'member' });
   });
 });

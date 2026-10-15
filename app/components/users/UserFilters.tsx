@@ -19,7 +19,8 @@ import {
 
 const nf = new Intl.NumberFormat('id-ID');
 const ROLE_OPTIONS = [
-  { value: ROLES.USER, label: 'user' },
+  { value: ROLES.MEMBER, label: 'member' },
+  { value: ROLES.PROJECT_MANAGER, label: 'project manager' },
   { value: ROLES.ADMIN, label: 'admin' },
   { value: ROLES.SUPER_ADMIN, label: 'super-admin' },
 ];

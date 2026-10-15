@@ -79,12 +79,12 @@ export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
                 Jadikan admin
               </Menu.Item>
             )}
-            {target !== ROLES.USER && (
+            {target !== ROLES.MEMBER && (
               <Menu.Item
                 leftSection={<FiUser size={14} />}
-                onClick={() => actions.changeRole(user, ROLES.USER)}
+                onClick={() => actions.changeRole(user, ROLES.MEMBER)}
               >
-                Jadikan user biasa
+                Jadikan member
               </Menu.Item>
             )}
           </>

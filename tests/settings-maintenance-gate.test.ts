@@ -9,7 +9,7 @@ const spies = [
     if (ctx.fail) throw new Error('session store down');
     return ctx.role ? { user: { id: 'mg-user' } } : null;
   }) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => ctx.role as 'user'),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => ctx.role as 'member'),
 ];
 const gate = (path: string, appName?: string) =>
   maintenanceGate(new Request(`http://localhost${path}`), appName);
@@ -29,7 +29,7 @@ afterAll(async () => {
 
 describe('maintenanceGate', () => {
   test('serves an escaped 503 HTML page for blocked page requests', async () => {
-    ctx.role = 'user';
+    ctx.role = 'member';
     const res = await gate('/dashboard', 'Acme <b>');
     expect(res?.status).toBe(503);
     expect(res?.headers.get('content-type')).toContain('text/html');

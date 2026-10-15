@@ -23,7 +23,7 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
   const can = user ? allowedActions(user, perms) : null;
   const busy = user ? actions.busyId === user.id : false;
   const banned = user ? isBanActive(user) : false;
-  const target = user ? normalizeRole(user.role) : ROLES.USER;
+  const target = user ? normalizeRole(user.role) : ROLES.MEMBER;
   return (
     <Drawer
       opened={user !== null}
@@ -147,15 +147,15 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
                     Jadikan admin
                   </Button>
                 )}
-                {can.role && target !== ROLES.USER && (
+                {can.role && target !== ROLES.MEMBER && (
                   <Button
                     variant="light"
                     color="orange"
                     leftSection={<FiUser size={14} />}
                     loading={busy}
-                    onClick={() => actions.changeRole(user, ROLES.USER)}
+                    onClick={() => actions.changeRole(user, ROLES.MEMBER)}
                   >
-                    Jadikan user biasa
+                    Jadikan member
                   </Button>
                 )}
                 {can.impersonate && (

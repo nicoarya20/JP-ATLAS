@@ -12,7 +12,9 @@ const ctx: { actor: Actor; role: string | null } = { actor: null, role: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
     ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => (ctx.role ?? 'user') as 'user'),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(
+    async () => (ctx.role ?? 'member') as 'member',
+  ),
 ];
 const app = new Elysia().use(postsApi);
 const TAG = `post-${crypto.randomUUID().slice(0, 8)}`;
@@ -42,7 +44,7 @@ beforeAll(async () => {
       name: id,
       email: `${id}@test.local`,
       emailVerified: false,
-      role: id === admin ? 'admin' : 'user',
+      role: id === admin ? 'admin' : 'member',
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -65,7 +67,7 @@ describe('posts API', () => {
     ctx.actor = null;
     expect((await req('POST', '/posts', { title: 'x' })).status).toBe(401);
     ctx.actor = { id: owner, email: `${owner}@test.local` };
-    ctx.role = 'user';
+    ctx.role = 'member';
     const created = await req('POST', '/posts', { title: `  ${TAG} Judul  `, content: 'isi' });
     expect(created.status).toBe(200);
     expect(created.body.title).toBe(`${TAG} Judul`);
@@ -79,7 +81,7 @@ describe('posts API', () => {
 
   test('another user cannot edit or delete; owner can edit', async () => {
     ctx.actor = { id: other, email: `${other}@test.local` };
-    ctx.role = 'user';
+    ctx.role = 'member';
     expect((await req('PUT', `/posts/${postId}`, { title: 'hack' })).status).toBe(403);
     expect((await req('DELETE', `/posts/${postId}`)).status).toBe(403);
     ctx.actor = { id: owner, email: `${owner}@test.local` };

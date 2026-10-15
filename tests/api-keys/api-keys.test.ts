@@ -46,7 +46,7 @@ beforeAll(async () => {
       name: 'Key User',
       email: `${plainId}@test.local`,
       emailVerified: true,
-      role: 'user',
+      role: 'member',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -134,7 +134,7 @@ describe('authenticating with X-API-Key', () => {
       new Request('http://localhost/api/admin/users/stats', hdr(userKey)),
     );
     expect(miss.status).toBe(403);
-    await db.update(user).set({ role: 'user' }).where(eq(user.id, superId));
+    await db.update(user).set({ role: 'member' }).where(eq(user.id, superId));
     const demoted = await app.handle(
       new Request('http://localhost/api/admin/users/stats', hdr(superKey)),
     );

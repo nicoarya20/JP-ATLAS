@@ -97,6 +97,7 @@ export function apiKeyPlugin() {
             email: user.email,
             name: user.name,
             role: user.role,
+            emailVerified: user.emailVerified,
             banned: user.banned,
           })
           .from(user)

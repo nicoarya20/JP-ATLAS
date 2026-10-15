@@ -6,7 +6,12 @@ import { ROLES } from '../permissions';
 import { DEMO_DEFAULTS, upsertDemo } from '../settings-demo';
 import { upsertMaintenance } from '../settings-maintenance';
 
-const ROLE = t.Union([t.Literal(ROLES.USER), t.Literal(ROLES.ADMIN), t.Literal(ROLES.SUPER_ADMIN)]);
+const ROLE = t.Union([
+  t.Literal(ROLES.MEMBER),
+  t.Literal(ROLES.PROJECT_MANAGER),
+  t.Literal(ROLES.ADMIN),
+  t.Literal(ROLES.SUPER_ADMIN),
+]);
 
 export const settingsAccessApi = new Elysia()
   .put(

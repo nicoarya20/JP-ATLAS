@@ -36,7 +36,7 @@ beforeAll(async () => {
       name: `Carol ${TAG}`,
       email: `${ids[2]}@test.local`,
       emailVerified: false,
-      role: 'user',
+      role: 'member',
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -86,7 +86,7 @@ describe('listAdminUsers', () => {
 
   test('filters by role (null role counts as user), status and join period', async () => {
     expect(
-      (await listAdminUsers({ search: TAG, role: 'user' })).users.map((u) => u.id).sort(),
+      (await listAdminUsers({ search: TAG, role: 'member' })).users.map((u) => u.id).sort(),
     ).toEqual([ids[1], ids[2]].sort());
     expect((await listAdminUsers({ search: TAG, role: 'admin' })).users.map((u) => u.id)).toEqual([
       ids[0],

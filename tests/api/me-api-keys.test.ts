@@ -19,7 +19,7 @@ const spies = [
       ? { user: ctx.actor.user }
       : null) as unknown as typeof auth.api.getSession),
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(
-    async () => (ctx.actor?.role ?? 'user') as 'user',
+    async () => (ctx.actor?.role ?? 'member') as 'member',
   ),
 ];
 const setActor = (a: FakeActor) => {
@@ -31,7 +31,7 @@ const aliceId = `${TAG}-alice`;
 const bobId = `${TAG}-bob`;
 const alice: FakeActor = {
   user: { id: aliceId, email: `${aliceId}@test.local` },
-  role: 'user',
+  role: 'member',
   viaApiKey: false,
 };
 const bob: FakeActor = {
@@ -52,7 +52,7 @@ async function call(path: string, init?: RequestInit) {
       keyName: 'k',
       scopes: ['me:read'],
       user: { ...ctx.actor.user, name: 'x' },
-      role: ctx.actor.role as 'user',
+      role: ctx.actor.role as 'member',
       startedAt: 0,
     });
   const res = await app.handle(req);
@@ -72,7 +72,7 @@ let aliceKeyId = '';
 beforeAll(async () => {
   await db.insert(user).values(
     [
-      [aliceId, 'user'],
+      [aliceId, 'member'],
       [bobId, 'admin'],
     ].map(([id, role]) => ({
       id,

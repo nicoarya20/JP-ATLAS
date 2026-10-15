@@ -16,7 +16,7 @@ const ctx: { actor: Actor | null } = { actor: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
     ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'user'),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member'),
 ];
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
@@ -46,7 +46,7 @@ beforeAll(async () => {
   const now = new Date();
   await db
     .insert(user)
-    .values({ ...me(), emailVerified: false, role: 'user', createdAt: now, updatedAt: now });
+    .values({ ...me(), emailVerified: false, role: 'member', createdAt: now, updatedAt: now });
 });
 afterAll(async () => {
   for (const s of spies) s.mockRestore();
@@ -164,7 +164,7 @@ describe('/api/app/avatar', () => {
       email: `${gone}@test.local`,
       image: `/api/storage/${key}`,
       emailVerified: false,
-      role: 'user',
+      role: 'member',
       createdAt: now,
       updatedAt: now,
     });

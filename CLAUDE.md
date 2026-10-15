@@ -4,13 +4,13 @@ Aturan project ini menambah/override global `~/.claude/CLAUDE.md`.
 
 ## Membangun Fitur Produk — Default di `/app`
 
-Project ini template; fitur produk milik project turunan **default dibangun di area `/app`** (minimal role `user` / sudah login), kecuali user eksplisit meminta area lain.
+Simple PM adalah turunan template ini; fitur produk **default dibangun di area `/app`** (minimal role `member` / sudah login), kecuali user eksplisit meminta area lain.
 
 - **Halaman:** `app/routes/app/<nama>.tsx` → daftarkan sebagai child `layout('routes/app/layout.tsx', [...])` di `app/routes.ts` → tambahkan ke `NAV` di `app/routes/app/layout.tsx`. Wajib `meta()` (`'Nama — Simple PM'`).
 - **Guard per halaman wajib:** loader memanggil `await requireUser(request)` dari `@server/guard` — atau `requireAnyRole(request, [...])` bila fitur khusus role. Loader layout & halaman berjalan **paralel** di React Router, jadi guard layout saja tidak melindungi data halaman. `tests/app-routes.test.ts` menjaga ini.
 - **Endpoint:** tambahkan ke `server/api/app.ts` (prefix `/api/app`, otomatis `401` tanpa sesi; `actor` tersedia di handler). Batasan role per fitur → cek `actor.role` di handler, `status(403, { error, code })`. Scope API key sudah dipetakan (`app:read`/`app:write`); file endpoint baru di luar `/api/app` tetap wajib dipetakan di `scopes.ts`. Client: Eden `client.api.app.<route>` dari `~/lib/eden`.
 - `app/routes/app/home.tsx` hanya panduan placeholder — ganti dengan beranda produk saat fitur pertama dibangun.
-- **Jangan** taruh fitur produk di `/dev` (ops super-admin) atau `/dashboard` (admin). Role home ada di `homeFor` (`server/permissions.ts`): user → `/app`.
+- **Jangan** taruh fitur produk di `/dev` (ops super-admin) atau `/dashboard` (admin). Empat role (`member`, `project_manager`, `admin`, `super-admin`) didefinisikan di `server/permissions.ts`; home ada di `homeFor`: `member` dan `project_manager` → `/app`, `admin` → `/dashboard`, `super-admin` → `/dev`. Admin dan super-admin tetap boleh membuka `/app`. Nilai `'user'` lama hanya dibaca (`normalizeRole` → `member`), tidak pernah ditulis.
 
 ## UI Framework — Mantine Wajib Dipakai
 
