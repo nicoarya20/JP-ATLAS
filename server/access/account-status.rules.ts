@@ -1,11 +1,12 @@
 /**
  * Pure rules for moving an account between approval statuses. No env/db/Bun
  * imports (the browser uses it to decide which buttons to show).
- * Owned by the S0.b lane after S0A-03 merges; extend `DenyCode` additively only.
+ * Owned by the S0.b lane after S0A-03 merges; new deny codes go in `pm/errors` (additively).
  */
 import type { ApprovalStatus } from '../pm/enums';
 import { allow, type Decision, deny } from './decision';
-import { canActOnUser, type Principal, type UserTarget } from './user.policy';
+import type { Principal } from './types';
+import { canActOnUser, type UserTarget } from './user.policy';
 
 // Single source of the status tuple lives with the other shared enums; re-exported for rule consumers.
 export { APPROVAL_STATUSES, type ApprovalStatus } from '../pm/enums';

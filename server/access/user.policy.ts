@@ -1,13 +1,14 @@
 /**
  * Pure account-management policy (who may act on, re-role or invite which user).
  * No env/db/Bun imports: the same functions gate the API and the UI buttons.
- * Owned by the S0.b lane after S0A-03 merges; extend `DenyCode` additively only.
+ * Owned by the S0.b lane after S0A-03 merges; new deny codes go in `pm/errors` (additively).
  */
 import { isAdminRole, normalizeRole, ROLES, type Role } from '../permissions';
 import { allow, type Decision, deny } from './decision';
+import type { Principal } from './types';
 
-/** The acting user as the policy sees them; `impersonating` is true while a super-admin is acting as someone else. */
-export type Principal = { id: string; appRole: Role; impersonating: boolean };
+// Re-exported so existing importers keep working; the canonical definition is `./types`.
+export type { Principal } from './types';
 
 /** The user an account action is aimed at. */
 export type UserTarget = { id: string; appRole: Role };
