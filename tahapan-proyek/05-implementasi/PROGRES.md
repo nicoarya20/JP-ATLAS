@@ -9,11 +9,11 @@
 | Kelompok | Tugas | Selesai | Berjalan/review | Diblokir |
 |---|---|---|---|---|
 | S0.0 — Prasyarat ops | 9 | 9 | 0 | 0 |
-| S0.a — Akun dan akses | 15 | 0 | 2 | 0 |
-| S0.b — Kontrak beku | 33 | 0 | 1 | 0 |
+| S0.a — Akun dan akses | 15 | 2 | 0 | 0 |
+| S0.b — Kontrak beku | 33 | 1 | 0 | 0 |
 | S1 — Proyek dan profil | 18 | 0 | 0 | 0 |
 | S2 — Tugas inti | 17 | 0 | 0 | 0 |
-| **Total** | **92** | **9** | **3** | **0** |
+| **Total** | **92** | **12** | **0** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -22,10 +22,10 @@ Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerba
 | Gerbang | Syarat | Dibuka oleh | Status |
 |---|---|---|---|
 | SP-0.0 | S0.0-01..09 selesai; `bun run test` hijau di worktree bersih; `bun audit` nol high/critical; laporan ke user | S0.a, S0.b | **lolos** 15 Okt 2026 pada `78e0154`: 795 lulus/0 gagal di worktree bersih, `bun audit` = 1 moderate (0 kritis/tinggi), typecheck nol, skema tidak bergeser. Dilaporkan ke user |
-| SP1a | S0B-01 ter-merge (enum + `schema.columns`) | S0.a memakai `TEXT_SIZES`/`APPROVAL_STATUSES` | belum |
-| SP0a-1 | S0A-01 ter-merge (`Role` 4 nilai, `isAdminRole`, `ROLE_RANK`) | S0B-12, S0B-29 | belum |
+| SP1a | S0B-01 ter-merge (enum + `schema.columns`) | S0.a memakai `TEXT_SIZES`/`APPROVAL_STATUSES` | **lolos** 15 Okt (`b3a2690`) |
+| SP0a-1 | S0A-01 ter-merge (`Role` 4 nilai, `isAdminRole`, `ROLE_RANK`) | S0B-12, S0B-29 | **lolos** 15 Okt (`a6eed0d`) |
 | SP0a-2 | S0A-07 ter-merge (`assertAccountApproved` di `guard.ts`); dikoreksi dari P2 yang menaruhnya di merge pertama | S0B-18 | belum |
-| SP0 | S0A-02 ter-merge (migrasi 0014; `ROLE_RANK` datang dari S0A-01) | S0B-03 (0015), S0B-19/21/25 | belum |
+| SP0 | S0A-02 ter-merge (migrasi 0014; `ROLE_RANK` datang dari S0A-01) | S0B-03 (0015), S0B-19/21/25 | **lolos** 15 Okt (`6ceb09a`) |
 | SY-1 .. SY-4 | S0B-13 · S0B-20 (guard rekursif) · S0B-04 (introspect) · S0B-23 (ratchet 0) | lajur lain S0.b | belum |
 | **contract-v1 (SP1)** | S0B-33 lulus + **persetujuan user** | semua lajur S1 dan S2 | belum |
 | SP-S1a / SP-S1b | S1-02 merge · S1-03 dan S1-04 merge | UI proyek, form tugas | belum |
@@ -56,8 +56,8 @@ Sumber spesifikasi: `rencana/P1-s0a-akun-akses.md §5`.
 
 | ID | Judul | Lajur | Bergantung pada | Ukuran | Status | Cabang | Commit | Hasil tes |
 |---|---|---|---|---|---|---|---|---|
-| S0A-01 | Rename role → 4 role, `emailVerified` super-admin | Gel. A | SP-0.0 | M | review | `feature/pm-s0a-01-roles` | `055aee1` | **WAJIB DISETUJUI SATU PER SATU (`auth.ts`, `permissions.ts`).** worker: 898 lulus/0 gagal; smoke prod+binary 23/23. Diverifikasi koordinator: `auth.ts` hanya berubah di `defaultRole`; `ROLES.USER` = 0; `canSetRole`/`canActOnTarget`/`canImpersonate` tidak disentuh; super-admin kini wajib `emailVerified`. 7 berkas di luar Target (UI role, filter legacy `user`), semuanya minimal dan beralasan |
-| S0A-02 | Skema akun + migrasi 0014 (pemegang baton) | Gel. A | SP-0.0 | L | review | `feature/pm-s0a-02-account-schema` | `7b99b99` | **WAJIB DISETUJUI SATU PER SATU (migrasi 0014).** worker: 807 lulus/0 gagal; smoke coldboot+prod+binary 23/23. Diverifikasi koordinator: SQL dibaca penuh, backfill `approved` SEBELUM default `pending` (akun lama tidak terkunci), anonim -> `rejected`, berguard idempoten, `-- no-down`. 1 baris regex di `db-generate-rewrite.test.ts` (di luar Target, perlu) |
+| S0A-01 | Rename role → 4 role, `emailVerified` super-admin | Gel. A | SP-0.0 | M | **selesai** | `feature/pm-s0a-01-roles` | `055aee1` merge `a6eed0d` | **WAJIB DISETUJUI SATU PER SATU (`auth.ts`, `permissions.ts`).** worker: 898 lulus/0 gagal; smoke prod+binary 23/23. Diverifikasi koordinator: `auth.ts` hanya berubah di `defaultRole`; `ROLES.USER` = 0; `canSetRole`/`canActOnTarget`/`canImpersonate` tidak disentuh; super-admin kini wajib `emailVerified`. 7 berkas di luar Target (UI role, filter legacy `user`), semuanya minimal dan beralasan |
+| S0A-02 | Skema akun + migrasi 0014 (pemegang baton) | Gel. A | SP-0.0 | L | **selesai** | `feature/pm-s0a-02-account-schema` | `7b99b99` merge `6ceb09a` | **WAJIB DISETUJUI SATU PER SATU (migrasi 0014).** worker: 807 lulus/0 gagal; smoke coldboot+prod+binary 23/23. Diverifikasi koordinator: SQL dibaca penuh, backfill `approved` SEBELUM default `pending` (akun lama tidak terkunci), anonim -> `rejected`, berguard idempoten, `-- no-down`. 1 baris regex di `db-generate-rewrite.test.ts` (di luar Target, perlu) |
 | S0A-03 | Kebijakan akun murni (`server/access`) | Gel. B | 01 | M | belum |  |  |  |
 | S0A-05 | `auth.ts`: field persetujuan, kebijakan email, linking | Gel. B | 02 | M | belum |  |  |  |
 | S0A-04 | Undangan + keputusan sign-up | Gel. C | 01, 02, 03 | M | belum |  |  |  |
@@ -78,7 +78,7 @@ Sumber spesifikasi: `rencana/P2-s0b-kontrak-beku.md §3`.
 
 | ID | Judul | Lajur | Bergantung pada | Ukuran | Status | Cabang | Commit | Hasil tes |
 |---|---|---|---|---|---|---|---|---|
-| S0B-01 | Enum bersama, soft delete, helper kolom, sesi DB UTC | Lajur D | G0 | 🔥 | review | `feature/pm-s0b-01-shared-enums` | `1b6d249` | worker: 815 lulus/0 gagal; smoke prod+binary 23/23. Diverifikasi koordinator: `enums.ts` murni (39 baris), `TEXT_SIZES` 3 nilai, sesi DB UTC terbukti test. Penyimpangan kecil tercatat |
+| S0B-01 | Enum bersama, soft delete, helper kolom, sesi DB UTC | Lajur D | G0 | 🔥 | **selesai** | `feature/pm-s0b-01-shared-enums` | `1b6d249` merge `b3a2690` | worker: 815 lulus/0 gagal; smoke prod+binary 23/23. Diverifikasi koordinator: `enums.ts` murni (39 baris), `TEXT_SIZES` 3 nilai, sesi DB UTC terbukti test. Penyimpangan kecil tercatat |
 | S0B-02 | Skema proyek | Lajur D | S0B-01 | M (1) | belum |  |  |  |
 | S0B-03 | Migrasi 0015 `project_core` | Lajur D | S0B-02, G0, G-A2, G-Q5 | 🧊 🔥 | belum |  |  |  |
 | S0B-04 | Patch `schema-introspect` (D8e) | Lajur D | S0B-01 | S (0,75) | belum |  |  |  |
@@ -176,7 +176,7 @@ Dihasilkan dari simulasi ketergantungan (P1 §3, P2 §3-4), rantai berkas bersam
 
 | Gel. | Worker 1 | Worker 2 | Worker 3 | Status |
 |---|---|---|---|---|
-| **G1** | S0A-02* skema akun + migrasi 0014 (baton) | S0A-01* 4 role + super-admin wajib email terverifikasi | S0B-01 enum bersama, soft delete | selesai dikerjakan 15 Okt, `review` (menunggu persetujuan) |
+| **G1** | S0A-02* skema akun + migrasi 0014 (baton) | S0A-01* 4 role + super-admin wajib email terverifikasi | S0B-01 enum bersama, soft delete | **selesai, di-merge** 15 Okt (`a6eed0d`, `6ceb09a`, `b3a2690`) |
 | **G2** | S0A-05* pengaturan Better Auth (status, kebijakan email) | S0A-03 aturan izin akun | S0B-11 infrastruktur `server/pm` | belum |
 | **G3** | S0A-07* guard menahan akun pending/ditolak | S0A-04 undangan + keputusan sign-up | S0B-12 fondasi `server/access` | belum |
 | **G4** | S0A-09 pecah admin API + matriks role | S0A-06* hook sign-up (pending, undangan, profil) | S0B-02 skema proyek | belum |
@@ -209,6 +209,7 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 | 15 Okt 2026 | Gelombang 2 (S0.0) | S0.0-02, S0.0-03, S0.0-06, S0.0-08 (merge `68724ee`, `952b171`, `df71f93`, `263c667`) | Pasca-merge di cabang utama: `typecheck` nol error, **770 lulus / 17 dilewati / 0 gagal**, lint = baseline (1 error + 1 warning pra-ada). Tidak ada konflik. Tidak ada berkas wajib-satu-per-satu (auth, guard, permissions, migrasi) yang tersentuh | User: "merge gelombang 2, lalu push" |
 | 15 Okt 2026 | Gelombang 3 (S0.0) | S0.0-04, S0.0-07, S0.0-09 (merge `9551a57`, `0c49fc9`, `c6ced12`) | Pasca-merge pada `c6ced12` di worktree terisolasi: `typecheck` nol error, **795 lulus / 17 dilewati / 0 gagal**, lint = baseline, `drizzle-kit generate` = tidak ada perubahan skema. Tidak ada konflik. Tidak ada berkas wajib-satu-per-satu yang tersentuh | User: "Setujui merge gelombang 3" |
 | 15 Okt 2026 | Gelombang 4 (S0.0) | S0.0-05 (merge `78e0154`) | Gerbang SP-0.0 pada `78e0154` di worktree bersih: `typecheck` nol error, **795 lulus / 17 dilewati / 0 gagal**, lint = baseline, `bun audit` = 1 moderate (0 kritis/tinggi), skema tidak bergeser. Tidak ada konflik. Hanya `package.json`, `bun.lock`, CHANGELOG, dan 1 dokumen yang tersentuh | User: "merge dan push" |
+| 15 Okt 2026 | G1 (S0.a + S0.b) | S0A-01, S0A-02, S0B-01 (merge `a6eed0d`, `6ceb09a`, `b3a2690`) | Pasca-merge pada `b3a2690` di worktree bersih: `typecheck` nol error, **930 lulus / 17 dilewati / 0 gagal**, lint = baseline, skema tidak bergeser, `bun audit` = 1 moderate. Tidak ada konflik; ketiga cabang tetap di commit yang diverifikasi | User: "setujui semua, merge lalu push" (S0A-01 dan S0A-02 disetujui satu per satu) |
 
 ## Log perubahan
 
@@ -221,3 +222,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **15 Okt 2026** — S0.0-05 digabung atas persetujuan user; **S0.0 selesai (9 dari 9)** dan **gerbang SP-0.0 lolos**. Kini S0.a (akun dan akses) dan S0.b (kontrak beku) bisa dimulai. Catatan: `node_modules` di working tree utama user perlu `bun install` (MCP SDK, Vite, Mantine berubah).
 - **15 Okt 2026** — Jadwal peluncuran S0.a + S0.b disimpan di bagian "Jadwal peluncuran" atas persetujuan user (3 worker, risiko-dulu, titik cek setelah G4). Gerbang SP0a dipecah menjadi SP0a-1 dan SP0a-2.
 - **15 Okt 2026** — G1 (S0A-01, S0A-02, S0B-01) selesai dikerjakan dan berstatus `review`. Tiap cabang diverifikasi koordinator. **Uji gabungan** (basis `1da0d98`, worktree sementara, tidak dipush): tanpa konflik, `typecheck` nol error, **930 lulus / 17 dilewati / 0 gagal** (sebelumnya 795), lint = baseline, `drizzle-kit generate` = tidak ada perubahan skema. Menunggu persetujuan: S0A-01 dan S0A-02 **satu per satu**, S0B-01 per gelombang.
+- **15 Okt 2026** — G1 digabung atas persetujuan user (S0A-01 dan S0A-02 satu per satu, S0B-01 per gelombang). Gerbang SP1a, SP0a-1, dan SP0 terbuka. 12 dari 92 tugas selesai. Gelombang tanpa 429: G1 (1 dari 2). Berikutnya G2 (S0A-05, S0A-03, S0B-11), menunggu perintah luncurkan.
