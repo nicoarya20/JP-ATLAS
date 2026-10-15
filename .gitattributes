@@ -1,0 +1,2 @@
+# Append-only changelog: union merge keeps entries from both branches instead of conflicting.
+CHANGELOG.md merge=union

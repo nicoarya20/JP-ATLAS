@@ -1,12 +1,14 @@
 # Simple PM production image (single port).
-FROM oven/bun:1 AS build
+# Keep in sync with .bun-version (single source of truth; tests/bun-version-sync.test.ts guards it).
+ARG BUN_VERSION=1.4.2
+FROM oven/bun:${BUN_VERSION} AS build
 WORKDIR /app
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
 
-FROM oven/bun:1 AS runtime
+FROM oven/bun:${BUN_VERSION} AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 # Non-root: the local Postgres mode refuses root. Default is still an external DATABASE_URL;
