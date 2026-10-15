@@ -90,6 +90,11 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'user.unban': { label: 'Buka ban', color: 'teal' },
   'user.delete': { label: 'Hapus user', color: 'red' },
   'user.impersonate': { label: 'Impersonasi', color: 'grape' },
+  'user.approve': { label: 'Setujui user', color: 'teal' },
+  'user.reject': { label: 'Tolak user', color: 'red' },
+  'invitation.create': { label: 'Buat undangan', color: 'indigo' },
+  'invitation.revoke': { label: 'Cabut undangan', color: 'orange' },
+  'invitation.use': { label: 'Undangan dipakai', color: 'teal' },
   'session.revoke': { label: 'Cabut sesi', color: 'orange' },
   'settings.auth.update': { label: 'Settings auth', color: 'indigo' },
   'settings.rate_limit.update': { label: 'Settings rate limit', color: 'indigo' },
@@ -121,4 +126,5 @@ export const TARGET_LABELS: Record<string, string> = {
   session: 'Sesi',
   settings: 'Settings',
   logs: 'Log',
+  invitation: 'Undangan',
 };
