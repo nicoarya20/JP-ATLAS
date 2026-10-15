@@ -46,6 +46,13 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     status: 302,
     header: { name: 'location', includes: '/login' },
   },
+  {
+    // A visitor without a session must reach /login, not a 404 or a loop, from the hold page.
+    name: 'waiting-anon-redirect',
+    path: '/waiting',
+    status: 302,
+    header: { name: 'location', includes: '/login' },
+  },
   { name: 'favicon svg', path: '/favicon.svg', status: 200, contentType: 'image/svg+xml' },
   {
     name: 'favicon.ico → svg',
