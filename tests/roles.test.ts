@@ -12,6 +12,7 @@ import { user } from '../server/db/schema';
 import { superAdminEmails } from '../server/env';
 import { ROLES } from '../server/permissions';
 import { resolveUserRole } from '../server/roles';
+import { testUser } from './support/accounts';
 
 const created: string[] = [];
 const allowlisted: string[] = [];
@@ -25,15 +26,17 @@ function allowlist(email: string): void {
 async function seedUser(role: string): Promise<{ id: string; email: string }> {
   const id = `roles-${crypto.randomUUID()}`;
   const email = `${id}@test.local`;
-  await db.insert(user).values({
-    id,
-    name: id,
-    email,
-    emailVerified: false,
-    role,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id,
+      name: id,
+      email,
+      emailVerified: false,
+      role,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   created.push(id);
   return { id, email };
 }

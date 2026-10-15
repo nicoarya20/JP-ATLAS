@@ -25,7 +25,9 @@ import * as rolesMod from '../../server/roles';
 const asyncEmpty = (async () => ({})) as unknown as () => Promise<unknown>;
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
-    ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
+    ctx.actor
+      ? { user: { approvalStatus: 'approved', ...ctx.actor } }
+      : null) as unknown as typeof auth.api.getSession),
   spyOn(auth.api, 'listUsers').mockImplementation((async () => ({
     users: [],
     total: 0,
@@ -44,6 +46,7 @@ import Elysia from 'elysia';
 import { adminApi } from '../../server/api/admin';
 import { db } from '../../server/db';
 import { session, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const app = new Elysia().use(adminApi);
 
@@ -83,15 +86,17 @@ const seeded: Array<{ id: string; role: string }> = [
 
 beforeAll(async () => {
   for (const s of seeded) {
-    await db.insert(user).values({
-      id: s.id,
-      name: s.id,
-      email: `${s.id}@test.local`,
-      emailVerified: false,
-      role: s.role,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id: s.id,
+        name: s.id,
+        email: `${s.id}@test.local`,
+        emailVerified: false,
+        role: s.role,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
   }
 });
 

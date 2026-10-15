@@ -4,43 +4,46 @@ import { adminUserStats, buildUserWhere, listAdminUsers } from '../../server/api
 import { db } from '../../server/db';
 import { account, loginLog, user } from '../../server/db/schema';
 import { devOverview } from '../../server/dev-overview';
+import { testUser } from '../support/accounts';
 
 const TAG = `au-${crypto.randomUUID().slice(0, 8)}`;
 const ids = [`${TAG}-alice`, `${TAG}-bob`, `${TAG}-carol`];
 
 beforeAll(async () => {
   const old = new Date(Date.now() - 40 * 86_400_000);
-  await db.insert(user).values([
-    {
-      id: ids[0],
-      name: `Alice ${TAG}`,
-      email: `${ids[0]}@test.local`,
-      emailVerified: true,
-      role: 'admin',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: ids[1],
-      name: `Bob ${TAG}`,
-      email: `${ids[1]}@test.local`,
-      emailVerified: false,
-      role: null,
-      banned: true,
-      banReason: 'spam',
-      createdAt: old,
-      updatedAt: old,
-    },
-    {
-      id: ids[2],
-      name: `Carol ${TAG}`,
-      email: `${ids[2]}@test.local`,
-      emailVerified: false,
-      role: 'member',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
+  await db.insert(user).values(
+    [
+      {
+        id: ids[0],
+        name: `Alice ${TAG}`,
+        email: `${ids[0]}@test.local`,
+        emailVerified: true,
+        role: 'admin',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: ids[1],
+        name: `Bob ${TAG}`,
+        email: `${ids[1]}@test.local`,
+        emailVerified: false,
+        role: null,
+        banned: true,
+        banReason: 'spam',
+        createdAt: old,
+        updatedAt: old,
+      },
+      {
+        id: ids[2],
+        name: `Carol ${TAG}`,
+        email: `${ids[2]}@test.local`,
+        emailVerified: false,
+        role: 'member',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ].map((u) => testUser(u)),
+  );
   await db.insert(loginLog).values([
     { userId: ids[0], ip: '1.1.1.1', method: 'email' },
     { userId: ids[0], ip: '1.1.1.1', method: 'google' },

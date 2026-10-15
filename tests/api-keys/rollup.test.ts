@@ -6,6 +6,7 @@ import { createKey } from '../../server/api-keys/service';
 import { usageAnomalies, usageBreakdown, usageSummary } from '../../server/api-keys/usage';
 import { db } from '../../server/db';
 import { apiKeyUsage, apiKeyUsageDaily, auditLog, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const TAG = `roll-${crypto.randomUUID().slice(0, 8)}`;
 const ownerId = `${TAG}-user`;
@@ -33,15 +34,17 @@ const row = (
 });
 
 beforeAll(async () => {
-  await db.insert(user).values({
-    id: ownerId,
-    name: 'Rollup User',
-    email: `${ownerId}@test.local`,
-    emailVerified: true,
-    role: 'member',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id: ownerId,
+      name: 'Rollup User',
+      email: `${ownerId}@test.local`,
+      emailVerified: true,
+      role: 'member',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   const k = await createKey({
     name: 'rollup-key',
     ownerId,

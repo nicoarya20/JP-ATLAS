@@ -13,6 +13,7 @@ import { sessionsApi } from '../../server/api/sessions';
 import { buildSessionWhere } from '../../server/api/sessions.query';
 import { db } from '../../server/db';
 import { auditLog, session, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const app = new Elysia().use(sessionsApi);
 const TAG = `ses-${crypto.randomUUID().slice(0, 8)}`;
@@ -28,14 +29,16 @@ async function getJson(path: string, params: Record<string, string> = {}) {
 
 beforeAll(async () => {
   const now = new Date();
-  await db.insert(user).values({
-    id: uid,
-    name: `Sess ${TAG}`,
-    email: `${uid}@test.local`,
-    emailVerified: false,
-    createdAt: now,
-    updatedAt: now,
-  });
+  await db.insert(user).values(
+    testUser({
+      id: uid,
+      name: `Sess ${TAG}`,
+      email: `${uid}@test.local`,
+      emailVerified: false,
+      createdAt: now,
+      updatedAt: now,
+    }),
+  );
   await db.insert(session).values([
     {
       id: ids.a,

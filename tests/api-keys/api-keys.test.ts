@@ -12,6 +12,7 @@ import { flushUsage, usageRecent, usageSummary } from '../../server/api-keys/usa
 import { db } from '../../server/db';
 import { apiKeyUsage, apikey, auditLog, user } from '../../server/db/schema';
 import { CLIENT_IP_HEADER } from '../../server/middleware/client-ip';
+import { testUser } from '../support/accounts';
 
 const TAG = `key-${crypto.randomUUID().slice(0, 8)}`;
 const superId = `${TAG}-super`;
@@ -29,28 +30,30 @@ let superKeyId = '';
 let userKey = '';
 
 beforeAll(async () => {
-  await db.insert(user).values([
-    {
-      id: superId,
-      name: 'Key Admin',
-      email: `${superId}@test.local`,
-      emailVerified: true,
-      // admin, not super-admin: super-admin is reconciled from SUPER_ADMIN_EMAILS
-      // on every request, so a seeded super-admin would be demoted mid-test.
-      role: 'admin',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: plainId,
-      name: 'Key User',
-      email: `${plainId}@test.local`,
-      emailVerified: true,
-      role: 'member',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
+  await db.insert(user).values(
+    [
+      {
+        id: superId,
+        name: 'Key Admin',
+        email: `${superId}@test.local`,
+        emailVerified: true,
+        // admin, not super-admin: super-admin is reconciled from SUPER_ADMIN_EMAILS
+        // on every request, so a seeded super-admin would be demoted mid-test.
+        role: 'admin',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: plainId,
+        name: 'Key User',
+        email: `${plainId}@test.local`,
+        emailVerified: true,
+        role: 'member',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ].map((u) => testUser(u)),
+  );
   const s = await createKey({
     name: 'ci-super',
     ownerId: superId,
@@ -163,6 +166,61 @@ describe('authenticating with X-API-Key', () => {
     expect(ipAllowed(['10.0.0.', '1.2.3.4'], '10.0.0.7')).toBe(true);
     expect(ipAllowed(['1.2.3.4'], '1.2.3.5')).toBe(false);
     expect(ipAllowed(null, null)).toBe(true);
+  });
+});
+
+describe('key owner account state (S0A-07)', () => {
+  const heldId = `${TAG}-held`;
+  let heldKey = '';
+  const call = async () => app.handle(new Request('http://localhost/api/me/logins', hdr(heldKey)));
+  const setOwner = (fields: Partial<typeof user.$inferInsert>) =>
+    db.update(user).set(fields).where(eq(user.id, heldId));
+
+  beforeAll(async () => {
+    await db.insert(user).values(testUser({ id: heldId }));
+    heldKey = (
+      await createKey({
+        name: 'ci-held',
+        ownerId: heldId,
+        scopes: ['me:read'],
+        expiresDays: 7,
+        rateLimitMax: null,
+        rateLimitWindowMs: null,
+        allowedIps: null,
+        note: null,
+      })
+    ).key;
+  });
+  afterAll(async () => {
+    await db.delete(user).where(eq(user.id, heldId));
+  });
+
+  test('approved owner passes', async () => {
+    await setOwner({ approvalStatus: 'approved', banned: false, banExpires: null });
+    expect((await call()).status).toBe(200);
+  });
+
+  test.each([
+    ['pending', 'ACCOUNT_PENDING'],
+    ['rejected', 'ACCOUNT_REJECTED'],
+  ])('%s owner → 403 %s', async (approvalStatus, code) => {
+    await setOwner({ approvalStatus, banned: false, banExpires: null });
+    const res = await call();
+    expect(res.status).toBe(403);
+    expect((await res.json()).code).toBe(code);
+  });
+
+  test('active ban → 403 OWNER_BANNED; expired ban on an approved owner passes', async () => {
+    await setOwner({
+      approvalStatus: 'approved',
+      banned: true,
+      banExpires: new Date(Date.now() + 3_600_000),
+    });
+    const res = await call();
+    expect(res.status).toBe(403);
+    expect((await res.json()).code).toBe('OWNER_BANNED');
+    await setOwner({ banned: true, banExpires: new Date(Date.now() - 1000) });
+    expect((await call()).status).toBe(200);
   });
 });
 

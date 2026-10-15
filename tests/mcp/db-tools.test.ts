@@ -4,6 +4,7 @@ import { count, inArray } from 'drizzle-orm';
 import { db } from '../../server/db';
 import { user } from '../../server/db/schema';
 import { registerDbTools } from '../../server/mcp/tools/db';
+import { testUser } from '../support/accounts';
 
 type ToolResult = { content: Array<{ text: string }> };
 type Handler = (args: Record<string, unknown>) => Promise<ToolResult>;
@@ -22,23 +23,25 @@ const demoId = `${TAG}-demo`;
 
 beforeAll(async () => {
   const now = new Date();
-  await db.insert(user).values([
-    {
-      id: realId,
-      name: `${TAG} Real`,
-      email: `${TAG}-real@test.local`,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: demoId,
-      name: `${TAG} Demo`,
-      email: `${TAG}-demo@test.local`,
-      isAnonymous: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-  ]);
+  await db.insert(user).values(
+    [
+      {
+        id: realId,
+        name: `${TAG} Real`,
+        email: `${TAG}-real@test.local`,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: demoId,
+        name: `${TAG} Demo`,
+        email: `${TAG}-demo@test.local`,
+        isAnonymous: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ].map((u) => testUser(u)),
+  );
 });
 
 afterAll(async () => {

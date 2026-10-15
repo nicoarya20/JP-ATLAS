@@ -5,6 +5,7 @@ import { db } from '../../server/db';
 import { user, visitLog } from '../../server/db/schema';
 import { CLIENT_IP_HEADER } from '../../server/middleware/client-ip';
 import { recordVisit } from '../../server/middleware/visitor';
+import { testUser } from '../support/accounts';
 
 const TAG = `vr-${crypto.randomUUID().slice(0, 8)}`;
 const member = `${TAG}-user`;
@@ -27,14 +28,16 @@ async function visit(path: string, headers: Record<string, string> = {}, ip?: st
 }
 
 beforeAll(async () => {
-  await db.insert(user).values({
-    id: member,
-    name: member,
-    email: `${member}@test.local`,
-    emailVerified: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id: member,
+      name: member,
+      email: `${member}@test.local`,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
 });
 
 afterAll(async () => {

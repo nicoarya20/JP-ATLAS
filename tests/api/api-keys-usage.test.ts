@@ -14,6 +14,7 @@ import { apiKeysUsageApi } from '../../server/api/api-keys-usage';
 import { createKey } from '../../server/api-keys/service';
 import { db } from '../../server/db';
 import { apiKeyUsage, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const app = new Elysia().use(apiKeysUsageApi);
 const TAG = `ku-${crypto.randomUUID().slice(0, 8)}`;
@@ -21,15 +22,17 @@ const ownerId = `${TAG}-owner`;
 let keyId = '';
 
 beforeAll(async () => {
-  await db.insert(user).values({
-    id: ownerId,
-    name: 'Usage Owner',
-    email: `${ownerId}@test.local`,
-    emailVerified: true,
-    role: 'member',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id: ownerId,
+      name: 'Usage Owner',
+      email: `${ownerId}@test.local`,
+      emailVerified: true,
+      role: 'member',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   const k = await createKey({
     name: 'usage-key',
     ownerId,

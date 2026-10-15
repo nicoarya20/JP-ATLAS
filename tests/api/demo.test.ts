@@ -19,7 +19,10 @@ const ctx: { actor: Record<string, unknown> | null; role: string | null } = {
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation(((args: Parameters<typeof realGetSession>[0]) =>
     ctx.actor
-      ? Promise.resolve({ user: ctx.actor, session: { id: 's' } })
+      ? Promise.resolve({
+          user: { approvalStatus: 'approved', ...ctx.actor },
+          session: { id: 's' },
+        })
       : realGetSession(args)) as unknown as typeof auth.api.getSession),
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(((
     u: Parameters<typeof realResolveRole>[0],
@@ -143,7 +146,9 @@ describe('demo entry API', () => {
     const cookie = cookieHeader((await start()).res);
     expect((await call('GET', '/api/admin/users', { headers: { cookie } })).res.status).toBe(403);
     const demoPut = { headers: { cookie }, body: { enabled: false, ttlHours: null } };
-    expect((await call('PUT', '/api/settings/demo', demoPut)).res.status).toBe(403);
+    // A demo user is created `pending` by the DB default and the guard now holds it, so this answers
+    // 401 until S0A-13 removes demo; either way the settings write must stay closed.
+    expect([401, 403]).toContain((await call('PUT', '/api/settings/demo', demoPut)).res.status);
 
     const out = await call('POST', '/api/auth/sign-out', {
       headers: { cookie, origin: 'http://localhost' },

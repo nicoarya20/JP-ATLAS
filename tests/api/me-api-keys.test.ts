@@ -8,6 +8,7 @@ import { auth } from '../../server/auth';
 import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
 import * as rolesMod from '../../server/roles';
+import { testUser } from '../support/accounts';
 
 // Real resolveActor; only the session lookup and role reconciliation are stubbed
 // (a module mock of guard would leak into other test files in the same run).
@@ -16,7 +17,7 @@ const ctx: { actor: FakeActor } = { actor: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
     ctx.actor && !ctx.actor.viaApiKey
-      ? { user: ctx.actor.user }
+      ? { user: { approvalStatus: 'approved', ...ctx.actor.user } }
       : null) as unknown as typeof auth.api.getSession),
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(
     async () => (ctx.actor?.role ?? 'member') as 'member',
@@ -74,15 +75,17 @@ beforeAll(async () => {
     [
       [aliceId, 'member'],
       [bobId, 'admin'],
-    ].map(([id, role]) => ({
-      id,
-      name: id,
-      email: `${id}@test.local`,
-      emailVerified: true,
-      role,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })),
+    ].map(([id, role]) =>
+      testUser({
+        id,
+        name: id,
+        email: `${id}@test.local`,
+        emailVerified: true,
+        role,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    ),
   );
 });
 afterAll(async () => {

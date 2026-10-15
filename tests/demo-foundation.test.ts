@@ -28,7 +28,13 @@ describe('demo settings', () => {
 describe('resolveActor isDemo', () => {
   test('anonymous session user → isDemo true; regular → false', async () => {
     const role = spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member');
-    const base = { id: ID, name: 'x', email: 'x@test.local', banned: false };
+    const base = {
+      id: ID,
+      name: 'x',
+      email: 'x@test.local',
+      banned: false,
+      approvalStatus: 'approved',
+    };
     const session = spyOn(auth.api, 'getSession');
     try {
       session.mockImplementation((async () => ({

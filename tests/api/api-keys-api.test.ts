@@ -12,6 +12,7 @@ import { eq } from 'drizzle-orm';
 import { apiKeysApi } from '../../server/api/api-keys';
 import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const app = new Elysia().use(apiKeysApi);
 const TAG = `kapi-${crypto.randomUUID().slice(0, 8)}`;
@@ -28,15 +29,17 @@ async function call(path: string, init?: RequestInit) {
 let keyId = '';
 
 beforeAll(async () => {
-  await db.insert(user).values({
-    id: adminId,
-    name: 'Key Admin',
-    email: `${adminId}@test.local`,
-    emailVerified: true,
-    role: 'admin',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id: adminId,
+      name: 'Key Admin',
+      email: `${adminId}@test.local`,
+      emailVerified: true,
+      role: 'admin',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
 });
 afterAll(async () => {
   await db

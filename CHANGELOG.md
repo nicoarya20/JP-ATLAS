@@ -41,6 +41,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Unduhan runtime storage RustFS kini juga menampilkan progres langsung yang sama (persen/MB/kecepatan/ETA). Rilis GitHub yang lambat bisa dialihkan ke mirror lewat `MAKURO_RUSTFS_RELEASES`; checksum sha256 tetap diverifikasi. Tanpa internet, tetap bisa `init --s3-archive=<zip>`.
 - Versi Bun kini dikunci di satu tempat (`.bun-version`, saat ini 1.4.2) dan dipakai oleh CI, alur rilis, dan Dockerfile. `CHANGELOG.md` memakai penggabungan `union` supaya entri dari dua cabang tidak saling bentrok. Pasang Bun yang sama di komputer lokal Anda untuk `smoke:binary`.
 - Produksi menolak `BETTER_AUTH_SECRET` yang masih nilai contoh (berawalan `change-me`) atau kurang dari 32 karakter, dan app berhenti dengan pesan yang jelas. `.env.example` kini mengosongkan nilainya: buat dengan `openssl rand -base64 32` atau jalankan `simple-pm init`.
+- Akun yang masih menunggu persetujuan atau ditolak kini ditahan di semua pintu masuk: halaman dialihkan ke `/waiting`, `GET /api/app/*` menjawab 403 `ACCOUNT_PENDING` atau `ACCOUNT_REJECTED`, dan API key milik akun itu ditolak dengan kode yang sama (blokir aktif tetap `OWNER_BANNED`; blokir yang sudah kedaluwarsa tidak lagi menahan key). Halaman `/waiting` sendiri menyusul di tugas terpisah.
 
 ### Fixed
 - Dependensi dengan celah keamanan diperbarui: MCP SDK ke 1.32.1 dan Vite ke 8.3.4, serta `proxy-addr`, `fast-uri`, dan `ip-address` dipaksa ke versi yang sudah ditambal. `bun audit` kini bersih dari celah critical dan high.

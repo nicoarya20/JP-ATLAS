@@ -15,6 +15,7 @@ import { AUDIT_ACTIONS, audit } from '../../server/audit';
 import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
 import { CLIENT_IP_HEADER } from '../../server/middleware/client-ip';
+import { testUser } from '../support/accounts';
 
 const app = new Elysia().use(auditApi);
 const TAG = `aud-${crypto.randomUUID().slice(0, 8)}`;
@@ -28,14 +29,16 @@ async function getJson(path: string, params: Record<string, string> = {}) {
 }
 
 beforeAll(async () => {
-  await db.insert(user).values({
-    id: actorId,
-    name: `Auditor ${TAG}`,
-    email: `${actorId}@test.local`,
-    emailVerified: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id: actorId,
+      name: `Auditor ${TAG}`,
+      email: `${actorId}@test.local`,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   await audit({
     actor: { id: actorId, email: `${actorId}@test.local` },
     action: AUDIT_ACTIONS.USER_BAN,
