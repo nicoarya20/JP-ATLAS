@@ -16,8 +16,8 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 | **Tugas yang siap dikerjakan** | **92** |
 | Peran pengguna | 4 |
 | Perkiraan usaha untuk versi pertama (MVP Inti) | ±128 hari kerja asisten AI, sekitar **8 minggu** kalender |
-| Tugas yang sudah dikerjakan | **5 dari 92**, semuanya sudah digabung ke jalur utama |
-| Pengujian otomatis | dari 687 menjadi **770 lulus, 0 gagal** |
+| Tugas yang sudah dikerjakan | **8 dari 92** (5 sudah digabung ke jalur utama, 3 menunggu persetujuan digabung) |
+| Pengujian otomatis | dari 687 menjadi **795 lulus, 0 gagal** (pada hasil gabungan gelombang 3) |
 
 ## 3. Yang sudah kami kerjakan
 **Tahap 1 — Memahami dan merancang.** Rancangan lama dipelajari: tampilan layar di Penpot, catatan fitur, dan rancangan data. Empat belas bidang diriset **serentak oleh asisten AI**: keamanan, struktur data, tampilan layar, kemudahan untuk lansia, jadwal, pengujian, dan lainnya.
