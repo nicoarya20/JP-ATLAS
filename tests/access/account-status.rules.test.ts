@@ -120,3 +120,51 @@ describe('who may transition', () => {
     }
   });
 });
+
+// Added with S0B-17 to close S0B-13: R09 A4 asks for "who may" across Admin vs Super-admin vs an Admin target.
+describe('who may transition: role × target matrix', () => {
+  const targets = {
+    member: { id: 'T-member', appRole: ROLES.MEMBER },
+    pm: { id: 'T-pm', appRole: ROLES.PROJECT_MANAGER },
+    admin: { id: 'T-admin', appRole: ROLES.ADMIN },
+    sa: { id: 'T-sa', appRole: ROLES.SUPER_ADMIN },
+  } satisfies Record<string, UserTarget>;
+  const actors = { admin, boss } satisfies Record<string, Principal>;
+  const input = (actor: Principal, target: UserTarget) => ({ actor, target, reason: GOOD_REASON });
+
+  // Expected outcomes are hand-written (X2 §2E1): an Admin acts only on Member/PM, a Super-admin also on Admin.
+  it.each([
+    ['admin', 'member', 'allow'],
+    ['admin', 'pm', 'allow'],
+    ['admin', 'admin', 'TARGET_PROTECTED'],
+    ['admin', 'sa', 'TARGET_PROTECTED'],
+    ['boss', 'member', 'allow'],
+    ['boss', 'pm', 'allow'],
+    ['boss', 'admin', 'allow'],
+    ['boss', 'sa', 'TARGET_PROTECTED'],
+  ] as const)('%s moves a %s from rejected to approved => %s', (who, target, expected) => {
+    expect(
+      code(canTransitionAccount('rejected', 'approved', input(actors[who], targets[target]))),
+    ).toBe(expected);
+  });
+
+  it('checks who may act before whether the transition is legal', () => {
+    const plainMember: Principal = { id: 'U-m', appRole: ROLES.MEMBER, impersonating: false };
+    expect(
+      code(
+        canTransitionAccount('approved', 'rejected', {
+          actor: plainMember,
+          target: member,
+          reason: '',
+        }),
+      ),
+    ).toBe('NOT_ADMIN');
+  });
+
+  it('reads a legacy "user" role on the actor as a member, so it is not an Admin', () => {
+    const legacy: Principal = { id: 'U-legacy', appRole: 'user' as never, impersonating: false };
+    expect(code(canTransitionAccount('pending', 'approved', input(legacy, member)))).toBe(
+      'NOT_ADMIN',
+    );
+  });
+});
