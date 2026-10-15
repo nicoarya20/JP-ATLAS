@@ -42,7 +42,7 @@ export function UserCardList({ rows, loading, perms, actions, onOpen, empty }: U
                 <RoleBadge role={u.role} size="xs" />
                 <StatusBadge user={u} size="xs" />
                 <Text size="xs" c="dimmed">
-                  {u.lastLoginAt ? `login ${formatRelative(u.lastLoginAt)}` : 'belum pernah login'}{' '}
+                  {u.lastLoginAt ? `masuk ${formatRelative(u.lastLoginAt)}` : 'belum pernah masuk'}{' '}
                   · bergabung {formatRelative(u.createdAt)}
                 </Text>
               </Group>

@@ -2,7 +2,7 @@ import { frameInfo } from '@server/app-info';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { getSidebarCollapsed } from '@server/sidebar';
-import { FiGrid, FiHome, FiLayers, FiUser } from 'react-icons/fi';
+import { FiGrid, FiHome, FiLayers, FiUser, FiUsers } from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
@@ -13,7 +13,10 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: 'Admin — Simple PM' }];
 }
 
-const NAV: NavItem[] = [{ to: '/dashboard', label: 'Dashboard', icon: FiHome }];
+const NAV: NavItem[] = [
+  { to: '/dashboard', label: 'Dashboard', icon: FiHome },
+  { to: '/dashboard/users', label: 'Pengguna', icon: FiUsers },
+];
 const APP: NavItem[] = [
   { to: '/app', label: 'App', icon: FiLayers },
   { to: '/profile', label: 'Profile', icon: FiUser },

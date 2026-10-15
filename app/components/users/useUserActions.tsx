@@ -1,23 +1,28 @@
 import { Text } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
+import { normalizeRole, ROLES } from '@server/permissions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { type AdminUser, banUser, deleteUser, setUserRole, unbanUser } from '~/lib/admin-users-api';
+import {
+  type AdminUser,
+  banUser,
+  deleteUser,
+  ROLE_LABEL,
+  setUserRole,
+  unbanUser,
+} from '~/lib/admin-users-api';
 import { authClient } from '~/lib/auth-client';
+import { notifyError } from '~/lib/notify';
 import { BanUserForm } from './BanUserForm';
+import { useApprovalActions } from './useApprovalActions';
 
-function notifyError(title: string, err: unknown) {
-  notifications.show({
-    color: 'red',
-    title,
-    message: err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.',
-  });
-}
+const roleLabel = (r: string) => ROLE_LABEL[r] ?? r;
 
-/** Role / ban / delete / impersonate with confirm dialogs, loading state and feedback. */
+/** Role / suspend / delete / impersonate / approve / reject with confirm dialogs, loading state and feedback. */
 export function useUserActions({ onDone }: { onDone: () => void }) {
   const qc = useQueryClient();
+  const approvals = useApprovalActions({ onDone });
   const [busyId, setBusyId] = useState<string | null>(null);
   const invalidate = () =>
     Promise.all([
@@ -45,8 +50,8 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
     mutationFn: (a: { user: AdminUser; role: string }) => setUserRole(a.user.id, a.role),
     ...lifecycle<{ user: AdminUser; role: string }>(
       (a) => a.user.id,
-      (a) => `Role ${a.user.name} diubah menjadi ${a.role}.`,
-      'Gagal mengubah role',
+      (a) => `Peran ${a.user.name} diubah menjadi ${roleLabel(a.role)}.`,
+      'Gagal mengubah peran',
     ),
   });
   const ban = useMutation({
@@ -54,7 +59,8 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
       banUser(a.user.id, a.reason, a.expiresIn),
     ...lifecycle<{ user: AdminUser; reason: string; expiresIn?: number }>(
       (a) => a.user.id,
-      (a) => `${a.user.name} diblokir${a.expiresIn ? ' sementara' : ' permanen'}.`,
+      (a) =>
+        `${a.user.name} diblokir${a.expiresIn ? ' sementara' : ' permanen'}. Semua sesinya sudah diakhiri.`,
       'Gagal memblokir user',
     ),
   });
@@ -62,8 +68,8 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
     mutationFn: (u: AdminUser) => unbanUser(u.id),
     ...lifecycle<AdminUser>(
       (u) => u.id,
-      (u) => `Ban ${u.name} dibuka.`,
-      'Gagal membuka ban',
+      (u) => `Blokir ${u.name} dibuka.`,
+      'Gagal membuka blokir',
     ),
   });
   const remove = useMutation({
@@ -77,23 +83,26 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
 
   const changeRole = (user: AdminUser, next: string) =>
     modals.openConfirmModal({
-      title: `Ubah role menjadi ${next}?`,
+      title: `Ubah peran menjadi ${roleLabel(next)}?`,
       children: (
         <Text size="sm">
-          <strong>{user.name}</strong> ({user.email}) akan menjadi <strong>{next}</strong>.{' '}
+          <strong>{user.name}</strong> ({user.email}) akan menjadi{' '}
+          <strong>{roleLabel(next)}</strong>.{' '}
           {next === 'admin'
-            ? 'Admin bisa melihat dan memblokir user biasa di dashboard.'
-            : 'Akses admin dicabut segera.'}
+            ? 'Admin bisa menyetujui pendaftar, mengundang orang, dan mengelola pengguna.'
+            : normalizeRole(user.role) === ROLES.ADMIN
+              ? 'Akses Admin dicabut segera.'
+              : 'Hak aksesnya berubah segera.'}
         </Text>
       ),
-      labels: { confirm: `Jadikan ${next}`, cancel: 'Batal' },
+      labels: { confirm: `Jadikan ${roleLabel(next)}`, cancel: 'Batal' },
       confirmProps: { color: next === 'admin' ? 'blue' : 'orange' },
       onConfirm: () => role.mutate({ user, role: next }),
     });
 
   const banWithForm = (user: AdminUser) => {
     const id = modals.open({
-      title: `Ban ${user.name}?`,
+      title: `Blokir ${user.name}?`,
       children: (
         <BanUserForm
           user={user}
@@ -109,13 +118,13 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
 
   const unbanConfirm = (user: AdminUser) =>
     modals.openConfirmModal({
-      title: 'Buka ban?',
+      title: 'Buka blokir?',
       children: (
         <Text size="sm">
-          <strong>{user.name}</strong> bisa masuk kembali segera setelah ban dibuka.
+          <strong>{user.name}</strong> bisa masuk kembali segera setelah blokir dibuka.
         </Text>
       ),
-      labels: { confirm: 'Buka ban', cancel: 'Batal' },
+      labels: { confirm: 'Buka blokir', cancel: 'Batal' },
       onConfirm: () => unban.mutate(user),
     });
 
@@ -125,8 +134,8 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
       children: (
         <Text size="sm">
           <strong>{user.name}</strong> ({user.email}) beserta sesi dan akun tertautnya akan dihapus
-          permanen. Tindakan ini tidak bisa dibatalkan. Pertimbangkan ban bila hanya ingin menutup
-          akses.
+          permanen. Tindakan ini tidak bisa dibatalkan. Pertimbangkan memblokir bila hanya ingin
+          menutup akses.
         </Text>
       ),
       labels: { confirm: 'Hapus permanen', cancel: 'Batal' },
@@ -156,5 +165,14 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
       },
     });
 
-  return { changeRole, banWithForm, unbanConfirm, removeConfirm, impersonate, busyId };
+  return {
+    changeRole,
+    banWithForm,
+    unbanConfirm,
+    removeConfirm,
+    impersonate,
+    approve: approvals.approve,
+    reject: approvals.reject,
+    busyId: busyId ?? approvals.busyId,
+  };
 }

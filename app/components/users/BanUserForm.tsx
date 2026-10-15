@@ -17,7 +17,7 @@ export function BanUserForm({ user, onSubmit, onCancel }: Props) {
     <Stack gap="sm">
       <Text size="sm">
         <strong>{user.name}</strong> ({user.email}) tidak akan bisa masuk dan semua sesinya dicabut.
-        Ban bisa dibuka kapan saja.
+        Blokir bisa dibuka kapan saja.
       </Text>
       <Textarea
         label="Alasan"
@@ -42,7 +42,7 @@ export function BanUserForm({ user, onSubmit, onCancel }: Props) {
           Batal
         </Button>
         <Button color="red" onClick={() => onSubmit(reason.trim(), preset.seconds ?? undefined)}>
-          Ban user
+          Blokir akun
         </Button>
       </Group>
     </Stack>
