@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "bun run --hot server/dev-entry.ts",
     "test": "NODE_ENV=test bun test tests",
+    "test:pm": "NODE_ENV=test bun test tests/access tests/account",
     "build": "react-router build",
     "start": "NODE_ENV=production bun run server/binary-entry.ts start",
     "cli": "bun run server/binary-entry.ts",
