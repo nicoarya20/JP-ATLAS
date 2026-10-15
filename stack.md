@@ -23,7 +23,7 @@ sederhana (satu proses). Development: Vite middleware mode di dalam server
 
 | Layer | Pilihan | Versi |
 |---|---|---|
-| Runtime | Bun | 1.4.2 |
+| Runtime | Bun (sumber kebenaran: `.bun-version`) | 1.4.2 |
 | Backend | Elysia + Eden Treaty | 1.4.x |
 | ORM | Drizzle ORM + drizzle-kit | 0.45 / 0.31 |
 | Database | PostgreSQL (pgvector/pg16, shared infra-postgres) | 16 |

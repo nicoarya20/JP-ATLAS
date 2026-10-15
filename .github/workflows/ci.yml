@@ -13,9 +13,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  BUN_VERSION: 1.4.2
-
 jobs:
   check:
     runs-on: ubuntu-24.04
@@ -38,7 +35,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
