@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import './styles/tokens.css';
 import './styles/app.css';
 import './screens';
+import './styles/library.css';   // after the screens: overrides the library scss they pull in
 import { AppProvider } from './core/app.context';
 import { PhoneApp } from './core/PhoneApp';
 import { START_SCREEN, readUrl, setRole } from './core/session';

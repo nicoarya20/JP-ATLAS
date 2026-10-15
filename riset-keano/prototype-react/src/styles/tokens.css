@@ -75,6 +75,14 @@
   --snack-bg: #323236;                   /* inverted surface for snackbars */
   --snack-label: #ffffff;
   --snack-action: #64d2ff;
+  --chrome: rgba(249, 249, 249, 0.94);  /* bar material behind the tab bar */
+  --sheet-bg: #f2f2f7;                   /* bottom sheet background */
+  --sheet-surface: #ffffff;              /* cards and lists inside a sheet */
+  --overlay: rgba(0, 0, 0, 0.4);         /* dimming behind a sheet */
+  --avatar-bg: linear-gradient(180deg, #a5abb8, #858994);  /* contact monogram grey */
+  --switch-off: rgba(120, 120, 128, 0.16);
+  --seg-thumb: #ffffff;                  /* segmented control selected thumb */
+  --switch-thumb: #ffffff;
 
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   /* iOS text styles (default Dynamic Type size) */
@@ -126,4 +134,11 @@
   --separator: rgba(84, 84, 88, 0.65);
   --media: #2c2c2e;
   --index-bg: #1c1c1e;
+  --chrome: rgba(22, 22, 22, 0.94);
+  --sheet-bg: #1c1c1e;
+  --sheet-surface: #2c2c2e;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --avatar-bg: linear-gradient(180deg, #6d7079, #4f5158);
+  --switch-off: rgba(120, 120, 128, 0.32);
+  --seg-thumb: #636366;
 }

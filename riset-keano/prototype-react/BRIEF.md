@@ -73,6 +73,7 @@ Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, s
   - `t-title2`, `t-headline`, `t-subhead`, `t-footnote`, `t-caption`, `muted`, `tint`, `danger`, `success`, `bold`.
   - Layout: `stack`, `row-flex`, `between`, `wrap`, `hscroll`.
 - Colours come from CSS variables (`var(--color-blue)`, `var(--app-…)`) in module CSS. No raw hex in JSX.
+- Library parts are themed in `src/styles/library.css` (loaded last), so light and dark both work. Restyle a kit part there, mapped to tokens from `tokens.css`; never a raw colour.
 - Files stay under 300 lines. Split a module into `<module>.<part>.jsx` files.
 
 ## Done means

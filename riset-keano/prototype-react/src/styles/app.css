@@ -60,20 +60,10 @@ h1, h2, h3 { margin: 0; }
 .hscroll::-webkit-scrollbar { display: none; }
 .hscroll > * { flex: none; }
 
-/* ---- Library fixes: these components read --background/--border as colors, upstream defines them as HSL triplets ---- */
-.react-cupertino-ui-navigation-bar { background: var(--bg); border-bottom: 1px solid var(--separator); flex: none; }
-.react-cupertino-ui-navigation-bar .title-compact { color: var(--label); }
-.app-toast { z-index: 300; }
-
 /* ---- Kit parts ---- */
-.card.react-cupertino-ui-card { --card-padding-block: var(--sp-4); --card-padding-inline: var(--sp-4);
-  gap: var(--sp-3); border-radius: var(--radius-card); background: var(--surface); color: var(--label);
-  box-shadow: none; border: 0; text-align: left; }
 .sec-head { display: flex; align-items: flex-start; gap: var(--sp-3); }
 .link { background: none; border: 0; padding: 0; color: var(--accent); font-size: var(--fs-subhead); cursor: pointer; white-space: nowrap; }
-.rows.react-cupertino-ui-list { margin: 0; border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
 .avatars { display: inline-flex; }
-.avatars > * + * { margin-left: calc(var(--sp-2) * -1); box-shadow: 0 0 0 2px var(--surface); }
 .media { display: grid; place-items: center; border-radius: var(--radius-card); background: var(--media); color: var(--label-2);
   font-size: var(--fs-footnote); }
 .media-sm { height: 120px; } .media-md { height: 200px; } .media-lg { height: 280px; }

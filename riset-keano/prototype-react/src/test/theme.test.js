@@ -1,0 +1,46 @@
+// Theme layer guards: library.css must load last, use only defined tokens, and every themed token must switch under .dark.
+import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const src = join(__dirname, '..');
+const read = f => readFileSync(join(src, f), 'utf8');
+const tokens = read('styles/tokens.css');
+const library = read('styles/library.css');
+const block = sel => tokens.slice(tokens.indexOf(`${sel} {`), tokens.indexOf('}', tokens.indexOf(`${sel} {`)));
+const defined = text => new Set([...text.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+
+// --accent is absent on purpose: it follows --color-blue, which .dark redefines.
+const THEMED = ['--bg', '--surface', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent-soft',
+  '--chrome', '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb'];
+
+describe('theme layer', () => {
+  it('is imported after the screens so it wins over the library scss', () => {
+    const main = read('main.jsx');
+    const screens = main.indexOf("import './screens'");
+    expect(screens).toBeGreaterThan(-1);
+    expect(main.indexOf("import './styles/library.css'")).toBeGreaterThan(screens);
+  });
+
+  it('only uses tokens that tokens.css or library.css define', () => {
+    const known = new Set([...defined(tokens), ...defined(library)]);
+    const used = [...library.matchAll(/var\((--[\w-]+)/g)].map(m => m[1]);
+    expect(used.filter(t => !known.has(t))).toEqual([]);
+  });
+
+  it('defines every themed token for both light and dark', () => {
+    const light = defined(block(':root'));
+    const dark = defined(block('.dark'));
+    expect(THEMED.filter(t => !light.has(t))).toEqual([]);
+    expect(THEMED.filter(t => !dark.has(t))).toEqual([]);
+  });
+
+  it('keeps raw colors in tokens.css only', () => {
+    expect(library.match(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/gi)).toBeNull();
+  });
+
+  it('stops avatars from shrinking into ovals', () => {
+    expect(library).toMatch(/\.react-cupertino-ui-avatar\s*\{[^}]*flex:\s*none/);
+    expect(library).toMatch(/\.react-cupertino-ui-list-item-icon\s*\{[^}]*width:\s*auto/);
+  });
+});
