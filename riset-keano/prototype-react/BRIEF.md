@@ -1,0 +1,79 @@
+# Worker brief: React + Cupertino prototype
+
+Orchestrator: session `pm-dashboard-7b`. Report to it with SendMessage when you are done or blocked.
+
+## Goal
+Port your modules from the vanilla prototype (`riset-keano/wireframe-mobile/screens.<module>*.js`) to React 18 + react-cupertino-ui in this folder.
+Use the same screen ids, titles, index groups, roles, flows and sample data. Do not invent features.
+The iOS Cupertino look comes from the library and the kit. The ClickUp theme is gone.
+
+## Ownership
+| Owner | Files |
+|---|---|
+| orchestrator | `src/core/`, `src/kit/`, `src/styles/`, `src/data/`, `src/index/`, `src/screens/index.js`, `src/test/`, `package.json`, `vite.config.js`, html files |
+| pm-dashboard-65 | `src/screens/projects/`, `src/screens/tasks/` |
+| pm-dashboard-f9 | `src/screens/events/`, `src/screens/inbox/` |
+
+- Only edit files inside your own module folders.
+- If you need a kit part, a sample-data field or a core change, ask the orchestrator. Do not edit shared files.
+- Data used by only one module may live in your module folder (`<module>.data.js`).
+- Module CSS goes in `<module>.css`, imported from your `index.js`. Prefix every class with the module (`pj-`, `tk-`, `ev-`, `ib-`).
+
+## API
+Registration happens in your module `index.js`, following `src/screens/home/index.js`:
+
+```js
+import { screen, sheet } from '../../core/registry';
+screen('tasks.my', { title: '① My tasks', group: 'Tasks', Component: TasksMy });
+screen('users.roles', { ..., roles: ['admin'] });  // omit roles = every role
+sheet('tasks.return', { title: '…', group: 'Tasks', snap: 0.5, Component: ReturnSheet }); // snap = share of phone height, default 0.6
+```
+
+- Component props: `{ params }`.
+  - `params.task` is the `D.tasks` number passed by a `task` nav prop.
+  - Use the old file's default when `params.task` is missing.
+- `useApp()` (from `core/app.context`) returns `{ role, is('pm', 'admin'), params, go(id, {replace, params}), back(), openSheet(id, params), closeSheet(), toast(msg) }`.
+- Data: `import { D } from '../../data/sample'`. `D.me()` is the signed-in person for the current role.
+
+Kit (`import { ... } from '../../kit'`):
+- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `tab` is one of `home`, `tasks`, `projects`, `events`, `more` and shows the bottom tab bar.
+- `Section` is a card. Its props are `title`, `sub`, `right`, plus nav props, which make the whole card tappable.
+- `Rows` and `Row` make an iOS grouped list. Row props: `lead`, `title`, `sub`, `right`, `chev`.
+- `Btn`: `kind` is `primary`, `outline`, `ghost`, `danger` or `plain`. Other props: `block`, `sm`, `icon`.
+- `Link` is a "See all" text button.
+- `Chips`, `Seg` and `Tabs` take `items`, `on` and `gos`.
+- `Field`: props `label`, `value`, `placeholder`, `area`, `disabled`, `icon`.
+- Small display parts:
+  - `Avatar` (props `name`, `size`) and `Avatars` (prop `names`).
+  - `Pill`: `tone` is `neutral`, `accent`, `success`, `warning`, `danger` or `outline`.
+  - `Progress`: props `value`, `label`, `showValue`.
+  - `Media`: props `label`, `size`.
+  - `Empty`: props `icon`, `title`, `text`, `action`.
+  - `Head`: a section heading.
+- `Sheet`: props `title`, `sub`, `actions`. Use it as the root of every sheet component.
+
+Nav props work on `Btn`, `Link`, `Section` and `Row`:
+- `go="id"`, `sheet="id"`, `back`, `close`, `toast="text"`, `replace`, `task={12}`, `params={{...}}`.
+- The old `data-go` attribute becomes `go`, `data-sheet` becomes `sheet`, and `data-task` becomes `task`.
+- A button inside a tappable row only fires its own action.
+
+Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, see `package.json`. Two limits:
+- Card subcomponents (`CardHeader` and the rest) use Tailwind, which this project does not have. Use `Section`.
+- Icons come from `lucide-react`.
+
+## Style rules (tests enforce the first three)
+- English UI text. No emoji anywhere. Circled index numbers like ① are fine.
+- No inline `style` for typography or colour. Use the classes in `src/styles/app.css`:
+  - `t-title2`, `t-headline`, `t-subhead`, `t-footnote`, `t-caption`, `muted`, `tint`, `danger`, `success`, `bold`.
+  - Layout: `stack`, `row-flex`, `between`, `wrap`, `hscroll`.
+- Colours come from CSS variables (`var(--color-blue)`, `var(--app-…)`) in module CSS. No raw hex in JSX.
+- Files stay under 300 lines. Split a module into `<module>.<part>.jsx` files.
+
+## Done means
+1. `npm test` and `npm run build` both pass.
+   - The smoke test renders every registered screen for every allowed role.
+   - Ids must come from `src/test/screens.ids.js`.
+2. Every id of your modules is registered, with the same roles as in the old prototype.
+3. You report to `pm-dashboard-7b`: files, ids, anything skipped or changed, and kit or data requests.
+
+Do not open a browser or Playwright. Do not commit or push. Do not run `npm install`; ask the orchestrator for new packages.

@@ -1,0 +1,126 @@
+/* Design tokens. Part 1: the react-cupertino-ui globals (MIT, (c) Anderson Lima, github.com/andersonlimahw/react-cupertino-ui,
+   app/globals.css) that the library CSS reads. Part 2: app tokens (iOS system colors, text styles, 4px spacing).
+   Colors live only here; screen modules use the tokens. Dark mode = class "dark" on <html> (?mode=dark). */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --primary: 24 9.8% 10%;
+  --primary-foreground: 60 9.1% 97.8%;
+  --secondary: 12 6.5% 15.1%;
+  --secondary-foreground: 24 9.8% 10%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+
+  --color-red: #ff3b30;
+  --color-orange: #ff9500;
+  --color-yellow: #ffcc00;
+  --color-green: #34c759;
+  --color-mint: #00c7be;
+  --color-teal: #30b0c7;
+  --color-cyan: #32ade6;
+  --color-blue: #007aff;
+  --color-indigo: #5856d6;
+  --color-purple: #af52de;
+  --color-pink: #ff2d55;
+  --color-brown: #a2845e;
+  --color-white: #ffffff;
+  --color-light-gray: rgba(179, 179, 179, 0.6);
+
+  --glass-blur: 40px;
+  --glass-saturation: 180%;
+  --glass-opacity: 0.7;
+  --glass-opacity-dark: 0.45;
+  --glass-surface: rgba(255, 255, 255, 0.7);
+  --glass-surface-strong: rgba(255, 255, 255, 0.95);
+  --glass-surface-hover: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-border-strong: rgba(255, 255, 255, 0.3);
+  --glass-border-dark: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --glass-refraction: 1.5;
+  --glass-highlight: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, transparent 55%);
+  --glass-highlight-opacity: 0.95;
+  --glass-press-duration: 220ms;
+  --glass-press-scale: 0.97;
+  --glass-press-bounce: 1.02;
+  --spring-duration: 500ms;
+
+  /* ---- App tokens (iOS system palette) ---- */
+  --accent: var(--color-blue);           /* tint: primary buttons, links, selected, active */
+  --accent-soft: rgba(0, 122, 255, 0.12);
+  --on-accent: #ffffff;
+  --success: var(--color-green);
+  --warning: var(--color-orange);
+  --danger: var(--color-red);
+  --bg: #f2f2f7;                         /* systemGroupedBackground */
+  --surface: #ffffff;                    /* secondarySystemGroupedBackground: cards, lists */
+  --fill: rgba(118, 118, 128, 0.12);     /* tertiarySystemFill: chips, inputs, icon squares */
+  --label: #000000;
+  --label-2: rgba(60, 60, 67, 0.6);      /* secondaryLabel */
+  --label-3: rgba(60, 60, 67, 0.3);      /* tertiaryLabel: chevrons, placeholders */
+  --separator: rgba(60, 60, 67, 0.29);
+  --media: #e5e5ea;                      /* image placeholder (systemGray5) */
+  --phone-frame: #1c1c1e;
+  --index-bg: #ffffff;
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  /* iOS text styles (default Dynamic Type size) */
+  --fs-large: 34px; --fs-title1: 28px; --fs-title2: 22px; --fs-title3: 20px; --fs-headline: 17px; --fs-body: 17px;
+  --fs-callout: 16px; --fs-subhead: 15px; --fs-footnote: 13px; --fs-caption1: 12px; --fs-caption2: 11px;
+  --lh-tight: 1.2; --lh-snug: 1.3; --lh-body: 1.45;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+  --radius-card: 12px; --radius-sm: 8px;
+}
+
+.dark {
+  --background: 20 14.3% 4.1%;
+  --foreground: 60 9.1% 97.8%;
+  --card: 20 14.3% 4.1%;
+  --card-foreground: 60 9.1% 97.8%;
+  --popover: 20 14.3% 4.1%;
+  --popover-foreground: 60 9.1% 97.8%;
+  --primary: 60 9.1% 97.8%;
+  --primary-foreground: 24 9.8% 10%;
+  --secondary-foreground: 60 9.1% 97.8%;
+  --muted: 12 6.5% 15.1%;
+  --muted-foreground: 24 5.4% 63.9%;
+  --destructive: 0 62.8% 30.6%;
+  --border: 12 6.5% 15.1%;
+  --input: 12 6.5% 15.1%;
+  --ring: 24 5.7% 82.9%;
+
+  --glass-surface: rgba(16, 16, 16, 0.6);
+  --glass-surface-hover: rgba(16, 16, 16, 0.72);
+  --glass-surface-strong: rgba(28, 28, 28, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-strong: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --glass-refraction: 1.35;
+  --glass-highlight: linear-gradient(160deg, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  --glass-highlight-opacity: 0.8;
+
+  --color-blue: #0a84ff;
+  --color-green: #30d158;
+  --color-red: #ff453a;
+  --color-orange: #ff9f0a;
+  --accent-soft: rgba(10, 132, 255, 0.2);
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --fill: rgba(118, 118, 128, 0.24);
+  --label: #ffffff;
+  --label-2: rgba(235, 235, 245, 0.6);
+  --label-3: rgba(235, 235, 245, 0.3);
+  --separator: rgba(84, 84, 88, 0.65);
+  --media: #2c2c2e;
+  --index-bg: #1c1c1e;
+}

@@ -1,0 +1,85 @@
+/* Phone app layout + shared utility classes. Screen modules use these classes instead of inline spacing/typography. */
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--label); font-family: var(--font);
+  font-size: var(--fs-body); line-height: var(--lh-snug); -webkit-font-smoothing: antialiased;
+}
+*, *::before, *::after { box-sizing: border-box; }
+button { font: inherit; color: inherit; }
+p { margin: 0; line-height: var(--lh-body); }
+h1, h2, h3 { margin: 0; }
+
+/* ---- Shell: status bar, then one screen = nav bar + scrolling content (+ fixed tab bar) ---- */
+.phone-app { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.statusbar { flex: none; height: 44px; padding: 0 var(--sp-6); display: flex; align-items: center; justify-content: space-between;
+  font-size: var(--fs-subhead); font-weight: 600; background: var(--bg); }
+.scr { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.content { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-4); }
+.content.with-tabbar { padding-bottom: calc(var(--tab-bar-space) + var(--sp-4)); }
+:root { --tab-bar-space: 84px; }   /* library tab bar height (70px) + its bottom padding */
+
+/* ---- Rhythm ---- */
+.stack { display: grid; gap: var(--sp-3); grid-auto-rows: max-content; align-content: start; }
+.content.stack { gap: var(--sp-4); }
+.stack.xs { gap: var(--sp-1); }
+.stack.sm { gap: var(--sp-2); }
+.stack.lg { gap: var(--sp-5); }
+.mt-0 { margin-top: 0; } .mt-1 { margin-top: var(--sp-1); } .mt-2 { margin-top: var(--sp-2); }
+.mt-3 { margin-top: var(--sp-3); } .mt-4 { margin-top: var(--sp-4); } .mt-6 { margin-top: var(--sp-6); }
+.row-flex { display: flex; align-items: center; gap: var(--sp-3); }
+.between { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.spacer { flex: 1; }
+.grow { flex: 1; min-width: 0; }
+.wrap { flex-wrap: wrap; }
+.bleed { margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
+
+/* ---- Text styles (iOS) ---- */
+.t-large { font-size: var(--fs-large); font-weight: 700; line-height: var(--lh-tight); }
+.t-title1 { font-size: var(--fs-title1); font-weight: 700; line-height: var(--lh-tight); }
+.t-title2 { font-size: var(--fs-title2); font-weight: 700; line-height: var(--lh-tight); }
+.t-title3 { font-size: var(--fs-title3); font-weight: 600; line-height: var(--lh-tight); }
+.t-headline { font-size: var(--fs-headline); font-weight: 600; }
+.t-body { font-size: var(--fs-body); }
+.t-callout { font-size: var(--fs-callout); }
+.t-subhead { font-size: var(--fs-subhead); }
+.t-footnote { font-size: var(--fs-footnote); }
+.t-caption { font-size: var(--fs-caption1); }
+.small { font-size: var(--fs-subhead); }
+.muted { color: var(--label-2); }
+.tint { color: var(--accent); }
+.danger { color: var(--danger); }
+.success { color: var(--success); }
+.center { text-align: center; }
+.bold { font-weight: 600; }
+.nowrap { white-space: nowrap; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- Horizontal scrollers (chips, stat cards): never let a scroll row collapse its children ---- */
+.hscroll { display: flex; gap: var(--sp-2); overflow-x: auto; scrollbar-width: none; min-height: min-content; }
+.hscroll::-webkit-scrollbar { display: none; }
+.hscroll > * { flex: none; }
+
+/* ---- Library fixes: these components read --background/--border as colors, upstream defines them as HSL triplets ---- */
+.react-cupertino-ui-navigation-bar { background: var(--bg); border-bottom: 1px solid var(--separator); flex: none; }
+.react-cupertino-ui-navigation-bar .title-compact { color: var(--label); }
+.app-toast { z-index: 300; }
+
+/* ---- Kit parts ---- */
+.card.react-cupertino-ui-card { --card-padding-block: var(--sp-4); --card-padding-inline: var(--sp-4);
+  gap: var(--sp-3); border-radius: var(--radius-card); background: var(--surface); color: var(--label);
+  box-shadow: none; border: 0; text-align: left; }
+.sec-head { display: flex; align-items: flex-start; gap: var(--sp-3); }
+.link { background: none; border: 0; padding: 0; color: var(--accent); font-size: var(--fs-subhead); cursor: pointer; white-space: nowrap; }
+.rows.react-cupertino-ui-list { margin: 0; border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+.avatars { display: inline-flex; }
+.avatars > * + * { margin-left: calc(var(--sp-2) * -1); box-shadow: 0 0 0 2px var(--surface); }
+.media { display: grid; place-items: center; border-radius: var(--radius-card); background: var(--media); color: var(--label-2);
+  font-size: var(--fs-footnote); }
+.media-sm { height: 120px; } .media-md { height: 200px; } .media-lg { height: 280px; }
+.empty { padding: var(--sp-8) var(--sp-4); justify-items: center; }
+.empty-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.field { display: grid; gap: var(--sp-1); }
+.field-area { font: inherit; font-size: var(--fs-body); padding: var(--sp-3); border-radius: var(--radius-sm); border: 0;
+  background: var(--fill); color: var(--label); resize: vertical; }
+.sheet { padding: 0 var(--sp-4) var(--sp-6); }
