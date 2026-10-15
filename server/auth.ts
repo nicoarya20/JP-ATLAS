@@ -2,6 +2,7 @@ import { apiKey } from '@better-auth/api-key';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, anonymous, multiSession } from 'better-auth/plugins';
+import { emailPasswordEnabled } from './account/auth-policy';
 import { deleteAvatarObject } from './api/app-avatar';
 import { AUDIT_ACTIONS, audit } from './audit';
 import { db } from './db';
@@ -118,10 +119,31 @@ export const auth = betterAuth({
   // /api/auth/* skips the app limiter; BA's own per-IP limiter (default rules,
   // stricter on sign-in) guards it in production.
   rateLimit: { enabled: isProd, storage: 'memory' },
+  // Production signs in with Google only; the gate and the sign-up hook (S0A-06/08) add the
+  // other two layers (R12 F1).
   emailAndPassword: {
-    enabled: true,
+    enabled: emailPasswordEnabled(isProd),
+  },
+  account: {
+    // Never merge a provider login into an existing account by matching email: a recycled or
+    // unverified address would hand over someone else's account and approval (R12 C-AUTH-5).
+    accountLinking: { disableImplicitLinking: true },
   },
   user: {
+    // Approval state lives on `user` (migration 0014) so it rides on `session.user`. Every field is
+    // `input:false`: clients can neither set it at sign-up nor change it via /update-user.
+    // Without a sign-up hook (S0A-06) new accounts get the safe default 'pending'.
+    additionalFields: {
+      approvalStatus: {
+        type: 'string',
+        required: false,
+        defaultValue: 'pending',
+        input: false,
+      },
+      approvalDecidedBy: { type: 'string', required: false, input: false },
+      approvalDecidedAt: { type: 'date', required: false, input: false },
+      approvalReason: { type: 'string', required: false, input: false },
+    },
     // Self-service account deletion from /profile. Credential accounts must
     // confirm with their password; the client asks for it before calling.
     deleteUser: { enabled: true },

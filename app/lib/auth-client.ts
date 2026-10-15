@@ -1,5 +1,11 @@
+import type { auth } from '@server/auth';
 import { ac, roles } from '@server/permissions';
-import { adminClient, anonymousClient, multiSessionClient } from 'better-auth/client/plugins';
+import {
+  adminClient,
+  anonymousClient,
+  inferAdditionalFields,
+  multiSessionClient,
+} from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 /**
@@ -7,7 +13,13 @@ import { createAuthClient } from 'better-auth/react';
  * to the current origin and talks to /api/auth/*.
  */
 export const authClient = createAuthClient({
-  plugins: [adminClient({ ac, roles }), multiSessionClient(), anonymousClient()],
+  // inferAdditionalFields: types `session.user.approvalStatus` etc. (type-only, no server code shipped).
+  plugins: [
+    adminClient({ ac, roles }),
+    multiSessionClient(),
+    anonymousClient(),
+    inferAdditionalFields<typeof auth>(),
+  ],
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;
