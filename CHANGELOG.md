@@ -40,6 +40,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Produksi menolak `BETTER_AUTH_SECRET` yang masih nilai contoh (berawalan `change-me`) atau kurang dari 32 karakter, dan app berhenti dengan pesan yang jelas. `.env.example` kini mengosongkan nilainya: buat dengan `openssl rand -base64 32` atau jalankan `simple-pm init`.
 
 ### Fixed
+- Dependensi dengan celah keamanan diperbarui: MCP SDK ke 1.32.1 dan Vite ke 8.3.4, serta `proxy-addr`, `fast-uri`, dan `ip-address` dipaksa ke versi yang sudah ditambal. `bun audit` kini bersih dari celah critical dan high.
 - `bun run test` kini menghentikan Postgres lokal yang ia nyalakan sendiri setelah test selesai. Sebelumnya proses Postgres tertinggal dan memegang port `54329`. Postgres milik `bun dev` yang sedang jalan tetap tidak disentuh.
 - Variabel `.env` yang dibiarkan kosong (mis. `DATABASE_URL_TEST=` atau `MCP_ADMIN_TOKEN=`) kini dianggap tidak di-set, sehingga `bun run dev` tidak lagi gagal dengan "Invalid environment variables".
 - **Keamanan data:** test tidak lagi diam-diam memakai database dev saat `DATABASE_URL_TEST` kosong. Sebelumnya hal itu bisa menghapus data dev. Di mode Postgres lokal, `bun run test` kini otomatis menyiapkan database `<nama>_test` terpisah. Dengan Postgres eksternal, test menolak berjalan sampai `DATABASE_URL_TEST` di-set.
