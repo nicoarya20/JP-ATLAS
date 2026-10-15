@@ -16,7 +16,7 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 | **Tugas yang siap dikerjakan** | **92** |
 | Peran pengguna | 4 |
 | Perkiraan usaha untuk versi pertama (MVP Inti) | ±128 hari kerja asisten AI, sekitar **8 minggu** kalender |
-| Tugas yang sudah dikerjakan | **8 dari 92**, semuanya sudah digabung ke jalur utama |
+| Tugas yang sudah dikerjakan | **9 dari 92**, semuanya sudah digabung ke jalur utama (seluruh tahap fondasi S0.0 selesai) |
 | Pengujian otomatis | dari 687 menjadi **795 lulus, 0 gagal** (setelah gelombang 3 digabung) |
 
 ## 3. Yang sudah kami kerjakan
@@ -39,11 +39,11 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 
 ## 5. Temuan penting
 - **Tiga celah keamanan di fondasi yang sudah ada** (misalnya pendaftaran lewat email masih terbuka). Sudah dijadwalkan ditutup di tahap akun.
-- **Tujuh peringatan keamanan pada pustaka pihak ketiga** (1 kritis, 2 tinggi). Perbaikannya sudah ada dan dijadwalkan.
+- **Tujuh peringatan keamanan pada pustaka pihak ketiga** (1 kritis, 2 tinggi). **Sudah diperbaiki**; tersisa satu peringatan tingkat sedang pada alat pengembang.
 - **Contoh data di rancangan keliru:** kemajuan proyek tertulis 70%, padahal hitungannya 17%. Dikoreksi sebelum dipakai.
 - **Estimasi naik** dari 71–101 menjadi sekitar 128 hari kerja setelah dirinci. Lebih jujur dan lebih bisa dipercaya.
 
-## 6. Pekerjaan teknis pertama (7 tugas fondasi)
+## 6. Pekerjaan teknis pertama (8 tugas fondasi)
 | Tugas | Manfaat bagi pengguna dan tim |
 |---|---|
 | **Mengunci satu versi alat pembangun** | Semua orang dan server memakai versi yang sama, jadi tidak ada lagi "di komputer saya jalan, di server tidak". |
@@ -53,8 +53,9 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 | **Menyeragamkan versi tampilan dan menambah pemilih tanggal** | Semua komponen tampilan memakai versi yang sama sehingga tidak ada kejutan. Tanggal tenggat nanti bisa diketik atau dipilih dari kalender berbahasa Indonesia. |
 | **Menyiapkan tempat untuk tabel proyek dan tugas** | Data proyek dan tugas punya tempat yang sudah disiapkan, dan pemeriksa otomatis memastikan struktur database dan catatan perubahannya tidak pernah berbeda. |
 | **Penjaga mutu pengujian** | Mencegah kebiasaan pengujian yang rapuh bertambah, supaya puluhan pengujian baru nanti tidak saling mengganggu. |
+| **Menutup celah keamanan pada pustaka** | Tujuh peringatan keamanan (1 kritis, 2 tinggi) diperbaiki dengan memperbarui pustaka terkait. Tersisa satu peringatan tingkat sedang yang hanya mengenai alat pengembang, bukan aplikasi yang berjalan. |
 
-Hasilnya: ketujuh tugas dikerjakan di ruang kerja terpisah (dua gelombang), dicoba digabung lebih dulu **tanpa bentrok**, lalu **digabung ke jalur utama setelah disetujui**. Pengujian diulang sesudah digabung dan tetap hijau (795 lulus, 0 gagal).
+Hasilnya: kedelapan tugas dikerjakan di ruang kerja terpisah (tiga gelombang), dicoba digabung lebih dulu **tanpa bentrok**, lalu **digabung ke jalur utama setelah disetujui**. Pengujian diulang sesudah digabung dan tetap hijau (795 lulus, 0 gagal).
 
 ## 7. Cara kami bekerja
 - **Tim asisten AI bekerja paralel**, masing-masing di ruang kerja sendiri. **Manusia yang memutuskan dan menyetujui**, dan tidak ada yang digabung atau dikirim tanpa persetujuan.
@@ -63,10 +64,10 @@ Hasilnya: ketujuh tugas dikerjakan di ruang kerja terpisah (dua gelombang), dico
 - **Kendala yang kami temui:** saat 14 asisten dijalankan bersamaan, jatah penggunaan AI habis dan 8 di antaranya berhenti di tengah jalan. Solusinya: peluncuran bertahap 2–3 asisten, hasil disimpan berkala, dan dipantau di setiap peluncuran. Setelah itu berjalan stabil.
 
 ## 8. Posisi sekarang dan langkah berikutnya
-**Sekarang:** 7 tugas fondasi sudah selesai, teruji, dan digabung ke jalur utama (bersama 1 tugas pembuka). Berikutnya gelombang 4: perbaikan celah keamanan pada pustaka, lalu gerbang pemeriksaan akhir fondasi.
+**Sekarang:** seluruh tahap fondasi (9 tugas) selesai, teruji, digabung ke jalur utama, dan **lolos gerbang pemeriksaan akhir**.
 
 **Berikutnya:**
-1. Fondasi lanjutan: pembaruan pustaka yang rawan, penyelarasan versi tampilan, dan penjaga pengujian.
+1. **Fondasi selesai** (gerbang pemeriksaan lolos).
 2. **Akun dan hak akses** (login Google, persetujuan Admin, undangan) bersama **kontrak dasar data dan aturan izin**.
 3. **Proyek dan Tugas**, yaitu fitur yang pertama terlihat oleh pengguna, lalu uji dengan lima orang berusia 50+.
 
