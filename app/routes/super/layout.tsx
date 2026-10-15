@@ -22,11 +22,13 @@ import {
   FiTerminal,
   FiTool,
   FiUser,
+  FiUserCheck,
   FiUsers,
 } from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavGroup, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
+import { withBadges } from '~/components/frame/nav';
 import { ProxySetupBanner } from '~/components/frame/ProxySetupBanner';
 import type { AppContext } from '~/lib/app-context';
 import type { Route } from './+types/layout';
@@ -149,6 +151,12 @@ const NAV: NavGroup[] = [
 const OTHER: NavItem[] = [
   { to: '/app', label: 'App', icon: FiLayers },
   { to: '/dashboard', label: 'Dashboard', icon: FiHome },
+  {
+    to: '/dashboard/users',
+    label: 'Antrean persetujuan',
+    icon: FiUserCheck,
+    description: 'Akun baru yang menunggu persetujuan',
+  },
   { to: '/profile', label: 'Profile', icon: FiUser },
 ];
 
@@ -175,7 +183,7 @@ function Frame({
   return (
     <AppFrame
       navItems={NAV}
-      secondaryNav={OTHER}
+      secondaryNav={withBadges([{ items: OTHER }], data.navBadges)[0].items}
       navBadges={data.navBadges}
       consoleLabel="Dev Console"
       env={data.env}

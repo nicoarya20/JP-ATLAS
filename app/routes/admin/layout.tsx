@@ -2,6 +2,7 @@ import { frameInfo } from '@server/app-info';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { getSidebarCollapsed } from '@server/sidebar';
+import { adminSidebarBadges } from '@server/sidebar-badges';
 import { FiGrid, FiHome, FiLayers, FiUser, FiUsers } from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavItem } from '~/components/AppFrame';
@@ -29,7 +30,9 @@ const SECONDARY: Record<string, NavItem[]> = {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const auth = await requireAnyRole(request, [ROLES.ADMIN, ROLES.SUPER_ADMIN]);
-  return { ...auth, collapsed: getSidebarCollapsed(request), ...(await frameInfo()) };
+  // Pending-approval count only — soft-fails to no badge, so the Admin menu never breaks.
+  const navBadges = await adminSidebarBadges();
+  return { ...auth, collapsed: getSidebarCollapsed(request), navBadges, ...(await frameInfo()) };
 }
 
 function Frame({
@@ -42,6 +45,7 @@ function Frame({
   return (
     <AppFrame
       navItems={NAV}
+      navBadges={data.navBadges}
       secondaryNav={SECONDARY[data.role]}
       role={data.role}
       user={data.user}
