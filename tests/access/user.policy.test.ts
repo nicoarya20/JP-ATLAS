@@ -181,6 +181,43 @@ describe('role normalisation and fail-closed input', () => {
   });
 });
 
+// Added with S0B-17 to close S0B-13: ordering of the checks and the legacy role value on the actor side.
+describe('check order and legacy actor role', () => {
+  it('reports impersonation before the missing Admin role (Q9 is blocked regardless of role)', () => {
+    const p = principal('member', true);
+    expect(result(canActOnUser(p, targetOf('member', 'pm')))).toBe('IMPERSONATING');
+  });
+
+  it('reports the missing Admin role before self or protection', () => {
+    const p = principal('pm');
+    expect(result(canActOnUser(p, targetOf('pm', 'self')))).toBe('NOT_ADMIN');
+    expect(result(canActOnUser(p, targetOf('pm', 'sa')))).toBe('NOT_ADMIN');
+  });
+
+  it('reads a legacy "user" actor as a member in every gate', () => {
+    const legacy: Principal = {
+      id: 'U-legacy',
+      appRole: 'user' as unknown as Role,
+      impersonating: false,
+    };
+    expect(result(canManageUsers(legacy))).toBe('NOT_ADMIN');
+    expect(result(canActOnUser(legacy, targetOf('member', 'pm')))).toBe('NOT_ADMIN');
+    expect(result(canInviteWithRole(legacy, ROLES.MEMBER))).toBe('NOT_ADMIN');
+  });
+
+  it('keeps the same grant ceiling for an invite as for a role change', () => {
+    for (const actor of WHO) {
+      for (const next of WHO) {
+        const invite = result(canInviteWithRole(principal(actor), ROLE_OF[next]));
+        const change = result(
+          canSetUserRole(principal(actor), targetOf(actor, 'member'), ROLE_OF[next]),
+        );
+        expect(invite).toBe(change);
+      }
+    }
+  });
+});
+
 describe('DENY_UI catalogue', () => {
   it('has an entry per code with an allowed status and a non-empty message', () => {
     expect(Object.keys(DENY_UI).sort()).toEqual([...DENY_CODES].sort());
