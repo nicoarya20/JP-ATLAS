@@ -3,6 +3,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, anonymous, multiSession } from 'better-auth/plugins';
 import { emailPasswordEnabled } from './account/auth-policy';
+import { afterCreateUser, beforeCreateUser } from './account/signup-hooks';
 import { deleteAvatarObject } from './api/app-avatar';
 import { AUDIT_ACTIONS, audit } from './audit';
 import { db } from './db';
@@ -74,7 +75,11 @@ export const auth = betterAuth({
   ],
   databaseHooks: {
     // Self-delete and admin removeUser both go through internalAdapter.deleteUser → this hook.
-    user: { delete: { after: (u) => deleteAvatarObject(u.id, u.image) } },
+    user: {
+      delete: { after: (u) => deleteAvatarObject(u.id, u.image) },
+      // Approval decision for every new account (S0A-06); runs after the admin plugin's own hook, so it wins on `role`.
+      create: { before: beforeCreateUser, after: afterCreateUser },
+    },
     session: {
       create: {
         after: async (session, ctx) => {
@@ -119,7 +124,7 @@ export const auth = betterAuth({
   // /api/auth/* skips the app limiter; BA's own per-IP limiter (default rules,
   // stricter on sign-in) guards it in production.
   rateLimit: { enabled: isProd, storage: 'memory' },
-  // Production signs in with Google only; the gate and the sign-up hook (S0A-06/08) add the
+  // Production signs in with Google only; the gate and the sign-up hook (signup-hooks.ts) add the
   // other two layers (R12 F1).
   emailAndPassword: {
     enabled: emailPasswordEnabled(isProd),
@@ -132,7 +137,7 @@ export const auth = betterAuth({
   user: {
     // Approval state lives on `user` (migration 0014) so it rides on `session.user`. Every field is
     // `input:false`: clients can neither set it at sign-up nor change it via /update-user.
-    // Without a sign-up hook (S0A-06) new accounts get the safe default 'pending'.
+    // `databaseHooks.user.create` (signup-hooks.ts) sets these; the schema default 'pending' is the fail-closed fallback.
     additionalFields: {
       approvalStatus: {
         type: 'string',

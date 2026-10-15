@@ -14,6 +14,11 @@ export const AUDIT_ACTIONS = {
   USER_UNBAN: 'user.unban',
   USER_DELETE: 'user.delete',
   USER_IMPERSONATE: 'user.impersonate',
+  USER_APPROVE: 'user.approve',
+  USER_REJECT: 'user.reject',
+  INVITATION_CREATE: 'invitation.create',
+  INVITATION_REVOKE: 'invitation.revoke',
+  INVITATION_USE: 'invitation.use',
   SESSION_REVOKE: 'session.revoke',
   SETTINGS_AUTH_UPDATE: 'settings.auth.update',
   SETTINGS_RATE_LIMIT_UPDATE: 'settings.rate_limit.update',
@@ -37,7 +42,14 @@ export const AUDIT_ACTIONS = {
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
-export type AuditTargetType = 'user' | 'session' | 'settings' | 'logs' | 'post' | 'apikey';
+export type AuditTargetType =
+  | 'user'
+  | 'session'
+  | 'settings'
+  | 'logs'
+  | 'post'
+  | 'apikey'
+  | 'invitation';
 
 export type AuditInput = {
   actor: { id: string; email?: string | null } | null;

@@ -173,7 +173,9 @@ describe('P1 §7 #1: additionalFields reach the timestamptz column; defaultValue
     expect(col?.data_type).toBe('timestamp with time zone');
 
     const decided = new Date('2026-10-16T08:30:15.123Z');
-    const { id } = await createViaAdapter({
+    // The sign-up hook (S0A-06) decides approval at INSERT time, so the exact Date is written by update.
+    const { id } = await createViaAdapter();
+    await (await auth.$context).internalAdapter.updateUser(id, {
       approvalStatus: 'approved',
       approvalDecidedAt: decided,
     });
