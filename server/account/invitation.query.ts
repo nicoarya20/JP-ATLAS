@@ -57,7 +57,12 @@ export type CreatedInvitation = {
 
 export type CreateInvitationResult =
   | { ok: true; invitation: CreatedInvitation }
-  | { ok: false; code: InvitationErrorCode | DenyCode; http: 403 | 409 | 422; message: string };
+  | {
+      ok: false;
+      code: InvitationErrorCode | DenyCode;
+      http: InvitationError['http'] | (typeof DENY_UI)[DenyCode]['http'];
+      message: string;
+    };
 
 export type CreateInvitationInput = { actor: Principal; email: string; role: Role };
 
