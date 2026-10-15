@@ -72,6 +72,9 @@
   --media: #e5e5ea;                      /* image placeholder (systemGray5) */
   --phone-frame: #1c1c1e;
   --index-bg: #ffffff;
+  --snack-bg: #323236;                   /* inverted surface for snackbars */
+  --snack-label: #ffffff;
+  --snack-action: #64d2ff;
 
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   /* iOS text styles (default Dynamic Type size) */

@@ -36,7 +36,7 @@ sheet('tasks.return', { title: '…', group: 'Tasks', snap: 0.5, Component: Retu
 - Data: `import { D } from '../../data/sample'`. `D.me()` is the signed-in person for the current role.
 
 Kit (`import { ... } from '../../kit'`):
-- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `tab` is one of `home`, `tasks`, `projects`, `events`, `more` and shows the bottom tab bar.
+- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `header={false}` hides the nav bar; `header={<el/>}` replaces it. `tab` is one of `home`, `tasks`, `projects`, `events`, `more` and shows the bottom tab bar.
 - `Section` is a card. Its props are `title`, `sub`, `right`, plus nav props, which make the whole card tappable.
 - `Rows` and `Row` make an iOS grouped list. Row props: `lead`, `title`, `sub`, `right`, `chev`.
 - `Btn`: `kind` is `primary`, `outline`, `ghost`, `danger` or `plain`. Other props: `block`, `sm`, `icon`.
@@ -51,6 +51,12 @@ Kit (`import { ... } from '../../kit'`):
   - `Empty`: props `icon`, `title`, `text`, `action`.
   - `Head`: a section heading.
 - `Sheet`: props `title`, `sub`, `actions`. Use it as the root of every sheet component.
+- Form parts:
+  - `Select`: a dropdown-looking pill. Props `block` (full width) plus nav props; usually `toast="Option A · Option B"`. Replaces the old `PJ.select` / `▾` labels (drop the `▾`).
+  - `Search`: iOS search field, prop `placeholder`. Replaces the old `<label class="input"><input placeholder=…>` search boxes.
+  - `Switch`: props `on` (initial state), `label` (accessible name).
+  - `Label`: small uppercase group label.
+  - `Snack`: snackbar above the tab bar. Props `action` (button text) plus nav props for that action.
 
 Nav props work on `Btn`, `Link`, `Section` and `Row`:
 - `go="id"`, `sheet="id"`, `back`, `close`, `toast="text"`, `replace`, `task={12}`, `params={{...}}`.
