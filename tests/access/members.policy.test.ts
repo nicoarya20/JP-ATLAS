@@ -58,22 +58,22 @@ const MANAGE_ROW = [
 const expected = (c: PersonaCode) => MANAGE_ROW[PERSONA_CODES.indexOf(c)];
 
 describe('permission matrix E2: member actions', () => {
-  it.each(PERSONA_CODES)('%s: member.add', (c) => {
+  it.each([...PERSONA_CODES])('%s: member.add', (c) => {
     const { principal, membership } = persona(c);
     expect(code(canChangeManagerSet(principal, ATLAS, membership, ADD))).toBe(expected(c));
   });
 
-  it.each(PERSONA_CODES)('%s: member.changeRole', (c) => {
+  it.each([...PERSONA_CODES])('%s: member.changeRole', (c) => {
     const { principal, membership } = persona(c);
     expect(code(canChangeManagerSet(principal, ATLAS, membership, CHANGE_ROLE))).toBe(expected(c));
   });
 
-  it.each(PERSONA_CODES)('%s: member.remove', (c) => {
+  it.each([...PERSONA_CODES])('%s: member.remove', (c) => {
     const { principal, membership } = persona(c);
     expect(code(canChangeManagerSet(principal, ATLAS, membership, REMOVE))).toBe(expected(c));
   });
 
-  it.each(PERSONA_CODES)('%s: setLead', (c) => {
+  it.each([...PERSONA_CODES])('%s: setLead', (c) => {
     const { principal, membership } = persona(c);
     const d = canSetLead(principal, ATLAS, membership, 'U-mira', TWO_MANAGERS);
     expect(code(d)).toBe(expected(c));

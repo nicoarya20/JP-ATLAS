@@ -116,22 +116,22 @@ describe('R03 cases C01-C06', () => {
 });
 
 describe('permission matrix E2: project actions', () => {
-  it.each(PERSONA_CODES)('%s: view', (c) => {
+  it.each([...PERSONA_CODES])('%s: view', (c) => {
     const { principal, membership } = persona(c);
     expect(code(canViewProject(principal, ATLAS, membership))).toBe(expected('view', c));
   });
 
-  it.each(PERSONA_CODES)('%s: create', (c) => {
+  it.each([...PERSONA_CODES])('%s: create', (c) => {
     expect(code(canCreateProject(persona(c).principal))).toBe(expected('create', c));
   });
 
   // update and setStatus are one rule (`project.update/setStatus/…` share a matrix row), so one function.
-  it.each(PERSONA_CODES)('%s: update and setStatus', (c) => {
+  it.each([...PERSONA_CODES])('%s: update and setStatus', (c) => {
     const { principal, membership } = persona(c);
     expect(code(canManageProject(principal, ATLAS, membership))).toBe(expected('manage', c));
   });
 
-  it.each(PERSONA_CODES)('%s: trash', (c) => {
+  it.each([...PERSONA_CODES])('%s: trash', (c) => {
     const { principal, membership } = persona(c);
     expect(code(canTrashProject(principal, ATLAS, membership))).toBe(expected('trash', c));
   });
@@ -197,7 +197,7 @@ describe('canTrashProject', () => {
     expect(ACCESS_RULES.MEMBER_MANAGER_CAN_TRASH_PROJECT).toBe(false);
   });
 
-  it.each(PERSONA_CODES)(
+  it.each([...PERSONA_CODES])(
     '%s: IMPERSONATING while impersonating, ahead of every other check',
     (c) => {
       const { principal, membership } = persona(c);
@@ -286,9 +286,9 @@ describe('denial catalog parity', () => {
       'ROLE_CANNOT_TRASH',
       'IMPERSONATING',
     ] as const) {
-      expect(PM_ERRORS[c].http).toBe(DENY_UI[c].http);
+      expect<number>(PM_ERRORS[c].http).toBe(DENY_UI[c].http);
     }
-    expect(PM_ERRORS.PROJECT_IN_TRASH.http).toBe(DENY_UI.PROJECT_IN_TRASH.http);
+    expect<number>(PM_ERRORS.PROJECT_IN_TRASH.http).toBe(DENY_UI.PROJECT_IN_TRASH.http);
   });
 
   it('keeps NOT_VISIBLE out of the catalog and returns a frozen decision', () => {
