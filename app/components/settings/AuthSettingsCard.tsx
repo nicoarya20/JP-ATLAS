@@ -3,7 +3,7 @@ import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { FiAlertTriangle } from 'react-icons/fi';
+import { FiAlertTriangle, FiInfo } from 'react-icons/fi';
 import { type AuthSettings, saveAuthSettings } from '~/lib/settings-api';
 import { SettingRow, SettingsCard } from './SettingsParts';
 
@@ -59,6 +59,10 @@ export function AuthSettingsCard({ initial, googleAuthConfigured }: Props) {
         </Badge>
       }
     >
+      <Alert color="blue" variant="light" icon={<FiInfo size={16} />}>
+        Pengaturan di bawah ini hanya berlaku di non-produksi. Di produksi, semua orang masuk lewat
+        Google dan pendaftaran email selalu ditutup.
+      </Alert>
       {lockoutRisk && (
         <Alert
           color="red"
