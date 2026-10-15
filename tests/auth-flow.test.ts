@@ -12,6 +12,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import { api } from '../server/api';
+import { auth } from '../server/auth';
 import { db } from '../server/db';
 import { loginLog, user } from '../server/db/schema';
 import { redirectToHome } from '../server/guard';
@@ -94,6 +95,21 @@ describe('POST /api/auth/sign-up/email', () => {
     // At least one cookie must be set (session)
     expect(cookies.length).toBeGreaterThan(0);
     expect(cookies.some((c) => c.toLowerCase().includes('session'))).toBe(true);
+  });
+
+  test('new email accounts start as pending members (safe default until the sign-up hook)', async () => {
+    const [row] = await db.select().from(user).where(eq(user.email, TEST_EMAIL));
+    expect(row.approvalStatus).toBe('pending');
+    expect(row.role).toBe('member');
+    expect(row.approvalDecidedBy).toBeNull();
+    expect(row.approvalDecidedAt).toBeNull();
+  });
+
+  test('exposes approvalStatus on the session user', async () => {
+    const session = await auth.api.getSession({ headers: new Headers({ cookie: sessionCookie }) });
+    // Typed access: fails typecheck if additionalFields stop flowing into session.user.
+    const status: string | null | undefined = session?.user.approvalStatus;
+    expect(status).toBe('pending');
   });
 
   test('rejects duplicate email with 4xx', async () => {
