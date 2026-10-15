@@ -1,16 +1,20 @@
 import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
 import '@mantine/nprogress/styles.css';
 
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
+import { DatesProvider } from '@mantine/dates';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import { getBranding } from '@server/settings-branding';
+import 'dayjs/locale/id';
 import { useEffect } from 'react';
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import type { Route } from './+types/root';
 import { ErrorPage } from './components/errors/ErrorPage';
 import { RouteProgress } from './components/RouteProgress';
+import { DATES_LOCALE, FIRST_DAY_OF_WEEK } from './lib/date-config';
 import { describeError, ERROR_TITLE_SUFFIX } from './lib/error-page';
 import { QueryProvider } from './lib/query';
 import { theme } from './lib/theme';
@@ -101,9 +105,11 @@ export default function App() {
       <MantineProvider theme={theme} defaultColorScheme="auto">
         <RouteProgress />
         <Notifications position="top-right" />
-        <ModalsProvider>
-          <Outlet />
-        </ModalsProvider>
+        <DatesProvider settings={{ locale: DATES_LOCALE, firstDayOfWeek: FIRST_DAY_OF_WEEK }}>
+          <ModalsProvider>
+            <Outlet />
+          </ModalsProvider>
+        </DatesProvider>
       </MantineProvider>
     </QueryProvider>
   );

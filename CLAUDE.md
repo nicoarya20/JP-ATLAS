@@ -14,12 +14,15 @@ Project ini template; fitur produk milik project turunan **default dibangun di a
 
 ## UI Framework — Mantine Wajib Dipakai
 
-Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantine/modals`) sebagai UI framework utama.
+Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantine/modals`, `@mantine/dates`) sebagai UI framework utama.
 
 **Wajib pakai Mantine untuk semua UI element:**
 - Konfirmasi/dialog → `modals.openConfirmModal()` dari `@mantine/modals` — **bukan** `window.confirm()`
 - Alert/notifikasi → Mantine `notifications.show()` — **bukan** `window.alert()`
 - Semua input, button, badge, tooltip, loader, modal, dll → pakai komponen Mantine
+- Input tanggal → `DateInput` dari `@mantine/dates` (bisa diketik + kalender pop-up), **bukan** `<input type="date">`; `valueFormat="D MMMM YYYY"`, nilai `string | null` berformat `YYYY-MM-DD`. Locale `id` dan hari pertama pekan (`FIRST_DAY_OF_WEEK`) dari `app/lib/date-config.ts` lewat `DatesProvider` di `app/root.tsx`. "Hari ini" ditentukan server, jangan `dayjs()` di klien. Grid kalender bulan tetap dibuat sendiri (`DateInput` hanya untuk isian)
+
+**Satu versi untuk semua `@mantine/*`:** semua paket `@mantine/*` di `package.json` wajib versi persis yang sama, tanpa `^`/`~` (saat ini `9.6.3`), karena `modals`/`notifications`/`dates` meminta peer `core` dan `hooks` tepat di versi itu. Naik versi = ubah semua paket sekaligus lewat `bun install` di satu PR `chore(deps)`; `tests/mantine-version-sync.test.ts` menjaganya. `dayjs` juga dipatok persis.
 
 **Setup yang sudah ada di project:**
 - `ModalsProvider` sudah wrap app di `app/root.tsx`

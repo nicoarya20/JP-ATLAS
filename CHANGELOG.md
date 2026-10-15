@@ -18,6 +18,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Aksi sensitif diblokir untuk user demo dengan pesan yang jelas: membuat API key, mengganti email atau password, reset password, mengunggah/menghapus foto profil, dan menautkan akun sosial.
 - Perintah `simple-pm migrate` (dan `migrate --status` untuk melihat migrasi yang belum diterapkan) untuk memperbarui database Postgres eksternal secara sengaja. Image Docker menjalankan `migrate` lalu `start` bila `DATABASE_URL` terisi; mode Postgres lokal tetap bermigrasi otomatis saat `start`. `doctor` kini memberi petunjuk yang benar untuk database eksternal.
 - `bun run db:generate` kini lewat pembungkus yang memberi guard `IF NOT EXISTS` pada SQL migrasi dan mewajibkan `--name=<slug>` serta `--why="<alasan>"`. Pengujian baru menjaga semua migrasi tetap berguard dan aman dijalankan ulang.
+- Semua paket Mantine kini dikunci ke satu versi persis (9.6.3) dan `@mantine/dates` serta `dayjs` ditambahkan untuk input tanggal berbahasa Indonesia (pekan mulai Senin). Jalankan `bun install` setelah menarik perubahan ini; ketidaksesuaian versi `modals`/`notifications` dengan `core` yang sebelumnya terjadi kini hilang.
 
 ### Changed
 - Nama produk berubah menjadi **Simple PM**: judul halaman, sidebar, landing, README, dan metadata situs memakai nama baru. Nama package, binary, dan unit systemd kini `simple-pm` (sebelumnya `makuro-template`).
