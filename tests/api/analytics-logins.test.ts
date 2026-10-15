@@ -1,18 +1,19 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({ user: { id: 'u-test' }, role: 'super-admin' }),
-}));
-
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { analyticsApi } from '../../server/api/analytics';
 import { buildLoginWhere, listLogins, toLoginCsv } from '../../server/api/analytics-logins.query';
 import { db } from '../../server/db';
 import { loginLog, user } from '../../server/db/schema';
 import { testUser } from '../support/accounts';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(analyticsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
 
 async function get(path: string, params: Record<string, string> = {}) {
   const url = new URL(`http://localhost${path}`);
