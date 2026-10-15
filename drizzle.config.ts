@@ -4,12 +4,8 @@ import { isLocalMode, localPgDb, localPgPort, socketDir } from './server/local-p
 
 export default defineConfig({
   dialect: 'postgresql',
-  schema: [
-    './server/db/schema.auth.ts',
-    './server/db/schema.app.ts',
-    './server/db/schema.logs.ts',
-    './server/db/schema.keys.ts',
-  ],
+  // Glob so schema modules added by later tasks are picked up without touching this file.
+  schema: './server/db/schema.*.ts',
   out: './server/db/migrations',
   // Mirror the app's mode: embedded cluster over its unix socket when DATABASE_URL is empty.
   dbCredentials: isLocalMode()
