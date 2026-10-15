@@ -13,6 +13,7 @@ import { user as userTable } from '../db/schema';
 import { ROLES, type Role } from '../permissions';
 import { fail } from '../pm/respond';
 import { adminContext, callerOf } from './admin-context';
+import { adminInvitationsApi } from './admin-invitations';
 import { adminModerationApi } from './admin-moderation';
 import { adminUserStats, findUserTarget, listAdminUsers, UserListQuery } from './admin-users.query';
 
@@ -23,6 +24,7 @@ const KNOWN_ROLES: readonly string[] = Object.values(ROLES);
 export const adminApi = new Elysia({ prefix: '/admin' })
   .use(adminContext)
   .use(adminModerationApi)
+  .use(adminInvitationsApi)
   .get('/users', ({ query }) => listAdminUsers(query), { query: UserListQuery })
   .get('/users/stats', () => adminUserStats())
   .post(

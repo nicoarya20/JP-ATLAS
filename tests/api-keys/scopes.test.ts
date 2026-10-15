@@ -26,6 +26,24 @@ describe('requiredScope', () => {
     expect(requiredScope('POST', '/api/mcp')).toBe('mcp');
     expect(requiredScope('GET', '/api/mcp')).toBe('mcp');
   });
+  it('never lets an API key approve, reject, re-role or invite accounts (K-7)', () => {
+    for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      for (const verb of ['approve', 'reject', 'role']) {
+        expect(requiredScope(method, `/api/admin/users/u1/${verb}`)).toBeNull();
+        expect(requiredScope(method, `/api/admin/users/u1/${verb}/`)).toBeNull();
+      }
+      expect(requiredScope(method, '/api/admin/invitations')).toBeNull();
+      expect(requiredScope(method, '/api/admin/invitations/inv-1')).toBeNull();
+    }
+    // Odd id segments must not fall through to the generic users rule.
+    expect(requiredScope('POST', '/api/admin/users//approve')).toBeNull();
+    expect(requiredScope('POST', '/api/admin/users/a/b/reject')).toBeNull();
+    // Neighbours keep their scope: ban/unban/delete and the directory are unchanged.
+    expect(requiredScope('POST', '/api/admin/users/u1/unban')).toBe('users:write');
+    expect(requiredScope('DELETE', '/api/admin/users/u1')).toBe('users:write');
+    expect(requiredScope('GET', '/api/admin/users/stats')).toBe('users:read');
+    expect(requiredScope('GET', '/api/admin/invitationsx')).toBeNull();
+  });
   it('blocks auth, key management (admin and personal), resets and unknown routes', () => {
     expect(requiredScope('POST', '/api/auth/sign-in/email')).toBeNull();
     expect(requiredScope('GET', '/api/api-keys')).toBeNull();

@@ -139,6 +139,15 @@ export function scopesForRole(role: unknown): Scope[] {
 
 const READ = new Set(['GET', 'HEAD']);
 
+// `/api/admin/users/:id/(approve|reject|role)` and everything under `/api/admin/invitations`.
+// Deliberately loose on the id segment (`.*`) so odd slashes in it can never fall through to `users:write`.
+const ACCOUNT_GRANT_ROUTE =
+  /^\/api\/admin\/(?:users\/.*\/(?:approve|reject|role)\/?$|invitations(?:\/|$))/i;
+
+function isAccountGrantRoute(pathname: string): boolean {
+  return ACCOUNT_GRANT_ROUTE.test(pathname);
+}
+
 /**
  * Required scope for an API route, or null when API keys may not call it.
  * Order matters: more specific prefixes first.
@@ -160,6 +169,9 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/settings')) return read ? 'settings:read' : 'settings:write';
   if (p.startsWith('/api/analytics/purge')) return 'analytics:write';
   if (p.startsWith('/api/analytics')) return read ? 'analytics:read' : 'analytics:write';
+  // An API key may never approve, reject, re-role or invite accounts (K-7): that would let a leaked
+  // key mint access. Matched before the generic users rule below, whatever the method.
+  if (isAccountGrantRoute(p)) return null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;
