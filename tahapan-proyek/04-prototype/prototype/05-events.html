@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe Rapat &amp; Events</title>
+<!-- Lo-fi wireframe hitam-putih. Shell (top bar + rail navbar) dirender oleh wf.js. Menu Events = "Rapat & Events":
+     tempat menutup urusan rapat, bukan sekadar kalender. Urutan: Sedang berlangsung → Perlu dicek → daftar per hari.
+     3 tab — Mendatang (default, E3), Sudah lewat (arsip catatan), Kalender (minggu/bulan, E7). Grid view dihapus (E6). -->
+<link rel="stylesheet" href="wf.css">
+<link rel="stylesheet" href="05-events.css">
+</head>
+<body>
+<!-- <div class="wf-bar"><b>Wireframe 05 · Rapat &amp; Events</b><span>Lo-fi hitam-putih. Tab: Mendatang (default) · Sudah lewat · Kalender. Yang tampil paling atas = apa yang harus dilakukan sekarang, bukan grid tanggal. Garis abu = placeholder teks, ✦ = elemen AI, kotak putus-putus = catatan wireframe. Klik "Mulai catat rapat" untuk melihat siklus badge.</span></div> -->
+
+<div class="app" data-active="events">
+  <main class="main" aria-label="Konten">
+    <div class="page">
+      <div class="page-head"><h1>Rapat &amp; Events</h1><span class="grow"></span><button class="btn dark lg" type="button"><svg class="ico sm"><use href="#i-plus"/></svg>Buat rapat</button></div>
+
+      <div class="tabs-bar">
+        <div class="tabs">
+          <button type="button" aria-pressed="true" data-show="t-next">Mendatang</button>
+          <button type="button" aria-pressed="false" data-show="t-past">Sudah lewat</button>
+          <button type="button" aria-pressed="false" data-show="t-cal">Kalender</button>
+        </div>
+        <details class="view-menu">
+          <summary class="btn">Tampilan <svg class="ico sm"><use href="#i-down"/></svg></summary>
+          <div class="view-pop">
+            <h4>Tampilkan tag</h4>
+            <label><input type="checkbox" checked>Semua tag</label>
+            <label><input type="checkbox">Atlas</label>
+            <label><input type="checkbox">Klien</label>
+            <label><input type="checkbox">Internal</label>
+            <h4>Kelompokkan menurut</h4>
+            <div class="seg"><button type="button" aria-pressed="true">Hari</button><button type="button" aria-pressed="false">Proyek</button><button type="button" aria-pressed="false">Tag</button></div>
+            <label><input type="checkbox">Tampilkan rapat yang dibatalkan</label>
+            <p class="note" style="margin:0">Menggantikan "filter tag" + "group tag" lama: satu tombol, kontrol di layar berkurang.</p>
+          </div>
+        </details>
+      </div>
+
+      <!-- TAB 1: MENDATANG -->
+      <section id="t-next">
+
+        <!-- Sedang berlangsung: rapat yang jalan sekarang, aksi utamanya mencatat -->
+        <article class="card live" id="live">
+          <div class="live-t">SEDANG BERLANGSUNG <span class="grow"></span><span class="st st-none" id="live-st">Belum dicatat</span></div>
+          <h2>Rapat Mingguan Proyek Atlas</h2>
+          <div class="meta">
+            <span><svg class="ico sm"><use href="#i-clock"/></svg>10.00–11.00</span>
+            <span><svg class="ico sm"><use href="#i-pin"/></svg>R. Melati</span>
+            <span><span class="stack"><span class="avatar">R</span><span class="avatar">D</span><span class="avatar">N</span></span>+3</span>
+            <span><svg class="ico sm"><use href="#i-folder"/></svg>Proyek: Atlas</span>
+          </div>
+          <div class="agenda">✦ <b>Agenda:</b> 3 tugas rapat lalu belum selesai · 1 pertanyaan<span class="grow"></span><button class="link" type="button">Lihat agenda</button></div>
+          <div class="acts" id="live-acts">
+            <button class="btn dark lg" type="button" id="btn-rec"><svg class="ico"><use href="#i-mic"/></svg>Mulai catat rapat</button>
+            <button class="btn lg" type="button"><svg class="ico"><use href="#i-camera"/></svg>Foto saja</button>
+          </div>
+          <div class="consent" id="consent">
+            <svg class="ico"><use href="#i-alert"/></svg>
+            <span class="grow">Suara rapat akan direkam. Semua peserta diberi tahu lewat notifikasi.</span>
+            <button class="btn dark" type="button" id="btn-ok">Ya, mulai rekam</button><button class="btn" type="button" id="btn-no">Batal</button>
+          </div>
+          <p class="note">Kartu ini hanya muncul saat ada rapat yang sedang berjalan (status Berlangsung, dihitung dari jam). Satu tombol besar untuk mencatat; "Foto saja" untuk papan tulis/catatan tangan. Persetujuan rekam selalu ditanya dulu. Jika tidak ada rapat berjalan, kartu ini hilang dan "Perlu dicek" naik ke atas.</p>
+        </article>
+
+        <!-- Perlu dicek: rapat selesai yang hasilnya belum dikonfirmasi / belum dicatat -->
+        <div class="sub-h" style="margin-top:22px"><svg class="ico sm"><use href="#i-alert"/></svg>Perlu dicek <span class="badge solid">2</span></div>
+        <div class="card">
+          <ul class="check-list">
+            <li>
+              <div class="what"><b>Review Desain</b><span class="muted">kemarin · 14.00 · Atlas</span></div>
+              <span class="ai">✦ "AI menemukan 6 hal"</span>
+              <span class="st st-check"><svg class="ico"><use href="#i-alert"/></svg>Perlu dicek (6)</span>
+              <button class="btn dark" type="button">Cek sekarang</button>
+            </li>
+            <li>
+              <div class="what"><b>Sprint Planning</b><span class="muted">Senin lalu · 09.00 · Atlas</span></div>
+              <span class="ai">"Belum ada catatan"</span>
+              <span class="st st-none">Belum dicatat</span>
+              <button class="btn dark" type="button"><svg class="ico sm"><use href="#i-mic"/></svg>Ceritakan hasil</button>
+            </li>
+          </ul>
+          <p class="note">Bagian terpenting halaman: loop rapat ditutup di sini (payung USP "loop tertutup"). "Cek sekarang" membuka hasil temuan AI (tugas / keputusan / pertanyaan / info) untuk dikonfirmasi satu per satu; tidak ada yang jadi tugas tanpa konfirmasi. "Ceritakan hasil" = rekam suara singkat setelah rapat. Rapat keluar dari daftar ini setelah hasilnya dikonfirmasi.</p>
+        </div>
+
+        <!-- Daftar mendatang per hari -->
+        <div class="day">Hari ini <small>Selasa, 6 Okt</small></div>
+        <div class="ev">
+          <time>14.00</time>
+          <div class="body"><b>Sync Klien PT Sinar</b><span class="tags"><span class="badge"><svg class="ico"><use href="#i-lock"/></svg>ada tamu luar</span><span>Online</span><span class="stack"><span class="avatar">N</span><span class="avatar"></span></span>+2</span></div>
+          <div class="end"><span class="st st-none">Belum dicatat</span></div>
+        </div>
+
+        <div class="day">Besok <small>Rabu, 7 Okt</small></div>
+        <div class="ev">
+          <time>09.00</time>
+          <div class="body"><b>Daily Standup</b><span class="tags"><span class="badge">Atlas</span><span>R. Melati</span></span></div>
+          <div class="end"><span class="st st-none">Belum dicatat</span></div>
+        </div>
+        <div class="ev cancel">
+          <time>13.00</time>
+          <div class="body"><b>Demo ke Direksi</b><span class="tags"><span class="badge">Internal</span><span class="ln" style="width:120px;height:6px"></span></span></div>
+          <div class="end"><span class="st st-cancel">Dibatalkan</span></div>
+        </div>
+
+        <div class="day">Kamis <small>8 Okt</small></div>
+        <div class="ev">
+          <time>10.00</time>
+          <div class="body"><span class="ln" style="width:180px"></span><span class="tags"><span class="badge">Atlas</span><span class="ln" style="width:60px;height:6px"></span></span></div>
+          <div class="end"><span class="st st-none">Belum dicatat</span></div>
+        </div>
+        <div class="row" style="justify-content:center;margin-top:10px"><button class="btn" type="button">Lihat 6 rapat lagi minggu ini</button></div>
+
+        <!-- Siklus badge status catatan -->
+        <div class="card" style="margin-top:22px">
+          <header class="card-h"><div class="grow"><h2>Badge status catatan rapat</h2><p class="q">"Rapat ini menghasilkan sesuatu atau tidak?" — terbaca langsung dari daftar</p></div></header>
+          <div class="flow">
+            <div class="step"><span class="st st-none">Belum dicatat</span><small>rapat belum punya catatan</small></div><span class="arr">→</span>
+            <div class="step"><span class="st st-rec">Merekam 12:04</span><small>sedang direkam / difoto</small></div><span class="arr">→</span>
+            <div class="step"><span class="st"><svg class="ico"><use href="#i-clock"/></svg>Diproses AI</span><small>AI menyusun draf catatan</small></div><span class="arr">→</span>
+            <div class="step"><span class="st st-check"><svg class="ico"><use href="#i-alert"/></svg>Perlu dicek (6)</span><small>6 temuan menunggu konfirmasi</small></div><span class="arr">→</span>
+            <div class="step"><span class="st st-done"><svg class="ico"><use href="#i-check"/></svg>Selesai · 5 tugas (2 beres)</span><small>tindak lanjut terlihat sampai beres</small></div>
+          </div>
+          <p class="note">Badge baru di kartu event (fitur lama E8 tidak menampilkan ini). Terpisah dari status event, yang dihitung otomatis dari jam (E10): Akan datang · Berlangsung · Selesai, plus Dibatalkan yang diisi manual.</p>
+        </div>
+      </section>
+
+      <!-- TAB 2: SUDAH LEWAT (arsip rapat & catatan) -->
+      <section id="t-past" hidden>
+        <div class="row" style="margin-bottom:14px">
+          <label class="search-in"><svg class="ico sm"><use href="#i-search"/></svg><input type="text" placeholder="Cari isi catatan rapat, keputusan, atau nama rapat"></label>
+          <div class="seg"><button type="button" aria-pressed="true">Semua</button><button type="button" aria-pressed="false">Perlu dicek</button><button type="button" aria-pressed="false">Selesai</button></div>
+        </div>
+
+        <div class="day" style="margin-top:0">Minggu ini</div>
+        <div class="ev">
+          <time>14.00</time>
+          <div class="body"><b>Review Desain</b><span class="tags">Senin, 5 Okt · <span class="badge">Atlas</span></span></div>
+          <div class="end"><span class="st st-check"><svg class="ico"><use href="#i-alert"/></svg>Perlu dicek (6)</span></div>
+        </div>
+        <div class="day">Minggu lalu</div>
+        <div class="ev">
+          <time>10.00</time>
+          <div class="body"><b>Rapat Mingguan Proyek Atlas</b><span class="tags">Selasa, 29 Sep · <span class="badge">Atlas</span></span></div>
+          <div class="end"><span class="mini"><span class="bar"><i style="width:40%"></i></span>2/5</span><span class="st st-done"><svg class="ico"><use href="#i-check"/></svg>Selesai · 5 tugas (2 beres)</span></div>
+        </div>
+        <div class="ev">
+          <time>09.00</time>
+          <div class="body"><b>Sprint Planning</b><span class="tags">Senin, 28 Sep · <span class="badge">Atlas</span></span></div>
+          <div class="end"><span class="st st-none">Belum dicatat</span><button class="btn" type="button">Ceritakan hasil</button></div>
+        </div>
+        <div class="ev">
+          <time>15.00</time>
+          <div class="body"><span class="ln" style="width:160px"></span><span class="tags"><span class="ln" style="width:70px;height:6px"></span> · <span class="badge">Klien</span></span></div>
+          <div class="end"><span class="st st-done"><svg class="ico"><use href="#i-check"/></svg>Selesai · 1 keputusan</span></div>
+        </div>
+        <div class="ev cancel">
+          <time>11.00</time>
+          <div class="body"><b>Kunjungan Vendor</b><span class="tags">Jumat, 2 Okt</span></div>
+          <div class="end"><span class="st st-cancel">Dibatalkan</span></div>
+        </div>
+        <p class="note">Arsip catatan rapat. Pencarian menjangkau isi catatan dan hasil yang sudah dikonfirmasi, bukan hanya judul. Rapat lama yang belum dicatat tetap bisa diceritakan belakangan.</p>
+      </section>
+
+      <!-- TAB 3: KALENDER (perencanaan, bukan layar utama) -->
+      <section id="t-cal" hidden>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn" type="button" aria-label="Sebelumnya"><svg class="ico sm"><use href="#i-left"/></svg></button>
+          <b id="cal-label">5 – 11 Oktober 2026</b>
+          <button class="btn" type="button" aria-label="Berikutnya"><svg class="ico sm"><use href="#i-right"/></svg></button>
+          <button class="btn" type="button">Hari ini</button>
+          <span class="grow"></span>
+          <div class="seg"><button type="button" aria-pressed="true" data-show="cal-week">Minggu</button><button type="button" aria-pressed="false" data-show="cal-month">Bulan</button></div>
+        </div>
+
+        <div id="cal-week" class="week">
+          <div class="wd"><h4><span>Sen</span><span>5</span></h4>
+            <div class="ce past"><span>09.00</span><b>Sprint Planning</b><span>Belum dicatat</span></div>
+            <div class="ce past"><span>14.00</span><b>Review Desain</b><span>Perlu dicek (6)</span></div></div>
+          <div class="wd today"><h4><span>Sel</span><span>6</span></h4>
+            <div class="ce"><span>10.00 · berlangsung</span><b>Rapat Mingguan Atlas</b></div>
+            <div class="ce"><span>14.00</span><b>Sync Klien PT Sinar</b></div></div>
+          <div class="wd"><h4><span>Rab</span><span>7</span></h4>
+            <div class="ce"><span>09.00</span><b>Daily Standup</b></div>
+            <div class="ce cancel"><span>13.00</span><b>Demo ke Direksi</b></div></div>
+          <div class="wd"><h4><span>Kam</span><span>8</span></h4>
+            <div class="ce"><span>10.00</span><span class="ln" style="width:80%"></span></div></div>
+          <div class="wd"><h4><span>Jum</span><span>9</span></h4>
+            <div class="ce"><span>09.00</span><span class="ln" style="width:70%"></span></div>
+            <div class="ce"><span>15.00</span><span class="ln" style="width:60%"></span></div></div>
+          <div class="wd"><h4><span>Sab</span><span>10</span></h4></div>
+          <div class="wd"><h4><span>Min</span><span>11</span></h4></div>
+        </div>
+
+        <div id="cal-month" hidden>
+          <div class="month" id="month"></div>
+        </div>
+        <p class="note">Kalender tetap ada untuk merencanakan, tapi jadi tab, bukan tampilan awal. Pilihan Minggu (baru) dan Bulan. Klik slot kosong = buat rapat di jam itu.</p>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="wf.js"></script>
+<script src="05-events.js"></script>
+</body>
+</html>

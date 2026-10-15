@@ -1,0 +1,101 @@
+/* Gaya khusus wireframe 05 Rapat & Events (di atas kit wf.css). */
+/* .week/.acts memakai display grid/flex, jadi atribut hidden perlu dipaksa */
+[hidden]{display:none!important}
+.grow{flex:1}
+.page-head .grow{flex:1}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row .grow{flex:1}
+.muted{color:var(--mute);font-size:12px}
+.btn.lg{height:44px;padding:0 18px;font-size:14px;border-radius:8px}
+.tabs-bar{display:flex;align-items:flex-end;gap:10px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs-bar .tabs{border-bottom:0;margin-bottom:-1px;flex:1}
+
+/* Tampilan ▾ = filter tag + kelompokkan (E1 + E2) dalam satu kontrol */
+.view-menu{position:relative;margin-bottom:6px}
+.view-menu summary{list-style:none}
+.view-menu summary::-webkit-details-marker{display:none}
+.view-pop{position:absolute;right:0;top:34px;width:280px;background:var(--paper);border:1.5px solid var(--ink);border-radius:10px;padding:12px;z-index:15;display:flex;flex-direction:column;gap:8px}
+.view-pop h4{margin:4px 0 0;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.05em}
+.view-pop label{display:flex;align-items:center;gap:8px;font-size:13px}
+.view-pop input{accent-color:#111;margin:0}
+
+/* Badge status catatan rapat (siklus) */
+.st{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border:1px solid var(--ink);border-radius:99px;font-size:12px;white-space:nowrap}
+.st .ico{width:13px;height:13px}
+.st-none{border-style:dashed;border-color:var(--dim);color:var(--mute)}
+.st-rec,.st-check{background:var(--ink);color:#fff;font-weight:700}
+.st-rec::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff;animation:blink 1.2s infinite}
+.st-done{border-width:1.5px}
+.st-cancel{border-color:var(--dim);color:var(--mute);text-decoration:line-through}
+@keyframes blink{50%{opacity:.25}}
+
+/* Sedang berlangsung */
+.live{border-width:2.5px;padding:16px 18px}
+.live-t{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.05em;margin-bottom:10px}
+.live-t::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ink);animation:blink 1.2s infinite}
+.live h2{font-size:19px;margin:0}
+.live .meta{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;margin:8px 0;font-size:13px;color:var(--mute)}
+.live .meta span{display:inline-flex;align-items:center;gap:5px}
+.agenda{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--fill);border-radius:8px;font-size:13px}
+.live .acts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+.consent{display:none;margin-top:12px;padding:10px 12px;border:1.5px dashed var(--ink);border-radius:8px;font-size:13px}
+.consent.show{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.stack{display:inline-flex}
+.stack .avatar{width:24px;height:24px;font-size:10px;border-color:var(--paper);border-width:2px}
+.stack .avatar+.avatar{margin-left:-7px}
+
+/* Perlu dicek */
+.check-list li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 4px;border-bottom:1px solid var(--fill)}
+.check-list li:last-child{border-bottom:0}
+.check-list .what{flex:1;min-width:200px;display:flex;flex-direction:column;gap:3px}
+.check-list .ai{font-size:13px;font-style:italic}
+
+/* Daftar rapat per hari */
+.day{display:flex;align-items:baseline;gap:8px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:20px 0 6px}
+.day small{font-weight:400;color:var(--mute);text-transform:none;letter-spacing:0}
+.ev{display:grid;grid-template-columns:56px 1fr auto;gap:4px 12px;align-items:center;padding:12px 14px;background:var(--paper);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;cursor:pointer}
+.ev:hover{border-color:var(--ink)}
+.ev time{font-weight:700;font-size:15px}
+.ev .body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.ev .body b{font-size:14px}
+.ev .tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--mute)}
+.ev .tags .ico{width:13px;height:13px}
+.ev .end{display:flex;align-items:center;gap:8px;justify-self:end}
+.ev.cancel b,.ev.cancel time{text-decoration:line-through;color:var(--mute)}
+.ev .mini{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--mute)}
+.ev .mini .bar{width:60px}
+
+/* Siklus badge */
+.flow{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
+.flow .step{display:flex;flex-direction:column;gap:6px;align-items:flex-start;max-width:150px}
+.flow .step small{font-size:11px;color:var(--mute)}
+.flow .arr{padding-top:2px;color:var(--dim)}
+
+/* Sudah lewat */
+.search-in{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;flex:1;min-width:220px;background:var(--paper)}
+.search-in input{border:0;outline:0;flex:1;background:none}
+
+/* Kalender */
+.week{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:6px;overflow-x:auto}
+.wd{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:220px;display:flex;flex-direction:column;gap:6px}
+.wd h4{margin:0 0 4px;font-size:12px;display:flex;justify-content:space-between}
+.wd.today{border:2px solid var(--ink)}
+.wd.today h4 span:last-child{background:var(--ink);color:#fff;border-radius:99px;padding:0 6px}
+.ce{border-left:3px solid var(--ink);background:var(--fill);border-radius:4px;padding:5px 6px;font-size:11px;display:flex;flex-direction:column;gap:2px}
+.ce b{font-size:12px}
+.ce.past{border-left-color:var(--dim);background:none;border:1px solid var(--line);border-left:3px solid var(--dim)}
+.ce.cancel b{text-decoration:line-through;color:var(--mute)}
+.month{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.month .dn{font-size:11px;color:var(--mute);text-align:center;padding:4px 0}
+.md{background:var(--paper);border:1px solid var(--line);border-radius:6px;min-height:64px;padding:5px;font-size:12px;display:flex;flex-direction:column;gap:3px}
+.md.out{background:none;color:var(--dim)}
+.md.today{border:2px solid var(--ink);font-weight:700}
+.md .ln{height:6px}
+
+@media (max-width:640px){
+  .page{padding:14px 12px 24px}
+  .tabs-bar{flex-wrap:wrap}
+  .ev{grid-template-columns:48px 1fr}.ev .end{grid-column:2;justify-self:start}
+  .live .acts .btn{flex:1;justify-content:center}
+  .view-pop{right:auto;left:0}
+}

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe Tim</title>
+<!-- Lo-fi wireframe hitam-putih. Shell (top bar + rail navbar) dirender oleh wf.js. Menu Tim = "Tim & Kapasitas":
+     3 tab — Kapasitas (ketersediaan, beban, peringatan dini, saran pindah), Aktivitas (feed + digest), Direktori. -->
+<link rel="stylesheet" href="wf.css">
+<style>
+.page-head .grow{flex:1}
+.cols{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-items:start;margin-bottom:14px}
+.c6{grid-column:span 6}.c7{grid-column:span 7}.c5{grid-column:span 5}.c12{grid-column:span 12}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row .grow{flex:1}
+.muted{color:var(--mute);font-size:12px}
+
+/* Peringatan & saran */
+.alert{display:flex;gap:10px;padding:10px;border:1.5px solid var(--ink);border-radius:8px}
+.alert+.alert{margin-top:8px;border-color:var(--line)}
+.alert .body{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.move li{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--fill)}
+.move input{margin:0;accent-color:#111}
+.ba{display:grid;grid-template-columns:52px 1fr auto;gap:6px 10px;align-items:center;font-size:12px;margin:12px 0}
+
+/* Tabel kapasitas */
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th{font-weight:400;color:var(--mute);font-size:12px;text-align:left;padding:8px;border-bottom:1.5px solid var(--ink);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--fill);vertical-align:middle}
+td.n{text-align:center}
+.who{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.who .avatar{width:28px;height:28px}
+.load{display:flex;align-items:center;gap:8px;min-width:140px}
+.load .bar{flex:1}
+.load b{font-size:12px;width:40px;text-align:right}
+.heat{display:flex;gap:3px}
+.heat span{width:44px;height:26px;display:grid;place-items:center;font-size:11px;border:1px solid var(--ink);border-radius:4px}
+.h1{background:#e6e6e6}.h2{background:#999;color:#fff}.h3{background:#111;color:#fff;font-weight:700}
+.legend{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--mute);margin-top:10px}
+.legend .heat span{width:22px;height:14px}
+
+/* Feed & digest */
+.feed li{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--fill)}
+.feed .avatar{width:26px;height:26px;font-size:11px}
+.feed .txt{flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;min-width:0}
+.dg h3{display:flex;gap:6px;align-items:center;font-size:13px;margin:12px 0 6px}
+.dg li{display:flex;gap:8px;align-items:center;padding:3px 0}
+.dg li::before{content:"–";color:var(--mute)}
+
+/* Direktori */
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.person{display:flex;flex-direction:column;gap:8px}
+.person .who .avatar{width:40px;height:40px}
+.person .who > span{display:flex;flex-direction:column;gap:5px}
+.field{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
+.search-in{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:8px;padding:6px 10px;min-width:240px;background:var(--paper)}
+.search-in input{border:0;outline:0;flex:1;background:none}
+
+@media (max-width:1000px){.c6,.c7,.c5{grid-column:span 12}}
+</style>
+</head>
+<body>
+<!-- <div class="wf-bar"><b>Wireframe 06 · Tim &amp; Kapasitas</b><span>Lo-fi hitam-putih. Tab: Kapasitas · Aktivitas · Direktori. Garis abu = placeholder teks, ✦ = elemen AI, teks miring/kotak putus-putus = catatan wireframe.</span></div> -->
+
+<div class="app" data-active="tim">
+  <main class="main" aria-label="Konten">
+    <div class="page">
+      <div class="page-head"><h1>Tim &amp; Kapasitas</h1><span class="grow"></span><button class="btn" type="button">Atur kapasitas</button></div>
+
+      <div class="tabs">
+        <button type="button" aria-pressed="true" data-show="t-kap">Kapasitas</button>
+        <button type="button" aria-pressed="false" data-show="t-akt">Aktivitas</button>
+        <button type="button" aria-pressed="false" data-show="t-dir">Direktori</button>
+      </div>
+
+      <!-- TAB 1: KAPASITAS -->
+      <section id="t-kap">
+        <div class="cols">
+          <!-- Peringatan dini overload (AI) -->
+          <div class="card c6">
+            <header class="card-h"><div class="grow"><h2>✦ Peringatan dini</h2><p class="q">"Siapa yang mulai kewalahan?"</p></div><span class="badge">2</span></header>
+            <div class="alert">
+              <svg class="ico"><use href="#i-alert"/></svg>
+              <div class="body">
+                <b>Beban Rina diperkirakan 140% minggu depan.</b>
+                <div class="row"><span class="badge">Beban &gt;110% 2 minggu berturut-turut</span><span class="badge">Tugas telat naik 1 → 3</span><span class="badge">3 proyek paralel</span></div>
+                <div class="row"><button class="btn dark" type="button">Lihat saran pindah</button><button class="btn" type="button">Tandai sudah dibahas</button></div>
+              </div>
+            </div>
+            <div class="alert">
+              <svg class="ico"><use href="#i-alert"/></svg>
+              <div class="body"><span class="ln" style="width:70%"></span><div class="row"><span class="badge"><span class="ln" style="width:90px;height:6px"></span></span></div></div>
+            </div>
+            <p class="note">Sinyal hanya dari data kerja: beban, tugas telat, proyek paralel, dan (opsional, opt-in organisasi) aktivitas di luar jam kerja. Dikirim ke PM + notifikasi pribadi ke orangnya. Bahasa non-punitif. Tidak ada leaderboard, skor produktivitas, atau label "malas".</p>
+          </div>
+
+          <!-- Saran rebalancing (AI) -->
+          <div class="card c6">
+            <header class="card-h"><div class="grow"><h2>✦ Saran pindah tugas</h2><p class="q">"Siapa yang bisa bantu?"</p></div></header>
+            <b>Pindahkan 2 tugas dari Rina (140%) ke Dodi (60%, keahlian backend).</b>
+            <ul class="move" style="margin-top:8px">
+              <li><input type="checkbox" checked aria-label="Pilih tugas"><span class="ln" style="width:55%"></span><span class="grow"></span><span class="muted">8 jam</span></li>
+              <li><input type="checkbox" checked aria-label="Pilih tugas"><span class="ln" style="width:45%"></span><span class="grow"></span><span class="muted">6 jam</span></li>
+            </ul>
+            <div class="ba">
+              <b>Rina</b><span class="bar"><i style="width:100%"></i></span><span>140% → <b>105%</b></span>
+              <b>Dodi</b><span class="bar"><i style="width:60%"></i></span><span>60% → <b>95%</b></span>
+            </div>
+            <div class="row"><button class="btn dark" type="button">Konfirmasi &amp; pindahkan</button><button class="btn" type="button">Ubah</button><button class="btn" type="button">Tolak</button></div>
+            <p class="note">Tidak dijalankan otomatis: PM harus konfirmasi. Setelah itu Dodi menerima notifikasi tugas baru.</p>
+          </div>
+        </div>
+
+        <!-- Tabel kapasitas tertimbang + heatmap 4 minggu -->
+        <div class="card">
+          <header class="card-h">
+            <div class="grow"><h2>Beban kerja tim</h2><p class="q">"Siapa yang tersedia, siapa yang penuh?"</p></div>
+            <div class="row"><button class="btn" type="button" aria-label="Minggu sebelumnya"><svg class="ico sm"><use href="#i-left"/></svg></button><b>Minggu ini</b><span class="ln" style="width:70px"></span><button class="btn" type="button" aria-label="Minggu berikutnya"><svg class="ico sm"><use href="#i-right"/></svg></button></div>
+          </header>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Anggota</th><th>Ketersediaan</th><th>Beban minggu ini</th><th>Telat</th><th>Sedang dikerjakan</th><th>Proyek paralel</th><th>4 minggu ke depan</th></tr></thead>
+              <tbody>
+                <tr><td><span class="who"><span class="avatar">R</span><span><b>Rina</b><br><span class="badge dash">2 tugas tanpa estimasi</span></span></span></td>
+                  <td><b>● Fokus</b><br><span class="muted">09.00–17.00 WIB</span></td>
+                  <td><span class="load"><span class="bar"><i style="width:100%"></i></span><b>120%</b></span></td><td class="n">3</td><td class="n">4</td><td class="n">3</td>
+                  <td><span class="heat"><span class="h3">120</span><span class="h3">140</span><span class="h2">95</span><span>60</span></span></td></tr>
+                <tr><td><span class="who"><span class="avatar">D</span><b>Dodi</b></span></td>
+                  <td><b>◐ Rapat</b> s/d 10.30<br><span class="muted">08.00–16.00 WIB · dari kalender</span></td>
+                  <td><span class="load"><span class="bar"><i style="width:60%"></i></span><b>60%</b></span></td><td class="n">0</td><td class="n">1</td><td class="n">1</td>
+                  <td><span class="heat"><span>60</span><span>65</span><span class="h1">80</span><span>50</span></span></td></tr>
+                <tr><td><span class="who"><span class="avatar"></span><span class="ln" style="width:70px"></span></span></td>
+                  <td><b>○ Cuti</b> s/d Jumat<br><span class="muted">kapasitas jadi 12 jam</span></td>
+                  <td><span class="load"><span class="bar"><i style="width:85%"></i></span><b>85%</b></span></td><td class="n">0</td><td class="n">1</td><td class="n">2</td>
+                  <td><span class="heat"><span class="h1">85</span><span class="h1">75</span><span>55</span><span>40</span></span></td></tr>
+                <tr><td><span class="who"><span class="avatar"></span><span><span class="ln" style="width:60px"></span><br><span class="badge dash">1 tugas tanpa estimasi</span></span></span></td>
+                  <td><b>– Off</b><br><span class="muted">10.00–18.00 WITA</span></td>
+                  <td><span class="load"><span class="bar"><i style="width:100%"></i></span><b>100%</b></span></td><td class="n">1</td><td class="n">2</td><td class="n">2</td>
+                  <td><span class="heat"><span class="h2">100</span><span class="h2">105</span><span class="h1">90</span><span class="h1">70</span></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="legend">Heatmap: <span class="heat"><span></span></span>&lt;70% <span class="heat"><span class="h1"></span></span>70–90% <span class="heat"><span class="h2"></span></span>90–110% <span class="heat"><span class="h3"></span></span>&gt;110%</div>
+          <p class="note">Beban = total estimasi jam tugas aktif yang jatuh tempo di minggu itu ÷ kapasitas (default 30 jam efektif/minggu, bisa diatur per orang, dikurangi cuti). Tugas tanpa estimasi dihitung pakai nilai default dan ditandai, supaya data yang kurang terlihat. Rapat diambil otomatis dari Events + sinkron kalender; cuti diisi manual atau dari kalender. Indikator "aktif sekarang" sengaja tidak ada di sini: hanya muncul di tugas/notulensi yang sedang dibuka bersama, dan bisa dimatikan.</p>
+        </div>
+      </section>
+
+      <!-- TAB 2: AKTIVITAS (feed tunggal + digest mingguan AI) -->
+      <section id="t-akt" hidden>
+        <div class="cols">
+          <div class="card c7">
+            <header class="card-h">
+              <div class="grow"><h2>Aktivitas</h2><p class="q">"Apa yang terjadi?"</p></div>
+              <div class="seg"><button type="button" aria-pressed="false">Saya</button><button type="button" aria-pressed="true">Tim</button><button type="button" aria-pressed="false">Proyek</button></div>
+            </header>
+            <div class="sub-h" style="margin-top:0">Hari ini</div>
+            <ul class="feed">
+              <li><span class="avatar">R</span><span class="txt"><b>Rina</b> menyelesaikan tugas <span class="ln" style="width:120px"></span></span><span class="ln" style="width:34px"></span></li>
+              <li><span class="avatar">D</span><span class="txt"><b>Dodi</b> mengubah status <span class="ln" style="width:90px"></span> → Menunggu diperiksa</span><span class="ln" style="width:34px"></span></li>
+              <li><span class="avatar"></span><span class="txt"><span class="ln" style="width:50px"></span> berkomentar di <span class="ln" style="width:110px"></span></span><span class="ln" style="width:34px"></span></li>
+            </ul>
+            <div class="sub-h">Kemarin</div>
+            <ul class="feed">
+              <li><span class="avatar"></span><span class="txt"><span class="ln" style="width:50px"></span> mencatat keputusan rapat <span class="ln" style="width:100px"></span></span><span class="ln" style="width:34px"></span></li>
+              <li><span class="avatar">R</span><span class="txt"><b>Rina</b> memundurkan tenggat <span class="ln" style="width:100px"></span></span><span class="ln" style="width:34px"></span></li>
+            </ul>
+            <p class="note">Satu feed untuk semua aktivitas; cakupan dipilih lewat Saya / Tim / Proyek.</p>
+          </div>
+
+          <div class="card c5 dg">
+            <header class="card-h">
+              <div class="grow"><h2>✦ Digest mingguan</h2><p class="q">"Ringkasan minggu ini dalam 1 menit"</p></div>
+              <div class="row"><button class="btn" type="button" aria-label="Minggu sebelumnya"><svg class="ico sm"><use href="#i-left"/></svg></button><button class="btn" type="button" aria-label="Minggu berikutnya"><svg class="ico sm"><use href="#i-right"/></svg></button></div>
+            </header>
+            <span class="muted">Disusun AI dari data proyek · <span class="ln" style="width:80px"></span></span>
+            <h3>Yang selesai <span class="badge">12</span></h3>
+            <ul><li><span class="ln" style="width:70%"></span></li><li><span class="ln" style="width:55%"></span></li></ul>
+            <h3>Yang mundur <span class="badge solid">3</span></h3>
+            <ul><li><span class="ln" style="width:65%"></span></li><li><span class="ln" style="width:50%"></span></li></ul>
+            <h3>Keputusan rapat <span class="badge">2</span></h3>
+            <ul><li><span class="ln" style="width:72%"></span></li><li><span class="ln" style="width:48%"></span></li></ul>
+            <h3>Risiko <span class="badge solid">2</span></h3>
+            <ul><li><span class="ln" style="width:60%"></span></li><li><span class="ln" style="width:52%"></span></li></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: DIREKTORI (+ keahlian & ketersediaan) -->
+      <section id="t-dir" hidden>
+        <div class="row" style="margin-bottom:12px">
+          <label class="search-in"><svg class="ico sm"><use href="#i-search"/></svg><input type="text" placeholder="Cari nama atau keahlian"></label>
+          <span class="chip add">Ketersediaan ▾</span><span class="chip add">Keahlian ▾</span>
+        </div>
+        <div class="people">
+          <div class="card person">
+            <span class="who"><span class="avatar">R</span><span><b>Rina</b><span class="ln" style="width:80px"></span></span></span>
+            <span><b>● Fokus</b> <span class="muted">· 09.00–17.00 WIB</span></span>
+            <div class="chips"><span class="chip add">frontend</span><span class="chip add">desain</span></div>
+            <span class="field"><svg class="ico sm"><use href="#i-mail"/></svg><span class="ln" style="width:110px"></span></span>
+          </div>
+          <div class="card person">
+            <span class="who"><span class="avatar">D</span><span><b>Dodi</b><span class="ln" style="width:70px"></span></span></span>
+            <span><b>◐ Rapat</b> s/d 10.30 <span class="muted">· 08.00–16.00 WIB</span></span>
+            <div class="chips"><span class="chip add">backend</span><span class="chip add">database</span></div>
+            <span class="field"><svg class="ico sm"><use href="#i-lock"/></svg>Email disembunyikan (pengaturan workspace)</span>
+          </div>
+          <div class="card person">
+            <span class="who"><span class="avatar"></span><span><span class="ln" style="width:70px"></span><span class="ln" style="width:90px"></span></span></span>
+            <span><b>○ Cuti</b> s/d Jumat</span>
+            <div class="chips"><span class="chip add">QA</span></div>
+            <span class="field"><svg class="ico sm"><use href="#i-mail"/></svg><span class="ln" style="width:100px"></span></span>
+          </div>
+          <div class="card person">
+            <span class="who"><span class="avatar"></span><span><span class="ln" style="width:60px"></span><span class="ln" style="width:80px"></span></span></span>
+            <span><b>– Off</b> <span class="muted">· 10.00–18.00 WITA</span></span>
+            <div class="chips"><span class="chip add">keuangan</span><span class="chip add">laporan</span></div>
+            <span class="field"><svg class="ico sm"><use href="#i-mail"/></svg><span class="ln" style="width:120px"></span></span>
+          </div>
+        </div>
+        <p class="note">Visibilitas email mengikuti pengaturan workspace. Ketersediaan: ● Fokus · ◐ Rapat (otomatis dari kalender) · ○ Cuti · – Off, ditambah jam kerja &amp; zona waktu.</p>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="wf.js"></script>
+</body>
+</html>
