@@ -22,4 +22,7 @@ COPY --chown=bun:bun --from=build /app/CHANGELOG.md ./CHANGELOG.md
 USER bun
 VOLUME /app/data
 EXPOSE 3005
-CMD ["bun", "run", "server/binary-entry.ts", "start"]
+# External Postgres is migrated explicitly, never inside `start` (instances booting together would race).
+# With several replicas, run `migrate` once as a one-off job and override CMD with `start` for the rest.
+# An empty DATABASE_URL means local mode, where `start` migrates its own cluster, so `migrate` is skipped.
+CMD ["sh", "-c", "if [ -n \"$DATABASE_URL\" ]; then bun run server/binary-entry.ts migrate || exit 1; fi; exec bun run server/binary-entry.ts start"]

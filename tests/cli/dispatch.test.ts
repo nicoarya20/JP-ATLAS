@@ -48,6 +48,7 @@ describe('main', () => {
       'backup',
       'doctor',
       'init',
+      'migrate',
       'start',
       'upgrade',
       'version',
