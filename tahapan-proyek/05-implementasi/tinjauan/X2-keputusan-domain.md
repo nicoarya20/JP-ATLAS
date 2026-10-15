@@ -187,7 +187,7 @@ Dasar: R03 §2.2 (matriks) disaring ke aksi yang dipakai S0-S2, ditambah `00-rol
 | `project.view` (daftar + detail, kondisi, progres) | ✅ | ✅ | ✅ | 👁 | ✅ | ✅ | ✅ | ❌ | Sama (P-A1). Daftar "Semua proyek" hanya SA/AD/PM; Member hanya yang ia ikuti |
 | `project.create` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | Sama (`a`): berdasar role akun, bukan peran proyek; Member tak pernah bisa membuat proyek (Q5) |
 | `project.update`, `project.setStatus` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | Sama; fase/milestone/perpanjang/override = S5, dikeluarkan |
-| `project.trash` (hapus → Sampah + Urungkan) | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | Sama; `trash.undo` 🔸u (pelaku, dalam `UNDO_WINDOW_SECONDS`). Pemulihan/purge = S6 |
+| `project.trash` (hapus → Sampah + Urungkan) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | **Diubah 15 Okt (KEPUTUSAN §6):** Member-Pengelola (M-K) TIDAK boleh menghapus proyek, hanya SA, AD, PM-K; konstanta `MEMBER_MANAGER_CAN_TRASH_PROJECT=false`. `trash.undo` 🔸u (pelaku, dalam `UNDO_WINDOW_SECONDS`). Pemulihan oleh semua Pengelola proyek itu + Admin (S1-18); purge = S6 |
 | `project.member.add/changeRole/remove`, `project.setLead` | ✅ | ✅ | 🔸b | ❌ | 🔸b | ❌ | ❌ | ❌ | Sama. `b` = `LAST_MANAGER`, `IS_LEAD` (D4), Lead baru wajib Pengelola; kandidat = akun `approved` tak `banned` |
 | Anggota keluar sendiri dari proyek | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **Baru (D3):** R03 K8 hanya menyebut "tidak ada"; ditulis eksplisit. Pengelola/Admin mengeluarkan lewat `member.remove` |
 

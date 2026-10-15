@@ -25,7 +25,8 @@
 |---|---|---|---|
 | Lihat tombol **+ Proyek baru** dan membuat proyek (form, cerita, template) | ✅ | ✅ | ❌ tombol disembunyikan |
 | Lihat daftar & detail proyek | Semua | Semua | Hanya yang diikuti |
-| Ubah info proyek, status, tahapan, milestone, anggota, perpanjang tenggat, ganti kondisi manual, pindah ke Sampah | ✅ semua proyek | ✅ hanya jika `manager` di proyek itu | ✅ hanya jika `manager` di proyek itu |
+| Ubah info proyek, status, tahapan, milestone, anggota, perpanjang tenggat, ganti kondisi manual | ✅ semua proyek | ✅ hanya jika `manager` di proyek itu | ✅ hanya jika `manager` di proyek itu |
+| **Hapus proyek (pindah ke Sampah)** — diubah 15 Okt 2026, lihat `05-implementasi/KEPUTUSAN-MVP-INTI.md` §6 | ✅ semua proyek | ✅ hanya jika `manager` di proyek itu | ❌ walau menjadi `manager` di proyek itu (Member-Pengelola boleh memulihkan dari Sampah, tidak boleh menghapus) |
 | Tambah/ubah tugas di proyek | Rincian izin tugas ada di `tahapan-proyek/03-desain/erd/task.md` › Hak akses | | |
 | Setujui / Kembalikan tugas | ✅ | Hanya jika `manager` di proyek itu | Hanya jika `manager` di proyek itu |
 | Simpan proyek sebagai template | ✅ | ✅ | ❌ |

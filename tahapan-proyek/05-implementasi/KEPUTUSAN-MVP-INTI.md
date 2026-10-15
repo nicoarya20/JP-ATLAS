@@ -47,3 +47,9 @@ D1 Mantine pin 9.6.3 + `@mantine/dates` + `dayjs` hanya untuk `DateInput` (grid 
 3. **X1-Q5**: konfirmasi bahwa produksi sungguhan belum pernah memakai migrasi lama.
 4. Temuan keamanan fondasi (R12) dimasukkan ke S0.a sesuai R10; `proxy-addr` (critical) dan dua high (MCP SDK, `source-map-js`) belum ditangani: pembaruan dependensi aman dijadwalkan di S0.0 kecuali user menyatakan lain.
 5. Tiga bagian X3 kosong (ringkasan, risiko, sumber) dan R01 bagian 3-7: diganti oleh rencana tahap 2 (`rencana/P1`).
+
+## 6. Perubahan keputusan setelah dokumen ini dibuat
+| Tanggal | Keputusan | Dampak |
+|---|---|---|
+| 15 Okt 2026 | **Hapus proyek: pilihan B** (user), menggantikan bawaan "tombol disembunyikan sampai S6" (P2 K3 / P3 KB-1). Halaman **Sampah minimal khusus proyek** masuk S1 dan tombol **Hapus proyek** aktif | Tugas baru `S1-18` di `rencana/P3-s1-s2-proyek-tugas.md` (+2-3 hari-orang AI); `PROJECT_DELETE_UI_ENABLED=true`; S6 tinggal menambah hapus permanen, pembersihan 30 hari, dan entri tugas/event. Total MVP Inti ≈ 127-128 hari-orang AI |
+| 15 Okt 2026 | **Siapa boleh menghapus proyek: pilihan 2** (user). Buat proyek: Super-admin, Admin, PM. Ubah proyek (nama, status, anggota): Super-admin/Admin semua proyek; PM hanya yang ia kelola; Member hanya bila ditunjuk Pengelola. **Hapus proyek: Super-admin, Admin, dan PM-Pengelola saja; Member-Pengelola TIDAK boleh menghapus** (boleh melihat dan memulihkan dari Sampah) | Fungsi izin baru `canTrashProject` terpisah dari `canManageProject` (P2 S0B-14, `ACCESS_RULES.MEMBER_MANAGER_CAN_TRASH_PROJECT=false`, kode tolak baru `ROLE_CANNOT_TRASH`); invarian "PM-K ≡ M-K" kini punya satu pengecualian (`trash`); tombol Hapus tampil hanya bila `can.project.trash` (P3 S1-05, S1-18). Dokumen yang disunting: X2 §2E2, X3 §2a, P2 S0B-14, P3, `03-desain/erd/project.md`. **Belum disunting** (kalah dari dokumen ini): `riset/R03` baris 177 dan 356 (rumusan invarian) |
