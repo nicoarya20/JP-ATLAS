@@ -32,3 +32,8 @@ export function levelOf(p: Principal, m: Membership, rules: AccessRules = ACCESS
 export function atLeast(level: Level, min: Level): boolean {
   return LEVEL_RANK[level] >= LEVEL_RANK[min];
 }
+
+/** Whether the account role is Project Manager or above (Admin/Super-admin); the project role plays no part. */
+export function isPmOrAbove(p: Principal): boolean {
+  return isAdminRole(p.appRole) || p.appRole === ROLES.PROJECT_MANAGER;
+}
