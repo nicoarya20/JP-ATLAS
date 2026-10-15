@@ -18,11 +18,11 @@
 | Q7 | PM yang bukan anggota proyek: boleh melihat saja, tanpa berkomentar |
 | Q8 | Email: sesama anggota proyek. HP: pemilik dan Admin saja. Pemilihan anggota hanya menampilkan nama dan jabatan |
 | Q9 | Super-admin yang menyamar: aksi merusak (hapus, ubah peran) diblokir |
-| **Q10** | **Peninjau manusia ≥ 4 hari per minggu (jawaban user: 4 hari).** Saran peninjau kedua khusus S0.b dan keamanan **diterima**; orangnya belum disebut |
+| **Q10** | **Peninjau manusia ≥ 4 hari per minggu (jawaban user: 4 hari).** Saran peninjau kedua khusus S0.b dan keamanan **diterima**; orangnya memakai **placeholder dummy** (§5) |
 | Q11 | Detail tugas = halaman penuh `/app/tasks/:id` (juga sesuai wireframe Penpot) |
 | Q12 | Proyek Selesai/Dibatalkan/Ditunda: tugas tetap boleh ditambah dan diubah; hanya Sampah yang mengunci. Tampilkan catatan lembut |
 | Q13 | Ukuran huruf awal akun baru = Normal; dipilih di Profil |
-| Q14 | Gerbang S2: ≥3 dari 5 penguji berusia ≥50 selesai tanpa bantuan; rilis S8: ≥4 dari 5 dalam ≤3 menit. **Nama/kelompok penguji BELUM disebut** (butuh sebelum akhir S2) |
+| Q14 | Gerbang S2: ≥3 dari 5 penguji berusia ≥50 selesai tanpa bantuan; rilis S8: ≥4 dari 5 dalam ≤3 menit. **Penguji memakai DATA DUMMY dulu (§5)**: tidak dihitung untuk gerbang S2 sampai diganti orang sungguhan |
 | Q15-Q22 | Semua pilihan (a) sesuai saran X2 (Inbox, Events, retensi log, lampiran gambar+PDF maks 10 MB, UU PDP ditinjau sebelum S8, beban Tim). Berlaku untuk S3+, tidak memengaruhi kode S0-S2 |
 | D1-D12 | Berlaku semua (X2 §2A "Default yang dipakai") |
 
@@ -33,7 +33,7 @@
 | X1-Q2, Q6 | Skala teks 1 / 1,25 / 1,5, berlaku untuk seluruh app (satu provider) |
 | X1-Q3 | Mantine diselaraskan ke 9.6.3 persis (patch-only); 9.7.x sesudah S2 |
 | X1-Q4 | Sama dengan Q4 di atas (`rejected`) |
-| X1-Q5 | **Dianggap**: migrasi 0000-0013 BELUM pernah dijalankan di produksi sungguhan. Rencana migrasi tetap append-only (0014-0016); penggenerasian ulang diizinkan sampai tag rilis pertama. *Fakta ini belum dikonfirmasi eksplisit oleh user; bila ternyata sudah pernah, hentikan dan tanyakan sebelum menyentuh migrasi.* |
+| X1-Q5 | **DIKONFIRMASI user 15 Okt 2026**: migrasi 0000-0013 BELUM pernah dijalankan di produksi sungguhan. Rencana migrasi tetap append-only (0014-0016); penggenerasian ulang diizinkan sampai tag rilis pertama (kunci append-only mulai tag pertama) |
 | X1-Q7 | Teks `09-pengaturan.md:60` diubah: `ai_enabled` bawaan MATI, kuncinya baru dibuat saat fitur AI (fase 5) |
 | X1-Q8 | Narasi editorial README diubah di akhir (S8) oleh integrator, setelah kalimatnya disetujui user |
 | X1-Q9 | API key dilarang menghapus proyek, mengelola anggota, mengubah profil/foto (`PM_KEY_DENY`, dipangkas ke rute S0-S2); boleh membuat dan mengubah tugas |
@@ -41,12 +41,23 @@
 ## 4. Keputusan teknis X1 yang berlaku (D1-D10, detail di X1 §2)
 D1 Mantine pin 9.6.3 + `@mantine/dates` + `dayjs` hanya untuk `DateInput` (grid kalender buatan sendiri, ditunda) · D2 `theme.scale` dari cookie `mk-text-size`, breakpoint terskala · D3 `ai_enabled` mati · D4 daftar berkas/rute kanonik (R04 server, R05 halaman, R02 skema) · D5 gerbang 401 di `derive` · D6 migrasi 0014 akun (S0.a), 0015 proyek, 0016 tugas (S0.b) lewat wrapper berguard · D7 kolom lama `timestamp`, tabel baru `timestamptz`, sesi DB UTC · D8 urutan perbaikan test: `app-routes` rekursif → ratchet → `installAuthSpies` → konversi 13 berkas `mock.module` (wajib sebelum `contract-v1`) → patch `schema-introspect` · D9 12 koreksi `CLAUDE.md` + kontrak README + CHANGELOG · D10 `PM_KEY_DENY`.
 
-## 5. Masih terbuka
-1. **Nama/kelompok 5 penguji ≥50 tahun** (Q14): dibutuhkan sebelum akhir S2.
-2. **Siapa peninjau kedua** untuk S0.b dan keamanan (disetujui, belum bernama).
-3. **X1-Q5**: konfirmasi bahwa produksi sungguhan belum pernah memakai migrasi lama.
-4. Temuan keamanan fondasi (R12) dimasukkan ke S0.a sesuai R10; `proxy-addr` (critical) dan dua high (MCP SDK, `source-map-js`) belum ditangani: pembaruan dependensi aman dijadwalkan di S0.0 kecuali user menyatakan lain.
-5. Tiga bagian X3 kosong (ringkasan, risiko, sumber) dan R01 bagian 3-7: diganti oleh rencana tahap 2 (`rencana/P1`).
+## 5. Data dummy dan hal yang masih terbuka
+**Keputusan user 15 Okt 2026: pakai data dummy dulu** untuk penguji dan peninjau kedua, supaya perencanaan, seed, dan skrip uji bisa jalan tanpa menunggu nama sungguhan.
+
+| Placeholder | Dipakai untuk | Aturan |
+|---|---|---|
+| `Penguji-1 (dummy)` ... `Penguji-5 (dummy)` | Skenario uji pengguna UP-1 (P3 S2-15, T0-T7), lembar catat, dan data contoh | Usia contoh ≥50 tahun; **tidak ada nama atau data orang sungguhan di repo** |
+| `Peninjau-2 (dummy)` | Penetapan peninjau kedua untuk S0.b dan keamanan (jadwal dan titik tinjau SP-*) | Diganti nama sungguhan sebelum S0.b mulai ditinjau |
+
+**Konsekuensi yang harus diingat:** dummy cukup untuk menyiapkan skrip dan lembar catat, tetapi **hasil uji dengan dummy TIDAK memenuhi gerbang S2** (≥3 dari 5 penguji nyata berusia ≥50). Gerbang S2 tetap belum terpenuhi sampai penguji sungguhan menggantikannya; S3 tidak boleh dimulai atas dasar hasil dummy.
+
+Masih terbuka:
+1. Mengganti `Penguji-1..5 (dummy)` dengan orang sungguhan sebelum hari ke-12 setelah `contract-v1`.
+2. Mengganti `Peninjau-2 (dummy)` dengan nama sungguhan sebelum S0.b ditinjau.
+3. Temuan keamanan fondasi (R12) dimasukkan ke S0.a sesuai R10; `proxy-addr` (critical) dan dua high (MCP SDK, `source-map-js`) dijadwalkan di S0.0 kecuali user menyatakan lain.
+4. Tiga bagian X3 kosong (ringkasan, risiko, sumber) dan R01 bagian 3-7: diganti oleh rencana tahap 2 (`rencana/P1`).
+
+*Sudah terjawab:* konfirmasi bahwa produksi belum pernah menjalankan migrasi lama (X1-Q5, 15 Okt 2026).
 
 ## 6. Perubahan keputusan setelah dokumen ini dibuat
 | Tanggal | Keputusan | Dampak |
