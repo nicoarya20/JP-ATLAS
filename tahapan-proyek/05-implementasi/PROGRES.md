@@ -9,11 +9,11 @@
 | Kelompok | Tugas | Selesai | Berjalan/review | Diblokir |
 |---|---|---|---|---|
 | S0.0 — Prasyarat ops | 9 | 9 | 0 | 0 |
-| S0.a — Akun dan akses | 15 | 0 | 0 | 0 |
-| S0.b — Kontrak beku | 33 | 0 | 0 | 0 |
+| S0.a — Akun dan akses | 15 | 0 | 2 | 0 |
+| S0.b — Kontrak beku | 33 | 0 | 1 | 0 |
 | S1 — Proyek dan profil | 18 | 0 | 0 | 0 |
 | S2 — Tugas inti | 17 | 0 | 0 | 0 |
-| **Total** | **92** | **9** | **0** | **0** |
+| **Total** | **92** | **9** | **3** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -56,8 +56,8 @@ Sumber spesifikasi: `rencana/P1-s0a-akun-akses.md §5`.
 
 | ID | Judul | Lajur | Bergantung pada | Ukuran | Status | Cabang | Commit | Hasil tes |
 |---|---|---|---|---|---|---|---|---|
-| S0A-01 | Rename role → 4 role, `emailVerified` super-admin | Gel. A | SP-0.0 | M | belum |  |  |  |
-| S0A-02 | Skema akun + migrasi 0014 (pemegang baton) | Gel. A | SP-0.0 | L | belum |  |  |  |
+| S0A-01 | Rename role → 4 role, `emailVerified` super-admin | Gel. A | SP-0.0 | M | review | `feature/pm-s0a-01-roles` | `055aee1` | **WAJIB DISETUJUI SATU PER SATU (`auth.ts`, `permissions.ts`).** worker: 898 lulus/0 gagal; smoke prod+binary 23/23. Diverifikasi koordinator: `auth.ts` hanya berubah di `defaultRole`; `ROLES.USER` = 0; `canSetRole`/`canActOnTarget`/`canImpersonate` tidak disentuh; super-admin kini wajib `emailVerified`. 7 berkas di luar Target (UI role, filter legacy `user`), semuanya minimal dan beralasan |
+| S0A-02 | Skema akun + migrasi 0014 (pemegang baton) | Gel. A | SP-0.0 | L | review | `feature/pm-s0a-02-account-schema` | `7b99b99` | **WAJIB DISETUJUI SATU PER SATU (migrasi 0014).** worker: 807 lulus/0 gagal; smoke coldboot+prod+binary 23/23. Diverifikasi koordinator: SQL dibaca penuh, backfill `approved` SEBELUM default `pending` (akun lama tidak terkunci), anonim -> `rejected`, berguard idempoten, `-- no-down`. 1 baris regex di `db-generate-rewrite.test.ts` (di luar Target, perlu) |
 | S0A-03 | Kebijakan akun murni (`server/access`) | Gel. B | 01 | M | belum |  |  |  |
 | S0A-05 | `auth.ts`: field persetujuan, kebijakan email, linking | Gel. B | 02 | M | belum |  |  |  |
 | S0A-04 | Undangan + keputusan sign-up | Gel. C | 01, 02, 03 | M | belum |  |  |  |
@@ -78,7 +78,7 @@ Sumber spesifikasi: `rencana/P2-s0b-kontrak-beku.md §3`.
 
 | ID | Judul | Lajur | Bergantung pada | Ukuran | Status | Cabang | Commit | Hasil tes |
 |---|---|---|---|---|---|---|---|---|
-| S0B-01 | Enum bersama, soft delete, helper kolom, sesi DB UTC | Lajur D | G0 | 🔥 | belum |  |  |  |
+| S0B-01 | Enum bersama, soft delete, helper kolom, sesi DB UTC | Lajur D | G0 | 🔥 | review | `feature/pm-s0b-01-shared-enums` | `1b6d249` | worker: 815 lulus/0 gagal; smoke prod+binary 23/23. Diverifikasi koordinator: `enums.ts` murni (39 baris), `TEXT_SIZES` 3 nilai, sesi DB UTC terbukti test. Penyimpangan kecil tercatat |
 | S0B-02 | Skema proyek | Lajur D | S0B-01 | M (1) | belum |  |  |  |
 | S0B-03 | Migrasi 0015 `project_core` | Lajur D | S0B-02, G0, G-A2, G-Q5 | 🧊 🔥 | belum |  |  |  |
 | S0B-04 | Patch `schema-introspect` (D8e) | Lajur D | S0B-01 | S (0,75) | belum |  |  |  |
@@ -176,7 +176,7 @@ Dihasilkan dari simulasi ketergantungan (P1 §3, P2 §3-4), rantai berkas bersam
 
 | Gel. | Worker 1 | Worker 2 | Worker 3 | Status |
 |---|---|---|---|---|
-| **G1** | S0A-02* skema akun + migrasi 0014 (baton) | S0A-01* 4 role + super-admin wajib email terverifikasi | S0B-01 enum bersama, soft delete | diluncurkan 15 Okt |
+| **G1** | S0A-02* skema akun + migrasi 0014 (baton) | S0A-01* 4 role + super-admin wajib email terverifikasi | S0B-01 enum bersama, soft delete | selesai dikerjakan 15 Okt, `review` (menunggu persetujuan) |
 | **G2** | S0A-05* pengaturan Better Auth (status, kebijakan email) | S0A-03 aturan izin akun | S0B-11 infrastruktur `server/pm` | belum |
 | **G3** | S0A-07* guard menahan akun pending/ditolak | S0A-04 undangan + keputusan sign-up | S0B-12 fondasi `server/access` | belum |
 | **G4** | S0A-09 pecah admin API + matriks role | S0A-06* hook sign-up (pending, undangan, profil) | S0B-02 skema proyek | belum |
@@ -193,6 +193,8 @@ Dihasilkan dari simulasi ketergantungan (P1 §3, P2 §3-4), rantai berkas bersam
 | **G15** | S0B-10 query keanggotaan | S0B-17 kapabilitas `can{}` | S0B-07 tes kontrak skema | belum |
 | **G16** | S0B-32 README kontrak | S0B-31 koreksi `CLAUDE.md` |  | belum |
 | **G17** | S0B-33 gerbang `contract-v1` |  |  | belum |
+
+**Hitungan gelombang tanpa galat 429** (syarat naik ke 4 worker: dua gelombang berturut-turut): G1 tanpa 429 (1 dari 2).
 
 Dengan 4 worker: 13 gelombang (S0.a tetap selesai di G9). Perkiraan kasar: 17 gelombang ≈ 3,5 minggu, 13 gelombang ≈ 2,5-3 minggu, bila satu gelombang ≈ 1 hari kerja. P1/P2 mengira ±6 worker paralel; dengan batas kuota, durasinya kira-kira dua kali lipat.
 
@@ -218,3 +220,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **15 Okt 2026** — S0.0-05 (gelombang 4) selesai dikerjakan dan berstatus `review`; menunggu persetujuan merge, lalu gerbang SP-0.0. Atas permintaan user, **7 worktree gelombang 2 dan 3 ditutup** (`orca worktree rm`, semuanya bersih, ter-merge, dan sudah di origin); cabang `chore/pm-s00-*` yang ter-merge ikut terhapus oleh Orca (commit tetap di riwayat). Worktree `pm-s00-audit-fix` dipertahankan karena belum ter-merge. Penghapusan berjalan di latar belakang: laporan "OK" dari Orca datang lebih dulu daripada folder yang benar-benar hilang.
 - **15 Okt 2026** — S0.0-05 digabung atas persetujuan user; **S0.0 selesai (9 dari 9)** dan **gerbang SP-0.0 lolos**. Kini S0.a (akun dan akses) dan S0.b (kontrak beku) bisa dimulai. Catatan: `node_modules` di working tree utama user perlu `bun install` (MCP SDK, Vite, Mantine berubah).
 - **15 Okt 2026** — Jadwal peluncuran S0.a + S0.b disimpan di bagian "Jadwal peluncuran" atas persetujuan user (3 worker, risiko-dulu, titik cek setelah G4). Gerbang SP0a dipecah menjadi SP0a-1 dan SP0a-2.
+- **15 Okt 2026** — G1 (S0A-01, S0A-02, S0B-01) selesai dikerjakan dan berstatus `review`. Tiap cabang diverifikasi koordinator. **Uji gabungan** (basis `1da0d98`, worktree sementara, tidak dipush): tanpa konflik, `typecheck` nol error, **930 lulus / 17 dilewati / 0 gagal** (sebelumnya 795), lint = baseline, `drizzle-kit generate` = tidak ada perubahan skema. Menunggu persetujuan: S0A-01 dan S0A-02 **satu per satu**, S0B-01 per gelombang.
