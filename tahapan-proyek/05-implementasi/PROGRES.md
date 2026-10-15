@@ -8,12 +8,12 @@
 
 | Kelompok | Tugas | Selesai | Berjalan/review | Diblokir |
 |---|---|---|---|---|
-| S0.0 — Prasyarat ops | 9 | 8 | 0 | 0 |
+| S0.0 — Prasyarat ops | 9 | 8 | 1 | 0 |
 | S0.a — Akun dan akses | 15 | 0 | 0 | 0 |
 | S0.b — Kontrak beku | 33 | 0 | 0 | 0 |
 | S1 — Proyek dan profil | 18 | 0 | 0 | 0 |
 | S2 — Tugas inti | 17 | 0 | 0 | 0 |
-| **Total** | **92** | **8** | **0** | **0** |
+| **Total** | **92** | **8** | **1** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -47,7 +47,7 @@ Sumber spesifikasi: `rencana/P1-s0a-akun-akses.md §4`.
 | S0.0-04 | Pin Mantine 9.6.3 + `@mantine/dates` + `dayjs` | Gel. 3 | 02 | M | **selesai** | `chore/pm-s00-mantine-pin` | `be7435c` merge `9551a57` | worker: 774 lulus/0 gagal; smoke:prod dan smoke:binary 23/23 (Bun 1.4.2 sementara). Semua `@mantine/*` terkunci 9.6.3 tanpa `^`; `bun.lock` hanya berubah untuk Mantine, `@mantine/dates`, `dayjs`. **Perlu pemeriksaan visual oleh user** (tanpa Playwright). Menemukan `bun audit`: 1 kritis + 2 tinggi (ditangani S0.0-05) |
 | S0.0-07 | Stub skema + barrel + `drizzle.config.ts` + CI drift | Gel. 3 | 02, 06 | S | **selesai** | `chore/pm-s00-schema-stubs` | `dedf48e` `c410c7b` merge `0c49fc9` | worker: 780 lulus/0 gagal; smoke 23/23. **Diverifikasi koordinator:** `drizzle-kit generate` = "No schema changes" dan tidak menulis berkas. Job CI `schema-drift` ditambahkan |
 | S0.0-09 | `tests/test-hygiene.test.ts` (ratchet `mock.module`) | Gel. 3 | 03 | S | **selesai** | `chore/pm-s00-test-hygiene` | `48068be` merge `c6ced12` | worker: 781 lulus/0 gagal; uji kebocoran `mock.module` pada dua urutan: tidak bocor. **Keterkaitan:** daftar putih ketat, jadi S0B-22/23 yang mengonversi berkas `mock.module` wajib menghapus entrinya di `tests/test-hygiene.test.ts` |
-| S0.0-05 | Perbaikan `bun audit` (proxy-addr, MCP SDK, source-map-js) | Gel. 4 | 04 | M | belum |  |  |  |
+| S0.0-05 | Perbaikan `bun audit` (proxy-addr, MCP SDK, source-map-js) | Gel. 4 | 04 | M | review | `chore/pm-s00-audit-fix` | `a1282e2` `279f733` | worker: `bun audit` 1 kritis + 2 tinggi + 4 moderate -> hanya 1 moderate (`esbuild`, alat dev); MCP SDK 1.30.0->1.32.1, vite 8.2.2->8.3.4, 3 override (`proxy-addr`, `fast-uri`, `ip-address`) dengan alasan di `docs/decisions/dependency-overrides.md`; smoke:prod/binary 23/23. **Diverifikasi koordinator** (worktree terisolasi, Bun 1.3.14): audit = 1 moderate, 795 lulus/0 gagal, typecheck nol, lint = baseline. `audit --prod` tidak terverifikasi sendiri (hanya klaim worker). `Dockerfile:15` menyalin devDependencies ke image runtime: dilaporkan, tidak diubah |
 
 ## S0.a — Akun dan akses
 
@@ -176,3 +176,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **15 Okt 2026** — Gelombang 2 digabung ke `feature/project-management` atas persetujuan user. Empat poin CHANGELOG `[Unreleased]` ditambahkan (migrate, generator migrasi, pin Bun, kunci rahasia). S0.0 kini 5 dari 9 tugas selesai; sisa gelombang 3 (04, 07, 09) dan 4 (05).
 - **15 Okt 2026** — S0.0 gelombang 3 (04, 07, 09) selesai dikerjakan dan berstatus `review`. Tiap cabang diverifikasi koordinator. **Uji gabungan** ketiganya di worktree sementara (basis `9050f1d`, tidak dipush): tanpa konflik, `typecheck` nol error, **795 lulus / 17 dilewati / 0 gagal**, lint = baseline. Menunggu persetujuan merge. Pelajaran: RustFS milik user di port 54330 membuat 3 test storage gagal bila `LOCAL_S3_PORT` tidak diisi (kode menolak memakai RustFS yang bukan miliknya, jadi data user tidak tersentuh); semua verifikasi dan spesifikasi berikutnya memakai `LOCAL_S3_PORT` terpisah.
 - **15 Okt 2026** — Gelombang 3 digabung ke `feature/project-management` atas persetujuan user. S0.0 kini 8 dari 9 tugas selesai; tersisa S0.0-05 (perbaikan keamanan pustaka) lalu gerbang SP-0.0. Catatan: `node_modules` di working tree utama user tidak sinkron dengan `package.json` (Mantine 9.6.3); user perlu menjalankan `bun install` sebelum `bun dev` berikutnya.
+- **15 Okt 2026** — S0.0-05 (gelombang 4) selesai dikerjakan dan berstatus `review`; menunggu persetujuan merge, lalu gerbang SP-0.0. Atas permintaan user, **7 worktree gelombang 2 dan 3 ditutup** (`orca worktree rm`, semuanya bersih, ter-merge, dan sudah di origin); cabang `chore/pm-s00-*` yang ter-merge ikut terhapus oleh Orca (commit tetap di riwayat). Worktree `pm-s00-audit-fix` dipertahankan karena belum ter-merge. Penghapusan berjalan di latar belakang: laporan "OK" dari Orca datang lebih dulu daripada folder yang benar-benar hilang.
