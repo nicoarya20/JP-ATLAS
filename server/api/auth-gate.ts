@@ -12,8 +12,6 @@ const ADMIN_ALLOWLIST: ReadonlySet<string> = new Set([
   '/admin/stop-impersonating',
 ]);
 const SIGN_IN_EMAIL = '/sign-in/email';
-/** Anonymous sign-in is server-only (POST /api/demo/start enforces the demo switch + IP limit). */
-const ANONYMOUS_SIGN_IN = '/sign-in/anonymous';
 const DELETE_USER = '/delete-user';
 const SAFE_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -54,7 +52,6 @@ export function evaluateAuthPath(
   // Allowlist, not a deny list: endpoints a future Better Auth release adds stay closed.
   if (path === ADMIN_ROOT || path.startsWith(`${ADMIN_ROOT}/`))
     return ADMIN_ALLOWLIST.has(path) ? 'pass' : 'not-found';
-  if (path.startsWith(ANONYMOUS_SIGN_IN)) return 'not-found';
   if (!emailPasswordEnabled(opts.isProd) && (isEmailSignUpPath(path) || path === SIGN_IN_EMAIL))
     return 'not-found';
   if (!SAFE_METHODS.has(method.toUpperCase()) && isDeleteUserPath(path))

@@ -67,15 +67,14 @@ async function collect(): Promise<SidebarBadges> {
     settings,
     changelog,
   ] = await Promise.all([
-    safe({ total: 0, banned: 0, demo: 0 }, async () => {
+    safe({ total: 0, banned: 0 }, async () => {
       const [r] = await db
         .select({
           total: sql<number>`count(*) filter (where ${realUser})::int`,
           banned: sql<number>`count(*) filter (where ${realUser} and ${user.banned} = true)::int`,
-          demo: sql<number>`count(*) filter (where ${user.isAnonymous} = true)::int`,
         })
         .from(user);
-      return r ?? { total: 0, banned: 0, demo: 0 };
+      return r ?? { total: 0, banned: 0 };
     }),
     safe({ active: 0, impersonated: 0 }, async () => {
       const [r] = await db
@@ -155,12 +154,8 @@ async function collect(): Promise<SidebarBadges> {
         ? alert(errors, 'red', `${nf.format(errors)} error dalam 1 jam terakhir`)
         : alert(warnings, 'yellow', `${nf.format(warnings)} warning dalam 1 jam terakhir`),
     '/dev/settings': settingsIssues.length
-      ? alert(
-          settingsIssues.length,
-          'orange',
-          `Perlu perhatian: ${settingsIssues.join(', ')} · ${nf.format(users.demo)} user demo aktif`,
-        )
-      : info(users.demo, `${nf.format(users.demo)} user demo aktif`),
+      ? alert(settingsIssues.length, 'orange', `Perlu perhatian: ${settingsIssues.join(', ')}`)
+      : info(0, 'Tidak ada pengaturan yang perlu perhatian'),
     '/dev/tools': alert(
       env.MCP_ADMIN_TOKEN ? 1 : 0,
       'orange',

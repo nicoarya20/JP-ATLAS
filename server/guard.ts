@@ -8,7 +8,6 @@ import { db } from './db';
 import { user as userTable } from './db/schema';
 import { homeFor, ROLES, type Role } from './permissions';
 import { resolveUserRole } from './roles';
-import { isDemoExpired } from './settings-demo';
 
 /**
  * Layout guard for strict per-role areas. Enforces an authenticated session and
@@ -69,12 +68,11 @@ export function signedOutTarget(request: Request): string {
   return hadSessionCookie(request) ? '/login?notice=session' : '/login';
 }
 
-/** `isDemo`: anonymous demo visitor (server/demo); `impersonatedBy`: id of the admin driving the session. */
+/** `impersonatedBy`: id of the admin driving the session. */
 export type Actor = {
   user: SessionUser;
   role: Role;
   viaApiKey: boolean;
-  isDemo: boolean;
   impersonatedBy: string | null;
 };
 
@@ -115,7 +113,6 @@ export async function resolveActor(request: Request): Promise<Actor | null> {
       user,
       role: key.role,
       viaApiKey: true,
-      isDemo: Boolean(row.isAnonymous),
       impersonatedBy: null,
     };
   }
@@ -128,13 +125,10 @@ export async function resolveActor(request: Request): Promise<Actor | null> {
     heldRequests.set(request, { user: session.user, kind });
     return null;
   }
-  // The hourly purge lags; an expired demo session must stop working at the TTL.
-  if (session.user.isAnonymous && (await isDemoExpired(session.user.createdAt))) return null;
   return {
     user: session.user,
     role: await resolveUserRole(session.user),
     viaApiKey: false,
-    isDemo: Boolean(session.user.isAnonymous),
     impersonatedBy: session.session?.impersonatedBy ?? null,
   };
 }

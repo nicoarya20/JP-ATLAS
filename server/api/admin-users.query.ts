@@ -28,7 +28,7 @@ const MAX_DAYS = 365;
 /** Pre-rename role value; rows keep it until the S0A-02 backfill, so the member filter still matches them. */
 const LEGACY_USER_ROLE = 'user';
 
-/** Excludes temporary demo (anonymous) users; the column is nullable for older rows. */
+/** Excludes leftover anonymous users (retired sandbox, swept at boot); the column is nullable for older rows. */
 export const realUser = sql`${user.isAnonymous} is not true`;
 
 // Correlated subqueries must qualify columns explicitly: drizzle renders bare

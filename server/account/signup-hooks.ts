@@ -14,17 +14,8 @@ import { decideNewUser, type NewUserData, type NewUserDeps, normalizeEmail } fro
 /** The slice of Better Auth's endpoint context the hooks read; `null` outside an HTTP endpoint (seeds, scripts). */
 export type SignupHookContext = { path?: string; request?: Request; headers?: Headers } | null;
 
-export type NewUserRecord = {
-  email: string;
-  emailVerified?: boolean | null;
-  isAnonymous?: boolean | null;
-};
-export type CreatedUserRecord = {
-  id: string;
-  email: string;
-  role?: string | null;
-  isAnonymous?: boolean | null;
-};
+export type NewUserRecord = { email: string; emailVerified?: boolean | null };
+export type CreatedUserRecord = { id: string; email: string; role?: string | null };
 
 export type BeforeCreateResult = false | { data: NewUserData } | undefined;
 
@@ -65,8 +56,6 @@ export async function beforeCreateUser(
   ctx: SignupHookContext,
   load: () => Promise<NewUserDeps> = loadDeps,
 ): Promise<BeforeCreateResult> {
-  // Demo visitors stay on the schema default (`pending`); their email is synthetic and S0A-13 removes them.
-  if (user.isAnonymous) return undefined;
   try {
     const decision = await decideNewUser(
       {
@@ -109,7 +98,6 @@ export async function afterCreateUser(
   created: CreatedUserRecord,
   ctx: SignupHookContext,
 ): Promise<void> {
-  if (created.isAnonymous) return;
   await softStep(created.id, 'profile', () =>
     db
       .insert(profile)
