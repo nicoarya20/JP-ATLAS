@@ -41,7 +41,7 @@
     "@mantine/modals": "9.6.3",
     "@mantine/notifications": "9.6.3",
     "@mantine/nprogress": "9.6.3",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@react-router/dev": "^8.3.1",
     "@react-router/node": "^8.3.1",
     "@sinclair/typebox": "^0.34.52",
@@ -75,6 +75,6 @@
     "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "typescript": "^7.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.3.4"
   }
 }
