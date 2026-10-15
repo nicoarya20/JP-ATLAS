@@ -1,0 +1,37 @@
+/*
+ * Focus ring and input border overrides for the accessible theme (R11 §3.2.3-3.2.4).
+ * Must be imported AFTER '@mantine/core/styles.css': several rules below tie Mantine's selector
+ * specificity and rely on source order. Wired by S0B-25 together with buildTheme (app/root.tsx).
+ */
+
+:root {
+  --mk-focus-ring: var(--mantine-color-blue-8); /* 5.02:1 on white */
+}
+
+/* Blue-8 is only 3.09:1 on the dark body; blue-4 is 6.27:1. */
+:root[data-mantine-color-scheme="dark"] {
+  --mk-focus-ring: var(--mantine-color-blue-4);
+}
+
+/* 3 px ring, 2 px offset, keyboard focus only; never `outline: none`. Scales with the text size. */
+.mantine-focus-auto:focus-visible,
+.mantine-Input-input:focus-visible {
+  outline: calc(0.1875rem * var(--mantine-scale)) solid var(--mk-focus-ring);
+  outline-offset: calc(0.125rem * var(--mantine-scale));
+}
+
+/* Low specificity (:where) so Mantine's `.mantine-focus-never` still wins on purpose. */
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: calc(0.1875rem * var(--mantine-scale)) solid var(--mk-focus-ring);
+  outline-offset: calc(0.125rem * var(--mantine-scale));
+}
+
+/*
+ * Input border: Mantine sets `--input-bd: gray-4` on the wrapper (Input.css), bypassing
+ * `--mantine-color-default-border`, so the resolver alone cannot fix it. Same specificity as
+ * Mantine's rule and later in source order; its `[data-error]` rule (one :not() more) still wins,
+ * and the focus rule sets the variable on the input element itself, so both states are preserved.
+ */
+[data-mantine-color-scheme="light"] .mantine-Input-wrapper[data-variant="default"] {
+  --input-bd: var(--mantine-color-default-border);
+}
