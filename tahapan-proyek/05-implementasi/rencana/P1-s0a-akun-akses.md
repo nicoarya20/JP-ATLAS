@@ -294,7 +294,7 @@ Aturan semua tugas S0.a: satu cabang `feature/pm-foundation-roles` (R14 §3.8) d
 
 #### S0A-11 · Halaman tahan `/waiting` · L-A · M (1,2) · dep S0A-07
 - **Target**: `app/routes/waiting.tsx` (baru ≤150), `app/components/account/HoldShell.tsx` (baru ≤120), `app/routes/banned.tsx` (pakai `HoldShell`; loader: approved ⇒ `/go`, pending/rejected ⇒ `/waiting`), `app/routes.ts` (+`route('waiting', 'routes/waiting.tsx')`; berkas milik L-C, K-5), `server/seo.ts` (+`/waiting` noindex), `scripts/smoke-server.checks.ts` (+`waiting-anon-redirect`), `tests/account/hold-redirects.test.ts`, `tests/seo.test.ts`.
-- **Change**: §2.3. Copy polos: *menunggu* ("Akun Anda menunggu persetujuan" + penjelasan + "Cek lagi" ber-`loading` + "Keluar" dengan `modals.openConfirmModal`), *ditolak* (alasan Admin, tautan dukungan). `meta()` `'Menunggu persetujuan — Simple PM'`; mobile 375px.
+- **Change**: §2.3. **Keputusan user 15 Okt (KEPUTUSAN §6): halaman ini TIDAK memuat form profil** (layar ③ wireframe dipangkas; profil diisi setelah disetujui, S1). Copy polos: *menunggu* ("Akun Anda menunggu persetujuan" + penjelasan + "Cek lagi" ber-`loading` + "Keluar" dengan `modals.openConfirmModal`), *ditolak* (alasan Admin, tautan dukungan). `meta()` `'Menunggu persetujuan — Simple PM'`; mobile 375px.
 - **Acceptance**: matriks anti-loop §2.3 (6 keadaan × 6 halaman, maks 3 lompatan, tanpa siklus); `tests/app-contracts.test.ts` hijau; `smoke:prod`, `smoke:binary`.
 - **Commit**: `feat(account): add waiting page for pending and rejected accounts`.
 
