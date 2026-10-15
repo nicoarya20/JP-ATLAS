@@ -1,0 +1,41 @@
+/* Tasks module (tk-). Page frame with a pinned foot, list/board layout, detail facts and sections. */
+.content.tk-page { display: flex; flex-direction: column; }
+.content.tk-page > * { flex: none; }
+.tk-foot { position: sticky; bottom: calc(var(--sp-4) * -1); z-index: 2; margin: auto calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);
+  display: flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-5); background: var(--bg); border-top: 1px solid var(--separator); }
+.tk-foot > * { flex: 1; }
+.tk-foot > :last-child:not(:first-child) { flex: 1.7; }
+.tk-comment { font: inherit; font-size: var(--fs-subhead); padding: var(--sp-3); border: 0; border-radius: var(--radius-sm);
+  background: var(--fill); color: var(--label); min-width: 0; }
+
+.tk-soft.card.react-cupertino-ui-card { background: var(--fill); }
+.tk-strong.card.react-cupertino-ui-card { box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+/* Lists */
+.tk-group { margin: var(--sp-3) 0 0; }
+.tk-end { align-items: flex-end; }
+.tk-top { align-items: flex-start; }
+.tk-seg { width: 120px; flex: none; }
+.tk-tick { display: inline-flex; }
+.tk-board { display: flex; gap: var(--sp-3); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
+.tk-board::-webkit-scrollbar { display: none; }
+.tk-col { flex: 0 0 280px; scroll-snap-align: start; display: grid; gap: var(--sp-3); align-content: start;
+  padding: var(--sp-3); border-radius: var(--radius-card); background: var(--fill); }
+
+/* Forms */
+.tk-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.tk-divider { border: 0; border-top: 1px solid var(--separator); margin: var(--sp-2) 0; }
+.tk-tagbox { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm); background: var(--fill); }
+.tk-tagbox input { flex: 1; min-width: 80px; font: inherit; font-size: var(--fs-subhead); border: 0; background: none; color: var(--label); outline: none; }
+
+/* Detail */
+.tk-kv { display: grid; grid-template-columns: 130px 1fr; gap: var(--sp-2) var(--sp-3); margin: 0; font-size: var(--fs-subhead); }
+.tk-kv dt { color: var(--label-2); }
+.tk-kv dd { margin: 0; font-weight: 600; }
+.tk-kv dd .muted { font-weight: 400; }
+.tk-sec { display: grid; gap: var(--sp-3); padding-top: var(--sp-2); }
+.tk-log { display: flex; align-items: center; gap: var(--sp-3); }
+.tk-ev { display: grid; gap: var(--sp-1); }
+.tk-links { display: inline-flex; gap: var(--sp-4); }
