@@ -7,6 +7,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 ## [Unreleased]
 
 ### Added
+- Halaman **/waiting** untuk akun yang baru mendaftar: tertulis "Akun Anda menunggu persetujuan" dengan tombol **Cek lagi** (otomatis masuk bila sudah disetujui) dan **Keluar** (dengan konfirmasi). Akun yang ditolak melihat alasan dari Admin dan tautan dukungan. Halaman **/banned** memakai tampilan yang sama, kini dengan konfirmasi sebelum keluar, dan mengarahkan akun yang tidak lagi diblokir ke tempat yang benar.
 - Penyimpanan file S3-compatible untuk file, gambar, dan dokumen. Kosongkan `S3_ENDPOINT` dan app menjalankan RustFS sendiri (data di `./data/s3`, hanya `127.0.0.1`, kredensial acak dibuat otomatis), tanpa server storage terpisah. Isi `S3_ENDPOINT`/`S3_BUCKET`/`S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY` untuk memakai AWS S3, Cloudflare R2, atau MinIO.
 - Foto profil kini bisa diunggah langsung dari halaman Profil (PNG, JPEG, WEBP, atau GIF, maks 2 MB) dan dihapus kembali, menggantikan isian URL foto. Foto yang tersimpan ikut dihapus saat diganti atau saat akunnya dihapus.
 - Server Logs kini punya pagination (50 entri per halaman) dengan total entri yang cocok dengan filter. Halaman 2 dan seterusnya tidak bergeser saat log baru masuk, dan tombol "N log baru" membawa kembali ke halaman pertama yang live.

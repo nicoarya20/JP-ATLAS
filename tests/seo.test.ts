@@ -9,7 +9,17 @@ const SITE = 'https://simple-pm.example/'; // test-only
 describe('robots.txt', () => {
   it('keeps crawlers out of auth flows, role areas and the API, and points to the sitemap', () => {
     const txt = robotsTxt(SITE);
-    for (const p of ['/api/', '/login', '/go', '/banned', '/app', '/profile', '/dashboard', '/dev'])
+    for (const p of [
+      '/api/',
+      '/login',
+      '/go',
+      '/banned',
+      '/waiting',
+      '/app',
+      '/profile',
+      '/dashboard',
+      '/dev',
+    ])
       expect(txt).toContain(`Disallow: ${p}\n`);
     expect(txt).toContain('Allow: /\n');
     expect(txt).toContain('Sitemap: https://simple-pm.example/sitemap.xml');

@@ -12,6 +12,7 @@ const PRIVATE_PREFIXES = [
   '/login',
   '/go',
   '/banned',
+  '/waiting',
   '/app',
   '/profile',
   '/dashboard',
