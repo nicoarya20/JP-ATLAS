@@ -24,6 +24,23 @@ describe('smoke checks', () => {
     ])
       expect(SMOKE_CHECKS.some((c) => c.path === p)).toBe(true);
   });
+  test('auth gate checks pin the closed Better Auth endpoints to a uniform 404', () => {
+    const byName = (n: string) => SMOKE_CHECKS.find((c) => c.name === n);
+    expect(byName('auth-signup-closed')).toMatchObject({
+      path: '/api/auth/sign-up/email',
+      method: 'POST',
+      status: 404,
+    });
+    expect(byName('auth-admin-closed')).toMatchObject({
+      path: '/api/auth/admin/ban-user',
+      method: 'POST',
+      status: 404,
+    });
+    expect(byName('auth-admin-list-closed')).toMatchObject({
+      path: '/api/auth/admin/list-users',
+      status: 404,
+    });
+  });
   test('evaluate reports every mismatch and passes exact matches', () => {
     const check = SMOKE_CHECKS.find((c) => c.name === 'API 404 JSON');
     if (!check) throw new Error('check missing');

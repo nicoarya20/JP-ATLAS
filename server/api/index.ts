@@ -1,5 +1,5 @@
 import { Elysia } from 'elysia';
-import { apiErrorPlugin, notFoundResponse } from '../api-error';
+import { apiErrorPlugin } from '../api-error';
 import { apiKeyPlugin } from '../api-keys/plugin';
 import { startUsageRollupScheduler } from '../api-keys/rollup';
 import { auth } from '../auth';
@@ -16,6 +16,7 @@ import { apiKeysApi } from './api-keys';
 import { apiKeysUsageApi } from './api-keys-usage';
 import { appApi } from './app';
 import { auditApi } from './audit';
+import { authMount } from './auth-gate';
 import { demoApi } from './demo';
 import { fileHealthApi } from './file-health';
 import { logsApi } from './logs';
@@ -47,21 +48,6 @@ if (process.env.NODE_ENV !== 'test') {
   startDemoCleanupScheduler();
 }
 
-const AUTH_BASE = '/api/auth';
-/** Anonymous sign-in is server-only (POST /api/demo/start enforces the demo switch + IP limit). */
-const BLOCKED_AUTH_PATHS = [`${AUTH_BASE}/sign-in/anonymous`];
-
-function isAuthPath(pathname: string): boolean {
-  if (!pathname.startsWith(AUTH_BASE)) return false;
-  let p = pathname.toLowerCase();
-  try {
-    p = decodeURIComponent(p).replace(/\/{2,}/g, '/');
-  } catch {
-    return false;
-  }
-  return !BLOCKED_AUTH_PATHS.some((b) => p.startsWith(b));
-}
-
 /**
  * Main Elysia API. Everything here is served under `/api` (see mount in
  * server/app.ts). Better Auth owns `/api/auth/*`.
@@ -79,12 +65,10 @@ export const api = new Elysia({ prefix: '/api' })
   .use(apiKeyPlugin())
   // Demo visitors: 403 on sensitive actions, before auth so Better Auth routes are covered too.
   .use(demoRestrictPlugin())
-  // Better Auth handler for /api/auth/*. A mount is a catch-all fallback for
-  // every unmatched /api path, so anything else gets the uniform JSON 404 here
-  // instead of Better Auth's empty one.
-  .mount((request) =>
-    isAuthPath(new URL(request.url).pathname) ? auth.handler(request) : notFoundResponse(request),
-  )
+  // Better Auth handler for /api/auth/*, behind the path gate (auth-gate.ts: admin + email
+  // endpoints closed). A mount is a catch-all fallback for every unmatched /api path, so
+  // anything else gets the uniform JSON 404 there instead of Better Auth's empty one.
+  .mount(authMount)
   // Admin console endpoints (self-guarded by role).
   .use(adminApi)
   // MCP debug server at /api/mcp — API key with `mcp` scope, or legacy MCP_ADMIN_TOKEN.
