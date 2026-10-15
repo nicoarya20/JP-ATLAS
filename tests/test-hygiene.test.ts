@@ -14,7 +14,6 @@ const MAX_SLEEP_MS = 100;
  * When a file is converted, remove it here — stale entries fail on purpose.
  */
 const MOCK_MODULE_ALLOWLIST: readonly string[] = [
-  'tests/api/admin.test.ts',
   'tests/api/analytics-logins.test.ts',
   'tests/api/analytics-ratelimits.test.ts',
   'tests/api/analytics-visits.test.ts',

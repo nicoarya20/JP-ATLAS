@@ -147,7 +147,7 @@ describe('authenticating with X-API-Key', () => {
     const forbidden = await app.handle(new Request('http://localhost/api/api-keys', hdr(superKey)));
     expect(forbidden.status).toBe(403);
     const anon = await app.handle(new Request('http://localhost/api/admin/users/stats'));
-    expect(anon.status).toBe(403);
+    expect(anon.status).toBe(401); // admin gate answers anonymous callers 401 since S0A-09 (was 403)
   });
   test('invalid, disabled and IP-restricted keys are rejected', async () => {
     expect(
