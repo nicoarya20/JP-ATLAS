@@ -198,9 +198,21 @@ describe('redirectToHome', () => {
     }
   });
 
-  test('authenticated request redirects to role home (not /login)', async () => {
-    // Use the session cookie captured in beforeAll
+  test('a freshly signed-up (pending) account is held at /waiting, not sent to a role home', async () => {
     expect(sessionCookie).toBeTruthy();
+    const req = new Request('http://localhost/go', { headers: { cookie: sessionCookie } });
+    try {
+      await redirectToHome(req);
+      expect(true).toBe(false); // must have thrown
+    } catch (e) {
+      expect((e as Response).headers.get('location')).toBe('/waiting');
+    }
+  });
+
+  test('authenticated request redirects to role home (not /login)', async () => {
+    // Use the session cookie captured in beforeAll; sign-up leaves the account pending, so approve it first.
+    expect(sessionCookie).toBeTruthy();
+    await db.update(user).set({ approvalStatus: 'approved' }).where(eq(user.email, TEST_EMAIL));
     const req = new Request('http://localhost/go', {
       headers: { cookie: sessionCookie },
     });

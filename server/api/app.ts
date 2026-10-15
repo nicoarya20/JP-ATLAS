@@ -4,14 +4,18 @@
  * Per-feature role limits: check `actor.role` in the handler and return 403.
  */
 import { Elysia, t } from 'elysia';
-import { resolveActor } from '../guard';
+import { accountGateResponse } from '../account/gate';
+import { getHeldAccount, resolveActor } from '../guard';
 import { removeAvatar, uploadAvatar } from './app-avatar';
 
 export const appApi = new Elysia({ prefix: '/app' })
   .derive(async ({ request }) => ({ actor: await resolveActor(request) }))
-  .onBeforeHandle(({ actor, status }) => {
-    if (!actor)
-      return status(401, { error: 'Silakan masuk terlebih dahulu.', code: 'UNAUTHORIZED' });
+  .onBeforeHandle(({ actor, request, status }) => {
+    if (actor) return;
+    const held = getHeldAccount(request);
+    const gate = held && accountGateResponse(held);
+    if (gate) return status(403, gate); // pending/rejected: signed in but not approved
+    return status(401, { error: 'Silakan masuk terlebih dahulu.', code: 'UNAUTHORIZED' });
   })
   /** Example endpoint: who is calling. Replace or extend with real features. */
   .get('/whoami', ({ actor }) => {
