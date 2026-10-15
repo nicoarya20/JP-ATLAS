@@ -5,6 +5,12 @@
 #
 #   docker compose --profile local-db up -d
 #
+# The runtime image (Dockerfile) runs `migrate` (when DATABASE_URL is set) and then `start`, so an
+# external database is migrated on every container boot. With several app replicas, run it once as a job instead:
+#   docker run --rm --env-file .env <image> bun run server/binary-entry.ts migrate
+# and start the replicas with `bun run server/binary-entry.ts start`.
+# Check pending migrations without applying them: append `migrate --status`.
+#
 # If you use the shared instance instead, just point DATABASE_URL at it and
 # create the database once:
 #   docker exec <your-postgres> psql -U <user> -d postgres -c "CREATE DATABASE simple_pm;"

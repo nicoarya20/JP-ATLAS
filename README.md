@@ -134,6 +134,7 @@ Build sendiri: `bun run build:binary` → `./simple-pm` (platform saat ini), `bu
 | `start` (default) | Jalankan server. Mode Postgres lokal: start PG + migrasi otomatis dulu; gagal dengan petunjuk `init` bila runtime belum diunduh |
 | `version [--json]` | Nama, versi, platform |
 | `init [--yes] [--db=local\|external] [--database-url=…] [--pg-archive=file.tgz] [--systemd] [--force]` | Siapkan `.env`, runtime PG (atau `--pg-archive` untuk offline), database, dan opsional unit systemd |
+| `migrate [--status]` | Terapkan migrasi ke Postgres **eksternal** (`DATABASE_URL`); `--status` hanya mencetak migrasi pending. `start` tidak memigrasi DB eksternal (menghindari balapan antar-instance), jadi jalankan ini dulu saat deploy. Exit 0 sukses · 1 gagal · 2 argumen salah |
 | `doctor [--json]` | Cek lingkungan, `.env`, koneksi DB, runtime PG, migrasi pending, disk, port, umur backup; exit 1 bila ada ❌ |
 | `backup [--out=dir] [--keep=7]` | Backup cold folder data PG lokal (hentikan server dulu), simpan N terakhir |
 | `upgrade [--version=vX.Y.Z] [--check]` | Self-update dari GitHub Release dengan verifikasi sha256 |
@@ -200,7 +201,7 @@ docker run --rm --user "$(id -u)" -v "$PGSOCK:$PGSOCK" postgres:18 \
 psql "$DATABASE_URL" < dump.sql
 ```
 
-**Docker:** image runtime berjalan sebagai `USER bun` dengan `VOLUME /app/data`; default tetap memakai `DATABASE_URL` eksternal.
+**Docker:** image runtime berjalan sebagai `USER bun` dengan `VOLUME /app/data`; default tetap memakai `DATABASE_URL` eksternal, dan `CMD`-nya menjalankan `migrate` (bila `DATABASE_URL` terisi) lalu `start`. Dengan beberapa replika, jalankan `migrate` sekali sebagai job terpisah lalu jalankan replika dengan `start`.
 
 ## Penyimpanan file (S3)
 

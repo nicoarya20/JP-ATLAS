@@ -129,8 +129,12 @@ function envChecks(ctx: DoctorContext): Check[] {
   return checks;
 }
 
-async function migrationCheck(sql: postgres.Sql): Promise<Check> {
+async function migrationCheck(sql: postgres.Sql, local: boolean): Promise<Check> {
   const total = journal.entries.length;
+  // Only local mode migrates on `start`; an external database waits for an explicit `migrate` (avoids multi-instance races).
+  const hint = local
+    ? 'migrasi dijalankan otomatis saat start'
+    : `jalankan \`${PKG_NAME} migrate\` (Postgres eksternal tidak dimigrasi otomatis saat start)`;
   try {
     const [row] = await sql<
       { n: number }[]
@@ -142,6 +146,7 @@ async function migrationCheck(sql: postgres.Sql): Promise<Check> {
           name: 'Migrasi',
           status: 'warn',
           detail: `${pending}/${total} pending`,
+          hint,
         }
       : { group: 'Database', name: 'Migrasi', status: 'ok', detail: `${total} diterapkan` };
   } catch (err) {
@@ -150,7 +155,7 @@ async function migrationCheck(sql: postgres.Sql): Promise<Check> {
       name: 'Migrasi',
       status: 'warn',
       detail: `${total}/${total} pending (${errMsg(err)})`,
-      hint: 'migrasi dijalankan otomatis saat start',
+      hint,
     };
   }
 }
@@ -161,7 +166,7 @@ async function connectivityChecks(url: string, local: boolean): Promise<Check[]>
     await sql`select 1`;
     return [
       { group: 'Database', name: 'Koneksi', status: 'ok', detail: 'terhubung' },
-      await migrationCheck(sql),
+      await migrationCheck(sql, local),
     ];
   } catch (err) {
     return [
