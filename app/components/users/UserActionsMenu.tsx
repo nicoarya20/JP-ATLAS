@@ -1,39 +1,18 @@
 import { ActionIcon, Menu } from '@mantine/core';
 import {
-  canActOnTarget,
-  canImpersonate,
-  canSetRole,
-  normalizeRole,
-  ROLES,
-} from '@server/permissions';
-import {
+  FiCheck,
   FiEye,
   FiLogIn,
   FiMoreVertical,
   FiShield,
   FiSlash,
   FiTrash2,
-  FiUser,
   FiUserCheck,
+  FiX,
 } from 'react-icons/fi';
-import { type AdminUser, isBanActive } from '~/lib/admin-users-api';
+import { type AdminUser, isBanActive, ROLE_LABEL } from '~/lib/admin-users-api';
+import { hasAnyAction, type UserPermissions, userAccess } from './user-access';
 import type { useUserActions } from './useUserActions';
-
-export type UserPermissions = { actorRole: string; currentUserId: string };
-
-/** Which actions the current actor may take on a target (mirrors the server role matrix). */
-export function allowedActions(user: AdminUser, p: UserPermissions) {
-  const target = normalizeRole(user.role);
-  const isSelf = user.id === p.currentUserId;
-  const protectedTarget = isSelf || target === ROLES.SUPER_ADMIN;
-  return {
-    role: canSetRole(p.actorRole) && !protectedTarget,
-    ban: !protectedTarget && canActOnTarget(p.actorRole, target),
-    impersonate: canImpersonate(p.actorRole) && !protectedTarget,
-    remove: canSetRole(p.actorRole) && !protectedTarget,
-    isSelf,
-  };
-}
 
 type Props = {
   user: AdminUser;
@@ -42,14 +21,14 @@ type Props = {
   onOpen: (u: AdminUser) => void;
 };
 
-/** Kebab menu with every permitted action for one user. */
+/** Kebab menu with every permitted action for one user; a blocked account shows why instead. */
 export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
-  const can = allowedActions(user, perms);
+  const can = userAccess(user, perms);
   const banned = isBanActive(user);
   const busy = actions.busyId === user.id;
-  const target = normalizeRole(user.role);
+  const anyAction = hasAnyAction(can);
   return (
-    <Menu position="bottom-end" withArrow shadow="md" width={230}>
+    <Menu position="bottom-end" withArrow shadow="md" width={240}>
       {/* No Tooltip here: Menu.Target and Tooltip both clone the child, and the
           child's own onClick would override the menu toggle (button did nothing). */}
       <Menu.Target>
@@ -67,32 +46,44 @@ export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
         <Menu.Item leftSection={<FiEye size={14} />} onClick={() => onOpen(user)}>
           Lihat detail
         </Menu.Item>
-        {can.role && (
+        {(can.approve || can.reject) && <Menu.Divider />}
+        {can.approve && (
+          <Menu.Item
+            color="teal"
+            leftSection={<FiCheck size={14} />}
+            onClick={() => actions.approve(user, can.approveRoles)}
+          >
+            Setujui…
+          </Menu.Item>
+        )}
+        {can.reject && (
+          <Menu.Item
+            color="red"
+            leftSection={<FiX size={14} />}
+            onClick={() => actions.reject(user)}
+          >
+            Tolak…
+          </Menu.Item>
+        )}
+        {can.roles.length > 0 && (
           <>
             <Menu.Divider />
-            <Menu.Label>Role</Menu.Label>
-            {target !== ROLES.ADMIN && (
+            <Menu.Label>Ubah peran</Menu.Label>
+            {can.roles.map((r) => (
               <Menu.Item
+                key={r}
                 leftSection={<FiShield size={14} />}
-                onClick={() => actions.changeRole(user, ROLES.ADMIN)}
+                onClick={() => actions.changeRole(user, r)}
               >
-                Jadikan admin
+                Jadikan {ROLE_LABEL[r] ?? r}
               </Menu.Item>
-            )}
-            {target !== ROLES.MEMBER && (
-              <Menu.Item
-                leftSection={<FiUser size={14} />}
-                onClick={() => actions.changeRole(user, ROLES.MEMBER)}
-              >
-                Jadikan member
-              </Menu.Item>
-            )}
+            ))}
           </>
         )}
         {(can.ban || can.impersonate || can.remove) && <Menu.Divider />}
         {can.impersonate && (
           <Menu.Item leftSection={<FiLogIn size={14} />} onClick={() => actions.impersonate(user)}>
-            Masuk sebagai user ini
+            Masuk sebagai pengguna ini
           </Menu.Item>
         )}
         {can.ban &&
@@ -101,7 +92,7 @@ export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
               leftSection={<FiUserCheck size={14} />}
               onClick={() => actions.unbanConfirm(user)}
             >
-              Buka ban
+              Buka blokir
             </Menu.Item>
           ) : (
             <Menu.Item
@@ -109,7 +100,7 @@ export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
               leftSection={<FiSlash size={14} />}
               onClick={() => actions.banWithForm(user)}
             >
-              Ban user…
+              Blokir akun…
             </Menu.Item>
           ))}
         {can.remove && (
@@ -121,8 +112,9 @@ export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
             Hapus permanen…
           </Menu.Item>
         )}
-        {can.isSelf && (
-          <Menu.Label>Ini akun Anda sendiri; role dan status diatur dari env.</Menu.Label>
+        {/* Reason as plain text, never a tooltip: it must be readable on touch screens. */}
+        {!anyAction && can.blockedReason && (
+          <Menu.Label style={{ whiteSpace: 'normal' }}>{can.blockedReason}</Menu.Label>
         )}
       </Menu.Dropdown>
     </Menu>

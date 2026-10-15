@@ -15,7 +15,10 @@ export default [
     route('app', 'routes/app/home.tsx'),
     route('profile', 'routes/app/profile.tsx'),
   ]),
-  layout('routes/admin/layout.tsx', [route('dashboard', 'routes/admin/dashboard.tsx')]),
+  layout('routes/admin/layout.tsx', [
+    route('dashboard', 'routes/admin/dashboard.tsx'),
+    route('dashboard/users', 'routes/admin/users.tsx'),
+  ]),
   layout('routes/super/layout.tsx', [
     route('dev', 'routes/super/overview.tsx'),
     route('dev/users', 'routes/super/users.tsx'),

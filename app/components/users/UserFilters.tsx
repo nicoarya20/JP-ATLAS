@@ -11,18 +11,23 @@ import {
 import { ROLES } from '@server/permissions';
 import { FiSearch, FiX } from 'react-icons/fi';
 import {
+  type ApprovalFilter,
   DEFAULT_USER_FILTERS,
   type UserFilters as Filters,
   hasActiveUserFilters,
+  ROLE_LABEL,
   type UserSort,
 } from '~/lib/admin-users-api';
 
 const nf = new Intl.NumberFormat('id-ID');
-const ROLE_OPTIONS = [
-  { value: ROLES.MEMBER, label: 'member' },
-  { value: ROLES.PROJECT_MANAGER, label: 'project manager' },
-  { value: ROLES.ADMIN, label: 'admin' },
-  { value: ROLES.SUPER_ADMIN, label: 'super-admin' },
+const ROLE_OPTIONS = [ROLES.MEMBER, ROLES.PROJECT_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN].map(
+  (r) => ({ value: r, label: ROLE_LABEL[r] ?? r }),
+);
+const APPROVALS: Array<{ value: ApprovalFilter; label: string }> = [
+  { value: 'all', label: 'Semua persetujuan' },
+  { value: 'pending', label: 'Menunggu persetujuan' },
+  { value: 'approved', label: 'Sudah disetujui' },
+  { value: 'rejected', label: 'Ditolak' },
 ];
 const PERIODS = [
   { value: '7', label: 'Bergabung 7 hari' },
@@ -73,18 +78,27 @@ export function UserFilters({ filters, onChange, matchCount }: Props) {
           data={[
             { value: 'all', label: 'Semua' },
             { value: 'active', label: 'Aktif' },
-            { value: 'banned', label: 'Banned' },
+            { value: 'banned', label: 'Diblokir' },
           ]}
         />
         <Select
           size="sm"
           w={{ base: '100%', sm: 150 }}
-          placeholder="Semua role"
+          placeholder="Semua peran"
           value={filters.role}
           onChange={(v) => onChange({ role: v })}
           data={ROLE_OPTIONS}
           clearable
-          aria-label="Role"
+          aria-label="Peran"
+        />
+        <Select
+          size="sm"
+          w={{ base: '100%', sm: 200 }}
+          value={filters.approval}
+          onChange={(v) => onChange({ approval: (v as ApprovalFilter) ?? 'all' })}
+          data={APPROVALS}
+          allowDeselect={false}
+          aria-label="Status persetujuan"
         />
         <Select
           size="sm"
@@ -118,7 +132,7 @@ export function UserFilters({ filters, onChange, matchCount }: Props) {
       </Group>
       {matchCount !== undefined && (
         <Text size="xs" c="dimmed" mt="xs">
-          {nf.format(matchCount)} user {active ? 'cocok dengan filter' : 'terdaftar'}
+          {nf.format(matchCount)} pengguna {active ? 'cocok dengan filter' : 'terdaftar'}
         </Text>
       )}
     </Paper>
