@@ -1,5 +1,8 @@
 /** Typed client for /api/admin/users used by /dev/users. */
 
+/** Account approval state (S0A); `pending` accounts wait for an Admin decision. */
+export type UserApprovalStatus = 'pending' | 'approved' | 'rejected';
+
 export type AdminUser = {
   id: string;
   name: string;
@@ -10,6 +13,8 @@ export type AdminUser = {
   banned: boolean | null;
   banReason: string | null;
   banExpires: string | null;
+  approvalStatus: UserApprovalStatus;
+  approvalReason: string | null;
   createdAt: string;
   lastLoginAt: string | null;
   loginCount: number;
@@ -22,6 +27,7 @@ export type UserStats = {
   admins: number;
   superAdmins: number;
   banned: number;
+  pending: number;
   verified: number;
   new7d: number;
   active24h: number;
