@@ -18,7 +18,8 @@ const dbUrl = resolveDbUrl();
 
 // Process-wide pool: the SSR bundle (build/server/index.js) is a second copy of this module, and dev hot reloads re-evaluate it.
 const g = globalThis as typeof globalThis & { __simplePmDbClient?: ReturnType<typeof postgres> };
-g.__simplePmDbClient ??= pgClient(dbUrl, { max: 5 });
+// UTC session zone: timestamptz renders and `now()` casts consistently regardless of the host's TZ (D7).
+g.__simplePmDbClient ??= pgClient(dbUrl, { max: 5, connection: { TimeZone: 'UTC' } });
 const client = g.__simplePmDbClient;
 
 export const db = drizzle(client, { schema });
