@@ -23,8 +23,9 @@ Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerba
 |---|---|---|---|
 | SP-0.0 | S0.0-01..09 selesai; `bun run test` hijau di worktree bersih; `bun audit` nol high/critical; laporan ke user | S0.a, S0.b | **lolos** 15 Okt 2026 pada `78e0154`: 795 lulus/0 gagal di worktree bersih, `bun audit` = 1 moderate (0 kritis/tinggi), typecheck nol, skema tidak bergeser. Dilaporkan ke user |
 | SP1a | S0B-01 ter-merge (enum + `schema.columns`) | S0.a memakai `TEXT_SIZES`/`APPROVAL_STATUSES` | belum |
-| SP0a | S0.a merge pertama: `Role` 4 nilai + `assertAccountApproved` | S0B-12 ke atas | belum |
-| SP0 | S0.a merge migrasi 0014 (+ `ROLE_RANK`) | S0B-03 (0015), S0B-19/21/25 | belum |
+| SP0a-1 | S0A-01 ter-merge (`Role` 4 nilai, `isAdminRole`, `ROLE_RANK`) | S0B-12, S0B-29 | belum |
+| SP0a-2 | S0A-07 ter-merge (`assertAccountApproved` di `guard.ts`); dikoreksi dari P2 yang menaruhnya di merge pertama | S0B-18 | belum |
+| SP0 | S0A-02 ter-merge (migrasi 0014; `ROLE_RANK` datang dari S0A-01) | S0B-03 (0015), S0B-19/21/25 | belum |
 | SY-1 .. SY-4 | S0B-13 · S0B-20 (guard rekursif) · S0B-04 (introspect) · S0B-23 (ratchet 0) | lajur lain S0.b | belum |
 | **contract-v1 (SP1)** | S0B-33 lulus + **persetujuan user** | semua lajur S1 dan S2 | belum |
 | SP-S1a / SP-S1b | S1-02 merge · S1-03 dan S1-04 merge | UI proyek, form tugas | belum |
@@ -160,6 +161,43 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §5`.
 | S2-16 | Uji pengguna putaran 1 dan perbaikan | L10 + reviewer | S2-15, KB-4 terjawab | S (2 AI + 1,5 reviewer + sesi) | belum |  |  |  |
 | S2-17 | Integrasi dan gerbang demo S2 | Integrator | S2-07, S2-16 | S (0,5) | belum |  |  |  |
 
+## Jadwal peluncuran S0.a + S0.b (disetujui user 15 Okt 2026)
+
+Dihasilkan dari simulasi ketergantungan (P1 §3, P2 §3-4), rantai berkas bersama, satu baton migrasi, dan batas worker. **Ukuran dan sebagian aturan "tidak sewave" adalah turunan koordinator, bukan daftar resmi**; urutan nyata bergeser mengikuti persetujuan dan hasil verifikasi.
+
+**Aturan yang disetujui user:**
+1. **Risiko-dulu:** dua slot per gelombang untuk S0.a (jalur autentikasi), satu slot untuk S0.b, sampai S0.a selesai (G9).
+2. **Mulai 3 worker per batch; naik ke 4** setelah dua gelombang berturut-turut tanpa galat 429.
+3. **Titik cek setelah G4:** berhenti dan lapor ke user sebelum G5 (empat klaim Better Auth di P1 §7 #1-#4 sudah terbukti atau gagal pada saat itu).
+4. **`*` = tugas yang menyentuh `auth.ts`, `guard.ts`, `permissions.ts`, atau migrasi: disetujui user SATU PER SATU.** Sisanya satu persetujuan per gelombang.
+5. **Satu cabang per tugas** (penyimpangan dari P1/P2 yang membayangkan satu cabang per lajur): memungkinkan persetujuan satu-per-satu dan merge per gelombang. Basis gelombang berikutnya = HEAD setelah merge gelombang sebelumnya.
+6. Baton migrasi: S0A-02 (G1), lalu S0B-03 (G9), lalu S0B-06 (G12); tidak boleh ada dua migrasi dalam satu gelombang.
+7. UAT login Google (S0A-15, G9) dijalankan **user** dengan envman; peninjau kedua keamanan idealnya sudah ada saat itu (saat ini placeholder).
+
+| Gel. | Worker 1 | Worker 2 | Worker 3 | Status |
+|---|---|---|---|---|
+| **G1** | S0A-02* skema akun + migrasi 0014 (baton) | S0A-01* 4 role + super-admin wajib email terverifikasi | S0B-01 enum bersama, soft delete | diluncurkan 15 Okt |
+| **G2** | S0A-05* pengaturan Better Auth (status, kebijakan email) | S0A-03 aturan izin akun | S0B-11 infrastruktur `server/pm` | belum |
+| **G3** | S0A-07* guard menahan akun pending/ditolak | S0A-04 undangan + keputusan sign-up | S0B-12 fondasi `server/access` | belum |
+| **G4** | S0A-09 pecah admin API + matriks role | S0A-06* hook sign-up (pending, undangan, profil) | S0B-02 skema proyek | belum |
+| **G5** | S0A-10 endpoint setujui/tolak + undangan | S0A-11 halaman `/waiting` | S0B-04 patch introspeksi skema | belum |
+| **G6** | S0A-14 halaman `/dashboard/users` | S0A-08 gerbang `/api/auth/*` | S0B-15 izin pemeriksa | belum |
+| **G7** | S0A-12 layar login Google | S0B-24 tema dan token | S0B-20 tes rute rekursif | belum |
+| **G8** | S0A-13* cabut demo anonim | S0B-05 skema tugas | S0B-21 `tests/support` | belum |
+| **G9** | S0A-15 gerbang akhir S0.a + UAT | S0B-03* migrasi 0015 proyek (baton) | S0B-16 izin tugas dan alur kerja | belum |
+| **G10** | S0B-26 komponen dasar | S0B-08 metrics 1 | S0B-18 kerangka API `/api/app` | belum |
+| **G11** | S0B-22 konversi mock batch 1 | S0B-09 metrics 2 | S0B-27 komponen domain | belum |
+| **G12** | S0B-06* migrasi 0016 tugas (baton) | S0B-14 izin proyek dan anggota | S0B-29 stub rute + NAV | belum |
+| **G13** | S0B-13 izin pengguna + status akun | S0B-30 factory + data Atlas | S0B-28 komponen tabel/filter/modal | belum |
+| **G14** | S0B-23 konversi batch 2 + ratchet 0 | S0B-19 pemetaan scope API key | S0B-25 ukuran teks (root + cookie) | belum |
+| **G15** | S0B-10 query keanggotaan | S0B-17 kapabilitas `can{}` | S0B-07 tes kontrak skema | belum |
+| **G16** | S0B-32 README kontrak | S0B-31 koreksi `CLAUDE.md` |  | belum |
+| **G17** | S0B-33 gerbang `contract-v1` |  |  | belum |
+
+Dengan 4 worker: 13 gelombang (S0.a tetap selesai di G9). Perkiraan kasar: 17 gelombang ≈ 3,5 minggu, 13 gelombang ≈ 2,5-3 minggu, bila satu gelombang ≈ 1 hari kerja. P1/P2 mengira ±6 worker paralel; dengan batas kuota, durasinya kira-kira dua kali lipat.
+
+**Gerbang S0.b yang dikoreksi koordinator:** P2 menulis `G-A1` sebagai "merge pertama S0.a" memuat `assertAccountApproved`, tetapi di P1 fungsi itu dibuat S0A-07 (G3), dan hanya S0B-18 yang memakainya. Maka `G-A1` dipecah (lihat tabel gerbang). `S0B-33` diasumsikan menunggu `S0A-15` (P2 hanya menulis "semua").
+
 ## Log merge per gelombang
 
 Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, cabang, hasil `typecheck`/`test`/`smoke`, dan kata persetujuan user.
@@ -179,3 +217,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **15 Okt 2026** — Gelombang 3 digabung ke `feature/project-management` atas persetujuan user. S0.0 kini 8 dari 9 tugas selesai; tersisa S0.0-05 (perbaikan keamanan pustaka) lalu gerbang SP-0.0. Catatan: `node_modules` di working tree utama user tidak sinkron dengan `package.json` (Mantine 9.6.3); user perlu menjalankan `bun install` sebelum `bun dev` berikutnya.
 - **15 Okt 2026** — S0.0-05 (gelombang 4) selesai dikerjakan dan berstatus `review`; menunggu persetujuan merge, lalu gerbang SP-0.0. Atas permintaan user, **7 worktree gelombang 2 dan 3 ditutup** (`orca worktree rm`, semuanya bersih, ter-merge, dan sudah di origin); cabang `chore/pm-s00-*` yang ter-merge ikut terhapus oleh Orca (commit tetap di riwayat). Worktree `pm-s00-audit-fix` dipertahankan karena belum ter-merge. Penghapusan berjalan di latar belakang: laporan "OK" dari Orca datang lebih dulu daripada folder yang benar-benar hilang.
 - **15 Okt 2026** — S0.0-05 digabung atas persetujuan user; **S0.0 selesai (9 dari 9)** dan **gerbang SP-0.0 lolos**. Kini S0.a (akun dan akses) dan S0.b (kontrak beku) bisa dimulai. Catatan: `node_modules` di working tree utama user perlu `bun install` (MCP SDK, Vite, Mantine berubah).
+- **15 Okt 2026** — Jadwal peluncuran S0.a + S0.b disimpan di bagian "Jadwal peluncuran" atas persetujuan user (3 worker, risiko-dulu, titik cek setelah G4). Gerbang SP0a dipecah menjadi SP0a-1 dan SP0a-2.
