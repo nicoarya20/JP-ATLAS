@@ -15,7 +15,6 @@ import { hasLength, isEmail, isNotEmpty, useForm } from '@mantine/form';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate, useSearchParams } from 'react-router';
-import { DemoLoginOption } from '~/components/login/DemoStartButton';
 import { LoginNotice } from '~/components/login/LoginNotices';
 import { signIn, signUp } from '~/lib/auth-client';
 import { type AuthNotice, describeAuthError, loginNotice } from '~/lib/auth-errors';
@@ -30,17 +29,15 @@ type Props = {
   googleEnabled: boolean;
   emailAuthEnabled: boolean;
   signupEnabled: boolean;
-  demoTtlHours: number | null;
 };
 
-/** Left column of the login card: brand, Google (primary), email form outside production, demo, mode toggle. */
+/** Left column of the login card: brand, Google (primary), email form outside production, mode toggle. */
 export function LoginForm({
   appName,
   supportUrl,
   googleEnabled,
   emailAuthEnabled,
   signupEnabled,
-  demoTtlHours,
 }: Props) {
   const theme = useMantineTheme();
   const navigate = useNavigate();
@@ -182,8 +179,6 @@ export function LoginForm({
           </Stack>
         </form>
       )}
-
-      {demoTtlHours !== null && <DemoLoginOption ttlHours={demoTtlHours} />}
 
       {!googleEnabled && !emailAuthEnabled && (
         <Text c="dimmed" size="sm" ta="center">

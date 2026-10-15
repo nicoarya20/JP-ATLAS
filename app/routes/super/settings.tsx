@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import { AuthSettingsCard } from '~/components/settings/AuthSettingsCard';
 import { BrandingCard } from '~/components/settings/BrandingCard';
-import { DemoCard } from '~/components/settings/DemoCard';
 import { FeatureFlagsCard } from '~/components/settings/FeatureFlagsCard';
 import { MaintenanceCard } from '~/components/settings/MaintenanceCard';
 import { RateLimitSettingsCard } from '~/components/settings/RateLimitSettingsCard';
@@ -36,7 +35,6 @@ const TABS = [
   { value: 'rate-limit', label: 'Rate limit' },
   { value: 'retention', label: 'Retensi log' },
   { value: 'maintenance', label: 'Maintenance' },
-  { value: 'demo', label: 'Mode demo' },
   { value: 'features', label: 'Feature flags' },
   { value: 'branding', label: 'Branding' },
   { value: 'runtime', label: 'Runtime' },
@@ -105,12 +103,6 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
               allowRoles: data.maintenance.allowRoles,
             }}
             defaults={data.maintenance.defaults}
-          />
-        </Tabs.Panel>
-        <Tabs.Panel value="demo" pt="md">
-          <DemoCard
-            state={{ enabled: data.demo.enabled, ttlHours: data.demo.ttlHours }}
-            defaults={data.demo.defaults}
           />
         </Tabs.Panel>
         <Tabs.Panel value="features" pt="md">

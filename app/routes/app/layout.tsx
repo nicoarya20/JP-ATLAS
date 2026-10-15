@@ -1,14 +1,11 @@
 import { frameInfo } from '@server/app-info';
 import { requireUser } from '@server/guard';
-import { effectiveDemoTtlHours, getDemo } from '@server/settings-demo';
 import { getSidebarCollapsed } from '@server/sidebar';
 import { FiGrid, FiHome, FiLayers, FiUser } from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
-import { DemoBanner } from '~/components/frame/DemoBanner';
 import type { AppContext } from '~/lib/app-context';
-import { demoHoursLeft } from '~/lib/demo-api';
 import type { Route } from './+types/layout';
 
 export function meta(_: Route.MetaArgs) {
@@ -37,11 +34,7 @@ const BADGE_COLOR: Record<string, string> = {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const auth = await requireUser(request);
-  // Computed server-side so SSR and hydration agree on the hour shown.
-  const demoLeft = auth.isDemo
-    ? demoHoursLeft(auth.user.createdAt, effectiveDemoTtlHours(await getDemo()))
-    : null;
-  return { ...auth, demoLeft, collapsed: getSidebarCollapsed(request), ...(await frameInfo()) };
+  return { ...auth, collapsed: getSidebarCollapsed(request), ...(await frameInfo()) };
 }
 
 function Frame({
@@ -65,7 +58,6 @@ function Frame({
       version={data.version}
       initialCollapsed={data.collapsed}
     >
-      {data.demoLeft !== null && <DemoBanner hoursLeft={data.demoLeft} />}
       {children}
     </AppFrame>
   );
