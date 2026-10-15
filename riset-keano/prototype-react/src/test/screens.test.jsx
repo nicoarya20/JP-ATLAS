@@ -14,6 +14,11 @@ describe('screen registry', () => {
   it('only uses ids from the prototype id set', () => {
     expect(registered.filter(id => !EXPECTED_IDS.includes(id))).toEqual([]);
   });
+
+  it('registers every id of the prototype', () => {
+    expect(EXPECTED_IDS.filter(id => !registered.includes(id))).toEqual([]);
+    expect(registered).toHaveLength(EXPECTED_IDS.length);
+  });
 });
 
 describe.each(Object.keys(ROLES))('as %s', role => {
