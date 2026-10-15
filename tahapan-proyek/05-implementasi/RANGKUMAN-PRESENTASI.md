@@ -16,8 +16,8 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 | **Tugas yang siap dikerjakan** | **92** |
 | Peran pengguna | 4 |
 | Perkiraan usaha untuk versi pertama (MVP Inti) | ±128 hari kerja asisten AI, sekitar **8 minggu** kalender |
-| Tugas yang sudah dikerjakan | **8 dari 92** (5 sudah digabung ke jalur utama, 3 menunggu persetujuan digabung) |
-| Pengujian otomatis | dari 687 menjadi **795 lulus, 0 gagal** (pada hasil gabungan gelombang 3) |
+| Tugas yang sudah dikerjakan | **8 dari 92**, semuanya sudah digabung ke jalur utama |
+| Pengujian otomatis | dari 687 menjadi **795 lulus, 0 gagal** (setelah gelombang 3 digabung) |
 
 ## 3. Yang sudah kami kerjakan
 **Tahap 1 — Memahami dan merancang.** Rancangan lama dipelajari: tampilan layar di Penpot, catatan fitur, dan rancangan data. Empat belas bidang diriset **serentak oleh asisten AI**: keamanan, struktur data, tampilan layar, kemudahan untuk lansia, jadwal, pengujian, dan lainnya.
@@ -43,15 +43,18 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 - **Contoh data di rancangan keliru:** kemajuan proyek tertulis 70%, padahal hitungannya 17%. Dikoreksi sebelum dipakai.
 - **Estimasi naik** dari 71–101 menjadi sekitar 128 hari kerja setelah dirinci. Lebih jujur dan lebih bisa dipercaya.
 
-## 6. Pekerjaan teknis pertama (4 tugas fondasi)
+## 6. Pekerjaan teknis pertama (7 tugas fondasi)
 | Tugas | Manfaat bagi pengguna dan tim |
 |---|---|
 | **Mengunci satu versi alat pembangun** | Semua orang dan server memakai versi yang sama, jadi tidak ada lagi "di komputer saya jalan, di server tidak". |
 | **Memeriksa kekuatan kunci rahasia aplikasi** | Server menolak berjalan jika kunci rahasianya masih contoh atau terlalu pendek. Mencegah kelalaian yang berbahaya. |
 | **Pembuat perubahan database yang aman** | Setiap perubahan struktur database otomatis dibuat aman bila diulang dan dijaga aturan. Mencegah data rusak saat pembaruan. |
 | **Perintah khusus untuk memperbarui database** | Pembaruan database di server dilakukan secara sengaja dan terkendali, bukan otomatis bersamaan oleh banyak server. |
+| **Menyeragamkan versi tampilan dan menambah pemilih tanggal** | Semua komponen tampilan memakai versi yang sama sehingga tidak ada kejutan. Tanggal tenggat nanti bisa diketik atau dipilih dari kalender berbahasa Indonesia. |
+| **Menyiapkan tempat untuk tabel proyek dan tugas** | Data proyek dan tugas punya tempat yang sudah disiapkan, dan pemeriksa otomatis memastikan struktur database dan catatan perubahannya tidak pernah berbeda. |
+| **Penjaga mutu pengujian** | Mencegah kebiasaan pengujian yang rapuh bertambah, supaya puluhan pengujian baru nanti tidak saling mengganggu. |
 
-Hasilnya: keempat tugas dikerjakan di ruang kerja terpisah, dicoba digabung lebih dulu **tanpa bentrok**, lalu **digabung ke jalur utama setelah disetujui**. Pengujian diulang sesudah digabung dan tetap hijau (770 lulus, 0 gagal).
+Hasilnya: ketujuh tugas dikerjakan di ruang kerja terpisah (dua gelombang), dicoba digabung lebih dulu **tanpa bentrok**, lalu **digabung ke jalur utama setelah disetujui**. Pengujian diulang sesudah digabung dan tetap hijau (795 lulus, 0 gagal).
 
 ## 7. Cara kami bekerja
 - **Tim asisten AI bekerja paralel**, masing-masing di ruang kerja sendiri. **Manusia yang memutuskan dan menyetujui**, dan tidak ada yang digabung atau dikirim tanpa persetujuan.
@@ -60,7 +63,7 @@ Hasilnya: keempat tugas dikerjakan di ruang kerja terpisah, dicoba digabung lebi
 - **Kendala yang kami temui:** saat 14 asisten dijalankan bersamaan, jatah penggunaan AI habis dan 8 di antaranya berhenti di tengah jalan. Solusinya: peluncuran bertahap 2–3 asisten, hasil disimpan berkala, dan dipantau di setiap peluncuran. Setelah itu berjalan stabil.
 
 ## 8. Posisi sekarang dan langkah berikutnya
-**Sekarang:** 4 tugas fondasi sudah selesai, teruji, dan digabung ke jalur utama (bersama 1 tugas pembuka). Berikutnya gelombang 3 dan 4 dari fase fondasi.
+**Sekarang:** 7 tugas fondasi sudah selesai, teruji, dan digabung ke jalur utama (bersama 1 tugas pembuka). Berikutnya gelombang 4: perbaikan celah keamanan pada pustaka, lalu gerbang pemeriksaan akhir fondasi.
 
 **Berikutnya:**
 1. Fondasi lanjutan: pembaruan pustaka yang rawan, penyelarasan versi tampilan, dan penjaga pengujian.
