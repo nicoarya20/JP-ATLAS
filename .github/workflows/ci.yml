@@ -1,4 +1,5 @@
-# Gate for every push/PR: lint, typecheck, and the test suite against a throwaway Postgres.
+# Gate for every push/PR: lint, typecheck, build, the test suite against a throwaway Postgres,
+# and a schema-vs-migration drift check.
 name: ci
 
 on:
@@ -39,5 +40,25 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
+      - run: bun run build
       - run: bun run db:migrate
       - run: bun run test
+
+  # Fails when the Drizzle schema has changes with no migration file: the raw generator is
+  # used on purpose (not the guarded wrapper) so any file it writes is the drift signal.
+  schema-drift:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
+      - run: bunx drizzle-kit generate --name=drift
+      - name: Fail on schema drift
+        run: |
+          if [ -n "$(git status --porcelain server/db)" ]; then
+            echo "::error::Schema changed without a migration. Create one with 'bun run db:generate' and delete the drift files below."
+            git status --porcelain server/db
+            exit 1
+          fi
