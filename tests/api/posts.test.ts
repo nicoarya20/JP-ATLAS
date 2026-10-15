@@ -6,12 +6,15 @@ import { auth } from '../../server/auth';
 import { db } from '../../server/db';
 import { auditLog, post, user } from '../../server/db/schema';
 import * as rolesMod from '../../server/roles';
+import { testUser } from '../support/accounts';
 
 type Actor = { id: string; email: string } | null;
 const ctx: { actor: Actor; role: string | null } = { actor: null, role: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
-    ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
+    ctx.actor
+      ? { user: { approvalStatus: 'approved', ...ctx.actor } }
+      : null) as unknown as typeof auth.api.getSession),
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(
     async () => (ctx.role ?? 'member') as 'member',
   ),
@@ -39,15 +42,17 @@ async function req(method: string, path: string, body?: unknown) {
 
 beforeAll(async () => {
   for (const id of [owner, other, admin]) {
-    await db.insert(user).values({
-      id,
-      name: id,
-      email: `${id}@test.local`,
-      emailVerified: false,
-      role: id === admin ? 'admin' : 'member',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id,
+        name: id,
+        email: `${id}@test.local`,
+        emailVerified: false,
+        role: id === admin ? 'admin' : 'member',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
   }
 });
 afterAll(async () => {

@@ -5,6 +5,7 @@ import { db } from '../server/db';
 import { auditLog, loginLog, user } from '../server/db/schema';
 import { logger } from '../server/logger';
 import { CLIENT_IP_HEADER } from '../server/middleware/client-ip';
+import { testUser } from './support/accounts';
 
 const TAG = `ash-${crypto.randomUUID().slice(0, 8)}`;
 const target = `${TAG}-target`;
@@ -18,14 +19,16 @@ function sessionFor(extra: Record<string, unknown> = {}) {
 
 beforeAll(async () => {
   for (const id of [target, admin])
-    await db.insert(user).values({
-      id,
-      name: id,
-      email: `${id}@test.local`,
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id,
+        name: id,
+        email: `${id}@test.local`,
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
 });
 
 afterAll(async () => {

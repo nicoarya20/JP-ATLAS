@@ -18,6 +18,7 @@ import { db } from '../../server/db';
 import { post, session, user } from '../../server/db/schema';
 import { mcpPlugin } from '../../server/mcp/index';
 import { logBuffer } from '../../server/mcp/log-buffer';
+import { testUser } from '../support/accounts';
 
 const TOKEN = process.env.MCP_ADMIN_TOKEN;
 const app = new Elysia().use(mcpPlugin);
@@ -77,15 +78,17 @@ async function openSession(): Promise<string> {
 beforeAll(async () => {
   if (!TOKEN) return;
 
-  await db.insert(user).values({
-    id: seededUserId,
-    name: `MCP Seed ${runId}`,
-    email: seededEmail,
-    emailVerified: false,
-    role: 'member',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id: seededUserId,
+      name: `MCP Seed ${runId}`,
+      email: seededEmail,
+      emailVerified: false,
+      role: 'member',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   await db.insert(session).values([
     {
       id: activeSessionId,

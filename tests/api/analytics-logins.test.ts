@@ -10,6 +10,7 @@ import { analyticsApi } from '../../server/api/analytics';
 import { buildLoginWhere, listLogins, toLoginCsv } from '../../server/api/analytics-logins.query';
 import { db } from '../../server/db';
 import { loginLog, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const app = new Elysia().use(analyticsApi);
 
@@ -35,14 +36,16 @@ type Row = {
 };
 
 beforeAll(async () => {
-  await db.insert(user).values({
-    id: userId,
-    name: `Login Tester ${TAG}`,
-    email: `${userId}@test.local`,
-    emailVerified: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  await db.insert(user).values(
+    testUser({
+      id: userId,
+      name: `Login Tester ${TAG}`,
+      email: `${userId}@test.local`,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   const rows = await db
     .insert(loginLog)
     .values([

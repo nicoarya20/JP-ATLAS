@@ -8,7 +8,9 @@ import * as rolesMod from '../server/roles';
 type U = { id: string; name: string; email: string; isAnonymous: boolean };
 const ctx: { actor: U | null } = { actor: null };
 const getSession = spyOn(auth.api, 'getSession').mockImplementation((async () =>
-  ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession);
+  ctx.actor
+    ? { user: { approvalStatus: 'approved', ...ctx.actor } }
+    : null) as unknown as typeof auth.api.getSession);
 const spies = [
   getSession,
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member'),

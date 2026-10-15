@@ -11,6 +11,7 @@ import { asc, desc, eq } from 'drizzle-orm';
 import { analyticsApi, pageParams } from '../../server/api/analytics';
 import { db } from '../../server/db';
 import { loginLog, rateLimitLog, user, visitLog } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const app = new Elysia().use(analyticsApi);
 
@@ -156,15 +157,17 @@ describe('GET /analytics/visits — user attribution', () => {
   let visitId = '';
 
   beforeAll(async () => {
-    await db.insert(user).values({
-      id: testUserId,
-      name: userName,
-      email: `${testUserId}@test.local`,
-      image: 'https://example.com/avatar.png',
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id: testUserId,
+        name: userName,
+        email: `${testUserId}@test.local`,
+        image: 'https://example.com/avatar.png',
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
   });
 
   afterAll(async () => {
@@ -277,14 +280,16 @@ describe('DELETE /analytics/login-logs/:id', () => {
   let rowId = '';
 
   beforeAll(async () => {
-    await db.insert(user).values({
-      id: testUserId,
-      name: 'Test User',
-      email: `${testUserId}@test.local`,
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id: testUserId,
+        name: 'Test User',
+        email: `${testUserId}@test.local`,
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
   });
 
   afterAll(async () => {

@@ -9,13 +9,16 @@ import { user } from '../../server/db/schema';
 import * as rolesMod from '../../server/roles';
 import { storage } from '../../server/storage';
 import { ensureBucket } from '../../server/storage/bucket';
+import { testUser } from '../support/accounts';
 
 const ID = `avatar-${crypto.randomUUID().slice(0, 8)}`;
 type Actor = { id: string; name: string; email: string; image: string | null };
 const ctx: { actor: Actor | null } = { actor: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
-    ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
+    ctx.actor
+      ? { user: { approvalStatus: 'approved', ...ctx.actor } }
+      : null) as unknown as typeof auth.api.getSession),
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member'),
 ];
 
@@ -46,7 +49,9 @@ beforeAll(async () => {
   const now = new Date();
   await db
     .insert(user)
-    .values({ ...me(), emailVerified: false, role: 'member', createdAt: now, updatedAt: now });
+    .values(
+      testUser({ ...me(), emailVerified: false, role: 'member', createdAt: now, updatedAt: now }),
+    );
 });
 afterAll(async () => {
   for (const s of spies) s.mockRestore();
@@ -158,16 +163,18 @@ describe('/api/app/avatar', () => {
     const key = `avatars/${gone}/${crypto.randomUUID()}.png`;
     await storage().write(key, PNG, { type: 'image/png' });
     const now = new Date();
-    await db.insert(user).values({
-      id: gone,
-      name: gone,
-      email: `${gone}@test.local`,
-      image: `/api/storage/${key}`,
-      emailVerified: false,
-      role: 'member',
-      createdAt: now,
-      updatedAt: now,
-    });
+    await db.insert(user).values(
+      testUser({
+        id: gone,
+        name: gone,
+        email: `${gone}@test.local`,
+        image: `/api/storage/${key}`,
+        emailVerified: false,
+        role: 'member',
+        createdAt: now,
+        updatedAt: now,
+      }),
+    );
     await (await auth.$context).internalAdapter.deleteUser(gone);
     expect(await storage().file(key).exists()).toBe(false);
   });
