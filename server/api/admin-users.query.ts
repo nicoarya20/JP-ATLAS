@@ -10,7 +10,7 @@ export const UserListQuery = t.Object({
   page: t.Optional(t.String()),
   limit: t.Optional(t.String()),
   search: t.Optional(t.String()),
-  /** 'user' | 'admin' | 'super-admin' */
+  /** 'member' | 'project_manager' | 'admin' | 'super-admin' */
   role: t.Optional(t.String()),
   /** 'active' | 'banned' */
   status: t.Optional(t.String()),
@@ -22,6 +22,9 @@ export const UserListQuery = t.Object({
 export type UserListQueryType = typeof UserListQuery.static;
 
 const MAX_DAYS = 365;
+
+/** Pre-rename role value; rows keep it until the S0A-02 backfill, so the member filter still matches them. */
+const LEGACY_USER_ROLE = 'user';
 
 /** Excludes temporary demo (anonymous) users; the column is nullable for older rows. */
 export const realUser = sql`${user.isAnonymous} is not true`;
@@ -52,8 +55,9 @@ export function buildUserWhere(q: UserListQueryType): SQL | undefined {
           ilike(user.id, `%${search}%`),
         )
       : undefined,
-    q.role === ROLES.USER
-      ? or(eq(user.role, ROLES.USER), isNull(user.role))
+    q.role === ROLES.MEMBER
+      ? // Legacy rows may still hold 'user' or NULL; both read as member (normalizeRole).
+        or(eq(user.role, ROLES.MEMBER), eq(user.role, LEGACY_USER_ROLE), isNull(user.role))
       : q.role
         ? eq(user.role, q.role)
         : undefined,

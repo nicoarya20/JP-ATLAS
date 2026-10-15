@@ -15,7 +15,7 @@ type SessionUser = {
   isAnonymous?: boolean;
   createdAt?: Date;
 } | null;
-const ctx: { user: SessionUser; role: string } = { user: null, role: 'user' };
+const ctx: { user: SessionUser; role: string } = { user: null, role: 'member' };
 
 // spyOn (not mock.module) so every override is reverted in afterAll. bun's
 // mock.module swaps a module process-wide with no restore path, so mocking
@@ -28,7 +28,7 @@ import * as rolesMod from '../server/roles';
 const sessionSpy = spyOn(auth.api, 'getSession').mockImplementation((async () =>
   ctx.user ? { user: ctx.user } : null) as unknown as typeof auth.api.getSession);
 const roleSpy = spyOn(rolesMod, 'resolveUserRole').mockImplementation(
-  async () => ctx.role as 'user',
+  async () => ctx.role as 'member',
 );
 
 import { requireAnyRole, requireRole, requireUser, resolveActor } from '../server/guard';
@@ -56,7 +56,7 @@ async function catchRedirect(fn: () => Promise<unknown>): Promise<Response | nul
 
 beforeEach(() => {
   ctx.user = null;
-  ctx.role = 'user';
+  ctx.role = 'member';
 });
 
 describe('requireRole', () => {
@@ -70,15 +70,15 @@ describe('requireRole', () => {
   test('stale session cookie without a session → /login with a notice', async () => {
     ctx.user = null;
     const res = await catchRedirect(() =>
-      requireRole(request({ cookie: 'better-auth.session_token=abc; other=1' }), ROLES.USER),
+      requireRole(request({ cookie: 'better-auth.session_token=abc; other=1' }), ROLES.MEMBER),
     );
     expect(res?.headers.get('Location')).toBe('/login?notice=session');
   });
 
   test('banned user with a live session → /banned; expired ban passes', async () => {
     ctx.user = { id: 'b1', email: 'b1@test.local', banned: true, banExpires: null };
-    ctx.role = ROLES.USER;
-    const res = await catchRedirect(() => requireRole(request(), ROLES.USER));
+    ctx.role = ROLES.MEMBER;
+    const res = await catchRedirect(() => requireRole(request(), ROLES.MEMBER));
     expect(res?.headers.get('Location')).toBe('/banned');
     ctx.user = {
       id: 'b2',
@@ -86,13 +86,13 @@ describe('requireRole', () => {
       banned: true,
       banExpires: new Date(Date.now() - 1),
     };
-    const ok = await catchRedirect(() => requireRole(request(), ROLES.USER));
+    const ok = await catchRedirect(() => requireRole(request(), ROLES.MEMBER));
     expect(ok).toBeNull();
   });
 
   test('wrong role → redirect to the caller’s own home', async () => {
     ctx.user = { id: 'u1', email: 'u1@test.local' };
-    ctx.role = ROLES.USER; // a user hitting an admin-only area
+    ctx.role = ROLES.MEMBER; // a user hitting an admin-only area
     const res = await catchRedirect(() => requireRole(request(), ROLES.ADMIN));
     expect(res?.status).toBe(302);
     expect(res?.headers.get('Location')).toBe('/app');

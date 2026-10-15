@@ -26,7 +26,7 @@ beforeAll(async () => {
     name: 'Usage Owner',
     email: `${ownerId}@test.local`,
     emailVerified: true,
-    role: 'user',
+    role: 'member',
     createdAt: new Date(),
     updatedAt: new Date(),
   });

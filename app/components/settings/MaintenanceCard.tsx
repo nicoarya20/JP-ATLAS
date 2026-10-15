@@ -20,7 +20,8 @@ import { SettingRow, SettingsCard } from './SettingsParts';
 const ROLES = [
   { value: 'super-admin', label: 'super-admin (selalu)' },
   { value: 'admin', label: 'admin' },
-  { value: 'user', label: 'user' },
+  { value: 'project_manager', label: 'project_manager' },
+  { value: 'member', label: 'member' },
 ];
 
 type Props = {

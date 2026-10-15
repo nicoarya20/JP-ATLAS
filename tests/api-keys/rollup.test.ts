@@ -38,7 +38,7 @@ beforeAll(async () => {
     name: 'Rollup User',
     email: `${ownerId}@test.local`,
     emailVerified: true,
-    role: 'user',
+    role: 'member',
     createdAt: new Date(),
     updatedAt: new Date(),
   });

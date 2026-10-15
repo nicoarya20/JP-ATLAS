@@ -3,8 +3,11 @@ import {
   isPublicRead,
   requiredScope,
   roleAllowsScope,
+  SCOPE_IDS,
+  type Scope,
   scopesForRole,
 } from '../../server/api-keys/scopes';
+import { ROLES } from '../../server/permissions';
 
 describe('requiredScope', () => {
   it('maps routes to scopes by prefix and method', () => {
@@ -55,13 +58,62 @@ describe('requiredScope', () => {
 
 describe('role ceiling', () => {
   it('never lets a key exceed its owner role', () => {
-    expect(roleAllowsScope('user', 'posts:write')).toBe(true);
-    expect(roleAllowsScope('user', 'users:read')).toBe(false);
+    expect(roleAllowsScope('member', 'posts:write')).toBe(true);
+    expect(roleAllowsScope('member', 'users:read')).toBe(false);
     expect(roleAllowsScope('admin', 'users:write')).toBe(true);
     expect(roleAllowsScope('admin', 'settings:write')).toBe(false);
     expect(roleAllowsScope('super-admin', 'settings:write')).toBe(true);
     expect(roleAllowsScope('admin', 'mcp')).toBe(false);
     expect(roleAllowsScope('super-admin', 'mcp')).toBe(true);
-    expect(scopesForRole('user')).toEqual(['posts:write', 'me:read', 'app:read', 'app:write']);
+    expect(scopesForRole('member')).toEqual(['posts:write', 'me:read', 'app:read', 'app:write']);
+  });
+
+  it('treats the legacy "user" role and null as member', () => {
+    expect(scopesForRole('user')).toEqual(scopesForRole('member'));
+    expect(scopesForRole(null)).toEqual(scopesForRole('member'));
+  });
+});
+
+// Lowest role that may hold each scope. Written out by hand (not derived from
+// SCOPES) so a wrong minRole in the table fails here; a new scope fails the
+// completeness check below until it is added.
+const MIN_ROLE: Record<Scope, number> = {
+  'analytics:read': 3,
+  'analytics:write': 3,
+  'users:read': 2,
+  'users:write': 2,
+  'sessions:read': 3,
+  'sessions:write': 3,
+  'posts:write': 0,
+  'audit:read': 3,
+  'logs:read': 3,
+  'file-health:read': 3,
+  'settings:read': 3,
+  'settings:write': 3,
+  'ops:read': 3,
+  mcp: 3,
+  'me:read': 0,
+  'app:read': 0,
+  'app:write': 0,
+};
+const ROLE_ORDER = [ROLES.MEMBER, ROLES.PROJECT_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN] as const;
+const CASES = ROLE_ORDER.flatMap((role, rank) =>
+  (Object.keys(MIN_ROLE) as Scope[]).map(
+    (scope) => [role, scope, rank >= MIN_ROLE[scope]] as const,
+  ),
+);
+
+describe('role ceiling matrix (four roles x every scope)', () => {
+  it('covers every scope in the table', () => {
+    expect(Object.keys(MIN_ROLE).sort()).toEqual([...SCOPE_IDS].sort());
+  });
+
+  it.each(CASES)('%s holding %s -> %p', (role, scope, allowed) => {
+    expect(roleAllowsScope(role, scope)).toBe(allowed);
+    expect(scopesForRole(role).includes(scope)).toBe(allowed);
+  });
+
+  it('project_manager gets no scope beyond member (no PM-only scope yet)', () => {
+    expect(scopesForRole('project_manager')).toEqual(scopesForRole('member'));
   });
 });

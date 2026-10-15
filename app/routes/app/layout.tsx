@@ -29,7 +29,8 @@ const SECONDARY_NAV: Record<string, NavItem[]> = {
 };
 
 const BADGE_COLOR: Record<string, string> = {
-  user: 'gray',
+  member: 'gray',
+  project_manager: 'teal',
   admin: 'blue',
   'super-admin': 'grape',
 };

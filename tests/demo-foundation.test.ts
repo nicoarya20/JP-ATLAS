@@ -27,7 +27,7 @@ describe('demo settings', () => {
 
 describe('resolveActor isDemo', () => {
   test('anonymous session user → isDemo true; regular → false', async () => {
-    const role = spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'user');
+    const role = spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member');
     const base = { id: ID, name: 'x', email: 'x@test.local', banned: false };
     const session = spyOn(auth.api, 'getSession');
     try {
@@ -54,7 +54,7 @@ describe('seedDemo', () => {
       name: 'Pengunjung Demo',
       email: `${ID}@anonymous.placeholder.invalid`,
       emailVerified: false,
-      role: 'user',
+      role: 'member',
       isAnonymous: true,
       createdAt: now,
       updatedAt: now,

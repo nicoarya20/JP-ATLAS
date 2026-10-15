@@ -1,15 +1,21 @@
 import { Badge, Checkbox, Group, Stack, Text, Tooltip } from '@mantine/core';
 import type { ScopeDef } from '~/lib/api-keys-api';
 
-const ROLE_RANK: Record<string, number> = { user: 0, admin: 1, 'super-admin': 2 };
+const ROLE_RANK: Record<string, number> = {
+  member: 0,
+  project_manager: 1,
+  admin: 2,
+  'super-admin': 3,
+};
 const ROLE_LABEL: Record<string, string> = {
-  user: 'user',
+  member: 'member',
+  project_manager: 'project_manager',
   admin: 'admin',
   'super-admin': 'super-admin',
 };
 
 export function roleAllows(ownerRole: string | null | undefined, minRole: string): boolean {
-  return (ROLE_RANK[ownerRole ?? 'user'] ?? 0) >= (ROLE_RANK[minRole] ?? 0);
+  return (ROLE_RANK[ownerRole ?? 'member'] ?? 0) >= (ROLE_RANK[minRole] ?? 0);
 }
 
 type Props = {
@@ -59,7 +65,7 @@ export function ScopePicker({ scopes, value, onChange, ownerRole }: Props) {
         ) : (
           <Tooltip
             key={s.id}
-            label={`Role pemilik (${ownerRole ?? 'user'}) tidak bisa memegang scope ini`}
+            label={`Role pemilik (${ownerRole ?? 'member'}) tidak bisa memegang scope ini`}
             withArrow
             position="top-start"
           >

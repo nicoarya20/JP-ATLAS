@@ -11,7 +11,7 @@ const getSession = spyOn(auth.api, 'getSession').mockImplementation((async () =>
   ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession);
 const spies = [
   getSession,
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'user'),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member'),
 ];
 afterAll(() => {
   for (const s of spies) s.mockRestore();

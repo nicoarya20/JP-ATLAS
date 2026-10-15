@@ -35,7 +35,7 @@ const spies = [
   spyOn(auth.api, 'unbanUser').mockImplementation(asyncEmpty as typeof auth.api.unbanUser),
   spyOn(auth.api, 'removeUser').mockImplementation(asyncEmpty as typeof auth.api.removeUser),
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(
-    async () => (ctx.actorRole ?? 'user') as 'user',
+    async () => (ctx.actorRole ?? 'member') as 'member',
   ),
 ];
 
@@ -76,7 +76,7 @@ const regularId = `adm-regular-${runId}`;
 const adminId = `adm-admin-${runId}`;
 const superId = `adm-super-${runId}`;
 const seeded: Array<{ id: string; role: string }> = [
-  { id: regularId, role: 'user' },
+  { id: regularId, role: 'member' },
   { id: adminId, role: 'admin' },
   { id: superId, role: 'super-admin' },
 ];
@@ -114,7 +114,7 @@ describe('admin guard', () => {
   });
 
   test('regular user → 403', async () => {
-    asActor('actor-user', 'user');
+    asActor('actor-user', 'member');
     const { status } = await req('GET', '/admin/users');
     expect(status).toBe(403);
   });
