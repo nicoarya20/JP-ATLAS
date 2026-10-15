@@ -16,6 +16,8 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Saklar **Mode demo** di `/dev/settings` untuk menyalakan/mematikan demo dan mengatur masa berlaku (1 jam sampai 7 hari). Perubahan tercatat di audit log, dan badge sidebar Settings menampilkan jumlah user demo aktif.
 - Banner di setiap halaman `/app` saat memakai akun demo, berisi sisa waktu demo dan tombol keluar dari demo.
 - Aksi sensitif diblokir untuk user demo dengan pesan yang jelas: membuat API key, mengganti email atau password, reset password, mengunggah/menghapus foto profil, dan menautkan akun sosial.
+- Perintah `simple-pm migrate` (dan `migrate --status` untuk melihat migrasi yang belum diterapkan) untuk memperbarui database Postgres eksternal secara sengaja. Image Docker menjalankan `migrate` lalu `start` bila `DATABASE_URL` terisi; mode Postgres lokal tetap bermigrasi otomatis saat `start`. `doctor` kini memberi petunjuk yang benar untuk database eksternal.
+- `bun run db:generate` kini lewat pembungkus yang memberi guard `IF NOT EXISTS` pada SQL migrasi dan mewajibkan `--name=<slug>` serta `--why="<alasan>"`. Pengujian baru menjaga semua migrasi tetap berguard dan aman dijalankan ulang.
 
 ### Changed
 - Nama produk berubah menjadi **Simple PM**: judul halaman, sidebar, landing, README, dan metadata situs memakai nama baru. Nama package, binary, dan unit systemd kini `simple-pm` (sebelumnya `makuro-template`).
@@ -33,6 +35,8 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - `bun run db:studio` dan perintah drizzle-kit lain (`db:migrate`, `db:push`) kini otomatis menunjuk ke Postgres embedded lewat unix socket saat `DATABASE_URL` kosong, tanpa perlu menyetel variabel manual. Dengan `DATABASE_URL` terisi, perintah memakai database itu seperti biasa.
 - Unduhan runtime Postgres (±53 MB saat `init`/boot pertama) kini menampilkan progres langsung — persen, MB terunduh, kecepatan, dan ETA — jadi tidak lagi terlihat seperti macet saat jaringan lambat. Jaringan lambat ke `registry.npmjs.org` bisa dialihkan ke mirror lebih dekat lewat `MAKURO_PG_REGISTRY` (mis. `https://registry.npmmirror.com`); checksum sha512 tetap diverifikasi. Tanpa internet, tetap bisa `init --pg-archive=<tgz>`.
 - Unduhan runtime storage RustFS kini juga menampilkan progres langsung yang sama (persen/MB/kecepatan/ETA). Rilis GitHub yang lambat bisa dialihkan ke mirror lewat `MAKURO_RUSTFS_RELEASES`; checksum sha256 tetap diverifikasi. Tanpa internet, tetap bisa `init --s3-archive=<zip>`.
+- Versi Bun kini dikunci di satu tempat (`.bun-version`, saat ini 1.4.2) dan dipakai oleh CI, alur rilis, dan Dockerfile. `CHANGELOG.md` memakai penggabungan `union` supaya entri dari dua cabang tidak saling bentrok. Pasang Bun yang sama di komputer lokal Anda untuk `smoke:binary`.
+- Produksi menolak `BETTER_AUTH_SECRET` yang masih nilai contoh (berawalan `change-me`) atau kurang dari 32 karakter, dan app berhenti dengan pesan yang jelas. `.env.example` kini mengosongkan nilainya: buat dengan `openssl rand -base64 32` atau jalankan `simple-pm init`.
 
 ### Fixed
 - `bun run test` kini menghentikan Postgres lokal yang ia nyalakan sendiri setelah test selesai. Sebelumnya proses Postgres tertinggal dan memegang port `54329`. Postgres milik `bun dev` yang sedang jalan tetap tidak disentuh.
