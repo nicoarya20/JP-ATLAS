@@ -16,7 +16,7 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 | **Tugas yang siap dikerjakan** | **92** |
 | Peran pengguna | 4 |
 | Perkiraan usaha untuk versi pertama (MVP Inti) | ±128 hari kerja asisten AI, sekitar **8 minggu** kalender |
-| Tugas yang sudah dikerjakan | **5 dari 92** (1 sudah masuk, 4 menunggu persetujuan digabung) |
+| Tugas yang sudah dikerjakan | **5 dari 92**, semuanya sudah digabung ke jalur utama |
 | Pengujian otomatis | dari 687 menjadi **770 lulus, 0 gagal** |
 
 ## 3. Yang sudah kami kerjakan
@@ -51,7 +51,7 @@ Kami tidak membangun dari nol. Simple PM dibangun di atas fondasi aplikasi yang 
 | **Pembuat perubahan database yang aman** | Setiap perubahan struktur database otomatis dibuat aman bila diulang dan dijaga aturan. Mencegah data rusak saat pembaruan. |
 | **Perintah khusus untuk memperbarui database** | Pembaruan database di server dilakukan secara sengaja dan terkendali, bukan otomatis bersamaan oleh banyak server. |
 
-Hasilnya: keempat tugas dikerjakan di ruang kerja terpisah, **digabung percobaan tanpa bentrok**, dan seluruh pengujian hijau (770 lulus, 0 gagal).
+Hasilnya: keempat tugas dikerjakan di ruang kerja terpisah, dicoba digabung lebih dulu **tanpa bentrok**, lalu **digabung ke jalur utama setelah disetujui**. Pengujian diulang sesudah digabung dan tetap hijau (770 lulus, 0 gagal).
 
 ## 7. Cara kami bekerja
 - **Tim asisten AI bekerja paralel**, masing-masing di ruang kerja sendiri. **Manusia yang memutuskan dan menyetujui**, dan tidak ada yang digabung atau dikirim tanpa persetujuan.
@@ -60,7 +60,7 @@ Hasilnya: keempat tugas dikerjakan di ruang kerja terpisah, **digabung percobaan
 - **Kendala yang kami temui:** saat 14 asisten dijalankan bersamaan, jatah penggunaan AI habis dan 8 di antaranya berhenti di tengah jalan. Solusinya: peluncuran bertahap 2–3 asisten, hasil disimpan berkala, dan dipantau di setiap peluncuran. Setelah itu berjalan stabil.
 
 ## 8. Posisi sekarang dan langkah berikutnya
-**Sekarang:** 4 tugas fondasi selesai dan teruji, menunggu persetujuan untuk digabung ke jalur utama.
+**Sekarang:** 4 tugas fondasi sudah selesai, teruji, dan digabung ke jalur utama (bersama 1 tugas pembuka). Berikutnya gelombang 3 dan 4 dari fase fondasi.
 
 **Berikutnya:**
 1. Fondasi lanjutan: pembaruan pustaka yang rawan, penyelarasan versi tampilan, dan penjaga pengujian.

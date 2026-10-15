@@ -8,12 +8,12 @@
 
 | Kelompok | Tugas | Selesai | Berjalan/review | Diblokir |
 |---|---|---|---|---|
-| S0.0 — Prasyarat ops | 9 | 1 | 4 | 0 |
+| S0.0 — Prasyarat ops | 9 | 5 | 0 | 0 |
 | S0.a — Akun dan akses | 15 | 0 | 0 | 0 |
 | S0.b — Kontrak beku | 33 | 0 | 0 | 0 |
 | S1 — Proyek dan profil | 18 | 0 | 0 | 0 |
 | S2 — Tugas inti | 17 | 0 | 0 | 0 |
-| **Total** | **92** | **1** | **4** | **0** |
+| **Total** | **92** | **5** | **0** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -40,10 +40,10 @@ Sumber spesifikasi: `rencana/P1-s0a-akun-akses.md §4`.
 | ID | Judul | Lajur | Bergantung pada | Ukuran | Status | Cabang | Commit | Hasil tes |
 |---|---|---|---|---|---|---|---|---|
 | S0.0-01 | Commit rebrand + catatan (M0) | Gel. 1 | – | S | **selesai** | `feature/project-management` | `972971f` `707117a` `0e4e490` `03d572c` `13b5e80` | typecheck nol dan 687 test lulus dilaporkan worker rebrand; tidak dijalankan ulang saat commit. Dilakukan sebagai 5 commit (rencana: 2) karena ikut mencatat keputusan |
-| S0.0-02 | Pin Bun 1.4.2, `.gitattributes` CHANGELOG union | Gel. 2 | 01 | S | review | `chore/pm-s00-bun-pin` | `3e6cc47` | worker: 694 lulus/0 gagal, lint = baseline. Koordinator: cabang, basis `da48344`, berkas dalam Target. CHANGELOG belum diisi (ditangani saat integrasi) |
-| S0.0-03 | `BETTER_AUTH_SECRET`: `.env.example`, `env.ts`, preload test | Gel. 2 | 01 | S | review | `chore/pm-s00-auth-secret` | `bd1c451` | worker: 692 lulus/0 gagal; smoke:prod dan smoke:binary 23/23 (Bun 1.4.2 sementara). Penyimpangan: `\|\|=` bukan `??=` di preload (rahasia kosong dianggap tidak di-set) |
-| S0.0-06 | Generator migrasi berguard + dua test penjaga | Gel. 2 | 01 | L | review | `chore/pm-s00-migration-generator` | `7e21b26` `0ce6a7e` | worker: 749 lulus/0 gagal; migrasi 0004-0013 idempoten tanpa pengecualian; `db:generate` tanpa argumen gagal dengan pesan jelas. Penyimpangan: handler memakai `duplicate_object OR duplicate_table` |
-| S0.0-08 | Subcommand `migrate` + Docker + doctor | Gel. 2 | 01 | M | review | `chore/pm-s00-migrate-command` | `c7328e3` | worker: 696 lulus/0 gagal; smoke:prod/binary/coldboot 23/23 (Bun 1.4.2 sementara). Penyimpangan: ikut mengubah `tests/cli/dispatch.test.ts` (1 baris) dan `docker-compose.yml` hanya komentar |
+| S0.0-02 | Pin Bun 1.4.2, `.gitattributes` CHANGELOG union | Gel. 2 | 01 | S | **selesai** | `chore/pm-s00-bun-pin` | `3e6cc47` merge `68724ee` | worker: 694 lulus/0 gagal, lint = baseline. Koordinator: cabang, basis `da48344`, berkas dalam Target. CHANGELOG belum diisi (ditangani saat integrasi) |
+| S0.0-03 | `BETTER_AUTH_SECRET`: `.env.example`, `env.ts`, preload test | Gel. 2 | 01 | S | **selesai** | `chore/pm-s00-auth-secret` | `bd1c451` merge `952b171` | worker: 692 lulus/0 gagal; smoke:prod dan smoke:binary 23/23 (Bun 1.4.2 sementara). Penyimpangan: `\|\|=` bukan `??=` di preload (rahasia kosong dianggap tidak di-set) |
+| S0.0-06 | Generator migrasi berguard + dua test penjaga | Gel. 2 | 01 | L | **selesai** | `chore/pm-s00-migration-generator` | `7e21b26` `0ce6a7e` merge `df71f93` | worker: 749 lulus/0 gagal; migrasi 0004-0013 idempoten tanpa pengecualian; `db:generate` tanpa argumen gagal dengan pesan jelas. Penyimpangan: handler memakai `duplicate_object OR duplicate_table` |
+| S0.0-08 | Subcommand `migrate` + Docker + doctor | Gel. 2 | 01 | M | **selesai** | `chore/pm-s00-migrate-command` | `c7328e3` merge `263c667` | worker: 696 lulus/0 gagal; smoke:prod/binary/coldboot 23/23 (Bun 1.4.2 sementara). Penyimpangan: ikut mengubah `tests/cli/dispatch.test.ts` (1 baris) dan `docker-compose.yml` hanya komentar |
 | S0.0-04 | Pin Mantine 9.6.3 + `@mantine/dates` + `dayjs` | Gel. 3 | 02 | M | belum |  |  |  |
 | S0.0-07 | Stub skema + barrel + `drizzle.config.ts` + CI drift | Gel. 3 | 02, 06 | S | belum |  |  |  |
 | S0.0-09 | `tests/test-hygiene.test.ts` (ratchet `mock.module`) | Gel. 3 | 03 | S | belum |  |  |  |
@@ -166,9 +166,10 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 
 | Tanggal | Gelombang | Tugas | Hasil | Persetujuan |
 |---|---|---|---|---|
-| – | – | – | – | – |
+| 15 Okt 2026 | Gelombang 2 (S0.0) | S0.0-02, S0.0-03, S0.0-06, S0.0-08 (merge `68724ee`, `952b171`, `df71f93`, `263c667`) | Pasca-merge di cabang utama: `typecheck` nol error, **770 lulus / 17 dilewati / 0 gagal**, lint = baseline (1 error + 1 warning pra-ada). Tidak ada konflik. Tidak ada berkas wajib-satu-per-satu (auth, guard, permissions, migrasi) yang tersentuh | User: "merge gelombang 2, lalu push" |
 
 ## Log perubahan
 
 - **15 Okt 2026** — dokumen ini dibuat. S0.0-01 (commit rebrand dan catatan) selesai. Jumlah tugas 92: S1 bertambah satu (`S1-18` Sampah minimal) setelah keputusan user memilih pilihan B untuk hapus proyek.
 - **15 Okt 2026** — S0.0 gelombang 2 (02, 03, 06, 08) selesai dikerjakan dan berstatus `review`. Tiap cabang diverifikasi koordinator (basis, berkas dalam Target, isi kunci). **Uji gabungan** keempat cabang di worktree sementara (tidak dipush): tanpa konflik, `typecheck` nol error, **770 lulus / 17 dilewati / 0 gagal** (sebelumnya 687), lint = baseline. Menunggu persetujuan user untuk merge gelombang. Catatan: CHANGELOG belum diisi untuk 02/03/06/08, ditangani saat integrasi; smoke tidak diulang untuk hasil gabungan.
+- **15 Okt 2026** — Gelombang 2 digabung ke `feature/project-management` atas persetujuan user. Empat poin CHANGELOG `[Unreleased]` ditambahkan (migrate, generator migrasi, pin Bun, kunci rahasia). S0.0 kini 5 dari 9 tugas selesai; sisa gelombang 3 (04, 07, 09) dan 4 (05).
