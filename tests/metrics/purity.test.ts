@@ -12,8 +12,8 @@ const SPEC_RE = /\b(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g;
 const CLOCK_READS = /\bnew Date\(\s*\)|\bDate\.now\(|\bperformance\.now\(/;
 
 describe('server/metrics purity', () => {
-  it('contains the four S0B-08 modules (guards against an empty glob)', () => {
-    for (const f of ['config', 'dates', 'types', 'task.metrics']) {
+  it('contains the S0B-08 and S0B-09 modules (guards against an empty glob)', () => {
+    for (const f of ['config', 'dates', 'types', 'task.metrics', 'project.metrics', 'condition']) {
       expect(FILES).toContain(`server/metrics/${f}.ts`);
     }
   });
