@@ -294,12 +294,31 @@ Sistem role: `member` → `project_manager` → `admin` → `super-admin`. Role 
 |---|---|---|
 | `member` | `/app` | Fitur produk (`/app`), profil, keamanan akun, sesi perangkat, API key pribadi |
 | `project_manager` | `/app` | Sama dengan `member`; kewenangan mengelola proyek menyusul di tahap proyek |
-| `admin` | `/dashboard` | Dashboard, manajemen user (ban, role change), API key pribadi |
+| `admin` | `/dashboard` | Dashboard dan halaman **Pengguna** (`/dashboard/users`: persetujuan pendaftar, peran Member/Project Manager, blokir, undangan), API key pribadi |
 | `super-admin` | `/dev` | Overview, users, sessions, posts, DB schema, visitor/login/rate-limit/server/audit logs, file health, tools & MCP, settings |
 
 `super-admin` hanya diberikan lewat `SUPER_ADMIN_EMAILS` **dan** hanya bila email akunnya sudah terverifikasi; email yang cocok tetapi belum terverifikasi tetap berperan sebagai `member`.
 
 Area `/app` dan `/profile` terbuka untuk semua role yang sudah masuk; admin dan super-admin membukanya lewat tautan **App** di sidebar.
+
+**Persetujuan akun & undangan.** Di produksi masuk lewat Google. Akun baru berstatus `pending` (atau `rejected` setelah ditolak) dan hanya bisa membuka `/waiting`; ia tidak punya akses ke API apa pun sampai disetujui. Dua jalan menuju `approved`:
+
+- **Undangan awal:** Admin membuat undangan berisi email dan role (berlaku 14 hari, maksimal 100 undangan aktif). Saat pemilik email itu pertama kali masuk dengan Google, akunnya langsung `approved` dengan role undangan. Email undangan harus sama dengan email Google; bila tidak cocok, akun jatuh ke `pending`.
+- **Persetujuan manual:** Admin melihat antrean `pending` di `/dashboard/users`, lalu **menyetujui** (memilih Member atau Project Manager) atau **menolak** dengan alasan 3–200 karakter yang ditampilkan kepada orang itu di `/waiting`. Akun yang ditolak bisa disetujui kemudian; akun yang sudah disetujui dicabut aksesnya dengan blokir (suspend), bukan penolakan.
+
+Batas wewenang berasal dari satu kebijakan murni (`server/access/user.policy.ts`) yang dipakai API **dan** tombol di layar: Admin hanya mengelola Member dan Project Manager (bukan sesama Admin, bukan Super-admin, bukan dirinya sendiri), hanya memberi role Member atau Project Manager, dan tidak bisa menghapus akun; Super-admin juga boleh memberi role Admin dan menghapus akun. Role `super-admin` hanya dari `SUPER_ADMIN_EMAILS`. Semua aksi ini ditolak (`IMPERSONATING`) selama sesi menyamar, tidak bisa dilakukan dengan API key, dan tercatat di audit log dengan email dimasker.
+
+Endpoint admin (`/api/admin`, hanya Admin dan Super-admin; galat berbentuk `{ error, code }` berbahasa Indonesia):
+
+| Endpoint | Fungsi |
+|---|---|
+| `GET /users?approval=&role=&status=&search=` | Daftar pengguna (dengan `approvalStatus` dan `approvalReason`); `GET /users/stats` memuat jumlah `pending` |
+| `POST /users/:id/approve` `{ role? }` | Setujui akun `pending`/`rejected`, opsional sambil menentukan role |
+| `POST /users/:id/reject` `{ reason }` | Tolak akun `pending`; alasan wajib |
+| `POST /users/:id/role` `{ role }` | Ubah role |
+| `POST /users/:id/ban`, `POST /users/:id/unban` | Blokir (mencabut semua sesi) dan buka blokir |
+| `DELETE /users/:id` | Hapus akun permanen (Super-admin) |
+| `GET /invitations?status=`, `POST /invitations` `{ email, role }`, `DELETE /invitations/:id` | Daftar (`active`, `used`, `expired`, `revoked`), buat, dan cabut undangan |
 
 Google OAuth: set `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`. Authorized redirect URI di Google Console: `${BETTER_AUTH_URL}/api/auth/callback/google`.
 
