@@ -6,13 +6,14 @@
 import { TASK_REVIEW_UI_ENABLED } from '../pm/limits';
 import { allow, type Decision, deny } from './decision';
 import { atLeast, type Level, levelOf } from './level';
+import { type NotVisible as Hidden, notVisible } from './not-visible';
 import { ACCESS_RULES, type AccessRules } from './rules';
 import type { Membership, Principal, ProjectSubject, TaskSubject } from './types';
 
 // 404 is not a `DenyCode` (a hidden record must look like a missing one, `pm/errors`), and
 // `NOT_FOUND` lives in the API catalog, so it gets its own type, as `NO_ELIGIBLE_REVIEWER` does.
 /** Denial for a task or project the principal may not even see (HTTP 404, never 403). */
-export type NotVisible = { ok: false; code: 'NOT_FOUND' };
+export type NotVisible = Hidden<'NOT_FOUND'>;
 
 /** A `Decision` that may also say "you cannot see this" (`NOT_FOUND`). */
 export type TaskDecision = Decision | NotVisible;
@@ -26,7 +27,7 @@ export type TaskActor =
   | 'assignee'
   | 'assigneeOrUnassigned'; // "taking" an unassigned task (K9)
 
-const NOT_VISIBLE: NotVisible = { ok: false, code: 'NOT_FOUND' };
+const NOT_VISIBLE = notVisible('NOT_FOUND');
 
 /** Project statuses where work has stopped; tasks stay writable there unless the Q12 flag is off. */
 const CLOSED_PROJECT_STATUSES: readonly ProjectSubject['status'][] = [

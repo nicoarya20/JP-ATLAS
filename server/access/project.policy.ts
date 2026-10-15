@@ -5,16 +5,14 @@
  */
 import { allow, type Decision, deny } from './decision';
 import { atLeast, isPmOrAbove, levelOf } from './level';
+import { type NotVisible, notVisible } from './not-visible';
 import { ACCESS_RULES, type AccessRules } from './rules';
 import type { Membership, Principal, ProjectSubject } from './types';
 
 // `NOT_VISIBLE` is deliberately outside `DENY_CODES`: it is reported as NOT_FOUND/404 so a
-// hidden project looks the same as a missing one (D8). This local type keeps it out of `Decision`.
-/** Denial for a project the viewer may not even know exists (HTTP 404). */
-export type NotVisible = { ok: false; code: 'NOT_VISIBLE' };
-
-/** A `Decision` that may also carry `NOT_VISIBLE`. */
-export type ProjectDecision = Decision | NotVisible;
+// hidden project looks the same as a missing one (D8). The shared type keeps it out of `Decision`.
+/** A `Decision` that may also carry `NOT_VISIBLE` (HTTP 404, the viewer may not know the project exists). */
+export type ProjectDecision = Decision | NotVisible<'NOT_VISIBLE'>;
 
 /** Which projects a list may include, as a descriptor the repository turns into SQL (D6). */
 export type ProjectListScope = { kind: 'all' } | { kind: 'memberOf'; userId: string };
@@ -23,10 +21,7 @@ export type ProjectListScope = { kind: 'all' } | { kind: 'memberOf'; userId: str
 export type RequestedListScope = 'mine' | 'all';
 
 /** Shared and frozen: returned as-is so callers cannot mutate the next decision. */
-export const NOT_VISIBLE: Readonly<NotVisible> = Object.freeze({
-  ok: false,
-  code: 'NOT_VISIBLE',
-});
+export const NOT_VISIBLE: Readonly<NotVisible<'NOT_VISIBLE'>> = notVisible('NOT_VISIBLE');
 
 /** Whether `p` may open the project read-only; anyone without a level gets 404, not 403 (D8). */
 export function canViewProject(
