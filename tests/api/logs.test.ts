@@ -1,14 +1,16 @@
-import { describe, expect, mock, test } from 'bun:test';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({ user: { id: 'u-test' }, role: 'super-admin' }),
-}));
 
 import { errorsLastHour, logsApi } from '../../server/api/logs';
 import { LogBuffer, logBuffer } from '../../server/mcp/log-buffer';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(logsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
 const TAG = `log-${crypto.randomUUID().slice(0, 8)}`;
 
 describe('LogBuffer stats/countSince', () => {
