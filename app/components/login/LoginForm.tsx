@@ -33,7 +33,7 @@ type Props = {
   demoTtlHours: number | null;
 };
 
-/** Left column of the login card: brand, email/password form, Google, demo, mode toggle. */
+/** Left column of the login card: brand, Google (primary), email form outside production, demo, mode toggle. */
 export function LoginForm({
   appName,
   supportUrl,
@@ -51,7 +51,7 @@ export function LoginForm({
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const signup = mode === 'signup' && signupEnabled;
-  const copy = modeCopy(signup ? 'signup' : 'signin', appName);
+  const copy = modeCopy(signup ? 'signup' : 'signin', appName, !emailAuthEnabled);
 
   const form = useForm({
     mode: 'uncontrolled',
@@ -118,6 +118,27 @@ export function LoginForm({
 
       <LoginNotice notice={notice} supportUrl={supportUrl} />
 
+      {googleEnabled && (
+        <Button
+          // Neutral surface per Google branding rules (the logo is multicolor); "primary" here is
+          // position and size, not fill.
+          variant="default"
+          fullWidth
+          size="lg"
+          radius="md"
+          leftSection={<FcGoogle size={20} />}
+          loading={googleLoading}
+          disabled={banned}
+          onClick={continueWithGoogle}
+        >
+          Lanjutkan dengan Google
+        </Button>
+      )}
+
+      {googleEnabled && emailAuthEnabled && (
+        <Divider label="atau pakai email" labelPosition="center" />
+      )}
+
       {emailAuthEnabled && (
         <form onSubmit={submit}>
           <Stack>
@@ -160,24 +181,6 @@ export function LoginForm({
             </Button>
           </Stack>
         </form>
-      )}
-
-      {googleEnabled && (
-        <Stack gap="lg">
-          {emailAuthEnabled && <Divider label="atau" labelPosition="center" />}
-          <Button
-            variant="default"
-            fullWidth
-            size="md"
-            radius="md"
-            leftSection={<FcGoogle size={18} />}
-            loading={googleLoading}
-            disabled={banned}
-            onClick={continueWithGoogle}
-          >
-            Lanjutkan dengan Google
-          </Button>
-        </Stack>
       )}
 
       {demoTtlHours !== null && <DemoLoginOption ttlHours={demoTtlHours} />}
