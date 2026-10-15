@@ -24,7 +24,7 @@ export const user = pgTable(
     banned: boolean('banned').default(false),
     banReason: text('ban_reason'),
     banExpires: timestamp('ban_expires'),
-    // Better Auth anonymous plugin: temporary demo visitors, purged after the demo TTL.
+    // Legacy anonymous (demo) visitors; the plugin is gone, purgeLegacyDemoUsers sweeps leftover rows.
     isAnonymous: boolean('is_anonymous').default(false),
     // Account approval (S0.a, migration 0014). Declared as Better Auth `user.additionalFields`
     // so the status rides on the session. Written by hand: `auth:generate` targets auth.schema.ts.

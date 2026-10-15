@@ -90,9 +90,8 @@ describe('evaluateAuthPath', () => {
     }
   });
 
-  test('anonymous sign-in stays closed until its plugin is removed (S0A-13)', () => {
-    expect(evaluateAuthPath('/api/auth/sign-in/anonymous', 'POST', DEV)).toBe('not-found');
-    expect(evaluateAuthPath('/api/auth/Sign-In/Anonymous', 'POST', DEV)).toBe('not-found');
+  test('anonymous sign-in has no special case any more: the plugin is gone, so Better Auth answers', () => {
+    expect(evaluateAuthPath('/api/auth/sign-in/anonymous', 'POST', DEV)).toBe('pass');
   });
 
   test('self-service endpoints and Google sign-in pass; non-auth paths and bad escapes do not', () => {
@@ -192,6 +191,13 @@ describe('through the real API (api.handle)', () => {
         expect([method, path, res.status]).toEqual([method, path, 404]);
         expect(((await res.json()) as { code: string }).code).toBe('NOT_FOUND');
       }
+  });
+
+  test('anonymous sign-in no longer exists: Better Auth itself answers 404 (S0A-13)', async () => {
+    for (const path of ['/api/auth/sign-in/anonymous', '/api/auth/Sign-In/Anonymous']) {
+      const res = await api.handle(new Request(`${BASE}${path}`, { method: 'POST' }));
+      expect([path, res.status]).toEqual([path, 404]);
+    }
   });
 
   test('Better Auth still serves its self-service endpoints', async () => {

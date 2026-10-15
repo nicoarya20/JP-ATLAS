@@ -10,7 +10,7 @@ export function registerDbTools(server: McpServer) {
     'get_db_stats',
     {
       description:
-        'Get row counts for all main database tables (user excludes temporary demo users).',
+        'Get row counts for all main database tables (user excludes legacy anonymous users).',
       inputSchema: {},
     },
     async () => {
@@ -44,7 +44,7 @@ export function registerDbTools(server: McpServer) {
     'list_users',
     {
       description:
-        'List real (non-demo) users ordered by creation date. Optionally filter by email or name.',
+        'List real (non-anonymous) users ordered by creation date. Optionally filter by email or name.',
       inputSchema: {
         search: z
           .string()

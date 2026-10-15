@@ -3,8 +3,7 @@ import { apiErrorPlugin } from '../api-error';
 import { apiKeyPlugin } from '../api-keys/plugin';
 import { startUsageRollupScheduler } from '../api-keys/rollup';
 import { auth } from '../auth';
-import { startDemoCleanupScheduler } from '../demo/cleanup';
-import { demoRestrictPlugin } from '../demo/restrict';
+import { schedulePurgeLegacyDemoUsers } from '../demo/cleanup';
 import { mcpPlugin } from '../mcp';
 import { maintenancePlugin } from '../middleware/maintenance';
 import { rateLimitPlugin } from '../middleware/rate-limiter';
@@ -17,7 +16,6 @@ import { apiKeysUsageApi } from './api-keys-usage';
 import { appApi } from './app';
 import { auditApi } from './audit';
 import { authMount } from './auth-gate';
-import { demoApi } from './demo';
 import { fileHealthApi } from './file-health';
 import { logsApi } from './logs';
 import { meApi } from './me';
@@ -45,7 +43,7 @@ void applyRateLimitSettings();
 if (process.env.NODE_ENV !== 'test') {
   startRetentionScheduler();
   startUsageRollupScheduler();
-  startDemoCleanupScheduler();
+  schedulePurgeLegacyDemoUsers();
 }
 
 /**
@@ -63,8 +61,6 @@ export const api = new Elysia({ prefix: '/api' })
   .use(maintenancePlugin())
   // API keys: identity + scope enforcement + usage tracking (X-API-Key / Bearer sp_live_…).
   .use(apiKeyPlugin())
-  // Demo visitors: 403 on sensitive actions, before auth so Better Auth routes are covered too.
-  .use(demoRestrictPlugin())
   // Better Auth handler for /api/auth/*, behind the path gate (auth-gate.ts: admin + email
   // endpoints closed). A mount is a catch-all fallback for every unmatched /api path, so
   // anything else gets the uniform JSON 404 there instead of Better Auth's empty one.
@@ -97,8 +93,6 @@ export const api = new Elysia({ prefix: '/api' })
   .use(meApi)
   // Product endpoints (/api/app/*, any signed-in role) — new app features go here.
   .use(appApi)
-  // Demo sandbox entry (public status + start).
-  .use(demoApi)
   // Public reads of stored files (avatars), before the session derive so images skip the lookup.
   .use(storageFilesApi)
   // Derive the session for downstream handlers.
