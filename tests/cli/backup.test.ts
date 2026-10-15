@@ -13,7 +13,7 @@ let pgDir: string;
 let outDir: string;
 
 beforeEach(async () => {
-  root = await mkdtemp(path.join(os.tmpdir(), 'makuro-backup-'));
+  root = await mkdtemp(path.join(os.tmpdir(), 'simple-pm-backup-'));
   pgDir = path.join(root, 'pg');
   outDir = path.join(root, 'backups');
   await Bun.write(path.join(pgDir, 'PG_VERSION'), '18\n');

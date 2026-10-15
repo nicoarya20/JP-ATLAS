@@ -11,7 +11,7 @@ test('production shares the postgres client via globalThis', async () => {
       'bun',
       '-e',
       `await import(${JSON.stringify(DB_MODULE)});
-       process.stdout.write(String(typeof globalThis.__makuroDbClient === 'function'));
+       process.stdout.write(String(typeof globalThis.__simplePmDbClient === 'function'));
        process.exit(0);`,
     ],
     {

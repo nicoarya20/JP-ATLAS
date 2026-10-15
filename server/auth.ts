@@ -12,8 +12,8 @@ import { CLIENT_IP_HEADER, normalizeIp, resolveClientIp } from './middleware/cli
 import { describeClient, loginMethodFromPath } from './middleware/request-meta';
 import { ac, ROLES, roles } from './permissions';
 
-/** Public part of every key, e.g. mk_live_abc… — also how the header getter recognises a key. */
-export const API_KEY_PREFIX = 'mk_live_';
+/** Public part of every key, e.g. sp_live_abc… — also how the header getter recognises a key. */
+export const API_KEY_PREFIX = 'sp_live_';
 const DEFAULT_KEY_TTL_SEC = 90 * 86_400;
 const MAX_KEY_TTL_DAYS = 365;
 

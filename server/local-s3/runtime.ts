@@ -15,9 +15,9 @@ export type S3Archive = { url: string; sha256: string };
 
 const DEFAULT_RELEASES = `https://github.com/rustfs/rustfs/releases/download/${RUSTFS_VERSION}`;
 
-/** Release base for the RustFS zip; MAKURO_RUSTFS_RELEASES points it at a faster mirror (checksum still pinned). */
+/** Release base for the RustFS zip; SIMPLE_PM_RUSTFS_RELEASES points it at a faster mirror (checksum still pinned). */
 export function releasesBase(env: NodeJS.ProcessEnv = process.env): string {
-  return (env.MAKURO_RUSTFS_RELEASES || DEFAULT_RELEASES).replace(/\/+$/, '');
+  return (env.SIMPLE_PM_RUSTFS_RELEASES || DEFAULT_RELEASES).replace(/\/+$/, '');
 }
 
 const archive = (asset: string, sha256: string): S3Archive => ({

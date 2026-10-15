@@ -121,7 +121,7 @@ describe('/me/api-keys', () => {
     expect(forever.status).toBe(400);
     const ok = await call('/', json('POST', input('cli', ['me:read'])));
     expect(ok.status).toBe(200);
-    expect(String(ok.body.key).startsWith('mk_live_')).toBe(true);
+    expect(String(ok.body.key).startsWith('sp_live_')).toBe(true);
     const row = ok.body.row as { id: string; ownerId: string; scopes: string[] };
     expect(row.ownerId).toBe(aliceId);
     expect(row.scopes).toEqual(['me:read']);

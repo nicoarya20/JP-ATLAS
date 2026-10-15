@@ -8,7 +8,7 @@ import { fetchMcpInfo, fetchOpsStatus, fetchResetTargets } from '~/lib/ops-api';
 import type { Route } from './+types/tools';
 
 export function meta() {
-  return [{ title: 'Tools — Makuro Dev' }];
+  return [{ title: 'Tools — Simple PM Dev' }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

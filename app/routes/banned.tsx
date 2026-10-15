@@ -23,7 +23,7 @@ import type { Route } from './+types/banned';
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
-    { title: `Akun diblokir — ${loaderData?.branding.appName ?? 'Makuro'}` },
+    { title: `Akun diblokir — ${loaderData?.branding.appName ?? 'Simple PM'}` },
     { name: 'robots', content: 'noindex' },
   ];
 }

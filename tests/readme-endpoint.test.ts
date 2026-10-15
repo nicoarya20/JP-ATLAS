@@ -21,7 +21,7 @@ describe('agent docs', () => {
   test('llms.txt is an index derived from the README headings', async () => {
     const readme = await readmeText();
     const idx = llmsIndex(readme, 'https://example.test/', '9.9.9');
-    expect(idx.startsWith('# Makuro')).toBe(true);
+    expect(idx.startsWith('# Simple PM')).toBe(true);
     expect(idx).toContain('https://example.test/README.md');
     expect(idx).toContain('- API keys');
     expect(idx).toContain('- Untuk AI agent');
@@ -53,7 +53,7 @@ describe('agent docs', () => {
   });
   test('the README never carries secrets (it is served publicly)', async () => {
     const readme = await readmeText();
-    expect(readme).not.toMatch(/mk_live_[A-Za-z0-9]{16,}/);
+    expect(readme).not.toMatch(/sp_live_[A-Za-z0-9]{16,}/);
     expect(readme).not.toMatch(/(SECRET|PASSWORD|TOKEN)\s*=\s*['"]?[A-Za-z0-9+/]{16,}/);
     expect(readme).not.toMatch(/postgres(ql)?:\/\/[^:\s]+:[^@\s]+@/);
   });

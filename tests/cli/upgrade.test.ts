@@ -38,8 +38,8 @@ beforeAll(() => {
     },
   });
   base = `http://127.0.0.1:${server.port}`;
-  process.env.MAKURO_DOWNLOAD_BASE = `${base}/dl`;
-  process.env.MAKURO_API_BASE = base;
+  process.env.SIMPLE_PM_DOWNLOAD_BASE = `${base}/dl`;
+  process.env.SIMPLE_PM_API_BASE = base;
 });
 
 afterAll(() => {
@@ -89,7 +89,7 @@ describe('upgrade download', () => {
   });
 
   test('replaceBinary swaps atomically, keeps .old and sets 755', async () => {
-    dir = await mkdtemp(path.join(os.tmpdir(), 'makuro-upgrade-'));
+    dir = await mkdtemp(path.join(os.tmpdir(), 'simple-pm-upgrade-'));
     const target = path.join(dir, 'app');
     await Bun.write(target, 'old');
     await replaceBinary(target, BIN);

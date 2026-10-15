@@ -75,7 +75,7 @@ export const api = new Elysia({ prefix: '/api' })
   .use(rateLimitPlugin())
   // Maintenance mode: 503 for everyone but the allowed roles (auth routes exempt).
   .use(maintenancePlugin())
-  // API keys: identity + scope enforcement + usage tracking (X-API-Key / Bearer mk_live_…).
+  // API keys: identity + scope enforcement + usage tracking (X-API-Key / Bearer sp_live_…).
   .use(apiKeyPlugin())
   // Demo visitors: 403 on sensitive actions, before auth so Better Auth routes are covered too.
   .use(demoRestrictPlugin())

@@ -32,7 +32,7 @@ import type { AppContext } from '~/lib/app-context';
 import type { Route } from './+types/layout';
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: 'Dev Console — Makuro' }];
+  return [{ title: 'Dev Console — Simple PM' }];
 }
 
 const NAV: NavGroup[] = [

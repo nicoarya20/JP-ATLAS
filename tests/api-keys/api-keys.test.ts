@@ -93,7 +93,7 @@ afterAll(async () => {
 
 describe('key creation', () => {
   test('returns the plain key once with the public prefix; stored row only has start/prefix', async () => {
-    expect(superKey.startsWith('mk_live_')).toBe(true);
+    expect(superKey.startsWith('sp_live_')).toBe(true);
     const row = await getKey(superKeyId);
     expect(row?.scopes).toEqual(['users:read', 'me:read']);
     expect(row?.status).toBe('active');
@@ -148,7 +148,7 @@ describe('authenticating with X-API-Key', () => {
   });
   test('invalid, disabled and IP-restricted keys are rejected', async () => {
     expect(
-      (await app.handle(new Request('http://localhost/api/me/logins', hdr('mk_live_notarealkey'))))
+      (await app.handle(new Request('http://localhost/api/me/logins', hdr('sp_live_notarealkey'))))
         .status,
     ).toBe(401);
     await updateKey(superKeyId, { enabled: false });

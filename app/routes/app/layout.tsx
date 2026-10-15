@@ -12,7 +12,7 @@ import { demoHoursLeft } from '~/lib/demo-api';
 import type { Route } from './+types/layout';
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: 'Makuro' }];
+  return [{ title: 'Simple PM' }];
 }
 
 const NAV: NavItem[] = [

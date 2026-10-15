@@ -1,5 +1,5 @@
 /**
- * Black-box checks a running Makuro server (script or binary) must pass.
+ * Black-box checks a running Simple PM server (script or binary) must pass.
  * Pure data + evaluator so the list is unit-tested and shared by the runner.
  */
 export type SmokeCheck = {
@@ -22,12 +22,12 @@ export type SmokeCheck = {
 
 const RATE_REMAINING = 'x-ratelimit-remaining';
 const RATE_LIMIT = 'x-ratelimit-limit';
-// test-only: documentation IPs. Literal x-makuro-client-ip (no server import here);
+// test-only: documentation IPs. Literal x-simple-pm-client-ip (no server import here);
 // tests/smoke-server.test.ts pins it to CLIENT_IP_HEADER.
 const spoofHeaders = (ip: string) => ({
   'x-forwarded-for': ip,
   'x-real-ip': ip,
-  'x-makuro-client-ip': ip,
+  'x-simple-pm-client-ip': ip,
 });
 
 export const SMOKE_CHECKS: SmokeCheck[] = [
@@ -89,7 +89,7 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
   {
     name: 'API key palsu ditolak',
     path: '/api/me/logins',
-    headers: { 'x-api-key': 'mk_live_bogus' },
+    headers: { 'x-api-key': 'sp_live_bogus' },
     status: 401,
     bodyIncludes: 'INVALID_API_KEY',
   },
@@ -114,7 +114,7 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     path: '/llms.txt',
     status: 200,
     contentType: 'text/plain',
-    bodyIncludes: '# Makuro',
+    bodyIncludes: '# Simple PM',
   },
   {
     name: 'landing meta OG',

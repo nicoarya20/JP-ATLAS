@@ -32,7 +32,7 @@ import {
 import type { Route } from './+types/visits';
 
 export function meta() {
-  return [{ title: 'Visitor Logs — Makuro Dev' }];
+  return [{ title: 'Visitor Logs — Simple PM Dev' }];
 }
 
 const LIMIT = 25;

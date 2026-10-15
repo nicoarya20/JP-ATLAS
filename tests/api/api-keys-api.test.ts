@@ -89,7 +89,7 @@ describe('API key management API', () => {
       }),
     );
     expect(ok.status).toBe(200);
-    expect((ok.body.key as string).startsWith('mk_live_')).toBe(true);
+    expect((ok.body.key as string).startsWith('sp_live_')).toBe(true);
     const row = ok.body.row as {
       id: string;
       scopes: string[];
@@ -119,7 +119,7 @@ describe('API key management API', () => {
     expect((usage.body.summary as { total: number }).total).toBe(0);
     const rot = await call(`/api-keys/${keyId}/rotate`, json('POST'));
     expect(rot.status).toBe(200);
-    expect((rot.body.key as string).startsWith('mk_live_')).toBe(true);
+    expect((rot.body.key as string).startsWith('sp_live_')).toBe(true);
     const newId = (rot.body.row as { id: string }).id;
     const rev = await call(`/api-keys/${keyId}/revoke`, json('POST'));
     expect(rev.body.status).toBe('revoked');

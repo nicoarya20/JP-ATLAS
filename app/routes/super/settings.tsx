@@ -22,7 +22,7 @@ import {
 import type { Route } from './+types/settings';
 
 export function meta() {
-  return [{ title: 'Settings — Makuro Dev' }];
+  return [{ title: 'Settings — Simple PM Dev' }];
 }
 
 /** Server-render the current values so the page never flashes empty controls. */

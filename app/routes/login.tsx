@@ -8,7 +8,7 @@ import { LoginShowcase } from '~/components/login/LoginShowcase';
 import type { Route } from './+types/login';
 
 export function meta({ loaderData }: Route.MetaArgs) {
-  return [{ title: `Masuk — ${loaderData?.branding.appName ?? 'Makuro'}` }];
+  return [{ title: `Masuk — ${loaderData?.branding.appName ?? 'Simple PM'}` }];
 }
 
 export async function loader() {

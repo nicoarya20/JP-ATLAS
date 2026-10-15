@@ -96,4 +96,4 @@ const server = Bun.serve({
   },
 });
 
-logger.info(`\u{1F680} Makuro production server on http://localhost:${server.port}`);
+logger.info(`\u{1F680} Simple PM production server on http://localhost:${server.port}`);

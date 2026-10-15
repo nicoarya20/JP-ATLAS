@@ -11,9 +11,9 @@ export type PgArchive = { url: string; integrity: string };
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org';
 
-/** Registry root for the runtime tarball; MAKURO_PG_REGISTRY points it at a faster mirror (checksum still pinned). */
+/** Registry root for the runtime tarball; SIMPLE_PM_PG_REGISTRY points it at a faster mirror (checksum still pinned). */
 export function registryRoot(env: NodeJS.ProcessEnv = process.env): string {
-  return (env.MAKURO_PG_REGISTRY || DEFAULT_REGISTRY).replace(/\/+$/, '');
+  return (env.SIMPLE_PM_PG_REGISTRY || DEFAULT_REGISTRY).replace(/\/+$/, '');
 }
 
 function tarballUrl(p: PgPlatform, root = registryRoot()): string {

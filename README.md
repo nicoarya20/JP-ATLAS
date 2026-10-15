@@ -1,4 +1,4 @@
-# Makuro ⚡
+# Simple PM ⚡
 
 Fullstack template dengan **satu port, tanpa CORS, siap production**. Frontend dan backend berjalan dalam satu proses Elysia — tidak ada proxy, tidak ada CORS config, cookies langsung bekerja.
 
@@ -18,7 +18,7 @@ Dokumentasi ini adalah satu-satunya sumber dan bisa dibaca tanpa JavaScript:
 - `GET /llms.txt` — indeks singkat (judul, ringkasan, daftar bagian, endpoint untuk agent), dibangkitkan dari heading README.
 - `GET /api/version` — `{ name, version, env, bun }`, publik.
 - `GET /api/openapi.json` — spec OpenAPI 3 untuk API REST, butuh API key apa pun yang valid (tanpa key → `401 API_KEY_REQUIRED`). Isinya hanya endpoint yang boleh dipanggil key tersebut; scope tiap operasi ada di field `x-required-scope`.
-- API dipakai dengan header `X-API-Key: mk_live_…` atau `Authorization: Bearer mk_live_…`; scope per route ada di bagian **API keys**. Semua error API berbentuk JSON `{ error, code, status, requestId }`.
+- API dipakai dengan header `X-API-Key: sp_live_…` atau `Authorization: Bearer sp_live_…`; scope per route ada di bagian **API keys**. Semua error API berbentuk JSON `{ error, code, status, requestId }`.
 - Fitur produk dibangun di area `/app` (halaman) dan `/api/app/*` (endpoint), keduanya butuh login — lihat **Membangun fitur produk (`/app`)**. `/dev` khusus operasional, `/dashboard` khusus admin.
 - Server MCP di `/api/mcp` (Streamable HTTP) menerima API key ber-scope `mcp`; katalog tool ada di bagian **Dev console → Tools & MCP**.
 
@@ -38,7 +38,7 @@ Ketiga URL dokumentasi dilayani sebelum SSR, ber-ETag (`304` bila tidak berubah)
 | **Penyimpanan file** | S3-compatible lewat `Bun.S3Client`; RustFS lokal otomatis tanpa server terpisah, foto profil siap pakai |
 | **UI kit terkonfigurasi** | Mantine v9, TanStack Query, Zustand, Biome — semua sudah terhubung |
 | **Dev console `/dev`** | 14 halaman operasional: users, sessions, posts, API keys, DB schema, log pengunjung/login/rate-limit/server/audit, file health, tools, settings — badge hidup di sidebar |
-| **API keys** | Kunci `mk_live_…` ber-scope, kedaluwarsa, rotasi dengan masa tenggang, IP allow-list, rate limit per kunci, jejak pemakaian + rollup harian, kunci pribadi per user |
+| **API keys** | Kunci `sp_live_…` ber-scope, kedaluwarsa, rotasi dengan masa tenggang, IP allow-list, rate limit per kunci, jejak pemakaian + rollup harian, kunci pribadi per user |
 | **Observability** | Visitor/login/rate-limit log dengan geo & perangkat, audit trail semua aksi admin, buffer log server, retensi otomatis, mode maintenance, feature flags |
 | **Error yang konsisten** | Halaman 404/401/403/5xx bermerek (sidebar tetap tampil di konsol), error API selalu `{ error, code, status, requestId }`, fallback HTML bila SSR gagal |
 | **Ramah AI agent** | `/README.md` + `/llms.txt` teks polos, server MCP ber-API-key, tool file health agar konteks agent tidak meledak |
@@ -79,7 +79,7 @@ cp .env.example .env
 #   (migrasi otomatis saat boot, lihat "Database: dari lokal ke produksi"):
 #   bun run cli init --db=local
 # Opsi B — pakai Postgres yang sudah ada:
-#   psql -c "CREATE DATABASE makuro;" && bun run db:migrate
+#   psql -c "CREATE DATABASE simple_pm;" && bun run db:migrate
 # Opsi C — spin up lokal dengan Docker:
 #   docker compose --profile local-db up -d && bun run db:migrate
 
@@ -101,7 +101,7 @@ bun run start
 | `bun run smoke:prod` | Build lalu boot `server/prod.ts` di port bebas dan jalankan 23 pemeriksaan black-box (`scripts/smoke-server.ts`) |
 | `bun run smoke:binary` | Sama, tetapi terhadap binary hasil `build:binary` |
 | `bun run smoke:coldboot` | Boot binary dari folder kosong dengan Postgres lokal (init → migrasi → start) |
-| `bun run build:binary` | Build binary platform saat ini → `./makuro-template`; `-- --all` → `dist/` 4 target + `checksums.txt` |
+| `bun run build:binary` | Build binary platform saat ini → `./simple-pm`; `-- --all` → `dist/` 4 target + `checksums.txt` |
 | `bun run cli <cmd>` | CLI dari source: `init`, `doctor`, `version`, `backup`, `start` |
 | `bun run typecheck` | `react-router typegen` + `tsc --noEmit` |
 | `bun run lint` | Biome check |
@@ -117,17 +117,17 @@ bun run start
 ```bash
 # Pasang dari GitHub Release (deteksi OS/arch, verifikasi sha256, → ~/.local/bin)
 curl -fsSL https://raw.githubusercontent.com/bipprojectbali/makuro-template/main/install.sh | sh
-#   MAKURO_VERSION=v0.1.0   pin versi (default: rilis terbaru)
-#   MAKURO_INSTALL_DIR=…    folder tujuan (default: ~/.local/bin)
-#   MAKURO_REPO=owner/repo  untuk fork
+#   SIMPLE_PM_VERSION=v0.1.0   pin versi (default: rilis terbaru)
+#   SIMPLE_PM_INSTALL_DIR=…    folder tujuan (default: ~/.local/bin)
+#   SIMPLE_PM_REPO=owner/repo  untuk fork
 
 # Di folder app (jadi direktori kerja: .env, data/, backups/)
-makuro-template init      # buat .env (secret acak), unduh runtime Postgres, initdb + migrasi
-makuro-template doctor    # periksa kesiapan
-makuro-template           # = start
+simple-pm init      # buat .env (secret acak), unduh runtime Postgres, initdb + migrasi
+simple-pm doctor    # periksa kesiapan
+simple-pm           # = start
 ```
 
-Build sendiri: `bun run build:binary` → `./makuro-template` (platform saat ini), `bun run build:binary -- --all` → `dist/makuro-template-<os>-<arch>` untuk linux-x64, linux-arm64, darwin-arm64, darwin-x64 + `checksums.txt`. Push tag `v*` menjalankan `.github/workflows/release.yml` yang membangun dan mempublikasikan aset yang sama ke GitHub Release.
+Build sendiri: `bun run build:binary` → `./simple-pm` (platform saat ini), `bun run build:binary -- --all` → `dist/simple-pm-<os>-<arch>` untuk linux-x64, linux-arm64, darwin-arm64, darwin-x64 + `checksums.txt`. Push tag `v*` menjalankan `.github/workflows/release.yml` yang membangun dan mempublikasikan aset yang sama ke GitHub Release.
 
 | Perintah | Fungsi |
 |---|---|
@@ -140,12 +140,12 @@ Build sendiri: `bun run build:binary` → `./makuro-template` (platform saat ini
 
 Dari source: `bun run cli <perintah>`.
 
-**systemd:** `makuro-template init --systemd` menulis `./makuro-template.service` (`User=` user saat ini, bukan root — Postgres menolak berjalan sebagai root) lalu mencetak langkah `sudo cp … /etc/systemd/system/` dan `sudo systemctl enable --now makuro-template`.
+**systemd:** `simple-pm init --systemd` menulis `./simple-pm.service` (`User=` user saat ini, bukan root — Postgres menolak berjalan sebagai root) lalu mencetak langkah `sudo cp … /etc/systemd/system/` dan `sudo systemctl enable --now simple-pm`.
 
 **Satu file, tidak ada dependensi eksternal:**
 
 ```
-makuro-template   ← binary ~130 MB — semua embedded:
+simple-pm   ← binary ~130 MB — semua embedded:
                      • Bun runtime (JavaScriptCore)
                      • Server code (Elysia, Better Auth, Drizzle)
                      • React Router SSR bundle
@@ -170,15 +170,15 @@ Satu dialect (PostgreSQL) di semua tahap — yang berganti hanya siapa yang menj
 
 **Postgres lokal otomatis** aktif bila `DATABASE_URL` kosong atau `LOCAL_PG_DIR` diset. Bila `DATABASE_URL` diisi, perilaku sama seperti biasa.
 
-- Runtime PostgreSQL 18.4 dari paket npm `@embedded-postgres/<os>-<arch>` (MIT), diunduh sekali saat `init` (±53 MB, dengan progres: persen/kecepatan/ETA), hash sha512 di-pin di binary. Disimpan di cache global `~/.cache/makuro-template/pg/18.4.0/<platform>` (`XDG_CACHE_HOME` dihormati), dipakai bersama semua folder app dengan nama package sama.
-- **Unduhan lambat?** `registry.npmjs.org` bisa lambat/stall di sebagian wilayah. Alihkan ke mirror lebih dekat lewat `MAKURO_PG_REGISTRY` (checksum sha512 tetap diverifikasi, jadi aman):
+- Runtime PostgreSQL 18.4 dari paket npm `@embedded-postgres/<os>-<arch>` (MIT), diunduh sekali saat `init` (±53 MB, dengan progres: persen/kecepatan/ETA), hash sha512 di-pin di binary. Disimpan di cache global `~/.cache/simple-pm/pg/18.4.0/<platform>` (`XDG_CACHE_HOME` dihormati), dipakai bersama semua folder app dengan nama package sama.
+- **Unduhan lambat?** `registry.npmjs.org` bisa lambat/stall di sebagian wilayah. Alihkan ke mirror lebih dekat lewat `SIMPLE_PM_PG_REGISTRY` (checksum sha512 tetap diverifikasi, jadi aman):
 
   ```bash
-  MAKURO_PG_REGISTRY=https://registry.npmmirror.com bun run cli init --db=local
+  SIMPLE_PM_PG_REGISTRY=https://registry.npmmirror.com bun run cli init --db=local
   ```
 
   Atau unduh tarball sendiri (curl mendukung resume `-C -`) lalu pasang offline: `bun run cli init --db=local --pg-archive=<file.tgz>`.
-- Data di `./data/pg` (`LOCAL_PG_DIR`), port `54329` (`LOCAL_PG_PORT`), nama database = nama package `makuro_template` (ubah dengan `LOCAL_PG_DB`; test memakai `<nama>_test`). Tanpa listener TCP: koneksi hanya lewat unix socket di direktori 0700 milik user (`/tmp/makuro_template-pg-<uid>`, ubah dengan `LOCAL_PG_SOCKET_DIR`), sehingga user lain di mesin yang sama tidak bisa masuk. Zona waktu database selalu UTC. Postmaster yatim dari proses yang di-`kill -9` dihentikan otomatis saat start berikutnya. Migrasi berjalan otomatis saat boot (dev, `start`, binary).
+- Data di `./data/pg` (`LOCAL_PG_DIR`), port `54329` (`LOCAL_PG_PORT`), nama database = nama package `simple_pm` (ubah dengan `LOCAL_PG_DB`; test memakai `<nama>_test`). Tanpa listener TCP: koneksi hanya lewat unix socket di direktori 0700 milik user (`/tmp/simple_pm-pg-<uid>`, ubah dengan `LOCAL_PG_SOCKET_DIR`), sehingga user lain di mesin yang sama tidak bisa masuk. Zona waktu database selalu UTC. Postmaster yatim dari proses yang di-`kill -9` dihentikan otomatis saat start berikutnya. Migrasi berjalan otomatis saat boot (dev, `start`, binary).
 - Platform: linux-x64, linux-arm64 (glibc), darwin-arm64, darwin-x64. musl/Alpine tidak didukung untuk mode lokal.
 - Postgres menolak berjalan sebagai root — jalankan app sebagai user biasa.
 - Lihat struktur/data: `bun run db:studio` (Drizzle Studio) otomatis menunjuk cluster embedded lewat unix socket saat `DATABASE_URL` kosong — nyalakan `bun run dev` dulu agar socket-nya ada. Dengan `DATABASE_URL` terisi, Studio memakai database itu.
@@ -193,9 +193,9 @@ Satu dialect (PostgreSQL) di semua tahap — yang berganti hanya siapa yang menj
 
 ```bash
 # Saat PG lokal berjalan (app aktif)
-PGSOCK=/tmp/makuro_template-pg-$(id -u)   # atau nilai LOCAL_PG_SOCKET_DIR
+PGSOCK=/tmp/simple_pm-pg-$(id -u)   # atau nilai LOCAL_PG_SOCKET_DIR
 docker run --rm --user "$(id -u)" -v "$PGSOCK:$PGSOCK" postgres:18 \
-  pg_dump -h "$PGSOCK" -p 54329 -U postgres makuro_template > dump.sql
+  pg_dump -h "$PGSOCK" -p 54329 -U postgres simple_pm > dump.sql
 # Restore ke tujuan, lalu set DATABASE_URL di .env dan restart
 psql "$DATABASE_URL" < dump.sql
 ```
@@ -216,8 +216,8 @@ await storage().delete(`docs/${id}.pdf`);
 
 **Storage lokal otomatis** aktif bila `S3_ENDPOINT` kosong: app menjalankan [RustFS](https://github.com/rustfs/rustfs) 1.0.1 (Apache-2.0) sebagai child process, sama seperti Postgres lokal, jadi tidak perlu menjalankan server storage sendiri.
 
-- Runtime diunduh sekali (`init`, atau otomatis saat `bun run dev`/test) dari GitHub Release RustFS dengan sha256 yang di-pin, ke `~/.cache/makuro-template/rustfs/1.0.1/<platform>` (~88 MB), dengan progres langsung (persen/MB/kecepatan/ETA). Ekstraksi memakai `unzip`, jadi pastikan `unzip` terpasang. Server tanpa internet: `init --s3-archive=<zip>` memakai arsip yang diunduh manual (sha256 tetap diverifikasi).
-- Unduhan lambat? Rilis GitHub bisa lambat/stall di sebagian wilayah — alihkan ke mirror lewat `MAKURO_RUSTFS_RELEASES` (checksum sha256 tetap diverifikasi), mis. `MAKURO_RUSTFS_RELEASES=https://mirror.example/rustfs/1.0.1 bun run cli init`.
+- Runtime diunduh sekali (`init`, atau otomatis saat `bun run dev`/test) dari GitHub Release RustFS dengan sha256 yang di-pin, ke `~/.cache/simple-pm/rustfs/1.0.1/<platform>` (~88 MB), dengan progres langsung (persen/MB/kecepatan/ETA). Ekstraksi memakai `unzip`, jadi pastikan `unzip` terpasang. Server tanpa internet: `init --s3-archive=<zip>` memakai arsip yang diunduh manual (sha256 tetap diverifikasi).
+- Unduhan lambat? Rilis GitHub bisa lambat/stall di sebagian wilayah — alihkan ke mirror lewat `SIMPLE_PM_RUSTFS_RELEASES` (checksum sha256 tetap diverifikasi), mis. `SIMPLE_PM_RUSTFS_RELEASES=https://mirror.example/rustfs/1.0.1 bun run cli init`.
 - Data di `./data/s3` (`LOCAL_S3_DIR`), port `54330` (`LOCAL_S3_PORT`), hanya `127.0.0.1`. Kredensial acak dibuat saat boot pertama dan disimpan di `<LOCAL_S3_DIR>/keys.json` (mode 0600). Nama bucket = nama package (ubah dengan `LOCAL_S3_BUCKET`), test memakai `<bucket>-test`.
 - Platform: linux-x64, linux-arm64, darwin-arm64. darwin-x64 belum didukung, jadi isi `S3_ENDPOINT` dengan S3 eksternal.
 - RustFS tidak mengunci volume sendiri. App mencegah dua instance dengan memeriksa port dan `<LOCAL_S3_DIR>/rustfs.pid`, jadi jangan menjalankan RustFS lain di direktori yang sama.
@@ -375,7 +375,7 @@ Menambah halaman `/dev` baru berarti menyentuh lima tempat sekaligus: `app/route
 
 Semua kegagalan punya wajah yang konsisten, di UI maupun API:
 
-- **Halaman** — `ErrorBoundary` root (`app/components/errors/ErrorPage.tsx`) merender 404/401/403/5xx dengan judul, penjelasan, langkah berikutnya, path, kode referensi, dan aksi yang relevan (kembali, muat ulang, beranda, masuk). Di dalam area ber-sidebar (`/dev`, `/dashboard`, `/app`, `/profile`) halaman yang gagal tetap menampilkan sidebar (boundary di tiap layout). Detail teknis hanya tampil di development. Judul tab ikut kode status (`404 Halaman tidak ditemukan — Makuro`) dan `noindex`.
+- **Halaman** — `ErrorBoundary` root (`app/components/errors/ErrorPage.tsx`) merender 404/401/403/5xx dengan judul, penjelasan, langkah berikutnya, path, kode referensi, dan aksi yang relevan (kembali, muat ulang, beranda, masuk). Di dalam area ber-sidebar (`/dev`, `/dashboard`, `/app`, `/profile`) halaman yang gagal tetap menampilkan sidebar (boundary di tiap layout). Detail teknis hanya tampil di development. Judul tab ikut kode status (`404 Halaman tidak ditemukan — Simple PM`) dan `noindex`.
 - **API** — `server/api-error.ts` menyeragamkan semua error `/api/*` menjadi `{ error, code, status, requestId, method, path }`: 404 JSON untuk route/method tak dikenal (termasuk yang tadinya ditelan mount Better Auth), 422 dengan `issues[{ path, message }]` untuk validasi (tanpa dump skema), 400 body tak terbaca, 500 dengan pesan generik di produksi. Handler cukup `return status(4xx, { error, code? })`: bentuknya dilengkapi otomatis (`code` diturunkan dari status bila kosong, mis. 401 → `UNAUTHORIZED`, 403 → `FORBIDDEN`; field tambahan dipertahankan). Setiap 5xx dicatat sekali ke log dengan `requestId` yang sama seperti header `X-Request-Id`, jadi laporan user bisa langsung dicocokkan.
 - **Fallback tanpa React** — bila SSR sendiri gagal, `server/error-page.ts` mengirim HTML statis (500/503, dark-mode aware, dengan kode referensi) baik di dev maupun prod; halaman pemeliharaan (503) memakai pola yang sama.
 
@@ -387,7 +387,7 @@ Versi aplikasi punya satu sumber: `version` di `package.json` (dibaca `server/ap
 
 Akses terprogram ke `/api/*` tanpa cookie sesi. Dikelola super-admin di `/dev/api-keys`; dibangun di atas plugin `@better-auth/api-key` (kunci di-hash, hanya prefix yang disimpan terbaca).
 
-- **Format & header** — kunci `mk_live_…`, dikirim lewat `X-API-Key: <key>` atau `Authorization: Bearer <key>`. Nilai asli hanya ditampilkan **sekali** saat dibuat/dirotasi.
+- **Format & header** — kunci `sp_live_…`, dikirim lewat `X-API-Key: <key>` atau `Authorization: Bearer <key>`. Nilai asli hanya ditampilkan **sekali** saat dibuat/dirotasi.
 - **Scope** — tiap route memetakan ke satu scope (`server/api-keys/scopes.ts`, mis. `users:read`, `analytics:write`, `me:read`, `app:read`). Kunci tidak pernah melebihi role pemiliknya: scope di atas role ditolak saat dibuat, dan jika role pemilik turun belakangan request mendapat `403 ROLE_TOO_LOW`. Route auth dan manajemen kunci tidak bisa diakses dengan kunci; MCP butuh scope `mcp`.
 - **Kedaluwarsa & rotasi** — default 90 hari, maksimum 1 tahun; tanpa kedaluwarsa hanya untuk pemilik super-admin. Rotasi membuat kunci baru dengan pengaturan sama dan memberi kunci lama masa tenggang 24 jam. Cabut = permanen tapi riwayat tetap; hapus = baris dan riwayatnya hilang.
 - **Pembatasan** — rate limit per kunci (opsional, `429 RATE_LIMITED`), daftar IP/prefix yang diizinkan (`403 IP_NOT_ALLOWED`, dicocokkan dengan IP klien hasil `TRUSTED_PROXIES` sehingga tidak bisa dipalsukan lewat `X-Forwarded-For`), nonaktifkan sementara (`401 KEY_DISABLED`).
@@ -395,7 +395,7 @@ Akses terprogram ke `/api/*` tanpa cookie sesi. Dikelola super-admin di `/dev/ap
 - **Kunci pribadi** — setiap user yang masuk bisa membuat kunci sendiri di `/profile` (maks. 10 aktif) lewat `/api/me/api-keys`; scope dibatasi role-nya, hanya pemiliknya yang bisa mengelola, dan kunci API tidak bisa dipakai untuk mengelola kunci. Overview `/dev` dan sidebar memperingatkan kunci yang berakhir dalam 7 hari.
 - **API** (`/api/api-keys`, super-admin, semua aksi teraudit): `GET` list (`page`, `limit`, `search`, `status`, `ownerId`, `scope`), `GET /stats`, `GET /scopes`, `POST` buat (mengembalikan `key` sekali), `GET /:id`, `GET /:id/usage`, `PUT /:id`, `POST /:id/rotate`, `POST /:id/revoke`, `DELETE /:id`; log lintas kunci `GET /api/api-keys/usage` (`keyId`, `status=2xx|4xx|5xx|errors`, `method`, `search`, `days`, `page`, `limit`) dan `GET /api/api-keys/usage/export` (CSV, maks. 10.000 baris). Kunci pribadi: `/api/me/api-keys` dengan operasi yang sama tanpa `ownerId`.
 - **Spec OpenAPI** — `GET /api/openapi.json` dengan key apa pun mengembalikan OpenAPI 3 yang dibangkitkan dari validasi route (`@elysia/openapi`), difilter ke scope key dan role pemiliknya, plus endpoint baca publik. MCP, auth, dan manajemen kunci tidak dicantumkan. Skema respons belum ada karena route belum mendeklarasikannya.
-- **MCP** — `/api/mcp` menerima API key ber-scope `mcp` (`Authorization: Bearer mk_live_…`, hanya pemilik super-admin), sehingga tiap agent punya kunci sendiri yang bisa dicabut dan terlacak pemakaiannya. `MCP_ADMIN_TOKEN` di env tetap diterima sebagai jalur lama (header Bearer atau `?mcpAdminToken=`); tanpa env itu, hanya API key yang diterima. Contoh `.mcp.json` ada di `.mcp.json.example` (kunci dari env `MAKURO_MCP_KEY`).
+- **MCP** — `/api/mcp` menerima API key ber-scope `mcp` (`Authorization: Bearer sp_live_…`, hanya pemilik super-admin), sehingga tiap agent punya kunci sendiri yang bisa dicabut dan terlacak pemakaiannya. `MCP_ADMIN_TOKEN` di env tetap diterima sebagai jalur lama (header Bearer atau `?mcpAdminToken=`); tanpa env itu, hanya API key yang diterima. Contoh `.mcp.json` ada di `.mcp.json.example` (kunci dari env `SIMPLE_PM_MCP_KEY`).
 
 ## Rate limiting
 
@@ -444,7 +444,7 @@ Cek hasilnya di **`/dev/tools` → Status proses**: "Proxy tepercaya" berwarna o
 
 > **Wajib di belakang proxy:** bila app berjalan di belakang reverse proxy, load balancer, atau Cloudflare tanpa `TRUSTED_PROXIES`, semua klien terlihat sebagai IP proxy — semua orang berbagi satu bucket rate limit (dan satu bucket login), allow-list IP API key tidak berguna, dan log mencatat IP proxy.
 
-Server menulis hasilnya ke header internal `x-makuro-client-ip` (selalu ditimpa, tidak pernah dipercaya dari luar); kode server membacanya lewat `resolveClientIp()` di `server/middleware/client-ip.ts`, bukan dari `X-Forwarded-For` langsung.
+Server menulis hasilnya ke header internal `x-simple-pm-client-ip` (selalu ditimpa, tidak pernah dipercaya dari luar); kode server membacanya lewat `resolveClientIp()` di `server/middleware/client-ip.ts`, bukan dari `X-Forwarded-For` langsung.
 
 ### Log & batas memori
 
@@ -459,7 +459,7 @@ State limiter ada di memori proses: tiap klien hanya menyimpan dua hitungan (O(1
 - **Limit baris per peran** — route/handler 150, service 300, repository/query 250, schema 200, types 300, utility 200, config 100, test 400, page/component 300; hard limit global 500 baris / 20.000 karakter. Migration, generated, seed, fixture, lockfile, dan skill vendor (`.agents/`) dikecualikan. Aturan ada di `server/file-health/file-health.rules.ts`.
 - **Risiko konteks agent** — estimasi token (≈ 4 karakter/token). ≥ 5.000 token = hati-hati, ≥ 15.000 = bahaya. Tujuannya mencegah AI agent membaca file seperti `bun.lock` secara utuh dan menghabiskan context window.
 
-Agent bisa mengecek sendiri lewat tool MCP `check_file_health` (server `makuro-debug`): tanpa argumen mengembalikan ringkasan, file lewat/hampir limit, dan daftar file berbahaya; dengan `path` mengembalikan metrik + saran cara membaca file itu. REST: `GET /api/file-health` (filter `status`, `kind`, `hazard`, `search`, `sort`, `page`, `limit`, `refresh=true` untuk melewati cache 30 detik) dan `GET /api/file-health/file?path=`.
+Agent bisa mengecek sendiri lewat tool MCP `check_file_health` (server `simple-pm-debug`): tanpa argumen mengembalikan ringkasan, file lewat/hampir limit, dan daftar file berbahaya; dengan `path` mengembalikan metrik + saran cara membaca file itu. REST: `GET /api/file-health` (filter `status`, `kind`, `hazard`, `search`, `sort`, `page`, `limit`, `refresh=true` untuk melewati cache 30 detik) dan `GET /api/file-health/file?path=`.
 
 ## Testing
 

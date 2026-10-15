@@ -36,8 +36,8 @@ describe('api-keys-api helpers', () => {
   });
 
   it('formats keys, expiry and rate limits for display', () => {
-    expect(maskedKey({ start: 'mk_live_ab12', prefix: 'mk_live_' })).toBe('mk_live_ab12…');
-    expect(maskedKey({ start: null, prefix: null })).toBe('mk_live_…');
+    expect(maskedKey({ start: 'sp_live_ab12', prefix: 'sp_live_' })).toBe('sp_live_ab12…');
+    expect(maskedKey({ start: null, prefix: null })).toBe('sp_live_…');
     const now = Date.parse('2026-01-01T00:00:00Z');
     expect(daysUntil(null, now)).toBeNull();
     expect(daysUntil('2026-01-02T12:00:00Z', now)).toBe(2);

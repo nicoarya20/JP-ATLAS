@@ -20,23 +20,23 @@ const POLL_MS = 100;
 const OUTPUT_TAIL = 8_192;
 const PID_FILE = 'rustfs.pid';
 
-const g = globalThis as typeof globalThis & { __makuroLocalS3?: Promise<LocalS3> };
+const g = globalThis as typeof globalThis & { __simplePmLocalS3?: Promise<LocalS3> };
 
 /** Start (or reuse) the local RustFS; resolves once `/health/ready` answers 200. */
 export function startLocalS3(opts: StartLocalS3Options = {}): Promise<LocalS3> {
-  g.__makuroLocalS3 ??= boot(opts).catch((err) => {
-    g.__makuroLocalS3 = undefined;
+  g.__simplePmLocalS3 ??= boot(opts).catch((err) => {
+    g.__simplePmLocalS3 = undefined;
     throw err;
   });
-  return g.__makuroLocalS3;
+  return g.__simplePmLocalS3;
 }
 
 /** Stop the RustFS started by this process, if any. */
 export async function stopLocalS3(): Promise<void> {
-  const running = g.__makuroLocalS3;
+  const running = g.__simplePmLocalS3;
   if (!running) return;
   await (await running).stop();
-  g.__makuroLocalS3 = undefined;
+  g.__simplePmLocalS3 = undefined;
 }
 
 /** Credentials stored in `<dir>/keys.json`, or null when not created yet. */

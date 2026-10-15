@@ -13,7 +13,7 @@ const argv = process.argv.slice(2);
 const isStart = resolveCommand(argv)?.name === 'start';
 if (isStart && process.env.NODE_ENV !== 'production') {
   console.warn(
-    `[makuro] NODE_ENV=${process.env.NODE_ENV} — binary berjalan bukan dalam mode production (cek .env di direktori kerja).`,
+    `[simple-pm] NODE_ENV=${process.env.NODE_ENV} — binary berjalan bukan dalam mode production (cek .env di direktori kerja).`,
   );
 }
 const code = await main(argv);

@@ -5,7 +5,7 @@ import { pgClient } from './client';
 import { isLocalMode, migrationsFolder } from './paths';
 import { startLocalPg } from './server';
 
-const g = globalThis as typeof globalThis & { __makuroLocalPgSignals?: boolean };
+const g = globalThis as typeof globalThis & { __simplePmLocalPgSignals?: boolean };
 
 /** Apply Drizzle migrations to `url` with a short-lived client; returns the applied-migration count. */
 export async function runMigrations(url: string, folder = migrationsFolder()): Promise<number> {
@@ -28,8 +28,8 @@ export async function bootLocalPg(opts: { migrate?: boolean } = {}): Promise<boo
   process.env.DATABASE_URL = pg.url;
   if (opts.migrate ?? true) await runMigrations(pg.url);
 
-  if (!g.__makuroLocalPgSignals) {
-    g.__makuroLocalPgSignals = true;
+  if (!g.__simplePmLocalPgSignals) {
+    g.__simplePmLocalPgSignals = true;
     const shutdown = (signal: string) => {
       pg.stop().then(
         () => process.exit(0),

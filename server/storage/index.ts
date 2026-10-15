@@ -3,7 +3,7 @@
  * Config is read from process.env at call time because local boot fills S3_* after env.ts loads.
  */
 const g = globalThis as typeof globalThis & {
-  __makuroStorage?: { key: string; client: Bun.S3Client };
+  __simplePmStorage?: { key: string; client: Bun.S3Client };
 };
 
 const REQUIRED = ['S3_ENDPOINT', 'S3_BUCKET', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'] as const;
@@ -22,8 +22,8 @@ export function storage(): Bun.S3Client {
   }
   const e = process.env;
   const key = REQUIRED.map((k) => e[k]).join('\n') + (e.S3_REGION ?? '');
-  if (g.__makuroStorage?.key !== key) {
-    g.__makuroStorage = {
+  if (g.__simplePmStorage?.key !== key) {
+    g.__simplePmStorage = {
       key,
       client: new Bun.S3Client({
         endpoint: e.S3_ENDPOINT,
@@ -34,5 +34,5 @@ export function storage(): Bun.S3Client {
       }),
     };
   }
-  return g.__makuroStorage.client;
+  return g.__simplePmStorage.client;
 }

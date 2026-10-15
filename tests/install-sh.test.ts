@@ -40,8 +40,8 @@ async function runInstall(installDir: string) {
     env: {
       PATH: process.env.PATH ?? '',
       HOME: tmp,
-      MAKURO_DOWNLOAD_BASE: `http://127.0.0.1:${server.port}/dl`,
-      MAKURO_INSTALL_DIR: installDir,
+      SIMPLE_PM_DOWNLOAD_BASE: `http://127.0.0.1:${server.port}/dl`,
+      SIMPLE_PM_INSTALL_DIR: installDir,
     },
     stdout: 'pipe',
     stderr: 'pipe',

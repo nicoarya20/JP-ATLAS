@@ -5,7 +5,7 @@ import { useApp } from '~/lib/app-context';
 import type { Route } from './+types/home';
 
 export function meta() {
-  return [{ title: 'App — Makuro' }];
+  return [{ title: 'App — Simple PM' }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

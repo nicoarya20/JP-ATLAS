@@ -40,7 +40,7 @@ describe('ops API', () => {
   });
   test('status reports trusted-proxy config and the IP the server sees', async () => {
     const { body } = await call('/ops/status', {
-      headers: { 'x-makuro-client-ip': '172.68.1.1', 'x-forwarded-for': '198.51.100.7' },
+      headers: { 'x-simple-pm-client-ip': '172.68.1.1', 'x-forwarded-for': '198.51.100.7' },
     });
     expect(body.proxy).toMatchObject({
       trustedEntries: env.TRUSTED_PROXIES.length,

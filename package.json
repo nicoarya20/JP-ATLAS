@@ -1,5 +1,5 @@
 {
-  "name": "makuro-template",
+  "name": "simple-pm",
   "version": "0.2.0",
   "repository": {
     "type": "git",
@@ -14,10 +14,10 @@
     "start": "NODE_ENV=production bun run server/binary-entry.ts start",
     "cli": "bun run server/binary-entry.ts",
     "smoke:prod": "bun run build && bun scripts/smoke-server.ts bun run server/prod.ts",
-    "smoke:binary": "bun run build:binary && bun scripts/smoke-server.ts ./makuro-template",
+    "smoke:binary": "bun run build:binary && bun scripts/smoke-server.ts ./simple-pm",
     "build:binary": "react-router build && bun scripts/build-binary.ts",
     "build:binary:all": "react-router build && bun scripts/build-binary.ts --all",
-    "smoke:coldboot": "bun run build:binary && bun scripts/smoke-coldboot.ts ./makuro-template",
+    "smoke:coldboot": "bun run build:binary && bun scripts/smoke-coldboot.ts ./simple-pm",
     "typecheck": "react-router typegen && tsc --noEmit --singleThreaded",
     "lint": "biome check .",
     "format": "biome format --write .",

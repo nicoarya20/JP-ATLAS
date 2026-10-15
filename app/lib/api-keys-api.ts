@@ -221,9 +221,9 @@ export const STATUS_META: Record<ApiKeyStatus, { label: string; color: string; h
   revoked: { label: 'Dicabut', color: 'red', hint: 'Permanen; hanya riwayat' },
 };
 
-/** Masked display form, e.g. `mk_live_ab12…` — the plain key is never available here. */
+/** Masked display form, e.g. `sp_live_ab12…` — the plain key is never available here. */
 export function maskedKey(k: Pick<ApiKeyRow, 'start' | 'prefix'>): string {
-  return `${k.start ?? k.prefix ?? 'mk_live_'}…`;
+  return `${k.start ?? k.prefix ?? 'sp_live_'}…`;
 }
 
 export function daysUntil(iso: string | null, now = Date.now()): number | null {

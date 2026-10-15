@@ -3,7 +3,7 @@ import pkg from '../package.json' with { type: 'json' };
 
 export const PKG_NAME: string = pkg.name;
 export const PKG_VERSION: string = pkg.version;
-/** GitHub `owner/repo` that publishes release binaries (`MAKURO_REPO` overrides, e.g. for forks). */
+/** GitHub `owner/repo` that publishes release binaries (`SIMPLE_PM_REPO` overrides, e.g. for forks). */
 export const RELEASE_REPO: string =
-  process.env.MAKURO_REPO ??
+  process.env.SIMPLE_PM_REPO ??
   pkg.repository.url.replace(/^.*github\.com[/:]/, '').replace(/\.git$/, '');

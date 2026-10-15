@@ -1,4 +1,4 @@
-# CLAUDE.md — makuro-template
+# CLAUDE.md — simple-pm
 
 Aturan project ini menambah/override global `~/.claude/CLAUDE.md`.
 
@@ -6,7 +6,7 @@ Aturan project ini menambah/override global `~/.claude/CLAUDE.md`.
 
 Project ini template; fitur produk milik project turunan **default dibangun di area `/app`** (minimal role `user` / sudah login), kecuali user eksplisit meminta area lain.
 
-- **Halaman:** `app/routes/app/<nama>.tsx` → daftarkan sebagai child `layout('routes/app/layout.tsx', [...])` di `app/routes.ts` → tambahkan ke `NAV` di `app/routes/app/layout.tsx`. Wajib `meta()` (`'Nama — Makuro'`).
+- **Halaman:** `app/routes/app/<nama>.tsx` → daftarkan sebagai child `layout('routes/app/layout.tsx', [...])` di `app/routes.ts` → tambahkan ke `NAV` di `app/routes/app/layout.tsx`. Wajib `meta()` (`'Nama — Simple PM'`).
 - **Guard per halaman wajib:** loader memanggil `await requireUser(request)` dari `@server/guard` — atau `requireAnyRole(request, [...])` bila fitur khusus role. Loader layout & halaman berjalan **paralel** di React Router, jadi guard layout saja tidak melindungi data halaman. `tests/app-routes.test.ts` menjaga ini.
 - **Endpoint:** tambahkan ke `server/api/app.ts` (prefix `/api/app`, otomatis `401` tanpa sesi; `actor` tersedia di handler). Batasan role per fitur → cek `actor.role` di handler, `status(403, { error, code })`. Scope API key sudah dipetakan (`app:read`/`app:write`); file endpoint baru di luar `/api/app` tetap wajib dipetakan di `scopes.ts`. Client: Eden `client.api.app.<route>` dari `~/lib/eden`.
 - `app/routes/app/home.tsx` hanya panduan placeholder — ganti dengan beranda produk saat fitur pertama dibangun.
@@ -76,14 +76,14 @@ Setiap route yang dirender (bukan redirect-only) **wajib** punya `export functio
 // Halaman publik (landing, login, dll)
 export function meta(_: Route.MetaArgs) {
   return [
-    { title: 'Judul Halaman — Makuro' },
+    { title: 'Judul Halaman — Simple PM' },
     { name: 'description', content: 'Deskripsi singkat halaman ini, 120–160 karakter.' },
   ];
 }
 
 // Halaman app/admin (tidak diindex search engine, tapi title tetap wajib)
 export function meta() {
-  return [{ title: 'Nama Halaman — Makuro' }];
+  return [{ title: 'Nama Halaman — Simple PM' }];
 }
 ```
 
@@ -107,9 +107,9 @@ Untuk halaman yang bisa dishare (home, landing page):
 ```ts
 export function meta(_: Route.MetaArgs) {
   return [
-    { title: 'Makuro — Fullstack Template' },
+    { title: 'Simple PM — Fullstack Template' },
     { name: 'description', content: '...' },
-    { property: 'og:title', content: 'Makuro — Fullstack Template' },
+    { property: 'og:title', content: 'Simple PM — Fullstack Template' },
     { property: 'og:description', content: '...' },
     { property: 'og:type', content: 'website' },
   ];

@@ -4,7 +4,7 @@ import { currentS3Platform, isLocalStorageMode, localS3Bucket, unsupportedMessag
 import { ensureS3Runtime } from './runtime';
 import { type LocalS3, startLocalS3, stopLocalS3 } from './server';
 
-const g = globalThis as typeof globalThis & { __makuroLocalS3Signals?: boolean };
+const g = globalThis as typeof globalThis & { __simplePmLocalS3Signals?: boolean };
 
 /** Point the shared storage client (`server/storage`) at `t`. */
 export function applyStorageEnv(t: BucketTarget): void {
@@ -23,8 +23,8 @@ export function localTarget(s3: LocalS3, bucket = localS3Bucket()): BucketTarget
 
 /** Stop RustFS on SIGINT/SIGTERM unless someone (bootLocalPg) already handles them; its process.exit fires our exit hook. */
 function handleSignals(): void {
-  if (g.__makuroLocalS3Signals) return;
-  g.__makuroLocalS3Signals = true;
+  if (g.__simplePmLocalS3Signals) return;
+  g.__simplePmLocalS3Signals = true;
   for (const sig of ['SIGINT', 'SIGTERM'] as const) {
     if (process.listenerCount(sig) > 0) continue;
     process.once(sig, () => {

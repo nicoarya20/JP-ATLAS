@@ -17,9 +17,9 @@ function resolveDbUrl(): string {
 const dbUrl = resolveDbUrl();
 
 // Process-wide pool: the SSR bundle (build/server/index.js) is a second copy of this module, and dev hot reloads re-evaluate it.
-const g = globalThis as typeof globalThis & { __makuroDbClient?: ReturnType<typeof postgres> };
-g.__makuroDbClient ??= pgClient(dbUrl, { max: 5 });
-const client = g.__makuroDbClient;
+const g = globalThis as typeof globalThis & { __simplePmDbClient?: ReturnType<typeof postgres> };
+g.__simplePmDbClient ??= pgClient(dbUrl, { max: 5 });
+const client = g.__simplePmDbClient;
 
 export const db = drizzle(client, { schema });
 export { schema };

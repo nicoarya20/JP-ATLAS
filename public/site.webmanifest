@@ -1,6 +1,6 @@
 {
-  "name": "Makuro",
-  "short_name": "Makuro",
+  "name": "Simple PM",
+  "short_name": "Simple PM",
   "description": "Fullstack base template: Bun, Elysia, React Router SSR, Drizzle, Better Auth.",
   "start_url": "/",
   "display": "standalone",
