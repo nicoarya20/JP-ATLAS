@@ -1,8 +1,10 @@
-/** Account moderation under `/api/admin/users/:id`: suspend (ban) and lift a suspension. Nested in adminApi. */
+/** Account moderation under `/api/admin/users/:id`: suspend (ban), lift a suspension, approve and reject. Nested in adminApi. */
 import { Elysia, t } from 'elysia';
 import { canActOnUser } from '../access/user.policy';
+import { approveUser, rejectUser } from '../account/approval.service';
 import { AUDIT_ACTIONS, audit } from '../audit';
 import { auth } from '../auth';
+import { ROLES, type Role } from '../permissions';
 import { fail } from '../pm/respond';
 import { adminContext, callerOf } from './admin-context';
 import { findUserTarget } from './admin-users.query';
@@ -11,6 +13,7 @@ import { revokeUserSessions } from './sessions.query';
 const SECONDS_PER_DAY = 86_400;
 const Params = t.Object({ id: t.String() });
 const NOT_FOUND = { error: 'Pengguna tidak ditemukan.' };
+const KNOWN_ROLES: readonly string[] = Object.values(ROLES);
 
 export const adminModerationApi = new Elysia()
   .use(adminContext)
@@ -77,4 +80,42 @@ export const adminModerationApi = new Elysia()
       return { ok: true };
     },
     { params: Params },
+  )
+  .post(
+    '/users/:id/approve',
+    async (ctx) => {
+      const { params, body, request, status } = ctx;
+      const { actor, principal } = callerOf(ctx);
+      if (body.role !== undefined && !KNOWN_ROLES.includes(body.role))
+        return fail(status, 'VALIDATION', { error: 'Peran tidak dikenal.' });
+      const result = await approveUser({
+        actor: principal,
+        actorEmail: actor.user.email,
+        targetId: params.id,
+        role: body.role as Role | undefined,
+        headers: request.headers,
+      });
+      if (!result.ok)
+        return fail(status, result.code, result.code === 'NOT_FOUND' ? NOT_FOUND : {});
+      return { ok: true, user: result.user };
+    },
+    { params: Params, body: t.Object({ role: t.Optional(t.String()) }) },
+  )
+  .post(
+    '/users/:id/reject',
+    async (ctx) => {
+      const { params, body, request, status } = ctx;
+      const { actor, principal } = callerOf(ctx);
+      const result = await rejectUser({
+        actor: principal,
+        actorEmail: actor.user.email,
+        targetId: params.id,
+        reason: body.reason,
+        headers: request.headers,
+      });
+      if (!result.ok)
+        return fail(status, result.code, result.code === 'NOT_FOUND' ? NOT_FOUND : {});
+      return { ok: true, user: result.user };
+    },
+    { params: Params, body: t.Object({ reason: t.Optional(t.String()) }) },
   );
