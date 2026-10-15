@@ -9,11 +9,11 @@
 | Kelompok | Tugas | Selesai | Berjalan/review | Diblokir |
 |---|---|---|---|---|
 | S0.0 — Prasyarat ops | 9 | 9 | 0 | 0 |
-| S0.a — Akun dan akses | 15 | 2 | 0 | 0 |
-| S0.b — Kontrak beku | 33 | 1 | 0 | 0 |
+| S0.a — Akun dan akses | 15 | 2 | 2 | 0 |
+| S0.b — Kontrak beku | 33 | 1 | 1 | 0 |
 | S1 — Proyek dan profil | 18 | 0 | 0 | 0 |
 | S2 — Tugas inti | 17 | 0 | 0 | 0 |
-| **Total** | **92** | **12** | **0** | **0** |
+| **Total** | **92** | **12** | **3** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -58,8 +58,8 @@ Sumber spesifikasi: `rencana/P1-s0a-akun-akses.md §5`.
 |---|---|---|---|---|---|---|---|---|
 | S0A-01 | Rename role → 4 role, `emailVerified` super-admin | Gel. A | SP-0.0 | M | **selesai** | `feature/pm-s0a-01-roles` | `055aee1` merge `a6eed0d` | **WAJIB DISETUJUI SATU PER SATU (`auth.ts`, `permissions.ts`).** worker: 898 lulus/0 gagal; smoke prod+binary 23/23. Diverifikasi koordinator: `auth.ts` hanya berubah di `defaultRole`; `ROLES.USER` = 0; `canSetRole`/`canActOnTarget`/`canImpersonate` tidak disentuh; super-admin kini wajib `emailVerified`. 7 berkas di luar Target (UI role, filter legacy `user`), semuanya minimal dan beralasan |
 | S0A-02 | Skema akun + migrasi 0014 (pemegang baton) | Gel. A | SP-0.0 | L | **selesai** | `feature/pm-s0a-02-account-schema` | `7b99b99` merge `6ceb09a` | **WAJIB DISETUJUI SATU PER SATU (migrasi 0014).** worker: 807 lulus/0 gagal; smoke coldboot+prod+binary 23/23. Diverifikasi koordinator: SQL dibaca penuh, backfill `approved` SEBELUM default `pending` (akun lama tidak terkunci), anonim -> `rejected`, berguard idempoten, `-- no-down`. 1 baris regex di `db-generate-rewrite.test.ts` (di luar Target, perlu) |
-| S0A-03 | Kebijakan akun murni (`server/access`) | Gel. B | 01 | M | belum |  |  |  |
-| S0A-05 | `auth.ts`: field persetujuan, kebijakan email, linking | Gel. B | 02 | M | belum |  |  |  |
+| S0A-03 | Kebijakan akun murni (`server/access`) | Gel. B | 01 | M | review | `feature/pm-s0a-03-account-policy` | `8932bec` | worker: 1.106 lulus/0 gagal; `test:pm` 176 lulus. Diverifikasi koordinator: berkas murni (0 baris terlarang), `package.json` hanya skrip `test:pm`, `Principal = {id, appRole, impersonating}` (bentuk P2, penyimpangan sengaja dari P1). Catatan: `canInviteWithRole`/`canManageUsers` belum diblokir saat menyamar (aditif nanti). **`DenyCode` duplikat dengan `server/pm/errors.ts` (S0B-11): disatukan oleh S0B-12** |
+| S0A-05 | `auth.ts`: field persetujuan, kebijakan email, linking | Gel. B | 02 | M | review | `feature/pm-s0a-05-auth-config` | `ee17e54` | **WAJIB DISETUJUI SATU PER SATU (`auth.ts`).** Worker mati karena koneksi putus (bukan 429) saat `smoke:prod`; pekerjaan sudah ter-commit dan worktree bersih, jadi dispatch di-`abandon` dan **koordinator memverifikasi sendiri**: gabungan G2 = 1.210 lulus/0 gagal, `smoke:coldboot` 23/23 dan `smoke:binary` 23/23 (Bun 1.4.2). **`smoke:prod` (mode skrip) TIDAK dijalankan** (butuh instansi Postgres sendiri). Terbukti lewat test: `update-user` dengan `approvalStatus`/`role`/`approval*` ditolak 400 `FIELD_NOT_ALLOWED` (C-AUTH-6); sign-up tidak bisa menyelundupkan status; akun email baru `pending`. `additionalFields` di blok `user` (benar), `accountLinking.disableImplicitLinking`. Belum terbukti: jalur Google asli (menunggu UAT S0A-15). 1 berkas di luar Target (`app/lib/auth-client.ts`, impor tipe saja). Tidak ada laporan worker |
 | S0A-04 | Undangan + keputusan sign-up | Gel. C | 01, 02, 03 | M | belum |  |  |  |
 | S0A-07 | Guard menahan pending/rejected + API key | Gel. C | 05 | L | belum |  |  |  |
 | S0A-12 | Layar login Google-only | Gel. C | 05 | S | belum |  |  |  |
@@ -88,7 +88,7 @@ Sumber spesifikasi: `rencana/P2-s0b-kontrak-beku.md §3`.
 | S0B-08 | Metrics 1: konfigurasi, tanggal, hitungan tugas | Lajur D | S0B-01 | M (1) | belum |  |  |  |
 | S0B-09 | Metrics 2: progres, waktu berjalan, kondisi proyek | Lajur D | S0B-08 | M (1) | belum |  |  |  |
 | S0B-10 | Keanggotaan proyek (query) | Lajur D | S0B-06, S0B-12 | M (1) | belum |  |  |  |
-| S0B-11 | Infrastruktur `server/pm`: galat, transaksi, keyset, batas | Lajur K | S0B-01 | M (1) | belum |  |  |  |
+| S0B-11 | Infrastruktur `server/pm`: galat, transaksi, keyset, batas | Lajur K | S0B-01 | M (1) | review | `feature/pm-s0b-11-pm-infra` | `ed14161` | worker: 1.000 lulus/0 gagal. Diverifikasi koordinator: berkas dalam Target, `errors.ts`/`limits.ts` murni, semua http dalam {403,404,409,422,429,503}, `PROJECT_DELETE_UI_ENABLED=true` (sesuai keputusan opsi B). `DenyCode` di `errors.ts` adalah superset yang dimaksudkan diekspor ulang oleh `decision.ts` |
 | S0B-12 | Fondasi `server/access`: tipe, keputusan, level, flag | Lajur K | S0B-11, G-A1 | M (1) | belum |  |  |  |
 | S0B-13 | Izin pengguna dan status akun | Lajur K | S0B-12 | M (1) | belum |  |  |  |
 | S0B-14 | Izin proyek dan anggota | Lajur K | S0B-12 | M (1,5) | belum |  |  |  |
@@ -194,7 +194,7 @@ Dihasilkan dari simulasi ketergantungan (P1 §3, P2 §3-4), rantai berkas bersam
 | **G16** | S0B-32 README kontrak | S0B-31 koreksi `CLAUDE.md` |  | belum |
 | **G17** | S0B-33 gerbang `contract-v1` |  |  | belum |
 
-**Hitungan gelombang tanpa galat 429** (syarat naik ke 4 worker: dua gelombang berturut-turut): G1 tanpa 429 (1 dari 2).
+**Hitungan gelombang tanpa galat 429** (syarat naik ke 4 worker: dua gelombang berturut-turut): G1 dan G2 tanpa 429 (2 dari 2). **Syarat terpenuhi: G3 boleh memakai 4 worker.** (Satu worker G2 mati karena koneksi putus; itu bukan 429 dan tidak dihitung.)
 
 Dengan 4 worker: 13 gelombang (S0.a tetap selesai di G9). Perkiraan kasar: 17 gelombang ≈ 3,5 minggu, 13 gelombang ≈ 2,5-3 minggu, bila satu gelombang ≈ 1 hari kerja. P1/P2 mengira ±6 worker paralel; dengan batas kuota, durasinya kira-kira dua kali lipat.
 
@@ -223,3 +223,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **15 Okt 2026** — Jadwal peluncuran S0.a + S0.b disimpan di bagian "Jadwal peluncuran" atas persetujuan user (3 worker, risiko-dulu, titik cek setelah G4). Gerbang SP0a dipecah menjadi SP0a-1 dan SP0a-2.
 - **15 Okt 2026** — G1 (S0A-01, S0A-02, S0B-01) selesai dikerjakan dan berstatus `review`. Tiap cabang diverifikasi koordinator. **Uji gabungan** (basis `1da0d98`, worktree sementara, tidak dipush): tanpa konflik, `typecheck` nol error, **930 lulus / 17 dilewati / 0 gagal** (sebelumnya 795), lint = baseline, `drizzle-kit generate` = tidak ada perubahan skema. Menunggu persetujuan: S0A-01 dan S0A-02 **satu per satu**, S0B-01 per gelombang.
 - **15 Okt 2026** — G1 digabung atas persetujuan user (S0A-01 dan S0A-02 satu per satu, S0B-01 per gelombang). Gerbang SP1a, SP0a-1, dan SP0 terbuka. 12 dari 92 tugas selesai. Gelombang tanpa 429: G1 (1 dari 2). Berikutnya G2 (S0A-05, S0A-03, S0B-11), menunggu perintah luncurkan.
+- **16 Okt 2026** — G2 (S0A-05, S0A-03, S0B-11) selesai dikerjakan dan berstatus `review`. S0A-05: worker mati (koneksi putus) setelah commit; dispatch di-`abandon`, koordinator memverifikasi sendiri termasuk `smoke:coldboot` dan `smoke:binary` pada hasil gabungan (23/23 dan 23/23); `smoke:prod` tidak dijalankan. **Uji gabungan** (basis `ec53847`, tidak dipush): tanpa konflik, `typecheck` nol error, **1.210 lulus / 17 dilewati / 0 gagal** (sebelumnya 930), lint = baseline, skema tidak bergeser. Menunggu persetujuan: S0A-05 satu per satu; S0A-03 dan S0B-11 per gelombang.
