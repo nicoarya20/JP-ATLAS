@@ -1,14 +1,6 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({
-    user: { id: 'u-test', email: 'u-test@test.local' },
-    role: 'super-admin',
-  }),
-}));
-
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { auditApi } from '../../server/api/audit';
 import { buildAuditWhere, toAuditCsv } from '../../server/api/audit.query';
 import { AUDIT_ACTIONS, audit } from '../../server/audit';
@@ -16,8 +8,13 @@ import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
 import { CLIENT_IP_HEADER } from '../../server/middleware/client-ip';
 import { testUser } from '../support/accounts';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(auditApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', email: 'u-test@test.local', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
 const TAG = `aud-${crypto.randomUUID().slice(0, 8)}`;
 const actorId = `${TAG}-actor`;
 
@@ -29,6 +26,7 @@ async function getJson(path: string, params: Record<string, string> = {}) {
 }
 
 beforeAll(async () => {
+  authSpies.as(SUPER_ADMIN);
   await db.insert(user).values(
     testUser({
       id: actorId,

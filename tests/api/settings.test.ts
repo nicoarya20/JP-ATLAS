@@ -1,18 +1,18 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test';
-
-// Bypass auth — settings PUT requires super-admin; GET is public.
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({ user: { id: 'u-super' }, role: 'super-admin' }),
-}));
-
+import { afterEach, beforeAll, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { settingsApi } from '../../server/api/settings';
 import { db } from '../../server/db';
 import { appSetting } from '../../server/db/schema';
 import { rateLimiter } from '../../server/middleware/rate-limiter';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(settingsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-super', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
 
 const SINGLETON = 'singleton';
 

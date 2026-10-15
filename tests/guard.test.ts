@@ -22,10 +22,10 @@ const ctx: { user: SessionUser; role: string; impersonatedBy: string | null } = 
   impersonatedBy: null,
 };
 
-// spyOn (not mock.module) so every override is reverted in afterAll. bun's
-// mock.module swaps a module process-wide with no restore path, so mocking
+// spyOn (not a module replacement) so every override is reverted in afterAll. bun's
+// module replacement is process-wide with no restore path, so replacing
 // `./auth` would leave auth-flow.test.ts mounting an undefined auth.handler,
-// and mocking `./roles` would clobber the real resolveUserRole that
+// and replacing `./roles` would clobber the real resolveUserRole that
 // roles.test.ts exercises. Spies are scoped to this file.
 import { auth } from '../server/auth';
 import * as rolesMod from '../server/roles';

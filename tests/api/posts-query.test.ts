@@ -122,8 +122,8 @@ describe('postStats', () => {
 });
 
 describe('GET /posts/stats', () => {
-  // Asserts the contract (route demands super-admin), not guard internals: other test
-  // files mock.module the guard process-wide; requireRole's rejection is covered in guard.test.ts.
+  // Asserts the contract (route demands super-admin), not guard internals:
+  // requireRole's rejection is covered in guard.test.ts.
   test('is gated to super-admin', async () => {
     const gate = spyOn(guardMod, 'requireRole');
     try {
