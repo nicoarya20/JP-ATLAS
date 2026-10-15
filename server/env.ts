@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { assertSecretStrength } from './env-secret';
 import { invalidProxyEntries, splitProxyList } from './middleware/trusted-proxy';
 
 /** Reverse proxies whose X-Forwarded-For is honoured (IPs/CIDRs). Empty = trust none. */
@@ -47,6 +48,8 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export const isProd = env.NODE_ENV === 'production';
+// Fail at boot rather than sign sessions with a guessable secret.
+assertSecretStrength(env.BETTER_AUTH_SECRET, isProd);
 export const hasGoogleAuth = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
 
 /** Normalized set of super-admin emails (lowercased, de-duped, blanks dropped). */
