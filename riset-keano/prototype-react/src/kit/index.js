@@ -1,5 +1,5 @@
 // Kit re-exports: screen modules import everything UI from here.
-export { Screen, NavBar, AppTabBar, TABS, CREATE, createFor } from './layout';
+export { Screen, NavBar, AppTabBar, TabBarHost, TABS, CREATE, createFor } from './layout';
 export { Btn, Link, Chips, Seg, Tabs } from './controls';
 export { Head, Section, Rows, Row, Field, Avatar, Avatars, Pill, Progress, Media, Empty } from './display';
 export { Select, Search, Switch, Label, Snack } from './form';

@@ -13,7 +13,7 @@ p { margin: 0; line-height: var(--lh-body); }
 h1, h2, h3 { margin: 0; }
 
 /* ---- Shell: status bar, then one screen = nav bar + scrolling content (+ fixed tab bar) ---- */
-.phone-app { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.phone-app { position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 .statusbar { flex: none; height: 44px; padding: 0 var(--sp-6); display: flex; align-items: center; justify-content: space-between;
   font-size: var(--fs-subhead); font-weight: 600; background: var(--bg); }
 .scr { flex: 1; min-height: 0; display: flex; flex-direction: column; }

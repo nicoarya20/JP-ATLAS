@@ -1,4 +1,5 @@
 // Screen frame: navigation bar, scrolling content and the bottom tab bar. Every screen renders through <Screen>.
+import { createContext, useContext, useLayoutEffect } from 'react';
 import { NavigationBar } from '@react-cupertino-ui/navigation-bar';
 import { CalendarDays, CircleCheck, Ellipsis, FolderKanban, House, Plus } from 'lucide-react';
 import { useApp } from '../core/app.context';
@@ -55,15 +56,29 @@ export function NavBar({ title = '', sub, back, left, right, large }) {
 }
 
 /**
+ * Where a screen's tab bar is drawn. PhoneApp provides a setter and draws one AppTabBar that outlives screen changes,
+ * so the bubble slides between tabs instead of a new bar appearing per screen. Without a host, Screen draws its own.
+ */
+export const TabBarHost = createContext(null);
+
+/**
  * One phone screen: nav bar (or a custom `header`), scrolling content, optional tab bar.
  * props: {title, sub, back, left, right, large, header, tab, className (extra content classes), children}.
  */
 export function Screen({ title, sub, back, left, right, large, header, tab, className = '', children }) {
+  const host = useContext(TabBarHost);
+  // Layout effect: the host bar switches tabs in the same frame the screen appears. A leaving screen clears it, and the
+  // next screen's set lands in the same commit, so the bar never unmounts between two tab screens.
+  useLayoutEffect(() => {
+    if (!host) return undefined;
+    host(tab ?? null);
+    return () => host(null);
+  }, [host, tab]);
   return (
     <div className="scr">
       {header ?? <NavBar title={title} sub={sub} back={back} left={left} right={right} large={large} />}
       <main className={`content stack ${tab ? 'with-tabbar' : ''} ${className}`.trim()}>{children}</main>
-      {tab && <AppTabBar active={tab} />}
+      {tab && !host && <AppTabBar active={tab} />}
     </div>
   );
 }

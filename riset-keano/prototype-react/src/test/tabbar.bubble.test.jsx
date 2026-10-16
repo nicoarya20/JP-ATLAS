@@ -52,7 +52,7 @@ describe('tab bar bubble', () => {
     fireEvent.pointerUp(bar(), { clientX: 214, pointerId: 1 });
     expect(window.location.hash).toBe('#events.list');
     expect(bubble()).toHaveClass('is-settling');
-    expect(Number(pos('--tb-from'))).toBeCloseTo(3);
+    expect(pos('--tb-pos')).toBe('3');
   });
 
   it('keeps the bubble inside the pill when dragged past the edge', () => {
@@ -63,7 +63,44 @@ describe('tab bar bubble', () => {
     expect(pos('--tb-pos')).toBe('4');
     fireEvent.pointerCancel(bar(), { pointerId: 1 });
     expect(window.location.hash).toBe('#home.main');   // a cancelled drag goes back to the active tab
-    expect(pos('--tb-from')).toBe('4');
+    expect(pos('--tb-pos')).toBe('0');
+  });
+
+  // The slide is a CSS transition on --tb-pos, so it only plays if the same bubble element survives the screen change.
+  it('keeps one bubble across tab changes so it can slide instead of reappearing', async () => {
+    renderApp('home.main', 'member');
+    const first = bubble();
+    await userEvent.click(dom.getByRole('tab', { name: 'Tasks' }));
+    await userEvent.click(dom.getByRole('tab', { name: 'Events' }));
+    expect(window.location.hash).toBe('#events.list');
+    expect(bubble()).toBe(first);
+    expect(pos('--tb-pos')).toBe('3');
+  });
+
+  it('restarts the bounce when a new tab is picked mid-bounce', async () => {
+    renderApp('home.main', 'member');
+    await userEvent.click(dom.getByRole('tab', { name: 'Tasks' }));
+    expect(bubble()).toHaveClass('is-bounce-1');
+    await userEvent.click(dom.getByRole('tab', { name: 'Projects' }));
+    expect(bubble()).toHaveClass('is-bounce-2');      // another keyframe name, so the browser starts it over
+  });
+
+  it('slides too when a link on the screen changes the tab', async () => {
+    renderApp('home.main', 'member');
+    const first = bubble();
+    const seeAll = dom.getAllByText('See all');
+    await userEvent.click(seeAll[seeAll.length - 1]);  // Home's task section -> Tasks
+    expect(window.location.hash).toBe('#tasks.my');
+    expect(bubble()).toBe(first);
+    expect(pos('--tb-pos')).toBe('1');
+    expect(bubble()).toHaveClass('is-settling');
+  });
+
+  it('hides on a screen without a tab and comes back on a tab screen', async () => {
+    renderApp('home.more', 'member');
+    await userEvent.click(dom.getByText('Settings'));
+    expect(window.location.hash).toBe('#settings.main');
+    expect(dom.queryByRole('tablist', { name: 'App navigation' })).not.toBeInTheDocument();
   });
 
   it('moves between tabs with the arrow keys', () => {

@@ -1,9 +1,10 @@
-// Phone shell: renders the current screen, the open bottom sheet and the toast; keeps the URL and the index in sync.
-import { useEffect } from 'react';
+// Phone shell: renders the current screen, its tab bar, the open bottom sheet and the toast; keeps the URL and the index in sync.
+import { useEffect, useState } from 'react';
 import { BottomSheet, BottomSheetContent, BottomSheetTitle } from '@react-cupertino-ui/bottom-sheet';
 import { Toast } from '@react-cupertino-ui/toast';
 import { MSG, TOAST_MS, useApp } from './app.context';
 import { getScreen, getSheet } from './registry';
+import { AppTabBar, TabBarHost } from '../kit/layout';
 
 export const DEFAULT_SHEET_SNAP = 0.6;
 
@@ -51,10 +52,14 @@ export function PhoneApp() {
   useUrlSync(app.current, app.role);
   useIndexMessages(app.go);
   const Screen = getScreen(app.current).Component;
+  const [tab, setTab] = useState(null);   // the shown screen's tab (via <Screen tab>); the bar lives here to outlast it
   return (
     <div className="phone-app">
       <div className="statusbar" aria-hidden="true"><span>9:41</span></div>
-      <Screen key={app.current} params={app.params} />
+      <TabBarHost.Provider value={setTab}>
+        <Screen key={app.current} params={app.params} />
+      </TabBarHost.Provider>
+      {tab && <AppTabBar active={tab} />}
       <OpenSheet />
       {app.toastState && (
         <Toast key={app.toastState.key} className="app-toast" title={app.toastState.msg} position="top-center" duration={TOAST_MS} onClose={app.clearToast} />
