@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { inArray } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { analyticsApi } from '../../server/api/analytics';
@@ -32,7 +32,9 @@ const TAG = `rl-${crypto.randomUUID().slice(0, 8)}`;
 const ids: string[] = [];
 type Row = { ip: string | null; path: string; method: string | null };
 
-beforeAll(async () => {
+// Per test: the bulk DELETE test removes seeded rows that the other tests count.
+beforeEach(async () => {
+  ids.length = 0;
   const rows = await db
     .insert(rateLimitLog)
     .values([
@@ -65,7 +67,7 @@ beforeAll(async () => {
   ids.push(...rows.map((r) => r.id));
 });
 
-afterAll(async () => {
+afterEach(async () => {
   if (ids.length)
     await db
       .delete(rateLimitLog)
@@ -146,7 +148,6 @@ describe('GET /analytics/rate-limit-logs', () => {
       .from(rateLimitLog)
       .where(inArray(rateLimitLog.id, ids));
     expect(left.map((r) => r.id)).toEqual([keep]);
-    ids.splice(0, ids.length, keep);
   });
 });
 
