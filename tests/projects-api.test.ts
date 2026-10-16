@@ -10,6 +10,7 @@ import {
   projectErrorMessage,
   projectKeys,
   removeProjectMember,
+  setProjectStatus,
   unwrap,
   withProjectMessage,
 } from '../app/lib/projects-api';
@@ -105,17 +106,31 @@ describe('unwrap (Eden result)', () => {
   });
 });
 
-describe('write wrappers (S1-03/S1-04 contract)', () => {
-  it('POSTs the create body and accepts `{ project }` or the bare project', async () => {
-    const spy = stubFetch(json(201, { project: { id: 'p9', name: 'Atlas' } }));
-    expect(await createProject({ name: 'Atlas', members: [] })).toEqual({
+describe('write wrappers (Eden for S1-03, DTO for S1-04)', () => {
+  it('POSTs the create body through Eden and returns the project detail', async () => {
+    const spy = stubFetch(json(201, { id: 'p9', name: 'Atlas' }));
+    expect(await createProject({ name: 'Atlas', status: 'active', members: [] })).toEqual({
       id: 'p9',
       name: 'Atlas',
-    });
+    } as Awaited<ReturnType<typeof createProject>>);
     const [url, init] = spy.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('/api/app/projects');
+    expect(new URL(url).pathname).toBe('/api/app/projects');
     expect(init.method).toBe('POST');
-    expect(JSON.parse(String(init.body))).toEqual({ name: 'Atlas', members: [] });
+    expect(JSON.parse(String(init.body))).toEqual({ name: 'Atlas', status: 'active', members: [] });
+  });
+
+  it('maps a refused create to the project wording', async () => {
+    stubFetch(json(403, { error: 'x', code: 'NOT_APP_ROLE', status: 403, requestId: 'r' }));
+    const err = await createProject({ name: 'Atlas' }).catch((e: unknown) => e);
+    expect((err as ApiError).message).toBe(PROJECT_ERROR_MESSAGES.NOT_APP_ROLE as string);
+  });
+
+  it('POSTs a status change to /:id/status', async () => {
+    const spy = stubFetch(json(200, { id: 'p9', name: 'Atlas' }));
+    await setProjectStatus('p9', 'on_hold');
+    const [url, init] = spy.mock.calls[0] as [string, RequestInit];
+    expect(new URL(url).pathname).toBe('/api/app/projects/p9/status');
+    expect(JSON.parse(String(init.body))).toEqual({ status: 'on_hold' });
   });
 
   it('maps LAST_MANAGER on member removal to the project wording', async () => {
