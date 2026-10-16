@@ -51,6 +51,10 @@ describe('PM_ERRORS catalog', () => {
     }
   });
 
+  it('ACCOUNT_PENDING promises no email (N01: the app sends none)', () => {
+    expect(PM_ERRORS.ACCOUNT_PENDING.message).not.toMatch(/email|kabar/i);
+  });
+
   it('keeps 5xx messages generic (no internal detail)', () => {
     for (const code of ALL_CODES) {
       if (PM_ERRORS[code].http >= 500)
