@@ -1,27 +1,25 @@
-/** Cross-key usage log: filters, pagination and CSV export (guard mocked). */
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({
-    user: { id: 'u-test', email: 'u-test@test.local' },
-    role: 'super-admin',
-  }),
-}));
-
+/** Cross-key usage log: filters, pagination and CSV export (real guard, spied session). */
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { apiKeysUsageApi } from '../../server/api/api-keys-usage';
 import { createKey } from '../../server/api-keys/service';
 import { db } from '../../server/db';
 import { apiKeyUsage, user } from '../../server/db/schema';
 import { testUser } from '../support/accounts';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(apiKeysUsageApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', email: 'u-test@test.local', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
 const TAG = `ku-${crypto.randomUUID().slice(0, 8)}`;
 const ownerId = `${TAG}-owner`;
 let keyId = '';
 
 beforeAll(async () => {
+  authSpies.as(SUPER_ADMIN);
   await db.insert(user).values(
     testUser({
       id: ownerId,

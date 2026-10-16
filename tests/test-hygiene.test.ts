@@ -1,4 +1,4 @@
-/** Ratchet for test hygiene: `mock.module` files may only shrink, deletes need a WHERE, long sleeps are banned in new files. */
+/** Ratchet for test hygiene: `mock.module` is banned (allowlist is empty), deletes need a WHERE, long sleeps are banned in new files. */
 import { describe, expect, test } from 'bun:test';
 import path from 'node:path';
 
@@ -8,21 +8,11 @@ const SELF = 'tests/test-hygiene.test.ts';
 const MAX_SLEEP_MS = 100;
 
 /**
- * Files that already use `mock.module` (state of `grep -rl "mock.module" tests`).
+ * Files allowed to use `mock.module`. The ratchet reached 0 (S0B-23): the list is empty and must stay so.
  * `mock.module` replaces a module for the whole bun process and leaks into unrelated files,
- * so the list may only shrink: use `spyOn` instead (pattern: tests/api/posts.test.ts).
- * When a file is converted, remove it here — stale entries fail on purpose.
+ * so use `spyOn` or `installAuthSpies()` instead (pattern: tests/api/posts.test.ts).
  */
-const MOCK_MODULE_ALLOWLIST: readonly string[] = [
-  'tests/api/api-keys-api.test.ts',
-  'tests/api/api-keys-usage.test.ts',
-  'tests/api/audit.test.ts',
-  'tests/api/ops.test.ts',
-  'tests/api/posts-query.test.ts',
-  'tests/api/settings-ops.test.ts',
-  'tests/api/settings.test.ts',
-  'tests/guard.test.ts',
-];
+const MOCK_MODULE_ALLOWLIST: readonly string[] = [];
 
 /** Files that predate the unfiltered-delete rule and still contain one. Empty today; never add to it. */
 const UNSAFE_DELETE_ALLOWLIST: readonly string[] = [];
@@ -61,7 +51,10 @@ export type HygieneReport = {
 };
 
 /** Checks `files` (repo-relative path -> source) against the ratchet; every list in the report must be empty. */
-export function checkHygiene(files: ReadonlyMap<string, string>): HygieneReport {
+export function checkHygiene(
+  files: ReadonlyMap<string, string>,
+  mockAllowlist: readonly string[] = MOCK_MODULE_ALLOWLIST,
+): HygieneReport {
   const mockers = new Set<string>();
   const unsafeDeletes: string[] = [];
   const longSleeps: string[] = [];
@@ -73,8 +66,8 @@ export function checkHygiene(files: ReadonlyMap<string, string>): HygieneReport 
     if (hasLongSleep(source) && !LONG_SLEEP_ALLOWLIST.includes(file)) longSleeps.push(file);
   }
   return {
-    newMockModule: [...mockers].filter((f) => !MOCK_MODULE_ALLOWLIST.includes(f)).sort(),
-    staleMockModule: MOCK_MODULE_ALLOWLIST.filter((f) => !mockers.has(f)).sort(),
+    newMockModule: [...mockers].filter((f) => !mockAllowlist.includes(f)).sort(),
+    staleMockModule: mockAllowlist.filter((f) => !mockers.has(f)).sort(),
     unsafeDeletes: unsafeDeletes.sort(),
     longSleeps: longSleeps.sort(),
   };
@@ -143,8 +136,15 @@ describe('ratchet detection (fixture strings, not real files)', () => {
   });
 
   test('fails when an allowlisted file stops using mock.module (ratchet down)', () => {
-    const files = new Map(clean).set('tests/guard.test.ts', 'spyOn(auth.api, "getSession")');
-    expect(checkHygiene(files).staleMockModule).toEqual(['tests/guard.test.ts']);
+    // The real allowlist is empty now, so the stale-entry check runs against an explicit one.
+    const files = new Map([['tests/guard.test.ts', 'spyOn(auth.api, "getSession")']]);
+    expect(checkHygiene(files, ['tests/guard.test.ts']).staleMockModule).toEqual([
+      'tests/guard.test.ts',
+    ]);
+  });
+
+  test('the real allowlist is empty (ratchet is at 0)', () => {
+    expect(MOCK_MODULE_ALLOWLIST).toEqual([]);
   });
 
   test('flags db.delete(x) without .where, single and multi-line, and tx receiver', () => {
