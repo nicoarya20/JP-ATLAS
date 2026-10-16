@@ -2,8 +2,10 @@
 import { expect } from 'bun:test';
 import { and, type SQL } from 'drizzle-orm';
 import { api } from '../../server/api';
+import { writeLimiter } from '../../server/api/app-context';
 import { db } from '../../server/db';
 import { auditLog } from '../../server/db/schema';
+import { rateLimiter } from '../../server/rate-limit';
 
 // biome-ignore lint/suspicious/noExplicitAny: response bodies are asserted field by field by each caller
 export type Json = Record<string, any>;
@@ -38,6 +40,17 @@ export async function call(
     body: (await res.json().catch(() => null)) as Json,
     headers: res.headers,
   };
+}
+
+/**
+ * Empties the in-process limiters every `call` passes: the global IP limiter (all in-process calls
+ * share one `unknown` client bucket) and the per-user write limiter of `/api/app`. Call it in
+ * `beforeEach` of a file that sends many requests, so its volume cannot answer 429 to a later file.
+ * Test-only: production limits and their configuration are untouched.
+ */
+export function resetApiLimiters(): void {
+  rateLimiter.reset();
+  writeLimiter.reset();
 }
 
 /** Asserts a failed call carries the uniform `{ error, code, status, requestId }` body and the expected status/code. */
