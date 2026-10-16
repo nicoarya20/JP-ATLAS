@@ -49,6 +49,11 @@ describe('DenyCode parity between PM_ERRORS and DENY_UI (M8)', () => {
     },
   );
 
+  it('says the same about a missing reason in the API and the UI, for reopen as for return (N10)', () => {
+    expect(DENY_UI.REASON_REQUIRED.message).toBe(PM_ERRORS.REASON_REQUIRED.message);
+    expect(DENY_UI.REASON_REQUIRED.message).not.toContain('penolakan');
+  });
+
   it('keeps DenyCodes and API codes disjoint, so one code never has two meanings', () => {
     const api = new Set<string>(PM_API_CODES);
     expect(DENY_CODES.filter((c) => api.has(c))).toEqual([]);

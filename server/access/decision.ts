@@ -105,7 +105,8 @@ export const DENY_UI: Record<DenyCode, DenyUi> = {
   REASON_REQUIRED: {
     http: 422,
     ui: 'disable',
-    message: 'Tuliskan alasan penolakan 3–200 karakter agar pengguna paham.',
+    // Shared by reopen and (S4) return, so the text names no single step (N10).
+    message: 'Tuliskan alasannya agar tim paham.',
   },
   CANCEL_NOTE_REQUIRED: {
     http: 422,

@@ -15,12 +15,18 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 const STUBS = [
   { file: 'app-projects.trash.ts', plugin: 'projectTrashApi', prefix: '/projects' },
   { file: 'app-trash.ts', plugin: 'trashApi', prefix: '/trash' },
-  { file: 'app-tasks.workflow.ts', plugin: 'taskWorkflowApi', prefix: '/tasks' },
   { file: 'app-tasks.detail.ts', plugin: 'taskDetailApi', prefix: '/tasks' },
 ];
 
-/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-06 profile, S2-03 tasks): no longer stubs, still mounted by app.ts. */
-const FILLED = ['profileApi', 'projectsApi', 'projectMembersApi', 'teamPickerApi', 'tasksApi'];
+/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-06 profile, S2-03 tasks, S2-05 workflow): no longer stubs, still mounted by app.ts. */
+const FILLED = [
+  'profileApi',
+  'projectsApi',
+  'projectMembersApi',
+  'teamPickerApi',
+  'tasksApi',
+  'taskWorkflowApi',
+];
 
 /** Modules that already predate the no-Drizzle rule; new ones must not join this list. */
 const DB_ALLOWED = ['app-avatar.ts']; // legacy: avatar upload touches the user row directly
@@ -109,6 +115,7 @@ describe('module hygiene', () => {
     ['app-tasks.ts', 150],
     ['app-tasks.write.ts', 150],
     ['app-tasks.schema.ts', 150],
+    ['app-tasks.workflow.ts', 140],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);
