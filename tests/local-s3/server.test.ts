@@ -77,17 +77,29 @@ describe.skipIf(!installed)('local RustFS', () => {
   });
 
   it('stop() ends the process and releases port + lock (keys and data survive)', async () => {
-    await s3.stop();
-    expect(await s3Healthy(s3.endpoint)).toBe(false);
-    expect(await Bun.file(path.join(dir, 'rustfs.pid')).exists()).toBe(false);
-    expect(await Bun.file(path.join(dir, 'keys.json')).exists()).toBe(true);
-    const again = await boot({ dir, port: PORT });
+    // Own instance: stopping the shared one would break whichever test runs after this under --randomize.
+    const ownDir = await fs.mkdtemp(path.join(os.tmpdir(), 'local-s3-stop-'));
+    const ownPort = PORT + 2;
+    const first = await boot({ dir: ownDir, port: ownPort });
     try {
-      expect(again.accessKeyId).toBe(s3.accessKeyId);
-      const client = new Bun.S3Client(localTarget(again, 'boot-test'));
-      expect(await client.file('hello.txt').text()).toBe('halo');
+      const target = localTarget(first, 'boot-test');
+      await ensureBucket(target);
+      await new Bun.S3Client(target).write('hello.txt', 'halo');
+      await first.stop();
+      expect(await s3Healthy(first.endpoint)).toBe(false);
+      expect(await Bun.file(path.join(ownDir, 'rustfs.pid')).exists()).toBe(false);
+      expect(await Bun.file(path.join(ownDir, 'keys.json')).exists()).toBe(true);
+      const again = await boot({ dir: ownDir, port: ownPort });
+      try {
+        expect(again.accessKeyId).toBe(first.accessKeyId);
+        const client = new Bun.S3Client(localTarget(again, 'boot-test'));
+        expect(await client.file('hello.txt').text()).toBe('halo');
+      } finally {
+        await again.stop();
+      }
     } finally {
-      await again.stop();
+      await first.stop();
+      await fs.rm(ownDir, { recursive: true, force: true });
     }
   });
 });
