@@ -25,6 +25,7 @@ export type ApiErrorBody = {
 
 const MESSAGES = {
   NOT_FOUND: 'Endpoint tidak ditemukan',
+  UNAUTHORIZED: 'Silakan masuk terlebih dahulu.',
   VALIDATION: 'Validasi gagal',
   PARSE: 'Body request tidak bisa dibaca',
   INVALID_COOKIE_SIGNATURE: 'Cookie tidak valid',
@@ -75,6 +76,27 @@ export function notFoundResponse(request: Request): Response {
     method: request.method,
     path: new URL(request.url).pathname,
   });
+}
+
+/**
+ * Uniform JSON error as a `Response`, for guards that must `throw` it from a `derive`
+ * (a thrown `status()` becomes a 500; a thrown `Response` passes through onError).
+ */
+export function errorResponse(request: Request, status: number, error: string, code: string) {
+  const path = new URL(request.url).pathname;
+  return jsonError({
+    error,
+    code,
+    status,
+    requestId: newRequestId(),
+    method: request.method,
+    path,
+  });
+}
+
+/** JSON 401 thrown by `derive` before body validation, so anonymous callers never see a 422 (schema leak). */
+export function unauthorizedResponse(request: Request): Response {
+  return errorResponse(request, 401, MESSAGES.UNAUTHORIZED, 'UNAUTHORIZED');
 }
 
 const CODE_BY_STATUS: Record<number, string> = {
