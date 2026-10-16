@@ -1,7 +1,7 @@
 // Screen frame: navigation bar, scrolling content and the bottom tab bar. Every screen renders through <Screen>.
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { NavigationBar } from '@react-cupertino-ui/navigation-bar';
-import { CalendarDays, CircleCheck, Ellipsis, FolderKanban, House, Plus } from 'lucide-react';
+import { CalendarDays, ChevronLeft, CircleCheck, Ellipsis, FolderKanban, House, Plus } from 'lucide-react';
 import { useApp } from '../core/app.context';
 import { allowed, getPanel } from '../core/registry';
 import { GlassTabs } from './tabbar';
@@ -68,12 +68,19 @@ export function AppTabBar({ active }) {
   );
 }
 
-/** Top bar. back = true shows the Back button (pops history). left/right = extra items. */
+/**
+ * Top bar. back = true shows an iOS chevron (pops history); the library's own back button is an arrow plus a
+ * "Back" label, so we draw ours in leftItems. left/right = extra items.
+ */
 export function NavBar({ title = '', sub, back, left, right, large }) {
   const { back: pop } = useApp();
+  const chevron = back && (
+    <button type="button" className="back-button nav-back" aria-label="Back" onClick={() => pop()}>
+      <ChevronLeft size={30} strokeWidth={2.2} aria-hidden="true" />
+    </button>
+  );
   return (
-    <NavigationBar title={title} subtitle={sub} large={large} withBackButton={!!back} onBack={() => pop()}
-      leftItems={left} rightItems={right} />
+    <NavigationBar title={title} subtitle={sub} large={large} leftItems={<>{chevron}{left}</>} rightItems={right} />
   );
 }
 

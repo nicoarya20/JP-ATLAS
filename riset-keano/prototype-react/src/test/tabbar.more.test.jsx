@@ -48,6 +48,19 @@ describe('More panel', () => {
     expect(panel()).not.toBeInTheDocument();
   });
 
+  it('opens Edit profile from the profile card', async () => {
+    renderApp('home.main', 'member');
+    await tapMore();
+    await userEvent.click(dom.getByRole('button', { name: /edit profile/ }));
+    expect(window.location.hash).toBe('#settings.profile');
+    expect(dom.getByText('Edit profile')).toBeInTheDocument();
+    const back = dom.getByRole('button', { name: 'Back' });
+    expect(back.textContent).toBe(''); // chevron icon only, no "Back" label
+    expect(back.querySelector('svg')).not.toBeNull();
+    await userEvent.click(back);
+    expect(window.location.hash).toBe('#home.main');
+  });
+
   it('labels the deleted-items tile Archive', async () => {
     renderApp('home.main', 'member');
     await tapMore();

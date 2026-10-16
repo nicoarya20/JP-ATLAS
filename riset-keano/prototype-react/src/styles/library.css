@@ -12,6 +12,9 @@
 /* ---- Navigation bar ---- */
 .react-cupertino-ui-navigation-bar { background: var(--bg); border-bottom: 1px solid var(--separator); flex: none; }
 .react-cupertino-ui-navigation-bar .title-compact { color: var(--label); }
+/* kit NavBar back: chevron only, 44px tap target, nudged left so the chevron lines up with the content edge */
+.react-cupertino-ui-navigation-bar .nav-back { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -14px;
+  padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; }
 
 /* ---- Card (kit Section) ---- */
 .card.react-cupertino-ui-card { --card-padding-block: var(--sp-4); --card-padding-inline: var(--sp-4);
