@@ -26,9 +26,9 @@
 ## 3. Keputusan yang saya butuhkan dari user (berurutan menurut kapan dibutuhkan)
 | # | Keputusan | Dibutuhkan sebelum | Default bila tidak dijawab |
 |---|---|---|---|
-| 1 | **KB-3:** boleh mengubah **tenggat proyek langsung** di S1 (S5 nanti menggantinya dengan perpanjangan beralasan)? | G15 (S1-03) | Ya, dengan catatan riwayat `original_due_date` kosong sampai S5 |
-| 2 | **KB-8:** label "**Pengelola utama**" untuk Lead disetujui? | G15 (teks UI pertama, S1-10) | Pakai, satu konstanta `LABEL_LEAD` mudah diganti |
-| 3 | **KB-12:** status proyek bebas berpindah antar 5 nilai oleh Pengelola/Admin? | G15 (S1-03) | Ya (asumsi, uji memuat `completed→active`) |
+| 1 | **KB-3:** boleh mengubah **tenggat proyek langsung** di S1 (S5 nanti menggantinya dengan perpanjangan beralasan)? | G15 (S1-03) | **DIJAWAB 16 Okt (default, Q11): ya**, dengan catatan riwayat `original_due_date` kosong sampai S5 |
+| 2 | **KB-8:** label "**Pengelola utama**" untuk Lead disetujui? | G15 (teks UI pertama, S1-10) | **DIJAWAB 16 Okt (default, Q8): pakai "Pengelola utama"** dan "Diblokir"; satu konstanta `LABEL_LEAD` mudah diganti |
+| 3 | **KB-12:** status proyek bebas berpindah antar 5 nilai oleh Pengelola/Admin? | G15 (S1-03) | **DIJAWAB 16 Okt (default, Q11): ya** (asumsi, uji memuat `completed→active`) |
 | 4 | Tambah skrip npm `seed:atlas` (membungkus `scripts/seed-dev.ts`) agar data contoh mudah dimuat untuk demo | G16 (titik cek visual pertama) | Saya tambah di merge G14 bila disetujui |
 | 5 | **UAT login Google** (`uat/UAT-S0A.md`) dijalankan sebelum titik cek visual pertama | G16 | Tetap terbuka (risiko diterima) |
 | 6 | **Koordinasi `home.tsx`** dengan agen lain (beranda berdata contoh): beranda penuh sebenarnya jatah S3 | G20 (S2-17 menyentuhnya) | S2-17 hanya menambah dua tombol besar bila berkasnya sudah di-merge; bila belum, ditunda |
@@ -41,7 +41,7 @@ Kolom worker memuat tugas yang digabung (`+`) pada satu cabang dan dua commit. S
 | Gel. | Worker 1 (S1 API) | Worker 2 (S1 UI / profil) | Worker 3 (S2 API) | Worker 4 (S2 UI / lainnya) | Titik cek |
 |---|---|---|---|---|---|
 | **G14** | S1-01'+S1-02 baca proyek + stub + `query-count` | S1-06 API profil + cookie `mk-text-size` | S2-01+S2-02 jadwal + query tugas | *(opsional)* T-H1 hutang tes (lihat §8) | |
-| **G15** | S1-03 tulis proyek | S1-08+S1-10 klien proyek + layout/Ringkasan | S2-03+S2-04 rute baca (**SP2**) + buat/ubah | S1-14+S1-15 Pengaturan + peleburan `/profile` | |
+| **G15** | S1-03 tulis proyek | S1-08+S1-10 klien proyek + layout/Ringkasan | S2-03+S2-04 rute baca (**SP2**) + buat/ubah | S1-14+S1-15 Pengaturan + peleburan `/profile` (**memuat penyembunyian kartu Hapus akun, N03/Q4**) | *Usulan worker ke-5:* **T-S1 kebersihan akun** (lihat §10) |
 | **G16** | S1-04 anggota + pemilih orang | S1-09+S1-11 daftar proyek + form baru | S2-05 mesin status | S2-08+S2-09 klien + komponen daftar tugas | **CP1:** user membuka `/app/projects`, `/app/settings`, ukuran teks |
 | **G17** | S1-05 hapus ke Sampah (backend) **satu per satu** | S1-12+S1-13 tab Anggota + ubah proyek | S2-06 daftar periksa, komentar, linimasa | S2-10+S2-14 halaman Tugas + tab Tugas proyek | |
 | **G18** | S1-18 halaman Sampah + tombol Hapus **satu per satu** (+ snapshot 12 URL) | S2-11 form tugas baru | S2-07 penjaga keamanan + kinerja | S2-12 detail tugas | **CP2:** S1 lengkap untuk dicoba; **nama penguji harus sudah ada** |
@@ -93,3 +93,13 @@ Dipakai hanya bila kuota dan perhatian review mengizinkan; tidak ada yang bergan
 | Konflik snapshot kontrak antar worker | Aturan §6 butir 1; integrator menyelesaikan |
 | Pengguna mencari tombol Hapus tugas yang memang tidak ada (RS-7) | Keterangan di menu ⋯; dicatat sebagai temuan UP-1 |
 | Kehilangan koneksi worker | Commit per langkah; pesan lanjutan lewat terminal berhasil di G9 |
+
+## 10. Paket T-S1 "kebersihan akun" (usulan untuk G15, hasil inventaris flow)
+Berasal dari temuan bukan-diagram di `flow/04-pencocokan.md` dan keputusan pemilik 16 Okt 2026 (`flow/README.md`). **Belum diluncurkan**; menunggu konfirmasi G15.
+| Butir | Pekerjaan | Rujukan |
+|---|---|---|
+| N01/Q6 | Hapus kalimat "Kami akan memberi kabar lewat email" di `PM_ERRORS.ACCOUNT_PENDING` (`server/pm/errors.ts`; perubahan teks, bukan nama atau tanda tangan; sesuaikan tes paritas bila perlu) | `flow/04-pencocokan.md` N01 |
+| N04, N05, N08/Q5 | **Uji runtime** (tes integrasi dengan sesi Better Auth nyata, DB uji): akun `pending` dan `rejected` memanggil `/update-user`, `/delete-user`, `/api-key/*`; `rejected` hapus diri lalu daftar lagi; akun `pending` yang emailnya baru masuk `SUPER_ADMIN_EMAILS`. Hasil dilaporkan apa adanya; **bila celah terbukti, berhenti dan lapor** (jangan menutup diam-diam; gerbang status di `auth-gate.ts` adalah keputusan) | N04, N05, N08 |
+| N06 | Beri label jujur atau hapus saklar "Pendaftaran publik" di `/dev/settings` (`AuthSettingsCard`), karena tidak mencegah pendaftaran di server | N06 |
+| N13 | Samakan kata tombol Google ("Masuk dengan Google") | N13 |
+Penyembunyian kartu Hapus akun (N03/Q4) tidak di sini, tetapi di S1-14/S1-15 yang memindahkan isi `/profile`.
