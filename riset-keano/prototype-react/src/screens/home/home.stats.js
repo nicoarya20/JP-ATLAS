@@ -1,0 +1,31 @@
+// Home stat chips for Member and Manager, counted from D.tasks for the signed-in person against the sample "today".
+import { D } from '../../data/sample';
+import { TODAY, days } from '../tasks/tasks.shared';
+
+/** Days back to this week's Monday (the sample week runs Monday to Sunday). */
+const SINCE_MONDAY = (TODAY.getDay() + 6) % 7;
+/** Completion date label of a Done task: "Done Sep 20" → "Sep 20". */
+const doneOn = t => t.when.replace(/^Done /, '');
+const late = t => days(t.due) < 0;
+
+/** Line under In Progress: what is most urgent among the tasks being worked on. */
+function activeSub(active) {
+  const overdue = active.filter(late).length, today = active.filter(t => days(t.due) === 0).length;
+  if (overdue) return `${overdue} overdue`;
+  if (today) return `${today} due today`;
+  if (!active.length) return 'none started';
+  return `next due ${[...active].sort((a, b) => days(a.due) - days(b.due))[0].due}`;
+}
+
+/** My open tasks (with overdue count), tasks in progress (with the most urgent due) and tasks done this week. */
+export function myTaskStats() {
+  const mine = D.tasks.filter(t => t.who === D.me().name);
+  const open = mine.filter(t => t.status !== 'Done'), overdue = open.filter(late).length;
+  const active = mine.filter(t => t.status === 'In progress');
+  const done = mine.filter(t => t.status === 'Done' && days(doneOn(t)) >= -SINCE_MONDAY);
+  return {
+    assigned: { count: open.length, sub: overdue ? `${overdue} overdue` : 'on track', alert: overdue > 0 },
+    inProgress: { count: active.length, sub: activeSub(active), alert: active.some(late) },
+    completed: { count: done.length, sub: 'this week', alert: false },
+  };
+}

@@ -2,6 +2,7 @@
 import { CircleCheck, Clock, FolderOpen, Hourglass, TriangleAlert, UserCheck } from 'lucide-react';
 import { D } from '../../data/sample';
 import { Btn, Link, Row, Rows } from '../../kit';
+import { myTaskStats } from './home.stats';
 
 const ICON = 15;
 const STAT_GO = { tasks: 'tasks.all', projects: 'projects.list', users: 'users.approve' };
@@ -10,15 +11,21 @@ const STAT_ICON = {
   Active: <FolderOpen size={ICON} />, Overdue: <TriangleAlert size={ICON} />, Awaiting: <Hourglass size={ICON} />,
 };
 
-/** Stat chip: {label, count, go, sub, icon}. sub defaults to the unit ("tasks"). Member counts are Dodi's own tasks. */
-const stat = (label, count, unit, sub = unit) => ({ label, count, sub, go: STAT_GO[unit], icon: STAT_ICON[label] });
+/** Stat chip: {label, count, go, sub, icon, alert}. sub defaults to the unit ("projects"); alert shows sub in red. */
+const stat = (label, count, unit, sub = unit, alert = false) => ({ label, count, sub, alert, go: STAT_GO[unit], icon: STAT_ICON[label] });
+
+/** Member and Manager chips: the signed-in person's own tasks, counted from D.tasks. */
+function taskStats() {
+  const S = myTaskStats();
+  return [['Assigned', S.assigned], ['In Progress', S.inProgress], ['Completed', S.completed]]
+    .map(([label, x]) => stat(label, x.count, 'tasks', x.sub, x.alert));
+}
 
 /** Per role: stat chips, number of Ask Data questions, completed-this-week rows, activity rows. */
 export function roleHome(role) {
-  const H = D.home;
   const R = {
-    member: { stats: [stat('Assigned', 3, 'tasks', '0 overdue'), stat('In Progress', 2, 'tasks'), stat('Completed', 5, 'tasks')], asks: 2, done: 2, activity: 1 },
-    pm: { stats: [stat('Assigned', H.stats.assigned, 'tasks', '0 overdue'), stat('In Progress', H.stats.inProgress, 'tasks'), stat('Completed', H.stats.completed, 'tasks')], asks: 3, done: 4, activity: 3 },
+    member: { stats: taskStats(), asks: 2, done: 2, activity: 1 },
+    pm: { stats: taskStats(), asks: 3, done: 4, activity: 3 },
     admin: { stats: [stat('Active', D.projects.filter(p => p.status === 'Active').length, 'projects'), stat('Overdue', 3, 'tasks'), stat('Awaiting', D.users.counts.pending, 'users')], asks: 3, done: 4, activity: 3 },
   };
   return R[role];

@@ -168,7 +168,6 @@ const users = {
 const home = {
   briefing: ['1 thing is overdue: the down payment for the tile installer is 2 days late.', 'Today you have 2 tasks and 1 meeting. Family Celebration needs attention because catering isn\'t ordered yet.'],
   briefingMeta: '✦ Built automatically from project data · updated 7:30 AM',
-  stats: { assigned: 3, inProgress: 8, completed: 12 },
   focus: {
     overdue: [{ title: 'Pay the tile installer down payment', meta: 'Kitchen Renovation · 2 days overdue' }],
     today: [{ title: 'Order catering for 80 people', meta: 'Family Celebration · most important today' }, { title: 'Confirm the tent with Mr. Budi', meta: 'Family Celebration' }],
