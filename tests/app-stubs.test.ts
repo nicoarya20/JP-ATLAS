@@ -29,7 +29,6 @@ const ROUTE_STUBS: Record<string, 'S1' | 'S2'> = {
 
 /** Empty /api/app plugins (S0B-18) waiting for their slice. */
 const API_STUBS: Record<string, 'S1' | 'S2'> = {
-  'server/api/app-profile.ts': 'S1',
   'server/api/app-projects.ts': 'S1',
   'server/api/app-projects.members.ts': 'S1',
   'server/api/app-tasks.ts': 'S2',
