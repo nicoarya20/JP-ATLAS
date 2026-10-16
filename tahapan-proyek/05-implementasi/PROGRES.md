@@ -11,9 +11,9 @@
 | S0.0 — Prasyarat ops | 9 | 9 | 0 | 0 |
 | S0.a — Akun dan akses | 16 | 16 | 0 | 0 |
 | S0.b — Kontrak beku | 33 | 33 | 0 | 0 |
-| S1 — Proyek dan profil | 18 | 4 | 0 | 0 |
-| S2 — Tugas inti | 17 | 2 | 0 | 0 |
-| **Total** | **93** | **64** | **0** | **0** |
+| S1 — Proyek dan profil | 18 | 4 | 5 | 0 |
+| S2 — Tugas inti | 17 | 2 | 2 | 0 |
+| **Total** | **93** | **64** | **7** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -121,19 +121,19 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §4`.
 |---|---|---|---|---|---|---|---|---|
 | S1-01 | Daftarkan modul baru S1 di `app.ts` | L-C/integrator | SP1 | S (0,25) | **selesai** | `feature/pm-s1-02-project-read-api` | `937b8ba` | Mengecil karena S0B-18 sudah membuat 6 stub; tersisa 3 skeleton (`app-team.picker.ts`, `app-projects.trash.ts`, `app-trash.ts`) didaftarkan dengan 3 `.use` di `app.ts`, digabung ke worker S1-02 |
 | S1-02 | Query, DTO, dan rute baca proyek (daftar, detail, anggota) | L1a | S1-01 | M (2) | **selesai** | `feature/pm-s1-02-project-read-api` | `863d25e` | worker: 2.946 lulus/0 gagal, `smoke:binary` 28/28. DTO + `listProjects`/`getProjectDetail` + `GET /projects`, `/projects/:id`, `/projects/:id/members`; `tests/support/query-count.ts`. **Terbukti:** golden Atlas 17% dan `at_risk` "1 tugas penting terlambat", 4 query konstan, Member bukan anggota ⇒ 404 identik. Satu sentuhan di luar Target: `PM_DENY_OWNER` di `scopes.pm.ts` diarahkan ke `app-projects.trash.ts` (tanpa itu tes penyapu gagal). Catatan: `t.UnionEnum` Elysia diam-diam jatuh ke nilai pertama bila tak diisi |
-| S1-03 | Service dan rute tulis proyek (buat, ubah, status, pengelola utama) | L1a | S1-02 | M (2) | belum |  |  |  |
+| S1-03 | Service dan rute tulis proyek (buat, ubah, status, pengelola utama) | L1a | S1-02 | M (2) | **berjalan** | `feature/pm-s1-03-project-write` |  |  |
 | S1-04 | Anggota proyek dan pemilih orang | L1a | S1-03 | M (2,5) | belum |  |  |  |
 | S1-05 | Hapus proyek ke Sampah + pulihkan minimal (backend, tanpa UI) | L1a | S1-04 | S (1,5) | belum |  |  |  |
 | S1-06 | API profil dan cookie `mk-text-size` | L4 | S1-01 | M (1,5) | **selesai** | `feature/pm-s1-06-profile-api` | `a30bc23`, `ccda64e` | worker: 2.923 lulus/0 gagal, `smoke:binary` 28/28. `GET/PATCH /api/app/profile`, `Set-Cookie mk-text-size` pada `textSize`, cookie di `/go` untuk perangkat baru. Tes menangkap dan memperbaiki bug `t.UnionEnum` yang mereset `textSize` di tiap PATCH. Keputusan nama: `user.name` tetap lewat Better Auth, `profile.displayName` tambahan. Konflik stub-test dengan S1-02 diselesaikan koordinator saat merge |
 | S1-07 | Tema berskala dan loader root | L4 | S1-06 | S (0,5) | **selesai** | (dicakup S0B-24/S0B-25) | `027a5ad` | Sudah dikerjakan S0.b (`buildTheme`, loader root, cookie dibaca, `lang="id"`); S1-06 memverifikasi lewat tes bahwa cookie dari PATCH terbaca `resolveTextSize`. Verifikasi skala 1,25/1,5 dilebur ke S1-14 dan S1-16 |
-| S1-08 | Klien proyek (API, saringan, aksi) | L1b | SP-S1a | S (1) | belum |  |  |  |
+| S1-08 | Klien proyek (API, saringan, aksi) | L1b | SP-S1a | S (1) | **berjalan** | `feature/pm-s1-08-project-client-detail` |  |  |
 | S1-09 | Halaman Daftar proyek (①②) | L1b | S1-08 | M (2) | belum |  |  |  |
-| S1-10 | Detail proyek: layout, header, Ringkasan (⑧) | L1b | SP-S1a | M (2,5) | belum |  |  |  |
+| S1-10 | Detail proyek: layout, header, Ringkasan (⑧) | L1b | SP-S1a | M (2,5) | **berjalan** | `feature/pm-s1-08-project-client-detail` |  |  |
 | S1-11 | Form Proyek baru (④) | L1b | S1-08, SP-S1b (S1-03) | M (2) | belum |  |  |  |
 | S1-12 | Tab Anggota (⑪) | L1b | S1-10, SP-S1b (S1-04) | M (1,5) | belum |  |  |  |
 | S1-13 | Ubah proyek (info + status) | L1b | S1-10, S1-11 | S (1) | belum |  |  |  |
-| S1-14 | Halaman Pengaturan: profil + ukuran teks | L4 | S1-06, S1-07 | M (1,5) | belum |  |  |  |
-| S1-15 | Peleburan `/profile` → `/app/settings` | L4 | S1-14 | S (1) | belum |  |  |  |
+| S1-14 | Halaman Pengaturan: profil + ukuran teks | L4 | S1-06, S1-07 | M (1,5) | **berjalan** | `feature/pm-s1-14-settings-page` |  |  |
+| S1-15 | Peleburan `/profile` → `/app/settings` | L4 | S1-14 | S (1) | **berjalan** | `feature/pm-s1-14-settings-page` |  |  |
 | S1-16 | Smoke, QA tiga ukuran teks, dokumen S1 | L10 | S1-12, S1-14 | S (1,5) | belum |  |  |  |
 | S1-17 | Integrasi dan gerbang demo S1 | Integrator | S1-05, S1-13, S1-16 | S (0,5) | belum |  |  |  |
 | S1-18 | Halaman Sampah minimal (khusus proyek) + aktifkan tombol Hapus proyek | L1b | S1-05, S1-10 (layout/daftar proyek), SP-1 (stub `/app/trash` dari S0.b) | M (2-3) | belum |  |  |  |
@@ -146,8 +146,8 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §5`.
 |---|---|---|---|---|---|---|---|---|
 | S2-01 | Metrics S2 murni: kelompok jadwal | L2 | SP1 | S (1) | **selesai** | `feature/pm-s2-02-task-read-query` | (commit pertama) | `server/metrics/schedule.ts` (`ScheduleGroup`; "Minggu ini" = sampai Minggu pekan berjalan, bukti B-7 diputuskan dan didokumentasikan); ekspor baru masuk snapshot `contract-v1` |
 | S2-02 | Query tugas: daftar keyset, hitungan, detail | L2 | S2-01 | M (3) | **selesai** | `feature/pm-s2-02-task-read-query` | `631f8a9` | worker: 2.988 lulus/0 gagal, `smoke:binary` 28/28. `server/task/*` (`listTasks` keyset 4 urutan, `countTasks` satu GROUP BY, `getTaskDetail`, `resolveTaskRef`). **Terbukti:** paritas SQL vs oracle untuk 8 persona, 404 identik, "Tugas saya" 5 query konstan untuk 51 dan 501 tugas, indeks assignee terpakai. Catatan: `BAD_CURSOR` belum ada di `errors.ts` (S2-03 memetakan ke 400); tes kinerja butuh `VACUUM` agar `pm-indexes` tidak goyah |
-| S2-03 | Rute baca tugas (menetapkan SP2) | L2 | S2-02 | S (1,5) | belum |  |  |  |
-| S2-04 | Service dan rute buat/ubah tugas | L2 | S2-03 | M (2,5) | belum |  |  |  |
+| S2-03 | Rute baca tugas (menetapkan SP2) | L2 | S2-02 | S (1,5) | **berjalan** | `feature/pm-s2-03-task-read-write` |  |  |
+| S2-04 | Service dan rute buat/ubah tugas | L2 | S2-03 | M (2,5) | **berjalan** | `feature/pm-s2-03-task-read-write` |  |  |
 | S2-05 | Mesin status: Mulai, Batal mulai, Selesai, Buka lagi, Batalkan, Pulihkan | L2 | S2-04 | M (3) | belum |  |  |  |
 | S2-06 | Daftar periksa, komentar, linimasa | L2 | S2-04 | M (3) | belum |  |  |  |
 | S2-07 | Penjaga keamanan dan kinerja tugas | L2 | S2-05, S2-06 | S (2) | belum |  |  |  |
@@ -270,3 +270,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **16 Okt 2026** — **G14 diluncurkan** atas perintah user (run `run_d37da4e68372`, basis `1870669` = `e3ca23c` + JADWAL-S1-S2.md): S1-01'+S1-02 (baca proyek + 3 stub), S1-06 (API profil + cookie ukuran teks), S2-01+S2-02 (jadwal tugas + query tugas), T-H1 (hutang tes: urutan acak + tes rute statis). 4 worker, tanpa 429, semua spesifikasi terkirim (±7 KB + berkas rujukan `/tmp/sp-g14-<ID>-brief.txt`). S1-07 tidak diluncurkan (sudah dikerjakan S0B-24/25). Keputusan user #1-#3 (KB-3, KB-8, KB-12) dibutuhkan sebelum G15.
 - **16 Okt 2026** — G14 digabung atas persetujuan user. 64 dari 93 tugas selesai (S1 4/18, S2 2/17). Gelombang tanpa 429: G1-G14. G15 **menunggu konfirmasi user**. Keputusan KB-3, KB-8, KB-12 dibutuhkan sebelum G15 (default: ya, pakai, ya). Merge G14 dikerjakan dari worktree sementara karena tiga agen inventaris flow masih membaca worktree koordinator.
 - **16 Okt 2026** — **Inventaris flow selesai** dan disimpan di `flow/` (README, 3 inventaris, pencocokan, skrip metrik): 121 unit alur, rencana 15 diagram dan 58 kartu aturan, 189 dari 195 butir kode tercakup. Pemilik menjawab "**pakai semua default**" untuk Q1-Q15 (tercatat di `flow/README.md`), sehingga KB-3, KB-8, KB-12 ikut terjawab. Temuan bukan-diagram N01-N13 dilacak di `flow/README.md`; paket kode **T-S1** (hapus kalimat email, uji runtime akun Menunggu/Ditolak, label saklar pendaftaran, kata tombol) diusulkan sebagai worker ke-5 G15 (`JADWAL-S1-S2.md` §10) dan **belum diluncurkan**. Diagram belum digambar. G15 menunggu konfirmasi user.
+- **17 Okt 2026** — **G15 diluncurkan** atas perintah user ("lanjutkan, spawn beberapa agent"; run `run_f1f14fed01dc`, basis `802172a`, uji dasar 3.089 lulus / 18 dilewati / 0 gagal). Lima worker dalam dua batch (3 + 2), tanpa 429 saat peluncuran: S1-03 (`feature/pm-s1-03-project-write`), S1-08+S1-10 (`feature/pm-s1-08-project-client-detail`), S2-03+S2-04 (`feature/pm-s2-03-task-read-write`, menetapkan SP2), S1-14+S1-15 (`feature/pm-s1-14-settings-page`, memuat Q4/N03 sembunyikan Hapus akun), dan paket **T-S1** kebersihan akun (`fix/pm-t-s1-account-hygiene`: N01, N04/N05/N08 uji runtime, N06, N13). Keputusan KB-3 = ya, KB-8 = "Pengelola utama", KB-12 = ya (default pemilik 16 Okt). `PUT /projects/:id/lead` diarahkan ke `PM_KEY_DENY` (eskalasi peran). Worktree utama dan `/tmp` sempat bersih (folder `/tmp/sp-coord` hilang), jadi worktree koordinator dibuat ulang; spesifikasi worker ada di `/tmp/sp-g15/` dan aturan bersama di `/tmp/sp-g15-common.txt`.
