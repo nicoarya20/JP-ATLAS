@@ -1,11 +1,11 @@
 /**
- * Contract for the /app sidebar: exactly four entries, each pointing at a registered route, and
+ * Contract for the /app sidebar: eight entries in two groups, each pointing at a registered route, and
  * sub-pages keep their section lit. A NAV item with no route would be a dead link in the menu.
  */
 import { describe, expect, it } from 'bun:test';
 import { isNavActive } from '../app/components/frame/nav';
 import routes from '../app/routes';
-import { NAV } from '../app/routes/app/layout';
+import { NAV, NAV_GROUPS } from '../app/routes/app/layout';
 
 type Entry = { path?: string; children?: Entry[] };
 
@@ -26,12 +26,23 @@ const byLabel = (label: string) => {
 };
 
 describe('/app NAV', () => {
-  it('has exactly four items in the agreed order', () => {
+  it('has the eight items in the agreed order', () => {
     expect(NAV.map((n) => [n.label, n.to])).toEqual([
       ['Beranda', '/app'],
+      ['Inbox', '/app/inbox'],
       ['Proyek', '/app/projects'],
       ['Tugas', '/app/tasks'],
+      ['Events', '/app/events'],
+      ['Tim', '/app/team'],
+      ['Sampah', '/app/trash'],
       ['Pengaturan', '/app/settings'],
+    ]);
+  });
+
+  it('puts Sampah and Pengaturan in their own group under the divider', () => {
+    expect(NAV_GROUPS.map((g) => g.items.map((n) => n.label))).toEqual([
+      ['Beranda', 'Inbox', 'Proyek', 'Tugas', 'Events', 'Tim'],
+      ['Sampah', 'Pengaturan'],
     ]);
   });
 

@@ -73,13 +73,17 @@ describe('page stubs', () => {
     expect(read(file)).toMatch(/title: '[^']+ — Simple PM'/);
   });
 
-  it('leaves only home, the layout and profile as real (non-stub) files', () => {
+  it('leaves only home, the layout, profile and the not-yet-stubbed menu pages as non-stub files', () => {
     const appFiles = [...registered].filter((f) => f.startsWith('app/routes/app/'));
     const nonStubs = appFiles.filter((f) => !(f in ROUTE_STUBS)).sort();
     expect(nonStubs).toEqual([
+      'app/routes/app/events.tsx',
       'app/routes/app/home.tsx',
+      'app/routes/app/inbox.tsx',
       'app/routes/app/layout.tsx',
       'app/routes/app/profile.tsx',
+      'app/routes/app/team.tsx',
+      'app/routes/app/trash.tsx',
     ]);
   });
 });

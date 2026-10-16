@@ -13,6 +13,7 @@ export default [
   // Product area (any signed-in role). New product pages go here, not under /dev or /dashboard.
   layout('routes/app/layout.tsx', [
     route('app', 'routes/app/home.tsx'),
+    route('app/inbox', 'routes/app/inbox.tsx'),
     route('app/projects', 'routes/app/projects.tsx'),
     // Static `new` is listed before `:projectId` so it is never read as an id.
     route('app/projects/new', 'routes/app/project-new.tsx'),
@@ -26,6 +27,9 @@ export default [
     route('app/tasks', 'routes/app/tasks.tsx'),
     route('app/tasks/new', 'routes/app/task-new.tsx'),
     route('app/tasks/:number', 'routes/app/task-detail.tsx'),
+    route('app/events', 'routes/app/events.tsx'),
+    route('app/team', 'routes/app/team.tsx'),
+    route('app/trash', 'routes/app/trash.tsx'),
     route('app/settings', 'routes/app/settings.tsx'),
     route('profile', 'routes/app/profile.tsx'),
   ]),

@@ -2,9 +2,19 @@ import { type AppCaps, appCaps } from '@server/access/capabilities';
 import { frameInfo } from '@server/app-info';
 import { requireUser } from '@server/guard';
 import { getSidebarCollapsed } from '@server/sidebar';
-import { FiCheckSquare, FiFolder, FiGrid, FiHome, FiSettings } from 'react-icons/fi';
+import {
+  FiBell,
+  FiCalendar,
+  FiCheckSquare,
+  FiFolder,
+  FiGrid,
+  FiHome,
+  FiSettings,
+  FiTrash2,
+  FiUsers,
+} from 'react-icons/fi';
 import { Outlet } from 'react-router';
-import { AppFrame, type NavItem } from '~/components/AppFrame';
+import { AppFrame, type NavGroup, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
 import type { AppContext } from '~/lib/app-context';
 import type { Route } from './+types/layout';
@@ -13,36 +23,74 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: 'Simple PM' }];
 }
 
-// Order is the sidebar order. Projects and tasks keep their sub-pages (/app/projects/:id/tasks)
-// highlighted via matchPrefix; Home stays exact so it is not lit on every /app/* page.
-export const NAV: NavItem[] = [
+// Order is the sidebar order; the second group sits under a divider. Projects, tasks and the rest
+// keep their sub-pages highlighted via matchPrefix; Home stays exact so it is not lit on every /app/* page.
+export const NAV_GROUPS: NavGroup[] = [
   {
-    to: '/app',
-    label: 'Beranda',
-    icon: FiHome,
-    description: 'Ringkasan pekerjaan Anda hari ini.',
+    items: [
+      {
+        to: '/app',
+        label: 'Beranda',
+        icon: FiHome,
+        description: 'Ringkasan pekerjaan Anda hari ini.',
+      },
+      {
+        to: '/app/inbox',
+        label: 'Inbox',
+        icon: FiBell,
+        matchPrefix: true,
+        description: 'Notifikasi dan permintaan untuk Anda.',
+      },
+      {
+        to: '/app/projects',
+        label: 'Proyek',
+        icon: FiFolder,
+        matchPrefix: true,
+        description: 'Daftar proyek yang Anda ikuti.',
+      },
+      {
+        to: '/app/tasks',
+        label: 'Tugas',
+        icon: FiCheckSquare,
+        matchPrefix: true,
+        description: 'Daftar tugas yang perlu dikerjakan.',
+      },
+      {
+        to: '/app/events',
+        label: 'Events',
+        icon: FiCalendar,
+        matchPrefix: true,
+        description: 'Jadwal rapat dan acara tim.',
+      },
+      {
+        to: '/app/team',
+        label: 'Tim',
+        icon: FiUsers,
+        matchPrefix: true,
+        description: 'Anggota tim dan beban kerjanya.',
+      },
+    ],
   },
   {
-    to: '/app/projects',
-    label: 'Proyek',
-    icon: FiFolder,
-    matchPrefix: true,
-    description: 'Daftar proyek yang Anda ikuti.',
-  },
-  {
-    to: '/app/tasks',
-    label: 'Tugas',
-    icon: FiCheckSquare,
-    matchPrefix: true,
-    description: 'Daftar tugas yang perlu dikerjakan.',
-  },
-  {
-    to: '/app/settings',
-    label: 'Pengaturan',
-    icon: FiSettings,
-    description: 'Atur profil dan tampilan akun Anda.',
+    items: [
+      {
+        to: '/app/trash',
+        label: 'Sampah',
+        icon: FiTrash2,
+        description: 'Item terhapus yang masih bisa dipulihkan.',
+      },
+      {
+        to: '/app/settings',
+        label: 'Pengaturan',
+        icon: FiSettings,
+        description: 'Atur profil dan tampilan akun Anda.',
+      },
+    ],
   },
 ];
+
+/** Flat view of NAV_GROUPS, for tests and anything that only needs the links. */
+export const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 /** Links to the other areas the signed-in account may open; Dev first for the super-admin. */
 function secondaryNav(caps: AppCaps): NavItem[] {
@@ -79,7 +127,7 @@ function Frame({
 }) {
   return (
     <AppFrame
-      navItems={NAV}
+      navItems={NAV_GROUPS}
       secondaryNav={secondaryNav(data.caps)}
       role={data.role}
       user={data.user}
