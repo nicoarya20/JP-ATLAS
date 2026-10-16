@@ -278,6 +278,18 @@ describe('GET /admin/invitations', () => {
     const past = new Date(Date.now() - 86_400_000);
     await db.insert(userInvitation).values([
       { email: mail('l-expired'), invitedBy: ADMIN.id, expiresAt: past },
+      // Own revoked and active rows: the list must not rely on invitations other tests happened to create.
+      {
+        email: mail('l-revoked'),
+        invitedBy: ADMIN.id,
+        expiresAt: new Date(Date.now() + 86_400_000),
+        revokedAt: new Date(),
+      },
+      {
+        email: mail('l-active'),
+        invitedBy: ADMIN.id,
+        expiresAt: new Date(Date.now() + 86_400_000),
+      },
       {
         email: mail('l-used'),
         invitedBy: ADMIN.id,
@@ -288,15 +300,15 @@ describe('GET /admin/invitations', () => {
     const res = await call('GET', '/admin/invitations?limit=1000');
     expect(res.status).toBe(200);
     expect(res.body.limit).toBe(100); // clamped to the page cap
-    expect(res.body.total).toBeGreaterThanOrEqual(base + 2);
+    expect(res.body.total).toBeGreaterThanOrEqual(base + 4);
     const status = (email: string) =>
       (res.body.invitations as Array<{ email: string; status: string }>).find(
         (i) => i.email === email,
       )?.status;
     expect(status(mail('l-expired'))).toBe('expired');
     expect(status(mail('l-used'))).toBe('used');
-    expect(status(mail('revoke'))).toBe('revoked');
-    expect(status(mail('default'))).toBe('active');
+    expect(status(mail('l-revoked'))).toBe('revoked');
+    expect(status(mail('l-active'))).toBe('active');
     const inviter = (res.body.invitations as Array<{ email: string; invitedByName: string }>).find(
       (i) => i.email === mail('l-used'),
     );
@@ -305,6 +317,13 @@ describe('GET /admin/invitations', () => {
 
   test('filters by status and pages with limit/offset', async () => {
     asCaller(ADMIN);
+    // Three rows of its own so both pages exist and one is 'used', whatever ran before.
+    const future = new Date(Date.now() + 86_400_000);
+    await db.insert(userInvitation).values([
+      { email: mail('p-1'), invitedBy: ADMIN.id, expiresAt: future },
+      { email: mail('p-2'), invitedBy: ADMIN.id, expiresAt: future },
+      { email: mail('p-3'), invitedBy: ADMIN.id, expiresAt: future, acceptedAt: new Date() },
+    ]);
     const onlyUsed = await call('GET', '/admin/invitations?status=used&limit=100');
     expect(onlyUsed.body.invitations.every((i: { status: string }) => i.status === 'used')).toBe(
       true,
