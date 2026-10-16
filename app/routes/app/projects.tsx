@@ -1,6 +1,7 @@
 import { Text } from '@mantine/core';
 import { requireUser } from '@server/guard';
 import { useMemo, useState } from 'react';
+import { ProjectsGantt } from '~/components/projects/ProjectsGantt';
 import { ProjectsGrid, ProjectsList } from '~/components/projects/ProjectsList';
 import { ProjectsToolbar, type ProjectView } from '~/components/projects/ProjectsToolbar';
 import {
@@ -9,6 +10,7 @@ import {
   type StatusFilter,
 } from '~/components/projects/projects.dummy';
 import { filterProjects } from '~/components/projects/projects.filter';
+import type { Zoom } from '~/components/projects/projects.gantt';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
 import type { Route } from './+types/projects';
@@ -28,6 +30,7 @@ export default function ProjectsPage() {
   const [status, setStatus] = useState<StatusFilter>('all');
   const [sort, setSort] = useState<ProjectSort>('due');
   const [view, setView] = useState<ProjectView>('list');
+  const [zoom, setZoom] = useState<Zoom>('week');
   const rows = useMemo(() => filterProjects(PROJECTS, q, status, sort), [q, status, sort]);
 
   return (
@@ -43,7 +46,9 @@ export default function ProjectsPage() {
         view={view}
         onView={setView}
       />
-      {view === 'list' ? <ProjectsList rows={rows} /> : <ProjectsGrid rows={rows} />}
+      {view === 'list' && <ProjectsList rows={rows} />}
+      {view === 'grid' && <ProjectsGrid rows={rows} />}
+      {view === 'gantt' && <ProjectsGantt rows={rows} zoom={zoom} onZoom={setZoom} />}
       <Text size="xs" c="dimmed">
         {`${rows.length === 0 ? 0 : `1–${rows.length}`} dari ${rows.length} proyek · hanya proyek yang Anda ikuti`}
       </Text>

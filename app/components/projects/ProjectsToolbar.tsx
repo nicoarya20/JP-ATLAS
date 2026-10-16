@@ -1,9 +1,16 @@
 import { Button, Group, Menu, ScrollArea, TextInput } from '@mantine/core';
-import { FiAlertTriangle, FiChevronDown, FiGrid, FiList, FiSearch } from 'react-icons/fi';
+import {
+  FiAlertTriangle,
+  FiBarChart2,
+  FiChevronDown,
+  FiGrid,
+  FiList,
+  FiSearch,
+} from 'react-icons/fi';
 import { ViewToggle } from '~/components/ui/ViewToggle';
 import { type ProjectSort, SORTS, STATUS_FILTERS, type StatusFilter } from './projects.dummy';
 
-export type ProjectView = 'list' | 'grid';
+export type ProjectView = 'list' | 'grid' | 'gantt';
 
 type Props = {
   q: string;
@@ -37,6 +44,7 @@ export function ProjectsToolbar(p: Props) {
           options={[
             { value: 'list', label: 'List', icon: FiList },
             { value: 'grid', label: 'Grid', icon: FiGrid },
+            { value: 'gantt', label: 'Gantt', icon: FiBarChart2 },
           ]}
         />
       </Group>

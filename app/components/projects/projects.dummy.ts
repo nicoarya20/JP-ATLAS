@@ -12,6 +12,8 @@ export type DummyProject = {
   done: number;
   total: number;
   /** `YYYY-MM-DD` */
+  start: string;
+  /** `YYYY-MM-DD` */
   due: string;
   /** "Diperpanjang ×1" under the date, when the due date moved. */
   extended?: string;
@@ -28,6 +30,7 @@ export const PROJECTS: DummyProject[] = [
     conditionNote: '1 tugas penting terlambat',
     done: 7,
     total: 10,
+    start: '2026-08-24',
     due: '2026-10-31',
     extended: 'Diperpanjang ×1',
     members: ['Nico', 'Rina', 'Dodi', 'Agus'],
@@ -41,6 +44,7 @@ export const PROJECTS: DummyProject[] = [
     conditionNote: '2 bug Kritis terlambat',
     done: 7,
     total: 20,
+    start: '2026-09-07',
     due: '2026-10-20',
     members: ['Rina', 'Dodi', 'Budi'],
   },
@@ -53,6 +57,7 @@ export const PROJECTS: DummyProject[] = [
     conditionNote: 'tenggat lewat 7 hari',
     done: 8,
     total: 10,
+    start: '2026-08-03',
     due: '2026-09-30',
     members: ['Dodi', 'Dewi', 'Agus'],
   },
