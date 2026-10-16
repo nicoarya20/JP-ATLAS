@@ -46,7 +46,7 @@ export const settingsApi = new Elysia({ prefix: '/settings' })
         action: AUDIT_ACTIONS.SETTINGS_AUTH_UPDATE,
         targetType: 'settings',
         targetId: 'auth',
-        summary: `Autentikasi: login email ${body.emailAuthEnabled ? 'aktif' : 'nonaktif'}, pendaftaran ${body.signupEnabled ? 'dibuka' : 'ditutup'}`,
+        summary: `Autentikasi: login email ${body.emailAuthEnabled ? 'aktif' : 'nonaktif'}, form daftar ${body.signupEnabled ? 'tampil' : 'disembunyikan'}`,
         meta: body,
       });
       return saved;
