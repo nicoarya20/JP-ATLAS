@@ -5,6 +5,9 @@ body {
   font-size: var(--fs-body); line-height: var(--lh-snug); -webkit-font-smoothing: antialiased;
 }
 *, *::before, *::after { box-sizing: border-box; }
+/* Phone scrolls without a visible scrollbar (iOS shows none while idle); covers .content, sheets and side-scrolling rows. */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
 button { font: inherit; color: inherit; }
 p { margin: 0; line-height: var(--lh-body); }
 h1, h2, h3 { margin: 0; }
@@ -62,8 +65,7 @@ h1, h2, h3 { margin: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---- Horizontal scrollers (chips, stat cards): never let a scroll row collapse its children ---- */
-.hscroll { display: flex; gap: var(--sp-2); overflow-x: auto; scrollbar-width: none; min-height: min-content; }
-.hscroll::-webkit-scrollbar { display: none; }
+.hscroll { display: flex; gap: var(--sp-2); overflow-x: auto; min-height: min-content; }
 .hscroll > * { flex: none; }
 
 /* ---- Kit parts ---- */

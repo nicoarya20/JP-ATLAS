@@ -20,9 +20,8 @@
 .tk-chev { flex: none; margin-top: 2px; }
 .tk-meta { margin-top: var(--sp-1); }
 .tk-tick { display: inline-flex; }
-.tk-board { display: flex; gap: var(--sp-3); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+.tk-board { display: flex; gap: var(--sp-3); overflow-x: auto; scroll-snap-type: x mandatory;
   margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
-.tk-board::-webkit-scrollbar { display: none; }
 .tk-col { flex: 0 0 280px; scroll-snap-align: start; display: grid; gap: var(--sp-3); align-content: start;
   padding: var(--sp-3); border-radius: var(--radius-card); background: var(--fill); }
 
