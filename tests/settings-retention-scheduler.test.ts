@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { upsertSettingsRow } from '../server/settings.core';
 import {
   getRetention,
@@ -17,9 +17,15 @@ const timer = { unref() {} } as unknown as ReturnType<typeof setTimeout>;
 let tick: () => Promise<void>;
 let intervalMs = 0;
 
-beforeAll(async () => {
+const resetRetention = async () => {
   await upsertRetention(OFF);
   await upsertSettingsRow({ retentionLastRunAt: null, retentionLastResult: null });
+};
+// Per test: the "runs once" test configures a window and a last-run stamp that "does nothing" must not see.
+beforeEach(resetRetention);
+
+beforeAll(async () => {
+  await resetRetention();
   // Capture the scheduler's tick instead of letting real timers fire.
   const t = spyOn(globalThis, 'setTimeout').mockImplementation(((fn: () => Promise<void>) => {
     tick = fn;
@@ -34,10 +40,7 @@ beforeAll(async () => {
   i.mockRestore();
 });
 
-afterAll(async () => {
-  await upsertRetention(OFF);
-  await upsertSettingsRow({ retentionLastRunAt: null, retentionLastResult: null });
-});
+afterAll(resetRetention);
 
 describe('startRetentionScheduler', () => {
   test('checks hourly', () => {

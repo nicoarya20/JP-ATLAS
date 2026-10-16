@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { auth } from '../server/auth';
 import * as rolesMod from '../server/roles';
 import { maintenanceGate, upsertMaintenance } from '../server/settings-maintenance';
@@ -14,7 +14,10 @@ const spies = [
 const gate = (path: string, appName?: string) =>
   maintenanceGate(new Request(`http://localhost${path}`), appName);
 
-beforeAll(async () => {
+// Per test: the default-message test overwrites the maintenance setting that the others read.
+beforeEach(async () => {
+  ctx.role = null;
+  ctx.fail = false;
   await upsertMaintenance({
     enabled: true,
     message: 'Upgrade <DB> & "cache"',
