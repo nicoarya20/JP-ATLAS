@@ -157,7 +157,7 @@ const OTHER: NavItem[] = [
     icon: FiUserCheck,
     description: 'Akun baru yang menunggu persetujuan',
   },
-  { to: '/profile', label: 'Profile', icon: FiUser },
+  { to: '/app/settings', label: 'Pengaturan akun', icon: FiUser },
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {

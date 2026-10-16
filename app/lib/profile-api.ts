@@ -1,4 +1,4 @@
-/** Client helpers for /profile: own login history + session/account display helpers. */
+/** Client helpers for the settings page (/app/settings): own login history + session/account display helpers. */
 
 import { parseUserAgent } from '@server/middleware/visitor-ua';
 import type { TextSize } from '@server/pm/enums';

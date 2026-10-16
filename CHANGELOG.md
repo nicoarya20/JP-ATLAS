@@ -92,6 +92,9 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 ### Removed
 - Mode demo dicabut seluruhnya: tombol **Coba Demo** (login dan landing), banner demo, tab **Mode demo** di `/dev/settings`, endpoint `/api/demo` dan `PUT /api/settings/demo`, serta login anonim Better Auth. Akun demo anonim yang masih tersisa dihapus otomatis sekali saat server menyala. Kolom `user.is_anonymous` dan `app_setting.demo_enabled`/`demo_ttl_hours` sengaja dibiarkan sampai rilis berikutnya, dan baris audit `settings.demo.update` lama tetap terbaca.
 
+### Changed
+- Halaman **Profil** (`/profile`) dilebur ke **Pengaturan** (`/app/settings`): tautan dan bookmark lama ke `/profile` langsung dialihkan ke Pengaturan (tamu tetap diminta masuk dulu). Tautan "Profile" di sidebar Dashboard dan Dev kini bernama **Pengaturan akun** dan membuka `/app/settings`, dan menautkan akun Google kembali ke Pengaturan. Kartu hapus akun hanya tampil untuk Super-admin di bagian **Lanjutan**; akun lain tidak melihatnya di mana pun.
+
 ## [0.2.0] - 2026-10-06
 
 ### Added
