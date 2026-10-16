@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  spyOn,
+  test,
+} from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { postsApi } from '../../server/api/posts';
@@ -65,6 +74,10 @@ beforeAll(async () => {
         updatedAt: new Date(),
       }),
     );
+});
+
+// Posts per test: the admin-edit test renames post A, which the sort and pagination tests expect to keep its title.
+beforeEach(async () => {
   for (const s of seeds) {
     const [row] = await db
       .insert(post)
@@ -74,10 +87,13 @@ beforeAll(async () => {
   }
 });
 
-afterAll(async () => {
-  for (const s of spies) s.mockRestore();
+afterEach(async () => {
   await db.delete(auditLog).where(eq(auditLog.actorId, admin));
   await db.delete(post).where(eq(post.authorId, author));
+});
+
+afterAll(async () => {
+  for (const s of spies) s.mockRestore();
   await db.delete(user).where(inArray(user.id, [author, admin]));
 });
 

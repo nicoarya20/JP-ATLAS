@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { postsApi } from '../../server/api/posts';
@@ -55,6 +55,18 @@ beforeAll(async () => {
     );
   }
 });
+/** Inserts the owner's post directly so a test does not depend on another test having created one. */
+async function seedPost() {
+  const [row] = await db
+    .insert(post)
+    .values({ title: `${TAG} Judul`, content: 'isi', authorId: owner })
+    .returning({ id: post.id });
+  postId = row.id;
+}
+afterEach(async () => {
+  await db.delete(auditLog).where(inArray(auditLog.actorId, [owner, other, admin]));
+  await db.delete(post).where(eq(post.authorId, owner));
+});
 afterAll(async () => {
   for (const s of spies) s.mockRestore();
   await db
@@ -85,6 +97,7 @@ describe('posts API', () => {
   });
 
   test('another user cannot edit or delete; owner can edit', async () => {
+    await seedPost();
     ctx.actor = { id: other, email: `${other}@test.local` };
     ctx.role = 'member';
     expect((await req('PUT', `/posts/${postId}`, { title: 'hack' })).status).toBe(403);
@@ -96,6 +109,7 @@ describe('posts API', () => {
   });
 
   test("admin can delete someone else's post and it is audited", async () => {
+    await seedPost();
     ctx.actor = { id: admin, email: `${admin}@test.local` };
     ctx.role = 'admin';
     expect((await req('DELETE', `/posts/${postId}`)).status).toBe(200);
