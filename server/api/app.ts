@@ -11,9 +11,12 @@ import { appContext } from './app-context';
 import { profileApi } from './app-profile';
 import { projectsApi } from './app-projects';
 import { projectMembersApi } from './app-projects.members';
+import { projectTrashApi } from './app-projects.trash';
 import { tasksApi } from './app-tasks';
 import { taskDetailApi } from './app-tasks.detail';
 import { taskWorkflowApi } from './app-tasks.workflow';
+import { teamPickerApi } from './app-team.picker';
+import { trashApi } from './app-trash';
 
 export const appApi = new Elysia({ prefix: '/app' })
   // First on purpose: a parent's hooks only reach routes registered after them.
@@ -21,6 +24,9 @@ export const appApi = new Elysia({ prefix: '/app' })
   .use(profileApi)
   .use(projectsApi)
   .use(projectMembersApi)
+  .use(projectTrashApi)
+  .use(teamPickerApi)
+  .use(trashApi)
   .use(tasksApi)
   .use(taskWorkflowApi)
   .use(taskDetailApi)
