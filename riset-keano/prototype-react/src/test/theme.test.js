@@ -1,4 +1,4 @@
-// Theme layer guards: library.css must load last, use only defined tokens, and every themed token must switch under .dark.
+// Theme layer guards: library.css and press.css load last, use only defined tokens, and every themed token must switch under .dark.
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -7,6 +7,7 @@ const src = join(__dirname, '..');
 const read = f => readFileSync(join(src, f), 'utf8');
 const tokens = read('styles/tokens.css');
 const library = read('styles/library.css');
+const press = read('styles/press.css');
 const block = sel => tokens.slice(tokens.indexOf(`${sel} {`), tokens.indexOf('}', tokens.indexOf(`${sel} {`)));
 const defined = text => new Set([...text.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
 
@@ -21,11 +22,12 @@ describe('theme layer', () => {
     const screens = main.indexOf("import './screens'");
     expect(screens).toBeGreaterThan(-1);
     expect(main.indexOf("import './styles/library.css'")).toBeGreaterThan(screens);
+    expect(main.indexOf("import './styles/press.css'")).toBeGreaterThan(main.indexOf("import './styles/library.css'"));
   });
 
   it('only uses tokens that tokens.css or library.css define', () => {
-    const known = new Set([...defined(tokens), ...defined(library)]);
-    const used = [...library.matchAll(/var\((--[\w-]+)/g)].map(m => m[1]);
+    const known = new Set([...defined(tokens), ...defined(library), ...defined(press)]);
+    const used = [...`${library}${press}`.matchAll(/var\((--[\w-]+)/g)].map(m => m[1]);
     expect(used.filter(t => !known.has(t))).toEqual([]);
   });
 
@@ -37,7 +39,16 @@ describe('theme layer', () => {
   });
 
   it('keeps raw colors in tokens.css only', () => {
-    expect(library.match(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/gi)).toBeNull();
+    expect(`${library}${press}`.match(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/gi)).toBeNull();
+  });
+
+  it('pins hover to the resting look and animates taps instead', () => {
+    expect(press).toMatch(/\.react-cupertino-ui-card\[data-interactive="true"\]:hover\s*\{[^}]*transform:\s*none/);
+    expect(press).toMatch(/\.react-cupertino-ui-list-item\.clickable:hover:not\(\.disabled\)[^{]*\{[^}]*background-color:\s*transparent/);
+    expect(press).toMatch(/variant-solid:hover[^{]*\{[^}]*filter:\s*none/);
+    expect(press).toMatch(/\.hm-stat:active[^{]*\{[^}]*transform:\s*scale\(var\(--press-scale\)\)/);
+    expect(press).toMatch(/\.react-cupertino-ui-card\[data-interactive="true"\]:active\s*\{[^}]*transform:\s*scale/);
+    expect(press).toMatch(/\.link:active[^{]*\{[^}]*opacity:\s*var\(--press-dim\)/);
   });
 
   it('keeps outline buttons as pills and draws the tab underline under the active tab', () => {
