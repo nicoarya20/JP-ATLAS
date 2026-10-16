@@ -1,7 +1,7 @@
-// The 64 screen/sheet ids of the prototype (same ids as the vanilla wireframe-mobile version). test-only
+// The 65 screen/sheet ids of the prototype (the vanilla wireframe-mobile ids plus home.create). test-only
 export const EXPECTED_IDS = [
   'auth.login', 'auth.account', 'auth.pending', 'auth.denied',
-  'home.main', 'home.more', 'home.search',
+  'home.main', 'home.more', 'home.search', 'home.create',
   'projects.list', 'projects.new', 'projects.form', 'projects.story', 'projects.draft', 'projects.template',
   'projects.overview', 'projects.tasks', 'projects.phases', 'projects.members', 'projects.extend',
   'tasks.my', 'tasks.all', 'tasks.board', 'tasks.empty', 'tasks.write', 'tasks.form', 'tasks.csv',
