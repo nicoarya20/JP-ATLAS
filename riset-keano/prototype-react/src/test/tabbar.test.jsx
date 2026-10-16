@@ -42,15 +42,14 @@ describe('glass tab bar', () => {
 
   it('opens New project from "+" on Projects', async () => {
     renderApp('projects.list', 'pm');
+    expect(dom.getAllByRole('button', { name: /New project/ })).toHaveLength(1); // only the "+", no button in the nav bar
     await userEvent.click(dom.getByRole('button', { name: 'New project' }));
     expect(window.location.hash).toBe('#projects.new');
   });
 
   it('opens New event from "+" on Events', async () => {
-    const { container } = renderApp('events.list', 'member');
-    const fab = container.querySelector('.glassbar-fab'); // the list also has its own "New event" button
-    expect(fab).toHaveAccessibleName('New event');
-    await userEvent.click(fab);
+    renderApp('events.list', 'member');
+    await userEvent.click(dom.getByRole('button', { name: 'New event' }));
     expect(window.location.hash).toBe('#events.new');
   });
 

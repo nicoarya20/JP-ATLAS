@@ -5,11 +5,9 @@ import { D } from '../../data/sample';
 import { Btn, Empty, Pill, Screen, Search, Section, Seg, Tabs } from '../../kit';
 import { EV, STATUS_TONE } from './events.shared';
 
-const NEW_EVENT = <Btn kind="primary" sm icon={<Plus size={16} />} go="events.new">New event</Btn>;
-
-/** Screen frame of the Events tab: title, sub line, "+ New event" and the tab bar. */
+/** Screen frame of the Events tab: title, sub line and the tab bar (its "+" creates the event). */
 export function EventsScreen({ children }) {
-  return <Screen title="Events" sub="Meetings and team events" right={NEW_EVENT} tab="events">{children}</Screen>;
+  return <Screen title="Events" sub="Meetings and team events" tab="events">{children}</Screen>;
 }
 
 /** Search, Filter sheet and the List / Calendar switch; on = 0 list, 1 calendar. */

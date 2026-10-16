@@ -1,5 +1,5 @@
-// Projects ①: project list. Member sees only joined projects (no My/All switch, no + New project); Admin sees every project.
-import { Avatars, Btn, Chips, Pill, Progress, Screen, Search, Section, Seg, Select } from '../../kit';
+// Projects ①: project list. Member sees only joined projects (no My/All switch); Admin sees every project. New project is the tab bar "+".
+import { Avatars, Chips, Pill, Progress, Screen, Search, Section, Seg, Select } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 
@@ -24,9 +24,8 @@ export default function ProjectsList() {
   const { is } = useApp();
   const member = is('member');
   const list = member ? D.projects.filter(p => p.members.includes(D.me().name)) : D.projects;
-  const add = member ? null : <Btn kind="primary" sm go="projects.new">+ New project</Btn>;
   return (
-    <Screen title="Projects" right={add} tab="projects">
+    <Screen title="Projects" tab="projects">
       {!member && <Seg items={['My projects', 'All projects']} on={1} />}
       <Search placeholder="Search project name or description…" />
       <Chips items={['All', 'Active', 'On hold', 'Done', 'Draft', '! Needs attention']} />
