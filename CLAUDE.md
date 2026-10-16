@@ -8,8 +8,8 @@ Simple PM adalah turunan template ini; fitur produk **default dibangun di area `
 
 - **Halaman:** `app/routes/app/<nama>.tsx` → daftarkan sebagai child `layout('routes/app/layout.tsx', [...])` di `app/routes.ts` → tambahkan ke `NAV` di `app/routes/app/layout.tsx`. Wajib `meta()` (`'Nama — Simple PM'`).
 - **Guard per halaman wajib:** loader memanggil `await requireUser(request)` dari `@server/guard` — atau `requireAnyRole(request, [...])` bila fitur khusus role. Loader layout & halaman berjalan **paralel** di React Router, jadi guard layout saja tidak melindungi data halaman. `tests/app-routes.test.ts` menjaga ini.
-- **Endpoint:** tambahkan ke `server/api/app.ts` (prefix `/api/app`, otomatis `401` tanpa sesi; `actor` tersedia di handler). Batasan role per fitur → cek `actor.role` di handler, `status(403, { error, code })`. Scope API key sudah dipetakan (`app:read`/`app:write`); file endpoint baru di luar `/api/app` tetap wajib dipetakan di `scopes.ts`. Client: Eden `client.api.app.<route>` dari `~/lib/eden`.
-- `app/routes/app/home.tsx` hanya panduan placeholder — ganti dengan beranda produk saat fitur pertama dibangun.
+- **Endpoint:** tambahkan ke berkas modul `server/api/app-<modul>[.<bagian>].ts` yang dirakit `server/api/app.ts` (prefix `/api/app`, otomatis `401` tanpa sesi; `actor` tersedia di handler). Batasan role per fitur → cek `actor.role` di handler, `status(403, { error, code })`. Scope API key sudah dipetakan (`app:read`/`app:write`); file endpoint baru di luar `/api/app` tetap wajib dipetakan di `scopes.ts`. Client: Eden `client.api.app.<route>` dari `~/lib/eden`.
+- `app/routes/app/home.tsx` adalah stub beranda yang menampilkan keadaan kosong (tautan ke daftar proyek dan tugas); beranda produk dibuat di S3.
 - **Jangan** taruh fitur produk di `/dev` (ops super-admin) atau `/dashboard` (admin). `/dashboard` khusus manajemen akun dan tim untuk Admin/super-admin (saat ini `/dashboard/users`: persetujuan, peran, undangan; pengaturan tim menyusul). Empat role (`member`, `project_manager`, `admin`, `super-admin`) didefinisikan di `server/permissions.ts`; home ada di `homeFor`: `member` dan `project_manager` → `/app`, `admin` → `/dashboard`, `super-admin` → `/dev`. Admin dan super-admin tetap boleh membuka `/app`. Nilai `'user'` lama hanya dibaca (`normalizeRole` → `member`), tidak pernah ditulis.
 
 ## UI Framework — Mantine Wajib Dipakai
@@ -36,16 +36,13 @@ Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantin
 Ini adalah standar kualitas UX yang membuat app terasa selesai dan layak produksi. Agent wajib menerapkan ini secara **proaktif** tanpa menunggu user mengingatkan.
 
 ### 1. Konfirmasi untuk Aksi Destruktif / Irreversible
-Setiap aksi yang menghapus data, mengakhiri sesi, atau susah dibatalkan **wajib** tampilkan confirm dialog via `modals.openConfirmModal()` sebelum dieksekusi.
+Setiap aksi yang menghapus data, mengakhiri sesi, atau susah dibatalkan **wajib** punya pengaman sesuai salah satu dari tiga tingkat di bawah. Tingkat ditentukan oleh bisa-tidaknya aksi diurungkan (X1-Q1, R11 K6), bukan satu dialog untuk semua.
 
-Contoh yang **wajib** ada confirm:
-- Sign out / logout → confirm "Kamu akan keluar dari akun ini"
-- Hapus item (row, post, user) → confirm "Data ini akan dihapus permanen"
-- Purge / bulk delete → confirm dengan deskripsi dampak
-- Perubahan role user (escalate/demote) → confirm
-- Ban / unban user → confirm
+- **T1 — Urungkan, tanpa dialog:** hapus tugas/event/lampiran **ke Sampah** (bisa dipulihkan 30 hari). Eksekusi langsung, lalu `notifications.show()` dengan tombol "Urungkan" (±10 detik). Hanya untuk aksi yang benar-benar masuk Sampah; Sampah baru lengkap di S6 (S1 hanya Sampah proyek), jadi **S2 tidak memasang hapus tugas**.
+- **T2 — Dialog `modals.openConfirmModal()`:** sign out ("Kamu akan keluar dari akun ini"); hapus proyek (sebut dampak, mis. jumlah tugas dan event; hanya Super-admin, Admin, dan PM-Pengelola — Member-Pengelola tidak boleh); keluarkan anggota; ubah role akun/proyek (escalate/demote); setujui/tolak akun; ban/unban/nonaktifkan user; purge/bulk delete; hapus item lain yang tidak masuk Sampah (row, post) — "Data ini akan dihapus permanen".
+- **T3 — Dialog + ketik nama/email:** hapus permanen dan hapus akun.
 
-**Blocker:** aksi destruktif tanpa confirm dialog → STOP sebelum commit.
+**Blocker:** aksi destruktif tanpa pengaman T1/T2/T3 yang sesuai → STOP sebelum commit. T1 tanpa tombol Urungkan atau tanpa Sampah di belakangnya juga dilarang.
 
 ### 2. Loading State pada Setiap Aksi Async
 Button yang memicu request async **wajib** punya `loading` prop / spinner selama request berlangsung. User tidak boleh dibiarkan tanpa feedback.
@@ -237,7 +234,7 @@ Header halaman yang berisi judul + tombol-tombol wajib menggunakan `wrap="wrap"`
 
 ### 5. Touch Targets
 
-- Tombol aksi utama: minimum `size="sm"` (44px touch area).
+- Area `/app`: `Button`/input `size="lg"` (50 px) dan `ActionIcon` `size="xl"` (44 px) — sudah menjadi default lewat `defaultProps` tema (`app/lib/theme-components.ts`), jadi jangan menulis ulang `size`. `size="sm"` (36 px) **bukan** 44 px; pakai hanya di tabel padat `/dev` dan `/dashboard`.
 - `ActionIcon` kecil di dalam tabel: boleh `size="xs"` karena tabel sudah scrollable.
 - Jarak antar touch target: minimal `gap="xs"`.
 - Hindari link/button berdekatan tanpa jarak yang cukup.
@@ -247,6 +244,11 @@ Header halaman yang berisi judul + tombol-tombol wajib menggunakan `wrap="wrap"`
 - Set `inputMode` yang sesuai: `inputMode="email"`, `inputMode="numeric"`, `inputMode="url"`.
 - Jangan set `font-size` di bawah 16px pada input — browser mobile akan auto-zoom.
 - Mantine input component sudah handle ini secara default, jangan override ke ukuran lebih kecil.
+
+### 7. Ikon & Skala Teks
+
+- Ikon baru `size="1.25em"` agar ikut ukuran teks; jangan `size={16}` atau angka piksel lain.
+- Skala teks pengguna (cookie `mk-text-size`: 1 / 1,25 / 1,5) memakai satu `theme.scale` lewat `buildTheme` (`app/lib/theme.ts`), dan breakpoint ikut diskala. Pakai `visibleFrom`/`hiddenFrom`/prop responsif Mantine yang membaca `theme.breakpoints`; jangan hardcode lebar piksel atau `@media (min-width: …)` sendiri.
 
 **Cara agent menerapkan:** Bayangkan layar 375px lebar (iPhone SE). Apakah semua elemen visible dan bisa di-tap? Apakah ada overflow horizontal tanpa scroll? Apakah burger tidak menimpa konten? Jika ada masalah → perbaiki sebelum commit.
 
@@ -323,8 +325,11 @@ Saat bekerja dengan `bun build --compile --asset`:
 - **Bentuk error API wajib seragam:** `{ error, code, status, requestId }`. Handler mengembalikan `status(4xx, { error, code? })`; jangan `throw` string atau kirim stack. Error tak tertangkap otomatis jadi 500 JSON ber-`requestId` lewat `server/api-error.ts` (pesan disembunyikan di produksi). Untuk pesan ke user pakai bahasa Indonesia yang actionable.
 - **`.mount(auth.handler)` adalah catch-all** untuk semua `/api/*` yang tidak cocok — mount tetap dibungkus agar hanya `/api/auth/*` yang diteruskan (lihat `index.ts`). Jangan menambah mount lain tanpa pembungkus serupa.
 - **Route API baru wajib dipetakan ke scope** di `server/api-keys/scopes.ts` (`requiredScope`), atau eksplisit `null` bila tidak boleh diakses API key, atau `isPublicRead` bila publik — lalu tambahkan assertion di `tests/api-keys/scopes.test.ts`. Tanpa pemetaan, pemanggil API key mendapat 403.
+- **Gerbang 401 `/api/app/**`** ada di `derive` `appContext` (`server/api/app-context.ts`) dan menjawab lewat `unauthorizedResponse` sebagai `throw Response`; **dilarang `throw status()` di `derive`** (menjadi 500, bukan 4xx). Router `/api/app` baru wajib `.use(appContext)`.
+- **Berkas API per modul:** `server/api/app-<modul>[.<bagian>].ts` (mis. `app-projects.ts`, `app-projects.members.ts`); `app.ts` tetap tipis dan hanya merakit.
+- **`PM_KEY_DENY`** (`server/api-keys/scopes.pm.ts`): rute destruktif/eskalasi (hapus proyek, anggota, profil, foto) ditolak untuk API key apa pun scope-nya. Rute destruktif baru ditambahkan ke `PM_KEY_DENY` dan `PM_DENY_OWNER`; tiap rute `/api/app/` baru wajib tes pemetaan scope-nya (`tests/api-keys/scopes.test.ts`, `scopes.pm.test.ts`).
 - **Better Auth apiKey:** `auth.api.createApiKey/updateApiKey` dipanggil **tanpa** `headers`; scope dicek sendiri (plugin melaporkan scope kurang sebagai `KEY_NOT_FOUND`); total pemakaian dari `api_key_usage`, bukan `requestCount`.
-- **Tanggal di fragmen `sql` mentah:** kirim `${d.toISOString()}::timestamp`, bukan objek `Date` (fragmen raw tidak mendapat pemetaan kolom).
+- **Tanggal di fragmen `sql` mentah:** kirim string ISO, bukan objek `Date` (fragmen raw tidak mendapat pemetaan kolom): `${d.toISOString()}::timestamp` untuk tabel lama, `${d.toISOString()}::timestamptz` untuk tabel baru. Tabel baru wajib kolom `timestamptz` (`server/db/schema.columns.ts`); sesi DB dipaksa UTC (`TimeZone: 'UTC'` di `server/db/index.ts`) — jangan diubah.
 - **Request non-halaman sebelum SSR:** probe browser (`/favicon.ico`, `/.well-known/`, `apple-touch-icon`) ditangani `server/http-probes.ts`; dokumentasi agent (`/README.md`, `/llms*.txt`) oleh `server/readme.ts`. Keduanya harus tetap masuk daftar pengecualian `visitor.ts` dan `settings-maintenance.ts`. Tambahkan di sana bila ada path statis baru, jangan biarkan jatuh ke React Router (menghasilkan stack trace 404).
 - **Dev server `--hot`** tidak selalu memuat ulang plugin Elysia baru — minta user restart `bun run dev` setelah menambah plugin/hook.
 - **Versi** hanya dari `package.json` (`server/app-info.ts`); jangan hardcode di tempat lain.
@@ -348,7 +353,7 @@ Saat bekerja dengan `bun build --compile --asset`:
 ## Build & Deploy — Verifikasi Wajib
 
 - `bun run typecheck` harus **nol** error tanpa filter apa pun (deklarasi untuk modul tanpa tipe ada di `server/types/*.d.ts`; `build/server/index.js` dideklarasikan di `ssr-build.d.ts` agar typecheck tidak bergantung pada hasil build).
-- Perubahan yang menyentuh `server/`, `app/entry.server.tsx`, `app/root.tsx`, logger, atau skrip build → jalankan `bun run smoke:prod` **dan** `bun run smoke:binary` sebelum lapor selesai. Keduanya build, boot server di port acak dengan `NODE_ENV=production`, menjalankan 28 pemeriksaan black-box (`scripts/smoke-server.checks.ts`), dan exit ≠ 0 bila gagal. Skrip mengabaikan `PORT`/`NODE_ENV` dari `.env` — jangan pernah mengarahkan pemeriksaan ke port dev server user.
+- Perubahan yang menyentuh `server/`, `app/entry.server.tsx`, `app/root.tsx`, logger, atau skrip build → jalankan `bun run smoke:prod` **dan** `bun run smoke:binary` sebelum lapor selesai. Keduanya build, boot server di port acak dengan `NODE_ENV=production`, menjalankan pemeriksaan black-box dari daftar `SMOKE_CHECKS` di `scripts/smoke-server.checks.ts` (jumlahnya tidak ditulis di sini agar tidak basi), dan exit ≠ 0 bila gagal. Skrip mengabaikan `PORT`/`NODE_ENV` dari `.env` — jangan pernah mengarahkan pemeriksaan ke port dev server user.
 - **Bundle SSR ≠ proses Bun:** modul `@server/*` yang diimpor dari `app/` dibundel Vite menjadi salinan kedua di `build/server/index.js`. Singleton proses (`logger`, `logBuffer`) disimpan di `globalThis` agar kedua salinan memakai satu instance; ikuti pola itu untuk singleton baru (scheduler, cache, koneksi). `app/entry.server.tsx` melapor lewat `processLog` dari `@server/ssr-log`, bukan mengimpor logger.
 - **pino-roll v4** memakai satu objek opsi (`{ file, frequency: 'daily', size, limit, mkdir }`); `frequency: '1d'` atau bentuk `build(path, opts)` membuat `bun run start` gagal boot.
 - Binary men-default `NODE_ENV=production` tetapi menghormati `.env` di direktori kerja (Bun auto-load) dan memperingatkan bila bukan production. Menambah pemeriksaan smoke = tambah entri di `SMOKE_CHECKS` (nama unik, path absolut) — `tests/smoke-server.test.ts` menjaganya.
