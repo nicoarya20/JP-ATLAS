@@ -13,7 +13,6 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 
 /** The stubs S0B-18 creates. A slice that fills one deletes its row here and the STUB comment there. */
 const STUBS = [
-  { file: 'app-profile.ts', plugin: 'profileApi', prefix: '/profile' },
   { file: 'app-projects.trash.ts', plugin: 'projectTrashApi', prefix: '/projects' },
   { file: 'app-team.picker.ts', plugin: 'teamPickerApi', prefix: '/team' },
   { file: 'app-trash.ts', plugin: 'trashApi', prefix: '/trash' },
@@ -22,8 +21,8 @@ const STUBS = [
   { file: 'app-tasks.detail.ts', plugin: 'taskDetailApi', prefix: '/tasks' },
 ];
 
-/** Plugins S1-02 filled with routes; they leave the stub list but stay mounted by app.ts. */
-const FILLED = ['projectsApi', 'projectMembersApi'];
+/** Plugins slices have filled with routes (S1-02 projects, S1-06 profile): no longer stubs, still mounted by app.ts. */
+const FILLED = ['profileApi', 'projectsApi', 'projectMembersApi'];
 
 /** Modules that already predate the no-Drizzle rule; new ones must not join this list. */
 const DB_ALLOWED = ['app-avatar.ts']; // legacy: avatar upload touches the user row directly
@@ -108,6 +107,7 @@ describe('module hygiene', () => {
     ['app-common.ts', 80],
     ['app-projects.ts', 150],
     ['app-projects.members.ts', 150],
+    ['app-profile.ts', 150],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);

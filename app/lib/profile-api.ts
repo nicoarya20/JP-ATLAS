@@ -1,7 +1,40 @@
 /** Client helpers for /profile: own login history + session/account display helpers. */
+
 import { parseUserAgent } from '@server/middleware/visitor-ua';
+import type { TextSize } from '@server/pm/enums';
 import type { LoginRow } from './login-logs-api';
 import { deviceLabel, deviceSummary } from './visits-format';
+
+/** Own profile as returned by GET/PATCH /api/app/profile (`name`/`email` are read-only there). */
+export type MyProfile = {
+  userId: string;
+  name: string;
+  email: string;
+  displayName: string | null;
+  phone: string | null;
+  jobTitle: string | null;
+  department: string | null;
+  textSize: TextSize;
+};
+export type MyProfilePatch = Partial<
+  Pick<MyProfile, 'displayName' | 'phone' | 'jobTitle' | 'department' | 'textSize'>
+>;
+
+const PROFILE_URL = '/api/app/profile';
+
+/** Saves profile fields; the server also refreshes the `mk-text-size` cookie when `textSize` is sent. */
+export async function patchMyProfile(patch: MyProfilePatch): Promise<MyProfile> {
+  const res = await fetch(PROFILE_URL, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `Gagal menyimpan profil (${res.status}). Coba lagi.`);
+  }
+  return res.json();
+}
 
 export type MyLogins = { rows: LoginRow[]; total: number };
 
