@@ -15,7 +15,7 @@ import { CursorQuery } from './app-common';
 
 // Not `t.UnionEnum`: it silently defaults to its first value, which would turn "no filter" into a filter.
 // The cast restores the literal type a mapped `t.Union` loses (it would infer `never`); runtime is unchanged.
-const oneOf = <const T extends string>(values: readonly T[]) =>
+export const oneOf = <const T extends string>(values: readonly T[]) =>
   t.Union(values.map((v) => t.Literal(v))) as unknown as TSchema & { static: T };
 
 /** One value or several (`?status=todo&status=done`); the query layer takes arrays. */

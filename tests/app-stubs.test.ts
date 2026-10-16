@@ -30,7 +30,6 @@ const API_STUBS: Record<string, 'S1' | 'S2'> = {
   'server/api/app-team.picker.ts': 'S1',
   'server/api/app-trash.ts': 'S1',
   'server/api/app-tasks.detail.ts': 'S2',
-  'server/api/app-tasks.workflow.ts': 'S2',
 };
 
 const read = (file: string) => readFileSync(path.join(ROOT, file), 'utf8');
