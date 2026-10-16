@@ -32,9 +32,11 @@ describe('LogBuffer stats/countSince', () => {
 
 describe('GET /logs', () => {
   test('returns newest first with levelName, filters by level and search', async () => {
-    logBuffer.push({ level: 30, time: Date.now() - 2000, msg: `${TAG} info line` });
-    logBuffer.push({ level: 50, time: Date.now() - 1000, msg: `${TAG} boom`, userId: 'u1' });
-    const res = await app.handle(new Request(`http://localhost/logs?search=${TAG}`));
+    // A tag of its own: the other tests push lines prefixed with TAG, which a TAG search would also match.
+    const tag = `${TAG}-order`;
+    logBuffer.push({ level: 30, time: Date.now() - 2000, msg: `${tag} info line` });
+    logBuffer.push({ level: 50, time: Date.now() - 1000, msg: `${tag} boom`, userId: 'u1' });
+    const res = await app.handle(new Request(`http://localhost/logs?search=${tag}`));
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
       rows: Array<{ msg: string; levelName: string }>;
@@ -44,12 +46,13 @@ describe('GET /logs', () => {
     expect(body.rows[0].msg).toContain('boom');
     expect(body.rows[0].levelName).toBe('error');
     const errs = (await (
-      await app.handle(new Request(`http://localhost/logs?search=${TAG}&level=error`))
+      await app.handle(new Request(`http://localhost/logs?search=${tag}&level=error`))
     ).json()) as { rows: unknown[] };
     expect(errs.rows.length).toBe(1);
   });
 
   test('stats endpoint and errorsLastHour agree', async () => {
+    logBuffer.push({ level: 50, time: Date.now(), msg: `${TAG}-stats boom` }); // own error: do not rely on another test's
     const body = (await (await app.handle(new Request('http://localhost/logs/stats'))).json()) as {
       errorsLastHour: number;
       capacity: number;
