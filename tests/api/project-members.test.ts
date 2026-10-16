@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import { and, eq } from 'drizzle-orm';
 import { db } from '../../server/db';
 import { project, projectMember } from '../../server/db/schema';
+import { rateLimiter } from '../../server/rate-limit';
 import { PICKER_LIMIT_MAX } from '../../server/team/picker.query';
 import { call, expectApiError, type Json } from '../support/api';
 import { installAuthSpies } from '../support/auth';
@@ -12,7 +13,11 @@ import { createFactory } from '../support/factory.task';
 const auth = installAuthSpies();
 const cleaner = createCleaner();
 const f = createFactory(cleaner, { tag: 'mbrapi' });
-beforeEach(() => auth.as(null));
+// One in-process client shares the `unknown` limiter bucket with every earlier API test file in the run.
+beforeEach(() => {
+  auth.as(null);
+  rateLimiter.reset();
+});
 afterEach(() => cleaner.flushTest());
 afterAll(() => cleaner.flushAll());
 

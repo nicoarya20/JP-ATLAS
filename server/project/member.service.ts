@@ -108,11 +108,7 @@ export function addMember(
       })
       .from(user)
       .where(eq(user.id, input.userId));
-    if (
-      !candidate ||
-      candidate.approvalStatus !== 'approved' ||
-      isBanActive(candidate, now.getTime())
-    ) {
+    if (candidate?.approvalStatus !== 'approved' || isBanActive(candidate, now.getTime())) {
       return invalid(MEMBER_WRITE_MESSAGES.BAD_CANDIDATE);
     }
     await tx
