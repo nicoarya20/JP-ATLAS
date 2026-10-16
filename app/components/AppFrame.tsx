@@ -40,7 +40,12 @@ const COOKIE = 'mk-sidebar-collapsed';
 const WIDTH_EXPANDED = 248;
 const WIDTH_COLLAPSED = 72;
 /** Footer badge must never eat the name — short labels, full role in the tooltip. */
-const ROLE_SHORT: Record<string, string> = { 'super-admin': 'Super', admin: 'Admin', user: 'User' };
+const ROLE_SHORT: Record<string, string> = {
+  'super-admin': 'Super',
+  admin: 'Admin',
+  project_manager: 'PM',
+  member: 'Anggota',
+};
 
 type Props = {
   /** Flat list or labeled groups. */

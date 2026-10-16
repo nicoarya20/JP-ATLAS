@@ -13,6 +13,20 @@ export default [
   // Product area (any signed-in role). New product pages go here, not under /dev or /dashboard.
   layout('routes/app/layout.tsx', [
     route('app', 'routes/app/home.tsx'),
+    route('app/projects', 'routes/app/projects.tsx'),
+    // Static `new` is listed before `:projectId` so it is never read as an id.
+    route('app/projects/new', 'routes/app/project-new.tsx'),
+    // Each tab guards itself: a layout guard does not protect its children's parallel loaders.
+    route('app/projects/:projectId', 'routes/app/project/layout.tsx', [
+      index('routes/app/project/summary.tsx'),
+      route('tasks', 'routes/app/project/tasks.tsx'),
+      route('members', 'routes/app/project/members.tsx'),
+      route('settings', 'routes/app/project/settings.tsx'),
+    ]),
+    route('app/tasks', 'routes/app/tasks.tsx'),
+    route('app/tasks/new', 'routes/app/task-new.tsx'),
+    route('app/tasks/:number', 'routes/app/task-detail.tsx'),
+    route('app/settings', 'routes/app/settings.tsx'),
     route('profile', 'routes/app/profile.tsx'),
   ]),
   layout('routes/admin/layout.tsx', [
