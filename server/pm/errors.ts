@@ -97,10 +97,7 @@ export const PM_ERRORS: Record<PmCode, PmErrorEntry> = {
     message: 'Terlalu banyak perubahan dalam waktu singkat. Tunggu sebentar, lalu coba lagi.',
   },
   STORAGE_DISABLED: { http: 503, message: 'Penyimpanan file belum aktif. Hubungi admin.' },
-  ACCOUNT_PENDING: {
-    http: 403,
-    message: 'Akunmu belum disetujui admin. Kami akan memberi kabar lewat email.',
-  },
+  ACCOUNT_PENDING: { http: 403, message: 'Akunmu belum disetujui admin.' },
   ACCOUNT_REJECTED: {
     http: 403,
     message: 'Pendaftaran akunmu tidak disetujui. Hubungi admin bila ini keliru.',

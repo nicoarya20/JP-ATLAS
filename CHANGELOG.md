@@ -78,6 +78,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Panduan agen (`CLAUDE.md`) dikoreksi (khusus dokumen, tidak mengubah tampilan): hapus kini mengikuti tiga tingkat (Urungkan tanpa dialog, dialog, ketik nama), tombol area `/app` berukuran `lg` dan ikon `xl` (`sm` hanya 36 px, bukan 44 px), tabel baru memakai `timestamptz` dengan sesi UTC, aturan gerbang 401, nama berkas API per modul, dan daftar tolak API key `PM_KEY_DENY`; ikon memakai `1.25em`, dan jumlah pemeriksaan smoke tidak lagi ditulis tetap. Tes `tests/claude-md.test.ts` menjaganya.
 
 ### Fixed
+- Pesan galat "akun menunggu persetujuan" di katalog PM tidak lagi menjanjikan kabar lewat email, karena aplikasi memang tidak mengirim email itu; kini cukup "Akunmu belum disetujui admin."
 - Dependensi dengan celah keamanan diperbarui: MCP SDK ke 1.32.1 dan Vite ke 8.3.4, serta `proxy-addr`, `fast-uri`, dan `ip-address` dipaksa ke versi yang sudah ditambal. `bun audit` kini bersih dari celah critical dan high.
 - `bun run test` kini menghentikan Postgres lokal yang ia nyalakan sendiri setelah test selesai. Sebelumnya proses Postgres tertinggal dan memegang port `54329`. Postgres milik `bun dev` yang sedang jalan tetap tidak disentuh.
 - Variabel `.env` yang dibiarkan kosong (mis. `DATABASE_URL_TEST=` atau `MCP_ADMIN_TOKEN=`) kini dianggap tidak di-set, sehingga `bun run dev` tidak lagi gagal dengan "Invalid environment variables".
