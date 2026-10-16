@@ -40,6 +40,12 @@ describe('theme layer', () => {
     expect(library.match(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/gi)).toBeNull();
   });
 
+  it('keeps outline buttons as pills and draws the tab underline under the active tab', () => {
+    expect(library).toMatch(/\.react-cupertino-ui-button\.variant-outline\s*\{[^}]*border-radius:\s*999px/);
+    expect(library).toMatch(/variant-underline \.react-cupertino-ui-tabs__indicator\s*\{[^}]*display:\s*none/);
+    expect(library).toMatch(/\.seg \.react-cupertino-ui-segmented-control__indicator\s*\{[^}]*var\(--seg-i\)/);
+  });
+
   it('stops avatars from shrinking into ovals', () => {
     expect(library).toMatch(/\.react-cupertino-ui-avatar\s*\{[^}]*flex:\s*none/);
     expect(library).toMatch(/\.react-cupertino-ui-list-item-icon\s*\{[^}]*width:\s*auto/);

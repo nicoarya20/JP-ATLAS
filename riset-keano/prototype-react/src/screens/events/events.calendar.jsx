@@ -1,4 +1,4 @@
-// Events ② month calendar: October 2026 grid with event dots, then today's agenda.
+// Events ② month calendar: Month/Week switch, month title + Today, October 2026 grid with event dots, then today's agenda.
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNav } from '../../core/app.context';
@@ -62,16 +62,14 @@ export default function EventsCalendar() {
   return (
     <EventsScreen>
       <EventsTools on={1} />
+      <Seg items={['Month', 'Week']} on={0} />
       <div className="between">
         <span className="ev-month">
           <Arrow label="Previous month" toast="Previous month"><ChevronLeft size={20} /></Arrow>
           <span className="t-headline">October 2026</span>
           <Arrow label="Next month" toast="Next month"><ChevronRight size={20} /></Arrow>
         </span>
-        <span className="ev-acts">
-          <Btn sm toast="Jumped to today">Today</Btn>
-          <Seg items={['Month', 'Week']} on={0} />
-        </span>
+        <Btn sm toast="Jumped to today">Today</Btn>
       </div>
       <Month />
       <div className="ev-sep" />
