@@ -89,7 +89,9 @@ beforeEach(async () => {
       }),
     ),
   );
-  aliceKeyId = (await createKey({ ...input('seed', ['me:read']), ownerId: aliceId })).row.id;
+  aliceKeyId = (
+    await createKey({ ...input('seed', ['me:read']), scopes: ['me:read'], ownerId: aliceId })
+  ).row.id;
 });
 afterAll(() => {
   for (const sp of spies) sp.mockRestore();
