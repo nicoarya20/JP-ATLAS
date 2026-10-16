@@ -3,13 +3,14 @@
  * Which group a task is in is decided by the server (`due=<group>`, team-zone clock), never by the
  * browser's date; each group loads its own keyset pages.
  */
-import { Button, Group, Stack, Text, Title } from '@mantine/core';
+import { Button, Group, Stack, Text } from '@mantine/core';
 import { SCHEDULE_GROUPS, type ScheduleGroup } from '@server/metrics/schedule';
 import { type ReactNode, useEffect, useState } from 'react';
 import { type TaskCounts, useTaskList } from '~/lib/tasks-api';
 import type { TaskListQuery } from '~/lib/tasks-filters';
+import { ScheduleHeader, scheduleHeadingId } from './ScheduleHeader';
 import { TaskRow } from './TaskRow';
-import { LIST_COPY, SCHEDULE_GROUP_LABELS } from './tasks.copy';
+import { LIST_COPY } from './tasks.copy';
 
 type SectionProps = {
   group: ScheduleGroup;
@@ -28,12 +29,9 @@ function GroupSection({ group, query, count, onLoaded }: SectionProps) {
   }, [loaded, rows.length, group, onLoaded]);
   if (loaded && rows.length === 0) return null;
   const shown = count ?? (list.hasNextPage ? `${rows.length}+` : rows.length);
-  const headingId = `task-group-${group}`;
   return (
-    <Stack gap="xs" component="section" aria-labelledby={headingId}>
-      <Title order={2} size="h4" id={headingId}>
-        {LIST_COPY.groupCount(SCHEDULE_GROUP_LABELS[group], shown)}
-      </Title>
+    <Stack gap="xs" component="section" aria-labelledby={scheduleHeadingId(group)}>
+      <ScheduleHeader group={group} count={shown} />
       {list.isError && (
         <Group gap="xs" wrap="wrap">
           <Text c="danger">{LIST_COPY.loadFailed}</Text>

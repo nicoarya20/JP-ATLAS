@@ -16,7 +16,6 @@ const MARKER = /^\/\/ STUB\((S1|S2)\): .+$/m;
 const ROUTE_STUBS: Record<string, 'S1' | 'S2'> = {
   'app/routes/app/project/members.tsx': 'S1',
   'app/routes/app/project/settings.tsx': 'S1',
-  'app/routes/app/tasks.tsx': 'S2',
   'app/routes/app/task-new.tsx': 'S2',
   'app/routes/app/task-detail.tsx': 'S2',
   'app/routes/app/project/tasks.tsx': 'S2',
@@ -77,6 +76,7 @@ describe('page stubs', () => {
       'app/routes/app/project/summary.tsx',
       'app/routes/app/projects.tsx',
       'app/routes/app/settings.tsx',
+      'app/routes/app/tasks.tsx',
     ]);
   });
 });

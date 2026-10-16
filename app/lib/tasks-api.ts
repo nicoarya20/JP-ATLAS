@@ -114,7 +114,11 @@ export async function fetchTask(ref: string): Promise<TaskDetail> {
 /** Keyset pages of one list; `fetchNextPage` follows `nextCursor` until it is null. */
 export function useTaskList(
   query: TaskListQuery,
-  opts: { initialData?: InfiniteData<TaskPage, string | undefined>; enabled?: boolean } = {},
+  opts: {
+    initialData?: InfiniteData<TaskPage, string | undefined>;
+    initialDataUpdatedAt?: number;
+    enabled?: boolean;
+  } = {},
 ) {
   return useInfiniteQuery({
     queryKey: taskKeys.list(query),
@@ -122,16 +126,20 @@ export function useTaskList(
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
     initialData: opts.initialData,
+    initialDataUpdatedAt: opts.initialDataUpdatedAt,
     enabled: opts.enabled,
   });
 }
 
 /** "Tugas saya" counts per schedule group, decided by the server's clock (never the browser's). */
-export function useTaskCounts(opts: { initialData?: TaskCounts; enabled?: boolean } = {}) {
+export function useTaskCounts(
+  opts: { initialData?: TaskCounts; initialDataUpdatedAt?: number; enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: taskKeys.counts(),
     queryFn: fetchTaskCounts,
     initialData: opts.initialData,
+    initialDataUpdatedAt: opts.initialDataUpdatedAt,
     enabled: opts.enabled,
   });
 }

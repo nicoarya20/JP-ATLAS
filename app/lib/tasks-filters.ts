@@ -25,7 +25,7 @@ const STATUS_SLUGS = {
   selesai: ['done'],
   dibatalkan: ['canceled'],
 } as const satisfies Record<string, readonly TaskStatus[]>;
-const PRIORITY_SLUGS = {
+export const PRIORITY_SLUGS = {
   rendah: 'low',
   sedang: 'medium',
   tinggi: 'high',

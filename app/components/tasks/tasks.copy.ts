@@ -86,3 +86,38 @@ export const TASK_ERROR_MESSAGES: Partial<Record<PmCode, string>> = {
   PROJECT_IN_TRASH: 'Proyek tugas ini ada di Sampah. Pulihkan proyeknya dulu.',
   IMPERSONATING: 'Saat menyamar sebagai pengguna lain, aksi ini dinonaktifkan.',
 };
+
+/** The Tugas page (S2-10, P3 §2 Tugas ①②). */
+export const PAGE_COPY = {
+  title: 'Tugas',
+  description: 'Tugas yang perlu Anda kerjakan dan tugas dari proyek yang Anda ikuti.',
+  create: 'Tugas baru',
+  // Q5: every task belongs to a project, so someone outside every project cannot create one yet.
+  createBlocked:
+    'Anda belum masuk proyek apa pun, jadi belum bisa membuat tugas. Minta Pengelola proyek menambahkan Anda.',
+} as const;
+
+/** Search, scope toggle, status chips, filters and sort of the task list. */
+export const FILTER_COPY = {
+  searchLabel: 'Cari tugas',
+  searchPlaceholder: 'Ketik judul tugas',
+  scopeLabel: 'Tampilan daftar',
+  scopeMine: 'Tugas saya',
+  scopeAll: 'Semua tugas',
+  statusLabel: 'Status tugas',
+  statusActive: 'Aktif',
+  statusDone: 'Selesai',
+  statusCanceled: 'Dibatalkan',
+  projectLabel: 'Proyek',
+  projectAny: 'Semua proyek',
+  personLabel: 'Orang yang mengerjakan',
+  personAny: 'Siapa saja',
+  personMe: 'Saya',
+  priorityLabel: 'Prioritas',
+  priorityAny: 'Semua prioritas',
+  sortLabel: 'Urutkan',
+  sortDue: 'Tenggat terdekat',
+  sortPriority: 'Prioritas tertinggi',
+  sortUpdated: 'Terakhir diubah',
+  sortCreated: 'Terakhir dibuat',
+} as const;
