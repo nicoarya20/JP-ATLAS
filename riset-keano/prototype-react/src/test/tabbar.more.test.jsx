@@ -48,6 +48,14 @@ describe('More panel', () => {
     expect(panel()).not.toBeInTheDocument();
   });
 
+  it('labels the deleted-items tile Archive', async () => {
+    renderApp('home.main', 'member');
+    await tapMore();
+    expect(dom.queryByRole('button', { name: 'Trash' })).not.toBeInTheDocument();
+    await userEvent.click(dom.getByRole('button', { name: 'Archive' }));
+    expect(window.location.hash).toBe('#trash.list');
+  });
+
   it('folds on another tab and goes there', async () => {
     renderApp('home.main', 'member');
     await tapMore();
