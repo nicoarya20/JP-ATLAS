@@ -30,7 +30,7 @@ function StatChip({ s }) {
   return (
     <button type="button" className="hm-stat" onClick={useNav({ go: s.go })}>
       <span className="hm-ico" aria-hidden="true">{s.icon}</span>
-      <span className="t-subhead bold">{s.label} <span className="hm-count">{s.count}</span></span>
+      <span className="t-subhead bold">{s.label}{s.count != null && <> <span className="hm-count">{s.count}</span></>}</span>
       <span className={`t-subhead ${s.alert ? 'danger' : 'muted'}`}>{s.sub}</span>
     </button>
   );

@@ -1,10 +1,10 @@
-// Home stat chips for Member and Manager come from D.tasks: open + overdue, in progress + most urgent due, done this week.
+// Home stat chips for Member and Manager come from D.tasks and D.events: open + overdue, in progress + most urgent due, done this week, upcoming this month.
 import { afterEach, describe, expect, it } from 'vitest';
 import { screen as dom } from '@testing-library/react';
 import '../screens';
 import { D } from '../data/sample';
 import { setRole } from '../core/session';
-import { myTaskStats } from '../screens/home/home.stats';
+import { myTaskStats, upcomingThisMonth } from '../screens/home/home.stats';
 import { renderApp } from './render';
 
 // test-only: extra tasks for the signed-in person, removed after each test.
@@ -44,6 +44,34 @@ describe('home task stats', () => {
     add('Done', 'Oct 6', 'Done Oct 6');
     add('Done', 'Oct 1', 'Done Oct 1');
     expect(myTaskStats().completed.count).toBe(1);
+  });
+
+  it('counts upcoming items from today to the end of the month: open tasks plus events not yet held', () => {
+    setRole('pm');
+    // Nico: #14 due today and #9 tomorrow (#12 is overdue, #8 done); 5 events ahead (today's 9:00 stand-up is already done).
+    expect(upcomingThisMonth()).toEqual({ count: 7, sub: '7 items' });
+    setRole('member');
+    // Dodi: #17 and #16; review, sprint review and the anniversary party.
+    expect(upcomingThisMonth()).toEqual({ count: 5, sub: '5 items' });
+  });
+
+  it('leaves out past, done and next-month tasks from Upcoming', () => {
+    setRole('member');
+    const base = upcomingThisMonth().count;
+    add('To do', 'Oct 6');
+    add('Done', 'Oct 20', 'Done Oct 20');
+    add('To do', 'Nov 2');
+    expect(upcomingThisMonth().count).toBe(base);
+    add('To do', 'Oct 31');
+    expect(upcomingThisMonth()).toEqual({ count: base + 1, sub: `${base + 1} items` });
+  });
+
+  it('shows Upcoming after Completed on Home with no count beside the label', () => {
+    renderApp('home.main', 'member');
+    const chip = dom.getByRole('button', { name: /Upcoming/ });
+    expect(chip.previousElementSibling).toHaveTextContent('Completed');
+    expect(chip.querySelector('.hm-count')).toBeNull();
+    expect(chip).toHaveTextContent('5 items');
   });
 
   it('shows the overdue line in red on Home', () => {

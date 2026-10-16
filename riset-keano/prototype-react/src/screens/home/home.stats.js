@@ -1,5 +1,6 @@
-// Home stat chips for Member and Manager, counted from D.tasks for the signed-in person against the sample "today".
+// Home stat chips for Member and Manager, counted from D.tasks and D.events for the signed-in person against the sample "today".
 import { D } from '../../data/sample';
+import { EV } from '../events/events.shared';
 import { TODAY, days } from '../tasks/tasks.shared';
 
 /** Days back to this week's Monday (the sample week runs Monday to Sunday). */
@@ -7,6 +8,10 @@ const SINCE_MONDAY = (TODAY.getDay() + 6) % 7;
 /** Completion date label of a Done task: "Done Sep 20" → "Sep 20". */
 const doneOn = t => t.when.replace(/^Done /, '');
 const late = t => days(t.due) < 0;
+/** Short "Oct 7" label of today, and its month. */
+const TODAY_LABEL = D.today.short.slice(5), MONTH = TODAY_LABEL.split(' ')[0];
+/** True for a short "Oct 9" label from today to the end of this month. */
+const leftThisMonth = s => s.split(' ')[0] === MONTH && days(s) >= 0;
 
 /** Line under In Progress: what is most urgent among the tasks being worked on. */
 function activeSub(active) {
@@ -28,4 +33,13 @@ export function myTaskStats() {
     inProgress: { count: active.length, sub: activeSub(active), alert: active.some(late) },
     completed: { count: done.length, sub: 'this week', alert: false },
   };
+}
+
+/** Calendar items still ahead this month: my open tasks due from today on, plus events I attend that haven't happened yet. */
+export function upcomingThisMonth() {
+  const me = D.me().name;
+  const tasks = D.tasks.filter(t => t.who === me && t.status !== 'Done' && leftThisMonth(t.due));
+  const events = D.events.filter(e => e.attendees.includes(me) && e.status !== 'Done' && leftThisMonth(EV.date(e).slice(5)));
+  const n = tasks.length + events.length;
+  return { count: n, sub: `${n} ${n === 1 ? 'item' : 'items'}` };
 }

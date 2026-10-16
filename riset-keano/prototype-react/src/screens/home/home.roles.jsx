@@ -1,24 +1,25 @@
 // Home per role (Penpot Home · Member / PM / Admin): stat chips, My Focus rows and list lengths change; layout stays.
-import { CircleCheck, Clock, FolderOpen, Hourglass, TriangleAlert, UserCheck } from 'lucide-react';
+import { CalendarDays, CircleCheck, Clock, FolderOpen, Hourglass, TriangleAlert, UserCheck } from 'lucide-react';
 import { D } from '../../data/sample';
 import { Btn, Link, Row, Rows } from '../../kit';
-import { myTaskStats } from './home.stats';
+import { myTaskStats, upcomingThisMonth } from './home.stats';
 
 const ICON = 15;
-const STAT_GO = { tasks: 'tasks.all', projects: 'projects.list', users: 'users.approve' };
+const STAT_GO = { tasks: 'tasks.all', projects: 'projects.list', users: 'users.approve', calendar: 'events.calendar' };
 const STAT_ICON = {
-  Assigned: <UserCheck size={ICON} />, 'In Progress': <Clock size={ICON} />, Completed: <CircleCheck size={ICON} />,
+  Assigned: <UserCheck size={ICON} />, 'In Progress': <Clock size={ICON} />, Completed: <CircleCheck size={ICON} />, Upcoming: <CalendarDays size={ICON} />,
   Active: <FolderOpen size={ICON} />, Overdue: <TriangleAlert size={ICON} />, Awaiting: <Hourglass size={ICON} />,
 };
 
-/** Stat chip: {label, count, go, sub, icon, alert}. sub defaults to the unit ("projects"); alert shows sub in red. */
+/** Stat chip: {label, count, go, sub, icon, alert}. count null hides the number; sub defaults to the unit ("projects"); alert shows sub in red. */
 const stat = (label, count, unit, sub = unit, alert = false) => ({ label, count, sub, alert, go: STAT_GO[unit], icon: STAT_ICON[label] });
 
-/** Member and Manager chips: the signed-in person's own tasks, counted from D.tasks. */
+/** Member and Manager chips: the signed-in person's own tasks from D.tasks, then what is still ahead on their calendar this month. */
 function taskStats() {
   const S = myTaskStats();
   return [['Assigned', S.assigned], ['In Progress', S.inProgress], ['Completed', S.completed]]
-    .map(([label, x]) => stat(label, x.count, 'tasks', x.sub, x.alert));
+    .map(([label, x]) => stat(label, x.count, 'tasks', x.sub, x.alert))
+    .concat(stat('Upcoming', null, 'calendar', upcomingThisMonth().sub));
 }
 
 /** Per role: stat chips, number of Ask Data questions, completed-this-week rows, activity rows. */
