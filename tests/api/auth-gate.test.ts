@@ -3,7 +3,16 @@
  * The pure verdicts are swept with the R12 §3.5 payloads; the end-to-end cases prove that a real
  * Admin session cannot reach `admin/ban-user`, while the same request direct to Better Auth would.
  */
-import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  spyOn,
+  test,
+} from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
 import { api } from '../../server/api';
 import { createAuthMount, evaluateAuthPath, normalizeAuthPath } from '../../server/api/auth-gate';
@@ -116,10 +125,19 @@ describe('evaluateAuthPath', () => {
 });
 
 describe('createAuthMount', () => {
-  const handler = spyOn(auth, 'handler').mockImplementation(
-    async () => new Response('forwarded', { status: 200 }),
-  );
-  const getSession = spyOn(auth.api, 'getSession');
+  const spyHandler = () =>
+    spyOn(auth, 'handler').mockImplementation(
+      async () => new Response('forwarded', { status: 200 }),
+    );
+  const spyGetSession = () => spyOn(auth.api, 'getSession');
+  let handler: ReturnType<typeof spyHandler>;
+  let getSession: ReturnType<typeof spyGetSession>;
+  // Installed per describe run, not at collection time: otherwise the stubs are live while the
+  // real-API describes run first under --randomize, and they see a forwarding handler.
+  beforeAll(() => {
+    handler = spyHandler();
+    getSession = spyGetSession();
+  });
   afterEach(() => {
     handler.mockClear();
     getSession.mockReset();
@@ -244,6 +262,14 @@ describe('a real Admin session cannot ban through Better Auth', () => {
       .getSetCookie()
       .map((c) => c.split(';', 1)[0])
       .join('; ');
+  });
+
+  // The control test really bans the target, so every test starts from an unbanned one.
+  beforeEach(async () => {
+    await db
+      .update(user)
+      .set({ banned: false, banReason: null, banExpires: null })
+      .where(eq(user.id, targetId));
   });
 
   afterAll(async () => {
