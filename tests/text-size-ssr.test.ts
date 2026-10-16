@@ -1,5 +1,5 @@
 /** Root SSR: the text-size cookie sets Mantine's scale and the document language is Indonesian. */
-import { afterEach, describe, expect, it, spyOn } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, it, spyOn } from 'bun:test';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import {
@@ -12,12 +12,19 @@ import {
 import * as root from '../app/root';
 import * as branding from '../server/settings-branding';
 
-const getBranding = spyOn(branding, 'getBranding').mockResolvedValue({
-  appName: 'Simple PM',
-  appTagline: 'Fullstack Template',
-  supportUrl: null,
+const spyBranding = () =>
+  spyOn(branding, 'getBranding').mockResolvedValue({
+    appName: 'Simple PM',
+    appTagline: 'Fullstack Template',
+    supportUrl: null,
+  });
+let getBranding: ReturnType<typeof spyBranding>;
+// Installed and restored around this file: a spy created at import time stays live for every file that runs later.
+beforeAll(() => {
+  getBranding = spyBranding();
 });
 afterEach(() => getBranding.mockClear());
+afterAll(() => getBranding.mockRestore());
 
 // Mantine serialises `name: value;` (with a space), so match the declaration, not a fixed string.
 const SCALE_1_5 = /--mantine-scale:\s*1\.5;/;

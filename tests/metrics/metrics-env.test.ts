@@ -1,10 +1,16 @@
-import { afterEach, describe, expect, it, spyOn } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, it, spyOn } from 'bun:test';
 import { logger } from '../../server/logger';
 import { METRICS } from '../../server/metrics/config';
 import { getMetrics, resolveMetrics } from '../../server/pm/metrics-env';
 
-const warn = spyOn(logger, 'warn').mockImplementation(() => {});
+const spyWarn = () => spyOn(logger, 'warn').mockImplementation(() => {});
+let warn: ReturnType<typeof spyWarn>;
+// Installed and restored around this file: a spy created at import time silences logger.warn for every later file.
+beforeAll(() => {
+  warn = spyWarn();
+});
 afterEach(() => warn.mockClear());
+afterAll(() => warn.mockRestore());
 
 describe('METRICS defaults', () => {
   it('match the specification exactly', () => {
