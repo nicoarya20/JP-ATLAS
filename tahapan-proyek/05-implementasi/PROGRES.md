@@ -11,9 +11,9 @@
 | S0.0 — Prasyarat ops | 9 | 9 | 0 | 0 |
 | S0.a — Akun dan akses | 16 | 16 | 0 | 0 |
 | S0.b — Kontrak beku | 33 | 33 | 0 | 0 |
-| S1 — Proyek dan profil | 18 | 0 | 0 | 0 |
-| S2 — Tugas inti | 17 | 0 | 0 | 0 |
-| **Total** | **93** | **58** | **0** | **0** |
+| S1 — Proyek dan profil | 18 | 4 | 0 | 0 |
+| S2 — Tugas inti | 17 | 2 | 0 | 0 |
+| **Total** | **93** | **64** | **0** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -119,13 +119,13 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §4`.
 
 | ID | Judul | Lajur | Bergantung pada | Ukuran | Status | Cabang | Commit | Hasil tes |
 |---|---|---|---|---|---|---|---|---|
-| S1-01 | Daftarkan modul baru S1 di `app.ts` | L-C/integrator | SP1 | S (0,25) | belum |  |  |  |
-| S1-02 | Query, DTO, dan rute baca proyek (daftar, detail, anggota) | L1a | S1-01 | M (2) | belum |  |  |  |
+| S1-01 | Daftarkan modul baru S1 di `app.ts` | L-C/integrator | SP1 | S (0,25) | **selesai** | `feature/pm-s1-02-project-read-api` | `937b8ba` | Mengecil karena S0B-18 sudah membuat 6 stub; tersisa 3 skeleton (`app-team.picker.ts`, `app-projects.trash.ts`, `app-trash.ts`) didaftarkan dengan 3 `.use` di `app.ts`, digabung ke worker S1-02 |
+| S1-02 | Query, DTO, dan rute baca proyek (daftar, detail, anggota) | L1a | S1-01 | M (2) | **selesai** | `feature/pm-s1-02-project-read-api` | `863d25e` | worker: 2.946 lulus/0 gagal, `smoke:binary` 28/28. DTO + `listProjects`/`getProjectDetail` + `GET /projects`, `/projects/:id`, `/projects/:id/members`; `tests/support/query-count.ts`. **Terbukti:** golden Atlas 17% dan `at_risk` "1 tugas penting terlambat", 4 query konstan, Member bukan anggota ⇒ 404 identik. Satu sentuhan di luar Target: `PM_DENY_OWNER` di `scopes.pm.ts` diarahkan ke `app-projects.trash.ts` (tanpa itu tes penyapu gagal). Catatan: `t.UnionEnum` Elysia diam-diam jatuh ke nilai pertama bila tak diisi |
 | S1-03 | Service dan rute tulis proyek (buat, ubah, status, pengelola utama) | L1a | S1-02 | M (2) | belum |  |  |  |
 | S1-04 | Anggota proyek dan pemilih orang | L1a | S1-03 | M (2,5) | belum |  |  |  |
 | S1-05 | Hapus proyek ke Sampah + pulihkan minimal (backend, tanpa UI) | L1a | S1-04 | S (1,5) | belum |  |  |  |
-| S1-06 | API profil dan cookie `mk-text-size` | L4 | S1-01 | M (1,5) | belum |  |  |  |
-| S1-07 | Tema berskala dan loader root | L4 | S1-06 | S (0,5) | belum |  |  |  |
+| S1-06 | API profil dan cookie `mk-text-size` | L4 | S1-01 | M (1,5) | **selesai** | `feature/pm-s1-06-profile-api` | `a30bc23`, `ccda64e` | worker: 2.923 lulus/0 gagal, `smoke:binary` 28/28. `GET/PATCH /api/app/profile`, `Set-Cookie mk-text-size` pada `textSize`, cookie di `/go` untuk perangkat baru. Tes menangkap dan memperbaiki bug `t.UnionEnum` yang mereset `textSize` di tiap PATCH. Keputusan nama: `user.name` tetap lewat Better Auth, `profile.displayName` tambahan. Konflik stub-test dengan S1-02 diselesaikan koordinator saat merge |
+| S1-07 | Tema berskala dan loader root | L4 | S1-06 | S (0,5) | **selesai** | (dicakup S0B-24/S0B-25) | `027a5ad` | Sudah dikerjakan S0.b (`buildTheme`, loader root, cookie dibaca, `lang="id"`); S1-06 memverifikasi lewat tes bahwa cookie dari PATCH terbaca `resolveTextSize`. Verifikasi skala 1,25/1,5 dilebur ke S1-14 dan S1-16 |
 | S1-08 | Klien proyek (API, saringan, aksi) | L1b | SP-S1a | S (1) | belum |  |  |  |
 | S1-09 | Halaman Daftar proyek (①②) | L1b | S1-08 | M (2) | belum |  |  |  |
 | S1-10 | Detail proyek: layout, header, Ringkasan (⑧) | L1b | SP-S1a | M (2,5) | belum |  |  |  |
@@ -144,8 +144,8 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §5`.
 
 | ID | Judul | Lajur | Bergantung pada | Ukuran | Status | Cabang | Commit | Hasil tes |
 |---|---|---|---|---|---|---|---|---|
-| S2-01 | Metrics S2 murni: kelompok jadwal | L2 | SP1 | S (1) | belum |  |  |  |
-| S2-02 | Query tugas: daftar keyset, hitungan, detail | L2 | S2-01 | M (3) | belum |  |  |  |
+| S2-01 | Metrics S2 murni: kelompok jadwal | L2 | SP1 | S (1) | **selesai** | `feature/pm-s2-02-task-read-query` | (commit pertama) | `server/metrics/schedule.ts` (`ScheduleGroup`; "Minggu ini" = sampai Minggu pekan berjalan, bukti B-7 diputuskan dan didokumentasikan); ekspor baru masuk snapshot `contract-v1` |
+| S2-02 | Query tugas: daftar keyset, hitungan, detail | L2 | S2-01 | M (3) | **selesai** | `feature/pm-s2-02-task-read-query` | `631f8a9` | worker: 2.988 lulus/0 gagal, `smoke:binary` 28/28. `server/task/*` (`listTasks` keyset 4 urutan, `countTasks` satu GROUP BY, `getTaskDetail`, `resolveTaskRef`). **Terbukti:** paritas SQL vs oracle untuk 8 persona, 404 identik, "Tugas saya" 5 query konstan untuk 51 dan 501 tugas, indeks assignee terpakai. Catatan: `BAD_CURSOR` belum ada di `errors.ts` (S2-03 memetakan ke 400); tes kinerja butuh `VACUUM` agar `pm-indexes` tidak goyah |
 | S2-03 | Rute baca tugas (menetapkan SP2) | L2 | S2-02 | S (1,5) | belum |  |  |  |
 | S2-04 | Service dan rute buat/ubah tugas | L2 | S2-03 | M (2,5) | belum |  |  |  |
 | S2-05 | Mesin status: Mulai, Batal mulai, Selesai, Buka lagi, Batalkan, Pulihkan | L2 | S2-04 | M (3) | belum |  |  |  |
@@ -223,6 +223,7 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 | 16 Okt 2026 | G11 (S0.b) | S0B-30, S0B-19, S0B-25, S0B-29 (merge `2868c5e`, `80c359b`, `9265a44`, `f90d912`; docs `4f42a9f`) | Pasca-merge pada `4f42a9f` di worktree bersih: `typecheck` 0 baris `error TS`, **2.803 lulus / 20 dilewati / 0 gagal**, lint = baseline, skema tidak bergeser, `bun audit` = 1 moderate, `smoke:binary` 28/28 (uji coba pra-merge juga `smoke:coldboot` 28/28). Tanpa konflik. Koreksi koordinator: angka pemeriksaan smoke di `CLAUDE.md` 27 → 28. | User: "merge G11, push, luncurkan G12" |
 | 16 Okt 2026 | G12 (S0.b) | S0B-10, S0B-32, S0B-31 (merge `7cc171d`, `2c4f156`, `91e30b1`; docs `21f03d5`) | Pasca-merge pada `21f03d5` di worktree bersih: `typecheck` 0 baris `error TS`, **2.827 lulus / 20 dilewati / 0 gagal**, lint = baseline, skema tidak bergeser, `bun audit` = 1 moderate, `smoke:binary` 28/28 (uji coba pra-merge juga `smoke:coldboot` 28/28). Tanpa konflik. Termasuk perubahan aturan UX tiga tingkat di `CLAUDE.md` (T1/T2/T3). | User: "merge G12, push, luncurkan G13" (tanpa UAT lebih dulu; kriteria 16 dibiarkan terbuka) |
 | 16 Okt 2026 | G13 (S0.b, gerbang) | S0B-33 (merge dari `feature/pm-s0b-33-contract-v1`, commit `5795b01`) | Pasca-merge: 0 baris `error TS`, **2.887 lulus / 20 dilewati / 0 gagal**, lint = baseline, skema tidak bergeser, `bun audit` = 1 moderate, `smoke:binary` 28/28 (worker juga `smoke:coldboot` 28/28). Tag lokal `contract-v1`. Kriteria #16: user menerima tanpa peninjau kedua; UAT login Google tetap terbuka. | User: "merge G13, push, tanpa peninjau kedua" |
+| 16 Okt 2026 | G14 (S1 + S2 + hutang tes) | T-H1, S1-02 (+S1-01'), S1-06, S2-01+S2-02 (merge `02c9120`, `c0254b0`, `cb51460`, `3f80450`) | Uji gabungan sebelum merge: satu konflik (daftar stub di `tests/api/app-stubs.test.ts` dan `tests/app-stubs.test.ts`, kedua cabang mengosongkan stub berbeda) diselesaikan koordinator; 0 baris `error TS`, **3.089 lulus / 18 dilewati / 0 gagal** (sebelumnya 2.887/20), lint = baseline, skema tidak bergeser, `bun audit` = 1 moderate, `contract-v1` 62 lulus, `smoke:binary` dan `smoke:coldboot` 28/28. `--randomize` 41 → 0 kegagalan. Catatan: tes penuh melambat dari ±20 ke ±50 detik (T-H1: sandbox per tes di `db-generate-rewrite`, tes kinerja S2-02). | User: "merge G14, push, nanti aku konfirmasi ulang kalau mau luncurkan G15" |
 
 ## Log perubahan
 
@@ -267,3 +268,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **16 Okt 2026** — G13 digabung atas persetujuan user, kriteria #16 diterima **tanpa peninjau kedua**. **S0.b selesai (33/33); 58 dari 93 tugas selesai.** Tag lokal `contract-v1` dipasang pada hasil merge (tidak di-push). Risiko terbuka yang diterima: UAT login Google asli belum dijalankan (gerbang M1 S0.a); kriteria #13 dan #2 menunggu keputusan kebijakan. S1 dan S2 boleh dimulai.
 - **16 Okt 2026** — Atas permintaan user disusun **jadwal gelombang S1 + S2** (G14-G21, 8 gelombang, 35 tugas, tugas yang saling bergantung digabung satu worker): lihat `JADWAL-S1-S2.md` (usulan, **menunggu persetujuan**; belum ada yang diluncurkan). Penyesuaian terhadap P3 karena S0 sudah jalan: S1-01 mengecil (digabung S1-02), S1-07 sudah dikerjakan S0B-24/25, S1-18 harus menambah rute `/app/trash` dan mengubah snapshot `contract-v1` (11 → 12 URL), nama kolom profil nyata `displayName/jobTitle/department`. Delapan keputusan user dicantumkan beserta kapan dibutuhkan (KB-3, KB-8, KB-12, `seed:atlas`, UAT Google, koordinasi `home.tsx`, nama penguji UP-1, persetujuan satu-per-satu S1-05 dan S1-18).
 - **16 Okt 2026** — **G14 diluncurkan** atas perintah user (run `run_d37da4e68372`, basis `1870669` = `e3ca23c` + JADWAL-S1-S2.md): S1-01'+S1-02 (baca proyek + 3 stub), S1-06 (API profil + cookie ukuran teks), S2-01+S2-02 (jadwal tugas + query tugas), T-H1 (hutang tes: urutan acak + tes rute statis). 4 worker, tanpa 429, semua spesifikasi terkirim (±7 KB + berkas rujukan `/tmp/sp-g14-<ID>-brief.txt`). S1-07 tidak diluncurkan (sudah dikerjakan S0B-24/25). Keputusan user #1-#3 (KB-3, KB-8, KB-12) dibutuhkan sebelum G15.
+- **16 Okt 2026** — G14 digabung atas persetujuan user. 64 dari 93 tugas selesai (S1 4/18, S2 2/17). Gelombang tanpa 429: G1-G14. G15 **menunggu konfirmasi user**. Keputusan KB-3, KB-8, KB-12 dibutuhkan sebelum G15 (default: ya, pakai, ya). Merge G14 dikerjakan dari worktree sementara karena tiga agen inventaris flow masih membaca worktree koordinator.
