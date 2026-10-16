@@ -1,9 +1,9 @@
 // Screen frame: navigation bar, scrolling content and the bottom tab bar. Every screen renders through <Screen>.
 import { NavigationBar } from '@react-cupertino-ui/navigation-bar';
-import { TabBar } from '@react-cupertino-ui/tab-bar';
 import { CalendarDays, CircleCheck, Ellipsis, FolderKanban, House, Plus } from 'lucide-react';
 import { useApp } from '../core/app.context';
 import { allowed } from '../core/registry';
+import { GlassTabs } from './tabbar';
 
 const TAB_ICON = 22;
 /** Bottom tabs: id -> label, target screen, icon. */
@@ -26,8 +26,9 @@ const CREATE_MENU = { go: 'home.create', label: 'Create' };
 export const createFor = (tab, role) => (CREATE[tab] && allowed(CREATE[tab].go, role) ? CREATE[tab] : CREATE_MENU);
 
 /**
- * Bottom navigation as a floating liquid-glass pill (icons only, labels kept for screen readers) plus a round "+"
- * create button (see createFor). active = 'home' | 'tasks' | 'projects' | 'events' | 'more'. Tabs reset history (top-level jump).
+ * Bottom navigation as a floating liquid-glass pill (icons only, labels kept for screen readers; a draggable bubble
+ * marks the active tab, see GlassTabs) plus a round "+" create button (see createFor).
+ * active = 'home' | 'tasks' | 'projects' | 'events' | 'more'. Tabs reset history (top-level jump).
  */
 export function AppTabBar({ active }) {
   const { go, role } = useApp();
@@ -35,7 +36,7 @@ export function AppTabBar({ active }) {
   const create = createFor(active, role);
   return (
     <div className="glassbar">
-      <TabBar className="glassbar-tabs" glass={false} safeArea={false} items={items} activeId={active}
+      <GlassTabs className="glassbar-tabs" items={items} activeId={active}
         onChange={id => go(TABS.find(t => t.id === id).go, { replace: true })} />
       <button type="button" className="glassbar-fab" aria-label={create.label} onClick={() => go(create.go)}>
         <Plus size={TAB_ICON + 4} />

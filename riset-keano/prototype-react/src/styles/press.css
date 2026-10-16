@@ -12,12 +12,11 @@ html { -webkit-tap-highlight-color: transparent; }
 .react-cupertino-ui-list.variant-inset .react-cupertino-ui-list-item:hover:not(.disabled) { background-color: transparent; }
 .react-cupertino-ui-search-bar__cancel:hover { opacity: 1; }
 
-/* ---- Press: blocks shrink, text-only targets dim ---- */
-.hm-stat, .ev-date, .ev-arrow, .react-cupertino-ui-suggestion-chip, .react-cupertino-ui-tab-bar__item,
+/* ---- Press: blocks shrink, text-only targets dim (the tab bar has its own bubble, kit/tabbar.css) ---- */
+.hm-stat, .ev-date, .ev-arrow, .react-cupertino-ui-suggestion-chip,
 .react-cupertino-ui-card[data-interactive="true"] {
   transition: transform var(--press-out) cubic-bezier(0.34, 1.56, 0.64, 1); }
-.hm-stat:active, .ev-date:active, .ev-arrow:active, .react-cupertino-ui-suggestion-chip:active:not(:disabled),
-.react-cupertino-ui-tab-bar__item:active { transform: scale(var(--press-scale)); transition-duration: var(--press-in); }
+.hm-stat:active, .ev-date:active, .ev-arrow:active, .react-cupertino-ui-suggestion-chip:active:not(:disabled) { transform: scale(var(--press-scale)); transition-duration: var(--press-in); }
 .react-cupertino-ui-card[data-interactive="true"]:active { transform: scale(0.98); transition-duration: var(--press-in); }
 
 .link, .react-cupertino-ui-navigation-bar .back-button, .react-cupertino-ui-tabs__trigger,
@@ -34,5 +33,5 @@ html { -webkit-tap-highlight-color: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   .hm-stat:active, .ev-date:active, .ev-arrow:active, .react-cupertino-ui-suggestion-chip:active,
-  .react-cupertino-ui-tab-bar__item:active, .react-cupertino-ui-card[data-interactive="true"]:active { transform: none; }
+  .react-cupertino-ui-card[data-interactive="true"]:active { transform: none; }
 }
