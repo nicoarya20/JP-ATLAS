@@ -42,6 +42,32 @@ describe('every /api/app route is mapped', () => {
   );
 });
 
+describe('project write routes (S1-03)', () => {
+  test.each([
+    ['POST', '/api/app/projects'],
+    ['PATCH', '/api/app/projects/p1'],
+    ['POST', '/api/app/projects/p1/status'],
+  ])('%s %s stays open to keys with app:write', (m, p) => {
+    expect(isPmKeyDenied(m, p)).toBe(false);
+    expect(requiredScope(m, p)).toBe('app:write');
+  });
+
+  test.each([
+    '/api/app/projects/p1/lead',
+    '/api/app/projects/p1/lead/',
+    '/api/app/projects/a/b/lead',
+    '/api/app/PROJECTS/p1/LEAD',
+  ])('PUT %s is session only (Lead handover is an escalation)', (p) => {
+    expect(isPmKeyDenied('PUT', p)).toBe(true);
+    expect(requiredScope('PUT', p)).toBeNull();
+  });
+
+  test('the Lead pattern does not swallow other project routes', () => {
+    expect(isPmKeyDenied('PUT', '/api/app/projects/leadership')).toBe(false);
+    expect(isPmKeyDenied('POST', '/api/app/projects/p1/lead')).toBe(false);
+  });
+});
+
 describe('PM_KEY_DENY patterns', () => {
   test('each pattern has an owner plugin that exists', () => {
     const files = new Set(readdirSync(API_DIR));
