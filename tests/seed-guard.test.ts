@@ -80,6 +80,7 @@ describe('seed guard (no database)', () => {
 
   it('uses SEED_PASSWORD when set and a fresh random one otherwise', () => {
     expect(resolveSeedPassword({ SEED_PASSWORD: 'dari-env-123' })).toEqual({
+      // test-only
       password: 'dari-env-123',
       generated: false,
     });
@@ -160,7 +161,7 @@ describe('atlas and reset against the test DB', () => {
   });
 
   it('`atlas` keeps SEED_PASSWORD out of the output and is safe to run twice', async () => {
-    const password = 'sandi-uji-seed-1';
+    const password = 'sandi-uji-seed-1'; // test-only
     const { deps, out } = recordingDeps(true);
     expect<number>(await runSeed(['atlas'], { ...ALLOWED, SEED_PASSWORD: password }, deps)).toBe(0);
     expect(out.join('\n')).not.toContain(password);
