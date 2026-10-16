@@ -41,6 +41,16 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
   { name: 'landing SSR', path: '/', status: 200, contentType: 'text/html', bodyIncludes: '<html' },
   { name: 'halaman login', path: '/login', status: 200, contentType: 'text/html' },
   {
+    // Pins the cookie → theme.scale chain through the real SSR build. Mantine writes `name: value;`
+    // (with a space), so the needle includes it. 1.25 = 'besar' in TEXT_SCALE (server/text-size.ts).
+    name: 'ukuran teks dari cookie',
+    path: '/login',
+    headers: { cookie: 'mk-text-size=besar' },
+    status: 200,
+    contentType: 'text/html',
+    bodyIncludes: '--mantine-scale: 1.25',
+  },
+  {
     name: 'area super-admin anonim → login',
     path: '/dev',
     status: 302,
