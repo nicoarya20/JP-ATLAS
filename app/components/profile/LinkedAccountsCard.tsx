@@ -41,7 +41,7 @@ export function LinkedAccountsCard({ accounts, googleEnabled, loading, onChanged
     mutationFn: async () => {
       const { error } = await authClient.linkSocial({
         provider: 'google',
-        callbackURL: '/profile',
+        callbackURL: '/app/settings',
       });
       if (error) throw new Error(error.message ?? 'Server menolak');
     },

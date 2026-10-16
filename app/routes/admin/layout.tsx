@@ -20,7 +20,7 @@ const NAV: NavItem[] = [
 ];
 const APP: NavItem[] = [
   { to: '/app', label: 'App', icon: FiLayers },
-  { to: '/profile', label: 'Profile', icon: FiUser },
+  { to: '/app/settings', label: 'Pengaturan akun', icon: FiUser },
 ];
 
 const SECONDARY: Record<string, NavItem[]> = {

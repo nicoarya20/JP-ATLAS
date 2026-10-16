@@ -231,7 +231,7 @@ await storage().delete(`docs/${id}.pdf`);
 - `DELETE /api/app/avatar` → `{ image: null }`. Kedua rute avatar hanya untuk sesi login; API key ditolak.
 - Gambar dilayani publik di `GET /api/storage/avatars/<userId>/<file>` dengan cache `immutable` (nama file acak per unggahan).
 - Foto lama dihapus dari storage saat diganti, dihapus, atau saat akunnya dihapus (oleh user sendiri maupun admin).
-- Foto dari URL luar (mis. foto akun Google lama) tetap tampil dan bisa dihapus, tetapi halaman Profil tidak lagi menyediakan isian URL foto.
+- Foto dari URL luar (mis. foto akun Google lama) tetap tampil dan bisa dihapus, tetapi halaman Pengaturan tidak lagi menyediakan isian URL foto.
 
 ## Struktur project
 
@@ -299,7 +299,7 @@ Sistem role: `member` → `project_manager` → `admin` → `super-admin`. Role 
 
 `super-admin` hanya diberikan lewat `SUPER_ADMIN_EMAILS` **dan** hanya bila email akunnya sudah terverifikasi; email yang cocok tetapi belum terverifikasi tetap berperan sebagai `member`.
 
-Area `/app` dan `/profile` terbuka untuk semua role yang sudah masuk; admin dan super-admin membukanya lewat tautan **App** di sidebar.
+Area `/app` terbuka untuk semua role yang sudah masuk (`/profile` lama kini dialihkan ke `/app/settings`); admin dan super-admin membukanya lewat tautan **App** di sidebar.
 
 **Persetujuan akun & undangan.** Di produksi masuk lewat Google. Akun baru berstatus `pending` (atau `rejected` setelah ditolak) dan hanya bisa membuka `/waiting`; ia tidak punya akses ke API apa pun sampai disetujui. Dua jalan menuju `approved`:
 
@@ -399,7 +399,7 @@ Akses terprogram ke `/api/*` tanpa cookie sesi. Dikelola super-admin di `/dev/ap
 - **Kedaluwarsa & rotasi** — default 90 hari, maksimum 1 tahun; tanpa kedaluwarsa hanya untuk pemilik super-admin. Rotasi membuat kunci baru dengan pengaturan sama dan memberi kunci lama masa tenggang 24 jam. Cabut = permanen tapi riwayat tetap; hapus = baris dan riwayatnya hilang.
 - **Pembatasan** — rate limit per kunci (opsional, `429 RATE_LIMITED`), daftar IP/prefix yang diizinkan (`403 IP_NOT_ALLOWED`, dicocokkan dengan IP klien hasil `TRUSTED_PROXIES` sehingga tidak bisa dipalsukan lewat `X-Forwarded-For`), nonaktifkan sementara (`401 KEY_DISABLED`).
 - **Jejak pemakaian** — tiap request dicatat ke `api_key_usage` (method, path, status, IP, negara, UA, durasi) secara batch, lalu digulung per hari ke `api_key_usage_daily` (job tiap jam, upsert monoton) sehingga grafik 90 hari dan total seumur kunci tetap murah dan tidak hilang saat retensi menghapus baris mentah. Halaman detail menampilkan total, harian 90 hari, endpoint/IP/negara tersering, request terakhir, dan penanda anomali (negara baru, lonjakan 4xx/5xx). Tab **Log penggunaan** di `/dev/api-keys` menampilkan log lintas kunci dengan filter dan export CSV. Retensi baris mentah diatur di Settings → Retensi log.
-- **Kunci pribadi** — setiap user yang masuk bisa membuat kunci sendiri di `/profile` (maks. 10 aktif) lewat `/api/me/api-keys`; scope dibatasi role-nya, hanya pemiliknya yang bisa mengelola, dan kunci API tidak bisa dipakai untuk mengelola kunci. Overview `/dev` dan sidebar memperingatkan kunci yang berakhir dalam 7 hari.
+- **Kunci pribadi** — setiap user yang masuk bisa membuat kunci sendiri di `/app/settings` bagian **Lanjutan** (maks. 10 aktif) lewat `/api/me/api-keys`; scope dibatasi role-nya, hanya pemiliknya yang bisa mengelola, dan kunci API tidak bisa dipakai untuk mengelola kunci. Overview `/dev` dan sidebar memperingatkan kunci yang berakhir dalam 7 hari.
 - **API** (`/api/api-keys`, super-admin, semua aksi teraudit): `GET` list (`page`, `limit`, `search`, `status`, `ownerId`, `scope`), `GET /stats`, `GET /scopes`, `POST` buat (mengembalikan `key` sekali), `GET /:id`, `GET /:id/usage`, `PUT /:id`, `POST /:id/rotate`, `POST /:id/revoke`, `DELETE /:id`; log lintas kunci `GET /api/api-keys/usage` (`keyId`, `status=2xx|4xx|5xx|errors`, `method`, `search`, `days`, `page`, `limit`) dan `GET /api/api-keys/usage/export` (CSV, maks. 10.000 baris). Kunci pribadi: `/api/me/api-keys` dengan operasi yang sama tanpa `ownerId`.
 - **Spec OpenAPI** — `GET /api/openapi.json` dengan key apa pun mengembalikan OpenAPI 3 yang dibangkitkan dari validasi route (`@elysia/openapi`), difilter ke scope key dan role pemiliknya, plus endpoint baca publik. MCP, auth, dan manajemen kunci tidak dicantumkan. Skema respons belum ada karena route belum mendeklarasikannya.
 - **MCP** — `/api/mcp` menerima API key ber-scope `mcp` (`Authorization: Bearer sp_live_…`, hanya pemilik super-admin), sehingga tiap agent punya kunci sendiri yang bisa dicabut dan terlacak pemakaiannya. `MCP_ADMIN_TOKEN` di env tetap diterima sebagai jalur lama (header Bearer atau `?mcpAdminToken=`); tanpa env itu, hanya API key yang diterima. Contoh `.mcp.json` ada di `.mcp.json.example` (kunci dari env `SIMPLE_PM_MCP_KEY`).
