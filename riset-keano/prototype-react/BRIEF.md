@@ -36,7 +36,7 @@ sheet('tasks.return', { title: '…', group: 'Tasks', snap: 0.5, Component: Retu
 - Data: `import { D } from '../../data/sample'`. `D.me()` is the signed-in person for the current role.
 
 Kit (`import { ... } from '../../kit'`):
-- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `header={false}` hides the nav bar; `header={<el/>}` replaces it. `tab` is one of `home`, `tasks`, `projects`, `events`, `more` and shows the bottom tab bar.
+- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `header={false}` hides the nav bar; `header={<el/>}` replaces it. `tab` is one of `home`, `tasks`, `projects`, `events`, `more` and shows the bottom tab bar (a floating glass pill plus a round "+" that opens `tasks.write`).
 - `Section` is a card. Its props are `title`, `sub`, `right`, plus nav props, which make the whole card tappable.
 - `Rows` and `Row` make an iOS grouped list. Row props: `lead`, `title`, `sub`, `right`, `chev`.
 - `Btn`: `kind` is `primary`, `outline`, `ghost`, `danger` or `plain`. Other props: `block`, `sm`, `icon`.

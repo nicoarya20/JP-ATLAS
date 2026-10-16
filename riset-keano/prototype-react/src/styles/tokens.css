@@ -75,7 +75,11 @@
   --snack-bg: #323236;                   /* inverted surface for snackbars */
   --snack-label: #ffffff;
   --snack-action: #64d2ff;
-  --chrome: rgba(249, 249, 249, 0.94);  /* bar material behind the tab bar */
+  --glass-bar: rgba(255, 255, 255, 0.6);        /* liquid glass tab bar + create button */
+  --glass-bar-edge: rgba(255, 255, 255, 0.7);
+  --glass-bar-shine: rgba(255, 255, 255, 0.8);  /* top inner highlight */
+  --glass-bar-active: rgba(118, 118, 128, 0.16); /* pill behind the active tab */
+  --glass-bar-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   --sheet-bg: #f2f2f7;                   /* bottom sheet background */
   --sheet-surface: #ffffff;              /* cards and lists inside a sheet */
   --overlay: rgba(0, 0, 0, 0.4);         /* dimming behind a sheet */
@@ -134,7 +138,11 @@
   --separator: rgba(84, 84, 88, 0.65);
   --media: #2c2c2e;
   --index-bg: #1c1c1e;
-  --chrome: rgba(22, 22, 22, 0.94);
+  --glass-bar: rgba(40, 40, 42, 0.55);
+  --glass-bar-edge: rgba(255, 255, 255, 0.12);
+  --glass-bar-shine: rgba(255, 255, 255, 0.1);
+  --glass-bar-active: rgba(255, 255, 255, 0.1);
+  --glass-bar-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
   --sheet-bg: #1c1c1e;
   --sheet-surface: #2c2c2e;
   --overlay: rgba(0, 0, 0, 0.6);

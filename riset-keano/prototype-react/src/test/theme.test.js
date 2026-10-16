@@ -12,7 +12,8 @@ const defined = text => new Set([...text.matchAll(/(--[\w-]+)\s*:/g)].map(m => m
 
 // --accent is absent on purpose: it follows --color-blue, which .dark redefines.
 const THEMED = ['--bg', '--surface', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent-soft',
-  '--chrome', '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb'];
+  '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb',
+  '--glass-bar', '--glass-bar-edge', '--glass-bar-shine', '--glass-bar-active', '--glass-bar-shadow'];
 
 describe('theme layer', () => {
   it('is imported after the screens so it wins over the library scss', () => {

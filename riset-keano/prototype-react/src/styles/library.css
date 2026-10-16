@@ -4,7 +4,7 @@
    it wins over the library scss at equal specificity. Colors only via tokens. */
 
 /* Glass highlight overlay off everywhere we flatten a glass panel */
-.react-cupertino-ui-avatar::before, .react-cupertino-ui-badge::before, .react-cupertino-ui-tab-bar.glass::before,
+.react-cupertino-ui-avatar::before, .react-cupertino-ui-badge::before,
 .react-cupertino-ui-bottom-sheet__content.glass::before, .react-cupertino-ui-toast.is-glass::before,
 .react-cupertino-ui-segmented-control::before, .react-cupertino-ui-progressbar__track::before,
 .react-cupertino-ui-checkbox__box::before, .react-cupertino-ui-radio__ring::before { content: none; }
@@ -41,12 +41,20 @@
 .avatars > .react-cupertino-ui-avatar + .react-cupertino-ui-avatar { margin-left: calc(var(--sp-2) * -1);
   box-shadow: 0 0 0 2px var(--surface); }
 
-/* ---- Tab bar ---- */
-.react-cupertino-ui-tab-bar, .react-cupertino-ui-tab-bar.glass { background: var(--chrome); border-top: 0.5px solid var(--separator);
-  box-shadow: none; backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); }
-.react-cupertino-ui-tab-bar__item { color: var(--label-2); }
-.react-cupertino-ui-tab-bar__item[data-active="true"] { color: var(--accent); }
-.react-cupertino-ui-tab-bar__indicator { background: var(--accent); box-shadow: none; }
+/* ---- Tab bar (kit AppTabBar): liquid glass pill, icons only, active tab = lighter pill behind the icon ---- */
+.react-cupertino-ui-tab-bar.glassbar-tabs, .glassbar-fab {
+  background: var(--glass-bar); color: var(--label); border: 0.5px solid var(--glass-bar-edge);
+  box-shadow: inset 0 1px 0 var(--glass-bar-shine), var(--glass-bar-shadow);
+  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); }
+.react-cupertino-ui-tab-bar.glassbar-tabs { position: relative; left: auto; right: auto; bottom: auto; z-index: auto;
+  flex: 1; min-width: 0; padding: 4px; border-radius: 999px; }
+.glassbar-tabs .react-cupertino-ui-tab-bar__content { height: 50px; gap: 0; }
+.glassbar-tabs .react-cupertino-ui-tab-bar__indicator { top: 0; bottom: 0; height: auto; border-radius: 999px;
+  background: var(--glass-bar-active); box-shadow: inset 0 1px 0 var(--glass-bar-shine); }
+.glassbar-tabs .react-cupertino-ui-tab-bar__item { color: var(--label); border-radius: 999px; }
+.glassbar-tabs .react-cupertino-ui-tab-bar__item[data-active="true"] { color: var(--accent); transform: none; }
+.glassbar-tabs .react-cupertino-ui-tab-bar__item .label { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---- Bottom sheet: its own background, and cards inside it one step lighter ---- */
 .react-cupertino-ui-bottom-sheet__overlay { background: var(--overlay); }

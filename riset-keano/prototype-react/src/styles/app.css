@@ -16,7 +16,13 @@ h1, h2, h3 { margin: 0; }
 .scr { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .content { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-4); }
 .content.with-tabbar { padding-bottom: calc(var(--tab-bar-space) + var(--sp-4)); }
-:root { --tab-bar-space: 84px; }   /* library tab bar height (70px) + its bottom padding */
+:root { --tab-bar-space: 76px; }   /* floating glass bar: 60px pill + 16px gap under it */
+/* Floating tab bar: glass pill + round create button, over the content so it scrolls under the glass */
+.glassbar { position: absolute; left: var(--sp-4); right: var(--sp-4); bottom: var(--sp-4); z-index: 90;
+  display: flex; align-items: center; gap: 10px; }
+.glassbar-fab { flex: none; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center;
+  padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 220ms ease; }
+.glassbar-fab:active { transform: scale(0.94); }
 
 /* ---- Rhythm ---- */
 .stack { display: grid; gap: var(--sp-3); grid-auto-rows: max-content; align-content: start; }

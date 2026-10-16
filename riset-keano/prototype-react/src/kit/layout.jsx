@@ -1,7 +1,7 @@
 // Screen frame: navigation bar, scrolling content and the bottom tab bar. Every screen renders through <Screen>.
 import { NavigationBar } from '@react-cupertino-ui/navigation-bar';
 import { TabBar } from '@react-cupertino-ui/tab-bar';
-import { CalendarDays, CircleCheck, Ellipsis, FolderKanban, House } from 'lucide-react';
+import { CalendarDays, CircleCheck, Ellipsis, FolderKanban, House, Plus } from 'lucide-react';
 import { useApp } from '../core/app.context';
 
 const TAB_ICON = 22;
@@ -14,11 +14,25 @@ export const TABS = [
   { id: 'more', label: 'More', go: 'home.more', icon: <Ellipsis size={TAB_ICON} /> },
 ];
 
-/** Bottom navigation; active = 'home' | 'tasks' | 'projects' | 'events' | 'more'. Tabs reset history (top-level jump). */
+/** Screen the round "+" button next to the tab pill opens (quick create). */
+export const CREATE_GO = 'tasks.write';
+
+/**
+ * Bottom navigation as a floating liquid-glass pill (icons only, labels kept for screen readers) plus a round "+"
+ * create button. active = 'home' | 'tasks' | 'projects' | 'events' | 'more'. Tabs reset history (top-level jump).
+ */
 export function AppTabBar({ active }) {
   const { go } = useApp();
   const items = TABS.map(({ id, label, icon }) => ({ id, label, icon }));
-  return <TabBar items={items} activeId={active} onChange={id => go(TABS.find(t => t.id === id).go, { replace: true })} />;
+  return (
+    <div className="glassbar">
+      <TabBar className="glassbar-tabs" glass={false} safeArea={false} items={items} activeId={active}
+        onChange={id => go(TABS.find(t => t.id === id).go, { replace: true })} />
+      <button type="button" className="glassbar-fab" aria-label="New task" onClick={() => go(CREATE_GO)}>
+        <Plus size={TAB_ICON + 4} />
+      </button>
+    </div>
+  );
 }
 
 /** Top bar. back = true shows the Back button (pops history). left/right = extra items. */
