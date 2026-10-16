@@ -8,7 +8,7 @@ import { EventsEmpty, EventsList } from './events.list';
 import { NewEvent, NewEventDetails } from './events.new';
 import { Step1, Step2, Step3 } from './events.outcomes';
 import { RecordReady, Recording } from './events.record';
-import { CancelRecurringSheet, CancelSheet, DeleteRecurringSheet, DeleteSheet, FilterSheet } from './events.sheets';
+import { ArchiveRecurringSheet, ArchiveSheet, CancelRecurringSheet, CancelSheet, FilterSheet } from './events.sheets';
 
 const G = 'Events';
 
@@ -27,6 +27,6 @@ screen('events.step2', { title: '⑦b Outcomes · Step 2 Text', group: G, Compon
 screen('events.step3', { title: '⑦c Outcomes · Step 3 Tasks', group: G, Component: Step3 });
 screen('events.detail-confirmed', { title: '⑨ Detail · Results confirmed', group: G, Component: DetailConfirmed });
 sheet('events.cancel', { title: '⑩ Sheet · Cancel event', group: G, Component: CancelSheet });
-sheet('events.delete', { title: '⑪ Sheet · Delete event', group: G, Component: DeleteSheet });
+sheet('events.archive', { title: '⑪ Sheet · Archive event', group: G, Component: ArchiveSheet });
 sheet('events.cancel-recurring', { title: '⑩b Sheet · Cancel recurring event', group: G, Component: CancelRecurringSheet });
-sheet('events.delete-recurring', { title: '⑪b Sheet · Delete recurring event', group: G, Component: DeleteRecurringSheet });
+sheet('events.archive-recurring', { title: '⑪b Sheet · Archive recurring event', group: G, Component: ArchiveRecurringSheet });

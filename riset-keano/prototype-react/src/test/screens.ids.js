@@ -10,10 +10,10 @@ export const EXPECTED_IDS = [
   'events.list', 'events.filter', 'events.calendar', 'events.new', 'events.new-details', 'events.empty',
   'events.detail-upcoming', 'events.detail-recurring', 'events.record-ready', 'events.recording',
   'events.step1', 'events.step2', 'events.step3', 'events.detail-confirmed',
-  'events.cancel', 'events.delete', 'events.cancel-recurring', 'events.delete-recurring',
+  'events.cancel', 'events.archive', 'events.cancel-recurring', 'events.archive-recurring',
   'inbox.respond', 'inbox.updates', 'inbox.empty',
   'team.list', 'team.person', 'team.empty',
-  'trash.list', 'trash.empty', 'trash.undo', 'trash.delete',
+  'archive.list', 'archive.empty', 'archive.undo', 'archive.delete',
   'users.approve', 'users.roles',
   'settings.main', 'settings.profile', 'settings.leave',
 ];

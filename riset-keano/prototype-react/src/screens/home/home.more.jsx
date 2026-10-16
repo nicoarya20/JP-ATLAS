@@ -12,7 +12,7 @@ const tiles = is => [
   { go: 'inbox.respond', label: 'Inbox', icon: <Inbox size={ICON} />, tone: 'blue', badge: D.inbox.respond.length },
   { go: 'team.list', label: 'Team', icon: <Users size={ICON} />, tone: 'green' },
   is('admin') && { go: 'users.approve', label: 'Users', icon: <UserCog size={ICON} />, tone: 'orange', badge: D.users.counts.pending },
-  { go: 'trash.list', label: 'Archive', icon: <Archive size={ICON} />, tone: 'gray' },
+  { go: 'archive.list', label: 'Archive', icon: <Archive size={ICON} />, tone: 'gray' },
   { go: 'settings.main', label: 'Settings', icon: <Settings size={ICON} />, tone: 'gray' },
   { go: 'auth.login', label: 'Sign out', icon: <LogOut size={ICON} />, tone: 'red', replace: true },
 ].filter(Boolean);

@@ -1,0 +1,5 @@
+/* Archive module (ar-). */
+.ar-card.card.react-cupertino-ui-card { gap: var(--sp-3); }
+.ar-acts { display: flex; gap: var(--sp-2); justify-content: flex-end; }
+.ar-two { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--sp-3); }
+.ar-note.card.react-cupertino-ui-card { background: var(--fill); }

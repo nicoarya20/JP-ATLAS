@@ -13,7 +13,7 @@ function F() {
       <Label>Group</Label>
       <Select toast="Member · Project Manager">Member</Select>
       <Switch on label="Event reminders" />
-      <Snack action="Undo" go="t.form.done" toast="Event restored">Event moved to Trash</Snack>
+      <Snack action="Undo" go="t.form.done" toast="Event restored">Event moved to Archive</Snack>
     </div>
   );
 }
@@ -38,7 +38,7 @@ describe('kit form parts', () => {
 
   it('Snack action navigates and toasts', async () => {
     renderApp('t.form');
-    expect(dom.getByRole('status')).toHaveTextContent('Event moved to Trash');
+    expect(dom.getByRole('status')).toHaveTextContent('Event moved to Archive');
     await userEvent.click(dom.getByRole('button', { name: 'Undo' }));
     expect(dom.getByRole('heading', { name: 'Restored screen' })).toBeInTheDocument();
     expect(await dom.findByText('Event restored')).toBeInTheDocument();

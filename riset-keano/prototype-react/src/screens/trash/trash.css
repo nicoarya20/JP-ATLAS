@@ -1,5 +1,0 @@
-/* Trash module (tr-). */
-.tr-card.card.react-cupertino-ui-card { gap: var(--sp-3); }
-.tr-acts { display: flex; gap: var(--sp-2); justify-content: flex-end; }
-.tr-two { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--sp-3); }
-.tr-note.card.react-cupertino-ui-card { background: var(--fill); }

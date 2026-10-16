@@ -1,5 +1,5 @@
 // Events sheets: ①b filter, ⑩/⑪ cancel and delete the one-off design review, ⑩b/⑪b the recurring sprint review.
-// Cancel keeps the event visible (reason sent to attendees); Delete moves it to Trash for 30 days and lands on Trash ③ (Undo).
+// Cancel keeps the event visible (reason sent to attendees); Archive moves it to Archive until restored and lands on Archive ③ (Undo).
 import { Checkbox } from '@react-cupertino-ui/checkbox';
 import { Radio } from '@react-cupertino-ui/radio';
 import { D } from '../../data/sample';
@@ -70,11 +70,11 @@ export function CancelSheet() {
   );
 }
 
-/** Events ⑪: move the one-off event to Trash. */
-export function DeleteSheet() {
+/** Events ⑪: move the one-off event to Archive. */
+export function ArchiveSheet() {
   return (
-    <Sheet title="Delete event?" sub={one().title} actions={<Pair back="Cancel" primary="Move to Trash" go="trash.undo" />}>
-      <p className="t-subhead">The event moves to Trash and can be restored within 30 days. Minutes and meeting outcomes move with it. Tasks already created from the outcomes are not deleted.</p>
+    <Sheet title="Archive event?" sub={one().title} actions={<Pair back="Cancel" primary="Move to Archive" go="archive.undo" />}>
+      <p className="t-subhead">The event moves to Archive and can be restored anytime. Minutes and meeting outcomes move with it. Tasks already created from the outcomes are not deleted.</p>
       <Box>Meeting not happening? Use <Link className="bold" sheet="events.cancel">Cancel</Link> so attendees know why.</Box>
     </Sheet>
   );
@@ -93,13 +93,13 @@ export function CancelRecurringSheet() {
   );
 }
 
-/** Events ⑪b: delete one occurrence or the whole series (default). */
-export function DeleteRecurringSheet() {
+/** Events ⑪b: archive one occurrence or the whole series (default). */
+export function ArchiveRecurringSheet() {
   return (
-    <Sheet title="Delete recurring event?" sub={series().title}
-      actions={<Pair back="Cancel" primary="Move to Trash" go="trash.undo" />}>
-      <Which name="ev-delete-which" on={1}
-        opts={[['Only this one', 'Moves to Trash, other occurrences stay'], ['All recurring', 'Whole series moves to Trash as one item']]} />
+    <Sheet title="Archive recurring event?" sub={series().title}
+      actions={<Pair back="Cancel" primary="Move to Archive" go="archive.undo" />}>
+      <Which name="ev-archive-which" on={1}
+        opts={[['Only this one', 'Moves to Archive, other occurrences stay'], ['All recurring', 'Whole series moves to Archive as one item']]} />
     </Sheet>
   );
 }

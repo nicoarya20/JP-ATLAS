@@ -7,5 +7,5 @@ import './events';
 import './inbox';
 import './team';
 import './users';
-import './trash';
+import './archive';
 import './settings';

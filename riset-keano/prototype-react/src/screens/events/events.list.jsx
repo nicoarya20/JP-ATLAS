@@ -1,4 +1,4 @@
-// Events ① list, ⑨ empty (Member), and the toolbar/app bar shared with ② calendar. EventsList is reused by Trash ③ Undo.
+// Events ① list, ⑨ empty (Member), and the toolbar/app bar shared with ② calendar. EventsList is reused by Archive ③ Undo.
 import { CalendarDays, Plus, Repeat, SlidersHorizontal } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
@@ -70,7 +70,7 @@ function Groups() {
   ));
 }
 
-/** Events ① list. overlay renders inside the screen (Trash ③ puts its Undo <Snack> there). */
+/** Events ① list. overlay renders inside the screen (Archive ③ puts its Undo <Snack> there). */
 export function EventsList({ overlay }) {
   return (
     <EventsScreen>

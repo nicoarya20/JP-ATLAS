@@ -66,7 +66,7 @@ describe('More panel', () => {
     await tapMore();
     expect(dom.queryByRole('button', { name: 'Trash' })).not.toBeInTheDocument();
     await userEvent.click(dom.getByRole('button', { name: 'Archive' }));
-    expect(window.location.hash).toBe('#trash.list');
+    expect(window.location.hash).toBe('#archive.list');
   });
 
   it('folds on another tab and goes there', async () => {

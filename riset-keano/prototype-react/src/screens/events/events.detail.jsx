@@ -1,5 +1,5 @@
 // Events ④ detail (one-off "Onboarding design review") and ④b detail (recurring "Atlas sprint review").
-// Edit/Cancel/Delete: Admin all events, PM own events or managed projects, Member only own events.
+// Edit/Cancel/Archive: Admin all events, PM own events or managed projects, Member only own events.
 // No sample event belongs to the Member, so a Member never gets the ⋯ menu or Edit.
 import { useState } from 'react';
 import { Camera, ChevronRight, Ellipsis, Mic, PenLine, Repeat } from 'lucide-react';
@@ -18,7 +18,7 @@ function MenuItem({ sheet, danger, children }) {
   return <button type="button" className={danger ? 'ev-danger' : undefined} onClick={useNav({ sheet })}>{children}</button>;
 }
 
-/** ⋯ menu: Cancel event (⑩) and Move to Trash (⑪); suffix '-recurring' opens ⑩b / ⑪b. */
+/** ⋯ menu: Cancel event (⑩) and Move to Archive (⑪); suffix '-recurring' opens ⑩b / ⑪b. */
 function Menu({ suffix }) {
   const [open, setOpen] = useState(false);
   return (
@@ -29,7 +29,7 @@ function Menu({ suffix }) {
       {open && (
         <div className="ev-menu" role="menu" onClick={() => setOpen(false)}>
           <MenuItem sheet={`events.cancel${suffix}`}>Cancel event</MenuItem>
-          <MenuItem sheet={`events.delete${suffix}`} danger>Move to Trash</MenuItem>
+          <MenuItem sheet={`events.archive${suffix}`} danger>Move to Archive</MenuItem>
         </div>
       )}
     </div>

@@ -136,7 +136,7 @@ const standup = {
   tasks: [{ title: 'Fix the login page before Friday', meta: 'For Rina · Due Fri, Oct 9 · Atlas Project' }, { title: 'Prepare test data once SSO is fixed', meta: 'For Dodi · No due date yet · Atlas Project' }],
 };
 
-// ---------- Team, Trash, Users (Inbox lives in data.sample.inbox.js) ----------
+// ---------- Team, Archive, Users (Inbox lives in data.sample.inbox.js) ----------
 const team = {
   summary: 'Projects you manage · 3 people · 10 active tasks · 3 overdue',
   list: [
@@ -147,13 +147,13 @@ const team = {
   /** Rina's active tasks as seen from Team ② (pill = status). */
   rinaTasks: [['#11 Revise the profile icon', 'Atlas Project · 2 days overdue', 'Overdue'], ['#18 Review the onboarding design', 'Atlas Project · Due today', 'In progress'], ['#15 Review the onboarding page design', 'Atlas Project · Oct 9', 'To do']],
 };
-/** Trash items; left = days until gone, includes = what a deleted project takes with it. */
-const trash = [
-  { kind: 'EVENT', title: 'Test meeting', where: 'No project', by: 'Nico', date: 'Oct 6', left: 29 },
-  { kind: 'TASK', title: '#21 Duplicate login test', where: 'Atlas Project', by: 'Dodi', date: 'Oct 5', left: 28 },
-  { kind: 'PROJECT', title: 'Senior app trial', where: 'Project', by: 'Nico', date: 'Oct 3', left: 26, includes: '8 tasks and 2 events' },
-  { kind: 'TASK', title: '#19 Revise the button color', where: 'Atlas Project', by: 'Rina', date: 'Oct 1', left: 24 },
-  { kind: 'PROJECT', title: 'Old Client Portal', where: 'Project', by: 'Lea', date: 'Sep 28', left: 21, includes: '5 tasks and 1 event' },
+/** Archived items; includes = what an archived project takes with it. */
+const archive = [
+  { kind: 'EVENT', title: 'Test meeting', where: 'No project', by: 'Nico', date: 'Oct 6' },
+  { kind: 'TASK', title: '#21 Duplicate login test', where: 'Atlas Project', by: 'Dodi', date: 'Oct 5' },
+  { kind: 'PROJECT', title: 'Senior app trial', where: 'Project', by: 'Nico', date: 'Oct 3', includes: '8 tasks and 2 events' },
+  { kind: 'TASK', title: '#19 Revise the button color', where: 'Atlas Project', by: 'Rina', date: 'Oct 1' },
+  { kind: 'PROJECT', title: 'Old Client Portal', where: 'Project', by: 'Lea', date: 'Sep 28', includes: '5 tasks and 1 event' },
 ];
 const users = {
   pending: [
@@ -189,7 +189,7 @@ const home = {
 
 export const D = {
   inbox,
-  today, people, ME, projects, atlas, story, templates, tasks, taskDetail, quickWrite, csv, events, kickoff, standup, team, trash, users, home,
+  today, people, ME, projects, atlas, story, templates, tasks, taskDetail, quickWrite, csv, events, kickoff, standup, team, archive, users, home,
   /** Signed-in person for the active role. */
   me: () => ({ key: ME[getRole()], ...people[ME[getRole()]] }),
   /** Person by key or first name. */

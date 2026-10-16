@@ -1,19 +1,19 @@
-// Trash and Settings: Admin-only actions and role-specific leave copy.
+// Archive and Settings: Admin-only actions and role-specific leave copy.
 import { describe, expect, it } from 'vitest';
 import { screen as dom } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '../screens';
 import { renderApp } from './render';
 
-describe('trash', () => {
+describe('archive', () => {
   it('shows Delete forever only to Admins', () => {
-    renderApp('trash.list', 'member');
+    renderApp('archive.list', 'member');
     expect(dom.queryByRole('button', { name: 'Delete forever' })).not.toBeInTheDocument();
     expect(dom.getAllByRole('button', { name: 'Restore' })).toHaveLength(5);
   });
 
   it('opens the delete-forever sheet for an Admin', async () => {
-    renderApp('trash.list', 'admin');
+    renderApp('archive.list', 'admin');
     await userEvent.click(dom.getAllByRole('button', { name: 'Delete forever' })[0]);
     expect(await dom.findByText('Delete forever?')).toBeInTheDocument();
   });
