@@ -228,7 +228,7 @@ await storage().delete(`docs/${id}.pdf`);
 
 **Foto profil** memakai storage ini:
 - `POST /api/app/avatar` (multipart, field `file`, maks 2 MB; PNG/JPEG/WEBP/GIF dicek dari isi file, SVG ditolak) → `{ image }`.
-- `DELETE /api/app/avatar` → `{ image: null }`.
+- `DELETE /api/app/avatar` → `{ image: null }`. Kedua rute avatar hanya untuk sesi login; API key ditolak.
 - Gambar dilayani publik di `GET /api/storage/avatars/<userId>/<file>` dengan cache `immutable` (nama file acak per unggahan).
 - Foto lama dihapus dari storage saat diganti, dihapus, atau saat akunnya dihapus (oleh user sendiri maupun admin).
 - Foto dari URL luar (mis. foto akun Google lama) tetap tampil dan bisa dihapus, tetapi halaman Profil tidak lagi menyediakan isian URL foto.
@@ -335,7 +335,7 @@ Template ini dipakai sebagai dasar project lain, jadi fitur produk punya satu te
 
 - **Halaman** — `app/routes/app/<nama>.tsx`, didaftarkan sebagai child layout `routes/app/layout.tsx` di `app/routes.ts`, plus item `NAV` di layout itu. Setiap loader **wajib** memanggil `requireUser(request)` (`server/guard.ts`), atau `requireAnyRole(request, [...])` bila fitur khusus role tertentu — loader layout dan halaman berjalan paralel, jadi guard layout saja tidak melindungi data halaman. `tests/app-routes.test.ts` memeriksa ini.
 - **Endpoint** — tambahkan ke `server/api/app.ts` (prefix `/api/app`); semua route di sana otomatis menolak pemanggil tanpa sesi dengan `401 UNAUTHORIZED` dan akun yang belum disetujui dengan `403 ACCOUNT_PENDING`/`ACCOUNT_REJECTED`. Contoh: `GET /api/app/whoami` → `{ userId, name, role }`. Batasan per role: cek `actor.role` di handler dan kembalikan 403. Dari client pakai Eden: `client.api.app.whoami.get()` (`app/lib/eden.ts`).
-- **API key** — `/api/app/*` dipetakan ke scope `app:read` (GET/HEAD) dan `app:write` (lainnya), tersedia untuk semua role.
+- **API key** — `/api/app/*` dipetakan ke scope `app:read` (GET/HEAD) dan `app:write` (lainnya), tersedia untuk semua role. Pengecualian yang ditolak untuk API key (hanya sesi): `DELETE /api/app/projects/*`, semua metode `/api/app/projects/*/members*`, `PATCH /api/app/profile`, dan semua metode `/api/app/avatar`; rute ini juga tidak muncul di `/api/openapi.json`.
 - `/dev` untuk operasional dan `/dashboard` untuk admin — jangan taruh fitur produk di sana.
 
 ## Visitor analytics

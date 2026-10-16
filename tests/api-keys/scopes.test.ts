@@ -58,8 +58,8 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/openapi.json')).toBeNull();
     expect(isPublicRead('GET', '/api/openapi.json')).toBe(true);
     expect(isPublicRead('POST', '/api/openapi.json')).toBe(false);
-    expect(requiredScope('POST', '/api/app/avatar')).toBe('app:write');
-    expect(requiredScope('DELETE', '/api/app/avatar')).toBe('app:write');
+    expect(requiredScope('POST', '/api/app/avatar')).toBeNull(); // session-only since S0B-19 (D10)
+    expect(requiredScope('DELETE', '/api/app/avatar')).toBeNull();
     expect(isPublicRead('GET', '/api/storage/avatars/u1/a.png')).toBe(true);
     expect(isPublicRead('PUT', '/api/storage/avatars/u1/a.png')).toBe(false);
     expect(requiredScope('GET', '/api/storage/avatars/u1/a.png')).toBeNull();
@@ -130,5 +130,23 @@ describe('role ceiling matrix (four roles x every scope)', () => {
 
   it('project_manager gets no scope beyond member (no PM-only scope yet)', () => {
     expect(scopesForRole('project_manager')).toEqual(scopesForRole('member'));
+  });
+});
+
+describe('PM routes denied to API keys (D10)', () => {
+  it('returns null for the four deny patterns, whatever the method', () => {
+    expect(requiredScope('DELETE', '/api/app/projects/p1')).toBeNull();
+    expect(requiredScope('POST', '/api/app/projects/p1/members')).toBeNull();
+    expect(requiredScope('PATCH', '/api/app/profile')).toBeNull();
+    expect(requiredScope('POST', '/api/app/avatar')).toBeNull();
+    expect(requiredScope('delete', '/api/app/projects/p1/members/u1')).toBeNull();
+    expect(requiredScope('GET', '/api/app/projects/p1/members')).toBeNull();
+  });
+  it('keeps ordinary PM routes on app:read / app:write', () => {
+    expect(requiredScope('POST', '/api/app/tasks')).toBe('app:write');
+    expect(requiredScope('PATCH', '/api/app/tasks/1')).toBe('app:write');
+    expect(requiredScope('GET', '/api/app/projects')).toBe('app:read');
+    expect(requiredScope('GET', '/api/app/tasks')).toBe('app:read');
+    expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');
   });
 });

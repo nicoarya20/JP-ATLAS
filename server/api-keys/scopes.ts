@@ -5,6 +5,7 @@
  * are never reachable with a key.
  */
 import { isAdminRole, normalizeRole, ROLES, type Role } from '../permissions';
+import { isPmKeyDenied } from './scopes.pm';
 
 export type Scope = (typeof SCOPES)[number]['id'];
 
@@ -180,6 +181,7 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/ops/reset')) return null;
   if (p.startsWith('/api/ops')) return read ? 'ops:read' : null;
   if (p.startsWith('/api/me')) return read ? 'me:read' : null;
+  if (isPmKeyDenied(m, p)) return null; // D10: session-only PM routes, before the generic app:* rule
   if (p.startsWith('/api/app/') || p === '/api/app') return read ? 'app:read' : 'app:write';
   if (p.startsWith('/api/posts')) return read ? null : 'posts:write';
   return null;
