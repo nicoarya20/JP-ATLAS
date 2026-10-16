@@ -38,11 +38,12 @@ function usePick(on, gos) {
   return [picked, pick];
 }
 
-/** Single-select chip row (filters). items = labels; on = initially active index; gos = optional targets. */
-export function Chips({ items, on = 0, gos }) {
+/** Single-select chip row (filters). items = labels; on = initially active index; gos = optional targets;
+ *  bleed = scroll edge to edge of the screen instead of clipping at the content padding. */
+export function Chips({ items, on = 0, gos, bleed }) {
   const [picked, pick] = usePick(on, gos);
   return (
-    <div className="hscroll chips">
+    <div className={`hscroll chips${bleed ? ' bleed' : ''}`}>
       {items.map((label, i) => (
         <SuggestionChip key={label} size="sm" variant="secondary" active={i === picked} aria-pressed={i === picked}
           onClick={() => pick(i)}>{label}</SuggestionChip>

@@ -1,32 +1,35 @@
 // Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Board (status columns) and the empty state.
-import { ListChecks } from 'lucide-react';
+import { ChevronRight, ListChecks, Plus, X } from 'lucide-react';
 import { Avatar, Btn, Chips, Empty, Pill, Screen, Search, Section, Seg, Select } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Tick } from './tasks.parts';
 import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
 
-/** List frame shared by ①–④: New task button, My/All switch, search, status chips, filter/view row, sort row. */
+/** List frame shared by ①–④: My/All switch, search, status chips, filter + sort with the List/Board view, project scope + CSV on All.
+ *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
 function ListScreen({ all, board, children }) {
   return (
-    <Screen title="Tasks" right={<Btn kind="primary" sm go="tasks.write">+ New task</Btn>} tab="tasks">
-      <Seg items={['My tasks', 'All tasks']} on={all ? 1 : 0} gos={['tasks.my', 'tasks.all']} />
-      <Search placeholder="Search title, #number, or tag…" />
-      <Chips items={['All active', 'To do', 'In progress', 'In review', 'Done']} />
-      <div className="between">
-        <div className="row-flex">
-          {all && <Pill>Project: {atlas().name.split(' ')[0]} ✕</Pill>}
-          <Select toast="Filter options">Filter</Select>
+    <Screen title="Tasks" tab="tasks">
+      <div className="tk-filters">
+        <Seg items={['My tasks', 'All tasks']} on={all ? 1 : 0} gos={['tasks.my', 'tasks.all']} />
+        <Search placeholder="Search title, #number, or tag…" />
+        <Chips bleed items={['All active', 'To do', 'In progress', 'In review', 'Done']} />
+        <div className="between">
+          <div className="row-flex tk-tools">
+            <Select toast="Filter options">Filter</Select>
+            <Select toast="Sort options">Sort: Due</Select>
+          </div>
+          <div className="tk-seg"><Seg items={['List', 'Board']} on={board ? 1 : 0} gos={['tasks.all', 'tasks.board']} /></div>
         </div>
-        <div className="tk-seg"><Seg items={['List', 'Board']} on={board ? 1 : 0} gos={['tasks.all', 'tasks.board']} /></div>
-      </div>
-      <div className="between">
-        <Select toast="Sort options">Sort: Due</Select>
         {all && (
-          <span className="row-flex">
-            <Btn kind="ghost" sm toast="CSV downloaded">Download CSV</Btn>
-            <Btn kind="ghost" sm go="tasks.csv">Import CSV</Btn>
-          </span>
+          <div className="between wrap">
+            <Pill>Project: {atlas().name.split(' ')[0]} <X size={12} aria-hidden="true" /></Pill>
+            <span className="row-flex tk-tools">
+              <Btn kind="plain" sm toast="CSV downloaded">Download CSV</Btn>
+              <Btn kind="plain" sm go="tasks.csv">Import CSV</Btn>
+            </span>
+          </div>
         )}
       </div>
       {children}
@@ -34,27 +37,37 @@ function ListScreen({ all, board, children }) {
   );
 }
 
-// ① Card button = next action for its status. Member: their own task waiting on a reviewer only offers View.
+// ① Card button = next action for its status, or none when the only thing to do is open the task (the card itself does that).
+// Member: their own task waiting on a reviewer has no action.
 function action(t, member) {
-  if (t.status === 'In review') return [member ? 'View' : 'Review', { go: 'tasks.detail-review', task: t.no }];
-  if (blocked(t)) return ['View', { go: detailOf(t), task: t.no }];
+  if (t.status === 'In review') return member ? null : ['Review', { go: 'tasks.detail-review', task: t.no }];
+  if (blocked(t)) return null;
   if (t.status === 'In progress') return ['Request review', { toast: 'Review requested' }];
   return ['Start working', { toast: 'Task started' }];
 }
 
+/** Title row of a tappable card: the title wraps, a chevron says the card opens. */
+function CardTitle({ children }) {
+  return (
+    <div className="row-flex tk-top">
+      <span className="t-headline grow">{children}</span>
+      <ChevronRight size={18} className="muted tk-chev" aria-hidden="true" />
+    </div>
+  );
+}
+
 function MyCard({ t }) {
-  const [label, nav] = action(t, useApp().is('member'));
+  const a = action(t, useApp().is('member'));
+  const late = days(t.due) < 0;
   return (
     <Section go={detailOf(t)} task={t.no}>
-      <div className="stack sm">
-        <span className="t-headline">{t.title}</span>
+      <div className="stack xs">
+        <CardTitle>{t.title}</CardTitle>
         <span className="t-footnote muted">#{t.no} · {t.project} · {t.priority}</span>
-        <div className="between tk-end">
-          <span className="stack xs">
-            {(t.status !== 'To do' || blocked(t)) && <span className="t-footnote bold">{note(t)}</span>}
-            <span className="t-footnote muted">Due {t.due}</span>
-          </span>
-          <Btn kind="primary" sm {...nav}>{label}</Btn>
+        {(t.status !== 'To do' || blocked(t)) && <span className="t-footnote bold">{note(t)}</span>}
+        <div className="between tk-meta">
+          <span className={`t-footnote ${late ? 'danger bold' : 'muted'}`}>Due {t.due}</span>
+          {a && <Btn sm {...a[1]}>{a[0]}</Btn>}
         </div>
       </div>
     </Section>
@@ -75,7 +88,7 @@ export function TasksMy() {
   return (
     <ListScreen>
       {groups.map(([g, list]) => [
-        <h2 key={g} className="t-headline tk-group">{g} <span className="muted">{list.length}</span></h2>,
+        <h2 key={g} className="t-headline tk-group">{g}<span className="muted">{list.length}</span></h2>,
         ...list.map(t => <MyCard key={t.no} t={t} />),
       ])}
     </ListScreen>
@@ -92,10 +105,13 @@ export function TasksAll() {
           <div className="row-flex tk-top">
             <Tick />
             <div className="stack xs grow">
-              <span className="row-flex"><span className="t-footnote muted bold">#{t.no}</span><span className="t-headline">{t.title}</span></span>
-              <span className="t-footnote muted">{t.type} · {D.person(t.who).full} · Due {t.due}</span>
-              <div><Pill tone={t.status === 'Done' ? 'neutral' : 'outline'}>{t.status}</Pill></div>
+              <CardTitle>{t.title}</CardTitle>
+              <span className="t-footnote muted">#{t.no} · {t.type} · {D.person(t.who).full}</span>
               <span className="t-footnote bold">{note(t)}</span>
+              <div className="between tk-meta">
+                <Pill tone={t.status === 'Done' ? 'neutral' : 'outline'}>{t.status}</Pill>
+                <span className="t-footnote muted">Due {t.due}</span>
+              </div>
             </div>
           </div>
         </Section>
@@ -105,27 +121,25 @@ export function TasksAll() {
   );
 }
 
-// ③ Member: other people's cards (and their own task in review) only open the detail.
+// ③ Card button = next action; none when the card only opens the detail (Done, blocked, and for Member
+// other people's cards plus their own task in review).
 function boardAction(t, member) {
-  if (t.status === 'Done') return null;
-  const go = detailOf(t);
-  if (blocked(t) || (member && (t.who !== D.me().name || t.status === 'In review'))) return ['View →', { go, task: t.no }];
-  if (t.status === 'In review') return ['Review →', { go: 'tasks.detail-review', task: t.no }];
-  if (t.status === 'In progress') return ['Request review →', { go: 'tasks.detail-review' }];
-  return ['Start working →', { toast: 'Task started' }];
+  if (t.status === 'Done' || blocked(t) || (member && (t.who !== D.me().name || t.status === 'In review'))) return null;
+  if (t.status === 'In review') return ['Review', { go: 'tasks.detail-review', task: t.no }];
+  if (t.status === 'In progress') return ['Request review', { go: 'tasks.detail-review' }];
+  return ['Start working', { toast: 'Task started' }];
 }
 
 function BoardCard({ t }) {
   const a = boardAction(t, useApp().is('member'));
   return (
     <Section go={detailOf(t)} task={t.no}>
-      <div className="stack sm">
-        <span className="t-footnote muted bold">#{t.no}</span>
-        <span className="t-headline">{t.title}</span>
-        <span className="t-footnote muted">{t.type} · {t.priority}</span>
+      <div className="stack xs">
+        <CardTitle>{t.title}</CardTitle>
+        <span className="t-footnote muted">#{t.no} · {t.type} · {t.priority}</span>
         <span className="t-footnote bold">{note(t)}</span>
-        <span className="row-flex t-footnote"><Avatar name={t.who} size="sm" />{t.who}</span>
-        {a && <Btn sm block {...a[1]}>{a[0]}</Btn>}
+        <span className="row-flex t-footnote muted tk-meta"><Avatar name={t.who} size="sm" />{t.who}</span>
+        {a && <div className="tk-meta"><Btn sm block {...a[1]}>{a[0]}</Btn></div>}
       </div>
     </Section>
   );
@@ -150,12 +164,12 @@ export function TasksBoard() {
   );
 }
 
-/** ④ My tasks empty — still offers + New task. */
+/** ④ My tasks empty — still offers New task. */
 export function TasksEmpty() {
   return (
     <ListScreen>
       <Empty icon={<ListChecks size={28} role="img" aria-label="No tasks" />} title="No tasks for you yet."
-        text="Tasks assigned to you will show up here." action={<Btn kind="primary" go="tasks.write">+ New task</Btn>} />
+        text="Tasks assigned to you will show up here." action={<Btn kind="primary" icon={<Plus size={18} />} go="tasks.write">New task</Btn>} />
     </ListScreen>
   );
 }

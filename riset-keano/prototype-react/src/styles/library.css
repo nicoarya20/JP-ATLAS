@@ -92,6 +92,8 @@
 .react-cupertino-ui-textfield__input::placeholder { color: var(--label-3); }
 
 /* ---- Search bar ---- */
+/* The library pads the bar 8px 16px on top of width:100%, which indents it and pushes its right edge past the content. */
+.react-cupertino-ui-search-bar { padding: 0; box-sizing: border-box; }
 .react-cupertino-ui-search-bar__input-wrapper, .react-cupertino-ui-search-bar__input-wrapper:focus-within { background: var(--fill); }
 .react-cupertino-ui-search-bar__input { color: var(--label); }
 .react-cupertino-ui-search-bar__input::placeholder,

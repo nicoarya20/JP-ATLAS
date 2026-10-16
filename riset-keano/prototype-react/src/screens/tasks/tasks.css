@@ -12,10 +12,13 @@
 .tk-strong.card.react-cupertino-ui-card { box-shadow: inset 0 0 0 1.5px var(--accent); }
 
 /* Lists */
-.tk-group { margin: var(--sp-3) 0 0; }
-.tk-end { align-items: flex-end; }
+.tk-filters { display: grid; gap: var(--sp-3); }
+.tk-tools { gap: var(--sp-2); min-width: 0; }
+.tk-seg { width: 136px; flex: none; }
+.tk-group { display: flex; align-items: baseline; gap: var(--sp-2); margin: var(--sp-2) 0 calc(var(--sp-2) * -1); }
 .tk-top { align-items: flex-start; }
-.tk-seg { width: 120px; flex: none; }
+.tk-chev { flex: none; margin-top: 2px; }
+.tk-meta { margin-top: var(--sp-1); }
 .tk-tick { display: inline-flex; }
 .tk-board { display: flex; gap: var(--sp-3); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
   margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
