@@ -42,6 +42,8 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/metrics/dates.ts': 'IsoDate diffDays isoDateIn',
   'server/metrics/project.metrics.ts':
     'ElapsedResult MilestoneState ProgressResult elapsed milestoneState progress',
+  'server/metrics/schedule.ts':
+    'SCHEDULE_GROUPS ScheduleBounds ScheduleGroup scheduleBounds scheduleGroupOf',
   'server/metrics/task.metrics.ts':
     'ACTIVE_STATUSES TaskLabel TaskLabelContext ageDays isActive isOverdue isStale taskLabels',
   'server/metrics/types.ts': 'IsoDate MetricsConfig TaskLabel TaskMetricsRow',
