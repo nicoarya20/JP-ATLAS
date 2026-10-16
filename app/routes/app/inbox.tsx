@@ -1,6 +1,8 @@
+import { SegmentedControl } from '@mantine/core';
 import { requireUser } from '@server/guard';
-import { FiBell } from 'react-icons/fi';
-import { EmptyState } from '~/components/ui/EmptyState';
+import { useState } from 'react';
+import { InboxList } from '~/components/inbox/InboxList';
+import { LATEST_NEWS, NEEDS_ACTION } from '~/components/inbox/inbox.dummy';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
 import type { Route } from './+types/inbox';
@@ -14,16 +16,29 @@ export async function loader({ request }: Route.LoaderArgs) {
   return null;
 }
 
-/** Menu page waiting for its dummy data; the nav link already works. */
+type Tab = 'action' | 'news';
+
+/** Inbox with hardcoded dummy data (inbox.dummy.ts): requests to answer, then the latest news. */
 export default function InboxPage() {
+  const [tab, setTab] = useState<Tab>('action');
   return (
     <PageContainer>
-      <PageHeader title="Inbox" description="Notifikasi dan permintaan untuk Anda." />
-      <EmptyState
-        icon={FiBell}
-        title="Halaman ini sedang disiapkan"
-        description="Data contoh untuk menu ini menyusul."
+      <PageHeader title="Inbox" description="Semua kabar dan permintaan untuk Anda" />
+      <SegmentedControl
+        aria-label="Isi Inbox"
+        value={tab}
+        onChange={(v) => setTab(v as Tab)}
+        data={[
+          { value: 'action', label: `Perlu Anda tanggapi (${NEEDS_ACTION.length})` },
+          { value: 'news', label: 'Kabar terbaru' },
+        ]}
+        style={{ alignSelf: 'flex-start', maxWidth: '100%' }}
       />
+      {tab === 'action' ? (
+        <InboxList items={NEEDS_ACTION} emptyTitle="Tidak ada yang perlu Anda tanggapi" />
+      ) : (
+        <InboxList items={LATEST_NEWS} emptyTitle="Belum ada kabar terbaru" />
+      )}
     </PageContainer>
   );
 }

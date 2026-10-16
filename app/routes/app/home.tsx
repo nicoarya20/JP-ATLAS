@@ -1,8 +1,12 @@
-import { SimpleGrid } from '@mantine/core';
+import { SimpleGrid, Stack } from '@mantine/core';
 import { requireUser } from '@server/guard';
-import { HomeSide } from '~/components/home/HomeSide';
-import { HomeStats } from '~/components/home/HomeStats';
-import { HomeTasks } from '~/components/home/HomeTasks';
+import { HomeAgenda } from '~/components/home/HomeAgenda';
+import { HomeAskData } from '~/components/home/HomeAskData';
+import { HomeBriefing } from '~/components/home/HomeBriefing';
+import { HomeCounters } from '~/components/home/HomeCounters';
+import { HomeFocus } from '~/components/home/HomeFocus';
+import { HomeRecent } from '~/components/home/HomeRecent';
+import { TODAY_LABEL } from '~/components/home/home.dummy';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
 import { useApp } from '~/lib/app-context';
@@ -24,13 +28,20 @@ export default function AppHome() {
   return (
     <PageContainer>
       <PageHeader
-        title={`Halo, ${user.name || 'pengguna'}`}
-        description="Ringkasan pekerjaan Anda hari ini. Data di halaman ini masih contoh."
+        title="Beranda"
+        description={`${TODAY_LABEL} · Selamat pagi, ${user.name || 'pengguna'}`}
       />
-      <HomeStats />
-      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-        <HomeTasks />
-        <HomeSide />
+      <HomeBriefing />
+      <HomeCounters />
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md" style={{ alignItems: 'start' }}>
+        <Stack gap="md">
+          <HomeFocus />
+          <HomeRecent />
+        </Stack>
+        <Stack gap="md">
+          <HomeAskData />
+          <HomeAgenda />
+        </Stack>
       </SimpleGrid>
     </PageContainer>
   );

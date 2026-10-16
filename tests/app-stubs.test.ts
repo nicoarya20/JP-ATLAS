@@ -14,14 +14,11 @@ const MARKER = /^\/\/ STUB\((S1|S2)\): .+$/m;
 
 /** Page stubs under app/routes/app, with the slice that fills each one in. */
 const ROUTE_STUBS: Record<string, 'S1' | 'S2'> = {
-  'app/routes/app/projects.tsx': 'S1',
   'app/routes/app/project-new.tsx': 'S1',
-  'app/routes/app/settings.tsx': 'S1',
   'app/routes/app/project/layout.tsx': 'S1',
   'app/routes/app/project/summary.tsx': 'S1',
   'app/routes/app/project/members.tsx': 'S1',
   'app/routes/app/project/settings.tsx': 'S1',
-  'app/routes/app/tasks.tsx': 'S2',
   'app/routes/app/task-new.tsx': 'S2',
   'app/routes/app/task-detail.tsx': 'S2',
   'app/routes/app/project/tasks.tsx': 'S2',
@@ -73,7 +70,7 @@ describe('page stubs', () => {
     expect(read(file)).toMatch(/title: '[^']+ — Simple PM'/);
   });
 
-  it('leaves only home, the layout, profile and the not-yet-stubbed menu pages as non-stub files', () => {
+  it('leaves only home, the layout, profile and the filled-in menu pages as non-stub files', () => {
     const appFiles = [...registered].filter((f) => f.startsWith('app/routes/app/'));
     const nonStubs = appFiles.filter((f) => !(f in ROUTE_STUBS)).sort();
     expect(nonStubs).toEqual([
@@ -82,6 +79,9 @@ describe('page stubs', () => {
       'app/routes/app/inbox.tsx',
       'app/routes/app/layout.tsx',
       'app/routes/app/profile.tsx',
+      'app/routes/app/projects.tsx',
+      'app/routes/app/settings.tsx',
+      'app/routes/app/tasks.tsx',
       'app/routes/app/team.tsx',
       'app/routes/app/trash.tsx',
     ]);

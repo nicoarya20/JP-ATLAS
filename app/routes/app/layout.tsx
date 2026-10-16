@@ -16,6 +16,7 @@ import {
 import { Outlet } from 'react-router';
 import { AppFrame, type NavGroup, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
+import { NEEDS_ACTION } from '~/components/inbox/inbox.dummy';
 import type { AppContext } from '~/lib/app-context';
 import type { Route } from './+types/layout';
 
@@ -39,6 +40,12 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Inbox',
         icon: FiBell,
         matchPrefix: true,
+        // DUMMY: jumlah dari data contoh Inbox; ganti dengan hitungan server saat modul notifikasi dibuat.
+        badge: {
+          value: NEEDS_ACTION.length,
+          tone: 'alert',
+          tooltip: 'Permintaan yang perlu Anda tanggapi.',
+        },
         description: 'Notifikasi dan permintaan untuk Anda.',
       },
       {

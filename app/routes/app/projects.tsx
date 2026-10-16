@@ -1,11 +1,17 @@
+import { Text } from '@mantine/core';
 import { requireUser } from '@server/guard';
-import { FiFolder } from 'react-icons/fi';
-import { EmptyState } from '~/components/ui/EmptyState';
+import { useMemo, useState } from 'react';
+import { ProjectsGrid, ProjectsList } from '~/components/projects/ProjectsList';
+import { ProjectsToolbar, type ProjectView } from '~/components/projects/ProjectsToolbar';
+import {
+  PROJECTS,
+  type ProjectSort,
+  type StatusFilter,
+} from '~/components/projects/projects.dummy';
+import { filterProjects } from '~/components/projects/projects.filter';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
 import type { Route } from './+types/projects';
-
-// STUB(S1): diisi irisan S1 daftar proyek; hapus dari tes app-stubs saat terisi
 
 export function meta() {
   return [{ title: 'Proyek — Simple PM' }];
@@ -16,16 +22,31 @@ export async function loader({ request }: Route.LoaderArgs) {
   return null;
 }
 
-/** Placeholder page until the S1 slice fills it in. */
-export default function ProjectsStub() {
+/** Project list with hardcoded dummy data (projects.dummy.ts) until S1 wires the real query. */
+export default function ProjectsPage() {
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState<StatusFilter>('all');
+  const [sort, setSort] = useState<ProjectSort>('due');
+  const [view, setView] = useState<ProjectView>('list');
+  const rows = useMemo(() => filterProjects(PROJECTS, q, status, sort), [q, status, sort]);
+
   return (
     <PageContainer>
-      <PageHeader title="Proyek" description="Semua proyek yang Anda ikuti ada di sini." />
-      <EmptyState
-        icon={FiFolder}
-        title="Fitur ini sedang disiapkan"
-        description="Halaman ini akan segera bisa dipakai."
+      <PageHeader title="Proyek" />
+      <ProjectsToolbar
+        q={q}
+        onQ={setQ}
+        status={status}
+        onStatus={setStatus}
+        sort={sort}
+        onSort={setSort}
+        view={view}
+        onView={setView}
       />
+      {view === 'list' ? <ProjectsList rows={rows} /> : <ProjectsGrid rows={rows} />}
+      <Text size="xs" c="dimmed">
+        {`${rows.length === 0 ? 0 : `1–${rows.length}`} dari ${rows.length} proyek · hanya proyek yang Anda ikuti`}
+      </Text>
     </PageContainer>
   );
 }

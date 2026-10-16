@@ -1,113 +1,122 @@
-// DUMMY: data hardcode untuk tampilan Beranda; ganti dengan data API saat S3 dibuat.
-import type { ProjectCondition, ProjectPriority, TaskStatus } from '@server/pm/enums';
+// DUMMY: data hardcode untuk Beranda; ganti dengan data API saat S3 dibuat.
+import type { ProjectCondition } from '@server/pm/enums';
 
-export type DummyStat = { key: string; label: string; value: number; hint: string };
-export type DummyTask = {
-  number: number;
-  title: string;
-  project: string;
-  status: TaskStatus;
-  priority: ProjectPriority;
-  /** `YYYY-MM-DD` */
-  due: string;
+export const TODAY_LABEL = 'Kamis, 8 Oktober 2026';
+
+export const BRIEFING = {
+  lines: [
+    'Ada 1 hal yang terlambat: bayar DP tukang keramik sudah lewat 2 hari.',
+    'Hari ini ada 2 tugas dan 1 rapat. Proyek Hajatan Keluarga perlu perhatian karena katering belum dipesan.',
+  ],
+  footnote: 'Disusun otomatis dari data proyek · diperbarui 07.30',
 };
-export type DummyProject = {
+
+export type Counter = { key: string; label: string; value: number; hint: string };
+export const COUNTERS: Counter[] = [
+  {
+    key: 'unassigned',
+    label: 'Unassigned',
+    value: 3,
+    hint: 'tugas di proyek Anda tanpa penanggung jawab',
+  },
+  { key: 'in_progress', label: 'In Progress', value: 8, hint: 'tugas Anda yang sedang aktif' },
+  { key: 'completed', label: 'Completed', value: 12, hint: 'tugas Anda yang selesai' },
+];
+
+export type FocusGroup = 'late' | 'today' | 'week';
+export type FocusTask = {
+  id: string;
+  title: string;
+  meta: string;
+  group: FocusGroup;
+  /** Short chip text, e.g. the overdue notice. */
+  chip?: string;
+};
+export const FOCUS_GROUP_LABELS: Record<FocusGroup, string> = {
+  late: 'Terlambat',
+  today: 'Hari ini',
+  week: 'Minggu ini',
+};
+export const FOCUS_TASKS: FocusTask[] = [
+  {
+    id: 'f1',
+    title: 'Bayar DP tukang keramik',
+    meta: 'Renovasi Dapur',
+    group: 'late',
+    chip: 'Terlambat 2 hari',
+  },
+  {
+    id: 'f2',
+    title: 'Pesan katering untuk 80 orang',
+    meta: 'Hajatan Keluarga · paling penting hari ini',
+    group: 'today',
+  },
+  { id: 'f3', title: 'Konfirmasi tenda ke Pak Budi', meta: 'Hajatan Keluarga', group: 'today' },
+  { id: 'f4', title: 'Beli cat dinding', meta: 'Renovasi Dapur · Sabtu', group: 'week' },
+  { id: 'f5', title: 'Kirim undangan ke saudara', meta: 'Hajatan Keluarga · Jumat', group: 'week' },
+];
+/** Tasks beyond the five shown, so "Lihat semua tugas" can show the real total. */
+export const FOCUS_HIDDEN_COUNT = 4;
+
+export const COMPLETED_THIS_WEEK = [
+  { id: 'c1', title: 'Survei harga keramik', meta: 'Anda · hari ini' },
+  { id: 'c2', title: 'Hubungi Pak RT soal izin', meta: 'Anda · Selasa' },
+];
+
+export const LATEST_ACTIVITY = [
+  {
+    id: 'l1',
+    text: 'Anda menyelesaikan "Survei harga keramik"',
+    meta: 'Renovasi Dapur · 1 jam lalu',
+  },
+];
+
+export type AskBar = { label: string; pct: number };
+export type AskItem = { question: string; answer: string; bars: AskBar[] };
+export const ASK_ITEMS: AskItem[] = [
+  {
+    question: 'Proyek mana yang tertinggal?',
+    answer:
+      'Hajatan Keluarga paling tertinggal: baru 4 dari 10 tugas selesai, padahal acara tinggal 16 hari.',
+    bars: [
+      { label: 'Hajatan Keluarga', pct: 40 },
+      { label: 'Renovasi Dapur', pct: 70 },
+      { label: 'Arisan RT', pct: 90 },
+    ],
+  },
+  {
+    question: 'Tugas apa yang paling lama tertunda?',
+    answer: 'Bayar DP tukang keramik: sudah lewat 2 hari dan belum dikerjakan.',
+    bars: [],
+  },
+];
+
+export const AGENDA_TODAY = [
+  {
+    id: 'e1',
+    time: '10.00',
+    title: 'Rapat panitia hajatan',
+    warning: 'Belum siap: katering belum dipesan',
+  },
+];
+
+export type HomeProject = {
   id: string;
   name: string;
   condition: ProjectCondition;
   done: number;
   total: number;
-  timePct: number;
+  note?: string;
 };
-export type DummyActivity = { id: string; actor: string; text: string; at: string };
-
-export const DUMMY_STATS: DummyStat[] = [
-  { key: 'active', label: 'Tugas aktif', value: 12, hint: 'Sedang Anda kerjakan' },
-  { key: 'due', label: 'Jatuh tempo pekan ini', value: 5, hint: '1 sudah terlambat' },
-  { key: 'review', label: 'Menunggu diperiksa', value: 3, hint: 'Butuh persetujuan Anda' },
-  { key: 'projects', label: 'Proyek aktif', value: 4, hint: 'Anda ikut di 4 proyek' },
-];
-
-export const DUMMY_TASKS: DummyTask[] = [
+export const HOME_PROJECTS: HomeProject[] = [
   {
-    number: 101,
-    title: 'Rancang alur login dan pendaftaran',
-    project: 'Aplikasi Mobile',
-    status: 'in_progress',
-    priority: 'high',
-    due: '2026-10-14',
-  },
-  {
-    number: 108,
-    title: 'Siapkan data uji untuk modul laporan',
-    project: 'Portal Pelanggan',
-    status: 'in_progress',
-    priority: 'medium',
-    due: '2026-10-16',
-  },
-  {
-    number: 115,
-    title: 'Tinjau desain halaman beranda',
-    project: 'Redesain Website',
-    status: 'in_review',
-    priority: 'medium',
-    due: '2026-10-17',
-  },
-  {
-    number: 122,
-    title: 'Perbaiki bug unggah lampiran',
-    project: 'Portal Pelanggan',
-    status: 'todo',
-    priority: 'critical',
-    due: '2026-10-21',
-  },
-  {
-    number: 130,
-    title: 'Tulis dokumentasi API v2',
-    project: 'Integrasi Pembayaran',
-    status: 'todo',
-    priority: 'low',
-    due: '2026-10-28',
-  },
-];
-
-export const DUMMY_PROJECTS: DummyProject[] = [
-  { id: 'p1', name: 'Aplikasi Mobile', condition: 'at_risk', done: 14, total: 26, timePct: 62 },
-  { id: 'p2', name: 'Portal Pelanggan', condition: 'on_track', done: 31, total: 40, timePct: 70 },
-  { id: 'p3', name: 'Redesain Website', condition: 'on_track', done: 9, total: 18, timePct: 45 },
-  {
-    id: 'p4',
-    name: 'Integrasi Pembayaran',
-    condition: 'off_track',
+    id: 'p1',
+    name: 'Hajatan Keluarga',
+    condition: 'at_risk',
     done: 4,
-    total: 22,
-    timePct: 80,
+    total: 10,
+    note: 'acara 24 Okt',
   },
-];
-
-export const DUMMY_ACTIVITIES: DummyActivity[] = [
-  {
-    id: 'a1',
-    actor: 'Rina Wulandari',
-    text: 'menyelesaikan "Susun wireframe checkout"',
-    at: '2026-10-16T08:40:00Z',
-  },
-  {
-    id: 'a2',
-    actor: 'Budi Santoso',
-    text: 'mengomentari "Perbaiki bug unggah lampiran"',
-    at: '2026-10-16T06:15:00Z',
-  },
-  {
-    id: 'a3',
-    actor: 'Dewi Lestari',
-    text: 'menambahkan Anda ke proyek "Redesain Website"',
-    at: '2026-10-15T14:02:00Z',
-  },
-  {
-    id: 'a4',
-    actor: 'Agus Prasetyo',
-    text: 'mengubah tenggat "Tulis dokumentasi API v2"',
-    at: '2026-10-15T09:30:00Z',
-  },
+  { id: 'p2', name: 'Renovasi Dapur', condition: 'on_track', done: 7, total: 10 },
+  { id: 'p3', name: 'Arisan RT', condition: 'on_track', done: 9, total: 10 },
 ];
