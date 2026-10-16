@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { initialMode, loginAuthMode, modeCopy } from '../app/lib/login-mode';
 
 const q = (s: string) => new URLSearchParams(s);
@@ -89,5 +91,16 @@ describe('modeCopy googleOnly', () => {
   test('defaults to the form copy', () => {
     expect(modeCopy('signin', 'Acme').subtitle).toBe(modeCopy('signin', 'Acme', false).subtitle);
     expect(modeCopy('signin', 'Acme').subtitle).toContain('Selamat datang kembali');
+  });
+});
+
+describe('Google button wording (N13, GLO-14)', () => {
+  test('says "Masuk dengan Google", as the glossary and wireframe do', () => {
+    const src = readFileSync(
+      path.join(import.meta.dir, '../app/components/login/LoginForm.tsx'),
+      'utf8',
+    );
+    expect(src).toContain('Masuk dengan Google');
+    expect(src).not.toContain('Lanjutkan dengan Google');
   });
 });

@@ -128,7 +128,7 @@ export function LoginForm({
           disabled={banned}
           onClick={continueWithGoogle}
         >
-          Lanjutkan dengan Google
+          Masuk dengan Google
         </Button>
       )}
 
