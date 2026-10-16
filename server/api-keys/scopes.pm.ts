@@ -6,6 +6,8 @@ type Deny = { id: string; method: string | '*'; path: RegExp };
 export const PM_KEY_DENY: readonly Deny[] = [
   { id: 'DELETE projects/*', method: 'DELETE', path: /^\/api\/app\/projects\/.+/i },
   { id: '* projects/*/members*', method: '*', path: /^\/api\/app\/projects\/.*\/members/i },
+  // Handing over the Lead changes who runs the project: an escalation, so session only (S1-03).
+  { id: 'PUT projects/*/lead', method: 'PUT', path: /^\/api\/app\/projects\/.*\/lead(?:\/.*)?$/i },
   { id: 'PATCH profile', method: 'PATCH', path: /^\/api\/app\/profile(?:\/.*)?$/i },
   { id: '* avatar', method: '*', path: /^\/api\/app\/avatar(?:\/.*)?$/i },
 ];
@@ -14,6 +16,7 @@ export const PM_KEY_DENY: readonly Deny[] = [
 export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'DELETE projects/*': 'app-projects.trash.ts', // S1-02 filled app-projects.ts with read routes only; DELETE lands in the trash plugin (S1-05)
   '* projects/*/members*': 'app-projects.members.ts',
+  'PUT projects/*/lead': 'app-projects.write.ts',
   'PATCH profile': 'app-profile.ts',
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts
 };

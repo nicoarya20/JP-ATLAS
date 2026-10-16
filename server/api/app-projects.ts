@@ -1,4 +1,4 @@
-/** Project read routes (`/api/app/projects`): the list and one project's detail. Writes come in S1-03. */
+/** Project routes (`/api/app/projects`): the list and one project's detail here, writes in `app-projects.write.ts`. */
 import { Elysia, t } from 'elysia';
 import { PROJECT_STATUSES } from '../pm/enums';
 import { PAGE_LIMIT_DEFAULT } from '../pm/limits';
@@ -7,6 +7,7 @@ import { toPrincipal } from '../project/membership.query';
 import { getProjectDetail, listProjects, PROJECT_SORTS } from '../project/project.query';
 import { IdParam, PageQuery } from './app-common';
 import { appContext } from './app-context';
+import { projectWriteApi } from './app-projects.write';
 
 const SEARCH_MAX_LENGTH = 100;
 
@@ -52,4 +53,5 @@ export const projectsApi = new Elysia({ prefix: '/projects' })
       return detail ?? fail(status, 'NOT_FOUND');
     },
     { params: IdParam },
-  );
+  )
+  .use(projectWriteApi);
