@@ -1,4 +1,4 @@
-// Home stat chips for Member and Manager come from D.tasks and D.events: open + overdue, in progress + most urgent due, done this week, upcoming this month, inbox.
+// Home stat chips (Upcoming and Inbox for every role) come from D.tasks and D.events: open + overdue, in progress + most urgent due, done this week, upcoming this month, inbox.
 import { afterEach, describe, expect, it } from 'vitest';
 import { screen as dom } from '@testing-library/react';
 import '../screens';
@@ -88,6 +88,17 @@ describe('home task stats', () => {
     expect(chip.previousElementSibling).toHaveTextContent('Upcoming');
     expect(chip.querySelector('.hm-count')).toBeNull();
     expect(chip).toHaveTextContent('3 to respond');
+  });
+
+  it('gives Admin the Upcoming and Inbox chips after Awaiting', () => {
+    renderApp('home.main', 'admin');
+    // Ayu: no tasks of her own; the office anniversary party is the one event ahead this month.
+    const up = dom.getByRole('button', { name: /Upcoming/ });
+    expect(up.previousElementSibling).toHaveTextContent('Awaiting');
+    expect(up).toHaveTextContent('1 item');
+    const inbox = dom.getByRole('button', { name: /Inbox/ });
+    expect(inbox.previousElementSibling).toBe(up);
+    expect(inbox).toHaveTextContent('3 to respond');
   });
 
   it('shows the overdue line in red on Home', () => {

@@ -15,20 +15,29 @@ const STAT_ICON = {
 /** Stat chip: {label, count, go, sub, icon, alert}. count null hides the number; sub defaults to the unit ("projects"); alert shows sub in red. */
 const stat = (label, count, unit, sub = unit, alert = false) => ({ label, count, sub, alert, go: STAT_GO[unit], icon: STAT_ICON[label] });
 
-/** Member and Manager chips: the signed-in person's own tasks from D.tasks, what is still ahead on their calendar this month, then their Inbox. */
+/** Last chips for every role: what is still ahead on the signed-in person's calendar this month, then their Inbox. */
+const aheadStats = role => [stat('Upcoming', null, 'calendar', upcomingThisMonth().sub), stat('Inbox', null, 'inbox', inboxToRespond(role).sub)];
+
+/** Member and Manager chips: the signed-in person's own tasks from D.tasks, then aheadStats. */
 function taskStats(role) {
   const S = myTaskStats();
   return [['Assigned', S.assigned], ['In Progress', S.inProgress], ['Completed', S.completed]]
     .map(([label, x]) => stat(label, x.count, 'tasks', x.sub, x.alert))
-    .concat(stat('Upcoming', null, 'calendar', upcomingThisMonth().sub), stat('Inbox', null, 'inbox', inboxToRespond(role).sub));
+    .concat(aheadStats(role));
 }
+
+/** Admin chips: workspace health (active projects, overdue tasks, users awaiting approval), then aheadStats. */
+const adminStats = () => [
+  stat('Active', D.projects.filter(p => p.status === 'Active').length, 'projects'), stat('Overdue', 3, 'tasks'), stat('Awaiting', D.users.counts.pending, 'users'),
+  ...aheadStats('admin'),
+];
 
 /** Per role: stat chips, number of Ask Data questions, completed-this-week rows, activity rows. */
 export function roleHome(role) {
   const R = {
     member: { stats: taskStats('member'), asks: 2, done: 2, activity: 1 },
     pm: { stats: taskStats('pm'), asks: 3, done: 4, activity: 3 },
-    admin: { stats: [stat('Active', D.projects.filter(p => p.status === 'Active').length, 'projects'), stat('Overdue', 3, 'tasks'), stat('Awaiting', D.users.counts.pending, 'users')], asks: 3, done: 4, activity: 3 },
+    admin: { stats: adminStats(), asks: 3, done: 4, activity: 3 },
   };
   return R[role];
 }
