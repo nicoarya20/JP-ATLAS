@@ -57,7 +57,7 @@ export const PROJECT_WRITE_MESSAGES = {
 const invalid = (error: string): WriteResult<never> => ({ ok: false, code: 'VALIDATION', error });
 
 /** Refused decision to result; a hidden project answers NOT_FOUND so it looks missing (D8). */
-function refused(d: Exclude<LeadDecision, { ok: true }>): WriteResult<never> {
+export function refused(d: Exclude<LeadDecision, { ok: true }>): WriteResult<never> {
   return { ok: false, code: d.code === 'NOT_VISIBLE' ? 'NOT_FOUND' : d.code };
 }
 
@@ -170,10 +170,10 @@ export async function createProject(
   });
 }
 
-type LockedProject = ProjectSubject & { startDate: string | null; dueDate: string | null };
+export type LockedProject = ProjectSubject & { startDate: string | null; dueDate: string | null };
 
 /** Locks one project row (trashed included: the policy reports the Trash itself) for the rest of `tx`. */
-async function lockProject(tx: Tx, id: string): Promise<LockedProject | undefined> {
+export async function lockProject(tx: Tx, id: string): Promise<LockedProject | undefined> {
   const [row] = await tx
     .select({
       id: project.id,
@@ -206,7 +206,8 @@ async function managed<T>(
   });
 }
 
-async function logActivity(
+/** Appends one `project_activity` row in `tx`, naming the actor as they are called now. */
+export async function logActivity(
   tx: Tx,
   p: Principal,
   projectId: string,

@@ -17,12 +17,8 @@ import {
   updateProject,
   type WriteResult,
 } from '../project/project.service';
-import { IdParam } from './app-common';
+import { IdParam, oneOf } from './app-common';
 import { appContext } from './app-context';
-
-// Not `t.UnionEnum`: it silently defaults to its first value.
-const oneOf = <const T extends string>(values: readonly T[]) =>
-  t.Union(values.map((v) => t.Literal(v)));
 
 const strict = { additionalProperties: false } as const;
 const name = t.String({ minLength: 1, maxLength: PROJECT_NAME_MAX });

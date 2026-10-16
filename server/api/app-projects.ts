@@ -5,15 +5,11 @@ import { PAGE_LIMIT_DEFAULT } from '../pm/limits';
 import { fail } from '../pm/respond';
 import { toPrincipal } from '../project/membership.query';
 import { getProjectDetail, listProjects, PROJECT_SORTS } from '../project/project.query';
-import { IdParam, PageQuery } from './app-common';
+import { IdParam, oneOf, PageQuery } from './app-common';
 import { appContext } from './app-context';
 import { projectWriteApi } from './app-projects.write';
 
 const SEARCH_MAX_LENGTH = 100;
-
-// Not `t.UnionEnum`: it silently defaults to its first value, which would turn "no filter" into `status=draft`.
-const oneOf = <const T extends string>(values: readonly T[]) =>
-  t.Union(values.map((v) => t.Literal(v)));
 
 const ListQuery = t.Object({
   ...PageQuery.properties,
