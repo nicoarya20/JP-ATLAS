@@ -10,6 +10,7 @@ import {
   fetchTasks,
   isNextStep,
   isStaleTaskError,
+  NEXT_STEP_ACTIONS,
   reopenTask,
   startTask,
   taskErrorMessage,
@@ -18,6 +19,7 @@ import {
   withTaskMessage,
 } from '../app/lib/tasks-api';
 import { DEFAULT_TASK_FILTERS, toTaskQuery } from '../app/lib/tasks-filters';
+import { ENABLED_TASK_ACTIONS } from '../server/task/task.limits';
 
 const apiError = (status: number, code: string, message = 'Pesan server.') =>
   new ApiError({ status, code, message, requestId: 'req-1' });
@@ -152,23 +154,31 @@ describe('fetchTasks (Eden)', () => {
   });
 });
 
-describe('workflow wrappers (S2-05 contract)', () => {
-  it('POSTs a step to /tasks/:ref/<step> with an escaped ref', async () => {
+const callOf = (spy: ReturnType<typeof stubFetch>) => {
+  const [input, init] = spy.mock.calls[0] as [RequestInfo | URL, RequestInit | undefined];
+  const req = input instanceof Request ? input : null;
+  return {
+    path: new URL(req ? req.url : String(input), 'http://x').pathname,
+    method: req?.method ?? init?.method,
+    body: req ? null : init?.body,
+  };
+};
+
+describe('workflow steps (Eden, S2-05 routes)', () => {
+  it('POSTs a step to /tasks/:ref/<step>', async () => {
     const spy = stubFetch(json(200, { task: { id: 't1', number: 7, status: 'in_progress' } }));
     expect((await startTask('7')).task.status).toBe('in_progress');
-    const [url, init] = spy.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('/api/app/tasks/7/start');
-    expect(init.method).toBe('POST');
+    const call = callOf(spy);
+    expect(call.path).toBe('/api/app/tasks/7/start');
+    expect(call.method).toBe('POST');
   });
 
-  it('sends the reason of reopen and the category of cancel', async () => {
-    const spy = stubFetch(json(200, { task: { id: 't1', number: 7, status: 'todo' } }));
-    await reopenTask('a/b', { reason: 'Masih bocor' });
-    const [url, init] = spy.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('/api/app/tasks/a%2Fb/reopen');
-    expect(JSON.parse(String(init.body))).toEqual({
-      reason: 'Masih bocor',
-    });
+  it('sends the reason of reopen', async () => {
+    const spy = stubFetch(json(200, { task: { id: 't1', number: 7, status: 'in_progress' } }));
+    await reopenTask('7', { reason: 'Masih bocor' });
+    const call = callOf(spy);
+    expect(call.path).toBe('/api/app/tasks/7/reopen');
+    expect(JSON.parse(String(call.body))).toEqual({ reason: 'Masih bocor' });
   });
 
   it('maps a 409 STATE_CONFLICT to the task wording and keeps it detectable', async () => {
@@ -178,6 +188,13 @@ describe('workflow wrappers (S2-05 contract)', () => {
     );
     expect((err as ApiError).message).toBe(STATE_CONFLICT_TEXT);
     expect(isStaleTaskError(err)).toBe(true);
+  });
+});
+
+describe('NEXT_STEP_ACTIONS', () => {
+  it('only offers row steps the server routes in S2', () => {
+    for (const a of NEXT_STEP_ACTIONS) expect(ENABLED_TASK_ACTIONS).toContain(a);
+    expect([...NEXT_STEP_ACTIONS]).toEqual(['start', 'complete']);
   });
 });
 

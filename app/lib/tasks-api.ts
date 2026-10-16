@@ -1,25 +1,17 @@
 /**
- * Client for `/api/app/tasks`. Reads, create and update go through Eden (typed from the S2-03/S2-04
- * routes). The workflow steps use explicit DTOs against the P3 S2-05 contract because those routes are
- * built in parallel. RECONNECT(S2-05): once `app-tasks.workflow.ts` merges, swap `taskStep` for Eden
- * and let the route types replace `TaskStepResult`, `ReopenInput` and `CancelTaskInput`.
+ * Client for `/api/app/tasks`: reads, create/update (S2-03/S2-04) and the workflow steps (S2-05),
+ * all through Eden so the route types are the contract.
  */
 import type { CapValue } from '@server/access/capabilities';
 import type { PrimaryAction } from '@server/access/task-flow.policy';
-import type { TaskCancelCategory } from '@server/pm/enums';
 import type { PmCode } from '@server/pm/errors';
 import type { TaskCounts, TaskDetail, TaskListItem } from '@server/task/task.dto';
+import { ENABLED_TASK_ACTIONS } from '@server/task/task.limits';
+import type { TransitionResult } from '@server/task/task-workflow.service';
 import { type InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { TASK_ERROR_MESSAGES } from '../components/tasks/tasks.copy';
 import { client } from './eden';
-import {
-  ApiError,
-  type ApiIssue,
-  apiRequest,
-  describeApiError,
-  jsonRequest,
-  redirectToSession,
-} from './http';
+import { ApiError, type ApiIssue, describeApiError, redirectToSession } from './http';
 import type { TaskListQuery } from './tasks-filters';
 
 export type { TaskCounts, TaskDetail, TaskListItem };
@@ -38,11 +30,16 @@ export const taskKeys = {
   detail: (ref: string) => ['tasks', 'detail', ref] as const,
 };
 
-/** The steps a list row may offer as its one button; review steps wait for S4 (KB-6) even if the API sends them. */
-export const NEXT_STEP_ACTIONS = ['start', 'complete'] as const satisfies readonly PrimaryAction[];
-export type NextStepAction = (typeof NEXT_STEP_ACTIONS)[number];
+/**
+ * The steps a list row may offer as its one button: start/complete, kept only while the server routes
+ * them (`ENABLED_TASK_ACTIONS`), so review steps wait for S4 (KB-6) even if the API sends them.
+ */
+const ROW_STEPS = ['start', 'complete'] as const satisfies readonly PrimaryAction[];
+export const NEXT_STEP_ACTIONS = ROW_STEPS.filter((a) =>
+  (ENABLED_TASK_ACTIONS as readonly string[]).includes(a),
+);
+export type NextStepAction = (typeof ROW_STEPS)[number];
 
-// RECONNECT(S2-05): intersect with the server's `ENABLED_TASK_ACTIONS` once S2-05 exports it.
 export function isNextStep(action: PrimaryAction | null | undefined): action is NextStepAction {
   return (NEXT_STEP_ACTIONS as readonly string[]).includes(action ?? '');
 }
@@ -156,30 +153,25 @@ export async function updateTask(ref: string, patch: TaskPatch): Promise<TaskDet
   return unwrapTask(await client.api.app.tasks({ ref }).patch(patch));
 }
 
-// ---- Workflow steps (contract-typed until S2-05 lands) ----
+// ---- Workflow steps (S2-05) ----
 
-/** What a step answers (S2-05: `{ task, can }` built from the updated row). */
-export type TaskStepResult = { task: Pick<TaskDetail, 'id' | 'number' | 'status'> };
+type StepApi = ReturnType<typeof client.api.app.tasks>;
+/** What a step answers: `{ task, can }` built from the updated row. */
+export type TaskStepResult = Omit<Extract<TransitionResult, { ok: true }>, 'ok'>;
 /** `reopen` needs a reason the team can read (3-200 characters, `REASON_REQUIRED`). */
-export type ReopenInput = { reason: string };
+export type ReopenInput = Parameters<StepApi['reopen']['post']>[0];
 /** `cancel` needs a category; "other" also needs a note (`CANCEL_NOTE_REQUIRED`). */
-export type CancelTaskInput = { category: TaskCancelCategory; note?: string };
+export type CancelTaskInput = Parameters<StepApi['cancel']['post']>[0];
 
-type TaskStep = 'start' | 'unstart' | 'complete' | 'reopen' | 'cancel' | 'uncancel';
-const stepUrl = (ref: string, step: TaskStep) =>
-  `/api/app/tasks/${encodeURIComponent(ref)}/${step}`;
+const step = (ref: string) => client.api.app.tasks({ ref });
+// Eden types a step's data as a union with the refusal bodies; `unwrapTask` already threw for those.
+const done = <T>(res: EdenResult<T>) => unwrapTask(res) as TaskStepResult;
 
-async function taskStep(ref: string, step: TaskStep, body?: unknown): Promise<TaskStepResult> {
-  try {
-    return await apiRequest<TaskStepResult>(stepUrl(ref, step), jsonRequest('POST', body ?? {}));
-  } catch (err) {
-    throw withTaskMessage(err);
-  }
-}
-
-export const startTask = (ref: string) => taskStep(ref, 'start');
-export const unstartTask = (ref: string) => taskStep(ref, 'unstart');
-export const completeTask = (ref: string) => taskStep(ref, 'complete');
-export const reopenTask = (ref: string, input: ReopenInput) => taskStep(ref, 'reopen', input);
-export const cancelTask = (ref: string, input: CancelTaskInput) => taskStep(ref, 'cancel', input);
-export const uncancelTask = (ref: string) => taskStep(ref, 'uncancel');
+export const startTask = async (ref: string) => done(await step(ref).start.post());
+export const unstartTask = async (ref: string) => done(await step(ref).unstart.post());
+export const completeTask = async (ref: string) => done(await step(ref).complete.post());
+export const reopenTask = async (ref: string, input: ReopenInput) =>
+  done(await step(ref).reopen.post(input));
+export const cancelTask = async (ref: string, input: CancelTaskInput) =>
+  done(await step(ref).cancel.post(input));
+export const uncancelTask = async (ref: string) => done(await step(ref).uncancel.post());
