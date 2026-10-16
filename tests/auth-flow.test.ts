@@ -9,7 +9,7 @@
  *  4. redirectToHome with valid session → throws redirect to role home
  *  5. redirectToHome with no session → throws redirect to /login
  */
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import { api } from '../server/api';
 import { auth } from '../server/auth';
@@ -59,6 +59,11 @@ beforeAll(async () => {
   // Capture session cookies for subsequent tests
   const rawCookies = res.headers.getSetCookie?.() ?? [res.headers.get('set-cookie') ?? ''];
   sessionCookie = cookieHeader(rawCookies);
+});
+
+// One test approves the account; the pending-state tests must see the freshly signed-up state whatever ran first.
+beforeEach(async () => {
+  await db.update(user).set({ approvalStatus: 'pending' }).where(eq(user.email, TEST_EMAIL));
 });
 
 afterAll(async () => {

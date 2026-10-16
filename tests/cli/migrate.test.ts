@@ -1,5 +1,14 @@
 /** `migrate`: status/apply against real databases, plus argument and connection failures. */
-import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  spyOn,
+  test,
+} from 'bun:test';
 import { main } from '../../server/cli';
 import { run } from '../../server/cli/migrate';
 import journal from '../../server/db/migrations/meta/_journal.json' with { type: 'json' };
@@ -8,7 +17,7 @@ import { pgClient } from '../../server/local-pg/client';
 const TOTAL = journal.entries.length;
 const savedUrl = process.env.DATABASE_URL;
 const testUrl = process.env.DATABASE_URL_TEST ?? '';
-const scratchDb = `migrate_cli_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+let scratchDb = '';
 
 /** Same server as the test database, different database name (keeps the `?host=` socket query of local mode). */
 function urlFor(db: string): string {
@@ -36,18 +45,22 @@ async function exec(args: string[], url: string | undefined) {
   return { code, out: log.mock.calls.flat().join('\n'), err: err.mock.calls.flat().join('\n') };
 }
 
-beforeAll(async () => {
+beforeAll(() => {
   expect(testUrl).not.toBe('');
+});
+// A fresh empty database per test: the apply test migrates it, which the "pending" test must not see.
+beforeEach(async () => {
+  scratchDb = `migrate_cli_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   await admin((sql) => sql`create database ${sql(scratchDb)}`);
 });
-afterEach(() => {
+afterEach(async () => {
   for (const m of ['log', 'error'] as const)
     (console[m] as unknown as { mockRestore?: () => void }).mockRestore?.();
+  await admin((sql) => sql`drop database if exists ${sql(scratchDb)} with (force)`);
 });
-afterAll(async () => {
+afterAll(() => {
   if (savedUrl === undefined) delete process.env.DATABASE_URL;
   else process.env.DATABASE_URL = savedUrl;
-  await admin((sql) => sql`drop database if exists ${sql(scratchDb)} with (force)`);
 });
 
 describe('migrate --status', () => {

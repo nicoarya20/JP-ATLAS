@@ -1,5 +1,5 @@
 /** End-to-end: create keys through the service, call real routes with X-API-Key, track usage, rotate, revoke. */
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { adminApi } from '../../server/api/admin';
@@ -29,7 +29,8 @@ let superKey = '';
 let superKeyId = '';
 let userKey = '';
 
-beforeAll(async () => {
+// Per test: rotate/revoke/disable change the keys and owners, so a shared seed would make results depend on order.
+beforeEach(async () => {
   await db.insert(user).values(
     [
       {
@@ -79,7 +80,10 @@ beforeAll(async () => {
   userKey = u.key;
 });
 
-afterAll(async () => {
+afterEach(async () => {
+  // Buffered usage rows must land while their keys still exist, or the batch insert fails on the FK and drops them all.
+  await Bun.sleep(20);
+  await flushUsage();
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetType, 'apikey'))
@@ -243,6 +247,11 @@ describe('rotation and revocation', () => {
     ).toBe(200);
   });
   test('revoke blocks the key immediately and keeps history; list/stats reflect states', async () => {
+    // Own setup: recorded usage (history to keep), then a rotated sibling so the owner has two keys.
+    await app.handle(new Request('http://localhost/api/me/logins', hdr(superKey)));
+    await Bun.sleep(20);
+    await flushUsage();
+    await rotateKey(superKeyId, 60_000);
     const row = await revokeKey(superKeyId);
     expect(row?.status).toBe('revoked');
     expect(

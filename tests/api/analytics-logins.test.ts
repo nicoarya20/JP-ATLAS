@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { analyticsApi } from '../../server/api/analytics';
@@ -36,7 +36,9 @@ type Row = {
   userName: string | null;
 };
 
-beforeAll(async () => {
+// Per test: the bulk DELETE test removes seeded rows that the other tests count.
+beforeEach(async () => {
+  ids.length = 0;
   await db.insert(user).values(
     testUser({
       id: userId,
@@ -81,7 +83,7 @@ beforeAll(async () => {
   ids.push(...rows.map((r) => r.id));
 });
 
-afterAll(async () => {
+afterEach(async () => {
   // user cascade removes remaining login rows
   await db
     .delete(user)

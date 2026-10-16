@@ -1,9 +1,10 @@
 /** Personal API keys: owner-only management, role-clamped scopes, session-only access. */
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { MAX_PERSONAL_KEYS, meApiKeysApi } from '../../server/api/me-api-keys';
 import { setApiKeyIdentity } from '../../server/api-keys/identity';
+import { createKey } from '../../server/api-keys/service';
 import { auth } from '../../server/auth';
 import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
@@ -70,7 +71,8 @@ const input = (name: string, scopes: string[]) => ({
 });
 let aliceKeyId = '';
 
-beforeAll(async () => {
+// Per test: tests rotate, revoke and delete alice's key, so each one starts from its own users and key.
+beforeEach(async () => {
   await db.insert(user).values(
     [
       [aliceId, 'member'],
@@ -87,9 +89,14 @@ beforeAll(async () => {
       }),
     ),
   );
+  aliceKeyId = (
+    await createKey({ ...input('seed', ['me:read']), scopes: ['me:read'], ownerId: aliceId })
+  ).row.id;
 });
-afterAll(async () => {
+afterAll(() => {
   for (const sp of spies) sp.mockRestore();
+});
+afterEach(async () => {
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetType, 'apikey'))
@@ -128,9 +135,8 @@ describe('/me/api-keys', () => {
     const row = ok.body.row as { id: string; ownerId: string; scopes: string[] };
     expect(row.ownerId).toBe(aliceId);
     expect(row.scopes).toEqual(['me:read']);
-    aliceKeyId = row.id;
     await Bun.sleep(50); // audit() is fire-and-forget
-    const audit = await db.select().from(auditLog).where(eq(auditLog.targetId, aliceKeyId));
+    const audit = await db.select().from(auditLog).where(eq(auditLog.targetId, row.id));
     expect(audit[0]?.actorId).toBe(aliceId);
   });
   test('other users cannot see, edit, rotate or delete the key', async () => {

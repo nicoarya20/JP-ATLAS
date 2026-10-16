@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test';
 import { and, eq, inArray } from 'drizzle-orm';
 import { auth } from '../server/auth';
 import { db } from '../server/db';
@@ -31,6 +31,12 @@ beforeAll(async () => {
     );
 });
 
+// Rows written by one test must not be counted by the next.
+afterEach(async () => {
+  await db.delete(auditLog).where(eq(auditLog.actorId, admin));
+  await db.delete(loginLog).where(eq(loginLog.userId, target));
+});
+
 afterAll(async () => {
   await db.delete(auditLog).where(eq(auditLog.actorId, admin));
   await db.delete(loginLog).where(eq(loginLog.userId, target));
@@ -53,7 +59,7 @@ describe('session.create.after hook', () => {
     });
     await Bun.sleep(100);
     const logins = await db.select().from(loginLog).where(eq(loginLog.userId, target));
-    expect(logins.map((r) => r.method).sort()).toEqual(['email', 'impersonation']);
+    expect(logins.map((r) => r.method)).toEqual(['impersonation']);
     const audits = await db.select().from(auditLog).where(eq(auditLog.actorId, admin));
     expect(audits.map((a) => [a.action, a.targetId])).toEqual([['user.impersonate', target]]);
   });

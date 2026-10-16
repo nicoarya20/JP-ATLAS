@@ -177,19 +177,15 @@ describe('db:generate without arguments', () => {
 });
 
 // End-to-end: real drizzle-kit on a throwaway schema, then the produced SQL re-run on the test DB.
+// Every test builds its own sandbox (replaying the earlier rounds it needs), so none depends on another having run.
 describe('wrapper end-to-end on a throwaway schema', () => {
   // Inside node_modules so the schema can resolve drizzle-orm; drizzle-kit wants paths relative to the cwd (ROOT).
   const CACHE = path.join(ROOT, 'node_modules/.cache');
   mkdirSync(CACHE, { recursive: true });
-  const dir = mkdtempSync(path.join(CACHE, 'db-generate-test-'));
-  const rel = (p: string) => path.relative(ROOT, path.join(dir, p));
-  const outDir = path.join(dir, 'out');
-  mkdirSync(outDir);
-  writeFileSync(
-    path.join(dir, 'drizzle.config.ts'),
-    `export default { dialect: 'postgresql', schema: '${rel('schema.ts')}', out: '${rel('out')}' };\n`,
-  );
-  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  const dirs: string[] = [];
+  afterAll(() => {
+    for (const d of dirs) rmSync(d, { recursive: true, force: true });
+  });
 
   // Variant 1: base tables. 2: + column, UNIQUE and CHECK. 3: the same minus the column (a DROP).
   const UNIQUE_AND_CHECK = [
@@ -215,34 +211,66 @@ describe('wrapper end-to-end on a throwaway schema', () => {
       '',
     ].join('\n');
 
-  async function generate(name: string, extra: string[] = []) {
-    const proc = Bun.spawn(
-      [
-        process.execPath,
-        'scripts/db-generate.ts',
-        `--config=${rel('drizzle.config.ts')}`,
-        `--name=${name}`,
-        `--why=${WHY}`,
-        ...extra,
-      ],
-      { cwd: ROOT, stdout: 'pipe', stderr: 'pipe' },
+  /** A fresh throwaway project with its own config, schema and migrations folder. */
+  function sandbox() {
+    const dir = mkdtempSync(path.join(CACHE, 'db-generate-test-'));
+    dirs.push(dir);
+    const rel = (p: string) => path.relative(ROOT, path.join(dir, p));
+    const outDir = path.join(dir, 'out');
+    mkdirSync(outDir);
+    writeFileSync(
+      path.join(dir, 'drizzle.config.ts'),
+      `export default { dialect: 'postgresql', schema: '${rel('schema.ts')}', out: '${rel('out')}' };\n`,
     );
-    const [out, err, code] = await Promise.all([
-      new Response(proc.stdout).text(),
-      new Response(proc.stderr).text(),
-      proc.exited,
-    ]);
-    return { out, err, code };
+    async function generate(name: string, extra: string[] = []) {
+      const proc = Bun.spawn(
+        [
+          process.execPath,
+          'scripts/db-generate.ts',
+          `--config=${rel('drizzle.config.ts')}`,
+          `--name=${name}`,
+          `--why=${WHY}`,
+          ...extra,
+        ],
+        { cwd: ROOT, stdout: 'pipe', stderr: 'pipe' },
+      );
+      const [out, err, code] = await Promise.all([
+        new Response(proc.stdout).text(),
+        new Response(proc.stderr).text(),
+        proc.exited,
+      ]);
+      return { out, err, code };
+    }
+    return {
+      outDir,
+      generate,
+      setSchema: (variant: 1 | 2 | 3) =>
+        writeFileSync(path.join(dir, 'schema.ts'), schema(variant)),
+      read: (name: string) => readFileSync(path.join(outDir, name), 'utf8'),
+      journal: () => readFileSync(path.join(outDir, 'meta/_journal.json'), 'utf8'),
+    };
   }
-  const read = (name: string) => readFileSync(path.join(outDir, name), 'utf8');
-  const journal = () => readFileSync(path.join(outDir, 'meta/_journal.json'), 'utf8');
+  type Sandbox = ReturnType<typeof sandbox>;
+
+  /** Replays the earlier generate rounds (1 and, for `through: 2`, also 2) so a test starts from the state it asserts on. */
+  async function build(through: 1 | 2): Promise<Sandbox> {
+    const sb = sandbox();
+    sb.setSchema(1);
+    expect((await sb.generate('probe_one')).code).toBe(0);
+    if (through === 2) {
+      sb.setSchema(2);
+      expect((await sb.generate('probe_two')).code).toBe(0);
+    }
+    return sb;
+  }
 
   test(
     'round 1 creates tables, FK and index with guards',
     async () => {
-      writeFileSync(path.join(dir, 'schema.ts'), schema(1));
-      expect((await generate('probe_one')).code).toBe(0);
-      const out = read('0000_probe_one.sql');
+      const sb = sandbox();
+      sb.setSchema(1);
+      expect((await sb.generate('probe_one')).code).toBe(0);
+      const out = sb.read('0000_probe_one.sql');
       expect(out.split('\n')[0]).toBe(`-- Why: ${WHY}`);
       expect(out).toContain('CREATE TABLE IF NOT EXISTS "gen_probe_parent"');
       expect(out).toContain('CREATE INDEX IF NOT EXISTS "gen_probe_child_parent_idx"');
@@ -255,9 +283,10 @@ describe('wrapper end-to-end on a throwaway schema', () => {
   test(
     'round 2 wraps ADD CONSTRAINT UNIQUE/CHECK and guards ADD COLUMN',
     async () => {
-      writeFileSync(path.join(dir, 'schema.ts'), schema(2));
-      expect((await generate('probe_two')).code).toBe(0);
-      const out = read('0001_probe_two.sql');
+      const sb = await build(1);
+      sb.setSchema(2);
+      expect((await sb.generate('probe_two')).code).toBe(0);
+      const out = sb.read('0001_probe_two.sql');
       expect(out).toContain('ADD COLUMN IF NOT EXISTS "label"');
       expect(out).toMatch(
         /DO \$\$ BEGIN\n\tALTER TABLE "gen_probe_child" ADD CONSTRAINT "gen_probe_child_n_uq" UNIQUE/,
@@ -272,16 +301,17 @@ describe('wrapper end-to-end on a throwaway schema', () => {
   test(
     'round 3: a DROP without --destructive-ok is refused and leaves no files behind',
     async () => {
-      writeFileSync(path.join(dir, 'schema.ts'), schema(3));
-      const before = journal();
-      const r = await generate('probe_three');
+      const sb = await build(2);
+      sb.setSchema(3);
+      const before = sb.journal();
+      const r = await sb.generate('probe_three');
       expect(r.code).toBe(1);
       expect(r.err).toContain('--destructive-ok');
-      expect(readdirSync(outDir).filter((f) => f.startsWith('0002'))).toEqual([]);
-      expect(readdirSync(path.join(outDir, 'meta')).filter((f) => f.startsWith('0002'))).toEqual(
+      expect(readdirSync(sb.outDir).filter((f) => f.startsWith('0002'))).toEqual([]);
+      expect(readdirSync(path.join(sb.outDir, 'meta')).filter((f) => f.startsWith('0002'))).toEqual(
         [],
       );
-      expect(journal()).toBe(before);
+      expect(sb.journal()).toBe(before);
     },
     E2E_TIMEOUT_MS,
   );
@@ -289,9 +319,11 @@ describe('wrapper end-to-end on a throwaway schema', () => {
   test(
     'round 3: with --destructive-ok the DROP gets IF EXISTS and the marker',
     async () => {
-      const r = await generate('probe_three', ['--destructive-ok=probe column never populated']);
+      const sb = await build(2);
+      sb.setSchema(3);
+      const r = await sb.generate('probe_three', ['--destructive-ok=probe column never populated']);
       expect(r.code).toBe(0);
-      const out = read('0002_probe_three.sql');
+      const out = sb.read('0002_probe_three.sql');
       expect(out).toContain('DROP COLUMN IF EXISTS "label"');
       expect(out).toContain('-- destructive-ok: probe column never populated');
     },
@@ -301,8 +333,13 @@ describe('wrapper end-to-end on a throwaway schema', () => {
   test(
     'the produced migrations run twice in a row on Postgres (then roll back)',
     async () => {
+      const sb = await build(2);
+      sb.setSchema(3);
+      expect(
+        (await sb.generate('probe_three', ['--destructive-ok=probe column never populated'])).code,
+      ).toBe(0);
       const statements = ['0000_probe_one', '0001_probe_two', '0002_probe_three'].flatMap((t) =>
-        read(`${t}.sql`).split(BREAKPOINT),
+        sb.read(`${t}.sql`).split(BREAKPOINT),
       );
       class Rollback extends Error {}
       try {

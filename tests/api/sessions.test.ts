@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { sessionsApi } from '../../server/api/sessions';
@@ -25,7 +25,8 @@ async function getJson(path: string, params: Record<string, string> = {}) {
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
 }
 
-beforeAll(async () => {
+// Seeded per test: the DELETE tests revoke these rows and the GET tests count them, so a shared seed is order-dependent.
+beforeEach(async () => {
   const now = new Date();
   await db.insert(user).values(
     testUser({
@@ -67,7 +68,7 @@ beforeAll(async () => {
     },
   ]);
 });
-afterAll(async () => {
+afterEach(async () => {
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetId, uid))
@@ -120,7 +121,7 @@ describe('DELETE /sessions', () => {
       new Request(`http://localhost/sessions/user/${uid}?keep=${ids.a}`, { method: 'DELETE' }),
     );
     const body = (await res.json()) as { revoked: number };
-    expect(body.revoked).toBe(1); // only the expired one remained besides a
+    expect(body.revoked).toBe(2); // b and the expired one; a is kept
     expect((await getJson('/sessions', { userId: uid, status: 'all' })).body.total).toBe(1);
     await new Promise((r) => setTimeout(r, 100));
     const audits = await db.select().from(auditLog).where(eq(auditLog.targetId, uid));
