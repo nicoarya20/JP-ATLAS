@@ -2,7 +2,7 @@
  * Guard and reset of the dev seed script (S0B-30): it refuses in production and without SEED_ALLOW=1
  * before touching the database, seeds approved loginable accounts, and `reset` deletes only `seed-…` rows.
  */
-import { afterAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeEach, describe, expect, it } from 'bun:test';
 import { verifyPassword } from 'better-auth/crypto';
 import { count, eq, inArray, like } from 'drizzle-orm';
 import { resolveSeedPassword, runSeed, type SeedDeps, seedRefusal } from '../scripts/seed-dev';
@@ -116,9 +116,20 @@ describe('atlas and reset against the test DB', () => {
     return { users: users?.n, projects: projects?.n, tasks: tasks?.n };
   };
 
+  const resetSeed = () => runSeed(['reset'], ALLOWED, recordingDeps(true).deps);
+  /** Seeds Atlas without asserting on it; for tests that need the rows but are not about seeding. */
+  const seedAtlas = async () => {
+    expect<number>(await runSeed(['atlas'], ALLOWED, recordingDeps(true).deps)).toBe(0);
+  };
+
+  // Every test starts with no seed rows: they seed, reset and count the same shared rows, so order must not matter.
+  beforeEach(async () => {
+    await resetSeed();
+  });
+
   afterAll(async () => {
     // A failed assertion must not leave seed rows behind in the shared test DB.
-    await runSeed(['reset'], ALLOWED, recordingDeps(true).deps);
+    await resetSeed();
     await cleaner.flushAll();
   });
 
@@ -162,6 +173,7 @@ describe('atlas and reset against the test DB', () => {
 
   it('`atlas` keeps SEED_PASSWORD out of the output and is safe to run twice', async () => {
     const password = 'sandi-uji-seed-1'; // test-only
+    await seedAtlas(); // a first run, so the run below is the second
     const { deps, out } = recordingDeps(true);
     expect<number>(await runSeed(['atlas'], { ...ALLOWED, SEED_PASSWORD: password }, deps)).toBe(0);
     expect(out.join('\n')).not.toContain(password);
@@ -169,6 +181,7 @@ describe('atlas and reset against the test DB', () => {
   });
 
   it('seeded Atlas has the golden progress (1 of 6, 17) read from the database', async () => {
+    await seedAtlas();
     const rows = await db
       .select()
       .from(task)
@@ -189,6 +202,7 @@ describe('atlas and reset against the test DB', () => {
     const owner = await f.user();
     const other = await f.project({ lead: owner });
     const otherTask = await f.task({ project: other, assignee: owner });
+    await seedAtlas();
     expect((await seedRows()).users).toBe(5);
 
     const { deps, out } = recordingDeps(true);
