@@ -12,7 +12,7 @@ export const PM_KEY_DENY: readonly Deny[] = [
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
 export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
-  'DELETE projects/*': 'app-projects.ts',
+  'DELETE projects/*': 'app-projects.trash.ts', // S1-02 filled app-projects.ts with read routes only; DELETE lands in the trash plugin (S1-05)
   '* projects/*/members*': 'app-projects.members.ts',
   'PATCH profile': 'app-profile.ts',
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts

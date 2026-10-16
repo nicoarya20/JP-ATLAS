@@ -1,6 +1,55 @@
-/** Project routes (`/api/app/projects`); empty until the slice fills them. */
-import { Elysia } from 'elysia';
+/** Project read routes (`/api/app/projects`): the list and one project's detail. Writes come in S1-03. */
+import { Elysia, t } from 'elysia';
+import { PROJECT_STATUSES } from '../pm/enums';
+import { PAGE_LIMIT_DEFAULT } from '../pm/limits';
+import { fail } from '../pm/respond';
+import { toPrincipal } from '../project/membership.query';
+import { getProjectDetail, listProjects, PROJECT_SORTS } from '../project/project.query';
+import { IdParam, PageQuery } from './app-common';
 import { appContext } from './app-context';
 
-// STUB(S1): diisi irisan S1 proyek; hapus dari tes app-stubs saat terisi
-export const projectsApi = new Elysia({ prefix: '/projects' }).use(appContext);
+const SEARCH_MAX_LENGTH = 100;
+
+// Not `t.UnionEnum`: it silently defaults to its first value, which would turn "no filter" into `status=draft`.
+const oneOf = <const T extends string>(values: readonly T[]) =>
+  t.Union(values.map((v) => t.Literal(v)));
+
+const ListQuery = t.Object({
+  ...PageQuery.properties,
+  scope: t.Optional(oneOf(['mine', 'all'])),
+  status: t.Optional(oneOf(PROJECT_STATUSES)),
+  q: t.Optional(t.String({ maxLength: SEARCH_MAX_LENGTH })),
+  sort: t.Optional(oneOf(PROJECT_SORTS)),
+});
+
+export const projectsApi = new Elysia({ prefix: '/projects' })
+  .use(appContext)
+  /** Projects the caller may see: `{ items, total, page, limit }`; a Member asking for `all` gets `mine`. */
+  .get(
+    '/',
+    async ({ actor, query }) => {
+      const limit = query.limit ?? PAGE_LIMIT_DEFAULT;
+      const page = Math.floor(query.page ?? 1);
+      const { items, total } = await listProjects(toPrincipal(actor), {
+        scope: query.scope ?? 'mine',
+        status: query.status,
+        q: query.q?.trim() || undefined,
+        sort: query.sort,
+        limit,
+        // Capped so an absurd `page` stays a valid, empty page instead of a database error.
+        offset: Math.min((page - 1) * limit, Number.MAX_SAFE_INTEGER),
+        now: new Date(),
+      });
+      return { items, total, page, limit };
+    },
+    { query: ListQuery },
+  )
+  /** One project with `can{}`; a missing, trashed or hidden id all answer the same 404. */
+  .get(
+    '/:id',
+    async ({ actor, params, status }) => {
+      const detail = await getProjectDetail(toPrincipal(actor), params.id, new Date());
+      return detail ?? fail(status, 'NOT_FOUND');
+    },
+    { params: IdParam },
+  );

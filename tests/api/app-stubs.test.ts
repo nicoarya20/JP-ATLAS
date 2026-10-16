@@ -14,8 +14,6 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 /** The stubs S0B-18 creates. A slice that fills one deletes its row here and the STUB comment there. */
 const STUBS = [
   { file: 'app-profile.ts', plugin: 'profileApi', prefix: '/profile' },
-  { file: 'app-projects.ts', plugin: 'projectsApi', prefix: '/projects' },
-  { file: 'app-projects.members.ts', plugin: 'projectMembersApi', prefix: '/projects' },
   { file: 'app-projects.trash.ts', plugin: 'projectTrashApi', prefix: '/projects' },
   { file: 'app-team.picker.ts', plugin: 'teamPickerApi', prefix: '/team' },
   { file: 'app-trash.ts', plugin: 'trashApi', prefix: '/trash' },
@@ -23,6 +21,9 @@ const STUBS = [
   { file: 'app-tasks.workflow.ts', plugin: 'taskWorkflowApi', prefix: '/tasks' },
   { file: 'app-tasks.detail.ts', plugin: 'taskDetailApi', prefix: '/tasks' },
 ];
+
+/** Plugins S1-02 filled with routes; they leave the stub list but stay mounted by app.ts. */
+const FILLED = ['projectsApi', 'projectMembersApi'];
 
 /** Modules that already predate the no-Drizzle rule; new ones must not join this list. */
 const DB_ALLOWED = ['app-avatar.ts']; // legacy: avatar upload touches the user row directly
@@ -61,9 +62,10 @@ describe('app.ts', () => {
   const source = read('app.ts');
   const mounts = [...source.matchAll(/\.use\((\w+)\)/g)].map((m) => m[1]);
 
-  test('mounts the gate first, then every stub', () => {
+  test('mounts the gate first, then every stub and every filled plugin', () => {
     expect(mounts[0]).toBe('appContext');
-    expect(mounts.slice(1)).toEqual(STUBS.map((s) => s.plugin));
+    // Order past the gate is free: only the gate must come first (a parent's hooks reach later routes only).
+    expect(mounts.slice(1).sort()).toEqual([...FILLED, ...STUBS.map((s) => s.plugin)].sort());
   });
 
   test('hosts the example routes without role casts', () => {
@@ -104,6 +106,8 @@ describe('module hygiene', () => {
     ['app.ts', 60],
     ['app-context.ts', 90],
     ['app-common.ts', 80],
+    ['app-projects.ts', 150],
+    ['app-projects.members.ts', 150],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);
