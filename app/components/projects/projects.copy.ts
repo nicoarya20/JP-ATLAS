@@ -97,3 +97,45 @@ export const PROJECT_ERROR_MESSAGES: Partial<Record<PmCode, string>> = {
   IMPERSONATING: 'Saat menyamar sebagai pengguna lain, aksi ini dinonaktifkan.',
   ROLE_CANNOT_TRASH: 'Hanya Admin atau Project Manager yang boleh menghapus proyek.',
 };
+
+/** Project list page (①②, P3 §2). */
+export const LIST_COPY = {
+  title: 'Proyek',
+  description: 'Proyek yang Anda ikuti dan perkembangannya.',
+  create: 'Proyek baru',
+  tableLabel: 'Daftar proyek',
+  searchLabel: 'Cari proyek',
+  searchPlaceholder: 'Ketik nama proyek',
+  scopeLabel: 'Tampilkan',
+  scopeMine: 'Proyek saya',
+  scopeAll: 'Semua proyek',
+  statusLabel: 'Saring menurut status',
+  statusAll: 'Semua',
+  sortLabel: 'Urutkan',
+  sortDue: 'Tenggat terdekat',
+  sortRecent: 'Terakhir diubah',
+  sortName: 'Nama',
+  colName: 'Nama proyek',
+  colStatus: 'Status',
+  colCondition: 'Kondisi',
+  colProgress: 'Progres',
+  colDue: 'Tenggat',
+  colLead: LABEL_LEAD,
+  noCondition: 'Kondisi hanya dihitung untuk proyek yang berjalan.',
+  open: 'Buka proyek',
+  more: 'Tampilkan lebih banyak',
+  shown: (shown: number, total: number) => `Menampilkan ${shown} dari ${total} proyek`,
+  loadFailed: 'Gagal memuat proyek',
+} as const;
+
+/** Empty states: no project yet (can create), Member not in any project, filters matching nothing. */
+export const EMPTY_COPY = {
+  creatorTitle: 'Belum ada proyek.',
+  creatorBody: 'Buat proyek pertama Anda.',
+  creatorAction: 'Buat proyek',
+  memberTitle: 'Anda belum masuk proyek apa pun.',
+  memberBody: 'Minta admin atau project manager menambahkan Anda.',
+  filteredTitle: 'Tidak ada proyek yang cocok.',
+  filteredBody: 'Ubah kata pencarian atau status, atau hapus saringannya.',
+  filteredAction: 'Hapus saringan',
+} as const;
