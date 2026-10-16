@@ -18,3 +18,25 @@ export type TaskListScope = (typeof TASK_LIST_SCOPES)[number];
 export const TASK_SORTS = ['due', 'priority', 'updated', 'created'] as const;
 export type TaskSort = (typeof TASK_SORTS)[number];
 export const TASK_SORT_DEFAULT: TaskSort = 'due';
+
+/** Longest checklist step, and how many steps the create form may send at once. */
+export const TASK_CHECKLIST_TEXT_MAX = 300;
+export const TASK_CHECKLIST_INITIAL_MAX = 20;
+
+/** `task_activity.action` values written by the create/update service (S2-04); the timeline (S2-06) reads them. */
+export const TASK_ACTIVITY = {
+  created: 'created',
+  assigneeChanged: 'assignee_changed',
+  dueDateChanged: 'due_date_changed',
+  priorityChanged: 'priority_changed',
+} as const;
+
+/** Field-level refusals (422 `VALIDATION`) with a message the form can show as is; the service and the form share them. */
+export const TASK_WRITE_MESSAGES = {
+  emptyTitle: 'Judul tugas belum diisi.',
+  emptyStep: 'Langkah tidak boleh kosong.',
+  assigneeNotWorker: 'Yang mengerjakan harus Pengelola atau Anggota proyek ini.',
+  kindNotInProject: 'Jenis tugas ini tidak ada di proyek ini.',
+  noDefaultKind: 'Proyek ini belum punya jenis tugas. Hubungi pengelola proyek.',
+  startAfterDue: 'Tanggal mulai tidak boleh sesudah tenggat.',
+} as const;

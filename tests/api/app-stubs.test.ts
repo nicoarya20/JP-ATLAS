@@ -108,6 +108,8 @@ describe('module hygiene', () => {
     ['app-projects.members.ts', 150],
     ['app-profile.ts', 150],
     ['app-tasks.ts', 150],
+    ['app-tasks.write.ts', 150],
+    ['app-tasks.schema.ts', 150],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);

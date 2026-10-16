@@ -1,5 +1,8 @@
-/** Task read API (S2-03, SP2): sign-in gate, list/counts/detail shapes, keyset paging, IDOR-safe 404. */
+/** Task API (S2-03 read, SP2; S2-04 write): sign-in gate, shapes, keyset paging, IDOR-safe 404, closed write bodies. */
 import { afterAll, afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { eq } from 'drizzle-orm';
+import { db } from '../../server/db';
+import { project } from '../../server/db/schema';
 import { PAGE_LIMIT_MAX } from '../../server/pm/limits';
 import { call, expectApiError, type Json } from '../support/api';
 import { installAuthSpies } from '../support/auth';
@@ -207,5 +210,126 @@ describe('GET /app/tasks/:ref', () => {
     const res = await call('GET', `${BASE}/${t1.number}`);
     expect(res.status).toBe(200);
     expect(res.body.can).not.toHaveProperty('update');
+  });
+});
+
+describe('POST /app/tasks', () => {
+  it('is 401 without a session, even with a bad body', async () => {
+    expectApiError(await call('POST', BASE, { title: '' }), 401, 'UNAUTHORIZED');
+  });
+
+  it('creates a task for a project member and answers 201 with the detail shape', async () => {
+    const { me, mine } = await graph();
+    auth.as(me);
+    const res = await call('POST', BASE, {
+      projectId: mine.id,
+      title: 'Cat ulang pagar',
+      dueDate: '2030-03-01',
+      checklist: ['Beli cat'],
+      needsReview: false,
+    });
+    expect(res.status).toBe(201);
+    expect(Object.keys(res.body).sort()).toEqual([...DETAIL_KEYS].sort());
+    expect(res.body).toMatchObject({
+      title: 'Cat ulang pagar',
+      status: 'todo',
+      needsReview: false,
+    });
+    expect(res.body.checklist.total).toBe(1);
+  });
+
+  it('ignores stray fields: the creator, status and trash stamp come from the server', async () => {
+    const { me, lead, mine } = await graph();
+    auth.as(me);
+    const res = await call('POST', BASE, {
+      projectId: mine.id,
+      title: 'Liar',
+      createdBy: lead.id,
+      status: 'done',
+      deletedAt: '2020-01-01T00:00:00Z',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ status: 'todo', creator: { id: me.id } });
+    expect((await call('GET', `${BASE}/${res.body.number}`)).status).toBe(200);
+  });
+
+  it.each([
+    ['needsReview true', { needsReview: true }],
+    ['tags (S4)', { tags: ['a'] }],
+    ['phaseId (S5)', { phaseId: 'p1' }],
+    ['estimateHours (S5)', { estimateHours: 3 }],
+    ['an impossible date', { dueDate: '2030-02-31' }],
+    ['an overlong title', { title: 'x'.repeat(201) }],
+  ])('rejects %s with 422', async (_label, extra) => {
+    const { me, mine } = await graph();
+    auth.as(me);
+    const res = await call('POST', BASE, { projectId: mine.id, title: 'x', ...extra });
+    expectApiError(res, 422, 'VALIDATION');
+  });
+
+  it('refuses a viewer (403), a hidden project (404) and a trashed one (409 PROJECT_IN_TRASH)', async () => {
+    const { lead, me, outsider, mine } = await graph();
+    const viewer = await f.user();
+    const watched = await f.project({ lead, members: [[viewer, 'viewer']] });
+    auth.as(viewer);
+    expectApiError(
+      await call('POST', BASE, { projectId: watched.id, title: 'x' }),
+      403,
+      'NOT_MEMBER',
+    );
+    auth.as(outsider);
+    expectApiError(await call('POST', BASE, { projectId: mine.id, title: 'x' }), 404, 'NOT_FOUND');
+    await db.update(project).set({ deletedAt: new Date() }).where(eq(project.id, mine.id));
+    auth.as(me);
+    const trashed = await call('POST', BASE, { projectId: mine.id, title: 'x' });
+    expectApiError(trashed, 409, 'PROJECT_IN_TRASH');
+  });
+});
+
+describe('PATCH /app/tasks/:ref', () => {
+  it('changes my task partially and ignores stray fields', async () => {
+    const { me, lead, other, t1 } = await graph();
+    auth.as(me);
+    const res = await call('PATCH', `${BASE}/${t1.number}`, {
+      priority: 'high',
+      projectId: other.id,
+      status: 'done',
+      createdBy: me.id,
+      deletedAt: '2020-01-01T00:00:00Z',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      priority: 'high',
+      status: 'todo',
+      project: { id: t1.projectId },
+      creator: { id: lead.id },
+    });
+  });
+
+  it('answers 403 NOT_OWNER to another member and 404 to an outsider', async () => {
+    const { lead, mine, outsider } = await graph();
+    const second = await f.user();
+    const shared = await f.project({ lead, members: [[second, 'member']] });
+    const t = await f.task({ project: shared, creator: lead });
+    auth.as(second);
+    expectApiError(await call('PATCH', `${BASE}/${t.id}`, { title: 'x' }), 403, 'NOT_OWNER');
+    auth.as(outsider);
+    const hiddenTask = await f.task({ project: mine });
+    expectApiError(
+      await call('PATCH', `${BASE}/${hiddenTask.id}`, { title: 'x' }),
+      404,
+      'NOT_FOUND',
+    );
+  });
+
+  it.each([
+    ['needsReview', { needsReview: false }],
+    ['tags', { tags: [] }],
+    ['phaseId', { phaseId: 'p1' }],
+    ['estimateHours', { estimateHours: 1 }],
+  ])('rejects the later-slice field %s with 422', async (_label, body) => {
+    const { me, t1 } = await graph();
+    auth.as(me);
+    expectApiError(await call('PATCH', `${BASE}/${t1.id}`, body), 422, 'VALIDATION');
   });
 });
