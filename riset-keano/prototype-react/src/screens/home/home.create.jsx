@@ -1,4 +1,4 @@
-// Home ④ Sheet · Create: the "+" on Home and More lets the person pick what to add; rows the role can't open are left out.
+// Home ③ Sheet · Create: the "+" on Home and on screens whose tab has no own "new" lets the person pick what to add; rows the role can't open are left out.
 import { CalendarPlus, FileUp, FolderPlus, ListPlus, Plane } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { allowed } from '../../core/registry';

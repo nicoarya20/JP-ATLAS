@@ -41,7 +41,7 @@
 .avatars > .react-cupertino-ui-avatar + .react-cupertino-ui-avatar { margin-left: calc(var(--sp-2) * -1);
   box-shadow: 0 0 0 2px var(--surface); }
 
-/* ---- Tab bar (kit AppTabBar): liquid glass pill + round create button; the bubble lives in kit/tabbar.css ---- */
+/* ---- Tab bar (kit AppTabBar): liquid glass pill (also the More panel it unfolds) + round create button; motion lives in kit/tabbar.css ---- */
 .glassbar-tabs, .glassbar-fab {
   background: var(--glass-bar); color: var(--label); border: 0.5px solid var(--glass-bar-edge);
   box-shadow: inset 0 1px 0 var(--glass-bar-shine), var(--glass-bar-shadow);

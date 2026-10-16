@@ -16,10 +16,11 @@ function posAt(nav, clientX, n, fallback) {
 }
 
 /**
- * Icon tabs with a draggable bubble. items = [{id, label, icon}]; activeId = selected id; onChange(id) on a new pick.
- * Labels stay for screen readers; arrow keys move between tabs.
+ * Icon tabs with a draggable bubble. items = [{id, label, icon}]; activeId = selected id; onChange(id) on a new pick,
+ * onReselect(id) when the selected tab is picked again. Labels stay for screen readers; arrow keys move between tabs.
+ * panel = optional content the pill unfolds upward into while panelOpen (panelLabel names it for screen readers).
  */
-export function GlassTabs({ items, activeId, onChange, className = '' }) {
+export function GlassTabs({ items, activeId, onChange, onReselect, panel, panelOpen = false, panelLabel, className = '' }) {
   const nav = useRef(null);
   const n = items.length;
   const active = Math.max(0, items.findIndex(t => t.id === activeId));
@@ -38,8 +39,9 @@ export function GlassTabs({ items, activeId, onChange, className = '' }) {
 
   const release = (pos, pick) => {
     setHeld(null);
-    if (pick !== active) onChange(items[pick].id);
-    else wobble();                                       // same tab: bounce in place, no navigation
+    if (pick !== active) return onChange(items[pick].id);
+    wobble();                                            // same tab: bounce in place, no navigation
+    onReselect?.(items[pick].id);
   };
 
   const down = e => {
@@ -62,18 +64,26 @@ export function GlassTabs({ items, activeId, onChange, className = '' }) {
   const bubble = ['tb-bubble', held && 'is-held', held?.moved && 'is-dragging', bounce && `is-settling is-bounce-${bounce}`]
     .filter(Boolean).join(' ');
   return (
-    <nav ref={nav} role="tablist" aria-label="App navigation" className={`tb ${className}`.trim()} style={{ '--tb-n': n }}
-      onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onKeyDown={key}>
-      <span className={bubble} aria-hidden="true" onAnimationEnd={() => setBounce(0)}
-        style={{ '--tb-pos': held ? held.pos : active }} />
-      {items.map((t, i) => (
-        <button key={t.id} type="button" role="tab" data-i={i} aria-selected={i === active} tabIndex={i === active ? 0 : -1}
-          className={`tb-item${i === lit ? ' on' : ''}`}
-          onClick={e => { if (e.detail === 0) release(active, i); }}>{/* pointer taps go through down/up; this is Enter/Space */}
-          <span className="tb-ico" aria-hidden="true">{t.icon}</span>
-          <span className="sr-only">{t.label}</span>
-        </button>
-      ))}
-    </nav>
+    <div className={`tb-shell${panelOpen ? ' is-open' : ''} ${className}`.trim()}>
+      {panel && (
+        // inert as a string: React 18 has no boolean `inert` prop yet; browsers treat any value as on.
+        <div className="tb-panel" role="group" aria-label={panelLabel} aria-hidden={!panelOpen} inert={panelOpen ? undefined : ''}>
+          <div className="tb-panel-in">{panel}</div>
+        </div>
+      )}
+      <nav ref={nav} role="tablist" aria-label="App navigation" className="tb" style={{ '--tb-n': n }}
+        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onKeyDown={key}>
+        <span className={bubble} aria-hidden="true" onAnimationEnd={() => setBounce(0)}
+          style={{ '--tb-pos': held ? held.pos : active }} />
+        {items.map((t, i) => (
+          <button key={t.id} type="button" role="tab" data-i={i} aria-selected={i === active} tabIndex={i === active ? 0 : -1}
+            className={`tb-item${i === lit ? ' on' : ''}`}
+            onClick={e => { if (e.detail === 0) release(active, i); }}>{/* pointer taps go through down/up; this is Enter/Space */}
+            <span className="tb-ico" aria-hidden="true">{t.icon}</span>
+            <span className="sr-only">{t.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
   );
 }

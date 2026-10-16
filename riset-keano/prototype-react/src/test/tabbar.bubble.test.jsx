@@ -96,17 +96,15 @@ describe('tab bar bubble', () => {
     expect(bubble()).toHaveClass('is-settling');
   });
 
-  it('hides on a screen without a tab and comes back on a tab screen', async () => {
-    renderApp('home.more', 'member');
-    await userEvent.click(dom.getByText('Settings'));
-    expect(window.location.hash).toBe('#settings.main');
+  it('hides on a screen without a tab', () => {
+    renderApp('settings.main', 'member');
     expect(dom.queryByRole('tablist', { name: 'App navigation' })).not.toBeInTheDocument();
   });
 
   it('moves between tabs with the arrow keys', () => {
     renderApp('home.main', 'member');
     act(() => dom.getByRole('tab', { name: 'Home' }).focus());
-    fireEvent.keyDown(bar(), { key: 'ArrowLeft' });
-    expect(window.location.hash).toBe('#home.more');
+    fireEvent.keyDown(bar(), { key: 'ArrowRight' });
+    expect(window.location.hash).toBe('#tasks.my');
   });
 });

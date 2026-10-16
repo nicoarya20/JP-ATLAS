@@ -13,6 +13,16 @@ export const screen = (id, def) => register(screens, 'screen', id, def);
 /** Register a bottom sheet. def: same as a screen, plus snap?: 0..1 (sheet height as a share of the phone, default 0.6). */
 export const sheet = (id, def) => register(sheets, 'sheet', id, def);
 
+const panels = new Map();  // tab id -> {Component({close})}
+
+/** Register what a tab unfolds from the tab bar instead of opening a screen (the More menu). def: {Component}. */
+export function panel(tab, def) {
+  if (panels.has(tab)) throw new Error(`Duplicate panel for tab "${tab}"`);
+  if (typeof def?.Component !== 'function') throw new Error(`panel "${tab}" needs a Component`);
+  panels.set(tab, def);
+}
+export const getPanel = tab => panels.get(tab);
+
 export const getScreen = id => screens.get(id);
 export const getSheet = id => sheets.get(id);
 export const exists = id => screens.has(id) || sheets.has(id);

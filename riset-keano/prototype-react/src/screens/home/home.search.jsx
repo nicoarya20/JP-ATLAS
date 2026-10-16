@@ -1,4 +1,4 @@
-// Home ③ Search / ask: search field with sample query "Atlas", an Ask card and grouped results.
+// Home ② Search / ask: search field with sample query "Atlas", an Ask card and grouped results.
 import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { SearchBar } from '@react-cupertino-ui/search-bar';

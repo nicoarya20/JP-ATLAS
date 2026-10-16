@@ -23,10 +23,11 @@ The iOS Cupertino look comes from the library and the kit. The ClickUp theme is 
 Registration happens in your module `index.js`, following `src/screens/home/index.js`:
 
 ```js
-import { screen, sheet } from '../../core/registry';
+import { panel, screen, sheet } from '../../core/registry';
 screen('tasks.my', { title: '① My tasks', group: 'Tasks', Component: TasksMy });
 screen('users.roles', { ..., roles: ['admin'] });  // omit roles = every role
 sheet('tasks.return', { title: '…', group: 'Tasks', snap: 0.5, Component: ReturnSheet }); // snap = share of phone height, default 0.6
+panel('more', { Component: MoreMenu });  // what a tab unfolds from the tab bar instead of a screen; gets {close}
 ```
 
 - Component props: `{ params }`.
@@ -36,7 +37,7 @@ sheet('tasks.return', { title: '…', group: 'Tasks', snap: 0.5, Component: Retu
 - Data: `import { D } from '../../data/sample'`. `D.me()` is the signed-in person for the current role.
 
 Kit (`import { ... } from '../../kit'`):
-- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `header={false}` hides the nav bar; `header={<el/>}` replaces it. `tab` is one of `home`, `tasks`, `projects`, `events`, `more` and shows the bottom tab bar (a floating glass pill whose bubble slides and bounces to a tapped tab and follows a dragging finger, see `kit/tabbar.jsx`; PhoneApp draws this one bar so it stays mounted across screens, plus a round "+" that opens the tab's own "new" screen, or the `home.create` sheet on Home and More).
+- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `header={false}` hides the nav bar; `header={<el/>}` replaces it. `tab` is one of `home`, `tasks`, `projects`, `events` and shows the bottom tab bar (a floating glass pill whose bubble slides and bounces to a tapped tab and follows a dragging finger, see `kit/tabbar.jsx`; PhoneApp draws this one bar so it stays mounted across screens, plus a round "+" that opens the tab's own "new" screen, or the `home.create` sheet on Home). The More tab is not a screen: it unfolds the pill upward into the More panel (`home/home.more.jsx`) over a dimmed screen; More again, the dim, Escape, another tab or a pick folds it.
 - `Section` is a card. Its props are `title`, `sub`, `right`, plus nav props, which make the whole card tappable.
 - `Rows` and `Row` make an iOS grouped list. Row props: `lead`, `title`, `sub`, `right`, `chev`.
 - `Btn`: `kind` is `primary`, `outline`, `ghost`, `danger` or `plain`. Other props: `block`, `sm`, `icon`.

@@ -22,7 +22,11 @@ h1, h2, h3 { margin: 0; }
 :root { --tab-bar-space: 76px; }   /* floating glass bar: 60px pill + 16px gap under it */
 /* Floating tab bar: glass pill + round create button, over the content so it scrolls under the glass */
 .glassbar { position: absolute; left: var(--sp-4); right: var(--sp-4); bottom: var(--sp-4); z-index: 90;
-  display: flex; align-items: center; gap: 10px; }
+  display: flex; align-items: flex-end; gap: 10px; }   /* bottom-aligned: the pill grows upward into the More panel */
+/* Dims the screen while the More panel is open; a tap on it folds the panel away */
+.glassbar-scrim { position: absolute; inset: 0; z-index: 89; background: var(--overlay); opacity: 0; pointer-events: none;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); transition: opacity 280ms ease; }
+.glassbar-scrim.is-open { opacity: 1; pointer-events: auto; }
 .glassbar-fab { flex: none; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center;
   padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 220ms ease; }
 .glassbar-fab:active { transform: scale(0.94); }
