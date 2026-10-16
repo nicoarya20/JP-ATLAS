@@ -12,6 +12,7 @@ export const MEMBER_ROLE_LABELS: Record<ProjectMemberRole, string> = {
   viewer: 'Pemantau',
 };
 
+export const PROJECT_TABS_LABEL = 'Bagian proyek';
 export const PROJECT_TABS = {
   summary: 'Ringkasan',
   tasks: 'Tugas',

@@ -17,8 +17,6 @@ const ROUTE_STUBS: Record<string, 'S1' | 'S2'> = {
   'app/routes/app/projects.tsx': 'S1',
   'app/routes/app/project-new.tsx': 'S1',
   'app/routes/app/settings.tsx': 'S1',
-  'app/routes/app/project/layout.tsx': 'S1',
-  'app/routes/app/project/summary.tsx': 'S1',
   'app/routes/app/project/members.tsx': 'S1',
   'app/routes/app/project/settings.tsx': 'S1',
   'app/routes/app/tasks.tsx': 'S2',
@@ -73,13 +71,15 @@ describe('page stubs', () => {
     expect(read(file)).toMatch(/title: '[^']+ — Simple PM'/);
   });
 
-  it('leaves only home, the layout and profile as real (non-stub) files', () => {
+  it('leaves only the filled pages as real (non-stub) files', () => {
     const appFiles = [...registered].filter((f) => f.startsWith('app/routes/app/'));
     const nonStubs = appFiles.filter((f) => !(f in ROUTE_STUBS)).sort();
     expect(nonStubs).toEqual([
       'app/routes/app/home.tsx',
       'app/routes/app/layout.tsx',
       'app/routes/app/profile.tsx',
+      'app/routes/app/project/layout.tsx',
+      'app/routes/app/project/summary.tsx',
     ]);
   });
 });

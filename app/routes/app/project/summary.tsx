@@ -1,34 +1,35 @@
 import { requireUser } from '@server/guard';
-import { FiFolder } from 'react-icons/fi';
-import { EmptyState } from '~/components/ui/EmptyState';
-import { PageContainer } from '~/components/ui/PageContainer';
-import { PageHeader } from '~/components/ui/PageHeader';
+import { METRICS } from '@server/metrics/config';
+import { isoDateIn } from '@server/metrics/dates';
+import { elapsed } from '@server/metrics/project.metrics';
+import { toPrincipal } from '@server/project/membership.query';
+import type { ProjectDetail } from '@server/project/project.dto';
+import { getProjectDetail } from '@server/project/project.query';
+import { data } from 'react-router';
+import { ProjectSummary } from '~/components/projects/ProjectSummary';
+import { NOT_FOUND_TEXT } from '~/components/projects/projects.copy';
+import { toJson } from '~/lib/loader-json';
 import type { Route } from './+types/summary';
 
-// STUB(S1): diisi irisan S1 ringkasan proyek; hapus dari tes app-stubs saat terisi
-
-export function meta() {
-  return [{ title: 'Ringkasan Proyek — Simple PM' }];
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [{ title: `${loaderData?.project.name ?? 'Proyek'} — Simple PM` }];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireUser(request);
-  return null;
+// Loads and checks access itself: the layout loader runs in parallel and does not protect this one.
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const actor = await requireUser(request);
+  const now = new Date();
+  const project = await getProjectDetail(toPrincipal(actor), params.projectId, now);
+  if (!project) throw data(NOT_FOUND_TEXT, { status: 404 });
+  const today = isoDateIn(now, METRICS.TIME_ZONE);
+  return {
+    project: toJson<ProjectDetail>(project),
+    // Elapsed time comes from the shared metric, never recomputed in the browser.
+    elapsed: elapsed(project.startDate, project.dueDate, today),
+  };
 }
 
-/** Placeholder page until the S1 slice fills it in. */
-export default function ProjectSummaryStub() {
-  return (
-    <PageContainer>
-      <PageHeader
-        title="Ringkasan Proyek"
-        description="Gambaran singkat perkembangan proyek ini."
-      />
-      <EmptyState
-        icon={FiFolder}
-        title="Fitur ini sedang disiapkan"
-        description="Halaman ini akan segera bisa dipakai."
-      />
-    </PageContainer>
-  );
+/** "Ringkasan" tab of a project. */
+export default function ProjectSummaryPage({ loaderData }: Route.ComponentProps) {
+  return <ProjectSummary project={loaderData.project} elapsed={loaderData.elapsed} />;
 }
