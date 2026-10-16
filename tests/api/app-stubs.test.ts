@@ -13,13 +13,15 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 
 /** The stubs S0B-18 creates. A slice that fills one deletes its row here and the STUB comment there. */
 const STUBS = [
-  { file: 'app-profile.ts', plugin: 'profileApi', prefix: '/profile' },
   { file: 'app-projects.ts', plugin: 'projectsApi', prefix: '/projects' },
   { file: 'app-projects.members.ts', plugin: 'projectMembersApi', prefix: '/projects' },
   { file: 'app-tasks.ts', plugin: 'tasksApi', prefix: '/tasks' },
   { file: 'app-tasks.workflow.ts', plugin: 'taskWorkflowApi', prefix: '/tasks' },
   { file: 'app-tasks.detail.ts', plugin: 'taskDetailApi', prefix: '/tasks' },
 ];
+
+/** Plugins a slice has filled (S1-06 profile): no longer stubs, still mounted in app.ts order. */
+const FILLED = ['profileApi'];
 
 /** Modules that already predate the no-Drizzle rule; new ones must not join this list. */
 const DB_ALLOWED = ['app-avatar.ts']; // legacy: avatar upload touches the user row directly
@@ -60,7 +62,7 @@ describe('app.ts', () => {
 
   test('mounts the gate first, then every stub', () => {
     expect(mounts[0]).toBe('appContext');
-    expect(mounts.slice(1)).toEqual(STUBS.map((s) => s.plugin));
+    expect(mounts.slice(1)).toEqual([...FILLED, ...STUBS.map((s) => s.plugin)]);
   });
 
   test('hosts the example routes without role casts', () => {
@@ -101,6 +103,7 @@ describe('module hygiene', () => {
     ['app.ts', 60],
     ['app-context.ts', 90],
     ['app-common.ts', 80],
+    ['app-profile.ts', 150],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);
