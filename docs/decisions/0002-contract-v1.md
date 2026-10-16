@@ -4,7 +4,7 @@ Dicatat 16 Oktober 2026 (S0B-33, gerbang akhir S0.b). Mengikat bagi S1, S2, dan 
 
 **Penyimpangan nomor:** rencana menyebut `docs/decisions/0001-contract-v1.md`, tetapi nomor 0001 sudah dipakai `0001-account-status-on-user.md` (S0A-15). Catatan ini karena itu bernomor **0002**. Rujukan "0001-contract-v1" di rencana dibaca sebagai berkas ini.
 
-**Status tag:** `contract-v1` **belum** dipasang. Tag lokal dibuat koordinator sesudah merge dan persetujuan user; hasil pemeriksaan 18 kriteria ada di laporan S0B-33, bukan di sini. Kriteria #16 (tinjauan manusia, UAT login Google) masih TERBUKA dan menunggu user.
+**Status tag:** `contract-v1` dipasang **lokal** oleh koordinator setelah merge S0B-33 pada 16 Oktober 2026 atas persetujuan user. **Kriteria #16:** user menyatakan **menerima tanpa peninjau kedua keamanan** (S0.a dan S0.b); tidak ada peninjau kedua yang menandatangani. **Masih terbuka dan diterima sebagai risiko:** UAT login Google asli (`tahapan-proyek/05-implementasi/uat/UAT-S0A.md`) belum dijalankan, sehingga jalur Google sungguhan (klaim P1 §7 #3 dan gerbang M1 S0.a) belum terbukti ujung ke ujung. **Kriteria #13** (lima dokumen melewati batas karakter keras) dan **#2** (`bun run lint` penuh gagal karena prototype HTML di `tahapan-proyek/`) menunggu keputusan kebijakan user, bukan perbaikan kode. Tag **tidak di-push**; push tag hanya atas perintah user. Hasil pemeriksaan 18 kriteria ada di laporan S0B-33 dan `PROGRES.md`.
 
 ## Konteks
 
