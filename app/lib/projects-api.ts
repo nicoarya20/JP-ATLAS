@@ -1,8 +1,8 @@
 /**
- * Client for `/api/app/projects`. Reads go through Eden (typed from the S1-02 routes); writes
- * use explicit DTOs against the P3 S1-03/S1-04 contract (R04 §3.3) because those routes are
- * built in parallel. RECONNECT(S1-03/S1-04): once they merge, swap `projectWrite` calls for Eden
- * and let the route types replace `ProjectCreateInput`/`ProjectPatch`/`ProjectSaved`.
+ * Client for `/api/app/projects`. Reads and project writes go through Eden (typed from the S1-02
+ * and S1-03 routes). Member writes still use explicit DTOs against the P3 S1-04 contract (R04 §3.3)
+ * because that route is built in parallel. RECONNECT(S1-04): once it merges, swap the member
+ * `projectWrite` calls for Eden and let the route types replace `ProjectMemberInput`.
  */
 import type { ProjectMemberRole, ProjectPriority, ProjectStatus } from '@server/pm/enums';
 import type { PmCode } from '@server/pm/errors';
@@ -11,6 +11,7 @@ import type {
   ProjectListItem,
   ProjectMemberItem,
 } from '@server/project/project.dto';
+import type { ProjectInitialStatus } from '@server/project/project.limits';
 import { PROJECT_ERROR_MESSAGES } from '../components/projects/projects.copy';
 import { client } from './eden';
 import {
@@ -91,26 +92,46 @@ export async function fetchProjectMembers(id: string): Promise<ProjectMemberItem
   return unwrap(await client.api.app.projects({ id }).members.get()).items;
 }
 
-// ---- Writes (contract-typed until S1-03/S1-04 land) ----
+// ---- Project writes (Eden, S1-03) ----
 
 export type ProjectMemberInput = { userId: string; role: ProjectMemberRole };
-/** POST /projects body (S1-03); `status` is limited to draft/active at creation (M24). */
+/** POST /projects body; `status` is limited to draft/active at creation (M24). */
 export type ProjectCreateInput = {
   name: string;
   description?: string | null;
-  status?: Extract<ProjectStatus, 'draft' | 'active'>;
+  status?: ProjectInitialStatus;
   priority?: ProjectPriority;
   startDate?: string | null;
   dueDate?: string | null;
   leadId?: string;
   members?: ProjectMemberInput[];
 };
-/** PATCH /projects/:id body (S1-03); the due date is editable directly in S1 (KB-3). */
+/** PATCH /projects/:id body; the due date is editable directly in S1 (KB-3). */
 export type ProjectPatch = Partial<
   Pick<ProjectCreateInput, 'name' | 'description' | 'priority' | 'startDate' | 'dueDate'>
 >;
-/** What the UI needs back from a write; R04 answers `{ project }` or the project itself. */
-export type ProjectSaved = { id: string; name: string };
+/** Every project write answers the fresh detail of the project. */
+export type ProjectSaved = ProjectDetail;
+
+/**
+ * The write bodies typed by hand: the routes' `oneOf` enum fields reach Eden as `never`/`undefined`,
+ * so no literal value type-checks. Narrow cast, removed after the `oneOf` fix of S1-04 merges.
+ */
+const edenBody = <T>(body: T) => body as never;
+
+export async function createProject(input: ProjectCreateInput): Promise<ProjectSaved> {
+  return unwrap(await client.api.app.projects.post(edenBody(input)));
+}
+
+export async function updateProject(id: string, patch: ProjectPatch): Promise<ProjectSaved> {
+  return unwrap(await client.api.app.projects({ id }).patch(edenBody(patch)));
+}
+
+export async function setProjectStatus(id: string, status: ProjectStatus): Promise<ProjectSaved> {
+  return unwrap(await client.api.app.projects({ id }).status.post(edenBody({ status })));
+}
+
+// ---- Member writes (contract-typed until S1-04 lands) ----
 
 const BASE = '/api/app/projects';
 const projectUrl = (id: string) => `${BASE}/${encodeURIComponent(id)}`;
@@ -123,22 +144,6 @@ async function projectWrite<T>(url: string, init: RequestInit): Promise<T> {
   } catch (err) {
     throw withProjectMessage(err);
   }
-}
-
-function readSaved(body: ProjectSaved | { project: ProjectSaved }): ProjectSaved {
-  return 'project' in body ? body.project : body;
-}
-
-export async function createProject(input: ProjectCreateInput): Promise<ProjectSaved> {
-  return readSaved(await projectWrite(BASE, jsonRequest('POST', input)));
-}
-
-export async function updateProject(id: string, patch: ProjectPatch): Promise<ProjectSaved> {
-  return readSaved(await projectWrite(projectUrl(id), jsonRequest('PATCH', patch)));
-}
-
-export async function setProjectStatus(id: string, status: ProjectStatus): Promise<ProjectSaved> {
-  return readSaved(await projectWrite(`${projectUrl(id)}/status`, jsonRequest('POST', { status })));
 }
 
 export async function addProjectMember(id: string, member: ProjectMemberInput): Promise<void> {
