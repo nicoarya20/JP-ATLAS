@@ -13,6 +13,7 @@ Semua bahan proyek dikelompokkan menurut tahap pembuatan website. Urutannya dari
 | | `03-desain/erd/diskusi` | Keputusan dan rencana per layar, `01` sampai `09` | Berjalan |
 | | (di luar repo) Penpot | File **PM-New**, halaman **WIREFRAME NICO**, grup `A · Member`, `B · Project Manager`, `C · Admin` | Wireframe 01–09 selesai untuk tiga role |
 | 4. Prototype | `04-prototype/prototype` | Prototype HTML (Beranda, Events, Tim) dengan `wf.css` dan `wf.js` | Sebagian |
+| | `04-prototype/prototype-pm` | Prototype klik-klik role Project Manager, Login sampai semua menu (buka `index.html`) | Selesai (isi beberapa layar perlu dicocokkan dengan wireframe) |
 | 5. Implementasi | `05-implementasi` | Kode aplikasi (kosong, belum dimulai) | Berikutnya |
 
 ## Catatan
