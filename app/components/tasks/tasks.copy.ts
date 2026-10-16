@@ -35,7 +35,7 @@ export const LIST_COPY = {
   showMore: 'Tampilkan lebih banyak',
   loadFailed: 'Daftar tugas gagal dimuat.',
   retry: 'Coba lagi',
-  groupCount: (label: string, n: number) => `${label} (${n})`,
+  groupCount: (label: string, n: number | string) => `${label} (${n})`,
 } as const;
 
 /** Empty states (K8): first use vs. a filter that matches nothing. */
