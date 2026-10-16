@@ -1,7 +1,8 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { apiKeysApi } from '../../server/api/api-keys';
+import { createKey } from '../../server/api-keys/service';
 import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
 import { testUser } from '../support/accounts';
@@ -25,8 +26,9 @@ async function call(path: string, init?: RequestInit) {
 }
 let keyId = '';
 
-beforeAll(async () => {
-  authSpies.as(SUPER_ADMIN);
+beforeAll(() => authSpies.as(SUPER_ADMIN));
+// Per test: the lifecycle test rotates, revokes and deletes the key, so it must not rely on another test's key.
+beforeEach(async () => {
   await db.insert(user).values(
     testUser({
       id: adminId,
@@ -38,8 +40,20 @@ beforeAll(async () => {
       updatedAt: new Date(),
     }),
   );
+  keyId = (
+    await createKey({
+      name: 'seed',
+      ownerId: adminId,
+      scopes: ['users:read'],
+      expiresDays: 30,
+      rateLimitMax: null,
+      rateLimitWindowMs: null,
+      allowedIps: null,
+      note: null,
+    })
+  ).row.id;
 });
-afterAll(async () => {
+afterEach(async () => {
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetType, 'apikey'))
@@ -97,11 +111,10 @@ describe('API key management API', () => {
       rateLimitMax: number;
       allowedIps: string;
     };
-    keyId = row.id;
     expect(row.scopes).toEqual(['users:read', 'posts:write']);
     expect(row.rateLimitMax).toBe(100);
     expect(row.allowedIps).toBe('10.0.0.');
-    const got = await call(`/api-keys/${keyId}`);
+    const got = await call(`/api-keys/${row.id}`);
     expect(got.status).toBe(200);
     expect(got.body.key).toBeUndefined();
   });
