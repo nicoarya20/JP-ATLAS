@@ -161,3 +161,28 @@ export async function changeProjectMemberRole(
 export async function removeProjectMember(id: string, userId: string): Promise<void> {
   await projectWrite(memberUrl(id, userId), jsonRequest('DELETE'));
 }
+
+// ---- People picker (contract-typed until S1-04 lands) ----
+
+/** One pickable person: name and job title only, never email or phone (Q8). */
+export type PickerPerson = {
+  id: string;
+  name: string;
+  jobTitle: string | null;
+  image: string | null;
+};
+
+/**
+ * GET /api/app/team/picker (P3 S1-04). RECONNECT(S1-04): the route is still a stub on this branch,
+ * so it answers 404 and the form goes on without extra members; swap for Eden once it merges.
+ */
+export async function searchPeople(q: string, limit = 20): Promise<PickerPerson[]> {
+  const qs = new URLSearchParams({ limit: String(limit), ...(q.trim() ? { q: q.trim() } : {}) });
+  const body = await apiRequest<{ items: PickerPerson[] } | PickerPerson[]>(
+    `/api/app/team/picker?${qs}`,
+  );
+  return Array.isArray(body) ? body : body.items;
+}
+
+/** The picker route is not there yet (S1-04 in parallel): the form treats it as "no picker". */
+export const isPickerMissing = (err: unknown) => err instanceof ApiError && err.status === 404;

@@ -139,3 +139,43 @@ export const EMPTY_COPY = {
   filteredBody: 'Ubah kata pencarian atau status, atau hapus saringannya.',
   filteredAction: 'Hapus saringan',
 } as const;
+
+/** New project form (④). Labels sit above the fields; required ones carry Mantine's asterisk. */
+export const FORM_COPY = {
+  title: 'Proyek baru',
+  description: 'Isi data proyek. Hanya nama yang wajib; sisanya bisa diubah nanti.',
+  back: 'Kembali ke daftar proyek',
+  forbidden: 'Hanya Admin dan Project Manager yang bisa membuat proyek.',
+  name: 'Nama proyek',
+  namePlaceholder: 'Contoh: Renovasi Dapur',
+  nameRequired: 'Nama proyek wajib diisi.',
+  nameTooLong: (max: number) => `Nama proyek paling banyak ${max} huruf.`,
+  descriptionLabel: 'Deskripsi',
+  descriptionHint: 'Tujuan proyek dan hal penting yang perlu diketahui tim.',
+  descriptionTooLong: (max: number) => `Deskripsi paling banyak ${max} huruf.`,
+  status: 'Status awal',
+  priority: 'Prioritas',
+  lead: LABEL_LEAD,
+  leadHint: `${LABEL_LEAD} otomatis berperan Pengelola.`,
+  startDate: 'Tanggal mulai',
+  dueDate: 'Tenggat',
+  datePlaceholder: 'Pilih atau ketik tanggal',
+  dueBeforeStart: 'Tenggat tidak boleh sebelum tanggal mulai.',
+  quickLabel: 'Isi tenggat cepat dari tanggal mulai',
+  submit: 'Buat proyek',
+  cancel: 'Batal',
+} as const;
+
+/** "Tambah anggota" inside the form; only name and job title of people are shown (Q8). */
+export const PICKER_COPY = {
+  label: 'Anggota',
+  hint: 'Pembuat proyek otomatis menjadi Pengelola. Tambahkan orang lain bila perlu.',
+  search: 'Cari orang',
+  searchPlaceholder: 'Ketik nama',
+  nothingFound: 'Tidak ada orang dengan nama itu.',
+  unavailable: 'Pemilih orang belum tersedia. Anggota bisa ditambahkan nanti di tab Anggota.',
+  failed: 'Daftar orang gagal dimuat. Coba lagi sebentar lagi.',
+  roleOf: (name: string) => `Peran ${name}`,
+  remove: (name: string) => `Hapus ${name} dari daftar`,
+  you: '(Anda)',
+} as const;
