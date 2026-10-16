@@ -68,6 +68,24 @@ describe('project write routes (S1-03)', () => {
   });
 });
 
+describe('project Trash routes (S1-05)', () => {
+  test.each([
+    ['DELETE', '/api/app/projects/p1'],
+    ['POST', '/api/app/trash/project/p1/restore'],
+    ['POST', '/api/app/TRASH/project/p1/restore'],
+    ['POST', '/api/app/trash/task/t1/restore'], // S6 kinds land on the same session-only pattern
+  ])('%s %s is session only', (m, p) => {
+    expect(isPmKeyDenied(m, p)).toBe(true);
+    expect(requiredScope(m, p)).toBeNull();
+  });
+
+  test('the trash pattern leaves reads open to keys and does not swallow other routes', () => {
+    expect(isPmKeyDenied('GET', '/api/app/trash')).toBe(false);
+    expect(requiredScope('GET', '/api/app/trash')).toBe('app:read');
+    expect(isPmKeyDenied('POST', '/api/app/trashy')).toBe(false);
+  });
+});
+
 describe('PM_KEY_DENY patterns', () => {
   test('each pattern has an owner plugin that exists', () => {
     const files = new Set(readdirSync(API_DIR));
@@ -113,6 +131,7 @@ describe('OpenAPI for keys', () => {
       .get('/projects', () => [])
       .delete('/projects/:id', () => ({}))
       .post('/projects/:id/members', () => ({}))
+      .post('/trash/project/:id/restore', () => ({}))
       .patch('/profile', () => ({}))
       .get('/profile', () => ({}))
       .post('/tasks', () => ({}))

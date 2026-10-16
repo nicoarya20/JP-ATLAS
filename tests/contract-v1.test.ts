@@ -25,7 +25,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'LeadDecision LeadMustBeManager ManagerSetChange canChangeManagerSet canSetLead',
   'server/access/not-visible.ts': 'NotVisible NotVisibleCode notVisible',
   'server/access/project.policy.ts':
-    'NOT_VISIBLE ProjectDecision ProjectListScope RequestedListScope canCreateProject canManageProject canTrashProject canViewProject clampListScope matchesProjectScope projectListScope',
+    'NOT_VISIBLE ProjectDecision ProjectListScope RequestedListScope canCreateProject canManageProject canRestoreProject canTrashProject canViewProject clampListScope matchesProjectScope projectListScope',
   'server/access/review.policy.ts':
     'ManagerInfo NoEligibleReviewer PickReviewerInput REVIEW_NOTE_MAX_LENGTH REVIEW_NOTE_MIN_LENGTH ReviewDecision ReviewerPick ReviewerPool canApproveTask canChangeReviewer canRequestReview canReturnTask pickReviewer reviewerCandidates',
   'server/access/rules.ts': 'ACCESS_RULES AccessRules',
@@ -46,6 +46,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'SCHEDULE_GROUPS ScheduleBounds ScheduleGroup scheduleBounds scheduleGroupOf',
   'server/metrics/task.metrics.ts':
     'ACTIVE_STATUSES TaskLabel TaskLabelContext ageDays isActive isOverdue isStale taskLabels',
+  'server/metrics/trash.metrics.ts': 'isRestorable trashDaysLeft',
   'server/metrics/types.ts': 'IsoDate MetricsConfig TaskLabel TaskMetricsRow',
   'server/pm/enums.ts':
     'APPROVAL_STATUSES ApprovalStatus PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',

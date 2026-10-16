@@ -4,7 +4,7 @@
  */
 
 /** HTTP statuses a PM error may use. */
-export type PmHttp = 403 | 404 | 409 | 422 | 429 | 503;
+export type PmHttp = 403 | 404 | 409 | 410 | 422 | 429 | 503;
 
 export type PmErrorEntry = { http: PmHttp; message: string };
 
@@ -49,6 +49,7 @@ export const DENY_CODES = [
   'REASON_REQUIRED', // reason/note inputs are checked by policy functions (X3 M8)
   'CANCEL_NOTE_REQUIRED',
   'ROLE_CANNOT_TRASH', // member-managers cannot trash a project (15 Oct 2026 decision)
+  'EXPIRED', // restore after TRASH_RETENTION_DAYS (R04 spelling, 410; added with the S1 project Trash)
 ] as const;
 
 export type PmApiCode = (typeof PM_API_CODES)[number];
@@ -142,5 +143,10 @@ export const PM_ERRORS: Record<PmCode, PmErrorEntry> = {
     http: 403,
     message:
       'Hanya admin atau Project Manager yang boleh menghapus proyek. Minta mereka melakukannya.',
+  },
+  // No day count in the text: the retention period is configurable (TRASH_RETENTION_DAYS).
+  EXPIRED: {
+    http: 410,
+    message: 'Masa pemulihannya sudah lewat, jadi data ini tidak bisa dipulihkan lagi.',
   },
 };

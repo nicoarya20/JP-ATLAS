@@ -222,7 +222,7 @@ describe('DENY_UI catalogue', () => {
   it('has an entry per code with an allowed status and a non-empty message', () => {
     expect(Object.keys(DENY_UI).sort()).toEqual([...DENY_CODES].sort());
     for (const code of DENY_CODES) {
-      expect([403, 409, 422]).toContain(DENY_UI[code].http);
+      expect([403, 409, 410, 422]).toContain(DENY_UI[code].http);
       expect(DENY_UI[code].message.length).toBeGreaterThan(10);
     }
   });

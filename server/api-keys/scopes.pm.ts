@@ -10,6 +10,8 @@ export const PM_KEY_DENY: readonly Deny[] = [
   { id: 'PUT projects/*/lead', method: 'PUT', path: /^\/api\/app\/projects\/.*\/lead(?:\/.*)?$/i },
   { id: 'PATCH profile', method: 'PATCH', path: /^\/api\/app\/profile(?:\/.*)?$/i },
   { id: '* avatar', method: '*', path: /^\/api\/app\/avatar(?:\/.*)?$/i },
+  // Restoring undoes a delete and brings data back for everyone: as sensitive as the delete (S1-05).
+  { id: 'POST trash/*', method: 'POST', path: /^\/api\/app\/trash\/.+/i },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -19,6 +21,7 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'PUT projects/*/lead': 'app-projects.write.ts',
   'PATCH profile': 'app-profile.ts',
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts
+  'POST trash/*': 'app-trash.ts',
 };
 
 /** True when an API key may not call this route, whatever scopes it holds. */

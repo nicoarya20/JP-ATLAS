@@ -12,13 +12,9 @@ const MAX_ROUTES_PER_INSTANCE = 10;
 const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-stubs saat terisi$/m;
 
 /** The stubs S0B-18 creates. A slice that fills one deletes its row here and the STUB comment there. */
-const STUBS = [
-  { file: 'app-projects.trash.ts', plugin: 'projectTrashApi', prefix: '/projects' },
-  { file: 'app-trash.ts', plugin: 'trashApi', prefix: '/trash' },
-  { file: 'app-tasks.detail.ts', plugin: 'taskDetailApi', prefix: '/tasks' },
-];
+const STUBS = [{ file: 'app-tasks.detail.ts', plugin: 'taskDetailApi', prefix: '/tasks' }];
 
-/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-06 profile, S2-03 tasks, S2-05 workflow): no longer stubs, still mounted by app.ts. */
+/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow): no longer stubs, still mounted by app.ts. */
 const FILLED = [
   'profileApi',
   'projectsApi',
@@ -26,6 +22,8 @@ const FILLED = [
   'teamPickerApi',
   'tasksApi',
   'taskWorkflowApi',
+  'projectTrashApi',
+  'trashApi',
 ];
 
 /** Modules that already predate the no-Drizzle rule; new ones must not join this list. */
@@ -116,6 +114,8 @@ describe('module hygiene', () => {
     ['app-tasks.write.ts', 150],
     ['app-tasks.schema.ts', 150],
     ['app-tasks.workflow.ts', 140],
+    ['app-projects.trash.ts', 150],
+    ['app-trash.ts', 150],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);

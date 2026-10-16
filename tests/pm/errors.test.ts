@@ -11,7 +11,7 @@ import {
 import * as limits from '../../server/pm/limits';
 import { denyResponse, fail } from '../../server/pm/respond';
 
-const ALLOWED_HTTP = [403, 404, 409, 422, 429, 503];
+const ALLOWED_HTTP = [403, 404, 409, 410, 422, 429, 503];
 const ALL_CODES: PmCode[] = [...PM_API_CODES, ...DENY_CODES];
 const SERVER_DIR = path.join(import.meta.dir, '../../server/pm');
 
@@ -37,6 +37,7 @@ describe('PM_ERRORS catalog', () => {
       'ACCOUNT_REJECTED',
       'IMPERSONATING',
       'ROLE_CANNOT_TRASH',
+      'EXPIRED', // R04 spelling, added with the S1 project Trash (S1-05)
     ]) {
       expect(code in PM_ERRORS).toBe(true);
     }
@@ -44,11 +45,15 @@ describe('PM_ERRORS catalog', () => {
       'LEAD_NOT_MANAGER',
       'ACCOUNT_NOT_APPROVED',
       'NOT_VISIBLE',
-      'EXPIRED',
       'TRASH_EXPIRED',
     ]) {
       expect(code in PM_ERRORS).toBe(false);
     }
+  });
+
+  it('EXPIRED is a 410 whose text names no day count (the retention period is configurable)', () => {
+    expect(PM_ERRORS.EXPIRED.http).toBe(410);
+    expect(PM_ERRORS.EXPIRED.message).not.toMatch(/\d/);
   });
 
   it('ACCOUNT_PENDING promises no email (N01: the app sends none)', () => {
