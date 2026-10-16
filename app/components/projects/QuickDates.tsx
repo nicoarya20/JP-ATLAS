@@ -36,6 +36,16 @@ export function quickDueDate(start: IsoDate, range: QuickRange): IsoDate {
   return `${out.getUTCFullYear()}-${pad(out.getUTCMonth() + 1)}-${pad(out.getUTCDate())}` as IsoDate;
 }
 
+/** Dates a quick button fills: the start stays when set, otherwise it becomes the server's today. */
+export function quickRangeDates(
+  start: string | null,
+  today: IsoDate,
+  range: QuickRange,
+): { startDate: IsoDate; dueDate: IsoDate } {
+  const startDate = (start ?? today) as IsoDate;
+  return { startDate, dueDate: quickDueDate(startDate, range) };
+}
+
 export function QuickDates({ onPick }: { onPick: (range: QuickRange) => void }) {
   return (
     <div>

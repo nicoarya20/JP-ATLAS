@@ -26,7 +26,7 @@ import type { ProjectCreateInput } from '~/lib/projects-api';
 import { useUnsavedGuard } from '~/lib/use-unsaved-guard';
 import { MemberPicker, type PickedMember } from './MemberPicker';
 import { FORM_COPY } from './projects.copy';
-import { QuickDates, quickDueDate } from './QuickDates';
+import { QuickDates, type QuickRange, quickRangeDates } from './QuickDates';
 
 export type ProjectFormValues = {
   name: string;
@@ -108,10 +108,10 @@ export function ProjectForm({ creator, today, onSubmit, submitting, cancelTo }: 
   useUnsavedGuard(!saved && (dirty || members.length > 0));
 
   const leadOptions = [creator, ...members].map((p) => ({ value: p.id, label: p.name }));
-  const pickRange = (range: Parameters<typeof quickDueDate>[1]) => {
-    const start = form.getValues().startDate ?? today;
-    form.setFieldValue('startDate', start);
-    form.setFieldValue('dueDate', quickDueDate(start, range));
+  const pickRange = (range: QuickRange) => {
+    const { startDate, dueDate } = quickRangeDates(form.getValues().startDate, today, range);
+    form.setFieldValue('startDate', startDate);
+    form.setFieldValue('dueDate', dueDate);
   };
   const removeMembers = (next: PickedMember[]) => {
     // A removed person cannot stay the Lead; fall back to the creator.
