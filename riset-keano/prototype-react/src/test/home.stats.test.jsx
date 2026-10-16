@@ -1,10 +1,10 @@
-// Home stat chips for Member and Manager come from D.tasks and D.events: open + overdue, in progress + most urgent due, done this week, upcoming this month.
+// Home stat chips for Member and Manager come from D.tasks and D.events: open + overdue, in progress + most urgent due, done this week, upcoming this month, inbox.
 import { afterEach, describe, expect, it } from 'vitest';
 import { screen as dom } from '@testing-library/react';
 import '../screens';
 import { D } from '../data/sample';
 import { setRole } from '../core/session';
-import { myTaskStats, upcomingThisMonth } from '../screens/home/home.stats';
+import { inboxToRespond, myTaskStats, upcomingThisMonth } from '../screens/home/home.stats';
 import { renderApp } from './render';
 
 // test-only: extra tasks for the signed-in person, removed after each test.
@@ -72,6 +72,22 @@ describe('home task stats', () => {
     expect(chip.previousElementSibling).toHaveTextContent('Completed');
     expect(chip.querySelector('.hm-count')).toBeNull();
     expect(chip).toHaveTextContent('5 items');
+  });
+
+  it('counts the Inbox chip from the role\'s Needs your response cards', () => {
+    expect(inboxToRespond('member')).toEqual({ count: D.inbox.member.respond.length, sub: '3 to respond' });
+    expect(inboxToRespond('pm')).toEqual({ count: D.inbox.respond.length, sub: '3 to respond' });
+    const saved = D.inbox.member.respond.splice(0);
+    try { expect(inboxToRespond('member')).toEqual({ count: 0, sub: 'all caught up' }); }
+    finally { D.inbox.member.respond.push(...saved); }
+  });
+
+  it('shows Inbox after Upcoming on Home and opens Needs your response', () => {
+    renderApp('home.main', 'pm');
+    const chip = dom.getByRole('button', { name: /Inbox/ });
+    expect(chip.previousElementSibling).toHaveTextContent('Upcoming');
+    expect(chip.querySelector('.hm-count')).toBeNull();
+    expect(chip).toHaveTextContent('3 to respond');
   });
 
   it('shows the overdue line in red on Home', () => {

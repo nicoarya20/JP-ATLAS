@@ -1,6 +1,7 @@
-// Home stat chips for Member and Manager, counted from D.tasks and D.events for the signed-in person against the sample "today".
+// Home stat chips for Member and Manager, counted from D.tasks, D.events and D.inbox for the signed-in person against the sample "today".
 import { D } from '../../data/sample';
 import { EV } from '../events/events.shared';
+import { items } from '../inbox/inbox.shared';
 import { TODAY, days } from '../tasks/tasks.shared';
 
 /** Days back to this week's Monday (the sample week runs Monday to Sunday). */
@@ -42,4 +43,10 @@ export function upcomingThisMonth() {
   const events = D.events.filter(e => e.attendees.includes(me) && e.status !== 'Done' && leftThisMonth(EV.date(e).slice(5)));
   const n = tasks.length + events.length;
   return { count: n, sub: `${n} ${n === 1 ? 'item' : 'items'}` };
+}
+
+/** Inbox chip line: how many "Needs your response" cards the role's Inbox shows, or all caught up. */
+export function inboxToRespond(role) {
+  const n = items(r => r === role).respond.length;
+  return { count: n, sub: n ? `${n} to respond` : 'all caught up' };
 }
