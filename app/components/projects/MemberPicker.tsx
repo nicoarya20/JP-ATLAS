@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 import { MemberAvatar } from '~/components/ui/MemberAvatar';
-import { isPickerMissing, type PickerPerson, searchPeople } from '~/lib/projects-api';
+import { type PickerPerson, searchPeople } from '~/lib/projects-api';
 import { MEMBER_ROLE_LABELS, PICKER_COPY } from './projects.copy';
 
 export type PickedMember = PickerPerson & { role: ProjectMemberRole };
@@ -45,7 +45,6 @@ export function MemberPicker({ value, onChange, creator }: Props) {
   const people = useQuery({
     queryKey: ['team', 'picker', q],
     queryFn: () => searchPeople(q),
-    retry: (count, err) => !isPickerMissing(err) && count < 2,
   });
   const taken = new Set([creator.id, ...value.map((m) => m.id)]);
   const options = (people.data ?? []).filter((p) => !taken.has(p.id));
@@ -98,27 +97,21 @@ export function MemberPicker({ value, onChange, creator }: Props) {
           </Group>
         </Paper>
       ))}
-      {people.isError && isPickerMissing(people.error) ? (
-        <Text size="sm" c="dimmed">
-          {PICKER_COPY.unavailable}
-        </Text>
-      ) : (
-        <Select
-          label={PICKER_COPY.search}
-          placeholder={PICKER_COPY.searchPlaceholder}
-          leftSection={<FiSearch size="1.25em" aria-hidden />}
-          searchable
-          searchValue={search}
-          onSearchChange={setSearch}
-          // The server already searched; filtering again here would hide matches on job title.
-          filter={({ options: all }) => all}
-          data={options.map((p) => ({ value: p.id, label: p.name }))}
-          value={null}
-          onChange={add}
-          nothingFoundMessage={search.trim() ? PICKER_COPY.nothingFound : undefined}
-          error={people.isError ? PICKER_COPY.failed : undefined}
-        />
-      )}
+      <Select
+        label={PICKER_COPY.search}
+        placeholder={PICKER_COPY.searchPlaceholder}
+        leftSection={<FiSearch size="1.25em" aria-hidden />}
+        searchable
+        searchValue={search}
+        onSearchChange={setSearch}
+        // The server already searched; filtering again here would hide matches on job title.
+        filter={({ options: all }) => all}
+        data={options.map((p) => ({ value: p.id, label: p.name }))}
+        value={null}
+        onChange={add}
+        nothingFoundMessage={search.trim() ? PICKER_COPY.nothingFound : undefined}
+        error={people.isError ? PICKER_COPY.failed : undefined}
+      />
     </Stack>
   );
 }
