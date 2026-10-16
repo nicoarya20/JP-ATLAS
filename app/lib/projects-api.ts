@@ -120,6 +120,11 @@ export async function setProjectStatus(id: string, status: ProjectStatus): Promi
   return unwrap(await client.api.app.projects({ id: pathId(id) }).status.post({ status }));
 }
 
+/** PUT /:id/lead: another manager becomes the Lead ("Pengelola utama"); session only. */
+export async function setProjectLead(id: string, userId: string): Promise<ProjectSaved> {
+  return unwrap(await client.api.app.projects({ id: pathId(id) }).lead.put({ userId }));
+}
+
 // ---- Member writes (Eden, S1-04): each answers the fresh member list ----
 
 const member = (id: string, userId: string) =>

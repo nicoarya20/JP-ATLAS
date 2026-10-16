@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, spyOn } from 'bun:test';
+import { saveProjectEdit } from '../app/components/projects/project-edit';
 import {
   LABEL_LEAD,
   NOT_FOUND_TEXT,
@@ -158,6 +159,34 @@ describe('write wrappers (Eden)', () => {
     expect(new URL(url).pathname).toBe('/api/app/projects/p9/members/u1');
     expect(init.method).toBe('PATCH');
     expect(JSON.parse(String(init.body))).toEqual({ role: 'viewer' });
+  });
+});
+
+describe('saveProjectEdit', () => {
+  it('calls only the changed parts, in order: info, status, Lead', async () => {
+    const spy = stubFetch(json(200, {}));
+    // Each call needs its own body: a Response can be read only once.
+    spy.mockImplementation((async () => json(200, { id: 'p9', name: 'Atlas' })) as never);
+    await saveProjectEdit('p9', { patch: { name: 'Atlas' }, status: null, leadId: 'u2' });
+    const calls = spy.mock.calls.map(([url, init]) => [
+      (init as RequestInit).method,
+      new URL(url as string).pathname,
+    ]);
+    expect(calls).toEqual([
+      ['PATCH', '/api/app/projects/p9'],
+      ['PUT', '/api/app/projects/p9/lead'],
+    ]);
+  });
+
+  it('stops at the first refusal with the project wording', async () => {
+    const spy = stubFetch(
+      json(403, { error: 'x', code: 'NOT_MANAGER', status: 403, requestId: 'r' }),
+    );
+    const err = await saveProjectEdit('p9', { patch: null, status: 'active', leadId: 'u2' }).catch(
+      (e: unknown) => e,
+    );
+    expect((err as ApiError).message).toBe(PROJECT_ERROR_MESSAGES.NOT_MANAGER as string);
+    expect(spy.mock.calls.length).toBe(1);
   });
 });
 

@@ -43,5 +43,8 @@ export function memberActions(m: ProjectMemberItem, ctx: MemberContext): MemberR
   };
 }
 
-export const countManagers = (members: readonly ProjectMemberItem[]) =>
-  members.filter((m) => COUNTS_AS_MANAGER[m.role]).length;
+export const countManagers = (members: readonly ProjectMemberItem[]) => managersOf(members).length;
+
+/** The members who are managers: the only people who may become the Lead. */
+export const managersOf = <T extends Pick<ProjectMemberItem, 'role'>>(members: readonly T[]) =>
+  members.filter((m) => COUNTS_AS_MANAGER[m.role]);

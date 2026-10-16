@@ -11,13 +11,17 @@ import {
   toCreateInput,
   validateProject,
 } from '../../app/components/projects/ProjectForm';
+import { isEmptyPlan, toEditPlan } from '../../app/components/projects/project-edit';
+import { EDIT_COPY } from '../../app/components/projects/project-edit.copy';
 import { FORM_COPY, PICKER_COPY } from '../../app/components/projects/projects.copy';
 import {
   QUICK_RANGES,
   quickRangeDates,
   quickRangeLabel,
 } from '../../app/components/projects/QuickDates';
+import { PROJECT_STATUS_LABELS } from '../../app/lib/pm-labels';
 import type { IsoDate } from '../../server/metrics/types';
+import { PROJECT_STATUSES } from '../../server/pm/enums';
 import { PROJECT_NAME_MAX } from '../../server/project/project.limits';
 
 const TODAY = '2026-10-17' as IsoDate; // test-only
@@ -142,5 +146,89 @@ describe('toCreateInput', () => {
 describe('403 copy', () => {
   it('uses the exact sentence from the spec', () => {
     expect(FORM_COPY.forbidden).toBe('Hanya Admin dan Project Manager yang bisa membuat proyek.');
+  });
+});
+
+// test-only: a saved project as the edit page loads it
+const SAVED: ProjectFormValues = {
+  name: 'Renovasi Dapur',
+  description: 'Dapur baru',
+  status: 'completed',
+  priority: 'high',
+  leadId: 'u-2',
+  startDate: '2026-10-01',
+  dueDate: '2026-10-31',
+};
+const MANAGERS = [CREATOR, { id: 'u-2', name: 'Rina' }]; // test-only
+
+const renderEdit = () =>
+  render(
+    <ProjectForm
+      mode="edit"
+      initial={SAVED}
+      managers={MANAGERS}
+      today={TODAY}
+      onSubmit={async () => null}
+      submitting={false}
+      cancelTo="/app/projects/p-1"
+    />,
+  );
+
+describe('ProjectForm edit mode', () => {
+  it('fills every field with the saved values', async () => {
+    const html = await renderEdit();
+    expect(html).toMatch(/data-path="name"[^>]*value="Renovasi Dapur"/);
+    expect(html).toMatch(/data-path="description"[^>]*>Dapur baru</);
+    expect(html).toMatch(/data-path="priority"[^>]*value="Tinggi"/);
+    expect(html).toMatch(/data-path="leadId"[^>]*value="Rina"/);
+    expect(html).toContain('<input type="hidden" value="2026-10-01"/>');
+    expect(html).toContain('<input type="hidden" value="2026-10-31"/>');
+    expect(html).toMatch(/type="radio"[^>]*checked=""[^>]*value="completed"/);
+  });
+
+  it('offers all five statuses (KB-12), not only the initial two', async () => {
+    const html = await renderEdit();
+    const radios = html.match(/type="radio"[^>]*value="([a-z_]+)"/g) ?? [];
+    expect(radios.map((r) => r.replace(/.*value="/, '').replace('"', ''))).toEqual([
+      ...PROJECT_STATUSES,
+    ]);
+    for (const s of PROJECT_STATUSES) expect(html).toContain(`>${PROJECT_STATUS_LABELS[s].label}<`);
+    expect(html).toContain(EDIT_COPY.statusHint);
+  });
+
+  it('has no member picker, a Lead hint and a named save button', async () => {
+    const html = await renderEdit();
+    expect(html).not.toContain(PICKER_COPY.search);
+    expect(html).toContain(EDIT_COPY.leadHint);
+    expect(html).toContain(`>${EDIT_COPY.submit}<`);
+    expect(html).not.toContain(`>${FORM_COPY.submit}<`);
+  });
+
+  it('keeps the create form on the two initial statuses', async () => {
+    const html = await renderForm();
+    expect(html.match(/type="radio"/g)?.length).toBe(2);
+  });
+});
+
+describe('toEditPlan', () => {
+  it('sends nothing when nothing changed', () => {
+    expect(isEmptyPlan(toEditPlan(SAVED, { ...SAVED, name: ' Renovasi Dapur ' }))).toBe(true);
+  });
+
+  it('puts info and dates in the patch, clearing emptied fields with null', () => {
+    const plan = toEditPlan(SAVED, { ...SAVED, description: '  ', dueDate: null, priority: 'low' });
+    expect(plan).toEqual({
+      patch: { description: null, dueDate: null, priority: 'low' },
+      status: null,
+      leadId: null,
+    });
+  });
+
+  it('sends status and Lead on their own, only when changed', () => {
+    expect(toEditPlan(SAVED, { ...SAVED, status: 'active', leadId: 'u-1' })).toEqual({
+      patch: null,
+      status: 'active',
+      leadId: 'u-1',
+    });
   });
 });

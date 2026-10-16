@@ -8,12 +8,11 @@ import { useEffect, useState } from 'react';
 import { FiLock } from 'react-icons/fi';
 import { data, useNavigate } from 'react-router';
 import { projectHref } from '~/components/projects/ProjectCard';
-import { type FieldErrors, ProjectForm } from '~/components/projects/ProjectForm';
+import { fieldErrors, ProjectForm } from '~/components/projects/ProjectForm';
 import { FORM_COPY } from '~/components/projects/projects.copy';
 import { useProjectActions } from '~/components/projects/useProjectActions';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
-import { ApiError } from '~/lib/http';
 import type { Route } from './+types/project-new';
 
 const LIST_PATH = '/app/projects';
@@ -32,14 +31,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     creator: { id: actor.user.id, name: actor.user.name },
     today: isoDateIn(new Date(), METRICS.TIME_ZONE),
   };
-}
-
-/** 422 `issues` paths ("/name", "name") to form fields; anything else stays in the toast. */
-function fieldErrors(err: unknown): FieldErrors | null {
-  if (!(err instanceof ApiError) || !err.issues) return null;
-  const out: Record<string, string> = {};
-  for (const i of err.issues) out[i.path.replace(/^\//, '').split('/')[0] ?? ''] = i.message;
-  return out as FieldErrors;
 }
 
 export default function ProjectNewPage({ loaderData }: Route.ComponentProps) {
