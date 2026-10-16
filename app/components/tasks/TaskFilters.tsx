@@ -68,9 +68,11 @@ type Props = {
   projects: FilterOption[];
   /** People the viewer may pick; "Saya" is always offered first. */
   people: FilterOption[];
+  /** Project tab: the list is pinned to one project, so the scope toggle and Proyek filter are left out. */
+  locked?: boolean;
 };
 
-export function TaskFilters({ filters, onChange, projects, people }: Props) {
+export function TaskFilters({ filters, onChange, projects, people, locked }: Props) {
   const P = TASK_FILTER_PARAMS;
   const D = DEFAULT_TASK_FILTERS;
   const [search, setSearch] = useState(filters.q);
@@ -92,13 +94,15 @@ export function TaskFilters({ filters, onChange, projects, people }: Props) {
   const projectData = [{ value: ANY, label: FILTER_COPY.projectAny }, ...projects];
   return (
     <Stack gap="sm">
-      <SegmentedControl
-        aria-label={FILTER_COPY.scopeLabel}
-        data={SCOPES}
-        value={filters.lingkup}
-        onChange={(v) => onChange({ [P.scope]: orDefault(v, D.lingkup) })}
-        style={{ alignSelf: 'flex-start' }}
-      />
+      {!locked && (
+        <SegmentedControl
+          aria-label={FILTER_COPY.scopeLabel}
+          data={SCOPES}
+          value={filters.lingkup}
+          onChange={(v) => onChange({ [P.scope]: orDefault(v, D.lingkup) })}
+          style={{ alignSelf: 'flex-start' }}
+        />
+      )}
       <Group gap="sm" wrap="wrap" align="flex-end">
         <TextInput
           label={FILTER_COPY.searchLabel}
@@ -135,15 +139,17 @@ export function TaskFilters({ filters, onChange, projects, people }: Props) {
         </Group>
       </Chip.Group>
       <Group gap="sm" wrap="wrap" align="flex-end">
-        <Select
-          label={FILTER_COPY.projectLabel}
-          data={projectData}
-          value={filters.proyek ?? ANY}
-          searchable
-          allowDeselect={false}
-          onChange={(v) => onChange({ [P.project]: v || null })}
-          style={{ flex: '1 1 12rem' }}
-        />
+        {!locked && (
+          <Select
+            label={FILTER_COPY.projectLabel}
+            data={projectData}
+            value={filters.proyek ?? ANY}
+            searchable
+            allowDeselect={false}
+            onChange={(v) => onChange({ [P.project]: v || null })}
+            style={{ flex: '1 1 12rem' }}
+          />
+        )}
         <Select
           label={FILTER_COPY.personLabel}
           data={personData}

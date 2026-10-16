@@ -7,6 +7,10 @@ import { PAGE_COPY } from './tasks.copy';
 /** The new-task form (S2-11). */
 export const NEW_TASK_PATH = '/app/tasks/new';
 
+/** The task form with one project filled in (S2-11 reads `?proyek=`). */
+export const newTaskInProject = (projectId: string) =>
+  `${NEW_TASK_PATH}?proyek=${encodeURIComponent(projectId)}`;
+
 const BLOCKED_ID = 'create-task-blocked';
 
 /** `canCreate` comes from the server's `caps.createTask`; the page never compares a role. */

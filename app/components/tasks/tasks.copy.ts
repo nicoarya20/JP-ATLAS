@@ -121,3 +121,10 @@ export const FILTER_COPY = {
   sortUpdated: 'Terakhir diubah',
   sortCreated: 'Terakhir dibuat',
 } as const;
+
+/** The Tugas tab of a project (S2-14, P3 §2 Proyek ⑨). */
+export const PROJECT_TAB_COPY = {
+  title: 'Tugas proyek',
+  create: 'Tambah tugas',
+  allTasks: 'Lihat semua tugas proyek',
+} as const;

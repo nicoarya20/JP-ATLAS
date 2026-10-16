@@ -28,6 +28,7 @@ export const taskKeys = {
   list: (q: TaskListQuery) => ['tasks', 'list', q] as const,
   counts: () => ['tasks', 'counts'] as const,
   detail: (ref: string) => ['tasks', 'detail', ref] as const,
+  highlights: (projectId: string) => ['tasks', 'highlights', projectId] as const,
 };
 
 /**
