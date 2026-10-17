@@ -72,7 +72,16 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
       header: { name: 'location', includes: '/login' },
     }),
   ),
-  ...['/api/app/projects', '/api/app/trash'].map(
+  ...['/app/tasks', '/app/tasks/new', '/app/tasks/1', '/app/tasks/1/edit'].map(
+    (path): SmokeCheck => ({
+      // Same gate for the S2 task pages, including the real shape of a detail and edit URL.
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
+  ...['/api/app/projects', '/api/app/trash', '/api/app/tasks'].map(
     (path): SmokeCheck => ({
       name: `API ${path} anonim → 401`,
       path,

@@ -81,6 +81,7 @@ export function TaskFormMore({ form, kinds, withSteps }: Props) {
         <Input.Wrapper label={COPY.steps} description={COPY.stepsHint} error={form.errors.steps}>
           <Stack gap="xs" mt="xs">
             {steps.map((_, i) => (
+              // nowrap is safe: the input shrinks (minWidth 0) beside one icon button.
               <Group key={form.key(`steps.${i}`)} gap="xs" wrap="nowrap" align="flex-start">
                 <TextInput
                   aria-label={COPY.stepLabel(i + 1)}

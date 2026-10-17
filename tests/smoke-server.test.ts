@@ -37,7 +37,20 @@ describe('smoke checks', () => {
         bodyIncludes: '"code":"UNAUTHORIZED"',
         header: { name: 'x-request-id' },
       });
-    expect(SMOKE_CHECKS).toHaveLength(33);
+  });
+  test('S2 task routes are pinned the same way', () => {
+    const byPath = (path: string) => SMOKE_CHECKS.find((c) => c.path === path);
+    for (const path of ['/app/tasks', '/app/tasks/new', '/app/tasks/1', '/app/tasks/1/edit'])
+      expect(byPath(path)).toMatchObject({
+        status: 302,
+        header: { name: 'location', includes: '/login' },
+      });
+    expect(byPath('/api/app/tasks')).toMatchObject({
+      status: 401,
+      bodyIncludes: '"code":"UNAUTHORIZED"',
+      header: { name: 'x-request-id' },
+    });
+    expect(SMOKE_CHECKS).toHaveLength(38);
   });
   test('auth gate checks pin the closed Better Auth endpoints to a uniform 404', () => {
     const byName = (n: string) => SMOKE_CHECKS.find((c) => c.name === n);
