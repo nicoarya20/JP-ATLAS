@@ -173,7 +173,6 @@ export const PICKER_COPY = {
   search: 'Cari orang',
   searchPlaceholder: 'Ketik nama',
   nothingFound: 'Tidak ada orang dengan nama itu.',
-  unavailable: 'Pemilih orang belum tersedia. Anggota bisa ditambahkan nanti di tab Anggota.',
   failed: 'Daftar orang gagal dimuat. Coba lagi sebentar lagi.',
   roleOf: (name: string) => `Peran ${name}`,
   remove: (name: string) => `Hapus ${name} dari daftar`,

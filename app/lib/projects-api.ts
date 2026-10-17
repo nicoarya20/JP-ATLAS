@@ -1,8 +1,6 @@
 /**
- * Client for `/api/app/projects`. Reads and project writes go through Eden (typed from the S1-02
- * and S1-03 routes). Member writes still use explicit DTOs against the P3 S1-04 contract (R04 §3.3)
- * because that route is built in parallel. RECONNECT(S1-04): once it merges, swap the member
- * `projectWrite` calls for Eden and let the route types replace `ProjectMemberInput`.
+ * Client for `/api/app/projects` and the people picker, all through Eden (typed from the S1-02,
+ * S1-03 and S1-04 routes). Errors come back as `ApiError` with the project wording.
  */
 import type { ProjectMemberRole, ProjectPriority, ProjectStatus } from '@server/pm/enums';
 import type { PmCode } from '@server/pm/errors';
@@ -14,14 +12,7 @@ import type {
 import type { ProjectInitialStatus } from '@server/project/project.limits';
 import { PROJECT_ERROR_MESSAGES } from '../components/projects/projects.copy';
 import { client } from './eden';
-import {
-  ApiError,
-  type ApiIssue,
-  apiRequest,
-  describeApiError,
-  jsonRequest,
-  redirectToSession,
-} from './http';
+import { ApiError, type ApiIssue, describeApiError, redirectToSession } from './http';
 import type { ProjectListQuery } from './projects-filters';
 
 export type { ProjectDetail, ProjectListItem, ProjectMemberItem };
@@ -80,16 +71,20 @@ export function unwrap<T>(res: EdenResult<T>, onUnauthorized = redirectToSession
   );
 }
 
+/** Eden pastes path params as they are, so ids are escaped here. */
+const pathId = (id: string) => encodeURIComponent(id);
+const PICKER_PAGE_SIZE = 20;
+
 export async function fetchProjects(query: ProjectListQuery): Promise<ProjectPage> {
   return unwrap(await client.api.app.projects.get({ query }));
 }
 
 export async function fetchProject(id: string): Promise<ProjectDetail> {
-  return unwrap(await client.api.app.projects({ id }).get());
+  return unwrap(await client.api.app.projects({ id: pathId(id) }).get());
 }
 
 export async function fetchProjectMembers(id: string): Promise<ProjectMemberItem[]> {
-  return unwrap(await client.api.app.projects({ id }).members.get()).items;
+  return unwrap(await client.api.app.projects({ id: pathId(id) }).members.get()).items;
 }
 
 // ---- Project writes (Eden, S1-03) ----
@@ -113,56 +108,51 @@ export type ProjectPatch = Partial<
 /** Every project write answers the fresh detail of the project. */
 export type ProjectSaved = ProjectDetail;
 
-/**
- * The write bodies typed by hand: the routes' `oneOf` enum fields reach Eden as `never`/`undefined`,
- * so no literal value type-checks. Narrow cast, removed after the `oneOf` fix of S1-04 merges.
- */
-const edenBody = <T>(body: T) => body as never;
-
 export async function createProject(input: ProjectCreateInput): Promise<ProjectSaved> {
-  return unwrap(await client.api.app.projects.post(edenBody(input)));
+  return unwrap(await client.api.app.projects.post(input));
 }
 
 export async function updateProject(id: string, patch: ProjectPatch): Promise<ProjectSaved> {
-  return unwrap(await client.api.app.projects({ id }).patch(edenBody(patch)));
+  return unwrap(await client.api.app.projects({ id: pathId(id) }).patch(patch));
 }
 
 export async function setProjectStatus(id: string, status: ProjectStatus): Promise<ProjectSaved> {
-  return unwrap(await client.api.app.projects({ id }).status.post(edenBody({ status })));
+  return unwrap(await client.api.app.projects({ id: pathId(id) }).status.post({ status }));
 }
 
-// ---- Member writes (contract-typed until S1-04 lands) ----
-
-const BASE = '/api/app/projects';
-const projectUrl = (id: string) => `${BASE}/${encodeURIComponent(id)}`;
-const memberUrl = (id: string, userId: string) =>
-  `${projectUrl(id)}/members/${encodeURIComponent(userId)}`;
-
-async function projectWrite<T>(url: string, init: RequestInit): Promise<T> {
-  try {
-    return await apiRequest<T>(url, init);
-  } catch (err) {
-    throw withProjectMessage(err);
-  }
+/** PUT /:id/lead: another manager becomes the Lead ("Pengelola utama"); session only. */
+export async function setProjectLead(id: string, userId: string): Promise<ProjectSaved> {
+  return unwrap(await client.api.app.projects({ id: pathId(id) }).lead.put({ userId }));
 }
 
-export async function addProjectMember(id: string, member: ProjectMemberInput): Promise<void> {
-  await projectWrite(`${projectUrl(id)}/members`, jsonRequest('POST', member));
+// ---- Member writes (Eden, S1-04): each answers the fresh member list ----
+
+const member = (id: string, userId: string) =>
+  client.api.app.projects({ id: pathId(id) }).members({ userId: pathId(userId) });
+
+export async function addProjectMember(
+  id: string,
+  input: ProjectMemberInput,
+): Promise<ProjectMemberItem[]> {
+  return unwrap(await client.api.app.projects({ id: pathId(id) }).members.post(input)).items;
 }
 
 export async function changeProjectMemberRole(
   id: string,
   userId: string,
   role: ProjectMemberRole,
-): Promise<void> {
-  await projectWrite(memberUrl(id, userId), jsonRequest('PATCH', { role }));
+): Promise<ProjectMemberItem[]> {
+  return unwrap(await member(id, userId).patch({ role })).items;
 }
 
-export async function removeProjectMember(id: string, userId: string): Promise<void> {
-  await projectWrite(memberUrl(id, userId), jsonRequest('DELETE'));
+export async function removeProjectMember(
+  id: string,
+  userId: string,
+): Promise<ProjectMemberItem[]> {
+  return unwrap(await member(id, userId).delete()).items;
 }
 
-// ---- People picker (contract-typed until S1-04 lands) ----
+// ---- People picker (Eden, S1-04) ----
 
 /** One pickable person: name and job title only, never email or phone (Q8). */
 export type PickerPerson = {
@@ -173,16 +163,17 @@ export type PickerPerson = {
 };
 
 /**
- * GET /api/app/team/picker (P3 S1-04). RECONNECT(S1-04): the route is still a stub on this branch,
- * so it answers 404 and the form goes on without extra members; swap for Eden once it merges.
+ * GET /api/app/team/picker. Without `projectId` only those who may create projects may search;
+ * with it the caller must belong to that project (a 403/404 then means "no picker for you").
  */
-export async function searchPeople(q: string, limit = 20): Promise<PickerPerson[]> {
-  const qs = new URLSearchParams({ limit: String(limit), ...(q.trim() ? { q: q.trim() } : {}) });
-  const body = await apiRequest<{ items: PickerPerson[] } | PickerPerson[]>(
-    `/api/app/team/picker?${qs}`,
-  );
-  return Array.isArray(body) ? body : body.items;
+export async function searchPeople(
+  q: string,
+  opts: { projectId?: string; limit?: number } = {},
+): Promise<PickerPerson[]> {
+  const query = {
+    limit: opts.limit ?? PICKER_PAGE_SIZE,
+    ...(q.trim() ? { q: q.trim() } : {}),
+    ...(opts.projectId ? { projectId: opts.projectId } : {}),
+  };
+  return unwrap(await client.api.app.team.picker.get({ query })).items;
 }
-
-/** The picker route is not there yet (S1-04 in parallel): the form treats it as "no picker". */
-export const isPickerMissing = (err: unknown) => err instanceof ApiError && err.status === 404;

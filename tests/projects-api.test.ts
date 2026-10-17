@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, spyOn } from 'bun:test';
+import { saveProjectEdit } from '../app/components/projects/project-edit';
 import {
   LABEL_LEAD,
   NOT_FOUND_TEXT,
@@ -6,10 +7,12 @@ import {
 } from '../app/components/projects/projects.copy';
 import { ApiError } from '../app/lib/http';
 import {
+  changeProjectMemberRole,
   createProject,
   projectErrorMessage,
   projectKeys,
   removeProjectMember,
+  searchPeople,
   setProjectStatus,
   unwrap,
   withProjectMessage,
@@ -106,7 +109,7 @@ describe('unwrap (Eden result)', () => {
   });
 });
 
-describe('write wrappers (Eden for S1-03, DTO for S1-04)', () => {
+describe('write wrappers (Eden)', () => {
   it('POSTs the create body through Eden and returns the project detail', async () => {
     const spy = stubFetch(json(201, { id: 'p9', name: 'Atlas' }));
     expect(await createProject({ name: 'Atlas', status: 'active', members: [] })).toEqual({
@@ -139,10 +142,70 @@ describe('write wrappers (Eden for S1-03, DTO for S1-04)', () => {
     expect((err as ApiError).message).toBe(PROJECT_ERROR_MESSAGES.LAST_MANAGER as string);
   });
 
-  it('escapes ids in member URLs', async () => {
-    const spy = stubFetch(new Response(null, { status: 204 }));
-    await removeProjectMember('p 1', 'u/1');
-    expect(spy.mock.calls[0]?.[0]).toBe('/api/app/projects/p%201/members/u%2F1');
+  it('escapes ids in member URLs and returns the fresh member list', async () => {
+    const spy = stubFetch(json(200, { items: [{ userId: 'u2' }] }));
+    expect(await removeProjectMember('p 1', 'u/1')).toEqual([{ userId: 'u2' }] as Awaited<
+      ReturnType<typeof removeProjectMember>
+    >);
+    const [url, init] = spy.mock.calls[0] as [string, RequestInit];
+    expect(new URL(url).pathname).toBe('/api/app/projects/p%201/members/u%2F1');
+    expect(init.method).toBe('DELETE');
+  });
+
+  it('PATCHes a role change on the member URL', async () => {
+    const spy = stubFetch(json(200, { items: [] }));
+    await changeProjectMemberRole('p9', 'u1', 'viewer');
+    const [url, init] = spy.mock.calls[0] as [string, RequestInit];
+    expect(new URL(url).pathname).toBe('/api/app/projects/p9/members/u1');
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(String(init.body))).toEqual({ role: 'viewer' });
+  });
+});
+
+describe('saveProjectEdit', () => {
+  it('calls only the changed parts, in order: info, status, Lead', async () => {
+    const spy = stubFetch(json(200, {}));
+    // Each call needs its own body: a Response can be read only once.
+    spy.mockImplementation((async () => json(200, { id: 'p9', name: 'Atlas' })) as never);
+    await saveProjectEdit('p9', { patch: { name: 'Atlas' }, status: null, leadId: 'u2' });
+    const calls = spy.mock.calls.map(([url, init]) => [
+      (init as RequestInit).method,
+      new URL(url as string).pathname,
+    ]);
+    expect(calls).toEqual([
+      ['PATCH', '/api/app/projects/p9'],
+      ['PUT', '/api/app/projects/p9/lead'],
+    ]);
+  });
+
+  it('stops at the first refusal with the project wording', async () => {
+    const spy = stubFetch(
+      json(403, { error: 'x', code: 'NOT_MANAGER', status: 403, requestId: 'r' }),
+    );
+    const err = await saveProjectEdit('p9', { patch: null, status: 'active', leadId: 'u2' }).catch(
+      (e: unknown) => e,
+    );
+    expect((err as ApiError).message).toBe(PROJECT_ERROR_MESSAGES.NOT_MANAGER as string);
+    expect(spy.mock.calls.length).toBe(1);
+  });
+});
+
+describe('searchPeople (Eden)', () => {
+  it('sends q, projectId and limit and returns the items', async () => {
+    const people = [{ id: 'u1', name: 'Rina', jobTitle: null, image: null }];
+    const spy = stubFetch(json(200, { items: people }));
+    expect(await searchPeople(' Rin ', { projectId: 'p9' })).toEqual(people);
+    const url = new URL(spy.mock.calls[0]?.[0] as string);
+    expect(url.pathname).toBe('/api/app/team/picker');
+    expect(url.searchParams.get('q')).toBe('Rin');
+    expect(url.searchParams.get('projectId')).toBe('p9');
+    expect(url.searchParams.get('limit')).toBe('20');
+  });
+
+  it('leaves q out when the search is blank', async () => {
+    const spy = stubFetch(json(200, { items: [] }));
+    await searchPeople('  ');
+    expect(new URL(spy.mock.calls[0]?.[0] as string).searchParams.has('q')).toBe(false);
   });
 });
 

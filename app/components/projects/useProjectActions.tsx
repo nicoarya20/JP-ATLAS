@@ -16,6 +16,7 @@ import {
   updateProject,
 } from '~/lib/projects-api';
 import { useApiMutation } from '~/lib/use-api-mutation';
+import { type ProjectEditPlan, saveProjectEdit } from './project-edit';
 import { ACTION_COPY, CONFIRM_COPY, MEMBER_ROLE_LABELS } from './projects.copy';
 
 /** A member as the dialogs name them. */
@@ -38,6 +39,16 @@ export function useProjectActions() {
     successMessage: ACTION_COPY.updated,
     errorTitle: ACTION_COPY.updateFailed,
     onSuccess: refresh,
+  });
+
+  /** "Ubah proyek": info, status and Lead in one save; refreshes on failure too, a part may be saved. */
+  const edit = useApiMutation({
+    mutationFn: ({ id, changes }: { id: string; changes: ProjectEditPlan }) =>
+      saveProjectEdit(id, changes),
+    successMessage: ACTION_COPY.updated,
+    errorTitle: ACTION_COPY.updateFailed,
+    onSuccess: refresh,
+    onError: () => void refresh(),
   });
 
   const setStatus = useApiMutation({
@@ -83,6 +94,7 @@ export function useProjectActions() {
   return {
     create,
     update,
+    edit,
     setStatus,
     addMember,
     changeRole: {
