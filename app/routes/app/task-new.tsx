@@ -1,11 +1,7 @@
 import { Alert } from '@mantine/core';
 import { requireUser } from '@server/guard';
 import { toPrincipal } from '@server/project/membership.query';
-import {
-  getProjectDetail,
-  listProjectMembers,
-  listProjects,
-} from '@server/project/project.query';
+import { getProjectDetail, listProjectMembers, listProjects } from '@server/project/project.query';
 import { requestClock } from '@server/task/task.clock';
 import { listTaskFormProjects } from '@server/task/task-form.query';
 import { useEffect, useState } from 'react';
@@ -90,7 +86,11 @@ export default function TaskNewPage({ loaderData }: Route.ComponentProps) {
   }
   return (
     <PageContainer>
-      <PageHeader title={TASK_FORM_COPY.title} description={TASK_FORM_COPY.description} back={back} />
+      <PageHeader
+        title={TASK_FORM_COPY.title}
+        description={TASK_FORM_COPY.description}
+        back={back}
+      />
       <TaskForm
         mode="create"
         projects={loaderData.projects}

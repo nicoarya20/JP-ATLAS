@@ -51,7 +51,15 @@ beforeAll(async () => {
     f.user({ role: 'project_manager' }),
   ]);
   [kitchen, garden] = await Promise.all([
-    f.project({ lead, name: 'tnew Dapur', members: [[worker, 'member'], [watcher, 'viewer'], [pm, 'member']] }),
+    f.project({
+      lead,
+      name: 'tnew Dapur',
+      members: [
+        [worker, 'member'],
+        [watcher, 'viewer'],
+        [pm, 'member'],
+      ],
+    }),
     f.project({ lead, name: 'tnew Taman' }),
   ]);
 });
@@ -92,9 +100,7 @@ describe('task-new loader', () => {
 
   it('answers 403 "only viewing" for a visible project the caller cannot write', async () => {
     // A Project Manager reads every project but writes only where they are Pengelola/Anggota.
-    expect(refused(await load(pm, `?proyek=${garden.id}`)).reason).toBe(
-      TASK_FORM_COPY.viewerOnly,
-    );
+    expect(refused(await load(pm, `?proyek=${garden.id}`)).reason).toBe(TASK_FORM_COPY.viewerOnly);
   });
 
   it('ignores a hidden or unknown ?proyek= instead of revealing it', async () => {

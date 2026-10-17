@@ -15,12 +15,12 @@ import {
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import type { UseFormReturnType } from '@mantine/form';
-import type { TaskFormKind } from '@server/task/task-form.query';
 import {
   TASK_CHECKLIST_INITIAL_MAX,
   TASK_CHECKLIST_TEXT_MAX,
   TASK_DESCRIPTION_MAX,
 } from '@server/task/task.limits';
+import type { TaskFormKind } from '@server/task/task-form.query';
 import type { KeyboardEvent } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import type { TaskFormValues } from './task-form';
@@ -78,11 +78,7 @@ export function TaskFormMore({ form, kinds, withSteps }: Props) {
         />
       </SimpleGrid>
       {withSteps && (
-        <Input.Wrapper
-          label={COPY.steps}
-          description={COPY.stepsHint}
-          error={form.errors.steps}
-        >
+        <Input.Wrapper label={COPY.steps} description={COPY.stepsHint} error={form.errors.steps}>
           <Stack gap="xs" mt="xs">
             {steps.map((_, i) => (
               <Group key={form.key(`steps.${i}`)} gap="xs" wrap="nowrap" align="flex-start">

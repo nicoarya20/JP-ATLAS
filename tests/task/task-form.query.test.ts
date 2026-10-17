@@ -7,8 +7,8 @@ import { project, taskKind } from '../../server/db/schema';
 import { DEFAULT_TASK_KINDS } from '../../server/pm/limits';
 import { listTaskFormProjects, loadTaskKinds } from '../../server/task/task-form.query';
 import { createCleaner } from '../support/cleanup';
-import { createFactory } from '../support/factory.task';
 import type { TestProject } from '../support/factory.project';
+import { createFactory } from '../support/factory.task';
 import type { TestUser } from '../support/factory.user';
 
 const cleaner = createCleaner();
@@ -71,7 +71,10 @@ describe('listTaskFormProjects', () => {
     const [row] = (await listTaskFormProjects(principal(worker))).filter((p) => p.id === open.id);
     expect(row?.name).toBe('tform Berjalan');
     expect(row?.kinds.map((k) => k.name)).toEqual(DEFAULT_TASK_KINDS.map((k) => k.name));
-    await db.update(taskKind).set({ archivedAt: new Date() }).where(eq(taskKind.id, open.kinds.idea));
+    await db
+      .update(taskKind)
+      .set({ archivedAt: new Date() })
+      .where(eq(taskKind.id, open.kinds.idea));
     const kinds = (await loadTaskKinds([open.id])).get(open.id) ?? [];
     expect(kinds.map((k) => k.id)).not.toContain(open.kinds.idea);
     expect(kinds.map((k) => k.baseKind)).toEqual(['task', 'issue']);

@@ -7,8 +7,8 @@ import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import type { IsoDate } from '@server/metrics/types';
 import { PROJECT_PRIORITIES } from '@server/pm/enums';
-import type { TaskFormKind, TaskFormProject } from '@server/task/task-form.query';
 import { isTaskWorkerRole, TASK_TITLE_MAX } from '@server/task/task.limits';
+import type { TaskFormKind, TaskFormProject } from '@server/task/task-form.query';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
@@ -16,6 +16,7 @@ import { Link } from 'react-router';
 import { PRIORITY_LABELS } from '~/lib/pm-labels';
 import { fetchProjectMembers, type ProjectMemberItem, projectKeys } from '~/lib/projects-api';
 import { useUnsavedGuard } from '~/lib/use-unsaved-guard';
+import { TASK_DATE_FORMAT, TaskFormMore } from './TaskFormMore';
 import {
   QUICK_DUE_LABELS,
   QUICK_DUES,
@@ -25,7 +26,6 @@ import {
   validateTask,
 } from './task-form';
 import { TASK_FORM_COPY as COPY } from './task-form.copy';
-import { TASK_DATE_FORMAT, TaskFormMore } from './TaskFormMore';
 
 const PRIORITY_OPTIONS = PROJECT_PRIORITIES.map((p) => ({
   value: p,

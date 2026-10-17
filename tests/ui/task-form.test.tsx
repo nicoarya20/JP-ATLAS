@@ -11,6 +11,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
+import { defaultKindId, TaskForm, workersOf } from '../../app/components/tasks/TaskForm';
+import { TaskFormMore } from '../../app/components/tasks/TaskFormMore';
 import {
   newTaskValues,
   QUICK_DUE_LABELS,
@@ -21,8 +23,6 @@ import {
   toTaskPatch,
 } from '../../app/components/tasks/task-form';
 import { TASK_FORM_COPY } from '../../app/components/tasks/task-form.copy';
-import { defaultKindId, TaskForm, workersOf } from '../../app/components/tasks/TaskForm';
-import { TaskFormMore } from '../../app/components/tasks/TaskFormMore';
 import { PAGE_COPY } from '../../app/components/tasks/tasks.copy';
 import type { ProjectMemberItem } from '../../app/lib/projects-api';
 import TaskNewPage from '../../app/routes/app/task-new';
@@ -241,9 +241,7 @@ describe('task form helpers', () => {
   });
 });
 
-type PageData =
-  | { allowed: false; reason: string }
-  | { allowed: true; [k: string]: unknown };
+type PageData = { allowed: false; reason: string } | { allowed: true; [k: string]: unknown };
 const renderPage = (loaderData: PageData) => {
   const Page = TaskNewPage as unknown as (props: { loaderData: PageData }) => ReactNode;
   return render(<Page loaderData={loaderData} />);
