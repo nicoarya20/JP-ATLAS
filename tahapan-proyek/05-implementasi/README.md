@@ -37,3 +37,6 @@ Detail ketergantungan: P1 §3, P2 §4, P3 §3. Satu-satunya cara menambah tugas 
 
 ## 5. Memperbarui `PROGRES.md`
 Saat tugas mulai: status `berjalan` + cabang. Saat selesai dikerjakan: `review` + hasil tes. Setelah user menyetujui gelombang: `selesai` + hash commit, dan satu baris di "Log merge per gelombang". Tugas yang terblokir: `diblokir` + alasan. Setiap perubahan dicatat di "Log perubahan".
+
+## 6. Rencana S3 ke atas (menunggu gerbang S2)
+Tujuh rencana menu (Inbox, Beranda, Tugas lanjutan, Sampah, Tim, Pengaturan, Event) ada di [`rencana/P4`..`P10`](rencana/); ringkasan urutan, estimasi, migrasi, dan 10 keputusan yang dibutuhkan ada di [`JADWAL-S3-S8.md`](JADWAL-S3-S8.md); status tugasnya dicatat di [`PROGRES-S3-S8.md`](PROGRES-S3-S8.md) (terpisah dari `PROGRES.md`). Lingkup MVP Inti tidak berubah; rencana ini tidak boleh dieksekusi sebelum S2-17 lulus dan user menyetujuinya.
