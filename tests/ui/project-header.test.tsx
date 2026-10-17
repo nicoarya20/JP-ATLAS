@@ -99,6 +99,15 @@ describe('ProjectHeader', () => {
     expect(await header({ can: { createTask: true } })).not.toContain(HEADER_COPY.menuLabel);
   });
 
+  it('opens the ⋯ menu for Hapus proyek only when can.trash is true (not a Member-manager)', async () => {
+    const pm = await header({ can: { update: 'NOT_MANAGER', trash: true, createTask: true } });
+    expect(pm).toContain(`aria-label="${HEADER_COPY.menuLabel}"`);
+    const memberManager = await header({
+      can: { update: 'NOT_MANAGER', trash: 'ROLE_CANNOT_TRASH', createTask: true },
+    });
+    expect(memberManager).not.toContain(HEADER_COPY.menuLabel);
+  });
+
   it('says when there is no lead or no due date', async () => {
     const html = await header({ lead: null, dueDate: null });
     expect(html).toContain(HEADER_COPY.noLead);
