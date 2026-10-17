@@ -3,68 +3,36 @@
  * with open tasks shows schedule groups; every other view is a table of at most five columns from
  * `sm` up (K15) and cards below it. `lockedProjectId` pins the list to one project.
  */
-import { Alert, Button, Center, Group, Loader, Stack, Text } from '@mantine/core';
-import { StatusBadge } from '~/components/pm/StatusBadge';
-import { DateText } from '~/components/ui/DateText';
-import { type ResponsiveColumn, ResponsiveTable } from '~/components/ui/ResponsiveTable';
-import { type TaskListItem, taskErrorMessage, useTaskCounts, useTaskList } from '~/lib/tasks-api';
-import { hasTaskFilters, isGroupedView, type TaskFilters, toTaskQuery } from '~/lib/tasks-filters';
-import { NextStepButton } from './NextStepButton';
-import { TaskCard } from './TaskCard';
+import { Alert, Button, Center, Loader, Stack, Text } from '@mantine/core';
+import {
+  type TaskCounts,
+  type TaskPage,
+  taskErrorMessage,
+  useTaskCounts,
+  useTaskList,
+} from '~/lib/tasks-api';
+import {
+  hasTaskFilters,
+  isGroupedView,
+  type TaskFilters,
+  type TaskListQuery,
+  toTaskQuery,
+} from '~/lib/tasks-filters';
 import { TaskEmpty, type TaskEmptyVariant } from './TaskEmpty';
 import { TaskGroupList } from './TaskGroupList';
-import { TaskBadges, TaskTitle } from './TaskRow';
+import { TaskTable } from './TaskTable';
 import { LIST_COPY } from './tasks.copy';
 
-const COLUMNS: ResponsiveColumn<TaskListItem>[] = [
-  {
-    key: 'task',
-    header: LIST_COPY.colTask,
-    cell: (t) => (
-      <Stack gap={4} style={{ minWidth: 0 }}>
-        <TaskTitle task={t} />
-        <Text size="sm" c="dimmed" truncate>
-          {t.project.name}
-        </Text>
-      </Stack>
-    ),
-  },
-  {
-    key: 'status',
-    header: LIST_COPY.colStatus,
-    cell: (t) => (
-      <Group gap="xs" wrap="wrap">
-        <StatusBadge status={t.status} />
-        <NextStepButton taskRef={String(t.number)} primary={t.primary} />
-      </Group>
-    ),
-  },
-  {
-    key: 'assignee',
-    header: LIST_COPY.colAssignee,
-    cell: (t) => <Text size="sm">{t.assignee?.name ?? LIST_COPY.noAssignee}</Text>,
-  },
-  {
-    key: 'due',
-    header: LIST_COPY.colDue,
-    cell: (t) =>
-      t.dueDate ? (
-        <DateText
-          value={t.dueDate}
-          mode="due"
-          settled={t.status === 'done' || t.status === 'canceled'}
-        />
-      ) : (
-        <Text size="sm">{LIST_COPY.noDue}</Text>
-      ),
-  },
-  {
-    key: 'priority',
-    header: LIST_COPY.colPriority,
-    // Labels (Terlambat, Mandek, Dibuka lagi) ride with the priority so the table keeps five columns.
-    cell: (t) => <TaskBadges task={t} />,
-  },
-];
+/** What the route loader already read (SSR), so the first paint needs no fetch. */
+export type TaskListSeed = {
+  /** The query the loader ran; the seed only applies while the list shows that same query. */
+  query: TaskListQuery;
+  /** First page of the table view; null in the grouped view. */
+  first: TaskPage | null;
+  /** "Tugas saya" counts; null outside the grouped view. */
+  counts: TaskCounts | null;
+  loadedAt: number;
+};
 
 type Props = {
   filters: TaskFilters;
@@ -75,6 +43,7 @@ type Props = {
   onResetFilters: () => void;
   /** Task form link when the server allows creating (`caps.createTask`); null hides the button. */
   createTo?: string | null;
+  seed?: TaskListSeed;
 };
 
 function LoadError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
@@ -102,13 +71,23 @@ export function TaskListView({
   lockedProjectId,
   onResetFilters,
   createTo,
+  seed,
 }: Props) {
   const scope = { lockedProjectId };
   const query = toTaskQuery(filters, { viewerId, lockedProjectId });
   const grouped = isGroupedView(filters, scope);
   const filtered = hasTaskFilters(filters, scope);
-  const counts = useTaskCounts({ enabled: grouped });
-  const list = useTaskList(query, { enabled: !grouped });
+  const seeded = seed && JSON.stringify(seed.query) === JSON.stringify(query) ? seed : undefined;
+  const counts = useTaskCounts({
+    enabled: grouped,
+    initialData: seeded?.counts ?? undefined,
+    initialDataUpdatedAt: seeded?.loadedAt,
+  });
+  const list = useTaskList(query, {
+    enabled: !grouped,
+    initialData: seeded?.first ? { pages: [seeded.first], pageParams: [undefined] } : undefined,
+    initialDataUpdatedAt: seeded?.loadedAt,
+  });
 
   const variant: TaskEmptyVariant = lockedProjectId
     ? 'project'
@@ -143,26 +122,13 @@ export function TaskListView({
     return <LoadError error={list.error} onRetry={() => void list.refetch()} />;
   }
   if (!list.data) return <Loading />;
-  const rows = list.data.pages.flatMap((p) => p.items);
   return (
-    <Stack gap="sm">
-      <ResponsiveTable
-        columns={COLUMNS}
-        rows={rows}
-        getRowKey={(t) => t.id}
-        renderCard={(t) => <TaskCard task={t} />}
-        empty={empty}
-        label={LIST_COPY.tableLabel}
-      />
-      {list.hasNextPage && (
-        <Button
-          variant="subtle"
-          loading={list.isFetchingNextPage}
-          onClick={() => void list.fetchNextPage()}
-        >
-          {LIST_COPY.showMore}
-        </Button>
-      )}
-    </Stack>
+    <TaskTable
+      rows={list.data.pages.flatMap((p) => p.items)}
+      empty={empty}
+      hasMore={list.hasNextPage}
+      loadingMore={list.isFetchingNextPage}
+      onMore={() => void list.fetchNextPage()}
+    />
   );
 }

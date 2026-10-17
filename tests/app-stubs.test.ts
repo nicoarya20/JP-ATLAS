@@ -14,15 +14,12 @@ const MARKER = /^\/\/ STUB\((S1|S2)\): .+$/m;
 
 /** Page stubs under app/routes/app, with the slice that fills each one in. */
 const ROUTE_STUBS: Record<string, 'S1' | 'S2'> = {
-  'app/routes/app/tasks.tsx': 'S2',
   'app/routes/app/task-new.tsx': 'S2',
   'app/routes/app/task-detail.tsx': 'S2',
-  'app/routes/app/project/tasks.tsx': 'S2',
 };
 
 /** Empty /api/app plugins (S0B-18) waiting for their slice. */
-const API_STUBS: Record<string, 'S1' | 'S2'> = {
-};
+const API_STUBS: Record<string, 'S1' | 'S2'> = {};
 
 const read = (file: string) => readFileSync(path.join(ROOT, file), 'utf8');
 const marked = (pattern: string) =>
@@ -72,8 +69,10 @@ describe('page stubs', () => {
       'app/routes/app/project/members.tsx',
       'app/routes/app/project/settings.tsx',
       'app/routes/app/project/summary.tsx',
+      'app/routes/app/project/tasks.tsx',
       'app/routes/app/projects.tsx',
       'app/routes/app/settings.tsx',
+      'app/routes/app/tasks.tsx',
     ]);
   });
 });
