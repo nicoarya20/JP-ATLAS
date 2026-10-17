@@ -36,7 +36,8 @@ export type ProjectDetail = ProjectListItem & {
   description: string | null;
   startDate: string | null;
   originalDueDate: string | null;
-  taskCounts: { active: number; overdue: number };
+  /** `live` counts every task not in the Trash, canceled ones too: what a delete would move with it. */
+  taskCounts: { active: number; overdue: number; live: number };
   can: ProjectCaps;
 };
 
@@ -104,6 +105,7 @@ export function toDetail(
   can: ProjectCaps,
   now: Date,
   cfg: MetricsConfig,
+  liveTasks = 0,
 ): ProjectDetail {
   const today = isoDateIn(now, cfg.TIME_ZONE);
   return {
@@ -114,6 +116,7 @@ export function toDetail(
     taskCounts: {
       active: tasks.filter(isActive).length,
       overdue: tasks.filter((t) => isOverdue(t, today)).length,
+      live: liveTasks,
     },
     can,
   };

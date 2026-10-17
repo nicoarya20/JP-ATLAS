@@ -33,6 +33,8 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'CancelInput FlowAction FlowAllow FlowDecision FlowEffect PrimaryAction TASK_TRANSITIONS TaskTransition canCancelTask canCompleteTask canReopenTask canStartTask canUncancelTask canUnstartTask findTransition nextStatuses primaryAction',
   'server/access/task.policy.ts':
     'NeedsReviewOnCreate NotVisible TaskActor TaskDecision authorizeTask canComment canCreateTask canEditTask canManageKinds canToggleNeedsReview canViewTask guardTask resolveNeedsReviewOnCreate taskOpen',
+  'server/access/trash.policy.ts':
+    'TrashItemCapKey TrashItemCaps TrashListScope canViewTrashItem trashItemCaps trashListScope',
   'server/access/types.ts': 'Membership Principal ProjectRole ProjectSubject TaskSubject',
   'server/access/user.policy.ts':
     'Principal UserTarget canActOnUser canInviteWithRole canManageUsers canSetUserRole',
@@ -46,7 +48,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'SCHEDULE_GROUPS ScheduleBounds ScheduleGroup scheduleBounds scheduleGroupOf',
   'server/metrics/task.metrics.ts':
     'ACTIVE_STATUSES TaskLabel TaskLabelContext ageDays isActive isOverdue isStale taskLabels',
-  'server/metrics/trash.metrics.ts': 'isRestorable trashDaysLeft',
+  'server/metrics/trash.metrics.ts': 'isRestorable lastRestorableDate trashDaysLeft',
   'server/metrics/types.ts': 'IsoDate MetricsConfig TaskLabel TaskMetricsRow',
   'server/pm/enums.ts':
     'APPROVAL_STATUSES ApprovalStatus PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
@@ -64,11 +66,14 @@ const SHARED_FILES = words(`
   docs/decisions/0002-contract-v1.md
 `);
 
-/** The eleven /app URLs of X1 D4 (/app plus ten children); /profile is outside /app/. */
+/**
+ * The twelve /app URLs: the eleven of X1 D4 (/app plus ten children) and /app/trash, added by S1-18
+ * (user decision 15 Oct 2026, option B; compatible addition, see 0002-contract-v1.md §6). /profile is outside /app/.
+ */
 const APP_URLS = words(`
   /app /app/projects /app/projects/new /app/projects/:projectId /app/projects/:projectId/tasks
   /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
-  /app/tasks/:number /app/settings
+  /app/tasks/:number /app/settings /app/trash
 `);
 
 const DECLARATION =
@@ -138,12 +143,19 @@ describe('contract-v1 routes and menu', () => {
     (u) => u === '/app' || u.startsWith('/app/'),
   );
 
-  it('registers exactly eleven /app URLs', () => {
-    expect(appUrls).toHaveLength(11);
+  it('registers exactly twelve /app URLs', () => {
+    expect(appUrls).toHaveLength(12);
     expect(appUrls.sort()).toEqual([...APP_URLS].sort());
   });
 
-  it('keeps exactly four items in the /app menu', () => {
-    expect(NAV.map((n) => n.to)).toEqual(['/app', '/app/projects', '/app/tasks', '/app/settings']);
+  // Sampah joined the menu with its page (S1-18), before Pengaturan.
+  it('keeps exactly five items in the /app menu', () => {
+    expect(NAV.map((n) => n.to)).toEqual([
+      '/app',
+      '/app/projects',
+      '/app/tasks',
+      '/app/trash',
+      '/app/settings',
+    ]);
   });
 });

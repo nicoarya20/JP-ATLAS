@@ -72,6 +72,7 @@ describe('page stubs', () => {
       'app/routes/app/task-detail.tsx',
       'app/routes/app/task-new.tsx',
       'app/routes/app/tasks.tsx',
+      'app/routes/app/trash.tsx',
     ]);
   });
 });

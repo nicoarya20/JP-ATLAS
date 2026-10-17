@@ -2,7 +2,7 @@ import { type AppCaps, appCaps } from '@server/access/capabilities';
 import { frameInfo } from '@server/app-info';
 import { requireUser } from '@server/guard';
 import { getSidebarCollapsed } from '@server/sidebar';
-import { FiCheckSquare, FiFolder, FiGrid, FiHome, FiSettings } from 'react-icons/fi';
+import { FiCheckSquare, FiFolder, FiGrid, FiHome, FiSettings, FiTrash2 } from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
@@ -35,6 +35,12 @@ export const NAV: NavItem[] = [
     icon: FiCheckSquare,
     matchPrefix: true,
     description: 'Daftar tugas yang perlu dikerjakan.',
+  },
+  {
+    to: '/app/trash',
+    label: 'Sampah',
+    icon: FiTrash2,
+    description: 'Proyek yang dihapus dan masih bisa dipulihkan.',
   },
   {
     to: '/app/settings',

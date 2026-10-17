@@ -26,6 +26,7 @@ export default [
     route('app/tasks', 'routes/app/tasks.tsx'),
     route('app/tasks/new', 'routes/app/task-new.tsx'),
     route('app/tasks/:number', 'routes/app/task-detail.tsx'),
+    route('app/trash', 'routes/app/trash.tsx'),
     route('app/settings', 'routes/app/settings.tsx'),
     route('profile', 'routes/app/profile.tsx'),
   ]),

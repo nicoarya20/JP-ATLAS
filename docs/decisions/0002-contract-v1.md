@@ -94,5 +94,7 @@ Tidak satu pun memblokir tag; semuanya dicatat agar tidak ditemukan ulang.
 
 ## 6. Yang belum diputuskan
 
+**Penambahan sesudah beku — `/app/trash` (S1-18, 17 Okt 2026):** URL `/app` bertambah dari 11 menjadi 12, dan menu `/app` dari empat menjadi lima item ("Sampah", sebelum "Pengaturan"). Kenapa: keputusan user 15 Okt 2026 **pilihan B** memasukkan halaman Sampah minimal khusus proyek ke S1 (KEPUTUSAN-MVP-INTI §6), sedangkan X1 D4 menulis daftar URL sebelum keputusan itu. Ini tambahan kompatibel (tidak ada URL, ekspor, atau menu yang diubah atau dihapus), jadi tetap `contract-v1`, bukan `contract-v2`; snapshot `tests/contract-v1.test.ts` diperbarui di commit yang sama. Tag tidak dibuat oleh tugas ini.
+
 - **Tinjauan (kriteria #16):** peninjau manusia belum menyetujui, peninjau kedua S0.b/keamanan masih `Peninjau-2 (dummy)`, dan UAT login Google (`uat/UAT-S0A.md`) belum dijalankan user. Tag tidak dipasang sampai user menyetujui atau menyatakan menerima tanpa peninjau kedua.
 - **Kriteria #17:** G-Q5 sudah dijawab user. K3 dijawab user (opsi B + siapa boleh menghapus). K1, K2, K4-K12 memakai default rencana dan dicatat di sini; belum ada pernyataan user terpisah atas K1 dan K2.

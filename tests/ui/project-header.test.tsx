@@ -52,6 +52,7 @@ const project = (over: Partial<ProjectHeaderData> = {}): ProjectHeaderData => ({
   lead: { id: 'u-1', name: 'Dodi' },
   dueDate: '2026-10-31',
   can: { update: true, createTask: true },
+  taskCounts: { active: 5, overdue: 0, live: 6 },
   ...over,
 });
 const header = (over: Partial<ProjectHeaderData> = {}) =>
@@ -96,6 +97,15 @@ describe('ProjectHeader', () => {
       HEADER_COPY.menuLabel,
     );
     expect(await header({ can: { createTask: true } })).not.toContain(HEADER_COPY.menuLabel);
+  });
+
+  it('opens the ⋯ menu for Hapus proyek only when can.trash is true (not a Member-manager)', async () => {
+    const pm = await header({ can: { update: 'NOT_MANAGER', trash: true, createTask: true } });
+    expect(pm).toContain(`aria-label="${HEADER_COPY.menuLabel}"`);
+    const memberManager = await header({
+      can: { update: 'NOT_MANAGER', trash: 'ROLE_CANNOT_TRASH', createTask: true },
+    });
+    expect(memberManager).not.toContain(HEADER_COPY.menuLabel);
   });
 
   it('says when there is no lead or no due date', async () => {
@@ -157,7 +167,7 @@ describe('ProjectSummary', () => {
       <ProjectSummary
         project={{
           progress: { done: 1, total: 6, percent: 17 },
-          taskCounts: { active: 5, overdue },
+          taskCounts: { active: 5, overdue, live: 6 },
         }}
         elapsed={null}
       />,

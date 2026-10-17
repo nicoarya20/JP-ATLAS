@@ -215,7 +215,7 @@ describe('Atlas golden numbers', () => {
 
   it('adds task counts and can{} to the detail', async () => {
     const asNico = await getProjectDetail(principal(s.users.nico), s.projects.atlas.id, NOW);
-    expect(asNico?.taskCounts).toEqual({ active: 5, overdue: 1 });
+    expect(asNico?.taskCounts).toEqual({ active: 5, overdue: 1, live: 6 });
     expect(asNico?.originalDueDate).not.toBeNull();
     expect(asNico?.can.update).toBe(true);
     expect(asNico?.can.trash).toBe(true);
