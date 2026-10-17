@@ -8,6 +8,7 @@ import { FiEdit2, FiInfo, FiMoreHorizontal } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { ConditionPill } from '~/components/pm/ConditionPill';
 import { StatusBadge } from '~/components/pm/StatusBadge';
+import { ProjectDeleteItem, showsDeleteProject } from '~/components/trash/ProjectDeleteItem';
 import { DateText } from '~/components/ui/DateText';
 import { PROJECT_STATUS_LABELS } from '~/lib/pm-labels';
 import { BANNER_COPY, HEADER_COPY, LABEL_LEAD } from './projects.copy';
@@ -17,7 +18,7 @@ const CLOSED_STATUSES: readonly ProjectStatus[] = ['completed', 'canceled', 'on_
 
 export type ProjectHeaderData = Pick<
   ProjectDetail,
-  'id' | 'name' | 'status' | 'condition' | 'lead' | 'dueDate' | 'can'
+  'id' | 'name' | 'status' | 'condition' | 'lead' | 'dueDate' | 'can' | 'taskCounts'
 >;
 
 /** The condition is only meaningful while the project runs; the server already nulls it otherwise. */
@@ -47,6 +48,7 @@ export function ProjectHeader({ project, today }: Props) {
   const condition = shownCondition(project);
   const closed = CLOSED_STATUSES.includes(project.status);
   const settled = project.status === 'completed' || project.status === 'canceled';
+  const canDelete = showsDeleteProject(project.can);
   return (
     <Stack gap="sm">
       {/* nowrap is safe: the only button is one 44px icon and the title itself wraps. */}
@@ -54,7 +56,7 @@ export function ProjectHeader({ project, today }: Props) {
         <Title order={2} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
           {project.name}
         </Title>
-        {project.can.update === true && (
+        {(project.can.update === true || canDelete) && (
           <Menu position="bottom-end" withinPortal>
             <Menu.Target>
               <ActionIcon variant="subtle" color="gray" aria-label={HEADER_COPY.menuLabel}>
@@ -62,13 +64,21 @@ export function ProjectHeader({ project, today }: Props) {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item
-                component={Link}
-                to={`/app/projects/${encodeURIComponent(project.id)}/settings`}
-                leftSection={<FiEdit2 size="1.25em" aria-hidden />}
-              >
-                {HEADER_COPY.edit}
-              </Menu.Item>
+              {project.can.update === true && (
+                <Menu.Item
+                  component={Link}
+                  to={`/app/projects/${encodeURIComponent(project.id)}/settings`}
+                  leftSection={<FiEdit2 size="1.25em" aria-hidden />}
+                >
+                  {HEADER_COPY.edit}
+                </Menu.Item>
+              )}
+              {canDelete && (
+                <ProjectDeleteItem
+                  target={{ id: project.id, name: project.name, tasks: project.taskCounts.live }}
+                  today={today}
+                />
+              )}
             </Menu.Dropdown>
           </Menu>
         )}

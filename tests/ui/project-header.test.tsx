@@ -52,6 +52,7 @@ const project = (over: Partial<ProjectHeaderData> = {}): ProjectHeaderData => ({
   lead: { id: 'u-1', name: 'Dodi' },
   dueDate: '2026-10-31',
   can: { update: true, createTask: true },
+  taskCounts: { active: 5, overdue: 0, live: 6 },
   ...over,
 });
 const header = (over: Partial<ProjectHeaderData> = {}) =>
@@ -157,7 +158,7 @@ describe('ProjectSummary', () => {
       <ProjectSummary
         project={{
           progress: { done: 1, total: 6, percent: 17 },
-          taskCounts: { active: 5, overdue },
+          taskCounts: { active: 5, overdue, live: 6 },
         }}
         elapsed={null}
       />,

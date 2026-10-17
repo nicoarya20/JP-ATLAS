@@ -173,8 +173,16 @@ export async function getProjectDetail(
   const membership = (await loadMembership(p.id, [projectId], exec)).get(projectId) ?? null;
   // View first: `can{}` of a hidden project must never be computed, let alone returned.
   if (!canViewProject(p, row, membership).ok) return null;
-  const tasks = (await loadTasks(exec, [projectId])).get(projectId) ?? [];
-  return toDetail(row, tasks, membership, projectCaps(p, row, membership), now, cfg);
+  const [tasks, [live]] = await Promise.all([
+    loadTasks(exec, [projectId]),
+    // Canceled tasks are outside `loadTasks` but still move to the Trash with the project (S1-18 dialog).
+    exec
+      .select({ n: count() })
+      .from(task)
+      .where(and(eq(task.projectId, projectId), isLive(task))),
+  ]);
+  const can = projectCaps(p, row, membership);
+  return toDetail(row, tasks.get(projectId) ?? [], membership, can, now, cfg, live?.n ?? 0);
 }
 
 const ROLE_RANK = new Map<string, number>(PROJECT_MEMBER_ROLES.map((r, i) => [r, i]));

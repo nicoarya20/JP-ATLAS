@@ -33,6 +33,8 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'CancelInput FlowAction FlowAllow FlowDecision FlowEffect PrimaryAction TASK_TRANSITIONS TaskTransition canCancelTask canCompleteTask canReopenTask canStartTask canUncancelTask canUnstartTask findTransition nextStatuses primaryAction',
   'server/access/task.policy.ts':
     'NeedsReviewOnCreate NotVisible TaskActor TaskDecision authorizeTask canComment canCreateTask canEditTask canManageKinds canToggleNeedsReview canViewTask guardTask resolveNeedsReviewOnCreate taskOpen',
+  'server/access/trash.policy.ts':
+    'TrashItemCapKey TrashItemCaps TrashListScope canViewTrashItem trashItemCaps trashListScope',
   'server/access/types.ts': 'Membership Principal ProjectRole ProjectSubject TaskSubject',
   'server/access/user.policy.ts':
     'Principal UserTarget canActOnUser canInviteWithRole canManageUsers canSetUserRole',
@@ -46,7 +48,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'SCHEDULE_GROUPS ScheduleBounds ScheduleGroup scheduleBounds scheduleGroupOf',
   'server/metrics/task.metrics.ts':
     'ACTIVE_STATUSES TaskLabel TaskLabelContext ageDays isActive isOverdue isStale taskLabels',
-  'server/metrics/trash.metrics.ts': 'isRestorable trashDaysLeft',
+  'server/metrics/trash.metrics.ts': 'isRestorable lastRestorableDate trashDaysLeft',
   'server/metrics/types.ts': 'IsoDate MetricsConfig TaskLabel TaskMetricsRow',
   'server/pm/enums.ts':
     'APPROVAL_STATUSES ApprovalStatus PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
