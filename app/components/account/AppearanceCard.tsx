@@ -4,7 +4,7 @@ import type { TextSize } from '@server/pm/enums';
 import { textSizeCookie } from '@server/text-size';
 import { useMutation } from '@tanstack/react-query';
 import { useRevalidator } from 'react-router';
-import { notifyError } from '~/lib/notify';
+import { notify } from '~/components/ui/notify';
 import { patchMyProfile } from '~/lib/profile-api';
 import { SettingsCard } from '../settings/SettingsParts';
 import { APPEARANCE_COPY } from './account.copy';
@@ -35,7 +35,7 @@ export function AppearanceCard({ textSize }: { textSize: TextSize }) {
       await revalidator.revalidate();
     },
     onSuccess: () => notifications.show({ color: 'teal', message: APPEARANCE_COPY.saved }),
-    onError: (err) => notifyError(APPEARANCE_COPY.saveFailed, err),
+    onError: (err) => notify.fail(APPEARANCE_COPY.saveFailed, err),
   });
 
   return (

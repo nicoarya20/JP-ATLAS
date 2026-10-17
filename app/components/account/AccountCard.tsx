@@ -2,7 +2,7 @@ import { Button, Group, SimpleGrid, Stack, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { notifyError } from '~/lib/notify';
+import { notify } from '~/components/ui/notify';
 import { type MyProfile, type MyProfilePatch, patchMyProfile } from '~/lib/profile-api';
 import { AvatarField } from '../profile/AvatarField';
 import { SettingsCard } from '../settings/SettingsParts';
@@ -55,7 +55,7 @@ export function AccountCard({
       notifications.show({ color: 'teal', message: ACCOUNT_COPY.saved });
       onSaved();
     },
-    onError: (err) => notifyError(ACCOUNT_COPY.saveFailed, err),
+    onError: (err) => notify.fail(ACCOUNT_COPY.saveFailed, err),
   });
 
   const field = (key: FieldKey) => ({

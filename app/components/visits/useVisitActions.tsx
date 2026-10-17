@@ -3,19 +3,12 @@ import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { notify } from '~/components/ui/notify';
 import { useTimeFormat } from '~/lib/time-format';
 import { deleteVisit, deleteVisits, purgeLogs, type VisitRow } from '~/lib/visits-api';
 
 const PURGE_DAYS = 30;
 const nf = new Intl.NumberFormat('id-ID');
-
-function notifyError(title: string, err: unknown) {
-  notifications.show({
-    color: 'red',
-    title,
-    message: err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.',
-  });
-}
 
 /** Destructive visit-log actions with confirm dialogs, loading state, and feedback. */
 export function useVisitActions({ onDone }: { onDone: () => void }) {
@@ -38,7 +31,7 @@ export function useVisitActions({ onDone }: { onDone: () => void }) {
       notifications.show({ color: 'teal', message: 'Kunjungan dihapus.' });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menghapus kunjungan', e),
+    onError: (e) => notify.fail('Gagal menghapus kunjungan', e),
   });
 
   const bulk = useMutation({
@@ -48,7 +41,7 @@ export function useVisitActions({ onDone }: { onDone: () => void }) {
       notifications.show({ color: 'teal', message: `${nf.format(r.deleted)} kunjungan dihapus.` });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menghapus kunjungan terpilih', e),
+    onError: (e) => notify.fail('Gagal menghapus kunjungan terpilih', e),
   });
 
   const purge = useMutation({
@@ -62,7 +55,7 @@ export function useVisitActions({ onDone }: { onDone: () => void }) {
       });
       onDone();
     },
-    onError: (e) => notifyError('Gagal membersihkan log', e),
+    onError: (e) => notify.fail('Gagal membersihkan log', e),
   });
 
   const deleteOne = (row: VisitRow) =>

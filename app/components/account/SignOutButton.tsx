@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { FiLogOut } from 'react-icons/fi';
 import { useNavigate } from 'react-router';
 import { confirmAction } from '~/components/ui/confirmAction';
+import { notify } from '~/components/ui/notify';
 import { signOut } from '~/lib/auth-client';
-import { notifyError } from '~/lib/notify';
 import { SIGN_OUT_COPY } from './account.copy';
 
 /** "Keluar dari akun" with the shared T2 confirm dialog; spins until the session is gone. */
@@ -21,7 +21,7 @@ export function SignOutButton() {
     } catch (err) {
       // The session is still valid, so the user stays here and can try again.
       setLeaving(false);
-      notifyError(SIGN_OUT_COPY.failed, err);
+      notify.fail(SIGN_OUT_COPY.failed, err);
     }
   };
 

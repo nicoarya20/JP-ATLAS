@@ -13,6 +13,7 @@ const h = createElement as (
 export const SUCCESS_SECONDS = 5;
 export const ERROR_SECONDS = 8;
 export const UNDO_LABEL = 'Urungkan';
+export const FALLBACK_ERROR = 'Terjadi kesalahan. Coba lagi.';
 
 const ms = (seconds: number) => seconds * 1000;
 // A counter instead of crypto.randomUUID(): that API is missing on plain-http origins.
@@ -27,6 +28,10 @@ export const notify = {
   /** Stays longer than success so the reader can act on the message. */
   error(title: string, message: string) {
     notifications.show({ color: 'danger', title, message, autoClose: ms(ERROR_SECONDS) });
+  },
+  /** Error toast for a caught failure: the Error's message when there is one, else a generic retry hint. */
+  fail(title: string, err: unknown) {
+    notify.error(title, err instanceof Error ? err.message : FALLBACK_ERROR);
   },
   /** Confirmation with an "Urungkan" button, available for `UNDO_WINDOW_SECONDS` (T1 undo, no dialog). */
   undo(message: string, onUndo: () => void) {

@@ -3,20 +3,13 @@ import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { notify } from '~/components/ui/notify';
 import { deleteLogin, deleteLogins, type LoginRow } from '~/lib/login-logs-api';
 import { useTimeFormat } from '~/lib/time-format';
 import { purgeLogs } from '~/lib/visits-api';
 
 const PURGE_DAYS = 30;
 const nf = new Intl.NumberFormat('id-ID');
-
-function notifyError(title: string, err: unknown) {
-  notifications.show({
-    color: 'red',
-    title,
-    message: err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.',
-  });
-}
 
 /** Destructive login-log actions with confirm dialogs, loading state, and feedback. */
 export function useLoginActions({ onDone }: { onDone: () => void }) {
@@ -39,7 +32,7 @@ export function useLoginActions({ onDone }: { onDone: () => void }) {
       notifications.show({ color: 'teal', message: 'Login log dihapus.' });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menghapus login log', e),
+    onError: (e) => notify.fail('Gagal menghapus login log', e),
   });
 
   const bulk = useMutation({
@@ -49,7 +42,7 @@ export function useLoginActions({ onDone }: { onDone: () => void }) {
       notifications.show({ color: 'teal', message: `${nf.format(r.deleted)} login log dihapus.` });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menghapus login log terpilih', e),
+    onError: (e) => notify.fail('Gagal menghapus login log terpilih', e),
   });
 
   const purge = useMutation({
@@ -64,7 +57,7 @@ export function useLoginActions({ onDone }: { onDone: () => void }) {
       });
       onDone();
     },
-    onError: (e) => notifyError('Gagal membersihkan log', e),
+    onError: (e) => notify.fail('Gagal membersihkan log', e),
   });
 
   const deleteOne = (row: LoginRow) =>
