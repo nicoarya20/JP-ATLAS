@@ -4,8 +4,8 @@ import { notifications } from '@mantine/notifications';
 import type { Role } from '@server/permissions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { notify } from '~/components/ui/notify';
 import { type AdminUser, approveUser, ROLE_LABEL, rejectUser } from '~/lib/admin-users-api';
-import { notifyError } from '~/lib/notify';
 import { type RejectHandle, RejectReasonForm } from './RejectReasonForm';
 
 const roleLabel = (r: string) => ROLE_LABEL[r] ?? r;
@@ -55,7 +55,7 @@ export function useApprovalActions({ onDone }: { onDone: () => void }) {
       });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menyetujui akun', e),
+    onError: (e) => notify.fail('Gagal menyetujui akun', e),
   });
   const rejectMutation = useMutation({
     mutationFn: (a: { user: AdminUser; reason: string }) => rejectUser(a.user.id, a.reason),
@@ -69,7 +69,7 @@ export function useApprovalActions({ onDone }: { onDone: () => void }) {
       });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menolak pendaftaran', e),
+    onError: (e) => notify.fail('Gagal menolak pendaftaran', e),
   });
 
   /** `roles` are the roles this actor may grant to the account (from `userAccess`). */

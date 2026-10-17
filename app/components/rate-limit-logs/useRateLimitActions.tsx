@@ -3,20 +3,13 @@ import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { notify } from '~/components/ui/notify';
 import { deleteRateLimit, deleteRateLimits, type RateLimitRow } from '~/lib/rate-limit-logs-api';
 import { useTimeFormat } from '~/lib/time-format';
 import { purgeLogs } from '~/lib/visits-api';
 
 const PURGE_DAYS = 30;
 const nf = new Intl.NumberFormat('id-ID');
-
-function notifyError(title: string, err: unknown) {
-  notifications.show({
-    color: 'red',
-    title,
-    message: err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.',
-  });
-}
 
 /** Destructive rate-limit-log actions with confirm dialogs, loading state, and feedback. */
 export function useRateLimitActions({ onDone }: { onDone: () => void }) {
@@ -39,7 +32,7 @@ export function useRateLimitActions({ onDone }: { onDone: () => void }) {
       notifications.show({ color: 'teal', message: 'Catatan rate limit dihapus.' });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menghapus catatan', e),
+    onError: (e) => notify.fail('Gagal menghapus catatan', e),
   });
 
   const bulk = useMutation({
@@ -49,7 +42,7 @@ export function useRateLimitActions({ onDone }: { onDone: () => void }) {
       notifications.show({ color: 'teal', message: `${nf.format(r.deleted)} catatan dihapus.` });
       onDone();
     },
-    onError: (e) => notifyError('Gagal menghapus catatan terpilih', e),
+    onError: (e) => notify.fail('Gagal menghapus catatan terpilih', e),
   });
 
   const purge = useMutation({
@@ -65,7 +58,7 @@ export function useRateLimitActions({ onDone }: { onDone: () => void }) {
       });
       onDone();
     },
-    onError: (e) => notifyError('Gagal membersihkan log', e),
+    onError: (e) => notify.fail('Gagal membersihkan log', e),
   });
 
   const deleteOne = (row: RateLimitRow) =>

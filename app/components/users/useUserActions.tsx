@@ -4,6 +4,7 @@ import { notifications } from '@mantine/notifications';
 import { normalizeRole, ROLES } from '@server/permissions';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { notify } from '~/components/ui/notify';
 import {
   type AdminUser,
   banUser,
@@ -13,7 +14,6 @@ import {
   unbanUser,
 } from '~/lib/admin-users-api';
 import { authClient } from '~/lib/auth-client';
-import { notifyError } from '~/lib/notify';
 import { BanUserForm } from './BanUserForm';
 import { useApprovalActions } from './useApprovalActions';
 
@@ -43,7 +43,7 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
       notifications.show({ color: 'teal', message: success(a) });
       onDone();
     },
-    onError: (e: unknown) => notifyError(errTitle, e),
+    onError: (e: unknown) => notify.fail(errTitle, e),
   });
 
   const role = useMutation({
@@ -159,7 +159,7 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
         const { error } = await authClient.admin.impersonateUser({ userId: user.id });
         setBusyId(null);
         if (error)
-          return notifyError('Impersonasi gagal', new Error(error.message ?? 'Ditolak server'));
+          return notify.fail('Impersonasi gagal', new Error(error.message ?? 'Ditolak server'));
         // Land on /go so the impersonated user's role decides their home.
         window.location.assign('/go');
       },

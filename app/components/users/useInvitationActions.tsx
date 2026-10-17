@@ -4,9 +4,9 @@ import { notifications } from '@mantine/notifications';
 import { INVITATION_TTL_DAYS } from '@server/account/limits';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { notify } from '~/components/ui/notify';
 import { ROLE_LABEL } from '~/lib/admin-users-api';
 import { type AdminInvitation, createInvitation, revokeInvitation } from '~/lib/invitations-api';
-import { notifyError } from '~/lib/notify';
 
 /** Create (no dialog: it is easy to undo) and revoke (confirm dialog) invitations with loading state and feedback. */
 export function useInvitationActions() {
@@ -24,7 +24,7 @@ export function useInvitationActions() {
         message: `Saat ${a.email} masuk dengan Google, akunnya langsung disetujui sebagai ${ROLE_LABEL[a.role] ?? a.role}. Undangan berlaku ${INVITATION_TTL_DAYS} hari.`,
       });
     },
-    onError: (e) => notifyError('Gagal membuat undangan', e),
+    onError: (e) => notify.fail('Gagal membuat undangan', e),
   });
 
   const revokeMutation = useMutation({
@@ -35,7 +35,7 @@ export function useInvitationActions() {
       await invalidate();
       notifications.show({ color: 'teal', message: `Undangan untuk ${inv.email} dicabut.` });
     },
-    onError: (e) => notifyError('Gagal mencabut undangan', e),
+    onError: (e) => notify.fail('Gagal mencabut undangan', e),
   });
 
   const revoke = (inv: AdminInvitation) =>
