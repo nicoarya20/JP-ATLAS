@@ -389,6 +389,31 @@ Semua kegagalan punya wajah yang konsisten, di UI maupun API:
 
 Versi aplikasi punya satu sumber: `version` di `package.json` (dibaca `server/app-info.ts`). Nilai yang sama tampil di header sidebar konsol, halaman Tools, statistik landing, dan `GET /api/version` (publik, tanpa auth) yang mengembalikan `{ name, version, env, bun }` — cocok untuk probe deploy/uptime. Naikkan versi lewat `package.json` saja.
 
+### Kontrak API proyek & profil (S1)
+
+Semua rute di bawah ada di `/api/app` (butuh sesi atau API key ber-scope `app:read`/`app:write`; rute yang ditandai **sesi** ditolak untuk API key). Galat berbentuk `{ error, code, status, requestId }`. Proyek yang tidak ada, sudah di Sampah, atau tidak boleh dilihat penelepon selalu menjawab `404 NOT_FOUND` yang sama.
+
+| Endpoint | Fungsi |
+|---|---|
+| `GET /projects?scope=mine\|all&status=&q=&sort=due\|name\|recent&page=&limit=` | Daftar proyek yang boleh dilihat → `{ items, total, page, limit }` (`limit` default 25, maks. 100); Member yang meminta `all` mendapat `mine` |
+| `GET /projects/:id` | Satu proyek beserta peta `can{}` (tombol apa yang boleh dipakai penelepon) |
+| `POST /projects` `{ name, description?, status?, priority?, leadId?, startDate?, dueDate?, members?, tasksNeedReviewDefault? }` | Buat proyek (Project Manager ke atas) → `201` detail proyek; `status` awal `draft` atau `active`; penelepon dan Pengelola utama otomatis menjadi pengelola; tanggal `YYYY-MM-DD`; kunci di luar daftar (mis. `createdBy`, `deletedAt`) diabaikan |
+| `PATCH /projects/:id` `{ name?, description?, priority?, startDate?, dueDate? }` | Ubah proyek (pengelola, Admin); status dan Pengelola utama punya rute sendiri |
+| `POST /projects/:id/status` `{ status }` | Pindah status: `draft`, `active`, `on_hold`, `completed`, `canceled` |
+| `PUT /projects/:id/lead` `{ userId }` | Jadikan pengelola lain sebagai Pengelola utama (**sesi**) |
+| `DELETE /projects/:id` | Pindahkan proyek dan tugasnya ke Sampah → `{ id, tasks }` (**sesi**, tercatat di audit; `403 ROLE_CANNOT_TRASH` untuk pengelola berperan Member) |
+| `GET /projects/:id/members` | Anggota proyek, pengelola lebih dulu → `{ items }` |
+| `POST /projects/:id/members` `{ userId, role }` | Tambah anggota (`manager`, `member`, `viewer`) → `201 { items }` (**sesi**); orang yang sudah anggota → `422` |
+| `PATCH /projects/:id/members/:userId` `{ role }` | Ubah peran anggota (**sesi**); pengelola terakhir dan Pengelola utama tetap pengelola → `409 LAST_MANAGER`/`IS_LEAD` |
+| `DELETE /projects/:id/members/:userId` | Keluarkan anggota (**sesi**); bukan diri sendiri, bukan pengelola terakhir, bukan Pengelola utama |
+| `GET /team/picker?q=&projectId=&limit=` | Pemilih orang → `{ items: [{ id, name, jobTitle, image }] }`; tanpa `projectId` hanya untuk yang boleh membuat proyek |
+| `GET /profile` | Profil sendiri |
+| `PATCH /profile` `{ displayName?, phone?, jobTitle?, department?, textSize? }` | Ubah profil sendiri (**sesi**); `textSize` salah satu `normal`, `besar`, `sangat_besar` dan ikut mengatur cookie ukuran teks |
+| `GET /trash?page=&limit=` | Proyek di Sampah yang boleh dilihat penelepon → `{ items, total, page, limit }`, yang terbaru dihapus di atas |
+| `POST /trash/project/:id/restore` | Pulihkan proyek dan tugasnya → `{ id, tasks }` (**sesi**, tercatat di audit); lewat masa simpan → `410 EXPIRED` |
+
+Halaman S1 (semua butuh login): `/app/projects` (daftar), `/app/projects/new` (proyek baru), `/app/projects/:projectId` (ringkasan) dengan tab `/tasks`, `/members`, dan `/settings` (Ubah proyek), `/app/trash` (Sampah), dan `/app/settings` (Pengaturan). `/profile` dialihkan ke `/app/settings`.
+
 ## API keys
 
 Akses terprogram ke `/api/*` tanpa cookie sesi. Dikelola super-admin di `/dev/api-keys`; dibangun di atas plugin `@better-auth/api-key` (kunci di-hash, hanya prefix yang disimpan terbaca).
