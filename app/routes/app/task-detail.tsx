@@ -1,31 +1,82 @@
+import { Paper, Stack, Text, Title } from '@mantine/core';
 import { requireUser } from '@server/guard';
-import { FiCheckSquare } from 'react-icons/fi';
-import { EmptyState } from '~/components/ui/EmptyState';
+import { toPrincipal } from '@server/project/membership.query';
+import { requestClock } from '@server/task/task.clock';
+import type { TaskDetail } from '@server/task/task.dto';
+import { getTaskDetail } from '@server/task/task-detail.query';
+import { useQuery } from '@tanstack/react-query';
+import { data } from 'react-router';
+import { TaskHeader } from '~/components/tasks/TaskHeader';
+import { DETAIL_COPY, NOT_FOUND_TEXT } from '~/components/tasks/tasks.copy';
+import { BackLink } from '~/components/ui/BackLink';
 import { PageContainer } from '~/components/ui/PageContainer';
-import { PageHeader } from '~/components/ui/PageHeader';
+import { toJson } from '~/lib/loader-json';
+import { taskBackPath } from '~/lib/task-back';
+import { fetchTask, taskKeys } from '~/lib/tasks-api';
 import type { Route } from './+types/task-detail';
 
-// STUB(S2): diisi irisan S2 detail tugas; hapus dari tes app-stubs saat terisi
+const TASK_NUMBER = /^\d+$/;
 
-export function meta() {
-  return [{ title: 'Detail Tugas — Simple PM' }];
+export function meta({ loaderData }: Route.MetaArgs) {
+  const task = loaderData?.task;
+  return [
+    {
+      title: task
+        ? `#${task.number} ${task.title} — Simple PM`
+        : `${DETAIL_COPY.fallbackTitle} — Simple PM`,
+    },
+  ];
 }
 
-export async function loader({ request }: Route.LoaderArgs) {
-  await requireUser(request);
-  return null;
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const actor = await requireUser(request);
+  // The page is addressed by task number only (KB-2); an id or junk answers the same 404 as a hidden task.
+  if (!TASK_NUMBER.test(params.number)) throw data(NOT_FOUND_TEXT, { status: 404 });
+  const clock = requestClock();
+  const res = await getTaskDetail(toPrincipal(actor), params.number, clock);
+  if (!res.ok) throw data(NOT_FOUND_TEXT, { status: 404 });
+  return {
+    task: toJson<TaskDetail>(res.task),
+    // "Today" is the server's, so "terlambat" matches the labels the server computed.
+    today: clock.today,
+    back: taskBackPath(request.url, request.headers.get('referer')),
+    loadedAt: Date.now(),
+  };
 }
 
-/** Placeholder page until the S2 slice fills it in. */
-export default function TaskDetailStub() {
+/** Header, step buttons and description of one task; checklist and timeline join in S2-13. */
+export default function TaskDetailPage({ loaderData, params }: Route.ComponentProps) {
+  const { today, back, loadedAt } = loaderData;
+  // Every task write invalidates `taskKeys.all`, so this refetches after a step or a 409 conflict.
+  const { data: task } = useQuery({
+    queryKey: taskKeys.detail(params.number),
+    queryFn: () => fetchTask(params.number),
+    initialData: loaderData.task,
+    initialDataUpdatedAt: loadedAt,
+  });
   return (
     <PageContainer>
-      <PageHeader title="Detail Tugas" description="Lihat isi, catatan, dan perkembangan tugas." />
-      <EmptyState
-        icon={FiCheckSquare}
-        title="Fitur ini sedang disiapkan"
-        description="Halaman ini akan segera bisa dipakai."
-      />
+      <div>
+        <BackLink fallback={back} label={DETAIL_COPY.back} />
+      </div>
+      <TaskHeader task={task} today={today} />
+      <Stack gap="lg">
+        <Paper withBorder p={{ base: 'sm', md: 'md' }} radius="md">
+          <Stack gap="xs">
+            <Title order={3}>{DETAIL_COPY.description}</Title>
+            {task.description ? (
+              // User text: keep line breaks, render as plain text (never HTML).
+              <Text style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                {task.description}
+              </Text>
+            ) : (
+              <Text c="dimmed">{DETAIL_COPY.noDescription}</Text>
+            )}
+          </Stack>
+        </Paper>
+        {/* S2-13 hand-over: Langkah-langkah (checklist) and Obrolan & riwayat (timeline + comment box)
+            go here as one section each, reading `task` and `params.number`. */}
+      </Stack>
     </PageContainer>
   );
 }
