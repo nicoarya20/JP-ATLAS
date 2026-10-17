@@ -7,6 +7,7 @@ export * from './schema.app';
 export * from './schema.auth';
 export * from './schema.keys';
 export * from './schema.logs';
+export * from './schema.notification';
 export * from './schema.profile';
 export * from './schema.project';
 export * from './schema.project-history';
