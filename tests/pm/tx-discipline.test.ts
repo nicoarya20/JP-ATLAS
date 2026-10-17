@@ -133,6 +133,23 @@ describe('server/**/*.service.ts obey the transaction rules', () => {
   });
 });
 
+describe('server/task/** obeys the transaction rules (S2-07)', () => {
+  // Queries and helpers live outside `*.service.ts` too; any inTx callback there must also use `tx` only.
+  it('has no db. (or other forbidden call) inside an inTx callback in any task file', () => {
+    const files = [...new Glob('server/task/**/*.ts').scanSync(ROOT)];
+    const withTx = files.filter((rel) =>
+      /\binTx\s*\(/.test(readFileSync(path.join(ROOT, rel), 'utf8')),
+    );
+    expect(withTx.length).toBeGreaterThan(0);
+    const offenders = files.flatMap((rel) =>
+      scanTxDiscipline(readFileSync(path.join(ROOT, rel), 'utf8')).map(
+        (v) => `${rel}:${v.line} ${v.rule}`,
+      ),
+    );
+    expect(offenders).toEqual([]);
+  });
+});
+
 describe('inTx', () => {
   it('runs the callback through db.transaction and returns its result', async () => {
     const fakeTx = { marker: 'tx' };
