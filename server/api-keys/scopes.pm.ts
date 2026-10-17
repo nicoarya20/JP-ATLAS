@@ -12,6 +12,17 @@ export const PM_KEY_DENY: readonly Deny[] = [
   { id: '* avatar', method: '*', path: /^\/api\/app\/avatar(?:\/.*)?$/i },
   // Restoring undoes a delete and brings data back for everyone: as sensitive as the delete (S1-05).
   { id: 'POST trash/*', method: 'POST', path: /^\/api\/app\/trash\/.+/i },
+  // Removing a checklist step or a comment is a hard delete (S2-06): keys may add and edit, not remove.
+  {
+    id: 'DELETE tasks/*/checklist/*',
+    method: 'DELETE',
+    path: /^\/api\/app\/tasks\/.*\/checklist(?:\/.*)?$/i,
+  },
+  {
+    id: 'DELETE tasks/*/comments/*',
+    method: 'DELETE',
+    path: /^\/api\/app\/tasks\/.*\/comments(?:\/.*)?$/i,
+  },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -22,6 +33,8 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'PATCH profile': 'app-profile.ts',
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts
   'POST trash/*': 'app-trash.ts',
+  'DELETE tasks/*/checklist/*': 'app-tasks.detail.ts',
+  'DELETE tasks/*/comments/*': 'app-tasks.detail.ts',
 };
 
 /** True when an API key may not call this route, whatever scopes it holds. */

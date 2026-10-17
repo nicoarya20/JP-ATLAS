@@ -24,7 +24,6 @@ const ROUTE_STUBS: Record<string, 'S1' | 'S2'> = {
 
 /** Empty /api/app plugins (S0B-18) waiting for their slice. */
 const API_STUBS: Record<string, 'S1' | 'S2'> = {
-  'server/api/app-tasks.detail.ts': 'S2',
 };
 
 const read = (file: string) => readFileSync(path.join(ROOT, file), 'utf8');

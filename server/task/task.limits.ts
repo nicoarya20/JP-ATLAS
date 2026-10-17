@@ -24,6 +24,15 @@ export const TASK_SORT_DEFAULT: TaskSort = 'due';
 export const TASK_CHECKLIST_TEXT_MAX = 300;
 export const TASK_CHECKLIST_INITIAL_MAX = 20;
 
+/** Most steps one task may hold (S2-06); adding past it answers 422 (ASUMSI: no number in R02/R04). */
+export const TASK_CHECKLIST_MAX_ITEMS = 50;
+
+/** Longest comment, counted before trimming (ASUMSI: the comment box counter uses the same number). */
+export const TASK_COMMENT_MAX = 2000;
+
+/** Author shown on a timeline entry whose account was removed (`author_id`/`actor_id` nulled). */
+export const TASK_FORMER_MEMBER_LABEL = 'Mantan anggota';
+
 /** `task_activity.action` values written by the create/update service (S2-04); the timeline (S2-06) reads them. */
 export const TASK_ACTIVITY = {
   created: 'created',
@@ -37,6 +46,8 @@ export const TASK_ACTIVITY = {
   reopen: 'reopened',
   cancel: 'canceled',
   uncancel: 'uncanceled',
+  // Comment removal (S2-06, D6): payload `{ commentId }` only, never the comment text.
+  commentDelete: 'comment.delete',
 } as const;
 
 /** Workflow steps the API offers in S2 (P3 §5); each has a `POST /tasks/:ref/<action>` route. */
@@ -68,4 +79,9 @@ export const TASK_WRITE_MESSAGES = {
   kindNotInProject: 'Jenis tugas ini tidak ada di proyek ini.',
   noDefaultKind: 'Proyek ini belum punya jenis tugas. Hubungi pengelola proyek.',
   startAfterDue: 'Tanggal mulai tidak boleh sesudah tenggat.',
+  stepTooLong: `Langkah paling panjang ${TASK_CHECKLIST_TEXT_MAX} karakter.`,
+  tooManySteps: `Satu tugas paling banyak punya ${TASK_CHECKLIST_MAX_ITEMS} langkah.`,
+  emptyComment: 'Komentar tidak boleh kosong.',
+  commentTooLong: `Komentar paling panjang ${TASK_COMMENT_MAX} karakter.`,
+  nothingToChange: 'Tidak ada yang diubah.',
 } as const;
