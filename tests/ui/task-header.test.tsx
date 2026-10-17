@@ -168,7 +168,7 @@ describe('TaskHeader menu and banners', () => {
     expect(hasTaskMenu({ number: 1, can: { cancel: 'IMPERSONATING' } })).toBe(true);
   });
 
-  it('the menu cancels with an explanation and has no delete or dead edit item', () => {
+  it('the menu cancels with an explanation and has no delete item', () => {
     const src = readFileSync(
       path.join(import.meta.dir, '../../app/components/tasks/TaskMenu.tsx'),
       'utf8',
@@ -177,7 +177,7 @@ describe('TaskHeader menu and banners', () => {
     expect(DETAIL_COPY.cancelHint).toBe(
       'Batalkan tugas — tugas tidak dihapus; tetap tercatat sebagai Dibatalkan dan bisa dipulihkan.',
     );
-    expect(src).not.toMatch(/Hapus|delete|Ubah tugas|segera/i);
+    expect(src).not.toMatch(/Hapus|delete|segera/i);
   });
 
   it.each(['completed', 'canceled', 'on_hold'] as const)(

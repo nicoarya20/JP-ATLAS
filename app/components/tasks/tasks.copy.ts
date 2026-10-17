@@ -143,6 +143,7 @@ export const DETAIL_COPY = {
   description: 'Deskripsi',
   noDescription: 'Belum ada deskripsi.',
   menuLabel: 'Aksi lain untuk tugas ini',
+  edit: 'Ubah tugas',
   reopen: 'Buka lagi',
   uncancel: 'Pulihkan',
   // X1-Q1: there is no delete; canceling keeps the task, so the menu says so in plain words.
