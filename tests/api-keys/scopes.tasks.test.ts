@@ -88,8 +88,10 @@ describe('task detail route scopes (S2-06)', () => {
     expect(requiredScope('DELETE', path)).toBeNull();
   });
 
-  // S6 (P8 Q2, user decision 18 Oct 2026) widened the rule: every DELETE below a task is
-  // session-only, the task itself included. Reads and writes of the same paths stay open.
+  // S6 widened the rule: every DELETE below a task is session-only, the task itself included, so
+  // the S2 expectation here is reversed on purpose. Source: the user decision in
+  // `tahapan-proyek/05-implementasi/JADWAL-S3-S8.md` §5 no. 4 ("kunci API tidak boleh menghapus
+  // tugas"), which answers P8 Q2. Reads and writes of the same paths stay open.
   test('the delete patterns do not swallow reads or writes of the same paths', () => {
     expect(isPmKeyDenied('PATCH', '/api/app/tasks/482/comments/comment-1')).toBe(false);
     expect(isPmKeyDenied('GET', '/api/app/tasks/482/timeline')).toBe(false);

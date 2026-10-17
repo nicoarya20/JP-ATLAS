@@ -14,8 +14,9 @@ export const PM_KEY_DENY: readonly Deny[] = [
   { id: 'POST trash/*', method: 'POST', path: /^\/api\/app\/trash\/.+/i },
   // Permanent delete is irreversible and Admin-only even in a session (S6, P8 §5): never by key.
   { id: 'DELETE trash/*', method: 'DELETE', path: /^\/api\/app\/trash\/.+/i },
-  // Sending a task to the Trash stays session-only too (user decision 18 Oct 2026, P8 Q2). Loose on
-  // purpose: every delete below a task (the step and comment rules above) is session-only as well.
+  // Sending a task to the Trash stays session-only too (user decision in
+  // `tahapan-proyek/05-implementasi/JADWAL-S3-S8.md` §5 no. 4, answering P8 Q2). Loose on purpose:
+  // every delete below a task (the step and comment rules above) is session-only as well.
   { id: 'DELETE tasks/:id', method: 'DELETE', path: /^\/api\/app\/tasks\/.+/i },
   // Removing a checklist step or a comment is a hard delete (S2-06): keys may add and edit, not remove.
   {
@@ -47,8 +48,11 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
 /**
  * Deny ids whose route is not registered yet: the denial is in place first (Z-01) and the route
  * lands later in the same S6 slice, so the sweep that asserts "this pattern matches a real route"
- * reports them as skipped instead of failing. Remove an id here in the task that adds its route:
- * `DELETE trash/:kind/:id` is Z-04.
+ * reports them as skipped instead of failing.
+ *
+ * TODO(trash): scaffolding, agreed with the S6 coordinator as temporary debt — `DELETE trash/*`
+ * must be removed from this list by Z-04 (`DELETE /api/app/trash/:kind/:id`, the task that
+ * registers the route), and at the latest by the Z-08 gate, which fails if the list is not empty.
  */
 export const PM_DENY_PENDING: readonly string[] = ['DELETE trash/*'];
 
