@@ -39,6 +39,8 @@ export const AUDIT_ACTIONS = {
   APIKEY_ROTATE: 'apikey.rotate',
   APIKEY_REVOKE: 'apikey.revoke',
   APIKEY_DELETE: 'apikey.delete',
+  PROJECT_TRASH: 'project.trash',
+  PROJECT_RESTORE: 'project.restore',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -49,7 +51,8 @@ export type AuditTargetType =
   | 'logs'
   | 'post'
   | 'apikey'
-  | 'invitation';
+  | 'invitation'
+  | 'project';
 
 export type AuditInput = {
   actor: { id: string; email?: string | null } | null;

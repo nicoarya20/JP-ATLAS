@@ -115,6 +115,8 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'apikey.rotate': { label: 'Rotasi API key', color: 'yellow' },
   'apikey.revoke': { label: 'Cabut API key', color: 'red' },
   'apikey.delete': { label: 'Hapus API key', color: 'red' },
+  'project.trash': { label: 'Hapus proyek ke Sampah', color: 'red' },
+  'project.restore': { label: 'Pulihkan proyek', color: 'teal' },
 };
 
 export function actionMeta(action: string): { label: string; color: string } {
@@ -127,4 +129,5 @@ export const TARGET_LABELS: Record<string, string> = {
   settings: 'Settings',
   logs: 'Log',
   invitation: 'Undangan',
+  project: 'Proyek',
 };

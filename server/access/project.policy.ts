@@ -3,6 +3,10 @@
  * projects a list may show (R03 §2.2, K1/K6, D8, 15 Oct 2026 trash decision). Logic
  * only: no storage or runtime globals, so the same functions gate the API and the UI.
  */
+
+import { METRICS } from '../metrics/config';
+import { isRestorable } from '../metrics/trash.metrics';
+import type { MetricsConfig } from '../metrics/types';
 import { allow, type Decision, deny } from './decision';
 import { atLeast, isPmOrAbove, levelOf } from './level';
 import { type NotVisible, notVisible } from './not-visible';
@@ -73,6 +77,26 @@ export function canTrashProject(
   return isPmOrAbove(p) || rules.MEMBER_MANAGER_CAN_TRASH_PROJECT
     ? allow()
     : deny('ROLE_CANNOT_TRASH');
+}
+
+/**
+ * Whether `p` may bring a trashed project back: any manager of it (a Member-manager included, D1)
+ * or Admin/Super-admin, while it is still within the retention period. Blocked while impersonating (Q9).
+ */
+export function canRestoreProject(
+  p: Principal,
+  project: ProjectSubject,
+  m: Membership,
+  now: Date,
+  rules: AccessRules = ACCESS_RULES,
+  metrics: MetricsConfig = METRICS,
+): ProjectDecision {
+  if (p.impersonating) return deny('IMPERSONATING');
+  const level = levelOf(p, m, rules);
+  if (!atLeast(level, 'reader')) return NOT_VISIBLE;
+  if (!atLeast(level, 'manager')) return deny('NOT_MANAGER');
+  if (!project.deletedAt) return deny('WRONG_STATE');
+  return isRestorable(project.deletedAt, now, metrics) ? allow() : deny('EXPIRED');
 }
 
 /** The projects `p` may list: everything for Admin and (by P-A1) Project Manager, else only memberships. */

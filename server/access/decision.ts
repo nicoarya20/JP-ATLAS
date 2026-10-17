@@ -119,6 +119,11 @@ export const DENY_UI: Record<DenyCode, DenyUi> = {
     message:
       'Hanya Admin atau Project Manager yang boleh menghapus proyek. Minta mereka melakukannya.',
   },
+  EXPIRED: {
+    http: 410,
+    ui: 'disable',
+    message: 'Masa pemulihannya sudah lewat, jadi data ini tidak bisa dipulihkan lagi.',
+  },
 };
 
 /** Build the allow decision. */
