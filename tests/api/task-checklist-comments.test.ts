@@ -252,7 +252,7 @@ describe('comments', () => {
     );
     try {
       auth.as(g.owner);
-      const secret = 'RAHASIA-komentar-7731';
+      const secret = 'RAHASIA-komentar-7731'; // test-only: marker proving comment bodies never reach the log
       const c = (await call('POST', `${g.base}/comments`, { body: secret })).body;
       await call('PATCH', `${g.base}/comments/${c.id}`, { body: `${secret}-2` });
       await call('DELETE', `${g.base}/comments/${c.id}`);
