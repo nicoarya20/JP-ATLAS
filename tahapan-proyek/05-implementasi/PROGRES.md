@@ -11,9 +11,9 @@
 | S0.0 — Prasyarat ops | 9 | 9 | 0 | 0 |
 | S0.a — Akun dan akses | 16 | 16 | 0 | 0 |
 | S0.b — Kontrak beku | 33 | 33 | 0 | 0 |
-| S1 — Proyek dan profil | 18 | 15 | 0 | 0 |
-| S2 — Tugas inti | 17 | 10 | 0 | 0 |
-| **Total** | **93** | **83** | **0** | **0** |
+| S1 — Proyek dan profil | 18 | 15 | 1 | 0 |
+| S2 — Tugas inti | 17 | 10 | 3 | 0 |
+| **Total** | **93** | **83** | **4** | **0** |
 
 Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
 
@@ -136,7 +136,7 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §4`.
 | S1-15 | Peleburan `/profile` → `/app/settings` | L4 | S1-14 | S (1) | **selesai** | `feature/pm-s1-14-settings-page` | `d96d557` merge `4b49ae1` | worker: 3.110 lulus/0 gagal; `/profile` hanya mengalihkan (302 ke `/app/settings`, anonim ke `/login`) |
 | S1-16 | Smoke, QA tiga ukuran teks, dokumen S1 | L10 | S1-12, S1-14 | S (1,5) | belum |  |  |  |
 | S1-17 | Integrasi dan gerbang demo S1 | Integrator | S1-05, S1-13, S1-16 | S (0,5) | belum |  |  |  |
-| S1-18 | Halaman Sampah minimal (khusus proyek) + aktifkan tombol Hapus proyek | L1b | S1-05, S1-10 (layout/daftar proyek), SP-1 (stub `/app/trash` dari S0.b) | M (2-3) | belum |  |  |  |
+| S1-18 | Halaman Sampah minimal (khusus proyek) + aktifkan tombol Hapus proyek | L1b | S1-05, S1-10 (layout/daftar proyek), SP-1 (stub `/app/trash` dari S0.b) | M (2-3) | **berjalan** | `feature/pm-s1-18-project-trash-page` |  |  |
 
 ## S2 — Tugas inti
 
@@ -150,12 +150,12 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §5`.
 | S2-04 | Service dan rute buat/ubah tugas | L2 | S2-03 | M (2,5) | **selesai** | `feature/pm-s2-03-task-read-write` | `de2fb80` merge `2ee041a` | worker: 3.172 lulus/0 gagal, smoke:binary 28/28 (Bun 1.4.2). Bidang S4-S5 ditolak eksplisit (`t.Never`) |
 | S2-05 | Mesin status: Mulai, Batal mulai, Selesai, Buka lagi, Batalkan, Pulihkan | L2 | S2-04 | M (3) | **selesai** | `feature/pm-s2-05-task-workflow` | `2df78e3` merge `6ec3c93` | worker: 3.440 lulus/0 gagal, typecheck 3,6 dtk, smoke:binary 28/28. `ENABLED_TASK_ACTIONS` di `server/task/task.limits.ts`. Teks N10 diperbaiki. Pasangan tidak sah 409 `WRONG_STATE`, balapan 409 `STATE_CONFLICT` |
 | S2-06 | Daftar periksa, komentar, linimasa | L2 | S2-04 | M (3) | **selesai** | `feature/pm-s2-06-checklist-comments` | `d9f85a3` `16bcd1c` merge `23c0507` | worker: 3.696 lulus/0 gagal, typecheck 5,6 dtk, smoke:binary 28/28. 7 rute; DELETE butir dan komentar = hapus permanen dan masuk `PM_KEY_DENY`; `resetApiLimiters()` di `tests/support/api.ts` |
-| S2-07 | Penjaga keamanan dan kinerja tugas | L2 | S2-05, S2-06 | S (2) | belum |  |  |  |
+| S2-07 | Penjaga keamanan dan kinerja tugas | L2 | S2-05, S2-06 | S (2) | **berjalan** | `feature/pm-s2-07-task-guards` |  |  |
 | S2-08 | Klien tugas: API, saringan, aksi | L3 | SP2 | S (1,5) | **selesai** | `feature/pm-s2-08-task-client-list` | `cb0d1f6` merge `af5180e` | worker: 3.410 lulus/0 gagal. Wrapper alur kerja DTO+RECONNECT(S2-05) |
 | S2-09 | Komponen daftar tugas | L3 | S2-08 | M (2,5) | **selesai** | `feature/pm-s2-08-task-client-list` | `68c7cf4` merge `af5180e` | worker lanjutan: 3.433 lulus/0 gagal; semua berkas <=200 baris |
 | S2-10 | Halaman Tugas (①②④) | L3 | S2-09 | M (2,5) | **selesai** | `feature/pm-s2-10-tasks-page` | `9cf9c9e` `83b8242` merge `e64f997` | worker: 0 `error TS`; RECONNECT alur kerja tersambung ke Eden (`ENABLED_TASK_ACTIONS` dari server) |
-| S2-11 | Form Tugas baru (⑥) | L3b | SP-S1b, S2-04, S2-08 | M (2,5) | belum |  |  |  |
-| S2-12 | Detail tugas: header, langkah berikutnya, ubah/batalkan/buka lagi (⑧⑨) | L3 | S2-10, SP-S2a (S2-05) | M (3) | belum |  |  |  |
+| S2-11 | Form Tugas baru (⑥) | L3b | SP-S1b, S2-04, S2-08 | M (2,5) | **berjalan** | `feature/pm-s2-11-task-form` |  |  |
+| S2-12 | Detail tugas: header, langkah berikutnya, ubah/batalkan/buka lagi (⑧⑨) | L3 | S2-10, SP-S2a (S2-05) | M (3) | **berjalan** | `feature/pm-s2-12-task-detail` |  |  |
 | S2-13 | Detail tugas: daftar periksa, komentar, riwayat | L3b | S2-12, SP-S2a (S2-06) | M (2,5) | belum |  |  |  |
 | S2-14 | Tab Tugas di detail proyek + sorotan Ringkasan | L3b | SP-M (S1-10), S2-09 | S (1,5) | **selesai** | `feature/pm-s2-10-tasks-page` | `0c76068` merge `e64f997` | worker: 3.653 lulus/0 gagal. Sorotan maks 5 (terlambat, lalu prioritas tinggi/kritis) dari API |
 | S2-15 | Smoke S2, QA, persiapan uji pengguna | L10 | S2-13, S2-14 | S (2) | belum |  |  |  |
@@ -282,3 +282,4 @@ Satu baris per gelombang yang disetujui user. Isi: tanggal, tugas yang masuk, ca
 - **17 Okt 2026** — G16 di-push (`71b69de..bb323c5`), 4 worktree G16 ditutup. **G17 diluncurkan** (run `run_1ec78abe7e10`, basis `bb323c5`, 4 worker dalam dua batch, tanpa 429 dan tanpa batas pemakaian saat peluncuran): S1-05 (**wajib disetujui satu per satu**, jalur hapus data), S1-12+S1-13 (+ sambung RECONNECT anggota/pemilih), S2-06 (+ reset limiter terpusat di `tests/support/api.ts`), S2-10+S2-14 (+ sambung RECONNECT alur kerja). Spesifikasi kini mewajibkan laporan bertahap agar worker lanjutan bisa meneruskan bila batas pemakaian tercapai.
 - **17 Okt 2026** — G17 (S1-05, S1-12+S1-13, S2-06, S2-10+S2-14) selesai dikerjakan dan berstatus `review`; belum di-merge atau di-push. Empat worker tanpa 429 dan tanpa batas pemakaian. Satu pertanyaan worker S1-05 dijawab koordinator (fungsi `canRestoreProject`/`isRestorable` dan kode `EXPIRED` ternyata belum ada; ditambahkan sebagai penambahan kontrak murni). **Uji gabungan** (basis `2305a9a`, worktree sementara `/tmp/sp-g17-int`): konflik di `server/api-keys/scopes.pm.ts` (entri tolak kunci S1-05 dan S2-06, keduanya dipertahankan) dan dua daftar stub di tes (semua modul S0B-18 kini terisi) diselesaikan koordinator (+ satu commit format); 0 baris `error TS`, **3.794 lulus / 17 dilewati / 0 gagal** (sebelumnya 3.643), lint = baseline 164/33/4, skema tidak bergeser, `bun audit` = 1 moderate, **`smoke:binary` 28/28** (Bun 1.4.2). Menunggu persetujuan: **S1-05 satu per satu (hapus data)**, sisanya per gelombang.
 - **17 Okt 2026** — G17 digabung atas persetujuan user (S1-05 disetujui satu per satu) dan di-push. **83 dari 93 tugas selesai** (S1 15/18, S2 10/17). Gerbang SP-S2a sebagian (S2-05, S2-06 merge → S2-12/S2-13 terbuka); SP-M lolos (S2-14 sudah memakai layout S1-10). G18 diluncurkan atas perintah yang sama.
+- **17 Okt 2026** — G17 di-push (`bb323c5..45d9acc`, termasuk penanda `// test-only` pada teks penanda log di tes komentar), 4 worktree G17 ditutup. **G18 diluncurkan** (run `run_73fe0ce18c8b`, basis `45d9acc`, 4 worker dalam dua batch, tanpa 429/batas pemakaian saat peluncuran): S1-18 (**wajib disetujui satu per satu**; menambah `/app/trash` sehingga snapshot `contract-v1` 11 → 12 URL, dicatat di ADR 0002), S2-11 (form tugas + mode `edit`), S2-07, S2-12. "Ubah tugas" di detail tugas disambung di G19 bersama S2-13 karena form edit dibuat paralel di G18.
