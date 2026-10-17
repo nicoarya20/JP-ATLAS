@@ -1,11 +1,12 @@
 /**
  * The ⋯ menu of a task detail: "Batalkan tugas" with a plain note that canceling is not deleting.
- * There is no Hapus here (X1-Q1: the task Trash arrives in S6). "Ubah tugas" joins in G19 with the
- * edit form, so no dead item is shown meanwhile.
+ * There is no Hapus here (X1-Q1: the task Trash arrives in S6). "Ubah tugas" opens the edit page and
+ * is offered only when the server's `can.update` is true.
  */
 import { ActionIcon, Menu, Stack, Text } from '@mantine/core';
 import type { TaskDetail } from '@server/task/task.dto';
-import { FiMoreHorizontal, FiXCircle } from 'react-icons/fi';
+import { FiEdit2, FiMoreHorizontal, FiXCircle } from 'react-icons/fi';
+import { Link } from 'react-router';
 import { capReason, isShown } from './task-caps';
 import { openCancelTaskModal } from './task-reason';
 import { DETAIL_COPY } from './tasks.copy';
@@ -13,12 +14,18 @@ import { useTaskActions } from './useTaskActions';
 
 export type TaskMenuTask = Pick<TaskDetail, 'number' | 'can'>;
 
-/** True when the menu has at least one item for this viewer; otherwise it is not rendered at all. */
-export const hasTaskMenu = (task: TaskMenuTask) => isShown(task.can.cancel);
+/** The items this viewer is offered, in menu order; the menu is not rendered when there are none. */
+export const menuItemsOf = (task: TaskMenuTask) => [
+  ...(task.can.update === true ? (['edit'] as const) : []),
+  ...(isShown(task.can.cancel) ? (['cancel'] as const) : []),
+];
+
+export const hasTaskMenu = (task: TaskMenuTask) => menuItemsOf(task).length > 0;
 
 export function TaskMenu({ task }: { task: TaskMenuTask }) {
   const { cancel } = useTaskActions();
   if (!hasTaskMenu(task)) return null;
+  const items = menuItemsOf(task);
   const ref = String(task.number);
   const blocked = capReason(task.can.cancel);
   const openCancel = () => openCancelTaskModal((input) => cancel.run({ ref, input }));
@@ -31,19 +38,30 @@ export function TaskMenu({ task }: { task: TaskMenuTask }) {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown maw={320}>
-        <Menu.Item
-          color="danger"
-          leftSection={<FiXCircle size="1.25em" aria-hidden />}
-          disabled={task.can.cancel !== true}
-          onClick={openCancel}
-        >
-          <Stack gap={2}>
-            <Text inherit>{DETAIL_COPY.cancel}</Text>
-            <Text size="xs" c="dimmed">
-              {blocked ?? DETAIL_COPY.cancelHint}
-            </Text>
-          </Stack>
-        </Menu.Item>
+        {items.includes('edit') && (
+          <Menu.Item
+            component={Link}
+            to={`/app/tasks/${ref}/edit`}
+            leftSection={<FiEdit2 size="1.25em" aria-hidden />}
+          >
+            {DETAIL_COPY.edit}
+          </Menu.Item>
+        )}
+        {items.includes('cancel') && (
+          <Menu.Item
+            color="danger"
+            leftSection={<FiXCircle size="1.25em" aria-hidden />}
+            disabled={task.can.cancel !== true}
+            onClick={openCancel}
+          >
+            <Stack gap={2}>
+              <Text inherit>{DETAIL_COPY.cancel}</Text>
+              <Text size="xs" c="dimmed">
+                {blocked ?? DETAIL_COPY.cancelHint}
+              </Text>
+            </Stack>
+          </Menu.Item>
+        )}
       </Menu.Dropdown>
     </Menu>
   );

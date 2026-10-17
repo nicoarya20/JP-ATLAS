@@ -4,6 +4,8 @@ export const TASK_FORM_COPY = {
   title: 'Tugas baru',
   description: 'Tulis apa yang perlu dikerjakan, lalu pilih siapa yang mengerjakannya.',
   editTitle: 'Ubah tugas',
+  editDescription: 'Ubah isi tugas, lalu simpan. Proyek tugas tidak bisa dipindah.',
+  backToTask: 'Kembali ke tugas',
   back: 'Kembali ke daftar tugas',
   project: 'Proyek',
   projectPlaceholder: 'Pilih proyek',

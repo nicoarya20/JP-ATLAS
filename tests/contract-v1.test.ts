@@ -67,13 +67,13 @@ const SHARED_FILES = words(`
 `);
 
 /**
- * The twelve /app URLs: the eleven of X1 D4 (/app plus ten children) and /app/trash, added by S1-18
- * (user decision 15 Oct 2026, option B; compatible addition, see 0002-contract-v1.md §6). /profile is outside /app/.
+ * The thirteen /app URLs: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
+ * 15 Oct 2026, option B) and /app/tasks/:number/edit (S2-13, "Ubah tugas"); both compatible additions, see 0002-contract-v1.md §6. /profile is outside /app/.
  */
 const APP_URLS = words(`
   /app /app/projects /app/projects/new /app/projects/:projectId /app/projects/:projectId/tasks
   /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
-  /app/tasks/:number /app/settings /app/trash
+  /app/tasks/:number /app/tasks/:number/edit /app/settings /app/trash
 `);
 
 const DECLARATION =
@@ -143,8 +143,8 @@ describe('contract-v1 routes and menu', () => {
     (u) => u === '/app' || u.startsWith('/app/'),
   );
 
-  it('registers exactly twelve /app URLs', () => {
-    expect(appUrls).toHaveLength(12);
+  it('registers exactly thirteen /app URLs', () => {
+    expect(appUrls).toHaveLength(13);
     expect(appUrls.sort()).toEqual([...APP_URLS].sort());
   });
 
