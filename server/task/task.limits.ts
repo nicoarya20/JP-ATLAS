@@ -85,3 +85,9 @@ export const TASK_WRITE_MESSAGES = {
   commentTooLong: `Komentar paling panjang ${TASK_COMMENT_MAX} karakter.`,
   nothingToChange: 'Tidak ada yang diubah.',
 } as const;
+
+/** Project roles that may be the one working on a task; a Pemantau only reads (P3 §2 Tugas ⑥). */
+export const TASK_WORKER_ROLES = ['manager', 'member'] as const;
+/** Whether a project role may be assigned a task; the form and the write service share this rule. */
+export const isTaskWorkerRole = (r: string | null | undefined): boolean =>
+  (TASK_WORKER_ROLES as readonly string[]).includes(r ?? '');

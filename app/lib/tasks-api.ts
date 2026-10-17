@@ -152,7 +152,7 @@ type PatchBody = Parameters<ReturnType<typeof client.api.app.tasks>['patch']>[0]
 /** POST /tasks body (S2-04); `needsReview` stays off until S4, so it is not offered here. */
 export type TaskCreateInput = Omit<CreateBody, 'needsReview'>;
 /** PATCH /tasks/:ref body (S2-04). */
-export type TaskPatch = Omit<PatchBody, 'needsReview'>;
+export type TaskPatch = Omit<NonNullable<PatchBody>, 'needsReview'>;
 
 export async function createTask(input: TaskCreateInput): Promise<TaskDetail> {
   return unwrapTask(await client.api.app.tasks.post(input));

@@ -28,7 +28,7 @@ import { DEFAULT_TASK_KINDS } from '../pm/limits';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
 import type { TaskClock, TaskDetail } from './task.dto';
-import { TASK_ACTIVITY, TASK_WRITE_MESSAGES } from './task.limits';
+import { isTaskWorkerRole, TASK_ACTIVITY, TASK_WRITE_MESSAGES } from './task.limits';
 import { getTaskDetail, resolveTaskRef } from './task-detail.query';
 
 /** Who writes: the policy principal plus the display name stored on activity rows. */
@@ -75,7 +75,7 @@ async function checkWorker(tx: Tx, projectId: string, userId: string): Promise<R
     .select({ role: projectMember.role })
     .from(projectMember)
     .where(and(eq(projectMember.projectId, projectId), eq(projectMember.userId, userId)));
-  const works = row?.role === 'manager' || row?.role === 'member';
+  const works = isTaskWorkerRole(row?.role);
   return works ? null : invalid(TASK_WRITE_MESSAGES.assigneeNotWorker);
 }
 
