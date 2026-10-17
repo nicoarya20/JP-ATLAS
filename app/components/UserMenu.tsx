@@ -89,7 +89,7 @@ export function UserMenu({
                     {current.email}
                   </TruncatedText>
                 </div>
-                <FiMoreVertical size={14} style={{ flexShrink: 0, opacity: 0.4 }} />
+                <FiMoreVertical size="1.25em" style={{ flexShrink: 0, opacity: 0.4 }} />
               </>
             )}
           </Group>
@@ -125,7 +125,7 @@ export function UserMenu({
                   imageProps={{ referrerPolicy: 'no-referrer' }}
                 />
               }
-              rightSection={acc.active ? <FiCheck size={14} /> : undefined}
+              rightSection={acc.active ? <FiCheck size="1.25em" /> : undefined}
               onClick={() => switchAccount(acc.token)}
             >
               <div style={{ minWidth: 0 }}>
@@ -137,13 +137,13 @@ export function UserMenu({
             </Menu.Item>
           ))
         )}
-        <Menu.Item leftSection={<FiPlus size={16} />} onClick={() => navigate('/login')}>
+        <Menu.Item leftSection={<FiPlus size="1.25em" />} onClick={() => navigate('/login')}>
           Tambah akun lain
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item
           color="red"
-          leftSection={<FiLogOut size={16} />}
+          leftSection={<FiLogOut size="1.25em" />}
           onClick={() =>
             modals.openConfirmModal({
               title: 'Keluar dari akun ini?',

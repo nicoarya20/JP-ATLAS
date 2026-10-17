@@ -141,7 +141,7 @@ export function AppFrame(props: Props) {
           />
           <Link to={home} style={{ textDecoration: 'none', color: 'inherit', minWidth: 0 }}>
             <Group gap={6} wrap="nowrap">
-              <FiZap size={18} />
+              <FiZap size="1.25em" />
               <Text fw={700} truncate>
                 {appName}
               </Text>
@@ -182,7 +182,7 @@ export function AppFrame(props: Props) {
                   onClick={stopImpersonating}
                   aria-label="Berhenti impersonasi"
                 >
-                  <FiCornerUpLeft size={18} />
+                  <FiCornerUpLeft size="1.25em" />
                 </ActionIcon>
               </Tooltip>
             ) : (
@@ -191,7 +191,7 @@ export function AppFrame(props: Props) {
                 size="xs"
                 variant="light"
                 color="orange"
-                leftSection={<FiCornerUpLeft size={16} />}
+                leftSection={<FiCornerUpLeft size="1.25em" />}
                 onClick={stopImpersonating}
               >
                 Berhenti impersonasi
@@ -243,7 +243,7 @@ export function AppFrame(props: Props) {
           <Alert
             color="orange"
             variant="filled"
-            icon={<FiTool size={16} />}
+            icon={<FiTool size="1.25em" />}
             mb="md"
             title="Mode maintenance aktif"
           >
