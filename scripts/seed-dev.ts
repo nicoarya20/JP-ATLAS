@@ -2,15 +2,18 @@
  * Dev seed for the Atlas demo scenario (S0B-30). Run it by hand, never from the app:
  *
  *   SEED_ALLOW=1 bun scripts/seed-dev.ts atlas   → seeds Atlas (refreshes dates if already seeded)
- *   SEED_ALLOW=1 bun scripts/seed-dev.ts reset   → deletes only rows whose id starts with `seed-`
+ *   SEED_ALLOW=1 bun scripts/seed-dev.ts uji     → seeds "Renovasi Dapur" with 5 dummy testers (UP-1, S2-15)
+ *   SEED_ALLOW=1 bun scripts/seed-dev.ts reset   → deletes only rows whose id starts with `seed-` (Atlas and uji)
  *
+ * `atlas` refreshes every `seed-` row, including `uji`; `uji` only replaces its own `seed-uji-` rows.
  * Refuses when NODE_ENV=production or SEED_ALLOW is not exactly 1. Accounts get `SEED_PASSWORD`, or a
  * random one printed once. This is not a CLI subcommand on purpose: subcommands ship in the binary,
  * and an operator must not be able to seed a real database from it (X3 M22).
  */
 import { insertAtlas, resetSeed, SEED_ID_PREFIX, type SeedDb } from '../server/seed/atlas.insert';
+import { insertUji } from '../server/seed/uji.insert';
 
-export const SEED_COMMANDS = ['atlas', 'reset'] as const;
+export const SEED_COMMANDS = ['atlas', 'uji', 'reset'] as const;
 export type SeedCommand = (typeof SEED_COMMANDS)[number];
 
 const EXIT_OK = 0;
@@ -86,7 +89,7 @@ export async function runSeed(
   }
 
   const password = resolveSeedPassword(env);
-  if (command === 'atlas' && password.password.length < MIN_PASSWORD_LENGTH) {
+  if (command !== 'reset' && password.password.length < MIN_PASSWORD_LENGTH) {
     deps.err(`SEED_PASSWORD minimal ${MIN_PASSWORD_LENGTH} karakter.`);
     return EXIT_USAGE;
   }
@@ -108,9 +111,16 @@ export async function runSeed(
       );
       return EXIT_OK;
     }
-    const r = await insertAtlas(database, { now: deps.now(), password: password.password });
+    const r =
+      command === 'uji'
+        ? await insertUji(database, {
+            now: deps.now(),
+            password: password.password,
+            timeZone: env.APP_TIME_ZONE?.trim() || undefined,
+          })
+        : await insertAtlas(database, { now: deps.now(), password: password.password });
     deps.out(
-      `Atlas terisi (${r.accounts.length} akun, sebelumnya ${r.reset.users} akun seed dibersihkan).`,
+      `${command === 'uji' ? 'Skenario uji' : 'Atlas'} terisi (${r.accounts.length} akun, sebelumnya ${r.reset.users} akun seed dibersihkan).`,
     );
     for (const a of r.accounts) deps.out(`  ${a.email}  [${a.role}]`);
     deps.out(
