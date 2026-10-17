@@ -72,6 +72,7 @@ function StepRow({
     );
   }
   return (
+    // nowrap is safe: the text takes flex 1 with minWidth 0 and the buttons are two icons.
     <Group gap="xs" wrap="nowrap" align="center">
       <Checkbox
         size="lg"

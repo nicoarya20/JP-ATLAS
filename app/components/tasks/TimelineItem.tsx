@@ -55,6 +55,7 @@ function CommentView({
   return (
     <Paper withBorder p="sm" radius="md">
       <Stack gap={6}>
+        {/* nowrap is safe: the byline wraps itself beside one 44px icon button. */}
         <Group justify="space-between" wrap="nowrap" align="flex-start" gap="xs">
           <Byline entry={entry} extra={entry.editedAt ? COPY.edited : undefined} />
           {own && !editing && (

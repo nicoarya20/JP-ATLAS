@@ -7,7 +7,7 @@ import { themeComponents } from '../../app/lib/theme-components';
 
 const GLOBS = [
   'app/routes/app/**/*.tsx',
-  'app/components/{projects,account,trash,ui}/**/*.{ts,tsx}',
+  'app/components/{projects,account,trash,ui,tasks}/**/*.{ts,tsx}',
 ];
 const files = GLOBS.flatMap((g) => [...new Glob(g).scanSync('.')]).sort();
 const read = (f: string) => readFileSync(f, 'utf8');
@@ -29,6 +29,9 @@ describe('app scale safety (S1-16)', () => {
     expect(files.length).toBeGreaterThan(40);
     expect(files).toContain('app/routes/app/settings.tsx');
     expect(files).toContain('app/components/trash/TrashProjectList.tsx');
+    expect(files).toContain('app/components/tasks/TaskRow.tsx');
+    expect(files).toContain('app/routes/app/task-detail.tsx');
+    expect(files).toContain('app/routes/app/task-edit.tsx');
   });
 
   it('has no pixel font-size (inputs must stay ≥ 16px and follow the scale)', () => {
