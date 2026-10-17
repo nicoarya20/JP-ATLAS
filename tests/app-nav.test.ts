@@ -26,11 +26,13 @@ const byLabel = (label: string) => {
 };
 
 describe('/app NAV', () => {
-  it('has exactly four items in the agreed order', () => {
+  // Sampah joined with the project Trash page (S1-18, user decision 15 Oct 2026, option B).
+  it('has exactly five items in the agreed order', () => {
     expect(NAV.map((n) => [n.label, n.to])).toEqual([
       ['Beranda', '/app'],
       ['Proyek', '/app/projects'],
       ['Tugas', '/app/tasks'],
+      ['Sampah', '/app/trash'],
       ['Pengaturan', '/app/settings'],
     ]);
   });

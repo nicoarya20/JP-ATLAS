@@ -73,6 +73,7 @@ describe('page stubs', () => {
       'app/routes/app/projects.tsx',
       'app/routes/app/settings.tsx',
       'app/routes/app/tasks.tsx',
+      'app/routes/app/trash.tsx',
     ]);
   });
 });
