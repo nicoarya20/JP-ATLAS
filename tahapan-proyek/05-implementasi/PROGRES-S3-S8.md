@@ -5,7 +5,6 @@
 ## 1. Status keseluruhan
 | Irisan | Menu | Rencana | Tugas | Selesai | Status |
 |---|---|---|---|---|---|
-
 | S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | rencana selesai, belum dikerjakan |
 | S3 | Beranda | [P4](rencana/P4-s3-beranda.md) | 12 | 0 | rencana selesai, belum dikerjakan |
 | S4 | Tugas lanjutan (Periksa, dependensi, tag, Papan) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 15 | 0 | rencana selesai, belum dikerjakan |
@@ -13,8 +12,8 @@
 | S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | rencana selesai, belum dikerjakan |
 | S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | rencana selesai, belum dikerjakan |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
-| S7 | Event | [P6](rencana/P6-s7-events.md) | 13 | 0 | rencana selesai, belum dikerjakan |
-| | **Total** | | **95** | **0** | |
+| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | rencana selesai, belum dikerjakan |
+| | **Total** | | **98** | **0** | |
 
 **Syarat sebelum tugas pertama dimulai:**
 1. Gerbang S2 lulus (S2-16 uji pengguna nyata, lalu S2-17), kecuali S3a Inbox (I01-I04) bila user menyetujuinya.
@@ -173,7 +172,10 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 | E-10 | Form 2 tahap | belum | – | – | – |
 | E-11 | Detail acara, peserta, notulensi, Agenda Beranda | belum | – | – | – |
 | E-12 | Integrasi, README kontrak, CHANGELOG — Integrator · S7 · S · 0,75 hari · dep E-06..E-11 · ★ SP-E3 | belum | – | – | – |
+| E-13 | Tugas dari rapat (E4, Could) | belum | – | – | Could; geser bila waktu tidak cukup |
+| E-14 | Kalender Bulan/Minggu (E5, Could) | belum | – | – | Could |
 | E-15 | QA, smoke, uji gerbang S7 | belum | – | – | – |
+| E-16 | Acara berulang (E6, Could) | belum | – | – | Could |
 
 
 ## 5. Log merge per gelombang
