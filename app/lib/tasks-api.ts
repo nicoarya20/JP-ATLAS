@@ -7,6 +7,7 @@ import type { PrimaryAction } from '@server/access/task-flow.policy';
 import type { PmCode } from '@server/pm/errors';
 import type { TaskCounts, TaskDetail, TaskListItem } from '@server/task/task.dto';
 import { ENABLED_TASK_ACTIONS } from '@server/task/task.limits';
+import type { TimelineEntry } from '@server/task/task-timeline.query';
 import type { TransitionResult } from '@server/task/task-workflow.service';
 import { type InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { TASK_ERROR_MESSAGES } from '../components/tasks/tasks.copy';
@@ -28,6 +29,7 @@ export const taskKeys = {
   list: (q: TaskListQuery) => ['tasks', 'list', q] as const,
   counts: () => ['tasks', 'counts'] as const,
   detail: (ref: string) => ['tasks', 'detail', ref] as const,
+  timeline: (ref: string) => ['tasks', 'timeline', ref] as const,
   highlights: (projectId: string) => ['tasks', 'highlights', projectId] as const,
 };
 
@@ -184,3 +186,42 @@ export const reopenTask = async (ref: string, input: ReopenInput) =>
 export const cancelTask = async (ref: string, input: CancelTaskInput) =>
   done(await step(ref).cancel.post(input));
 export const uncancelTask = async (ref: string) => done(await step(ref).uncancel.post());
+
+// ---- Checklist, comments and timeline (S2-06) ----
+
+/** The checklist as `GET /tasks/:ref` and every step write answer it. */
+export type TaskChecklist = TaskDetail['checklist'];
+export type ChecklistItem = TaskChecklist['items'][number];
+/** One entry of the one stream of comments and activity, newest first. */
+export type { TimelineEntry };
+export type TimelinePage = { items: TimelineEntry[]; nextCursor: string | null };
+export type TaskComment = Extract<TimelineEntry, { kind: 'comment' }>;
+type StepPatch = { text?: string; isDone?: boolean; position?: number };
+
+export async function fetchTimeline(ref: string, cursor?: string): Promise<TimelinePage> {
+  return unwrapTask(await step(ref).timeline.get({ query: cursor ? { cursor } : {} }));
+}
+
+/** Keyset pages of one task's timeline; "Muat lebih lama" calls `fetchNextPage`. */
+export function useTimeline(ref: string) {
+  return useInfiniteQuery({
+    queryKey: taskKeys.timeline(ref),
+    queryFn: ({ pageParam }) => fetchTimeline(ref, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+  });
+}
+
+export const addStep = async (ref: string, text: string) =>
+  unwrapTask(await step(ref).checklist.post({ text }));
+export const patchStep = async (ref: string, itemId: string, patch: StepPatch) =>
+  unwrapTask(await step(ref).checklist({ itemId }).patch(patch));
+export const removeStep = async (ref: string, itemId: string) =>
+  unwrapTask(await step(ref).checklist({ itemId }).delete());
+
+export const addComment = async (ref: string, body: string) =>
+  unwrapTask(await step(ref).comments.post({ body }));
+export const editComment = async (ref: string, commentId: string, body: string) =>
+  unwrapTask(await step(ref).comments({ commentId }).patch({ body }));
+export const removeComment = async (ref: string, commentId: string) =>
+  unwrapTask(await step(ref).comments({ commentId }).delete());

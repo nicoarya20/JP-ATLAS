@@ -6,7 +6,9 @@ import type { TaskDetail } from '@server/task/task.dto';
 import { getTaskDetail } from '@server/task/task-detail.query';
 import { useQuery } from '@tanstack/react-query';
 import { data } from 'react-router';
+import { TaskChecklist } from '~/components/tasks/TaskChecklist';
 import { TaskHeader } from '~/components/tasks/TaskHeader';
+import { TaskTimeline } from '~/components/tasks/TaskTimeline';
 import { DETAIL_COPY, NOT_FOUND_TEXT } from '~/components/tasks/tasks.copy';
 import { BackLink } from '~/components/ui/BackLink';
 import { PageContainer } from '~/components/ui/PageContainer';
@@ -40,13 +42,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     // "Today" is the server's, so "terlambat" matches the labels the server computed.
     today: clock.today,
     back: taskBackPath(request.url, request.headers.get('referer')),
+    viewerId: actor.user.id,
     loadedAt: Date.now(),
   };
 }
 
-/** Header, step buttons and description of one task; checklist and timeline join in S2-13. */
+/** Header, step buttons, description, steps and the comment-and-history stream of one task. */
 export default function TaskDetailPage({ loaderData, params }: Route.ComponentProps) {
-  const { today, back, loadedAt } = loaderData;
+  const { today, back, loadedAt, viewerId } = loaderData;
   // Every task write invalidates `taskKeys.all`, so this refetches after a step or a 409 conflict.
   const { data: task } = useQuery({
     queryKey: taskKeys.detail(params.number),
@@ -74,8 +77,16 @@ export default function TaskDetailPage({ loaderData, params }: Route.ComponentPr
             )}
           </Stack>
         </Paper>
-        {/* S2-13 hand-over: Langkah-langkah (checklist) and Obrolan & riwayat (timeline + comment box)
-            go here as one section each, reading `task` and `params.number`. */}
+        <TaskChecklist
+          taskRef={params.number}
+          checklist={task.checklist}
+          canEdit={task.can.update === true}
+        />
+        <TaskTimeline
+          taskRef={params.number}
+          viewerId={viewerId}
+          canComment={task.can.comment === true}
+        />
       </Stack>
     </PageContainer>
   );
