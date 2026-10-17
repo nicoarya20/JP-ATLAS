@@ -63,6 +63,25 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     status: 302,
     header: { name: 'location', includes: '/login' },
   },
+  ...['/app/projects', '/app/projects/new', '/app/settings', '/app/trash'].map(
+    (path): SmokeCheck => ({
+      // The /app loaders call requireUser first, so an anonymous visitor reaches /login (S1 gate).
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
+  ...['/api/app/projects', '/api/app/trash'].map(
+    (path): SmokeCheck => ({
+      name: `API ${path} anonim → 401`,
+      path,
+      status: 401,
+      contentType: 'application/json',
+      bodyIncludes: '"code":"UNAUTHORIZED"',
+      header: { name: 'x-request-id' },
+    }),
+  ),
   { name: 'favicon svg', path: '/favicon.svg', status: 200, contentType: 'image/svg+xml' },
   {
     name: 'favicon.ico → svg',

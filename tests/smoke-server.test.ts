@@ -24,6 +24,21 @@ describe('smoke checks', () => {
     ])
       expect(SMOKE_CHECKS.some((c) => c.path === p)).toBe(true);
   });
+  test('S1 app routes are pinned: anonymous pages redirect to /login, APIs answer 401 with a request id', () => {
+    const byPath = (path: string) => SMOKE_CHECKS.find((c) => c.path === path);
+    for (const path of ['/app/projects', '/app/projects/new', '/app/settings', '/app/trash'])
+      expect(byPath(path)).toMatchObject({
+        status: 302,
+        header: { name: 'location', includes: '/login' },
+      });
+    for (const path of ['/api/app/projects', '/api/app/trash'])
+      expect(byPath(path)).toMatchObject({
+        status: 401,
+        bodyIncludes: '"code":"UNAUTHORIZED"',
+        header: { name: 'x-request-id' },
+      });
+    expect(SMOKE_CHECKS).toHaveLength(33);
+  });
   test('auth gate checks pin the closed Better Auth endpoints to a uniform 404', () => {
     const byName = (n: string) => SMOKE_CHECKS.find((c) => c.name === n);
     expect(byName('auth-signup-closed')).toMatchObject({
