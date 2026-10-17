@@ -88,10 +88,14 @@ describe('task detail route scopes (S2-06)', () => {
     expect(requiredScope('DELETE', path)).toBeNull();
   });
 
+  // S6 (P8 Q2, user decision 18 Oct 2026) widened the rule: every DELETE below a task is
+  // session-only, the task itself included. Reads and writes of the same paths stay open.
   test('the delete patterns do not swallow reads or writes of the same paths', () => {
     expect(isPmKeyDenied('PATCH', '/api/app/tasks/482/comments/comment-1')).toBe(false);
-    expect(isPmKeyDenied('DELETE', '/api/app/tasks/482')).toBe(false);
-    expect(isPmKeyDenied('DELETE', '/api/app/tasks/482/timeline')).toBe(false);
+    expect(isPmKeyDenied('GET', '/api/app/tasks/482/timeline')).toBe(false);
+    expect(isPmKeyDenied('DELETE', '/api/app/tasks')).toBe(false);
+    expect(isPmKeyDenied('DELETE', '/api/app/tasks/482')).toBe(true);
+    expect(isPmKeyDenied('DELETE', '/api/app/tasks/482/timeline')).toBe(true);
   });
 
   test('the plugin registers exactly the seven detail routes, all covered above', () => {

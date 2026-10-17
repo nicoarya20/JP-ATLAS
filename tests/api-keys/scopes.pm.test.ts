@@ -7,7 +7,12 @@ import { appApi } from '../../server/api/app';
 import { specForKey } from '../../server/api/openapi';
 import type { ApiKeyIdentity } from '../../server/api-keys/identity';
 import { requiredScope, SCOPE_IDS } from '../../server/api-keys/scopes';
-import { isPmKeyDenied, PM_DENY_OWNER, PM_KEY_DENY } from '../../server/api-keys/scopes.pm';
+import {
+  isPmKeyDenied,
+  PM_DENY_OWNER,
+  PM_DENY_PENDING,
+  PM_KEY_DENY,
+} from '../../server/api-keys/scopes.pm';
 
 const API_DIR = path.join(import.meta.dir, '../../server/api');
 const api = new Elysia({ prefix: '/api' }).use(appApi);
@@ -86,18 +91,59 @@ describe('project Trash routes (S1-05)', () => {
   });
 });
 
+describe('Trash delete routes (S6, P8 Q2)', () => {
+  test.each([
+    ['DELETE', '/api/app/trash/project/p1'],
+    ['DELETE', '/api/app/trash/task/t1'],
+    ['DELETE', '/api/app/TRASH/project/p1'],
+    ['DELETE', '/api/app/tasks/t1'],
+    ['DELETE', '/api/app/tasks/t1/'],
+    ['DELETE', '/api/app/tasks/12'],
+    ['DELETE', '/api/app/TASKS/t1'],
+  ])('%s %s is denied to every API key, whatever its scopes', (m, p) => {
+    expect(isPmKeyDenied(m, p)).toBe(true);
+    expect(requiredScope(m, p)).toBeNull();
+  });
+
+  test('reads and the task writes keys already have stay open', () => {
+    for (const p of ['/api/app/trash', '/api/app/tasks', '/api/app/tasks/t1']) {
+      expect(isPmKeyDenied('GET', p)).toBe(false);
+      expect(requiredScope('GET', p)).toBe('app:read');
+    }
+    expect(isPmKeyDenied('POST', '/api/app/tasks')).toBe(false);
+    expect(requiredScope('POST', '/api/app/tasks')).toBe('app:write');
+    expect(isPmKeyDenied('PATCH', '/api/app/tasks/t1')).toBe(false);
+    expect(requiredScope('PATCH', '/api/app/tasks/t1')).toBe('app:write');
+  });
+
+  test('the delete patterns do not reach the collection or a lookalike path', () => {
+    expect(isPmKeyDenied('DELETE', '/api/app/tasks')).toBe(false);
+    expect(isPmKeyDenied('DELETE', '/api/app/trash')).toBe(false);
+    expect(isPmKeyDenied('DELETE', '/api/app/trashy/x')).toBe(false);
+    expect(isPmKeyDenied('DELETE', '/api/app/tasksy/x')).toBe(false);
+  });
+});
+
 describe('PM_KEY_DENY patterns', () => {
   test('each pattern has an owner plugin that exists', () => {
     const files = new Set(readdirSync(API_DIR));
     for (const d of PM_KEY_DENY) expect(files.has(PM_DENY_OWNER[d.id] ?? '')).toBe(true);
   });
 
+  test('every pending id is a real deny id (no stale entry left behind)', () => {
+    const ids = new Set(PM_KEY_DENY.map((d) => d.id));
+    for (const id of PM_DENY_PENDING) expect(ids.has(id)).toBe(true);
+  });
+
   for (const d of PM_KEY_DENY) {
     const owner = PM_DENY_OWNER[d.id] ?? '';
-    const skip = !live.get(owner);
-    const title = skip
-      ? `"${d.id}" matches a real route (SKIPPED: ${owner} is still a stub with no routes)`
-      : `"${d.id}" matches a real route`;
+    const pending = PM_DENY_PENDING.includes(d.id);
+    const skip = pending || !live.get(owner);
+    const title = pending
+      ? `"${d.id}" matches a real route (SKIPPED: route arrives later in the slice)`
+      : skip
+        ? `"${d.id}" matches a real route (SKIPPED: ${owner} is still a stub with no routes)`
+        : `"${d.id}" matches a real route`;
     test.skipIf(skip)(title, () => {
       const hit = appRoutes.some(
         (r) => (d.method === '*' || d.method === r.method) && d.path.test(r.path),

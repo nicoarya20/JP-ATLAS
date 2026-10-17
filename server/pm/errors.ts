@@ -50,6 +50,8 @@ export const DENY_CODES = [
   'CANCEL_NOTE_REQUIRED',
   'ROLE_CANNOT_TRASH', // member-managers cannot trash a project (15 Oct 2026 decision)
   'EXPIRED', // restore after TRASH_RETENTION_DAYS (R04 spelling, 410; added with the S1 project Trash)
+  'ROLE_CANNOT_PURGE', // permanent delete is Admin/Super-admin only (S6, P8 §5)
+  'NOT_IN_TRASH', // permanent delete asked for an item that is still live (S6, P8 §5)
 ] as const;
 
 export type PmApiCode = (typeof PM_API_CODES)[number];
@@ -148,5 +150,13 @@ export const PM_ERRORS: Record<PmCode, PmErrorEntry> = {
   EXPIRED: {
     http: 410,
     message: 'Masa pemulihannya sudah lewat, jadi data ini tidak bisa dipulihkan lagi.',
+  },
+  ROLE_CANNOT_PURGE: {
+    http: 403,
+    message: 'Hanya admin yang boleh menghapus selamanya. Minta admin melakukannya.',
+  },
+  NOT_IN_TRASH: {
+    http: 409,
+    message: 'Data ini tidak ada di Sampah. Muat ulang halaman, lalu coba lagi.',
   },
 };
