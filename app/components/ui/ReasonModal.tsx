@@ -26,6 +26,12 @@ export type ReasonModalOptions = {
   categories?: ReasonCategory[];
   /** The note is mandatory whatever the category. */
   requireNote?: boolean;
+  /** Field error for a missing or too-short note, e.g. "Tuliskan alasannya agar tim paham." */
+  noteRequiredMessage?: string;
+  /** A required note shorter than this (after trimming) counts as missing; mirrors the server rule. */
+  noteMinLength?: number;
+  /** Overrides `REASON_MAX_LENGTH` when the server allows less. */
+  noteMaxLength?: number;
   /** Verb label for the submit button: "Batalkan tugas", never "OK". */
   confirmLabel: string;
   danger?: boolean;
@@ -34,34 +40,53 @@ export type ReasonModalOptions = {
 
 type FormState = { category: string | null; reason: string };
 
-/** Returns the message to show when the form cannot be submitted yet, or null when it can. */
-export function validateReason(
-  { category, reason }: FormState,
-  opts: Pick<ReasonModalOptions, 'categories' | 'requireNote'>,
-): string | null {
+type RuleOptions = Pick<
+  ReasonModalOptions,
+  'categories' | 'requireNote' | 'noteRequiredMessage' | 'noteMinLength'
+>;
+
+/** Problem of the category choice, or null. */
+export function categoryProblem({ category }: FormState, opts: RuleOptions): string | null {
   const chosen = opts.categories?.find((c) => c.value === category);
-  if (opts.categories?.length && !chosen) return 'Pilih salah satu alasan.';
-  if (!reason.trim()) {
-    if (chosen?.requireNote) return `Tulis catatan untuk "${chosen.label}".`;
-    if (opts.requireNote) return 'Tulis alasannya dulu.';
-  }
-  return null;
+  return opts.categories?.length && !chosen ? 'Pilih salah satu alasan.' : null;
+}
+
+/** Problem of the note (missing or too short where one is required), or null. */
+export function noteProblem({ category, reason }: FormState, opts: RuleOptions): string | null {
+  const chosen = opts.categories?.find((c) => c.value === category);
+  if (!chosen?.requireNote && !opts.requireNote) return null;
+  // Code points, like the server, so an emoji counts as one character.
+  const length = [...reason.trim()].length;
+  if (length >= Math.max(1, opts.noteMinLength ?? 1)) return null;
+  if (opts.noteRequiredMessage) return opts.noteRequiredMessage;
+  return chosen?.requireNote ? `Tulis catatan untuk "${chosen.label}".` : 'Tulis alasannya dulu.';
+}
+
+/** Returns the message to show when the form cannot be submitted yet, or null when it can. */
+export function validateReason(state: FormState, opts: RuleOptions): string | null {
+  return categoryProblem(state, opts) ?? noteProblem(state, opts);
 }
 
 type FormProps = ReasonModalOptions & { onClose: () => void };
+type Problems = { category: string | null; note: string | null; submit: string | null };
+const NO_PROBLEMS: Problems = { category: null, note: null, submit: null };
 
 /** Body of the reason dialog: category choice, quick phrases, note, and the submit button with loading. */
 export function ReasonForm(props: FormProps) {
   const { description, quick, categories, requireNote, confirmLabel, danger, onSubmit, onClose } =
     props;
   const [state, setState] = useState<FormState>({ category: null, reason: '' });
-  const [problem, setProblem] = useState<string | null>(null);
+  const [problems, setProblems] = useState<Problems>(NO_PROBLEMS);
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
-    const invalid = validateReason(state, { categories, requireNote });
-    if (invalid) return setProblem(invalid);
-    setProblem(null);
+    const found = {
+      category: categoryProblem(state, props),
+      note: noteProblem(state, props),
+      submit: null,
+    };
+    setProblems(found);
+    if (found.category || found.note) return;
     setLoading(true);
     try {
       const reason = state.reason.trim();
@@ -69,7 +94,7 @@ export function ReasonForm(props: FormProps) {
       onClose();
     } catch (error) {
       // Stay open so the typed note is not lost and the user can retry.
-      setProblem(describeApiError(error));
+      setProblems({ ...NO_PROBLEMS, submit: describeApiError(error) });
     } finally {
       setLoading(false);
     }
@@ -83,6 +108,7 @@ export function ReasonForm(props: FormProps) {
           label="Alasan"
           value={state.category}
           onChange={(category) => setState((s) => ({ ...s, category }))}
+          error={problems.category}
         >
           <Stack gap="xs" mt="xs">
             {categories.map((c) => (
@@ -109,13 +135,14 @@ export function ReasonForm(props: FormProps) {
         label={requireNote ? 'Catatan' : 'Catatan (boleh dikosongkan)'}
         autosize
         minRows={3}
-        maxLength={REASON_MAX_LENGTH}
+        maxLength={props.noteMaxLength ?? REASON_MAX_LENGTH}
         value={state.reason}
         onChange={(e) => setState((s) => ({ ...s, reason: e.currentTarget.value }))}
+        error={problems.note}
       />
-      {problem && (
+      {problems.submit && (
         <Alert color="danger" role="alert">
-          {problem}
+          {problems.submit}
         </Alert>
       )}
       <Group justify="flex-end" wrap="wrap" gap="xs">

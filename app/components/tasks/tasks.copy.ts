@@ -1,5 +1,6 @@
 /** Indonesian copy for the task screens (lane L3); enum labels stay in `~/lib/pm-labels`. */
 import type { ScheduleGroup } from '@server/metrics/schedule';
+import type { TaskCancelCategory } from '@server/pm/enums';
 import type { PmCode } from '@server/pm/errors';
 
 export const NOT_FOUND_TEXT = 'Tugas tidak ditemukan atau Anda tidak punya akses.';
@@ -128,3 +129,46 @@ export const PROJECT_TAB_COPY = {
   create: 'Tambah tugas',
   allTasks: 'Lihat semua tugas proyek',
 } as const;
+
+/** The task detail page (S2-12, P3 §2 Tugas ⑧⑨⑪). */
+export const DETAIL_COPY = {
+  back: 'Kembali',
+  fallbackTitle: 'Detail Tugas',
+  project: 'Proyek',
+  kind: 'Jenis',
+  assignee: 'Mengerjakan',
+  noAssignee: 'Belum ada',
+  due: 'Tenggat',
+  noDue: 'Tanpa tenggat',
+  description: 'Deskripsi',
+  noDescription: 'Belum ada deskripsi.',
+  menuLabel: 'Aksi lain untuk tugas ini',
+  reopen: 'Buka lagi',
+  uncancel: 'Pulihkan',
+  // X1-Q1: there is no delete; canceling keeps the task, so the menu says so in plain words.
+  cancel: 'Batalkan tugas',
+  cancelReason: 'Alasan dibatalkan',
+  cancelHint:
+    'Batalkan tugas — tugas tidak dihapus; tetap tercatat sebagai Dibatalkan dan bisa dipulihkan.',
+} as const;
+
+/** The reason dialogs of Batalkan and Buka lagi (P3 §2 Tugas ⑪). */
+export const REASON_COPY = {
+  noteRequired: 'Tuliskan alasannya agar tim paham.',
+  cancelTitle: 'Batalkan tugas',
+  cancelDescription:
+    'Tugas tidak dihapus. Tugas tetap tercatat sebagai Dibatalkan dan bisa dipulihkan.',
+  cancelConfirm: 'Batalkan tugas',
+  reopenTitle: 'Buka lagi tugas',
+  reopenDescription: 'Tugas kembali ke Sedang dikerjakan. Tim akan membaca alasan Anda.',
+  reopenConfirm: 'Buka lagi',
+} as const;
+
+/** The five cancel reasons; "Lainnya" needs a note (server `CANCEL_NOTE_REQUIRED`). */
+export const CANCEL_CATEGORY_LABELS: Record<TaskCancelCategory, string> = {
+  duplicate: 'Tugas dobel',
+  not_needed: 'Tidak diperlukan lagi',
+  out_of_scope: 'Bukan bagian proyek ini',
+  created_by_mistake: 'Salah dibuat',
+  other: 'Lainnya',
+};
