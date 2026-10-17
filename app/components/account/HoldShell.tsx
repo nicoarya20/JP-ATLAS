@@ -85,7 +85,7 @@ export function HoldLeaveButton({ label = 'Keluar dari akun ini' }: { label?: st
       size="sm"
       color="red"
       variant="light"
-      leftSection={<FiLogOut size={14} />}
+      leftSection={<FiLogOut size="1.25em" />}
       loading={leaving}
       onClick={confirm}
     >
