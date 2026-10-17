@@ -14,7 +14,6 @@ const MARKER = /^\/\/ STUB\((S1|S2)\): .+$/m;
 
 /** Page stubs under app/routes/app, with the slice that fills each one in. */
 const ROUTE_STUBS: Record<string, 'S1' | 'S2'> = {
-  'app/routes/app/task-new.tsx': 'S2',
   'app/routes/app/task-detail.tsx': 'S2',
 };
 
@@ -72,6 +71,7 @@ describe('page stubs', () => {
       'app/routes/app/project/tasks.tsx',
       'app/routes/app/projects.tsx',
       'app/routes/app/settings.tsx',
+      'app/routes/app/task-new.tsx',
       'app/routes/app/tasks.tsx',
     ]);
   });
