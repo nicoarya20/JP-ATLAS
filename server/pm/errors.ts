@@ -24,6 +24,7 @@ export const PM_API_CODES = [
   'STORAGE_DISABLED',
   'ACCOUNT_PENDING',
   'ACCOUNT_REJECTED',
+  'SORT_NOT_ALLOWED', // sorting by someone else's numbers: only for managers and Admin (S6 D10)
 ] as const;
 
 /**
@@ -161,4 +162,5 @@ export const PM_ERRORS: Record<PmCode, PmErrorEntry> = {
     http: 410,
     message: 'Masa pemulihannya sudah lewat, jadi data ini tidak bisa dipulihkan lagi.',
   },
+  SORT_NOT_ALLOWED: { http: 422, message: 'Pengurutan ini hanya untuk Pengelola dan Admin.' },
 };

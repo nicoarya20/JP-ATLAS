@@ -86,6 +86,23 @@ describe('project Trash routes (S1-05)', () => {
   });
 });
 
+describe('Team routes (S6 M03/M04)', () => {
+  test.each(['/api/app/team', '/api/app/team/u1', '/api/app/team/picker'])(
+    'GET %s is open to a key with app:read',
+    (p) => {
+      expect(isPmKeyDenied('GET', p)).toBe(false);
+      expect(requiredScope('GET', p)).toBe('app:read');
+    },
+  );
+
+  test('Team adds no write route for a key to reach', () => {
+    const writes = appRoutes.filter(
+      (r) => r.path.startsWith('/api/app/team') && r.method !== 'GET',
+    );
+    expect(writes).toEqual([]);
+  });
+});
+
 describe('PM_KEY_DENY patterns', () => {
   test('each pattern has an owner plugin that exists', () => {
     const files = new Set(readdirSync(API_DIR));
