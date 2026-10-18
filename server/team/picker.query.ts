@@ -13,6 +13,7 @@ import type { PmCode } from '../pm/errors';
 import { isLive } from '../pm/soft-delete';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
+import { accountActive, likeText } from './account-active';
 
 export const PICKER_LIMIT_DEFAULT = 20;
 /** A picker shows a short list to choose from; asking for more is clamped to this. */
@@ -35,19 +36,6 @@ export type PickPeopleInput = {
 };
 
 export type PickPeopleResult = { ok: true; items: PickerPerson[] } | { ok: false; code: PmCode };
-
-// Same rule as `isBanActive` (server/ban.ts), in SQL: `ban_expires` is a plain `timestamp` and the
-// session zone is UTC (X1 D7), so `now()` is shifted before comparing; an expired ban does not hold.
-const accountActive = sql<boolean>`(
-  ${user.approvalStatus} = 'approved'
-  AND NOT (
-    coalesce(${user.banned}, false)
-    AND (${user.banExpires} IS NULL OR ${user.banExpires} > (now() AT TIME ZONE 'UTC'))
-  )
-)`;
-
-/** `LIKE` treats `%`, `_` and `\` as patterns; a typed name must match them literally. */
-const likeText = (s: string) => `%${s.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 
 /** Clamps `limit` to 1..PICKER_LIMIT_MAX; a missing or odd value gets the default. */
 export function pickerLimit(limit: number | undefined): number {
