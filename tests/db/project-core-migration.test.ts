@@ -25,9 +25,10 @@ const downStatements = (file: string) =>
     .map((s) => s.trim())
     .filter(Boolean);
 const DOWN_STATEMENTS = downStatements(ROLLBACK);
-// Migrations are rolled back newest first: 0016's `task` tables reference `project`, so they must go before it.
-const TASK_DOWN_STATEMENTS = downStatements(
-  path.join(import.meta.dir, '../../server/db/rollback/0016_task_core.down.sql'),
+// Migrations are rolled back newest first: 0017's `notification` and 0016's `task` tables both reference
+// `project`, so their rollbacks must run before it (a later migration that points at `project` joins this list).
+const DEPENDENT_DOWN_STATEMENTS = ['0017_notification_core', '0016_task_core'].flatMap((tag) =>
+  downStatements(path.join(import.meta.dir, `../../server/db/rollback/${tag}.down.sql`)),
 );
 
 const TABLES = ['project', 'project_member', 'project_activity'];
@@ -72,7 +73,7 @@ const runMigration = async (tx: Tx) => {
   for (const stmt of STATEMENTS) await exec(tx, stmt);
 };
 const runRollback = async (tx: Tx) => {
-  for (const stmt of [...TASK_DOWN_STATEMENTS, ...DOWN_STATEMENTS]) await exec(tx, stmt);
+  for (const stmt of [...DEPENDENT_DOWN_STATEMENTS, ...DOWN_STATEMENTS]) await exec(tx, stmt);
 };
 
 const listNames = async (tx: Tx, query: string) =>

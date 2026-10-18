@@ -4,6 +4,8 @@ import { canActOnUser } from '../access/user.policy';
 import { approveUser, rejectUser } from '../account/approval.service';
 import { AUDIT_ACTIONS, audit } from '../audit';
 import { auth } from '../auth';
+import { db } from '../db';
+import { emitUserDecided } from '../notification/emit.account';
 import { ROLES, type Role } from '../permissions';
 import { fail } from '../pm/respond';
 import { adminContext, callerOf } from './admin-context';
@@ -31,6 +33,11 @@ export const adminModerationApi = new Elysia()
         headers: request.headers,
         body: { userId: target.id, banReason: body.reason, banExpiresIn: body.expiresIn },
       });
+      // The one hook of its kind in a controller (P5 §5.3 butir 4 puts them in the service): the
+      // ban path is `auth.api.banUser` called from right here and has no service of its own, and
+      // the queue card has to leave every Admin's Inbox, not just the one who pressed the button.
+      // MOVE THIS to the service the moment a service-level ban exists, like approve and reject.
+      await emitUserDecided(db, target.id, { by: actor.user.id });
       // Better Auth only blocks new sign-ins; end every live session so the ban is immediate.
       const revoked = await revokeUserSessions(target.id);
       const duration = body.expiresIn

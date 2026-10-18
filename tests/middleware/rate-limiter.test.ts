@@ -104,6 +104,10 @@ describe('RateLimiter.check (sliding-window counter)', () => {
     expect(rl.isExcluded('/api/auth/sign-in/email')).toBe(true);
     expect(rl.isExcluded('/api/mcp')).toBe(true);
     expect(rl.isExcluded('/api/admin/users')).toBe(false);
+    // The Inbox bell is polled every 60 s per tab; the rest of /api/app stays limited (S3 I04).
+    expect(rl.isExcluded('/api/app/inbox/count')).toBe(true);
+    expect(rl.isExcluded('/api/app/inbox')).toBe(false);
+    expect(rl.isExcluded('/api/app/tasks')).toBe(false);
   });
 });
 

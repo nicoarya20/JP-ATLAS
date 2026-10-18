@@ -11,6 +11,7 @@ import { ACCESS_RULES } from '../access/rules';
 import type { Membership, Principal } from '../access/types';
 import { project, task } from '../db/schema';
 import type { MetricsConfig } from '../metrics/types';
+import { emitProjectTrashed } from '../notification/emit.project';
 import { getMetrics } from '../pm/metrics-env';
 import { isLive } from '../pm/soft-delete';
 import { inTx, type Tx } from '../pm/tx';
@@ -61,6 +62,8 @@ export function trashProject(
       .where(and(eq(task.projectId, row.id), isLive(task)))
       .returning({ id: task.id });
     await logActivity(tx, p, row.id, 'trashed', { tasks: moved.length });
+    // Only the open cards are closed; `restoreProject` has no counterpart, so none come back.
+    await emitProjectTrashed(tx, row.id, { by: p.id, at: now });
     return { ok: true, value: { id: row.id, tasks: moved.length } };
   });
 }

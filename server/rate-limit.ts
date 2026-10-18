@@ -29,8 +29,12 @@ export type RateLimitResult = {
 /** Counts of the current and previous fixed window; estimate = prev × (1 − elapsed/window) + curr. */
 type KeyState = { windowStart: number; prev: number; curr: number; loggedAt: number };
 
-/** Better Auth and the MCP server have their own protection (rate limit / token). */
-export const DEFAULT_EXCLUDE_PREFIXES = ['/api/auth/', '/api/mcp'];
+/**
+ * Better Auth and the MCP server have their own protection (rate limit / token). The Inbox count is
+ * exempt because every open tab polls it every 60 s: one office IP would spend the shared quota on
+ * the bell alone (S3 I04, P5 §4). It is a read of two index-only counts, scoped to the caller.
+ */
+export const DEFAULT_EXCLUDE_PREFIXES = ['/api/auth/', '/api/mcp', '/api/app/inbox/count'];
 
 // ponytail: per-process, O(1) per key (sliding-window counter, approximate at window edges); at the cap the least-recently-used 10% are evicted and restart with a fresh quota — move to Redis/shared store for multi-instance or floods wider than this.
 export const MAX_TRACKED_KEYS = 10_000;

@@ -10,6 +10,7 @@ import { canSetUserRole, type Principal } from '../access/user.policy';
 import { AUDIT_ACTIONS, audit } from '../audit';
 import { db } from '../db';
 import { user } from '../db/schema';
+import { emitUserDecided } from '../notification/emit.account';
 import { normalizeRole, type Role } from '../permissions';
 import type { ApprovalStatus } from '../pm/enums';
 import { maskEmail } from './mask-email';
@@ -127,6 +128,8 @@ export async function approveUser(input: ApproveInput): Promise<ApprovalResult> 
   });
   if (!row) return { ok: false, code: 'WRONG_STATE' };
 
+  await emitUserDecided(db, s.id, { by: input.actor.id });
+
   const role = normalizeRole(row.role);
   void audit({
     actor: auditActor(input),
@@ -154,6 +157,7 @@ export async function rejectUser(input: RejectInput): Promise<ApprovalResult> {
   const reason = (input.reason ?? '').trim();
   const row = await applyDecision(s, 'rejected', input.actor.id, { reason });
   if (!row) return { ok: false, code: 'WRONG_STATE' };
+  await emitUserDecided(db, s.id, { by: input.actor.id });
 
   void audit({
     actor: auditActor(input),

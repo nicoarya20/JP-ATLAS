@@ -22,6 +22,7 @@ import {
 import type { Membership, Principal, TaskSubject } from '../access/types';
 import { task, taskActivity } from '../db/schema';
 import { logger } from '../logger';
+import { emitTaskTransition } from '../notification/emit.task';
 import type { TaskCancelCategory, TaskStatus } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
 import { inTx } from '../pm/tx';
@@ -169,13 +170,17 @@ export async function applyTransition(
       .returning();
     if (!row) return refused('STATE_CONFLICT');
 
-    await tx.insert(taskActivity).values({
-      taskId: row.id,
-      actorId: p.id,
-      actorName: author.name,
-      action: TASK_ACTIVITY[action],
-      payload: payloadOf(action, step.from, step.to, input),
-    });
+    const acts = await tx
+      .insert(taskActivity)
+      .values({
+        taskId: row.id,
+        actorId: p.id,
+        actorName: author.name,
+        action: TASK_ACTIVITY[action],
+        payload: payloadOf(action, step.from, step.to, input),
+      })
+      .returning({ id: taskActivity.id, action: taskActivity.action });
+    await emitTaskTransition(tx, row.id, { by: p.id, acts, action, at: clock.now });
     const pool = await loadReviewerPool(row.projectId, tx);
     const can = taskCaps(
       p,
