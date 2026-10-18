@@ -5,135 +5,58 @@
  * (the page, the guest-list aggregate, the viewer's memberships) and `tests/event/events.query.test.ts`
  * proves it with a query counter.
  *
+ * The SQL fragments and the row mapping live in `events.sql.ts`, so the list, the detail and the
+ * Agenda share one definition of "which events exist for this viewer" and this file stays a reader.
+ *
  * No function here calls `new Date()`: "now", "today" and the team zone arrive in an `EventClock`.
  */
-import { and, asc, desc, eq, ilike, inArray, isNull, type SQL, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, type SQL, sql } from 'drizzle-orm';
 import { eventCaps } from '../access/capabilities';
 import { canViewEvent } from '../access/event.policy';
-import type { EventSubject, Membership, Principal } from '../access/types';
+import type { Membership, Principal } from '../access/types';
 import { db } from '../db';
 import { event, eventNote, project } from '../db/schema';
 import { decodeCursor, encodeCursor } from '../pm/keyset';
 import { PAGE_LIMIT_DEFAULT, PAGE_LIMIT_MAX } from '../pm/limits';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
-import { liveEvent, visibleEventsWhere } from './events.access';
-import {
-  AGENDA_LIMIT,
-  EVENT_SEARCH_MAX,
-  EVENT_TAB_DEFAULT,
-} from './events.dto';
+import { visibleEventsWhere } from './events.access';
+import { AGENDA_LIMIT, EVENT_TAB_DEFAULT } from './events.dto';
 import type {
   AgendaItem,
   EventClock,
   EventDetail,
   EventDetailResult,
   EventListItem,
-  EventRow,
-  EventTab,
   ListEventsInput,
   ListEventsResult,
-  ProjectRef,
 } from './events.dto';
 import { loadEventPeople, loadParticipants, loadParticipantSummaries } from './events.participants';
+import {
+  afterCursor,
+  eventColumns,
+  filtersOf,
+  inTab,
+  instant,
+  iso,
+  listable,
+  loadEventRow,
+  membershipFor,
+  onProject,
+  orderFor,
+  projectRefOf,
+  subjectOf,
+} from './events.sql';
 
 const clampLimit = (n: number | undefined) =>
   Math.min(Math.max(Math.trunc(n ?? PAGE_LIMIT_DEFAULT), 1), PAGE_LIMIT_MAX);
 
-/** Every column an event read selects; the project columns come from a LEFT JOIN, so they are nullable. */
-export const eventColumns = {
-  id: event.id,
-  title: event.title,
-  kind: event.kind,
-  startsAt: event.startsAt,
-  endsAt: event.endsAt,
-  locationType: event.locationType,
-  locationText: event.locationText,
-  meetingUrl: event.meetingUrl,
-  agenda: event.agenda,
-  remindersMinutes: event.remindersMinutes,
-  canceledAt: event.canceledAt,
-  cancelReason: event.cancelReason,
-  canceledBy: event.canceledBy,
-  createdBy: event.createdBy,
-  deletedAt: event.deletedAt,
-  deletedBy: event.deletedBy,
-  createdAt: event.createdAt,
-  updatedAt: event.updatedAt,
-  projectId: event.projectId,
-  projectName: project.name,
-  projectStatus: project.status,
-  projectDeletedAt: project.deletedAt,
-} as const;
-
-// A personal event has no project row, so every read LEFT JOINs `project`: an INNER JOIN would
-// silently drop events that belong to nobody's project.
-const onProject = eq(project.id, event.projectId);
-
-/** A live event whose project (if any) is not itself in the Trash. */
-const listable = and(liveEvent, isNull(project.deletedAt));
-
-/** The ISO instant of a Date for a raw `sql` fragment; a timestamptz column needs the cast (X1 D7). */
-const instant = (d: Date) => sql`${d.toISOString()}::timestamptz`;
-
-/** `LIKE` search on the title; `%`, `_` and the escape character are literal, backslash being the Postgres default. */
-function titleMatches(q: string): SQL {
-  return ilike(event.title, `%${q.replace(/[\\%_]/g, '\\$&')}%`);
-}
-
-/** The half of the timeline a tab shows; both cut on `starts_at` against the same `now`. */
-function inTab(tab: EventTab, now: Date): SQL {
-  return tab === 'upcoming'
-    ? sql`${event.startsAt} >= ${instant(now)}`
-    : sql`${event.startsAt} < ${instant(now)}`;
-}
-
-/** Keyset step for the tab's own direction: upcoming runs forwards in time, past backwards. */
-function afterCursor(tab: EventTab, key: { sortValue: string | number | null; id: string }): SQL {
-  const at = sql`${String(key.sortValue)}::timestamptz`;
-  return tab === 'upcoming'
-    ? sql`(${event.startsAt}, ${event.id}) > (${at}, ${key.id})`
-    : sql`(${event.startsAt}, ${event.id}) < (${at}, ${key.id})`;
-}
-
-const orderFor = (tab: EventTab) =>
-  tab === 'upcoming' ? [asc(event.startsAt), asc(event.id)] : [desc(event.startsAt), desc(event.id)];
-
-/** The WHERE conditions the caller's filters add; undefined entries are dropped by `and`. */
-function filtersOf(i: ListEventsInput): (SQL | undefined)[] {
-  const q = i.q?.trim().slice(0, EVENT_SEARCH_MAX);
-  return [
-    i.projectId ? eq(event.projectId, i.projectId) : undefined,
-    i.kind?.length ? inArray(event.kind, [...i.kind]) : undefined,
-    q ? titleMatches(q) : undefined,
-  ];
-}
-
-const iso = (d: Date | null) => (d === null ? null : d.toISOString());
-
-const projectRefOf = (r: EventRow): ProjectRef | null =>
-  r.projectId && r.projectName && r.projectStatus
-    ? { id: r.projectId, name: r.projectName, status: r.projectStatus }
-    : null;
-
-/** The policy's view of a row; `isParticipant` is the one guest fact the pure policy needs. */
-export function subjectOf(r: EventRow, isParticipant: boolean): EventSubject {
-  return {
-    id: r.id,
-    projectId: r.projectId,
-    createdBy: r.createdBy,
-    canceledAt: r.canceledAt,
-    deletedAt: r.deletedAt,
-    deletedBy: r.deletedBy,
-    projectDeletedAt: r.projectDeletedAt,
-    isParticipant,
-  };
-}
+const NO_GUESTS = { total: 0, isParticipant: false };
 
 /**
  * One keyset page of the events `p` may see. Exactly three queries: the page itself, the guest-list
  * aggregate for the page, and the viewer's membership of the projects on it. A cursor that is
- * malformed or belongs to the other tab answers `BAD_CURSOR` instead of throwing.
+ * malformed or belongs to another list answers `BAD_CURSOR` instead of throwing.
  */
 export async function listEvents(
   p: Principal,
@@ -171,12 +94,16 @@ export async function listEvents(
   const projectIds = page.map((r) => r.projectId).filter((id): id is string => id !== null);
   // Queries 2 and 3, in parallel: the guest-list aggregate and the viewer's memberships.
   const [guests, memberships] = await Promise.all([
-    loadParticipantSummaries(p.id, page.map((r) => r.id), exec),
+    loadParticipantSummaries(
+      p.id,
+      page.map((r) => r.id),
+      exec,
+    ),
     loadMembership(p.id, projectIds, exec),
   ]);
 
   const items = page.map((r): EventListItem => {
-    const summary = guests.get(r.id) ?? { total: 0, isParticipant: false };
+    const summary = guests.get(r.id) ?? NO_GUESTS;
     const m: Membership = r.projectId ? (memberships.get(r.projectId) ?? null) : null;
     return {
       id: r.id,
@@ -196,36 +123,6 @@ export async function listEvents(
     };
   });
   return { ok: true, items, nextCursor };
-}
-
-/** One event row by id, project columns joined, with no visibility filter; callers gate it themselves. */
-export async function loadEventRow(id: string, exec: Executor = db): Promise<EventRow | undefined> {
-  const [row] = await exec
-    .select(eventColumns)
-    .from(event)
-    .leftJoin(project, onProject)
-    .where(eq(event.id, id));
-  return row;
-}
-
-/** The `EventSubject` of a row for one principal, resolving the viewer's own guest flag. */
-export async function eventSubjectOf(
-  p: Principal,
-  row: EventRow,
-  exec: Executor = db,
-): Promise<EventSubject> {
-  const guests = await loadParticipantSummaries(p.id, [row.id], exec);
-  return subjectOf(row, guests.get(row.id)?.isParticipant ?? false);
-}
-
-/** The viewer's membership of a project, or null for a personal event. */
-export async function membershipFor(
-  p: Principal,
-  projectId: string | null,
-  exec: Executor = db,
-): Promise<Membership> {
-  if (!projectId) return null;
-  return (await loadMembership(p.id, [projectId], exec)).get(projectId) ?? null;
 }
 
 /**

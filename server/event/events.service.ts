@@ -7,7 +7,7 @@
  * Moving an event to the Trash is not here: that is E-07, together with restore and the Trash list.
  * No function calls `new Date()`: "now" arrives from the caller, so reminder maths stays testable.
  */
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import {
   canCancelEvent,
   canCreateEvent,
@@ -15,15 +15,22 @@ import {
   canManageParticipants,
 } from '../access/event.policy';
 import type { EventSubject, Membership, Principal } from '../access/types';
-import { event, eventParticipant, eventReminder, project, user } from '../db/schema';
+import { event, eventParticipant, eventReminder, project } from '../db/schema';
 import { logger } from '../logger';
 import { EVENT_REMINDER_OFFSETS_MIN, type EventKind, type EventLocationType } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
 import { inTx, type Tx } from '../pm/tx';
-import { loadMembership } from '../project/membership.query';
 import type { EventDetail, PersonRef } from './events.dto';
-import { getEvent, loadEventRow, subjectOf } from './events.query';
 import { inviteOnto, loadParticipants } from './events.participants';
+import { getEvent } from './events.query';
+import { loadEventRow, membershipFor, subjectOf } from './events.sql';
+import {
+  checkGuests,
+  isRefusal,
+  type Refusal,
+  refuse,
+  resolveSpan,
+} from './events.validate';
 
 export type CreateEventInput = {
   title: string;
@@ -63,73 +70,6 @@ export type ParticipantWriteResult =
   | { ok: true; participants: PersonRef[] }
   | { ok: false; code: PmCode; error?: string };
 
-type Refusal = { ok: false; code: PmCode; error?: string };
-const invalid = (error: string): Refusal => ({ ok: false, code: 'VALIDATION', error });
-
-/** User-facing refusals of the write paths, in Indonesian and actionable (R04). */
-export const EVENT_WRITE_MESSAGES = {
-  endsBeforeStarts: 'Jam selesai harus setelah jam mulai.',
-  reasonRequired: 'Tuliskan alasan pembatalan agar peserta paham.',
-  unknownGuest: 'Ada peserta yang tidak ditemukan atau belum disetujui.',
-} as const;
-
-/**
- * A policy verdict turned into a write refusal. `NOT_VISIBLE` is the policy's own code and not a
- * `PmCode`, so a hidden event is reported as the 404 a missing one gives (D8).
- */
-function refuse(code: string): Refusal {
-  return { ok: false, code: (code === 'NOT_VISIBLE' ? 'NOT_FOUND' : code) as PmCode };
-}
-
-/** The viewer's membership of a project, or null for a personal event. */
-async function membershipOf(p: Principal, projectId: string | null, tx: Tx): Promise<Membership> {
-  if (!projectId) return null;
-  return (await loadMembership(p.id, [projectId], tx)).get(projectId) ?? null;
-}
-
-const isRefusal = (v: unknown): v is Refusal =>
-  typeof v === 'object' && v !== null && (v as Refusal).ok === false;
-
-/** Parses an ISO instant from the client; anything unparseable is a validation error, never a throw. */
-function instantOf(value: string, field: string): Date | Refusal {
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? invalid(`Nilai ${field} bukan tanggal yang sah.`) : d;
-}
-
-/**
- * The span a write ends up with: the fields it sets, falling back to `current` on an update.
- * One place for the "ends after starts" rule, so create and update refuse identically (the DB
- * CHECK `event_ends_after_starts_check` is the backstop, not the message the user reads).
- */
-function resolveSpan(
-  input: { startsAt?: string; endsAt?: string },
-  current?: { startsAt: Date; endsAt: Date },
-): { startsAt: Date; endsAt: Date } | Refusal {
-  const from = input.startsAt ? instantOf(input.startsAt, 'jam mulai') : current?.startsAt;
-  if (isRefusal(from)) return from;
-  const to = input.endsAt ? instantOf(input.endsAt, 'jam selesai') : current?.endsAt;
-  if (isRefusal(to)) return to;
-  if (!from || !to) return invalid('Jam mulai dan jam selesai wajib diisi.');
-  return to.getTime() <= from.getTime()
-    ? invalid(EVENT_WRITE_MESSAGES.endsBeforeStarts)
-    : { startsAt: from, endsAt: to };
-}
-
-/**
- * Rejects guests who do not exist or whose account is not approved, in one query. An id that is
- * simply unknown and one that belongs to a pending account give the same message, so the guest
- * picker cannot be used to probe who has an account here.
- */
-async function checkGuests(tx: Tx, userIds: readonly string[]): Promise<Refusal | null> {
-  const wanted = [...new Set(userIds)];
-  if (wanted.length === 0) return null;
-  const rows = await tx
-    .select({ id: user.id })
-    .from(user)
-    .where(and(inArray(user.id, wanted), eq(user.approvalStatus, 'approved')));
-  return rows.length === wanted.length ? null : invalid(EVENT_WRITE_MESSAGES.unknownGuest);
-}
-
 /** The project row the create policy reads, or null when the event carries no project. */
 async function projectSubjectOf(tx: Tx, projectId: string | null | undefined) {
   if (!projectId) return null;
@@ -162,7 +102,7 @@ export async function createEvent(
     const subject = await projectSubjectOf(tx, input.projectId);
     // A project id that does not exist answers like a hidden one: no hint that it might.
     if (subject === undefined) return { ok: false, code: 'NOT_FOUND' };
-    const m = await membershipOf(p, input.projectId ?? null, tx);
+    const m = await membershipFor(p, input.projectId ?? null, tx);
     const decision = canCreateEvent(p, subject, m);
     if (!decision.ok) return refuse(decision.code);
 
@@ -209,7 +149,7 @@ async function gate(
       .select({ userId: eventParticipant.userId })
       .from(eventParticipant)
       .where(and(eq(eventParticipant.eventId, eventId), eq(eventParticipant.userId, p.id))),
-    membershipOf(p, row.projectId, tx),
+    membershipFor(p, row.projectId, tx),
   ]);
   const subject = subjectOf(row, guests.length > 0);
   const decision = check(subject, m);
