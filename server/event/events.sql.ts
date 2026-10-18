@@ -14,7 +14,13 @@ import type { CursorKey } from '../pm/keyset';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
 import { liveEvent } from './events.access';
-import { EVENT_SEARCH_MAX, type EventRow, type EventTab, type ListEventsInput, type ProjectRef } from './events.dto';
+import {
+  EVENT_SEARCH_MAX,
+  type EventRow,
+  type EventTab,
+  type ListEventsInput,
+  type ProjectRef,
+} from './events.dto';
 
 /** Every column an event read selects; the project columns come from a LEFT JOIN, so they are nullable. */
 export const eventColumns = {
@@ -53,7 +59,7 @@ export const listable = and(liveEvent, isNull(project.deletedAt));
 export const instant = (d: Date) => sql`${d.toISOString()}::timestamptz`;
 
 /** `LIKE` search on the title; `%`, `_` and the escape character are literal, backslash being the Postgres default. */
-export function titleMatches(q: string): SQL {
+function titleMatches(q: string): SQL {
   return ilike(event.title, `%${q.replace(/[\\%_]/g, '\\$&')}%`);
 }
 

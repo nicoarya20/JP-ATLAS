@@ -24,13 +24,7 @@ import type { EventDetail, PersonRef } from './events.dto';
 import { inviteOnto, loadParticipants } from './events.participants';
 import { getEvent } from './events.query';
 import { loadEventRow, membershipFor, subjectOf } from './events.sql';
-import {
-  checkGuests,
-  isRefusal,
-  type Refusal,
-  refuse,
-  resolveSpan,
-} from './events.validate';
+import { checkGuests, isRefusal, type Refusal, refuse, resolveSpan } from './events.validate';
 
 export type CreateEventInput = {
   title: string;

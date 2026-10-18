@@ -9,13 +9,13 @@ import type { Principal } from '../../server/access/types';
 import { db } from '../../server/db';
 import { eventParticipant, project as projectTable } from '../../server/db/schema';
 import type { EventClock, ListEventsInput, ListEventsResult } from '../../server/event/events.dto';
-import { agendaFor, getEvent, listEvents } from '../../server/event/events.query';
 import { AGENDA_LIMIT } from '../../server/event/events.dto';
+import { agendaFor, getEvent, listEvents } from '../../server/event/events.query';
 import { toPrincipal } from '../../server/project/membership.query';
 import { createCleaner } from '../support/cleanup';
 import { ATLAS_NOW } from '../support/clock';
-import { createFactory } from '../support/factory.task';
 import type { TestProject } from '../support/factory.project';
+import { createFactory } from '../support/factory.task';
 import type { TestUser } from '../support/factory.user';
 import { countQueries } from '../support/query-count';
 import { createEventFactory } from './factory.event';
@@ -85,7 +85,12 @@ beforeAll(async () => {
       .where(eq(projectTable.id, trashed.id));
   });
 
-  soon = await shared.event({ project, creator: lead, title: 'Rapat mingguan tim', startsInMin: 30 });
+  soon = await shared.event({
+    project,
+    creator: lead,
+    title: 'Rapat mingguan tim',
+    startsInMin: 30,
+  });
   later = await shared.event({
     project,
     creator: lead,
@@ -109,7 +114,9 @@ beforeAll(async () => {
 describe('query budget', () => {
   it('spends exactly three queries on a page of project events', async () => {
     const counter = countQueries();
-    const res = good(await listEvents(principal(lead), { projectId: project.id }, clock, counter.exec));
+    const res = good(
+      await listEvents(principal(lead), { projectId: project.id }, clock, counter.exec),
+    );
     expect(res.items.length).toBeGreaterThan(1);
     expect(counter.queries).toHaveLength(3);
   });
@@ -175,7 +182,9 @@ describe('tabs', () => {
       creator: lead,
       startsInMin: -MIN_PER_DAY * 30,
     });
-    const back = ids(await listEvents(principal(lead), { tab: 'past', projectId: project.id }, clock));
+    const back = ids(
+      await listEvents(principal(lead), { tab: 'past', projectId: project.id }, clock),
+    );
     expect(back.indexOf(past.id)).toBeLessThan(back.indexOf(olderPast.id));
   });
 });
@@ -354,9 +363,7 @@ describe('agendaFor', () => {
       canceledBy: lead,
     });
     const notMine = await perTest.event({ project, creator: member, startsInMin: 50 });
-    await db
-      .delete(eventParticipant)
-      .where(eq(eventParticipant.eventId, notMine.id));
+    await db.delete(eventParticipant).where(eq(eventParticipant.eventId, notMine.id));
     const seen = (await agendaFor(principal(lead), clock)).map((i) => i.id);
     expect(seen).not.toContain(off.id);
     expect(seen).not.toContain(notMine.id);

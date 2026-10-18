@@ -15,9 +15,9 @@ import {
 } from '../../server/db/schema';
 import {
   addParticipants,
+  type CreateEventInput,
   cancelEvent,
   createEvent,
-  type CreateEventInput,
   removeParticipant,
   updateEvent,
 } from '../../server/event/events.service';

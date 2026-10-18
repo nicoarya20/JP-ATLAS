@@ -8,8 +8,7 @@
  */
 import type { Caps, EventCapKey } from '../access/capabilities';
 import type { IsoDate } from '../metrics/types';
-import type { EventKind, EventLocationType, EventNoteStatus } from '../pm/enums';
-import type { ProjectStatus } from '../pm/enums';
+import type { EventKind, EventLocationType, EventNoteStatus, ProjectStatus } from '../pm/enums';
 
 /** A person as an event shows them: id and name only, never email or phone (Q8). */
 export type PersonRef = { id: string; name: string };

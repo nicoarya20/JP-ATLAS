@@ -74,10 +74,7 @@ export async function loadParticipantSummaries(
 }
 
 /** The guest list of one event as the detail shows it, ordered oldest invite first. */
-export async function loadParticipants(
-  eventId: string,
-  exec: Executor = db,
-): Promise<PersonRef[]> {
+export async function loadParticipants(eventId: string, exec: Executor = db): Promise<PersonRef[]> {
   const rows = await exec
     .select({
       id: user.id,

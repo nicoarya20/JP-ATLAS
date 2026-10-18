@@ -21,7 +21,6 @@ import { PAGE_LIMIT_DEFAULT, PAGE_LIMIT_MAX } from '../pm/limits';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
 import { visibleEventsWhere } from './events.access';
-import { AGENDA_LIMIT, EVENT_TAB_DEFAULT } from './events.dto';
 import type {
   AgendaItem,
   EventClock,
@@ -31,13 +30,14 @@ import type {
   ListEventsInput,
   ListEventsResult,
 } from './events.dto';
-import { loadEventPeople, loadParticipants, loadParticipantSummaries } from './events.participants';
+import { AGENDA_LIMIT, EVENT_TAB_DEFAULT } from './events.dto';
+import { loadEventPeople, loadParticipantSummaries, loadParticipants } from './events.participants';
 import {
   afterCursor,
   eventColumns,
   filtersOf,
-  inTab,
   instant,
+  inTab,
   iso,
   listable,
   loadEventRow,
