@@ -5,14 +5,14 @@
 ## 1. Status keseluruhan
 | Irisan | Menu | Rencana | Tugas | Selesai | Status |
 |---|---|---|---|---|---|
-| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | **5 review** (I01-I04, I11), 2 berjalan (I05, I06) |
+| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | **9 review** (I01-I07, I11, I14); sisa I08-I10, I12, I13 |
 | S3 | Beranda | [P4](rencana/P4-s3-beranda.md) | 12 | 0 | rencana selesai, belum dikerjakan |
 | S4 | Tugas lanjutan (Periksa, dependensi, tag, Papan) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 15 | 0 | rencana selesai, belum dikerjakan |
 | S5 | Tugas lanjutan (Tahapan, tenggat, bukti) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 14 | 0 | rencana selesai, belum dikerjakan |
 | S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | **1 review** (Z-01) |
-| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | **2 review** (M01, M02); M03+M04 perlu diluncurkan ulang |
+| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | **4 review** (M01-M04); sisa M05-M10 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
-| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | **2 review** (E-01, E-02), 1 berjalan (E-03) |
+| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | **5 review** (E-01, E-02, E-03, E-05, E-06); E-04 DIBLOKIR (butuh notify dari cabang Inbox) |
 | | **Total** | | **98** | **0** | |
 
 **Syarat sebelum tugas pertama dimulai:**
@@ -54,16 +54,16 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 | I02 | Katalog, tipe, penerima | review | `feature/pm-s3-i01-i02-notification-core` | `97c8a3d` | 14 kind (7 dikirim S3); filterRecipients terbukti 1 kueri |
 | I03 | Inti `notify()`, `resolveNotifications()`, `dropForUserInProject()` | review | `feature/pm-s3-i01-i02-notification-core` | `b133f77` | notify gagal di dalam inTx tidak menggagalkan baris domain (diuji spy); <=3 kueri |
 | I04 | Query + API baca/tandai + pengecualian rate limit (**penutup S3a**) | review | `feature/pm-s3-i01-i02-notification-core` | `e613b41` | 4269 lulus/0 gagal; daftar 20 kartu = 1 kueri; count bebas 429. **Penutup S3a** |
-| I05 | Kait penugasan tugas (buat, ubah penugasan) | berjalan | `feature/pm-s3-i01-i02-notification-core` | – | berjalan sejak 18 Okt |
-| I06 | Kait transisi status dan komentar | berjalan | `feature/pm-s3-i01-i02-notification-core` | – | berjalan sejak 18 Okt |
-| I07 | Kait proyek dan anggota | belum | – | – | – |
+| I05 | Kait penugasan tugas (buat, ubah penugasan) | review | `feature/pm-s3-i01-i02-notification-core` | `1c54dd7` | kait createTask/updateTask; task.service.ts 299/300 |
+| I06 | Kait transisi status dan komentar | review | `feature/pm-s3-i01-i02-notification-core` | `f26212e` | G-2 terbukti lewat sesi DAN kunci API; unstart kini bersuara (keputusan koordinator) |
+| I07 | Kait proyek dan anggota | review | `feature/pm-s3-i01-i02-notification-core` | `5bf2ea2` | pulihkan proyek tidak menghidupkan ulang kartu (terbukti) |
 | I08 | Klien Inbox: API, kunci query, hook hitungan | belum | – | – | – |
 | I09 | Lonceng, badge menu, NAV, rute (pemilik tunggal berkas bingkai) | belum | – | – | – |
 | I10 | Halaman Inbox | belum | – | – | – |
 | I11 | Scheduler pembersih | review | `feature/pm-s3-i01-i02-notification-core` | `91ce31b` | retensi 30 hari, batch 500, tidak dipasang saat NODE_ENV=test |
 | I12 | Kontrak lintas-jalur, keamanan, kinerja, smoke, dokumen | belum | – | – | – |
 | I13 | Integrasi dan gerbang demo S3-Inbox | belum | – | – | – |
-| I14 | (Opsional, Should) Kartu "Pengguna baru menunggu persetujuan" | belum | – | – | – |
+| I14 | (Opsional, Should) Kartu "Pengguna baru menunggu persetujuan" | review | `feature/pm-s3-i01-i02-notification-core` | `bc0cf89` | Admin yang tidak menekan tombol ikut kehilangan kartu; +3 berkas di luar Target (disetujui) |
 
 ### S3 · Beranda
 | ID | Tugas | Status | Cabang | Hash | Catatan |
@@ -135,8 +135,8 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 |---|---|---|---|---|---|
 | M01 | Kebijakan murni visibilitas Tim (D10) | review | `feature/pm-s6-m01-team-policy` | `769177d` | 4167 lulus/0 gagal; scope Pengelola = irisan proyek bersama; irisan kosong = none |
 | M02 | Kueri Tim (orang, peran, beban, ringkasan) ≤ 4 kueri | review | `feature/pm-s6-m01-team-policy` | `bbb0041` | 4200 lulus/0 gagal; tepat 4 statement untuk 4 maupun 41 orang |
-| M03 | Rute daftar `GET /api/app/team` + tes privasi per peran | belum | – | – | – |
-| M04 | Rute detail `GET /api/app/team/:userId` | belum | – | – | – |
+| M03 | Rute daftar `GET /api/app/team` + tes privasi per peran | review | `feature/pm-s6-m01-team-policy` | `ccee194` | privasi beban per peran terkunci tes; +SORT_NOT_ALLOWED |
+| M04 | Rute detail `GET /api/app/team/:userId` | review | `feature/pm-s6-m01-team-policy` | `aca0cab` | detail: Admin boleh buka akun ter-ban/pending, lainnya NOT_FOUND |
 | M05 | Migrasi indeks `project_member (project_id, role)` — *sinkron: pemegang baton* | belum | – | – | – |
 | M06 | Halaman daftar Tim + NAV + rute | belum | – | – | – |
 | M07 | Halaman detail orang | belum | – | – | – |
@@ -164,8 +164,8 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 | E-02 | Kebijakan akses & kemampuan acara | review | `feature/pm-s7-e01-event-schema` | `ad81d54` | kebijakan acara murni + kemampuan |
 | E-03 | Servis & kueri acara (CRUD, peserta, batal) | berjalan | `feature/pm-s7-e01-event-schema` | – | berjalan; 5 berkas servis/kueri sudah ter-commit 0071b45 |
 | E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | belum | – | – | – |
-| E-05 | Notulensi ketik dengan kunci optimis | belum | – | – | – |
-| E-06 | Rute API acara + pemetaan scope | belum | – | – | – |
+| E-05 | Notulensi ketik dengan kunci optimis | review | `feature/pm-s7-e01-event-schema` | `dd05f9e` | kunci optimis via date_trunc(milliseconds); body tidak pernah di-log |
+| E-06 | Rute API acara + pemetaan scope | review | `feature/pm-s7-e01-event-schema` | `4f9a020` | 4432 lulus/0 gagal; semua rute kecuali Sampah; +NOTE_CONFLICT/EVENT_CANCELED |
 | E-07 | Hapus ke Sampah + Urungkan + ikut hapus proyek | belum | – | – | – |
 | E-08 | Klien, kunci kueri, dan komponen bersama acara | belum | – | – | – |
 | E-09 | Halaman Daftar Acara | belum | – | – | – |
@@ -183,6 +183,46 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 |---|---|---|---|
 | (belum ada) | | | |
 
+## 6b. TITIK LANJUT — baca ini dulu saat melanjutkan
+
+Gelombang **G21** dihentikan atas permintaan user, bukan karena kegagalan. Semua pekerja dimatikan dan
+seluruh dispatch dilepas; **tidak ada kerja yang menggantung** — keempat worktree bersih.
+
+### Empat cabang siap, belum satu pun di-merge atau di-push
+| Cabang | Kepala | Isi |
+|---|---|---|
+| `feature/pm-s3-i01-i02-notification-core` | `bc0cf89` | I01-I07, I11, I14 |
+| `feature/pm-s7-e01-event-schema` | `4f9a020` | E-01, E-02, E-03, E-05, E-06 |
+| `feature/pm-s6-m01-team-policy` | `aca0cab` | M01-M04 |
+| `feature/pm-s6-z01-trash-policy` | `f47f636` | Z-01 |
+
+Uji gabungan keempatnya sudah pernah dijalankan (kepala lebih lama) dan **lulus bersih**: 4575 lulus /
+0 gagal, typecheck 0, lint tepat baseline, `smoke:prod` dan `smoke:binary` 39/39. Satu-satunya konflik
+ada di `tests/contract-v1.test.ts` dan bentuknya aditif murni (dua cabang menambah ekspor ke entri
+snapshot yang sama) — selesaikan sebagai **gabungan**, jangan pilih salah satu.
+Worktree uji: `/Users/lukman/orca/makuro-template-int`, cabang buangan `integrasi/g21-uji`.
+
+### Langkah pertama saat melanjutkan: MERGE
+Tiga pekerjaan terkunci sampai keempat cabang menyatu:
+1. **E-04** (pengingat acara) butuh `notify()` yang ada di cabang Inbox. P6 R-E1 melarang membuat tiruan.
+2. **Berkas bingkai** (`app/routes.ts`, `NAV` di `app/routes/app/layout.tsx`, `AppFrame.tsx`) diklaim
+   sebagai pemilik tunggal oleh DUA rencana sekaligus — I09 (P5) dan E-08 (P6). Jangan biarkan dua
+   pekerja menyentuhnya di cabang berbeda. Setelah merge, **satu tugas integrator** memasang NAV + rute
+   untuk Inbox dan Event sekaligus, sekalian menaikkan `APP_URLS` 13 → 16.
+3. **Halaman Event** (E-09..E-11) baru bisa jalan setelah rutenya terpasang.
+
+### Yang belum dikerjakan sama sekali
+Inbox: I08 (klien), I09 (lonceng/NAV/rute), I10 (halaman), I12 (QA lintas-jalur), I13 (gerbang demo).
+Event: E-04 (diblokir), E-07, **E-08a** (klien+komponen, sempat diluncurkan lalu dihentikan — worktree
+bersih, mulai dari nol), E-09..E-16. Tim: M05-M10. Sampah: Z-02..Z-08.
+
+### Dua keputusan user yang masih menggantung
+1. **Pencarian peserta untuk Member.** `GET /events/people` mendelegasikan ke `pickPeople`; pencarian
+   tanpa `projectId` terkunci `canCreateProject`, jadi Member bisa membuat acara pribadi tapi tidak bisa
+   mengundang siapa pun. Usulan koordinator: batasi ke orang yang berbagi proyek, memakai `loadScopeFor`
+   dari M01 — membuka fitur tanpa membuka direktori seluruh organisasi.
+2. **`sort=overdue`** di daftar Tim hanya mengurutkan halaman yang tampil (lihat §8).
+
 ## 7. Koreksi rencana yang ditemukan pekerja
 Empat kontradiksi internal ditemukan saat mengerjakan, semuanya diselesaikan dengan prinsip **kode fondasi menang**.
 Rencana sudah dibetulkan; baris ini menjaga jejaknya.
@@ -193,6 +233,9 @@ Rencana sudah dibetulkan; baris ini menjaga jejaknya.
 | K-2 | PROGRES-S3-S8 §3 | Baris kontrak menaruh kenaikan 13→16 pada E-01 | Sama dengan K-1 | koordinator |
 | K-3 | P5 §5.3 | `resolveNotifications(..., by?)` | Tabel `notification` di §5.1 **tidak punya** kolom `resolved_by`; parameter `by` dihapus | I03 |
 | K-4 | P5 §5.4 | Kursor rusak → `400 VALIDATION` | `VALIDATION` berstatus **422** di katalog; repo sudah membekukan **`400 BAD_CURSOR`** | I04 |
+| K-5 | P6 §6 E-06 | `PROJECT_IN_TRASH` dijawab **422** | Katalog `server/pm/errors.ts` memetakannya ke **409**, dan kode itu sudah dipakai jalur S1/S2 — mengubahnya berarti mengubah perilaku beku | E-03 |
+| K-6 | P5 §6 I14 | Daftar Target kurang tiga berkas | `notification.catalog.ts` (`user_pending` harus `shipped:true` — komentar katalog sendiri menulis "shipped by I14"), `tests/notification/catalog.test.ts`, dan `server/api/admin-moderation.ts` (satu-satunya titik ban ada di controller, bukan service) | I14 |
+| K-7 | P5 §6 I09 vs P6 §6 E-08 | Keduanya mengklaim "pemilik tunggal" `app/routes.ts` + NAV | Berkas bingkai dikerjakan **satu tugas integrator setelah merge**, bukan oleh lajur menu mana pun | koordinator |
 
 ## 8. Hutang teknis terbuka
 | Hutang | Pemilik penghapusan | Catatan |
