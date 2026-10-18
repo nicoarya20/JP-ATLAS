@@ -33,6 +33,9 @@ export type KindMeta = {
 /** Mention cards expire on their own: an unanswered mention stops being actionable (P5 §6 I20). */
 const MENTION_TTL_DAYS = 14;
 
+/** Days a card is kept before the daily sweep drops it; 30, not R12's 90, the stricter one (P5 §9 K-3). */
+export const NOTIF_RETENTION_DAYS = 30;
+
 /** Every kind the Inbox knows. Typed against `NotificationPayloadByKind`, so neither list can drift. */
 export const NOTIFICATION_KINDS: Readonly<Record<NotificationKind, KindMeta>> = Object.freeze({
   task_assigned: { lane: 'action', category: 'action', shipped: true },

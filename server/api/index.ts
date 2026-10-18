@@ -7,6 +7,7 @@ import { schedulePurgeLegacyDemoUsers } from '../demo/cleanup';
 import { mcpPlugin } from '../mcp';
 import { maintenancePlugin } from '../middleware/maintenance';
 import { rateLimitPlugin } from '../middleware/rate-limiter';
+import { startNotificationPurgeScheduler } from '../notification/notification.scheduler';
 import { applyRateLimitSettings } from '../settings';
 import { startRetentionScheduler } from '../settings-retention';
 import { adminApi } from './admin';
@@ -44,6 +45,7 @@ if (process.env.NODE_ENV !== 'test') {
   startRetentionScheduler();
   startUsageRollupScheduler();
   schedulePurgeLegacyDemoUsers();
+  startNotificationPurgeScheduler();
 }
 
 /**
