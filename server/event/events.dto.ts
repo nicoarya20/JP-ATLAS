@@ -52,6 +52,15 @@ export const EVENT_CANCEL_REASON_MAX = 500;
 /** Longest minutes one meeting may hold (P6 §6 E-05); beyond this the save is refused, never cut. */
 export const EVENT_NOTE_BODY_MAX = 20_000;
 
+// Array bounds of the write bodies. Named, not inline: an unbounded array is both a perf risk
+// (R13) and a way to make one request write thousands of rows.
+/** Most guests one call may invite; a bigger meeting is an announcement, not an invitation list. */
+export const EVENT_PARTICIPANTS_MAX = 100;
+/** Most reminder offsets one event may carry; the default is two (a day before, half an hour before). */
+export const EVENT_REMINDERS_MAX = 5;
+/** Earliest a reminder may fire: one week before the event, in minutes. */
+export const EVENT_REMINDER_MINUTES_MAX = 10_080;
+
 export type ListEventsInput = {
   /** Defaults to `upcoming`. */
   tab?: EventTab;

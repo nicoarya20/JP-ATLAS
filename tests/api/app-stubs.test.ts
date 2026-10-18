@@ -15,7 +15,7 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 /** Every S0B-18 stub is now filled; the list stays so a future stub module has a place to be declared. */
 const STUBS: { file: string; plugin: string; prefix: string }[] = [];
 
-/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail): no longer stubs, still mounted by app.ts. */
+/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S7 E-06 events): no longer stubs, still mounted by app.ts. */
 const FILLED = [
   'profileApi',
   'projectsApi',
@@ -26,6 +26,7 @@ const FILLED = [
   'projectTrashApi',
   'trashApi',
   'taskDetailApi',
+  'eventsApi',
 ];
 
 /** Modules that already predate the no-Drizzle rule; new ones must not join this list. */
@@ -119,6 +120,10 @@ describe('module hygiene', () => {
     ['app-projects.trash.ts', 150],
     ['app-trash.ts', 150],
     ['app-tasks.detail.ts', 150],
+    ['app-events.ts', 150],
+    ['app-events.write.ts', 150],
+    ['app-events.notes.ts', 150],
+    ['app-events.schema.ts', 150],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);

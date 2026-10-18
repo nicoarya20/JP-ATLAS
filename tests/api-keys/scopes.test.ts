@@ -149,4 +149,23 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('GET', '/api/app/tasks')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');
   });
+
+  // S7 E-06 (Q-E4): a key may read and plan events, but not invite people, call a meeting off or
+  // delete one — those reach a human or remove data (see `scopes.pm.ts`).
+  it('returns null for the event routes that reach a guest or remove data', () => {
+    expect(requiredScope('POST', '/api/app/events/e1/participants')).toBeNull();
+    expect(requiredScope('delete', '/api/app/events/e1/participants/u1')).toBeNull();
+    expect(requiredScope('POST', '/api/app/events/e1/cancel')).toBeNull();
+    expect(requiredScope('DELETE', '/api/app/events/e1')).toBeNull();
+  });
+
+  it('keeps the event reads, writes and minutes on app:read / app:write', () => {
+    expect(requiredScope('GET', '/api/app/events')).toBe('app:read');
+    expect(requiredScope('GET', '/api/app/events/agenda')).toBe('app:read');
+    expect(requiredScope('GET', '/api/app/events/people')).toBe('app:read');
+    expect(requiredScope('GET', '/api/app/events/e1')).toBe('app:read');
+    expect(requiredScope('POST', '/api/app/events')).toBe('app:write');
+    expect(requiredScope('PATCH', '/api/app/events/e1')).toBe('app:write');
+    expect(requiredScope('PUT', '/api/app/events/e1/note')).toBe('app:write');
+  });
 });
