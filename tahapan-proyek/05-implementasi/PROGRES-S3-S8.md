@@ -5,14 +5,14 @@
 ## 1. Status keseluruhan
 | Irisan | Menu | Rencana | Tugas | Selesai | Status |
 |---|---|---|---|---|---|
-| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | rencana selesai, belum dikerjakan |
+| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | **5 review** (I01-I04, I11), 2 berjalan (I05, I06) |
 | S3 | Beranda | [P4](rencana/P4-s3-beranda.md) | 12 | 0 | rencana selesai, belum dikerjakan |
 | S4 | Tugas lanjutan (Periksa, dependensi, tag, Papan) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 15 | 0 | rencana selesai, belum dikerjakan |
 | S5 | Tugas lanjutan (Tahapan, tenggat, bukti) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 14 | 0 | rencana selesai, belum dikerjakan |
-| S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | rencana selesai, belum dikerjakan |
-| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | rencana selesai, belum dikerjakan |
+| S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | **1 review** (Z-01) |
+| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | **2 review** (M01, M02); M03+M04 perlu diluncurkan ulang |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
-| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | rencana selesai, belum dikerjakan |
+| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | **2 review** (E-01, E-02), 1 berjalan (E-03) |
 | | **Total** | | **98** | **0** | |
 
 **Syarat sebelum tugas pertama dimulai:**
@@ -23,8 +23,8 @@
 ## 2. Gerbang
 | Gerbang | Isi | Status |
 |---|---|---|
-| Gerbang S2 | S2-16 + S2-17 dari `PROGRES.md` | menunggu penguji nyata |
-| S3a | Inbox I01-I04 (tabel, `notify()`, API baca) | belum |
+| Gerbang S2 | S2-16 + S2-17 dari `PROGRES.md` | **diterobos atas keputusan user 18 Okt** — menerima risiko kerja ulang bila UP-1 mengubah alur halaman tugas |
+| S3a | Inbox I01-I04 (tabel, `notify()`, API baca) | **lulus (review)** — keempatnya hijau di `feature/pm-s3-i01-i02-notification-core` |
 | S3 | Demo Inbox dan Beranda; uji pengguna S3 (Beranda ≤10 detik) | belum |
 | S4 | Periksa, dependensi, tag, Papan | belum |
 | S5 | Tahapan, tenggat, bukti | belum |
@@ -35,12 +35,12 @@
 ## 3. Migrasi dan kontrak
 | Item | Nomor / perubahan | Pemilik | Status |
 |---|---|---|---|
-| Inbox: `notification`, `notification_pref` | 0017 | I01 | belum |
-| Event | 0018 | E-01 | belum |
+| Inbox: `notification`, `notification_pref` | 0017 | I01 | review (`9dcb52d`) |
+| Event | 0018 | E-01 | review (`09cf69c`) |
 | Periksa, dependensi, tag | 0019 | L4-01 | belum |
 | Tahapan, tenggat, bukti | 0020 | L5-01 | belum |
-| Indeks `project_member (project_id, role)` | menurut baton | M05 | belum |
-| `contract-v1` + 3 URL Event (13 → 16) | PCC + ADR baru | E-01 | menunggu persetujuan |
+| Indeks `project_member (project_id, role)` | menurut baton (0019) | M05 | **masih terbuka** — sengaja dipisah dari M02; M02 terbukti tanpa indeks ini |
+| `contract-v1` + 3 URL Event (13 → 16) | PCC `docs/decisions/0003-contract-v1-event-urls.md` | **ADR: E-01 (selesai). Kenaikan hitungan: E-09..E-11** | disetujui user (§5 no. 2); hitungan masih 13 sampai rutenya terdaftar |
 | `GET /api/app/home` | tambahan kompatibel | B-06 | belum |
 
 ## 4. Daftar tugas per irisan
@@ -50,17 +50,17 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S3 · Inbox
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| I01 | Skema `notification`, `notification_pref`, migrasi 0017 | belum | – | – | – |
-| I02 | Katalog, tipe, penerima | belum | – | – | – |
-| I03 | Inti `notify()`, `resolveNotifications()`, `dropForUserInProject()` | belum | – | – | – |
-| I04 | Query + API baca/tandai + pengecualian rate limit (**penutup S3a**) | belum | – | – | – |
-| I05 | Kait penugasan tugas (buat, ubah penugasan) | belum | – | – | – |
-| I06 | Kait transisi status dan komentar | belum | – | – | – |
+| I01 | Skema `notification`, `notification_pref`, migrasi 0017 | review | `feature/pm-s3-i01-i02-notification-core` | `9dcb52d` | 4228 lulus/0 gagal di kepala cabang; 11 tes skema, 5 indeks, rollback 0017 |
+| I02 | Katalog, tipe, penerima | review | `feature/pm-s3-i01-i02-notification-core` | `97c8a3d` | 14 kind (7 dikirim S3); filterRecipients terbukti 1 kueri |
+| I03 | Inti `notify()`, `resolveNotifications()`, `dropForUserInProject()` | review | `feature/pm-s3-i01-i02-notification-core` | `b133f77` | notify gagal di dalam inTx tidak menggagalkan baris domain (diuji spy); <=3 kueri |
+| I04 | Query + API baca/tandai + pengecualian rate limit (**penutup S3a**) | review | `feature/pm-s3-i01-i02-notification-core` | `e613b41` | 4269 lulus/0 gagal; daftar 20 kartu = 1 kueri; count bebas 429. **Penutup S3a** |
+| I05 | Kait penugasan tugas (buat, ubah penugasan) | berjalan | `feature/pm-s3-i01-i02-notification-core` | – | berjalan sejak 18 Okt |
+| I06 | Kait transisi status dan komentar | berjalan | `feature/pm-s3-i01-i02-notification-core` | – | berjalan sejak 18 Okt |
 | I07 | Kait proyek dan anggota | belum | – | – | – |
 | I08 | Klien Inbox: API, kunci query, hook hitungan | belum | – | – | – |
 | I09 | Lonceng, badge menu, NAV, rute (pemilik tunggal berkas bingkai) | belum | – | – | – |
 | I10 | Halaman Inbox | belum | – | – | – |
-| I11 | Scheduler pembersih | belum | – | – | – |
+| I11 | Scheduler pembersih | review | `feature/pm-s3-i01-i02-notification-core` | `91ce31b` | retensi 30 hari, batch 500, tidak dipasang saat NODE_ENV=test |
 | I12 | Kontrak lintas-jalur, keamanan, kinerja, smoke, dokumen | belum | – | – | – |
 | I13 | Integrasi dan gerbang demo S3-Inbox | belum | – | – | – |
 | I14 | (Opsional, Should) Kartu "Pengguna baru menunggu persetujuan" | belum | – | – | – |
@@ -121,7 +121,7 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S6 · Sampah
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| Z-01 | Kebijakan, kode galat, audit, penolakan kunci API · Dep: – · S (1) | belum | – | – | – |
+| Z-01 | Kebijakan, kode galat, audit, penolakan kunci API · Dep: – · S (1) | review | `feature/pm-s6-z01-trash-policy` | `f47f636` | 4170 lulus/0 gagal di DB terisolasi. PM_DENY_PENDING = hutang, wajib dihapus Z-04/Z-08 |
 | Z-02 | Hapus tugas ke Sampah (backend) · Dep: Z-01 · M (1,5) · PARALEL dgn Z-03, Z-04 | belum | – | – | – |
 | Z-03 | Daftar Sampah gabungan + pulihkan tugas · Dep: Z-01 · L (2) · PARALEL | belum | – | – | – |
 | Z-04 | Hapus permanen (Admin) · Dep: Z-01 · M (1,5) · PARALEL | belum | – | – | – |
@@ -133,8 +133,8 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S6 · Tim
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| M01 | Kebijakan murni visibilitas Tim (D10) | belum | – | – | – |
-| M02 | Kueri Tim (orang, peran, beban, ringkasan) ≤ 4 kueri | belum | – | – | – |
+| M01 | Kebijakan murni visibilitas Tim (D10) | review | `feature/pm-s6-m01-team-policy` | `769177d` | 4167 lulus/0 gagal; scope Pengelola = irisan proyek bersama; irisan kosong = none |
+| M02 | Kueri Tim (orang, peran, beban, ringkasan) ≤ 4 kueri | review | `feature/pm-s6-m01-team-policy` | `bbb0041` | 4200 lulus/0 gagal; tepat 4 statement untuk 4 maupun 41 orang |
 | M03 | Rute daftar `GET /api/app/team` + tes privasi per peran | belum | – | – | – |
 | M04 | Rute detail `GET /api/app/team/:userId` | belum | – | – | – |
 | M05 | Migrasi indeks `project_member (project_id, role)` — *sinkron: pemegang baton* | belum | – | – | – |
@@ -160,9 +160,9 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S7 · Event
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| E-01 | Skema acara + migrasi 0018 + Permintaan Perubahan Kontrak | belum | – | – | – |
-| E-02 | Kebijakan akses & kemampuan acara | belum | – | – | – |
-| E-03 | Servis & kueri acara (CRUD, peserta, batal) | belum | – | – | – |
+| E-01 | Skema acara + migrasi 0018 + Permintaan Perubahan Kontrak | review | `feature/pm-s7-e01-event-schema` | `09cf69c` | 4226 lulus/0 gagal; migrasi 0018 + rollback + PCC 0003 |
+| E-02 | Kebijakan akses & kemampuan acara | review | `feature/pm-s7-e01-event-schema` | `ad81d54` | kebijakan acara murni + kemampuan |
+| E-03 | Servis & kueri acara (CRUD, peserta, batal) | berjalan | `feature/pm-s7-e01-event-schema` | – | berjalan; 5 berkas servis/kueri sudah ter-commit 0071b45 |
 | E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | belum | – | – | – |
 | E-05 | Notulensi ketik dengan kunci optimis | belum | – | – | – |
 | E-06 | Rute API acara + pemetaan scope | belum | – | – | – |
@@ -183,5 +183,25 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 |---|---|---|---|
 | (belum ada) | | | |
 
+## 7. Koreksi rencana yang ditemukan pekerja
+Empat kontradiksi internal ditemukan saat mengerjakan, semuanya diselesaikan dengan prinsip **kode fondasi menang**.
+Rencana sudah dibetulkan; baris ini menjaga jejaknya.
+
+| # | Dokumen | Yang tertulis | Yang benar | Penemu |
+|---|---|---|---|---|
+| K-1 | P6 §6 E-01 | "contract-v1 hijau dengan 16 URL" sebagai akseptansi E-01 | Tes **menurunkan** daftar URL dari `app/routes.ts`, jadi hitungan naik di E-09..E-11 saat rutenya didaftarkan, bukan di E-01 | E-01 |
+| K-2 | PROGRES-S3-S8 §3 | Baris kontrak menaruh kenaikan 13→16 pada E-01 | Sama dengan K-1 | koordinator |
+| K-3 | P5 §5.3 | `resolveNotifications(..., by?)` | Tabel `notification` di §5.1 **tidak punya** kolom `resolved_by`; parameter `by` dihapus | I03 |
+| K-4 | P5 §5.4 | Kursor rusak → `400 VALIDATION` | `VALIDATION` berstatus **422** di katalog; repo sudah membekukan **`400 BAD_CURSOR`** | I04 |
+
+## 8. Hutang teknis terbuka
+| Hutang | Pemilik penghapusan | Catatan |
+|---|---|---|
+| `PM_DENY_PENDING` berisi `DELETE trash/*` di `scopes.pm.ts` | Z-04, batas akhir gerbang Z-08 | Perancah agar sweep rute melapor *skipped*, bukan gagal, sampai rutenya ada |
+| Tuple enum notifikasi ada di `schema.notification.ts`, bukan `server/pm/enums.ts` | gerbang S3 | `pm-enum-check.test.ts` menuntut kolom+target tes per tuple di `enums.ts` |
+| `sort=overdue` di `GET /api/app/team` hanya mengurutkan **halaman yang tampil** | keputusan user sebelum M06 | Konsekuensi anggaran 4 kueri + paging offset (P7 §5); kemungkinan solusinya mengganti label, bukan kueri |
+| M05 (indeks `project_member (project_id, role)`) belum dikerjakan | M05 sendiri, setelah baton 0019 bebas | M02 terbukti benar tanpanya (yang diuji jumlah kueri) |
+
 ## 6. Log perubahan
+- **18 Okt 2026** — Gelombang **G21** (run `run_8c394266a4d2`) dikerjakan: 10 tugas berstatus `review` di empat cabang, nol gagal di tiap cabang. Urutan menu mengikuti permintaan user: Inbox, Event, Tim, Sampah; Beranda (P4) ditunda. Sepuluh keputusan §5 dipakai apa adanya dan gerbang S2 diterobos atas keputusan user. Dua gangguan: batas pemakaian akun memutus tiga pekerja (kerja diselamatkan karena belum ter-commit), lalu restart aplikasi Orca mematikan tiga terminal (dipulihkan di worktree yang sama). Cacat setup yang ditemukan dan diperbaiki: semua worktree memakai **socket dan port Postgres yang sama** (`socketDir()` = path tetap, port default 54329), sehingga tes satu pekerja berjalan di database pekerja lain; sejak itu tiap pekerja diberi `LOCAL_PG_PORT`/`LOCAL_PG_SOCKET_DIR`/`LOCAL_PG_DB` sendiri.
 - **18 Okt 2026** — Berkas dibuat dari tujuh rencana menu (run `run_ae24b153ade5`). Semua tugas berstatus `belum`.

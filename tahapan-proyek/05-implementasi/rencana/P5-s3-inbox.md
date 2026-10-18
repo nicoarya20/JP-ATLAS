@@ -101,7 +101,8 @@ Dicadangkan (tidak dikirim S3): `task_review_requested`, `task_review_fallback`,
 ```ts
 notify(exec: Executor, i: { kind; recipients: string[]; actorId?: string|null; projectId?: string|null;
   ref: { type; id }; sub?: string; payload; at?: Date }): Promise<{ inserted; bundled; skipped }>  // TIDAK PERNAH melempar
-resolveNotifications(exec: Executor, q: { ref; kinds?; recipientId?; reason; by? }): Promise<number>  // idempoten
+resolveNotifications(exec: Executor, q: { ref; kinds?; recipientId?; reason }): Promise<number>  // idempoten
+// KOREKSI 18 Okt (I03): parameter `by` DIHAPUS — tabel `notification` di §5.1 tidak punya kolom `resolved_by`.
 dropForUserInProject(exec: Executor, userId: string, projectId: string): Promise<number>
 inboxActionCount(exec: Executor, userId: string): Promise<number>
 ```
@@ -114,7 +115,7 @@ inboxActionCount(exec: Executor, userId: string): Promise<number>
 ### 5.4 Endpoint `/api/app/inbox` (berkas `server/api/app-inbox.ts` ≤150, `.use(inboxApi)` di `app.ts`)
 | Rute | Scope | Izin | Isi |
 |---|---|---|---|
-| `GET /inbox?lane=action|info&limit&cursor` | `app:read` | login; **hanya milik pemanggil** (`recipient_id = actor.user.id`, `userId` di query diabaikan, R12 C-INB-1) | keyset `(created_at|updated_at, id)` (`server/pm/keyset.ts`), `limit` default `PAGE_LIMIT_DEFAULT`, maks `PAGE_LIMIT_MAX`; item `{id, kind, lane, actor{id,name,image}, ref{type,id,number}, payload, bundleCount, read, group:'today'|'yesterday'|'older', createdAt, updatedAt, href}`; saring defensif akses proyek saat baca; kursor rusak → 400 `VALIDATION` |
+| `GET /inbox?lane=action|info&limit&cursor` | `app:read` | login; **hanya milik pemanggil** (`recipient_id = actor.user.id`, `userId` di query diabaikan, R12 C-INB-1) | keyset `(created_at|updated_at, id)` (`server/pm/keyset.ts`), `limit` default `PAGE_LIMIT_DEFAULT`, maks `PAGE_LIMIT_MAX`; item `{id, kind, lane, actor{id,name,image}, ref{type,id,number}, payload, bundleCount, read, group:'today'|'yesterday'|'older', createdAt, updatedAt, href}`; saring defensif akses proyek saat baca; kursor rusak → **400 `BAD_CURSOR`** (KOREKSI 18 Okt, I04: `VALIDATION` berstatus 422 di katalog; repo sudah membekukan 400 `BAD_CURSOR`) |
 | `GET /inbox/count` | `app:read`, **dikecualikan rate limit** | login | `{ action: n, infoUnread: n }` — dua `count(*)` index-only, tanpa cache |
 | `POST /inbox/:id/read` | `app:write` | pemilik kartu; kartu orang lain → 404 identik | set `read_at` (idempoten) |
 | `POST /inbox/read-all` | `app:write` | login | `UPDATE … WHERE recipient_id=:me AND lane='info' AND read_at IS NULL` → `{ updated }` |
