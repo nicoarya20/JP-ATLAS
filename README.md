@@ -416,7 +416,7 @@ Semua rute di bawah ada di `/api/app` (butuh sesi atau API key ber-scope `app:re
 
 **Angka beban Tim.** Kunci `load`, `alsoElsewhere`, dan `summary.active`/`overdue` **tidak dikirim** (bukan `null`, bukan `0`) bila penelepon tidak berhak melihatnya: Admin melihat semua proyek, Pengelola hanya proyek yang ia kelola (ditambah `alsoElsewhere: true` tanpa jumlah bila orang itu juga bekerja di luar sana), dan angka diri sendiri selalu terlihat. `sort=overdue` hanya untuk Admin dan pengelola minimal satu proyek; yang lain mendapat `422 SORT_NOT_ALLOWED`, bukan urutan nama secara diam-diam. Pengurutan itu mengurutkan **halaman yang sedang tampil**, bukan seluruh tim: jumlah tugas baru diketahui setelah satu halaman orang dipilih, dan itulah yang menjaga daftar Tim tetap empat kueri berapa pun jumlah orangnya. Daftar Tim tidak menampilkan akun yang diblokir maupun yang belum disetujui kepada siapa pun; halaman detail orang boleh dibuka Admin, sedangkan yang lain mendapat `404` yang sama seperti akun yang tidak ada.
 
-Halaman S1 (semua butuh login): `/app/projects` (daftar), `/app/projects/new` (proyek baru), `/app/projects/:projectId` (ringkasan) dengan tab `/tasks`, `/members`, dan `/settings` (Ubah proyek), `/app/trash` (Sampah), dan `/app/settings` (Pengaturan). `/profile` dialihkan ke `/app/settings`.
+Halaman S1 (semua butuh login): `/app/projects` (daftar), `/app/projects/new` (pilih cara membuat proyek; formulirnya di `/app/projects/new?cara=form`), `/app/projects/:projectId` (ringkasan) dengan tab `/tasks`, `/members`, dan `/settings` (Ubah proyek), `/app/trash` (Sampah), dan `/app/settings` (Pengaturan). `/profile` dialihkan ke `/app/settings`.
 
 ### Kontrak API Inbox (S3)
 
