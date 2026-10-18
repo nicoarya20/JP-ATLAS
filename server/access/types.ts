@@ -39,3 +39,24 @@ export type TaskSubject = {
   deletedBy: string | null;
   projectDeletedAt: Date | null;
 };
+
+/**
+ * The slice of an event row the policies read. `projectId` is null for a personal event, which
+ * has no project to derive a level from, so only its creator and guests may see it.
+ * `projectDeletedAt` lets an event inherit its project's trash state, as `TaskSubject` does.
+ */
+export type EventSubject = {
+  id: string;
+  projectId: string | null;
+  createdBy: string | null;
+  canceledAt: Date | null;
+  deletedAt: Date | null;
+  deletedBy: string | null;
+  projectDeletedAt: Date | null;
+  /**
+   * Whether the principal being checked is on the guest list. The only participant fact the
+   * policies need, so a list row costs one boolean instead of the whole roster; the service
+   * loads it (`server/event/events.access.ts`) and the policy stays pure.
+   */
+  isParticipant: boolean;
+};

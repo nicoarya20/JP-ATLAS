@@ -333,6 +333,13 @@ describe('appCaps', () => {
 
   it.each(roles)('%s => createProject=%s dashboard=%s dev=%s', (role, create, dash, dev) => {
     const p = { id: 'U-x', appRole: role as Role, impersonating: false };
-    expect(appCaps(p)).toEqual({ createProject: create, dashboard: dash, dev });
+    // `createEvent` has no column: a personal event needs no project, so it is true for every
+    // role (S7 E-02). Picking a *project* for it is decided per project by `canCreateEvent`.
+    expect(appCaps(p)).toEqual({
+      createProject: create,
+      createEvent: true,
+      dashboard: dash,
+      dev,
+    });
   });
 });
