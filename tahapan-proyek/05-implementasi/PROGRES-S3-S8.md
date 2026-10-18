@@ -5,15 +5,15 @@
 ## 1. Status keseluruhan
 | Irisan | Menu | Rencana | Tugas | Selesai | Status |
 |---|---|---|---|---|---|
-| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | **9 selesai (merged)** (I01-I07, I11, I14); sisa I08-I10, I12, I13 |
+| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 9 | **9 selesai (merged)** (I01-I07, I11, I14); sisa I08-I10, I12, I13 |
 | S3 | Beranda | [P4](rencana/P4-s3-beranda.md) | 12 | 0 | rencana selesai, belum dikerjakan |
 | S4 | Tugas lanjutan (Periksa, dependensi, tag, Papan) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 15 | 0 | rencana selesai, belum dikerjakan |
 | S5 | Tugas lanjutan (Tahapan, tenggat, bukti) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 14 | 0 | rencana selesai, belum dikerjakan |
-| S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | **1 selesai (merged)** (Z-01) |
-| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | **4 selesai (merged)** (M01-M04); sisa M05-M10 |
+| S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 1 | **1 selesai (merged)** (Z-01) |
+| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 4 | **4 selesai (merged)** (M01-M04); sisa M05-M10 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
-| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | **5 selesai (merged)** (E-01, E-02, E-03, E-05, E-06); E-04 DIBLOKIR (butuh notify dari cabang Inbox) |
-| | **Total** | | **98** | **0** | |
+| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 5 | **5 selesai (merged)** (E-01, E-02, E-03, E-05, E-06); E-04 DIBLOKIR (butuh notify dari cabang Inbox) |
+| | **Total** | | **98** | **19** | |
 
 **Syarat sebelum tugas pertama dimulai:**
 1. Gerbang S2 lulus (S2-16 uji pengguna nyata, lalu S2-17), kecuali S3a Inbox (I01-I04) bila user menyetujuinya.
@@ -162,7 +162,7 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 |---|---|---|---|---|---|
 | E-01 | Skema acara + migrasi 0018 + Permintaan Perubahan Kontrak | selesai | `feature/pm-s7-e01-event-schema` | `09cf69c` merge `7cec339` | 4226 lulus/0 gagal; migrasi 0018 + rollback + PCC 0003 |
 | E-02 | Kebijakan akses & kemampuan acara | selesai | `feature/pm-s7-e01-event-schema` | `ad81d54` merge `7cec339` | kebijakan acara murni + kemampuan |
-| E-03 | Servis & kueri acara (CRUD, peserta, batal) | berjalan | `feature/pm-s7-e01-event-schema` | – | berjalan; 5 berkas servis/kueri sudah ter-commit 0071b45 |
+| E-03 | Servis & kueri acara (CRUD, peserta, batal) | selesai | `feature/pm-s7-e01-event-schema` | `d7003d3` merge `7cec339` | 4341 lulus/0 gagal; `listEvents` tepat 3 kueri, tetap 3 pada halaman 20x lebih panjang; tanpa email/HP di payload |
 | E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | belum | – | – | – |
 | E-05 | Notulensi ketik dengan kunci optimis | selesai | `feature/pm-s7-e01-event-schema` | `dd05f9e` merge `7cec339` | kunci optimis via date_trunc(milliseconds); body tidak pernah di-log |
 | E-06 | Rute API acara + pemetaan scope | selesai | `feature/pm-s7-e01-event-schema` | `4f9a020` merge `7cec339` | 4432 lulus/0 gagal; semua rute kecuali Sampah; +NOTE_CONFLICT/EVENT_CANCELED |
