@@ -74,7 +74,7 @@ async function assigned(g: Awaited<ReturnType<typeof graph>>) {
 async function step(
   by: TestUser,
   taskId: string,
-  action: 'start' | 'complete' | 'cancel' | 'reopen' | 'uncancel',
+  action: 'start' | 'unstart' | 'complete' | 'cancel' | 'reopen' | 'uncancel',
 ) {
   const input =
     action === 'cancel'
@@ -168,6 +168,33 @@ describe('cancel and reopen', () => {
     expect(assignedCards).toHaveLength(1);
     expect(assignedCards[0]?.resolvedAt).not.toBeNull();
     expect(await kindsOf(g.member, taskId)).toContain('task_changed');
+  });
+});
+
+describe('unstart', () => {
+  it('reports taking the task back to Belum mulai as news, like every other reversal', async () => {
+    const g = await graph();
+    const taskId = await assigned(g);
+    await step(g.member, taskId, 'start');
+    await step(g.lead, taskId, 'unstart');
+
+    // The lead took the status back, so the worker hears about it as news.
+    expect(await kindsOf(g.member, taskId)).toContain('task_changed');
+    const changed = (await cardsOf(g.member, taskId)).find((c) => c.kind === 'task_changed');
+    expect(changed).toMatchObject({ lane: 'info', actorId: g.lead.id, resolvedAt: null });
+  });
+
+  it('leaves the answered assignment card closed instead of asking again', async () => {
+    const g = await graph();
+    const taskId = await assigned(g);
+    await step(g.member, taskId, 'start');
+    await step(g.lead, taskId, 'unstart');
+
+    const assignedCards = (await cardsOf(g.member, taskId)).filter(
+      (c) => c.kind === 'task_assigned',
+    );
+    expect(assignedCards).toHaveLength(1);
+    expect(assignedCards[0]).toMatchObject({ resolvedReason: 'acted' });
   });
 });
 

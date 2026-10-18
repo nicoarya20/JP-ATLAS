@@ -132,6 +132,13 @@ export async function emitTaskUnassigned(
   });
 }
 
+/**
+ * Steps that take a status back instead of moving it on. All four are news for the followers:
+ * leaving one of them silent would put a hole in "Kabar terbaru" that cannot be explained to a
+ * user (18 Okt 2026 decision; P5 §5.5 lists the row for the other three).
+ */
+const REVERSALS = new Set<EnabledTaskAction>(['cancel', 'reopen', 'uncancel', 'unstart']);
+
 /** The "Perlu Anda tanggapi" card has been answered: the work was taken up or finished. */
 const closeAssigned = (exec: Executor, id: string, i: TaskEmit, reason: ResolveReason) =>
   resolveNotifications(exec, { ref: taskRef(id), kinds: ['task_assigned'], reason, at: i.at });
@@ -180,9 +187,10 @@ export async function emitTaskChanged(exec: Executor, id: string, i: TaskEmit): 
 /**
  * One workflow step, after its activity row is written. `start` and `complete` answer the card
  * (the work was taken up, or it is done); `cancel` closes every open `action` card on the task,
- * because what the cards asked for cannot happen any more. `reopen` and `uncancel` write no
- * `task_assigned` card on purpose: the old card was answered, and a reopened task asks again only
- * when someone is put on it. `unstart` is left silent, as P5 §5.5 lists no card for it.
+ * because what the cards asked for cannot happen any more. Every reversal is reported as news,
+ * because a status that is taken back is exactly what the followers of a task need to hear. None
+ * of them writes a `task_assigned` card: the old card was answered, and a task asks again only
+ * when someone is put on it.
  */
 export async function emitTaskTransition(
   exec: Executor,
@@ -202,7 +210,7 @@ export async function emitTaskTransition(
       at: i.at,
     });
   }
-  if (i.action === 'cancel' || i.action === 'reopen' || i.action === 'uncancel') {
+  if (REVERSALS.has(i.action)) {
     await emitTaskChanged(exec, id, i);
   }
 }

@@ -11,6 +11,11 @@ import { ACCESS_RULES, type AccessRules } from '../access/rules';
 import type { Membership, Principal, ProjectRole } from '../access/types';
 import { isBanActive } from '../ban';
 import { projectMember, user } from '../db/schema';
+import {
+  emitProjectMemberAdded,
+  emitProjectMemberRemoved,
+  emitProjectRoleChanged,
+} from '../notification/emit.project';
 import { inTx, type Tx } from '../pm/tx';
 import {
   type LockedProject,
@@ -115,6 +120,7 @@ export function addMember(
       .insert(projectMember)
       .values({ projectId: row.id, userId: input.userId, role: input.role, addedBy: p.id });
     await logActivity(tx, p, row.id, 'member_added', { userId: input.userId, role: input.role });
+    await emitProjectMemberAdded(tx, row.id, { userId: input.userId, role: input.role, by: p.id });
     return { ok: true, value: { userId: input.userId, role: input.role } };
   });
 }
@@ -133,6 +139,7 @@ export function changeMemberRole(
     if (targetRole === role) return { ok: true, value: { userId, role } };
     await tx.update(projectMember).set({ role }).where(memberKey(row.id, userId));
     await logActivity(tx, p, row.id, 'member_role_changed', { userId, from: targetRole, to: role });
+    await emitProjectRoleChanged(tx, row.id, { userId, role, by: p.id });
     return { ok: true, value: { userId, role } };
   });
 }
@@ -156,6 +163,7 @@ export function removeMember(
     }
     await tx.delete(projectMember).where(memberKey(row.id, userId));
     await logActivity(tx, p, row.id, 'member_removed', { userId, role: targetRole });
+    await emitProjectMemberRemoved(tx, row.id, userId);
     return { ok: true, value: { userId, role: null } };
   });
 }
