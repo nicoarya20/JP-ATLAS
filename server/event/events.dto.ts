@@ -37,6 +37,21 @@ export const EVENT_SEARCH_MAX = 100;
 /** Rows the Beranda Agenda widget shows at most (R10 H3). */
 export const AGENDA_LIMIT = 4;
 
+// Text limits of the event fields, enforced at the API boundary (`t.String({ maxLength })`), not by
+// a DB CHECK: raising one must not need a migration (see the header of `server/db/schema.events.ts`).
+/** Longest event title; one line in the list and in the Agenda widget (P6 §5). */
+export const EVENT_TITLE_MAX = 150;
+/** Longest written place ("Ruang Rapat Lantai 3"); a link goes in `meetingUrl` instead. */
+export const EVENT_LOCATION_TEXT_MAX = 200;
+/** Longest meeting link; well past what the conferencing tools generate. */
+export const EVENT_MEETING_URL_MAX = 500;
+/** Longest agenda: a list of points to discuss, not the minutes (those are `EVENT_NOTE_BODY_MAX`). */
+export const EVENT_AGENDA_MAX = 5_000;
+/** Longest cancellation reason; the guests read it on the detail banner. */
+export const EVENT_CANCEL_REASON_MAX = 500;
+/** Longest minutes one meeting may hold (P6 §6 E-05); beyond this the save is refused, never cut. */
+export const EVENT_NOTE_BODY_MAX = 20_000;
+
 export type ListEventsInput = {
   /** Defaults to `upcoming`. */
   tab?: EventTab;

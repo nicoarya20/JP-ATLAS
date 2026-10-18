@@ -14,6 +14,8 @@ export const PM_API_CODES = [
   'NOT_FOUND',
   'STATE_CONFLICT',
   'STALE_VERSION',
+  'NOTE_CONFLICT', // S7 E-05: the minutes lost the optimistic lock on `event_note.updated_at`
+  'EVENT_CANCELED', // S7 E-05: the meeting is off, so its minutes and its guest list are frozen
   'LEAD_MUST_BE_MANAGER',
   'KIND_LIMIT',
   'KIND_IN_USE',
@@ -75,6 +77,16 @@ export const PM_ERRORS: Record<PmCode, PmErrorEntry> = {
   STALE_VERSION: {
     http: 409,
     message: 'Catatan ini diubah orang lain. Salin tulisanmu, muat ulang, lalu gabungkan.',
+  },
+  // Its own code, not STALE_VERSION: the minutes answer carries the newer text, so the UI can offer
+  // "Muat versi terbaru" instead of asking the writer to reload the page (P6 §4).
+  NOTE_CONFLICT: {
+    http: 409,
+    message: 'Notulensi ini baru diubah orang lain. Muat versi terbaru, lalu gabungkan tulisanmu.',
+  },
+  EVENT_CANCELED: {
+    http: 409,
+    message: 'Acara ini sudah dibatalkan, jadi isinya tidak bisa diubah lagi.',
   },
   LEAD_MUST_BE_MANAGER: {
     http: 422,
