@@ -7,8 +7,10 @@ import { createdAt, oneOf, pk, softDelete, updatedAt } from '../../server/db/sch
 import * as enums from '../../server/pm/enums';
 import { isLive } from '../../server/pm/soft-delete';
 
-// test-only: expected values copied from R02 §3.2 (the contract these tuples freeze).
-const EXPECTED: Record<string, readonly string[]> = {
+// test-only: expected values copied from R02 §3.2 (the contract these tuples freeze), plus the
+// Event tuples added by S7 E-01 (P6 §5). EVENT_REMINDER_OFFSETS_MIN holds numbers, not enum values:
+// it is the DEFAULT of event.reminders_minutes, so the map is widened rather than split in two.
+const EXPECTED: Record<string, readonly (string | number)[]> = {
   PROJECT_STATUSES: ['draft', 'active', 'on_hold', 'completed', 'canceled'],
   PROJECT_PRIORITIES: ['low', 'medium', 'high', 'critical'],
   PROJECT_MEMBER_ROLES: ['manager', 'member', 'viewer'],
@@ -24,16 +26,20 @@ const EXPECTED: Record<string, readonly string[]> = {
   ],
   TEXT_SIZES: ['normal', 'besar', 'sangat_besar'],
   APPROVAL_STATUSES: ['pending', 'approved', 'rejected'],
+  EVENT_KINDS: ['meeting', 'review', 'important', 'team', 'other'],
+  EVENT_LOCATION_TYPES: ['offline', 'online'],
+  EVENT_NOTE_STATUSES: ['draft', 'confirmed'],
+  EVENT_REMINDER_OFFSETS_MIN: [1440, 30],
 };
 
 describe('shared enum tuples', () => {
-  it('exports exactly the S0-S2 tuples (no S3+ tuples)', () => {
+  it('exports exactly the S0-S2 and S7 Event tuples (no other stage tuples)', () => {
     expect(Object.keys(enums).sort()).toEqual(Object.keys(EXPECTED).sort());
   });
 
   for (const [name, expected] of Object.entries(EXPECTED)) {
     it(`${name} is non-empty, unique and matches R02`, () => {
-      const actual = (enums as Record<string, readonly string[]>)[name];
+      const actual = (enums as unknown as Record<string, readonly (string | number)[]>)[name];
       expect(actual.length).toBeGreaterThan(0);
       expect(new Set(actual).size).toBe(actual.length);
       expect([...actual]).toEqual([...expected]);

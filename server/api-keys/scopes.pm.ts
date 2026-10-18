@@ -23,6 +23,17 @@ export const PM_KEY_DENY: readonly Deny[] = [
     method: 'DELETE',
     path: /^\/api\/app\/tasks\/.*\/comments(?:\/.*)?$/i,
   },
+  // S7 E-06 (Q-E4). Inviting or removing a guest changes who is told about a meeting and who may
+  // write its minutes, so it is the event's membership: session only, like a project's members.
+  { id: '* events/*/participants*', method: '*', path: /^\/api\/app\/events\/.*\/participants/i },
+  // Cancelling tells every guest the meeting is off and they cannot undo it themselves.
+  {
+    id: 'POST events/*/cancel',
+    method: 'POST',
+    path: /^\/api\/app\/events\/.*\/cancel(?:\/.*)?$/i,
+  },
+  // Every delete under /events, so the Trash route of E-07 is covered the moment it exists.
+  { id: 'DELETE events/*', method: 'DELETE', path: /^\/api\/app\/events\/.+/i },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -35,6 +46,9 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'POST trash/*': 'app-trash.ts',
   'DELETE tasks/*/checklist/*': 'app-tasks.detail.ts',
   'DELETE tasks/*/comments/*': 'app-tasks.detail.ts',
+  '* events/*/participants*': 'app-events.write.ts',
+  'POST events/*/cancel': 'app-events.write.ts',
+  'DELETE events/*': 'app-events.write.ts', // guest removal today; `DELETE /events/:id` lands here in E-07
 };
 
 /** True when an API key may not call this route, whatever scopes it holds. */

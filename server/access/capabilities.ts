@@ -14,6 +14,14 @@
 import { canAccessDev } from '../permissions';
 import { isDenyCode, PM_ERRORS } from '../pm/errors';
 import { DENY_UI, type DenyCode } from './decision';
+import {
+  canCancelEvent,
+  canCreateEvent,
+  canManageEvent,
+  canManageParticipants,
+  canTrashEvent,
+  canWriteNote,
+} from './event.policy';
 import { canCreateProject, canManageProject, canTrashProject } from './project.policy';
 import {
   canApproveTask,
@@ -43,7 +51,7 @@ import {
   type PrimaryAction,
   primaryAction,
 } from './task-flow.policy';
-import type { Membership, Principal, ProjectSubject, TaskSubject } from './types';
+import type { EventSubject, Membership, Principal, ProjectSubject, TaskSubject } from './types';
 import { canManageUsers } from './user.policy';
 
 /** Reviewer-pick failure from the API catalog (not a `DenyCode`); shown disabled, as R03 §3.7 says. */
@@ -75,13 +83,31 @@ export type TaskCapKey = (typeof TASK_CAP_KEYS)[number];
 export const PROJECT_CAP_KEYS = ['update', 'trash', 'createTask', 'manageKinds'] as const;
 export type ProjectCapKey = (typeof PROJECT_CAP_KEYS)[number];
 
+// `restore` is deliberately absent: it needs `now` for the retention check and belongs to the
+// Trash page, so the Trash slice (S6/E-07) builds it from `canRestoreEvent` itself.
+/** Keys of an event's `can{}`: the policy function names without the `can` prefix (X3 M29). */
+export const EVENT_CAP_KEYS = [
+  'update',
+  'cancel',
+  'trash',
+  'manageParticipants',
+  'writeNote',
+] as const;
+export type EventCapKey = (typeof EVENT_CAP_KEYS)[number];
+
 /** A sparse capability map: a missing key means the control is hidden. */
 export type Caps<K extends string> = Partial<Record<K, CapValue>>;
 export type TaskCaps = Caps<TaskCapKey> & { primary: PrimaryAction | null };
 export type ProjectCaps = Caps<ProjectCapKey>;
+export type EventCaps = Caps<EventCapKey>;
 
 /** App-wide capabilities the layout loader sends; the sidebar reads these instead of the role. */
-export type AppCaps = { createProject: boolean; dashboard: boolean; dev: boolean };
+export type AppCaps = {
+  createProject: boolean;
+  createEvent: boolean;
+  dashboard: boolean;
+  dev: boolean;
+};
 
 /** Any policy result: `Decision`, `FlowDecision`, `ReviewDecision` and the not-visible variants all fit. */
 export type Verdict = { ok: true } | { ok: false; code: string };
@@ -159,10 +185,31 @@ export function projectCaps(
   });
 }
 
-/** App-wide capabilities: `/dashboard` is for Admin and Super-admin, `/dev` for Super-admin only. */
+/** Capabilities of an event for one principal; `m` is their membership of the event's project, if any. */
+export function eventCaps(
+  p: Principal,
+  event: EventSubject,
+  m: Membership,
+  rules: AccessRules = ACCESS_RULES,
+): EventCaps {
+  return buildCaps<EventCapKey>({
+    update: canManageEvent(p, event, m, rules),
+    cancel: canCancelEvent(p, event, m, rules),
+    trash: canTrashEvent(p, event, m, rules),
+    manageParticipants: canManageParticipants(p, event, m, rules),
+    writeNote: canWriteNote(p, event, m, rules),
+  });
+}
+
+/**
+ * App-wide capabilities: `/dashboard` is for Admin and Super-admin, `/dev` for Super-admin only.
+ * `createEvent` asks about a personal event, the one every signed-in user may make; whether a
+ * *project* may be picked is decided per project by `canCreateEvent`.
+ */
 export function appCaps(p: Principal): AppCaps {
   return {
     createProject: canCreateProject(p).ok,
+    createEvent: canCreateEvent(p, null, null).ok,
     dashboard: canManageUsers(p).ok,
     dev: canAccessDev(p.appRole),
   };

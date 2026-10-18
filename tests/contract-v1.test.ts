@@ -18,8 +18,10 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/access/account-status.rules.ts':
     'ACCOUNT_TRANSITIONS APPROVAL_STATUSES AccountTransitionInput ApprovalStatus REJECT_REASON_MAX REJECT_REASON_MIN canTransitionAccount isValidRejectReason',
   'server/access/capabilities.ts':
-    'AppCaps CapValue Caps PROJECT_CAP_KEYS ProjectCapKey ProjectCaps TASK_CAP_KEYS TaskCapKey TaskCaps Verdict appCaps buildCaps capMessage capOf projectCaps taskCaps',
+    'AppCaps CapValue Caps EVENT_CAP_KEYS EventCapKey EventCaps PROJECT_CAP_KEYS ProjectCapKey ProjectCaps TASK_CAP_KEYS TaskCapKey TaskCaps Verdict appCaps buildCaps capMessage capOf eventCaps projectCaps taskCaps',
   'server/access/decision.ts': 'DENY_CODES DENY_UI Decision DenyCode DenyUi allow deny',
+  'server/access/event.policy.ts':
+    'EventDecision NOT_VISIBLE canCancelEvent canCreateEvent canManageEvent canManageParticipants canRestoreEvent canTrashEvent canViewEvent canWriteNote eventLevel eventOpen',
   'server/access/level.ts': 'LEVELS LEVEL_RANK Level atLeast isPmOrAbove levelOf',
   'server/access/members.policy.ts':
     'LeadDecision LeadMustBeManager ManagerSetChange canChangeManagerSet canSetLead',
@@ -35,7 +37,8 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'NeedsReviewOnCreate NotVisible TaskActor TaskDecision authorizeTask canComment canCreateTask canEditTask canManageKinds canToggleNeedsReview canViewTask guardTask resolveNeedsReviewOnCreate taskOpen',
   'server/access/trash.policy.ts':
     'TrashItemCapKey TrashItemCaps TrashListScope canViewTrashItem trashItemCaps trashListScope',
-  'server/access/types.ts': 'Membership Principal ProjectRole ProjectSubject TaskSubject',
+  'server/access/types.ts':
+    'EventSubject Membership Principal ProjectRole ProjectSubject TaskSubject',
   'server/access/user.policy.ts':
     'Principal UserTarget canActOnUser canInviteWithRole canManageUsers canSetUserRole',
   'server/metrics/condition.ts':
@@ -51,7 +54,9 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/metrics/trash.metrics.ts': 'isRestorable lastRestorableDate trashDaysLeft',
   'server/metrics/types.ts': 'IsoDate MetricsConfig TaskLabel TaskMetricsRow',
   'server/pm/enums.ts':
-    'APPROVAL_STATUSES ApprovalStatus PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
+    // The EVENT_* tuples are additions by the S7 slice owner, allowed by 0002-contract-v1.md §2
+    // ("menambah") and recorded as a written decision in 0003-contract-v1-event-urls.md.
+    'APPROVAL_STATUSES ApprovalStatus EVENT_KINDS EVENT_LOCATION_TYPES EVENT_NOTE_STATUSES EVENT_REMINDER_OFFSETS_MIN EventKind EventLocationType EventNoteStatus EventReminderOffset PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
   'server/pm/errors.ts':
     'DENY_CODES DenyCode PM_API_CODES PM_ERRORS PmApiCode PmCode PmErrorEntry PmHttp isDenyCode',
   'server/pm/limits.ts':

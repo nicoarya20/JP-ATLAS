@@ -8,6 +8,7 @@
 import { Elysia, t } from 'elysia';
 import { removeAvatar, uploadAvatar } from './app-avatar';
 import { appContext } from './app-context';
+import { eventsApi } from './app-events';
 import { inboxApi } from './app-inbox';
 import { profileApi } from './app-profile';
 import { projectsApi } from './app-projects';
@@ -29,6 +30,7 @@ export const appApi = new Elysia({ prefix: '/app' })
   .use(projectTrashApi)
   .use(teamPickerApi)
   .use(trashApi)
+  .use(eventsApi)
   .use(tasksApi)
   .use(taskWorkflowApi)
   .use(taskDetailApi)

@@ -46,6 +46,20 @@ const taskInsert = (p: Parents, set: Record<string, string>) => {
     .join(',');
   return `INSERT INTO "task" (${names}) VALUES (${Object.values(cols).map(lit).join(',')})`;
 };
+const eventInsert = (p: Parents, set: Record<string, string>) => {
+  const cols = {
+    id: newId(),
+    project_id: p.projectId,
+    title: 'Rapat uji',
+    starts_at: '2026-11-02T02:00:00.000Z',
+    ends_at: '2026-11-02T03:00:00.000Z',
+    ...set,
+  }; // test-only
+  const names = Object.keys(cols)
+    .map((c) => `"${c}"`)
+    .join(',');
+  return `INSERT INTO "event" (${names}) VALUES (${Object.values(cols).map(lit).join(',')})`;
+};
 const projectInsert = (set: Record<string, string>) => {
   const cols = { id: newId(), name: 'Proyek uji', ...set }; // test-only
   const names = Object.keys(cols)
@@ -136,11 +150,37 @@ const TARGETS: Target[] = [
     column: 'approval_status',
     plan: (v) => ({ setup: [], statement: userInsert(newId(), v) }),
   },
+  {
+    tuple: 'EVENT_KINDS',
+    table: 'event',
+    column: 'kind',
+    plan: (v, p) => ({ setup: [], statement: eventInsert(p, { kind: v }) }),
+  },
+  {
+    tuple: 'EVENT_LOCATION_TYPES',
+    table: 'event',
+    column: 'location_type',
+    plan: (v, p) => ({ setup: [], statement: eventInsert(p, { location_type: v }) }),
+  },
+  {
+    tuple: 'EVENT_NOTE_STATUSES',
+    table: 'event_note',
+    column: 'status',
+    plan: (v, p) => {
+      const eventId = newId(); // event_note_event_id_uidx: one note per event, so one fresh event per value
+      return {
+        setup: [eventInsert(p, { id: eventId })],
+        statement: `INSERT INTO "event_note" ("id","event_id","status") VALUES (${lit(newId())},${lit(eventId)},${lit(v)})`,
+      };
+    },
+  },
 ];
 
-// Tuples with no column yet: PROJECT_CONDITIONS backs project_condition_override, which is deferred past S2.
+// Tuples with no column: PROJECT_CONDITIONS backs project_condition_override, which is deferred past S2.
+// EVENT_REMINDER_OFFSETS_MIN is not an enum at all — it is the DEFAULT of event.reminders_minutes (int[]),
+// proven by tests/db/events-schema.test.ts, and a per-event list may legitimately hold other offsets.
 // The coverage test below forces a new entry here or in TARGETS whenever enums.ts gains a tuple.
-const TUPLES_WITHOUT_COLUMN = ['PROJECT_CONDITIONS'];
+const TUPLES_WITHOUT_COLUMN = ['PROJECT_CONDITIONS', 'EVENT_REMINDER_OFFSETS_MIN'];
 
 const tupleValues = (name: string) => [...ALL_TUPLES[name]];
 

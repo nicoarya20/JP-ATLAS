@@ -5,6 +5,7 @@
  */
 export * from './schema.app';
 export * from './schema.auth';
+export * from './schema.events';
 export * from './schema.keys';
 export * from './schema.logs';
 export * from './schema.notification';
