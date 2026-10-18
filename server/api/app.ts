@@ -15,6 +15,7 @@ import { projectTrashApi } from './app-projects.trash';
 import { tasksApi } from './app-tasks';
 import { taskDetailApi } from './app-tasks.detail';
 import { taskWorkflowApi } from './app-tasks.workflow';
+import { teamApi } from './app-team';
 import { teamPickerApi } from './app-team.picker';
 import { trashApi } from './app-trash';
 
@@ -26,6 +27,7 @@ export const appApi = new Elysia({ prefix: '/app' })
   .use(projectMembersApi)
   .use(projectTrashApi)
   .use(teamPickerApi)
+  .use(teamApi)
   .use(trashApi)
   .use(tasksApi)
   .use(taskWorkflowApi)

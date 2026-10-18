@@ -148,5 +148,8 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('GET', '/api/app/projects')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/tasks')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');
+    // Team is read-only, so both routes stay on app:read (S6 M03/M04).
+    expect(requiredScope('GET', '/api/app/team')).toBe('app:read');
+    expect(requiredScope('GET', '/api/app/team/u1')).toBe('app:read');
   });
 });

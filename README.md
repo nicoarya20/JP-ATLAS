@@ -407,10 +407,13 @@ Semua rute di bawah ada di `/api/app` (butuh sesi atau API key ber-scope `app:re
 | `PATCH /projects/:id/members/:userId` `{ role }` | Ubah peran anggota (**sesi**); pengelola terakhir dan Pengelola utama tetap pengelola → `409 LAST_MANAGER`/`IS_LEAD` |
 | `DELETE /projects/:id/members/:userId` | Keluarkan anggota (**sesi**); bukan diri sendiri, bukan pengelola terakhir, bukan Pengelola utama |
 | `GET /team/picker?q=&projectId=&limit=` | Pemilih orang → `{ items: [{ id, name, jobTitle, image }] }`; tanpa `projectId` hanya untuk yang boleh membuat proyek |
+| `GET /team?projectId=&q=&sort=name\|overdue&limit=&offset=` | **Tim** (S6): orang yang berbagi proyek dengan penelepon, Admin melihat semua akun aktif → `{ summary: { people, projects, active?, overdue? }, people: [{ id, name, jobTitle, image, isSelf, projects, load? }], total }`; `limit` bawaan 24, maks. 50; `projectId` yang tidak diikuti dijawab `404` |
 | `GET /profile` | Profil sendiri |
 | `PATCH /profile` `{ displayName?, phone?, jobTitle?, department?, textSize? }` | Ubah profil sendiri (**sesi**); `textSize` salah satu `normal`, `besar`, `sangat_besar` dan ikut mengatur cookie ukuran teks |
 | `GET /trash?page=&limit=` | Proyek di Sampah yang boleh dilihat penelepon → `{ items, total, page, limit }`, yang terbaru dihapus di atas |
 | `POST /trash/project/:id/restore` | Pulihkan proyek dan tugasnya → `{ id, tasks }` (**sesi**, tercatat di audit); lewat masa simpan → `410 EXPIRED` |
+
+**Angka beban Tim.** Kunci `load`, `alsoElsewhere`, dan `summary.active`/`overdue` **tidak dikirim** (bukan `null`, bukan `0`) bila penelepon tidak berhak melihatnya: Admin melihat semua proyek, Pengelola hanya proyek yang ia kelola (ditambah `alsoElsewhere: true` tanpa jumlah bila orang itu juga bekerja di luar sana), dan angka diri sendiri selalu terlihat. `sort=overdue` hanya untuk Admin dan pengelola minimal satu proyek; yang lain mendapat `422 SORT_NOT_ALLOWED`, bukan urutan nama secara diam-diam. Pengurutan itu mengurutkan **halaman yang sedang tampil**, bukan seluruh tim: jumlah tugas baru diketahui setelah satu halaman orang dipilih, dan itulah yang menjaga daftar Tim tetap empat kueri berapa pun jumlah orangnya.
 
 Halaman S1 (semua butuh login): `/app/projects` (daftar), `/app/projects/new` (proyek baru), `/app/projects/:projectId` (ringkasan) dengan tab `/tasks`, `/members`, dan `/settings` (Ubah proyek), `/app/trash` (Sampah), dan `/app/settings` (Pengaturan). `/profile` dialihkan ke `/app/settings`.
 

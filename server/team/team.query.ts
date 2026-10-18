@@ -9,7 +9,7 @@
  */
 import { and, asc, desc, eq, ilike, inArray, isNotNull, type SQL, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
-import { type LoadScope, loadScopeFor, scopeCovers } from '../access/team.policy';
+import { canSortByLoad, type LoadScope, loadScopeFor, scopeCovers } from '../access/team.policy';
 import type { Principal, ProjectRole } from '../access/types';
 import { db } from '../db';
 import { profile, project, projectMember, user } from '../db/schema';
@@ -86,8 +86,9 @@ function summarize(ctx: TeamContext, total: number, people: readonly TeamPerson[
  *
  * `sort=overdue` orders the page by `overdue desc, name`: the counts are only known after the page
  * is chosen, so the ordering applies within the page, which is why the list pages by offset over a
- * short page (P7 §5). The route refuses the sort for a caller `canSortByLoad` rejects (M03 owns
- * that 422); here such a caller simply keeps the name order, having no numbers to sort by.
+ * short page (P7 §5). A caller `canSortByLoad` rejects is refused `SORT_NOT_ALLOWED` instead of
+ * quietly getting the name order; the decision is made here because the caller's project roles are
+ * already loaded, so it costs no extra statement (the route maps the code to its 422).
  */
 export async function listTeam(
   p: Principal,
@@ -97,6 +98,8 @@ export async function listTeam(
 ): Promise<ListTeamResult> {
   const ctx = await teamContext(p, input.projectId, exec);
   if (input.projectId && ctx.visibleProjects === 0) return { ok: false, code: 'NOT_FOUND' };
+  if (input.sort === 'overdue' && !canSortByLoad(p, ctx.myRoles))
+    return { ok: false, code: 'SORT_NOT_ALLOWED' };
   const q = input.q?.trim().slice(0, TEAM_SEARCH_MAX);
   const limit = clampLimit(input.limit);
   const rows = await exec
