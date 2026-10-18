@@ -22,6 +22,7 @@ import {
   taskKind,
 } from '../db/schema';
 import { logger } from '../logger';
+import { emitTaskAssigned } from '../notification/emit.task';
 import type { ProjectPriority } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
 import { DEFAULT_TASK_KINDS } from '../pm/limits';
@@ -178,13 +179,17 @@ export async function createTask(
         .insert(taskChecklistItem)
         .values(steps.map((text, position) => ({ taskId: row.id, text, position })));
     }
-    await tx.insert(taskActivity).values({
-      taskId: row.id,
-      actorId: p.id,
-      actorName: author.name,
-      action: TASK_ACTIVITY.created,
-      payload: { number: row.number },
-    });
+    const acts = await tx
+      .insert(taskActivity)
+      .values({
+        taskId: row.id,
+        actorId: p.id,
+        actorName: author.name,
+        action: TASK_ACTIVITY.created,
+        payload: { number: row.number },
+      })
+      .returning({ id: taskActivity.id, action: taskActivity.action });
+    await emitTaskAssigned(tx, { id: row.id, by: p.id, acts });
     logger.info({ taskId: row.id, projectId: proj.id, actorId: p.id }, 'task created');
     return { ok: true, id: row.id };
   });
@@ -273,15 +278,19 @@ export async function updateTask(
       .set({ ...set, lastActivityAt: clock.now })
       .where(eq(task.id, cur.id));
     if (changes.length > 0) {
-      await tx.insert(taskActivity).values(
-        changes.map(([action, payload]) => ({
-          taskId: cur.id,
-          actorId: p.id,
-          actorName: author.name,
-          action,
-          payload,
-        })),
-      );
+      const acts = await tx
+        .insert(taskActivity)
+        .values(
+          changes.map(([action, payload]) => ({
+            taskId: cur.id,
+            actorId: p.id,
+            actorName: author.name,
+            action,
+            payload,
+          })),
+        )
+        .returning({ id: taskActivity.id, action: taskActivity.action });
+      await emitTaskAssigned(tx, { id: cur.id, by: p.id, acts, was: cur.assigneeId });
     }
     logger.info({ taskId: cur.id, actorId: p.id, fields: Object.keys(set) }, 'task updated');
     return { ok: true, id: cur.id };
