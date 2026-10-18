@@ -37,3 +37,22 @@ export type TextSize = (typeof TEXT_SIZES)[number];
 
 export const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
+
+// --- Event (S7) ---
+
+// `meeting` is the default: almost every event created from the two-stage form is a meeting.
+export const EVENT_KINDS = ['meeting', 'review', 'important', 'team', 'other'] as const;
+export type EventKind = (typeof EVENT_KINDS)[number];
+
+// Where it happens decides which field the form asks for next: a room (`location_text`) or a link (`meeting_url`).
+export const EVENT_LOCATION_TYPES = ['offline', 'online'] as const;
+export type EventLocationType = (typeof EVENT_LOCATION_TYPES)[number];
+
+// Notes stay editable while `draft`; `confirmed` is what participants are told to read.
+export const EVENT_NOTE_STATUSES = ['draft', 'confirmed'] as const;
+export type EventNoteStatus = (typeof EVENT_NOTE_STATUSES)[number];
+
+// Default reminder offsets in minutes before `starts_at`: one day ahead to plan, 30 minutes ahead to join.
+// Not an enum: this is the DEFAULT of `event.reminders_minutes`, and the per-event list may differ.
+export const EVENT_REMINDER_OFFSETS_MIN = [1440, 30] as const;
+export type EventReminderOffset = (typeof EVENT_REMINDER_OFFSETS_MIN)[number];

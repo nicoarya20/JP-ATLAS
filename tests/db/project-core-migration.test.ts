@@ -27,7 +27,11 @@ const downStatements = (file: string) =>
 const DOWN_STATEMENTS = downStatements(ROLLBACK);
 // Migrations are rolled back newest first: 0017's `notification` and 0016's `task` tables both reference
 // `project`, so their rollbacks must run before it (a later migration that points at `project` joins this list).
-const DEPENDENT_DOWN_STATEMENTS = ['0017_notification_core', '0016_task_core'].flatMap((tag) =>
+const DEPENDENT_DOWN_STATEMENTS = [
+  '0018_event_core',
+  '0017_notification_core',
+  '0016_task_core',
+].flatMap((tag) =>
   downStatements(path.join(import.meta.dir, `../../server/db/rollback/${tag}.down.sql`)),
 );
 
