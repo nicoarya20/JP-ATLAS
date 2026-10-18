@@ -11,6 +11,7 @@ import { TEAM_LIMIT_MAX, TEAM_SEARCH_MAX } from '../../server/team/team.query';
 import { call, expectApiError, type Json, resetApiLimiters } from '../support/api';
 import { installAuthSpies } from '../support/auth';
 import { createCleaner } from '../support/cleanup';
+import { ATLAS_NOW, freezeAt } from '../support/clock';
 import { createFactory } from '../support/factory.task';
 import type { TestUser } from '../support/factory.user';
 
@@ -20,6 +21,8 @@ const f = createFactory(cleaner, { tag: 'teamapi' });
 beforeEach(() => {
   auth.as(null);
   resetApiLimiters();
+  // The route reads the clock itself, so "overdue" is pinned to the Atlas today (2026-10-07).
+  freezeAt(ATLAS_NOW);
 });
 afterEach(() => cleaner.flushTest());
 afterAll(() => cleaner.flushAll());

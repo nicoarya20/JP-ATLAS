@@ -85,10 +85,9 @@ function summarize(ctx: TeamContext, total: number, people: readonly TeamPerson[
  * where D10 allows — their open-task counts.
  *
  * `sort=overdue` orders the page by `overdue desc, name`: the counts are only known after the page
- * is chosen, so the ordering applies within the page, which is why the list pages by offset over a
- * short page (P7 §5). A caller `canSortByLoad` rejects is refused `SORT_NOT_ALLOWED` instead of
- * quietly getting the name order; the decision is made here because the caller's project roles are
- * already loaded, so it costs no extra statement (the route maps the code to its 422).
+ * is chosen, so the ordering applies within the page (P7 §5). A caller `canSortByLoad` rejects is
+ * refused `SORT_NOT_ALLOWED` rather than quietly given the name order; deciding it here costs no
+ * extra statement, since the caller's project roles are already loaded (the route maps the code).
  */
 export async function listTeam(
   p: Principal,
