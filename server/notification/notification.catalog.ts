@@ -45,8 +45,8 @@ export const NOTIFICATION_KINDS: Readonly<Record<NotificationKind, KindMeta>> = 
   task_changed: { lane: 'info', category: 'news', shipped: true },
   project_member_added: { lane: 'info', category: 'news', shipped: true },
   project_role_changed: { lane: 'info', category: 'news', shipped: true },
-  // Should, shipped by I14; the Admin queue card has no project, so `project_id` stays NULL.
-  user_pending: { lane: 'action', category: 'action', shipped: false },
+  // Shipped by I14; the Admin queue card has no project, so `project_id` stays NULL.
+  user_pending: { lane: 'action', category: 'action', shipped: true },
   // S4 (Periksa): the reviewer flow is still behind TASK_REVIEW_UI_ENABLED.
   task_review_requested: { lane: 'action', category: 'action', shipped: false },
   task_review_fallback: { lane: 'action', category: 'action', shipped: false },

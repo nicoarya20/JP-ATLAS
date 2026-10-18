@@ -16,7 +16,7 @@ import {
 } from '../../server/notification/notification.catalog';
 import type { NotificationKind } from '../../server/notification/notification.types';
 
-// The kinds S3 really emits (P5 §5.2 "Katalog yang dikirim di S3"); user_pending joins them with I14.
+// The kinds S3 really emits (P5 §5.2 "Katalog yang dikirim di S3"), user_pending among them since I14.
 const SHIPPED_IN_S3: NotificationKind[] = [
   'task_assigned',
   'task_unassigned',
@@ -25,10 +25,10 @@ const SHIPPED_IN_S3: NotificationKind[] = [
   'task_changed',
   'project_member_added',
   'project_role_changed',
+  'user_pending',
 ];
 // Reserved on purpose: the feature behind them lands in S4 (Periksa, mention) or S7 (Events).
 const RESERVED: NotificationKind[] = [
-  'user_pending',
   'task_review_requested',
   'task_review_fallback',
   'task_returned',

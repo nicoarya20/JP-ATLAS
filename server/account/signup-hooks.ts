@@ -8,6 +8,7 @@ import { AUDIT_ACTIONS, audit } from '../audit';
 import { db } from '../db';
 import { profile, userInvitation } from '../db/schema';
 import { logger } from '../logger';
+import { emitUserPending } from '../notification/emit.account';
 import { isEmailSignUpPath } from './auth-policy';
 import { decideNewUser, type NewUserData, type NewUserDeps, normalizeEmail } from './signup-gate';
 
@@ -104,6 +105,9 @@ export async function afterCreateUser(
       .values({ userId: created.id })
       .onConflictDoNothing({ target: profile.userId }),
   );
+
+  // Soft like every other step here: an Admin losing a card must never cost the user their sign-in.
+  await softStep(created.id, 'inbox-card', () => emitUserPending(db, created.id));
 
   const invitationId = takeInvitation(normalizeEmail(created.email));
   if (!invitationId) return;
