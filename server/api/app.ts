@@ -8,6 +8,7 @@
 import { Elysia, t } from 'elysia';
 import { removeAvatar, uploadAvatar } from './app-avatar';
 import { appContext } from './app-context';
+import { inboxApi } from './app-inbox';
 import { profileApi } from './app-profile';
 import { projectsApi } from './app-projects';
 import { projectMembersApi } from './app-projects.members';
@@ -22,6 +23,7 @@ export const appApi = new Elysia({ prefix: '/app' })
   // First on purpose: a parent's hooks only reach routes registered after them.
   .use(appContext)
   .use(profileApi)
+  .use(inboxApi)
   .use(projectsApi)
   .use(projectMembersApi)
   .use(projectTrashApi)

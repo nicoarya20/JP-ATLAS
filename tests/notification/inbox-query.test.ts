@@ -9,7 +9,6 @@ import { db } from '../../server/db';
 import { notification, projectMember } from '../../server/db/schema';
 import { METRICS } from '../../server/metrics/config';
 import {
-  type InboxItem,
   inboxActionCount,
   inboxCounts,
   listInbox,
@@ -131,7 +130,7 @@ describe('listInbox', () => {
 
     const [item] = (await listAction(owner)).items;
 
-    expect(item).toMatchObject<Partial<InboxItem>>({
+    expect(item).toMatchObject({
       kind: 'task_assigned',
       lane: 'action',
       ref: { type: 'task', id: expect.any(String), number: 42 },

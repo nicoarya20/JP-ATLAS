@@ -149,4 +149,12 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('GET', '/api/app/tasks')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');
   });
+  // The Inbox routes are not destructive, so a key may read the cards of its owner and mark them
+  // read; nothing here is in PM_KEY_DENY (S3 I04).
+  it('maps the Inbox routes to app:read / app:write', () => {
+    expect(requiredScope('GET', '/api/app/inbox')).toBe('app:read');
+    expect(requiredScope('GET', '/api/app/inbox/count')).toBe('app:read');
+    expect(requiredScope('POST', '/api/app/inbox/n1/read')).toBe('app:write');
+    expect(requiredScope('POST', '/api/app/inbox/read-all')).toBe('app:write');
+  });
 });

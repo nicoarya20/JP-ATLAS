@@ -54,8 +54,10 @@ export type NotifyInput<K extends NotificationKind = NotificationKind> = {
   projectId?: string | null;
   ref: NotificationRef;
   /**
-   * Event identity inside the ref, usually the `task_activity` row id. Left out, an `info` card
-   * bundles per hour and an `action` card is one per ref — which is what "the card is the event" means.
+   * Event identity inside the ref. **Contract for the emit helpers (I05-I07): a card that must not
+   * bundle sends the `task_activity` row id here** — that is what makes two distinct events on one
+   * task two cards instead of one. Left out, an `info` card bundles per hour (the "5 komentar baru"
+   * card) and an `action` card is one per ref, which is what "the card is the event" means.
    */
   sub?: string;
   payload: NotificationPayload<K>;
