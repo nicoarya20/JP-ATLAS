@@ -37,7 +37,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'NeedsReviewOnCreate NotVisible TaskActor TaskDecision authorizeTask canComment canCreateTask canEditTask canManageKinds canToggleNeedsReview canViewTask guardTask resolveNeedsReviewOnCreate taskOpen',
   'server/access/team.policy.ts': 'LoadScope canSortByLoad loadScopeFor scopeCovers',
   'server/access/trash.policy.ts':
-    'TrashItemCapKey TrashItemCaps TrashListScope canViewTrashItem trashItemCaps trashListScope',
+    'TrashItemCapKey TrashItemCaps TrashListScope canPurge canRestoreTask canTrashTask canViewTrashItem trashItemCaps trashListScope',
   'server/access/types.ts':
     'EventSubject Membership Principal ProjectRole ProjectSubject TaskSubject',
   'server/access/user.policy.ts':
@@ -52,7 +52,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'SCHEDULE_GROUPS ScheduleBounds ScheduleGroup scheduleBounds scheduleGroupOf',
   'server/metrics/task.metrics.ts':
     'ACTIVE_STATUSES TaskLabel TaskLabelContext ageDays isActive isOverdue isStale taskLabels',
-  'server/metrics/trash.metrics.ts': 'isRestorable lastRestorableDate trashDaysLeft',
+  'server/metrics/trash.metrics.ts': 'isRestorable lastRestorableDate purgeBefore trashDaysLeft',
   'server/metrics/types.ts': 'IsoDate MetricsConfig TaskLabel TaskMetricsRow',
   'server/pm/enums.ts':
     // The EVENT_* tuples are additions by the S7 slice owner, allowed by 0002-contract-v1.md §2

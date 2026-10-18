@@ -117,6 +117,10 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'apikey.delete': { label: 'Hapus API key', color: 'red' },
   'project.trash': { label: 'Hapus proyek ke Sampah', color: 'red' },
   'project.restore': { label: 'Pulihkan proyek', color: 'teal' },
+  'task.trash': { label: 'Hapus tugas ke Sampah', color: 'orange' },
+  'task.restore': { label: 'Pulihkan tugas', color: 'teal' },
+  'trash.purge': { label: 'Hapus selamanya dari Sampah', color: 'red' },
+  'trash.retention': { label: 'Pembersihan Sampah otomatis', color: 'gray' },
 };
 
 export function actionMeta(action: string): { label: string; color: string } {
@@ -130,4 +134,6 @@ export const TARGET_LABELS: Record<string, string> = {
   logs: 'Log',
   invitation: 'Undangan',
   project: 'Proyek',
+  task: 'Tugas',
+  trash: 'Sampah',
 };

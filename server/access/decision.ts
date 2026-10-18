@@ -124,6 +124,17 @@ export const DENY_UI: Record<DenyCode, DenyUi> = {
     ui: 'disable',
     message: 'Masa pemulihannya sudah lewat, jadi data ini tidak bisa dipulihkan lagi.',
   },
+  // Hidden, not greyed out: the permanent-delete control must not exist for non-Admin roles (P8 §4).
+  ROLE_CANNOT_PURGE: {
+    http: 403,
+    ui: 'hide',
+    message: 'Hanya Admin yang boleh menghapus selamanya. Minta Admin melakukannya.',
+  },
+  NOT_IN_TRASH: {
+    http: 409,
+    ui: 'hide',
+    message: 'Data ini tidak ada di Sampah. Muat ulang halaman, lalu coba lagi.',
+  },
 };
 
 /** Build the allow decision. */

@@ -41,6 +41,11 @@ export const AUDIT_ACTIONS = {
   APIKEY_DELETE: 'apikey.delete',
   PROJECT_TRASH: 'project.trash',
   PROJECT_RESTORE: 'project.restore',
+  TASK_TRASH: 'task.trash',
+  TASK_RESTORE: 'task.restore',
+  // Permanent delete by an Admin; `trash.retention` is the same thing done by the purge job.
+  TRASH_PURGE: 'trash.purge',
+  TRASH_RETENTION: 'trash.retention',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -52,7 +57,10 @@ export type AuditTargetType =
   | 'post'
   | 'apikey'
   | 'invitation'
-  | 'project';
+  | 'project'
+  | 'task'
+  // `trash` is the retention sweep itself: an entry that covers several rows, not one record.
+  | 'trash';
 
 export type AuditInput = {
   actor: { id: string; email?: string | null } | null;

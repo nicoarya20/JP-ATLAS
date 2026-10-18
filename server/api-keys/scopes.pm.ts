@@ -12,6 +12,12 @@ export const PM_KEY_DENY: readonly Deny[] = [
   { id: '* avatar', method: '*', path: /^\/api\/app\/avatar(?:\/.*)?$/i },
   // Restoring undoes a delete and brings data back for everyone: as sensitive as the delete (S1-05).
   { id: 'POST trash/*', method: 'POST', path: /^\/api\/app\/trash\/.+/i },
+  // Permanent delete is irreversible and Admin-only even in a session (S6, P8 §5): never by key.
+  { id: 'DELETE trash/*', method: 'DELETE', path: /^\/api\/app\/trash\/.+/i },
+  // Sending a task to the Trash stays session-only too (user decision in
+  // `tahapan-proyek/05-implementasi/JADWAL-S3-S8.md` §5 no. 4, answering P8 Q2). Loose on purpose:
+  // every delete below a task (the step and comment rules above) is session-only as well.
+  { id: 'DELETE tasks/:id', method: 'DELETE', path: /^\/api\/app\/tasks\/.+/i },
   // Removing a checklist step or a comment is a hard delete (S2-06): keys may add and edit, not remove.
   {
     id: 'DELETE tasks/*/checklist/*',
@@ -44,12 +50,25 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'PATCH profile': 'app-profile.ts',
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts
   'POST trash/*': 'app-trash.ts',
+  'DELETE trash/*': 'app-trash.ts',
+  'DELETE tasks/:id': 'app-tasks.write.ts',
   'DELETE tasks/*/checklist/*': 'app-tasks.detail.ts',
   'DELETE tasks/*/comments/*': 'app-tasks.detail.ts',
   '* events/*/participants*': 'app-events.write.ts',
   'POST events/*/cancel': 'app-events.write.ts',
   'DELETE events/*': 'app-events.write.ts', // guest removal today; `DELETE /events/:id` lands here in E-07
 };
+
+/**
+ * Deny ids whose route is not registered yet: the denial is in place first (Z-01) and the route
+ * lands later in the same S6 slice, so the sweep that asserts "this pattern matches a real route"
+ * reports them as skipped instead of failing.
+ *
+ * TODO(trash): scaffolding, agreed with the S6 coordinator as temporary debt — `DELETE trash/*`
+ * must be removed from this list by Z-04 (`DELETE /api/app/trash/:kind/:id`, the task that
+ * registers the route), and at the latest by the Z-08 gate, which fails if the list is not empty.
+ */
+export const PM_DENY_PENDING: readonly string[] = ['DELETE trash/*'];
 
 /** True when an API key may not call this route, whatever scopes it holds. */
 export function isPmKeyDenied(method: string, pathname: string): boolean {
