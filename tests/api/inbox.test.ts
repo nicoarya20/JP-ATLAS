@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { eq } from 'drizzle-orm';
 import { db } from '../../server/db';
 import { notification, projectMember } from '../../server/db/schema';
+import { rateLimiter } from '../../server/rate-limit';
 import { call, expectApiError, resetApiLimiters } from '../support/api';
 import { installAuthSpies } from '../support/auth';
 import { createCleaner } from '../support/cleanup';
@@ -169,6 +170,28 @@ describe('GET /app/inbox/count', () => {
 
     expect(count.body).toEqual({ action: (list.body.items as Item[]).length, infoUnread: 1 });
     expect(count.body.action).toBe(3);
+  });
+
+  it('is not rate limited, while /app/tasks still is', async () => {
+    const original = { ...rateLimiter.config };
+    // A tiny limit makes the point in a few requests; the exemption is what is under test.
+    rateLimiter.configure({ limit: 5 });
+    try {
+      auth.as(mine);
+      const limited: number[] = [];
+      for (let i = 0; i < 200; i++) {
+        const res = await call('GET', '/app/inbox/count');
+        if (res.status !== 200) limited.push(i + 1);
+      }
+      expect(limited).toEqual([]);
+      // Same client, same window: an ordinary app route is still capped.
+      const statuses: number[] = [];
+      for (let i = 0; i < 8; i++) statuses.push((await call('GET', '/app/tasks')).status);
+      expect(statuses).toContain(429);
+    } finally {
+      rateLimiter.configure(original);
+      resetApiLimiters();
+    }
   });
 });
 
