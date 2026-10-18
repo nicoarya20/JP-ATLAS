@@ -25,13 +25,14 @@ const clock = { now: NOW, today: '2026-10-18' };
 const principal = (u: TestUser): Principal => ({ id: u.id, appRole: u.role, impersonating: false });
 const author = (u: TestUser): TaskAuthor => ({ principal: principal(u), name: u.name });
 
-/** The cards one person holds for one task, oldest first. */
+/** The cards one person holds for one task, oldest first, then by kind. */
 const cardsOf = (recipient: TestUser, taskId: string) =>
   db
     .select()
     .from(notification)
     .where(and(eq(notification.recipientId, recipient.id), eq(notification.refId, taskId)))
-    .orderBy(notification.createdAt);
+    // Cards written in one request share `at`, so the kind breaks the tie deterministically.
+    .orderBy(notification.createdAt, notification.kind);
 
 /** A project where `lead` manages and two members may do the work. */
 async function graph() {

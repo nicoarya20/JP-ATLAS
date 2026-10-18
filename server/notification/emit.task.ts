@@ -13,18 +13,18 @@
 import { eq } from 'drizzle-orm';
 import { project, task } from '../db/schema';
 import type { Executor } from '../pm/tx';
-import { TASK_ACTIVITY } from '../task/task.limits';
+import { type EnabledTaskAction, TASK_ACTIVITY } from '../task/task.limits';
+import { kindsByLane } from './notification.catalog';
 import { notify } from './notification.notify';
+import { followersOf } from './notification.recipients';
 import { resolveNotifications } from './notification.resolve';
-import type { TaskCardPayload } from './notification.types';
+import type { ResolveReason, TaskCardPayload } from './notification.types';
 
 /** A `task_activity` row the caller has just written; only its identity and its kind matter here. */
 export type ActivityRow = { id: string; action: string };
 
 /** What every task hook carries: the task, who acted, and the activity rows of that same write. */
 export type TaskEmit = {
-  /** The task the cards point at. */
-  id: string;
   /** Who made the change; `notify()` keeps them out of their own Inbox. */
   by: string;
   /** The `task_activity` rows written in the same transaction, in the order they were inserted. */
@@ -78,23 +78,23 @@ const assignSub = (acts: TaskEmit['acts']) =>
  */
 export async function emitTaskAssigned(
   exec: Executor,
+  id: string,
   i: TaskEmit & { was?: string | null },
 ): Promise<void> {
-  // An edit that left the assignee alone writes no `assignee_changed` row, so there is nothing to
-  // look up: `updateTask` may call this after every edit without first asking what changed.
+  // An edit that left the assignee alone writes no `assignee_changed` row, so it needs no lookup.
   const reassigned = i.acts?.some((a) => a.action === TASK_ACTIVITY.assigneeChanged);
   if (i.was !== undefined && !reassigned) return;
-  const snap = await snapshotOf(exec, i.id);
+  const snap = await snapshotOf(exec, id);
   const was = i.was ?? null;
   if (!snap || snap.assigneeId === was) return;
-  if (was) await emitTaskUnassigned(exec, { ...i, was });
+  if (was) await emitTaskUnassigned(exec, id, { ...i, was });
   if (!snap.assigneeId) return;
   await notify(exec, {
     kind: 'task_assigned',
     recipients: [snap.assigneeId],
     actorId: i.by,
     projectId: snap.projectId,
-    ref: taskRef(i.id),
+    ref: taskRef(id),
     sub: assignSub(i.acts),
     payload: cardOf(snap),
     at: i.at,
@@ -108,12 +108,13 @@ export async function emitTaskAssigned(
  */
 export async function emitTaskUnassigned(
   exec: Executor,
+  id: string,
   i: TaskEmit & { was: string },
 ): Promise<void> {
-  const snap = await snapshotOf(exec, i.id);
+  const snap = await snapshotOf(exec, id);
   if (!snap) return;
   await resolveNotifications(exec, {
-    ref: taskRef(i.id),
+    ref: taskRef(id),
     kinds: ['task_assigned'],
     recipientId: i.was,
     reason: 'superseded',
@@ -124,9 +125,107 @@ export async function emitTaskUnassigned(
     recipients: [i.was],
     actorId: i.by,
     projectId: snap.projectId,
-    ref: taskRef(i.id),
+    ref: taskRef(id),
     sub: assignSub(i.acts),
     payload: cardOf(snap),
+    at: i.at,
+  });
+}
+
+/** The "Perlu Anda tanggapi" card has been answered: the work was taken up or finished. */
+const closeAssigned = (exec: Executor, id: string, i: TaskEmit, reason: ResolveReason) =>
+  resolveNotifications(exec, { ref: taskRef(id), kinds: ['task_assigned'], reason, at: i.at });
+
+/**
+ * The task is finished: its open card is answered and the two people who were waiting for it —
+ * whoever created it and whoever was meant to do it — are told, whoever pressed the button. The
+ * card closes for the assignee even when somebody else completed the task, which is the point of
+ * resolving by ref rather than by recipient.
+ */
+export async function emitTaskDone(exec: Executor, id: string, i: TaskEmit): Promise<void> {
+  const snap = await snapshotOf(exec, id);
+  if (!snap) return;
+  await closeAssigned(exec, id, i, 'acted');
+  await notify(exec, {
+    kind: 'task_done',
+    recipients: [snap.createdBy, snap.assigneeId].filter((who): who is string => who !== null),
+    actorId: i.by,
+    projectId: snap.projectId,
+    ref: taskRef(id),
+    // The step wrote one activity row, and that row is what makes this card its own event.
+    sub: i.acts?.[0]?.id,
+    payload: cardOf(snap),
+    at: i.at,
+  });
+}
+
+/**
+ * A change that is only news for the people who follow the task. No `sub`, so repeats inside one
+ * hour bundle into a single "3 perubahan di #12" line instead of three cards.
+ */
+export async function emitTaskChanged(exec: Executor, id: string, i: TaskEmit): Promise<void> {
+  const snap = await snapshotOf(exec, id);
+  if (!snap) return;
+  await notify(exec, {
+    kind: 'task_changed',
+    recipients: await followersOf(exec, id),
+    actorId: i.by,
+    projectId: snap.projectId,
+    ref: taskRef(id),
+    payload: cardOf(snap),
+    at: i.at,
+  });
+}
+
+/**
+ * One workflow step, after its activity row is written. `start` and `complete` answer the card
+ * (the work was taken up, or it is done); `cancel` closes every open `action` card on the task,
+ * because what the cards asked for cannot happen any more. `reopen` and `uncancel` write no
+ * `task_assigned` card on purpose: the old card was answered, and a reopened task asks again only
+ * when someone is put on it. `unstart` is left silent, as P5 §5.5 lists no card for it.
+ */
+export async function emitTaskTransition(
+  exec: Executor,
+  id: string,
+  i: TaskEmit & { action: EnabledTaskAction },
+): Promise<void> {
+  if (i.action === 'complete') return emitTaskDone(exec, id, i);
+  if (i.action === 'start') {
+    await closeAssigned(exec, id, i, 'acted');
+    return;
+  }
+  if (i.action === 'cancel') {
+    await resolveNotifications(exec, {
+      ref: taskRef(id),
+      kinds: kindsByLane('action'),
+      reason: 'target_closed',
+      at: i.at,
+    });
+  }
+  if (i.action === 'cancel' || i.action === 'reopen' || i.action === 'uncancel') {
+    await emitTaskChanged(exec, id, i);
+  }
+}
+
+/**
+ * A new comment, bundled per hour into "5 komentar baru di #12" for the task's followers. The
+ * excerpt is the comment as typed; `notify()` cuts it to `PAYLOAD_EXCERPT_MAX` and no log line
+ * ever carries it.
+ */
+export async function emitTaskCommented(
+  exec: Executor,
+  id: string,
+  i: TaskEmit & { excerpt?: string },
+): Promise<void> {
+  const snap = await snapshotOf(exec, id);
+  if (!snap) return;
+  await notify(exec, {
+    kind: 'task_commented',
+    recipients: await followersOf(exec, id),
+    actorId: i.by,
+    projectId: snap.projectId,
+    ref: taskRef(id),
+    payload: { ...cardOf(snap), ...(i.excerpt ? { excerpt: i.excerpt } : {}) },
     at: i.at,
   });
 }

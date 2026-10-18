@@ -10,6 +10,7 @@ import { atLeast, levelOf } from '../access/level';
 import { canComment, taskOpen } from '../access/task.policy';
 import { taskActivity, taskComment } from '../db/schema';
 import { logger } from '../logger';
+import { emitTaskCommented } from '../notification/emit.task';
 import type { PmCode } from '../pm/errors';
 import { inTx } from '../pm/tx';
 import type { TaskClock } from './task.dto';
@@ -70,6 +71,7 @@ export async function addComment(
       .returning();
     if (!row) throw new Error(`Comment insert on task ${access.subject.id} returned no row`);
     await touchTask(tx, row.taskId, clock.now);
+    await emitTaskCommented(tx, row.taskId, { by: p.id, excerpt: row.body, at: clock.now });
     logger.info({ taskId: row.taskId, commentId: row.id, actorId: p.id }, 'task comment added');
     return { ok: true, comment: viewOf(row, author.name) };
   });

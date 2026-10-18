@@ -189,7 +189,7 @@ export async function createTask(
         payload: { number: row.number },
       })
       .returning({ id: taskActivity.id, action: taskActivity.action });
-    await emitTaskAssigned(tx, { id: row.id, by: p.id, acts });
+    await emitTaskAssigned(tx, row.id, { by: p.id, acts, at: clock.now });
     logger.info({ taskId: row.id, projectId: proj.id, actorId: p.id }, 'task created');
     return { ok: true, id: row.id };
   });
@@ -290,7 +290,7 @@ export async function updateTask(
           })),
         )
         .returning({ id: taskActivity.id, action: taskActivity.action });
-      await emitTaskAssigned(tx, { id: cur.id, by: p.id, acts, was: cur.assigneeId });
+      await emitTaskAssigned(tx, cur.id, { by: p.id, acts, was: cur.assigneeId, at: clock.now });
     }
     logger.info({ taskId: cur.id, actorId: p.id, fields: Object.keys(set) }, 'task updated');
     return { ok: true, id: cur.id };
