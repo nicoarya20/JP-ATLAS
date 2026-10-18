@@ -5,14 +5,14 @@
 ## 1. Status keseluruhan
 | Irisan | Menu | Rencana | Tugas | Selesai | Status |
 |---|---|---|---|---|---|
-| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | **9 review** (I01-I07, I11, I14); sisa I08-I10, I12, I13 |
+| S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | **9 selesai (merged)** (I01-I07, I11, I14); sisa I08-I10, I12, I13 |
 | S3 | Beranda | [P4](rencana/P4-s3-beranda.md) | 12 | 0 | rencana selesai, belum dikerjakan |
 | S4 | Tugas lanjutan (Periksa, dependensi, tag, Papan) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 15 | 0 | rencana selesai, belum dikerjakan |
 | S5 | Tugas lanjutan (Tahapan, tenggat, bukti) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 14 | 0 | rencana selesai, belum dikerjakan |
-| S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | **1 review** (Z-01) |
-| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | **4 review** (M01-M04); sisa M05-M10 |
+| S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | **1 selesai (merged)** (Z-01) |
+| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | **4 selesai (merged)** (M01-M04); sisa M05-M10 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
-| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | **5 review** (E-01, E-02, E-03, E-05, E-06); E-04 DIBLOKIR (butuh notify dari cabang Inbox) |
+| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 0 | **5 selesai (merged)** (E-01, E-02, E-03, E-05, E-06); E-04 DIBLOKIR (butuh notify dari cabang Inbox) |
 | | **Total** | | **98** | **0** | |
 
 **Syarat sebelum tugas pertama dimulai:**
@@ -50,20 +50,20 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S3 · Inbox
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| I01 | Skema `notification`, `notification_pref`, migrasi 0017 | review | `feature/pm-s3-i01-i02-notification-core` | `9dcb52d` | 4228 lulus/0 gagal di kepala cabang; 11 tes skema, 5 indeks, rollback 0017 |
-| I02 | Katalog, tipe, penerima | review | `feature/pm-s3-i01-i02-notification-core` | `97c8a3d` | 14 kind (7 dikirim S3); filterRecipients terbukti 1 kueri |
-| I03 | Inti `notify()`, `resolveNotifications()`, `dropForUserInProject()` | review | `feature/pm-s3-i01-i02-notification-core` | `b133f77` | notify gagal di dalam inTx tidak menggagalkan baris domain (diuji spy); <=3 kueri |
-| I04 | Query + API baca/tandai + pengecualian rate limit (**penutup S3a**) | review | `feature/pm-s3-i01-i02-notification-core` | `e613b41` | 4269 lulus/0 gagal; daftar 20 kartu = 1 kueri; count bebas 429. **Penutup S3a** |
-| I05 | Kait penugasan tugas (buat, ubah penugasan) | review | `feature/pm-s3-i01-i02-notification-core` | `1c54dd7` | kait createTask/updateTask; task.service.ts 299/300 |
-| I06 | Kait transisi status dan komentar | review | `feature/pm-s3-i01-i02-notification-core` | `f26212e` | G-2 terbukti lewat sesi DAN kunci API; unstart kini bersuara (keputusan koordinator) |
-| I07 | Kait proyek dan anggota | review | `feature/pm-s3-i01-i02-notification-core` | `5bf2ea2` | pulihkan proyek tidak menghidupkan ulang kartu (terbukti) |
+| I01 | Skema `notification`, `notification_pref`, migrasi 0017 | selesai | `feature/pm-s3-i01-i02-notification-core` | `9dcb52d` merge `ee74adb` | 4228 lulus/0 gagal di kepala cabang; 11 tes skema, 5 indeks, rollback 0017 |
+| I02 | Katalog, tipe, penerima | selesai | `feature/pm-s3-i01-i02-notification-core` | `97c8a3d` merge `ee74adb` | 14 kind (7 dikirim S3); filterRecipients terbukti 1 kueri |
+| I03 | Inti `notify()`, `resolveNotifications()`, `dropForUserInProject()` | selesai | `feature/pm-s3-i01-i02-notification-core` | `b133f77` merge `ee74adb` | notify gagal di dalam inTx tidak menggagalkan baris domain (diuji spy); <=3 kueri |
+| I04 | Query + API baca/tandai + pengecualian rate limit (**penutup S3a**) | selesai | `feature/pm-s3-i01-i02-notification-core` | `e613b41` merge `ee74adb` | 4269 lulus/0 gagal; daftar 20 kartu = 1 kueri; count bebas 429. **Penutup S3a** |
+| I05 | Kait penugasan tugas (buat, ubah penugasan) | selesai | `feature/pm-s3-i01-i02-notification-core` | `1c54dd7` merge `ee74adb` | kait createTask/updateTask; task.service.ts 299/300 |
+| I06 | Kait transisi status dan komentar | selesai | `feature/pm-s3-i01-i02-notification-core` | `f26212e` merge `ee74adb` | G-2 terbukti lewat sesi DAN kunci API; unstart kini bersuara (keputusan koordinator) |
+| I07 | Kait proyek dan anggota | selesai | `feature/pm-s3-i01-i02-notification-core` | `5bf2ea2` merge `ee74adb` | pulihkan proyek tidak menghidupkan ulang kartu (terbukti) |
 | I08 | Klien Inbox: API, kunci query, hook hitungan | belum | – | – | – |
 | I09 | Lonceng, badge menu, NAV, rute (pemilik tunggal berkas bingkai) | belum | – | – | – |
 | I10 | Halaman Inbox | belum | – | – | – |
-| I11 | Scheduler pembersih | review | `feature/pm-s3-i01-i02-notification-core` | `91ce31b` | retensi 30 hari, batch 500, tidak dipasang saat NODE_ENV=test |
+| I11 | Scheduler pembersih | selesai | `feature/pm-s3-i01-i02-notification-core` | `91ce31b` merge `ee74adb` | retensi 30 hari, batch 500, tidak dipasang saat NODE_ENV=test |
 | I12 | Kontrak lintas-jalur, keamanan, kinerja, smoke, dokumen | belum | – | – | – |
 | I13 | Integrasi dan gerbang demo S3-Inbox | belum | – | – | – |
-| I14 | (Opsional, Should) Kartu "Pengguna baru menunggu persetujuan" | review | `feature/pm-s3-i01-i02-notification-core` | `bc0cf89` | Admin yang tidak menekan tombol ikut kehilangan kartu; +3 berkas di luar Target (disetujui) |
+| I14 | (Opsional, Should) Kartu "Pengguna baru menunggu persetujuan" | selesai | `feature/pm-s3-i01-i02-notification-core` | `bc0cf89` merge `ee74adb` | Admin yang tidak menekan tombol ikut kehilangan kartu; +3 berkas di luar Target (disetujui) |
 
 ### S3 · Beranda
 | ID | Tugas | Status | Cabang | Hash | Catatan |
@@ -121,7 +121,7 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S6 · Sampah
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| Z-01 | Kebijakan, kode galat, audit, penolakan kunci API · Dep: – · S (1) | review | `feature/pm-s6-z01-trash-policy` | `f47f636` | 4170 lulus/0 gagal di DB terisolasi. PM_DENY_PENDING = hutang, wajib dihapus Z-04/Z-08 |
+| Z-01 | Kebijakan, kode galat, audit, penolakan kunci API · Dep: – · S (1) | selesai | `feature/pm-s6-z01-trash-policy` | `f47f636` merge `3a66626` | 4170 lulus/0 gagal di DB terisolasi. PM_DENY_PENDING = hutang, wajib dihapus Z-04/Z-08 |
 | Z-02 | Hapus tugas ke Sampah (backend) · Dep: Z-01 · M (1,5) · PARALEL dgn Z-03, Z-04 | belum | – | – | – |
 | Z-03 | Daftar Sampah gabungan + pulihkan tugas · Dep: Z-01 · L (2) · PARALEL | belum | – | – | – |
 | Z-04 | Hapus permanen (Admin) · Dep: Z-01 · M (1,5) · PARALEL | belum | – | – | – |
@@ -133,10 +133,10 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S6 · Tim
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| M01 | Kebijakan murni visibilitas Tim (D10) | review | `feature/pm-s6-m01-team-policy` | `769177d` | 4167 lulus/0 gagal; scope Pengelola = irisan proyek bersama; irisan kosong = none |
-| M02 | Kueri Tim (orang, peran, beban, ringkasan) ≤ 4 kueri | review | `feature/pm-s6-m01-team-policy` | `bbb0041` | 4200 lulus/0 gagal; tepat 4 statement untuk 4 maupun 41 orang |
-| M03 | Rute daftar `GET /api/app/team` + tes privasi per peran | review | `feature/pm-s6-m01-team-policy` | `ccee194` | privasi beban per peran terkunci tes; +SORT_NOT_ALLOWED |
-| M04 | Rute detail `GET /api/app/team/:userId` | review | `feature/pm-s6-m01-team-policy` | `aca0cab` | detail: Admin boleh buka akun ter-ban/pending, lainnya NOT_FOUND |
+| M01 | Kebijakan murni visibilitas Tim (D10) | selesai | `feature/pm-s6-m01-team-policy` | `769177d` merge `f47bbfb` | 4167 lulus/0 gagal; scope Pengelola = irisan proyek bersama; irisan kosong = none |
+| M02 | Kueri Tim (orang, peran, beban, ringkasan) ≤ 4 kueri | selesai | `feature/pm-s6-m01-team-policy` | `bbb0041` merge `f47bbfb` | 4200 lulus/0 gagal; tepat 4 statement untuk 4 maupun 41 orang |
+| M03 | Rute daftar `GET /api/app/team` + tes privasi per peran | selesai | `feature/pm-s6-m01-team-policy` | `ccee194` merge `f47bbfb` | privasi beban per peran terkunci tes; +SORT_NOT_ALLOWED |
+| M04 | Rute detail `GET /api/app/team/:userId` | selesai | `feature/pm-s6-m01-team-policy` | `aca0cab` merge `f47bbfb` | detail: Admin boleh buka akun ter-ban/pending, lainnya NOT_FOUND |
 | M05 | Migrasi indeks `project_member (project_id, role)` — *sinkron: pemegang baton* | belum | – | – | – |
 | M06 | Halaman daftar Tim + NAV + rute | belum | – | – | – |
 | M07 | Halaman detail orang | belum | – | – | – |
@@ -160,12 +160,12 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S7 · Event
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| E-01 | Skema acara + migrasi 0018 + Permintaan Perubahan Kontrak | review | `feature/pm-s7-e01-event-schema` | `09cf69c` | 4226 lulus/0 gagal; migrasi 0018 + rollback + PCC 0003 |
-| E-02 | Kebijakan akses & kemampuan acara | review | `feature/pm-s7-e01-event-schema` | `ad81d54` | kebijakan acara murni + kemampuan |
+| E-01 | Skema acara + migrasi 0018 + Permintaan Perubahan Kontrak | selesai | `feature/pm-s7-e01-event-schema` | `09cf69c` merge `7cec339` | 4226 lulus/0 gagal; migrasi 0018 + rollback + PCC 0003 |
+| E-02 | Kebijakan akses & kemampuan acara | selesai | `feature/pm-s7-e01-event-schema` | `ad81d54` merge `7cec339` | kebijakan acara murni + kemampuan |
 | E-03 | Servis & kueri acara (CRUD, peserta, batal) | berjalan | `feature/pm-s7-e01-event-schema` | – | berjalan; 5 berkas servis/kueri sudah ter-commit 0071b45 |
 | E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | belum | – | – | – |
-| E-05 | Notulensi ketik dengan kunci optimis | review | `feature/pm-s7-e01-event-schema` | `dd05f9e` | kunci optimis via date_trunc(milliseconds); body tidak pernah di-log |
-| E-06 | Rute API acara + pemetaan scope | review | `feature/pm-s7-e01-event-schema` | `4f9a020` | 4432 lulus/0 gagal; semua rute kecuali Sampah; +NOTE_CONFLICT/EVENT_CANCELED |
+| E-05 | Notulensi ketik dengan kunci optimis | selesai | `feature/pm-s7-e01-event-schema` | `dd05f9e` merge `7cec339` | kunci optimis via date_trunc(milliseconds); body tidak pernah di-log |
+| E-06 | Rute API acara + pemetaan scope | selesai | `feature/pm-s7-e01-event-schema` | `4f9a020` merge `7cec339` | 4432 lulus/0 gagal; semua rute kecuali Sampah; +NOTE_CONFLICT/EVENT_CANCELED |
 | E-07 | Hapus ke Sampah + Urungkan + ikut hapus proyek | belum | – | – | – |
 | E-08 | Klien, kunci kueri, dan komponen bersama acara | belum | – | – | – |
 | E-09 | Halaman Daftar Acara | belum | – | – | – |
@@ -181,14 +181,14 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ## 5. Log merge per gelombang
 | Gelombang | Tugas | Hash | Tanggal |
 |---|---|---|---|
-| (belum ada) | | | |
+| G21 (Inbox I01-I07/I11/I14, Event E-01/E-02/E-03/E-05/E-06, Tim M01-M04, Sampah Z-01) | 18 tugas, empat cabang | `ee74adb`, `7cec339`, `f47bbfb`, `3a66626`; kepala `5b7cfc3` | 19 Okt 2026 |
 
 ## 6b. TITIK LANJUT — baca ini dulu saat melanjutkan
 
 Gelombang **G21** dihentikan atas permintaan user, bukan karena kegagalan. Semua pekerja dimatikan dan
 seluruh dispatch dilepas; **tidak ada kerja yang menggantung** — keempat worktree bersih.
 
-### Empat cabang siap, belum satu pun di-merge atau di-push
+### Empat cabang sudah di-merge ke `feature/project-management` dan di-push (19 Okt, kepala `5b7cfc3`)
 | Cabang | Kepala | Isi |
 |---|---|---|
 | `feature/pm-s3-i01-i02-notification-core` | `bc0cf89` | I01-I07, I11, I14 |
@@ -196,13 +196,12 @@ seluruh dispatch dilepas; **tidak ada kerja yang menggantung** — keempat workt
 | `feature/pm-s6-m01-team-policy` | `aca0cab` | M01-M04 |
 | `feature/pm-s6-z01-trash-policy` | `f47f636` | Z-01 |
 
-Uji gabungan keempatnya sudah pernah dijalankan (kepala lebih lama) dan **lulus bersih**: 4575 lulus /
-0 gagal, typecheck 0, lint tepat baseline, `smoke:prod` dan `smoke:binary` 39/39. Satu-satunya konflik
+Uji gabungan keempatnya dijalankan dua kali dan **lulus bersih** keduanya. Satu-satunya konflik
 ada di `tests/contract-v1.test.ts` dan bentuknya aditif murni (dua cabang menambah ekspor ke entri
 snapshot yang sama) — selesaikan sebagai **gabungan**, jangan pilih salah satu.
-Worktree uji: `/Users/lukman/orca/makuro-template-int`, cabang buangan `integrasi/g21-uji`.
+Worktree uji buangan sudah dihapus; hasilnya terbukti ulang pada kepala final `5b7cfc3`: 4756 lulus / 19 skip / 0 gagal, typecheck 0, lint 164/33/4, `smoke:prod` dan `smoke:binary` 39/39, drift skema nol.
 
-### Langkah pertama saat melanjutkan: MERGE
+### Langkah pertama saat melanjutkan (merge SUDAH selesai — ini alasan blokir sebelumnya, kini terbuka)
 Tiga pekerjaan terkunci sampai keempat cabang menyatu:
 1. **E-04** (pengingat acara) butuh `notify()` yang ada di cabang Inbox. P6 R-E1 melarang membuat tiruan.
 2. **Berkas bingkai** (`app/routes.ts`, `NAV` di `app/routes/app/layout.tsx`, `AppFrame.tsx`) diklaim
