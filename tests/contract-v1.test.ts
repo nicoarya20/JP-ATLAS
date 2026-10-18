@@ -33,7 +33,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'CancelInput FlowAction FlowAllow FlowDecision FlowEffect PrimaryAction TASK_TRANSITIONS TaskTransition canCancelTask canCompleteTask canReopenTask canStartTask canUncancelTask canUnstartTask findTransition nextStatuses primaryAction',
   'server/access/task.policy.ts':
     'NeedsReviewOnCreate NotVisible TaskActor TaskDecision authorizeTask canComment canCreateTask canEditTask canManageKinds canToggleNeedsReview canViewTask guardTask resolveNeedsReviewOnCreate taskOpen',
-  'server/access/team.policy.ts': 'LoadScope canSortByLoad loadScopeFor',
+  'server/access/team.policy.ts': 'LoadScope canSortByLoad loadScopeFor scopeCovers',
   'server/access/trash.policy.ts':
     'TrashItemCapKey TrashItemCaps TrashListScope canViewTrashItem trashItemCaps trashListScope',
   'server/access/types.ts': 'Membership Principal ProjectRole ProjectSubject TaskSubject',

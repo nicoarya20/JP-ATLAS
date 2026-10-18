@@ -63,3 +63,14 @@ export function canSortByLoad(
   for (const role of viewerMembership.values()) if (role === MANAGER) return true;
   return false;
 }
+
+/**
+ * Whether `scope` lets the caller count a task that sits in `projectId`. The load reads use it to
+ * split a person's open tasks into the ones they may count and the ones that only make
+ * `alsoElsewhere` true, so that split never drifts from `loadScopeFor` (M02).
+ */
+export function scopeCovers(scope: LoadScope, projectId: string): boolean {
+  if ('all' in scope) return true;
+  if ('none' in scope) return false;
+  return scope.projectIds.has(projectId);
+}
