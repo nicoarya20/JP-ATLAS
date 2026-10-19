@@ -4,12 +4,14 @@ import { TasksAll, TasksBoard, TasksEmpty, TasksMy } from './tasks.list';
 import { TasksCsv, TasksForm, TasksWrite } from './tasks.new';
 import { TasksDetailProgress, TasksDetailReview, TasksDetailTodo } from './tasks.detail.screens';
 import { TasksCancel, TasksReturn } from './tasks.sheets';
+import { TasksFilter } from './tasks.filter';
 import { TasksSettings } from './tasks.settings';
 import './tasks.css';
 
 const G = 'Tasks';
 
 screen('tasks.my', { title: '① My tasks (List)', group: G, Component: TasksMy });
+sheet('tasks.filter', { title: '①b Sheet · Filter & sort', group: G, snap: 0.85, Component: TasksFilter });
 screen('tasks.all', { title: '② All tasks (List)', group: G, Component: TasksAll });
 screen('tasks.board', { title: '③ Board', group: G, Component: TasksBoard });
 screen('tasks.empty', { title: '④ My tasks empty', group: G, Component: TasksEmpty });

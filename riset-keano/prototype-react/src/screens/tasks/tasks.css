@@ -14,6 +14,17 @@
 /* Lists */
 .tk-filters { display: grid; gap: var(--sp-3); }
 .tk-tools { gap: var(--sp-2); min-width: 0; }
+.tk-search { display: flex; align-items: center; gap: var(--sp-2); }
+.tk-search > .grow { min-width: 0; }
+/* Filter & sort icon: round fill button the height of the search field; a dot marks a non-default filter. */
+.tk-filter-btn { position: relative; flex: none; width: 36px; height: 36px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 50%; background: var(--fill); color: var(--accent); cursor: pointer; }
+.tk-filter-btn:active { scale: 0.92; }
+.tk-filter-btn.is-on::after { content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+.tk-sum { min-width: 0; }
+.tk-csv { justify-content: flex-end; }
+.tk-wrap .hscroll { flex-wrap: wrap; }
 .tk-seg { width: 136px; flex: none; }
 .tk-group { display: flex; align-items: baseline; gap: var(--sp-2); margin: var(--sp-2) 0 calc(var(--sp-2) * -1); }
 .tk-top { align-items: flex-start; }

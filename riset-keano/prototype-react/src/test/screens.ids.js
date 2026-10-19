@@ -1,11 +1,11 @@
-// The 66 screen/sheet ids of the prototype (the vanilla wireframe-mobile ids plus home.create, the profile.me overlay
-// and its profile.calendar screen; More became the tab bar's More panel, so home.more is gone). test-only
+// The 67 screen/sheet ids of the prototype (the vanilla wireframe-mobile ids plus home.create, the profile.me overlay
+// and its profile.calendar screen, and the tasks.filter sheet; More became the tab bar's More panel, so home.more is gone). test-only
 export const EXPECTED_IDS = [
   'auth.login', 'auth.account', 'auth.pending', 'auth.denied',
   'home.main', 'home.search', 'home.create',
   'projects.list', 'projects.new', 'projects.form', 'projects.story', 'projects.draft', 'projects.template',
   'projects.overview', 'projects.tasks', 'projects.phases', 'projects.members', 'projects.extend',
-  'tasks.my', 'tasks.all', 'tasks.board', 'tasks.empty', 'tasks.write', 'tasks.form', 'tasks.csv',
+  'tasks.my', 'tasks.filter', 'tasks.all', 'tasks.board', 'tasks.empty', 'tasks.write', 'tasks.form', 'tasks.csv',
   'tasks.detail-todo', 'tasks.detail-progress', 'tasks.detail-review', 'tasks.return', 'tasks.cancel', 'tasks.settings',
   'events.list', 'events.filter', 'events.calendar', 'events.new', 'events.new-details', 'events.empty',
   'events.detail-upcoming', 'events.detail-recurring', 'events.record-ready', 'events.recording',

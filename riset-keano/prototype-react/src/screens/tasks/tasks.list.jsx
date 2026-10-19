@@ -1,34 +1,32 @@
 // Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Board (status columns) and the empty state.
-import { ChevronRight, ListChecks, Plus, X } from 'lucide-react';
-import { Avatar, Btn, Chips, Empty, Pill, Screen, Search, Section, Seg, Select } from '../../kit';
+import { ChevronRight, ListChecks, Plus } from 'lucide-react';
+import { Avatar, Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
+import { FilterButton, SORTS, STATUSES } from './tasks.filter';
 import { Tick } from './tasks.parts';
 import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
 
-/** List frame shared by ①–④: My/All switch, search, status chips, filter + sort with the List/Board view, project scope + CSV on All.
+/** List frame shared by ①–④: My/All switch, search with the Filter & sort icon (status, project, priority, sort live in
+ *  its sheet), the current filter line with the List/Board view, CSV on All.
  *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
 function ListScreen({ all, board, children }) {
   return (
     <Screen title="Tasks" tab="tasks">
       <div className="tk-filters">
         <Seg items={['My tasks', 'All tasks']} on={all ? 1 : 0} gos={['tasks.my', 'tasks.all']} />
-        <Search placeholder="Search title, #number, or tag…" />
-        <Chips bleed items={['All active', 'To do', 'In progress', 'In review', 'Done']} />
+        <div className="tk-search">
+          <div className="grow"><Search placeholder="Search title, #number, or tag…" /></div>
+          <FilterButton project={all ? atlas().id : undefined} />
+        </div>
         <div className="between">
-          <div className="row-flex tk-tools">
-            <Select toast="Filter options">Filter</Select>
-            <Select toast="Sort options">Sort: Due</Select>
-          </div>
+          <span className="t-footnote muted ellipsis tk-sum">{[all && atlas().name, STATUSES[0], `Sort: ${SORTS[0]}`].filter(Boolean).join(' · ')}</span>
           <div className="tk-seg"><Seg items={['List', 'Board']} on={board ? 1 : 0} gos={['tasks.all', 'tasks.board']} /></div>
         </div>
         {all && (
-          <div className="between wrap">
-            <Pill>Project: {atlas().name.split(' ')[0]} <X size={12} aria-hidden="true" /></Pill>
-            <span className="row-flex tk-tools">
-              <Btn kind="plain" sm toast="CSV downloaded">Download CSV</Btn>
-              <Btn kind="plain" sm go="tasks.csv">Import CSV</Btn>
-            </span>
+          <div className="row-flex tk-tools tk-csv">
+            <Btn kind="plain" sm toast="CSV downloaded">Download CSV</Btn>
+            <Btn kind="plain" sm go="tasks.csv">Import CSV</Btn>
           </div>
         )}
       </div>
