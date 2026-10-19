@@ -1,8 +1,10 @@
 /**
- * Client for `GET /api/app/events` through Eden: keyset pages (`nextCursor`), the DTO types the
- * server sends, and the react-query keys. Writes (create, cancel, delete) join in later slices.
+ * Client for `/api/app/events` through Eden: keyset pages (`nextCursor`), the DTO types the server
+ * sends, the react-query keys and the create call. Cancel and delete join in later slices.
  */
 import type { EventDetail, EventListItem, PersonRef } from '@server/event/events.dto';
+import type { EventKind, EventLocationType } from '@server/pm/enums';
+import type { ListTeamOk } from '@server/team/team.dto';
 import { type InfiniteData, keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import { client } from './eden';
 import type { EventListQuery } from './events-filters';
@@ -21,6 +23,7 @@ export const eventKeys = {
   all: ['events'] as const,
   list: (q: EventListQuery) => ['events', 'list', q] as const,
   detail: (id: string) => ['events', 'detail', id] as const,
+  people: (q: string, projectId: string | null) => ['events', 'people', q, projectId] as const,
 };
 
 /** Where the event pages live; the detail and the form are built by their own slices. */
@@ -84,4 +87,53 @@ export function uniqueEvents(pages: readonly EventPage[]): EventListItem[] {
     if (!byId.has(item.id)) byId.set(item.id, item);
   }
   return [...byId.values()];
+}
+
+/** Body of `POST /api/app/events`; stage 1 of the form fills the first group, stage 2 the rest. */
+export type CreateEventBody = {
+  title: string;
+  /** ISO instants; the form builds them from the team-zone date and clock times (`events-time.ts`). */
+  startsAt: string;
+  endsAt: string;
+  projectId?: string | null;
+  /** The creator joins on their own; only the others are listed. */
+  participantIds?: string[];
+  kind?: EventKind;
+  locationType?: EventLocationType | null;
+  locationText?: string | null;
+  meetingUrl?: string | null;
+  agenda?: string | null;
+  remindersMinutes?: number[];
+};
+
+/** Creates an event; answers with the detail the read would give (201). Throws `ApiError` on a refusal. */
+export async function createEvent(body: CreateEventBody): Promise<EventDetail> {
+  return unwrapEvent(await client.api.app.events.post(body)) as EventDetail;
+}
+
+/** Colleagues offered as guests: a person's id, name and job title, nothing more (Q8). */
+export type GuestCandidate = { id: string; name: string; jobTitle: string | null };
+
+/** How many colleagues one search lists; the guest picker is a short list, not a directory. */
+export const GUEST_SEARCH_LIMIT = 20;
+
+/**
+ * People the caller may invite, by name. Reads the team list (open to every role, limited to people
+ * who share a project with the caller) because `GET /events/people` refuses a Member; the caller
+ * themselves is left out since the server adds the creator as a guest anyway.
+ */
+export async function fetchGuestCandidates(
+  q: string,
+  projectId: string | null,
+): Promise<GuestCandidate[]> {
+  const query = {
+    limit: GUEST_SEARCH_LIMIT,
+    offset: 0,
+    ...(q.trim() ? { q: q.trim() } : {}),
+    ...(projectId ? { projectId } : {}),
+  };
+  const page = unwrapEvent(await client.api.app.team.get({ query })) as ListTeamOk;
+  return page.people
+    .filter((p) => !p.isSelf)
+    .map((p) => ({ id: p.id, name: p.name, jobTitle: p.jobTitle }));
 }
