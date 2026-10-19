@@ -11,7 +11,7 @@ import { canClearCondition, canSetCondition } from './header-caps';
 import { OVERRIDE_COPY } from './summary.copy';
 import { useRefreshProject } from './useRefreshProject';
 
-export type OverrideMenuData = Pick<ProjectDetail, 'id' | 'can' | 'status' | 'conditionOverride'>;
+type OverrideMenuData = Pick<ProjectDetail, 'id' | 'can' | 'status' | 'conditionOverride'>;
 
 /** True when at least one of the two entries shows, so the parent can decide whether to draw the menu. */
 export const hasOverrideItems = (p: OverrideMenuData): boolean =>

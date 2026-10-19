@@ -8,7 +8,7 @@ import { ProjectDeleteItem, showsDeleteProject } from '~/components/trash/Projec
 import { HEADER_COPY } from '../projects.copy';
 import { hasOverrideItems, OverrideMenuItems } from './OverrideMenuItems';
 
-export type ProjectMenuData = Pick<
+type ProjectMenuData = Pick<
   ProjectDetail,
   'id' | 'name' | 'can' | 'taskCounts' | 'status' | 'conditionOverride'
 >;

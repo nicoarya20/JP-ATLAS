@@ -160,7 +160,7 @@ describe('summary highlights', () => {
   it('shows the highlighted tasks and a link to the Tugas tab', async () => {
     const client = new QueryClient();
     client.setQueryData(taskKeys.highlights(PROJECT), [task({ labels: ['overdue'] })]);
-    const html = await render(<ProjectTaskHighlights />, client);
+    const html = await render(<ProjectTaskHighlights overdue={0} />, client);
     expect(html).toContain(SUMMARY_COPY.highlightsTitle);
     expect(html).toContain('Pasang keramik dapur');
     expect(html).toContain(`href="/app/projects/${PROJECT}/tasks"`);
@@ -170,7 +170,7 @@ describe('summary highlights', () => {
   it('says nothing needs attention when the server finds no such task', async () => {
     const client = new QueryClient();
     client.setQueryData(taskKeys.highlights(PROJECT), []);
-    const html = await render(<ProjectTaskHighlights />, client);
+    const html = await render(<ProjectTaskHighlights overdue={0} />, client);
     expect(html).toContain(SUMMARY_COPY.highlightsEmpty);
   });
 });

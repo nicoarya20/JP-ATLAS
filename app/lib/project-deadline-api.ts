@@ -94,6 +94,10 @@ export function clearConditionOverride(id: string) {
 export type ActivityPage = { items: ActivityItemDto[]; nextCursor: string | null };
 
 /** One page of the activity feed, newest first; pass the previous `nextCursor` for the next page. */
-export async function fetchActivity(id: string, cursor?: string | null): Promise<ActivityPage> {
-  return call(project(id).activity.get({ query: cursor ? { cursor } : {} }));
+export async function fetchActivity(
+  id: string,
+  page: { cursor?: string | null; limit: number },
+): Promise<ActivityPage> {
+  const { cursor, limit } = page;
+  return call(project(id).activity.get({ query: cursor ? { cursor, limit } : { limit } }));
 }

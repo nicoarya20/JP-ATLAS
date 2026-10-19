@@ -93,17 +93,13 @@ export const NEXT_PHASE_COPY = {
   now: (name: string, percent: number | null) =>
     percent === null ? `Sekarang: ${name}` : `Sekarang: ${name} · ${percent}%`,
   noCurrent: 'Belum ada tahapan yang sedang berjalan.',
-  milestone: (title: string, date: string, note: string) =>
-    `Milestone berikutnya: ${title} — ${date} · ${note}`,
+  allDone: 'Semua tahapan sudah selesai.',
+  milestoneLabel: 'Milestone berikutnya',
   noMilestone: 'Tidak ada milestone yang menunggu.',
   seeAll: 'Lihat semua tahapan →',
   empty: 'Belum ada tahapan.',
   emptyHint: 'Bagi proyek menjadi tahapan agar kemajuannya mudah dilihat.',
   addPhases: 'Atur tahapan',
-  loadFailed: 'Tahapan belum bisa dimuat. Muat ulang halaman ini.',
-  daysLeft: (n: number) => `${n} hari lagi`,
-  today: 'hari ini',
-  daysLate: (n: number) => `terlambat ${n} hari`,
 } as const;
 
 export const ACTIVITY_COPY = {
