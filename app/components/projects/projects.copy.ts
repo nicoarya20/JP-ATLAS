@@ -105,14 +105,18 @@ export const LIST_COPY = {
   description: 'Proyek yang Anda ikuti dan perkembangannya.',
   create: 'Proyek baru',
   tableLabel: 'Daftar proyek',
+  gridLabel: 'Kartu proyek',
+  ganttLabel: 'Jadwal proyek',
   searchLabel: 'Cari proyek',
-  searchPlaceholder: 'Ketik nama proyek',
+  // The server matches the name only, so the placeholder must not promise a description search.
+  searchPlaceholder: 'Cari nama proyek…',
   scopeLabel: 'Tampilkan',
   scopeMine: 'Proyek saya',
   scopeAll: 'Semua proyek',
   statusLabel: 'Saring menurut status',
   statusAll: 'Semua',
   sortLabel: 'Urutkan',
+  sortPrefix: 'Urutkan:',
   sortDue: 'Tenggat terdekat',
   sortRecent: 'Terakhir diubah',
   sortName: 'Nama',
@@ -127,6 +131,14 @@ export const LIST_COPY = {
   more: 'Tampilkan lebih banyak',
   shown: (shown: number, total: number) => `Menampilkan ${shown} dari ${total} proyek`,
   loadFailed: 'Gagal memuat proyek',
+} as const;
+
+/** Switch between the table, the cards and the timeline of the project list. */
+export const VIEW_COPY = {
+  label: 'Pilih tampilan daftar proyek',
+  list: { label: 'List', hint: 'Tampilan daftar' },
+  grid: { label: 'Grid', hint: 'Tampilan kartu' },
+  gantt: { label: 'Gantt', hint: 'Tampilan jadwal (Gantt)' },
 } as const;
 
 /** Empty states: no project yet (can create), Member not in any project, filters matching nothing. */

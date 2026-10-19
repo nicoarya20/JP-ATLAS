@@ -2,12 +2,14 @@ import { describe, expect, it } from 'bun:test';
 import {
   DEFAULT_PROJECT_FILTERS,
   hasProjectFilters,
+  PROJECT_PAGE_SIZE,
   PROJECT_SEARCH_MAX,
   type ProjectFilters,
   parseProjectFilters,
   projectFiltersToParams,
   toProjectQuery,
 } from '../app/lib/projects-filters';
+import { PAGE_LIMIT_MAX } from '../server/pm/limits';
 
 const parse = (qs: string) => parseProjectFilters(new URLSearchParams(qs));
 
@@ -22,8 +24,21 @@ describe('parseProjectFilters', () => {
       status: 'berjalan',
       urut: 'nama',
       q: 'Dapur',
+      tampilan: 'list',
       hal: 3,
     });
+  });
+
+  it.each([
+    ['tampilan=grid', 'grid'],
+    ['tampilan=gantt', 'gantt'],
+    ['tampilan=list', 'list'],
+    ['tampilan=kalender', 'list'],
+    ['tampilan=GRID', 'list'],
+    ['tampilan=', 'list'],
+    ['', 'list'],
+  ])('reads the view from "%s" as %s (unknown values fall back to list)', (qs, view) => {
+    expect(parse(qs).tampilan).toBe(view as ProjectFilters['tampilan']);
   });
 
   it.each([
@@ -58,6 +73,7 @@ describe('projectFiltersToParams', () => {
     'q=Renovasi',
     'hal=2',
     'lingkup=semua&status=selesai&urut=nama&q=Atlas&hal=4',
+    'status=berjalan&tampilan=gantt',
   ])('round-trips "%s"', (qs) => {
     const filters = parse(qs);
     expect(parseProjectFilters(projectFiltersToParams(filters))).toEqual(filters);
@@ -66,6 +82,13 @@ describe('projectFiltersToParams', () => {
 
   it('leaves defaults out of the URL', () => {
     expect(projectFiltersToParams(DEFAULT_PROJECT_FILTERS).toString()).toBe('');
+    expect(
+      projectFiltersToParams({ ...DEFAULT_PROJECT_FILTERS, tampilan: 'list' }).toString(),
+    ).toBe('');
+  });
+
+  it('keeps the view when only the view differs from the defaults', () => {
+    expect(projectFiltersToParams(parse('tampilan=grid')).toString()).toBe('tampilan=grid');
   });
 });
 
@@ -87,6 +110,23 @@ describe('toProjectQuery', () => {
     ['dibatalkan', 'canceled'],
   ] as const)('maps status=%s to %s', (slug, status) => {
     expect(toProjectQuery(parse(`status=${slug}`)).status).toBe(status);
+  });
+
+  it('asks for the biggest server page in the timeline and the normal page elsewhere', () => {
+    expect(toProjectQuery(parse('')).limit).toBe(PROJECT_PAGE_SIZE);
+    expect(toProjectQuery(parse('tampilan=grid')).limit).toBe(PROJECT_PAGE_SIZE);
+    expect(toProjectQuery(parse('tampilan=gantt')).limit).toBe(PAGE_LIMIT_MAX);
+    // An explicit limit still wins (the cache seed compares the very same query).
+    expect(toProjectQuery(parse('tampilan=gantt'), 10).limit).toBe(10);
+  });
+
+  it('does not put the view in the API query', () => {
+    expect(Object.keys(toProjectQuery(parse('tampilan=gantt'))).sort()).toEqual([
+      'limit',
+      'page',
+      'scope',
+      'sort',
+    ]);
   });
 
   it('maps sort, search and page', () => {
