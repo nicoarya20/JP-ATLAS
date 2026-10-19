@@ -3,9 +3,9 @@
  * create, change, cancel and the guest list. Bodies are closed by `app-events.schema.ts`, so a
  * Could-class field (recurrence, outcomes) answers 422 rather than being silently dropped.
  *
- * There is no `DELETE /:id` here: moving an event to the Trash is E-07, together with restore and
- * the Trash list. Cancelling is not deleting — the event stays visible with its reason, because
- * the guests already planned around it (P6 §4).
+ * `DELETE /:id` (the Trash) is in `app-events.trash.ts`, mounted by `app.ts` to keep every router
+ * inside its route budget. Cancelling is not deleting — the event stays visible with its reason,
+ * because the guests already planned around it (P6 §4).
  *
  * Every refusal goes through `fail`, so the status and the sentence come from the one error catalog
  * (`server/pm/errors.ts`): a project in the Trash is 409 `PROJECT_IN_TRASH`, a Pemantau attaching an

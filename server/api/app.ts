@@ -1,14 +1,13 @@
 /**
- * Product API at /api/app/* — default home for app feature endpoints. Every route
- * here requires a signed-in user of any role (session or API key with `app:*` scope);
- * `appContext` answers 401/403 first and types `actor` as non-null.
- * Per-feature role limits: check `actor.role` in the handler and return 403.
- * This file only mounts modules (L-C shared file): feature routes live in `app-<module>.ts`.
+ * Product API at /api/app/*: every route needs a signed-in user of any role (session or API key with
+ * `app:*` scope); `appContext` answers 401/403 first and types `actor`; role limits are checked in
+ * the handler. Mount-only (L-C shared file): feature routes live in `app-<module>.ts`.
  */
 import { Elysia, t } from 'elysia';
 import { removeAvatar, uploadAvatar } from './app-avatar';
 import { appContext } from './app-context';
 import { eventsApi } from './app-events';
+import { eventTrashApi } from './app-events.trash';
 import { inboxApi } from './app-inbox';
 import { profileApi } from './app-profile';
 import { projectsApi } from './app-projects';
@@ -35,6 +34,7 @@ export const appApi = new Elysia({ prefix: '/app' })
   .use(teamApi)
   .use(trashApi)
   .use(eventsApi)
+  .use(eventTrashApi)
   .use(tasksApi)
   .use(taskWorkflowApi)
   .use(taskDetailApi)

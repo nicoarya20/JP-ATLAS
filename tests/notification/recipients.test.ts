@@ -190,6 +190,31 @@ describe('filterRecipients', () => {
     ).toEqual([quiet.id, worker.id]);
   });
 
+  it('reads the category the caller names, so an event reminder obeys its own switch only', async () => {
+    const remindersOff = await f.user();
+    const newsOff = await f.user();
+    await db
+      .insert(notificationPref)
+      .values({ userId: remindersOff.id, category: 'event_reminder', inApp: false });
+    await db
+      .insert(notificationPref)
+      .values({ userId: newsOff.id, category: 'news', inApp: false });
+    const ids = [remindersOff.id, newsOff.id];
+
+    expect(
+      await filterRecipients(db, {
+        ids,
+        projectId: null,
+        lane: 'info',
+        category: 'event_reminder',
+      }),
+    ).toEqual([newsOff.id]);
+    // Left out, an info card still follows "Kabar terbaru", as before.
+    expect(await filterRecipients(db, { ids, projectId: null, lane: 'info' })).toEqual([
+      remindersOff.id,
+    ]);
+  });
+
   it('keeps a recipient whose preference row says the category is on', async () => {
     const loud = await f.user();
     await db.insert(notificationPref).values({ userId: loud.id, category: 'news', inApp: true });

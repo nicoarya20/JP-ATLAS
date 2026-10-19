@@ -86,6 +86,7 @@ function hrefOf(refType: string, refId: string, number: number | null): string {
   if (refType === 'task' || refType === 'comment')
     return number === null ? '/app/tasks' : `/app/tasks/${number}`;
   if (refType === 'project') return `/app/projects/${refId}`;
+  if (refType === 'event') return `/app/events/${refId}`;
   return refType === 'user' ? '/dashboard/users' : '/app/inbox';
 }
 

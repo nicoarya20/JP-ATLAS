@@ -119,6 +119,8 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'project.restore': { label: 'Pulihkan proyek', color: 'teal' },
   'task.trash': { label: 'Hapus tugas ke Sampah', color: 'orange' },
   'task.restore': { label: 'Pulihkan tugas', color: 'teal' },
+  'event.trash': { label: 'Hapus acara ke Sampah', color: 'orange' },
+  'event.restore': { label: 'Pulihkan acara', color: 'teal' },
   'project.condition.set': { label: 'Atur kondisi proyek', color: 'orange' },
   'project.condition.clear': { label: 'Cabut kondisi proyek manual', color: 'gray' },
   'trash.purge': { label: 'Hapus selamanya dari Sampah', color: 'red' },
@@ -137,5 +139,6 @@ export const TARGET_LABELS: Record<string, string> = {
   invitation: 'Undangan',
   project: 'Proyek',
   task: 'Tugas',
+  event: 'Acara',
   trash: 'Sampah',
 };

@@ -91,6 +91,36 @@ describe('project Trash routes (S1-05)', () => {
   });
 });
 
+describe('Event Trash routes (S7 E-07)', () => {
+  test.each([
+    ['DELETE', '/api/app/events/e1'],
+    ['DELETE', '/api/app/EVENTS/e1'],
+    ['POST', '/api/app/events/e1/cancel'],
+    ['POST', '/api/app/trash/event/e1/restore'],
+    ['DELETE', '/api/app/trash/event/e1'],
+  ])('%s %s is session only', (m, p) => {
+    expect(isPmKeyDenied(m, p)).toBe(true);
+    expect(requiredScope(m, p)).toBeNull();
+  });
+
+  test('the event reads and the Trash list stay open to keys', () => {
+    for (const p of ['/api/app/events', '/api/app/events/e1', '/api/app/trash']) {
+      expect(isPmKeyDenied('GET', p)).toBe(false);
+      expect(requiredScope('GET', p)).toBe('app:read');
+    }
+  });
+
+  test('both delete routes really exist, so the deny pattern is not guarding thin air', () => {
+    expect(PM_DENY_OWNER['DELETE events/*']).toBe('app-events.write.ts');
+    expect(appRoutes.some((r) => r.method === 'DELETE' && r.path === '/api/app/events/:id')).toBe(
+      true,
+    );
+    expect(
+      appRoutes.some((r) => r.method === 'POST' && r.path === '/api/app/trash/event/:id/restore'),
+    ).toBe(true);
+  });
+});
+
 describe('Team routes (S6 M03/M04)', () => {
   test.each(['/api/app/team', '/api/app/team/u1', '/api/app/team/picker'])(
     'GET %s is open to a key with app:read',

@@ -43,6 +43,8 @@ export const AUDIT_ACTIONS = {
   PROJECT_RESTORE: 'project.restore',
   TASK_TRASH: 'task.trash',
   TASK_RESTORE: 'task.restore',
+  EVENT_TRASH: 'event.trash',
+  EVENT_RESTORE: 'event.restore',
   // The manager's manual project condition (S5a): set or cleared by hand, session only.
   PROJECT_CONDITION_SET: 'project.condition.set',
   PROJECT_CONDITION_CLEAR: 'project.condition.clear',
@@ -62,6 +64,7 @@ export type AuditTargetType =
   | 'invitation'
   | 'project'
   | 'task'
+  | 'event'
   // `trash` is the retention sweep itself: an entry that covers several rows, not one record.
   | 'trash';
 

@@ -1,15 +1,16 @@
 /**
  * Project Trash writes (S1-05): move a project to the Trash and restore it (R02 §3.5). Each one runs
  * in one `inTx` that first locks the project row FOR UPDATE, so a delete and a restore of the same
- * project never interleave. Only tasks still live at delete time are tagged `deleted_with_project_id`;
- * a task trashed earlier on its own keeps its own Trash entry and is not restored with the project.
+ * project never interleave. Only tasks and events still live at delete time are tagged
+ * `deleted_with_project_id`; one trashed earlier on its own keeps its own Trash entry and is not
+ * restored with the project.
  * There is no permanent delete or purge here: both belong to S6.
  */
 import { and, eq } from 'drizzle-orm';
 import { canRestoreProject, canTrashProject } from '../access/project.policy';
 import { ACCESS_RULES } from '../access/rules';
 import type { Membership, Principal } from '../access/types';
-import { project, task } from '../db/schema';
+import { event, project, task } from '../db/schema';
 import type { MetricsConfig } from '../metrics/types';
 import { emitProjectTrashed } from '../notification/emit.project';
 import { getMetrics } from '../pm/metrics-env';
@@ -61,6 +62,11 @@ export function trashProject(
       .set({ deletedAt: now, deletedBy: p.id, deletedWithProjectId: row.id })
       .where(and(eq(task.projectId, row.id), isLive(task)))
       .returning({ id: task.id });
+    // Events of the project follow its tasks into the Trash; a personal event never carried a project id.
+    await tx
+      .update(event)
+      .set({ deletedAt: now, deletedBy: p.id, deletedWithProjectId: row.id })
+      .where(and(eq(event.projectId, row.id), isLive(event)));
     await logActivity(tx, p, row.id, 'trashed', { tasks: moved.length });
     // Only the open cards are closed; `restoreProject` has no counterpart, so none come back.
     await emitProjectTrashed(tx, row.id, { by: p.id, at: now });
@@ -91,6 +97,11 @@ export function restoreProject(
       .set({ deletedAt: null, deletedBy: null, deletedWithProjectId: null })
       .where(eq(task.deletedWithProjectId, row.id))
       .returning({ id: task.id });
+    // Only the events that went with the project; one trashed on its own stays in the Trash.
+    await tx
+      .update(event)
+      .set({ deletedAt: null, deletedBy: null, deletedWithProjectId: null })
+      .where(eq(event.deletedWithProjectId, row.id));
     await logActivity(tx, p, row.id, 'restored', { tasks: back.length });
     return { ok: true, value: { id: row.id, tasks: back.length } };
   });

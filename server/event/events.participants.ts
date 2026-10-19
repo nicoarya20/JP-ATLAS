@@ -88,20 +88,20 @@ export async function loadParticipants(eventId: string, exec: Executor = db): Pr
   return rows;
 }
 
-/** Inserts guests, skipping the ones already on the list; returns how many rows were new. */
+/** Inserts guests, skipping the ones already on the list; returns the ids that were new (they get the invitation card). */
 export async function inviteOnto(
   tx: Tx,
   eventId: string,
   userIds: readonly string[],
   addedBy: string,
-): Promise<number> {
+): Promise<string[]> {
   const wanted = [...new Set(userIds)];
-  if (wanted.length === 0) return 0;
+  if (wanted.length === 0) return [];
   const inserted = await tx
     .insert(eventParticipant)
     .values(wanted.map((userId) => ({ eventId, userId, addedBy })))
     // Re-inviting someone is a no-op, not an error: two organisers may add the same person.
     .onConflictDoNothing()
     .returning({ userId: eventParticipant.userId });
-  return inserted.length;
+  return inserted.map((r) => r.userId);
 }

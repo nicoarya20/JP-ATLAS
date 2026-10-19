@@ -5,12 +5,14 @@
  *
  * The gate drops the actor (nobody is told about their own action), accounts that cannot sign in
  * (pending, rejected or actively banned), people who no longer have access to the project, and —
- * for the `info` lane only — anyone who switched "Kabar terbaru" off. An Admin keeps access to
+ * for the `info` lane only — anyone who switched that kind's preference category off ("Kabar
+ * terbaru", or the event reminders). An Admin keeps access to
  * every project without a membership row (`server/access/level.ts` K6), so they always pass.
  */
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { union } from 'drizzle-orm/pg-core';
 import { notificationPref, projectMember, task, taskComment, user } from '../db/schema';
+import type { NotificationPrefCategory } from '../db/schema.notification';
 import { isAdminRole, ROLES } from '../permissions';
 import type { Executor } from '../pm/tx';
 import type { NotificationLane } from './notification.types';
@@ -74,8 +76,14 @@ export type FilterRecipientsInput = {
   actorId?: string | null;
   /** The project the card belongs to, or null for an account card that no project gates. */
   projectId?: string | null;
-  /** `info` cards obey the "Kabar terbaru" preference; `action` cards are work and cannot be hidden. */
+  /** `info` cards obey a preference; `action` cards are work and cannot be hidden. */
   lane: NotificationLane;
+  /**
+   * The preference row that may silence this card, as `prefCategoryOf(kind)` reports it. Left out
+   * it follows the lane (`news` for `info`, none for `action`); an event reminder is an `info`
+   * card that the separate `event_reminder` switch silences, so `notify()` passes it explicitly.
+   */
+  category?: NotificationPrefCategory | null;
 };
 
 /**
@@ -97,18 +105,19 @@ export async function filterRecipients(
   const memberOn = projectId
     ? and(eq(projectMember.userId, user.id), eq(projectMember.projectId, projectId))
     : sql`false`;
-  // Only the `info` lane reads a preference; `action` cards ignore the table completely.
-  const prefOn =
-    lane === 'info'
-      ? and(eq(notificationPref.userId, user.id), eq(notificationPref.category, 'news'))
-      : sql`false`;
+  // Only an `info` card reads a preference; `action` cards ignore the table completely.
+  const category =
+    lane === 'info' ? (input.category === undefined ? 'news' : input.category) : null;
+  const prefOn = category
+    ? and(eq(notificationPref.userId, user.id), eq(notificationPref.category, category))
+    : sql`false`;
 
   const rows = await exec
     .select({
       id: user.id,
       appRole: user.role,
       memberRole: projectMember.role,
-      newsInApp: notificationPref.inApp,
+      prefInApp: notificationPref.inApp,
     })
     .from(user)
     .leftJoin(projectMember, memberOn)
@@ -125,7 +134,7 @@ export async function filterRecipients(
           isAdminRole(row.appRole),
       )
       // A missing preference row means the category is on, so only an explicit `false` silences it.
-      .filter((row) => row.newsInApp !== false)
+      .filter((row) => row.prefInApp !== false)
       .map((row) => row.id),
   );
   return candidates.filter((id) => allowed.has(id));
