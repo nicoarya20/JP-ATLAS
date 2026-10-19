@@ -1,6 +1,8 @@
 // Tasks list: New task only on the tab bar "+", cards only open the task (its actions live in the detail),
 // filters and sort live in one full-height overlay opened from the icon next to the search field.
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
 import { D } from '../data/sample';
@@ -115,6 +117,11 @@ describe('tasks list', () => {
     expect(within(dom.getByRole('button', { name: '#16 Prepare test data' })).getByText('Blocked #12')).toBeInTheDocument();
     fireEvent.click(col('Done').getByRole('button', { name: 'Add task' }));
     expect(window.location.hash).toBe('#tasks.form');
+  });
+
+  it('lets the Kanban board scroll freely, without a snap that pulls it back to the first column', () => {
+    const css = readFileSync(join(__dirname, '../screens/tasks/tasks.css'), 'utf8');
+    expect(css).not.toMatch(/scroll-snap-(type|align)/);
   });
 
   it('says No tasks in an empty Kanban column', () => {

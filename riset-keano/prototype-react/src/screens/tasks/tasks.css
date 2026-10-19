@@ -34,9 +34,10 @@
 .tk-meta { margin-top: var(--sp-1); }
 .tk-tick { display: inline-flex; }
 /* Kanban (tasks.board): columns hug their cards; status badge tinted by --tone; compact cards with chip row. */
-.tk-board { display: flex; align-items: flex-start; gap: var(--sp-3); overflow-x: auto; scroll-snap-type: x mandatory;
+/* Free horizontal scroll, no scroll-snap: mandatory snap pulled any drag under half a column back to To do. */
+.tk-board { display: flex; align-items: flex-start; gap: var(--sp-3); overflow-x: auto;
   margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
-.tk-col { flex: 0 0 272px; scroll-snap-align: start; display: grid; gap: var(--sp-2); align-content: start;
+.tk-col { flex: 0 0 272px; display: grid; gap: var(--sp-2); align-content: start;
   padding: var(--sp-2); border-radius: var(--radius-card); background: var(--fill); }
 .tk-col-head { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1); margin: 0; }
 .tk-badge { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 2px var(--sp-2); border-radius: var(--radius-sm);
