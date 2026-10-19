@@ -1,5 +1,6 @@
 // Tasks ③ Kanban: one column per status, compact cards that open the task (its actions live in the detail);
-// hold and drag a card onto another column to change its status (tasks.drag).
+// hold and drag a card onto another column to change its status (tasks.drag). A Member moves only their own tasks;
+// a PM or Admin moves any.
 import { useRef } from 'react';
 import { Calendar, Circle, CircleCheck, CircleDashed, CircleDot, Flag, ListChecks, Plus } from 'lucide-react';
 import { Avatar, Btn, Section } from '../../kit';
@@ -50,10 +51,14 @@ function BoardCard({ t, mine }) {
  *  ordered by the Filter & sort query in params (All active keeps the Done column). */
 export function TasksBoard({ params }) {
   const mine = !!params?.mine;
-  const { toast } = useApp();
+  const { toast, is } = useApp();
   const board = useRef(null);
   useTaskMoves();
-  const drag = useBoardDrag(board, (no, status) => { moveTask(no, status); toast(`Moved to ${status}`); });
+  const drag = useBoardDrag(board, {
+    onDrop: (no, status) => { moveTask(no, status); toast(`Moved to ${status}`); },
+    canLift: no => !is('member') || D.task(no).who === D.me().name,
+    onDenied: no => toast(`Only ${D.task(no).who} can change this task`),
+  });
   const tasks = applyQuery(mine ? D.tasks.filter(t => t.who === D.me().name) : D.tasks, queryOf(params, mine), true);
   return (
     <ListScreen mine={mine} board>

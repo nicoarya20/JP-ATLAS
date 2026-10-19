@@ -135,6 +135,35 @@ describe('tasks kanban drag and drop', () => {
     expect(D.task(14).when).toBe('Today');
   });
 
+  it('lets a Member move only their own tasks: a teammate\'s card stays put and says who can change it', () => {
+    renderApp('tasks.board', 'member');   // Member = Dodi
+    layout();
+    mouseDrag(14, 'In progress');         // Nico's task
+    expect(ghost()).toBeNull();
+    expect(D.task(14).status).toBe('To do');
+    expect(dom.getByText('Only Nico can change this task')).toBeInTheDocument();
+    expect(window.location.hash).toBe('#tasks.board');
+    mouseDrag(16, 'In progress');         // Dodi's own task
+    expect(D.task(16).status).toBe('In progress');
+  });
+
+  it('keeps a teammate\'s card down for a Member after a touch hold too', () => {
+    vi.useFakeTimers();
+    renderApp('tasks.board', 'member');
+    layout();
+    press(card(15), 'pointerDown', midX('To do'), 100, 'touch');   // Rina's task
+    act(() => vi.advanceTimersByTime(400));
+    expect(ghost()).toBeNull();
+    expect(dom.getByText('Only Rina can change this task')).toBeInTheDocument();
+  });
+
+  it.each(['pm', 'admin'])('lets a %s move anyone\'s task', role => {
+    renderApp('tasks.board', role);
+    layout();
+    mouseDrag(15, 'In progress');         // Rina's task
+    expect(D.task(15).status).toBe('In progress');
+  });
+
   it('refuses to move a task that does not exist', () => {
     expect(() => moveTask(999, 'Done')).toThrow(/#999/);
   });

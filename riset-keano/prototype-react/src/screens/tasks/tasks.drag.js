@@ -1,5 +1,5 @@
 // Kanban drag and drop: hold a card (touch) or drag it (mouse) to lift it, carry it over another status column and
-// let go to move the task there; Escape puts it back. A ghost copy follows the finger above the phone; the column under it is outlined;
+// let go to move the task there; Escape puts it back. A card the viewer may not move never lifts (canLift). A ghost copy follows the finger above the phone; the column under it is outlined;
 // near the board's left or right edge the board scrolls on to the next column. A swipe that starts on a card still
 // scrolls the board, because a finger only lifts the card after holding still.
 import { useEffect, useRef } from 'react';
@@ -13,13 +13,14 @@ const HAPTIC_MS = 10;        // short buzz on lift where the browser supports it
 
 /**
  * Drag handlers for the board around boardRef. Cards are `.tk-kcard[data-no]` inside `.tk-col[data-status]`.
- * onDrop(no, status) runs when a card is let go over a column of another status.
+ * onDrop(no, status) runs when a card is let go over a column of another status; canLift(no) = false keeps the card
+ * in place and runs onDenied(no) instead.
  */
-export function useBoardDrag(boardRef, onDrop) {
+export function useBoardDrag(boardRef, { onDrop, canLift = () => true, onDenied = () => {} }) {
   const drag = useRef(null);
   const swallowClick = useRef(false);
-  const dropRef = useRef(onDrop);
-  dropRef.current = onDrop;
+  const cb = useRef(null);
+  cb.current = { onDrop, canLift, onDenied };
 
   const columnAt = x => [...boardRef.current.querySelectorAll('.tk-col')].find(c => {
     const r = c.getBoundingClientRect();
@@ -53,6 +54,12 @@ export function useBoardDrag(boardRef, onDrop) {
   };
 
   const lift = d => {
+    if (!cb.current.canLift(d.no)) {
+      finish(false);
+      swallowClick.current = true;   // the try to drag it is not a tap that opens it
+      cb.current.onDenied(d.no);
+      return;
+    }
     const board = boardRef.current, rect = d.card.getBoundingClientRect();
     d.host = board.closest('.phone-app') || document.body;
     d.grab = { x: d.x - rect.left, y: d.y - rect.top };
@@ -87,7 +94,7 @@ export function useBoardDrag(boardRef, onDrop) {
     d.card.classList.remove('is-lifted');
     d.over?.classList.remove('is-over');
     boardRef.current?.classList.remove('is-dragging');
-    if (drop && d.over) dropRef.current(d.no, d.over.dataset.status);
+    if (drop && d.over) cb.current.onDrop(d.no, d.over.dataset.status);
   };
 
   // A lifted card owns the finger: keep the board and page from panning under it (needs a non-passive listener).
