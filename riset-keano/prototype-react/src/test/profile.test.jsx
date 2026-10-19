@@ -116,7 +116,7 @@ describe('Profile overlay', () => {
   it('opens a menu destination and closes itself', async () => {
     await openProfile();
     await userEvent.click(within(overlay()).getByText('My calendar'));
-    expect(window.location.hash).toBe('#events.calendar');
+    expect(window.location.hash).toBe('#profile.calendar');
     expect(overlay()).not.toBeInTheDocument();
   });
 

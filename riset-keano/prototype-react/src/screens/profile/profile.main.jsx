@@ -47,7 +47,7 @@ export default function ProfileMain() {
       <Btn kind="primary" block icon={<Pencil size={16} />} go="settings.profile">Edit profile</Btn>
       <Rows>
         <Row lead={<Tile icon={<ListChecks size={ICON} />} tone="blue" />} title="My tasks" go="tasks.my" />
-        <Row lead={<Tile icon={<CalendarDays size={ICON} />} tone="red" />} title="My calendar" go="events.calendar" />
+        <Row lead={<Tile icon={<CalendarDays size={ICON} />} tone="red" />} title="My calendar" go="profile.calendar" />
         <Row lead={<Tile icon={<Inbox size={ICON} />} tone="blue" />} title="Inbox" go="inbox.respond"
           right={<span className="pf-count">{D.inbox.respond.length}</span>} />
         <Row lead={<Tile icon={<BellOff size={ICON} />} tone="indigo" />} title="Mute notifications"

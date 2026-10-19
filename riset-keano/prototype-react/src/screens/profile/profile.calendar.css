@@ -1,0 +1,61 @@
+/* Profile ② My calendar (pf-cal-). A fixed head (month, week strip, day title) over a scrolling 24-hour grid.
+   --hour = height of one hour row (set from JSX); --at / --len = start minute / length in minutes of a block. */
+.scr .content.pf-cal { display: flex; flex-direction: column; gap: 0; padding: 0; overflow: hidden; }
+
+.pf-cal-head { flex: none; padding: 0 var(--sp-4); border-bottom: 0.5px solid var(--separator); }
+.pf-cal-month { padding: var(--sp-1) 0 var(--sp-2); }
+.pf-cal-arrow { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%;
+  background: var(--fill); color: var(--accent); cursor: pointer; }
+.pf-cal-arrow:active { scale: 0.92; }
+
+/* ---- Week strip: swipe sideways for another week; the new week slides in from the side it came from ---- */
+.pf-cal-week { overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.pf-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+.pf-cal-days.next { animation: pf-cal-in-next 260ms cubic-bezier(0.32, 0.72, 0, 1); }
+.pf-cal-days.prev { animation: pf-cal-in-prev 260ms cubic-bezier(0.32, 0.72, 0, 1); }
+.pf-cal-day { display: grid; justify-items: center; gap: 2px; padding: var(--sp-1) 0; border: 0; background: none;
+  color: var(--label); font: inherit; cursor: pointer; }
+.pf-cal-wd { font-size: var(--fs-caption2); font-weight: 600; color: var(--label-2); }
+.pf-cal-num { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; font-size: var(--fs-title3); }
+.pf-cal-day.is-weekend .pf-cal-num { color: var(--label-2); }
+.pf-cal-day.is-today .pf-cal-num { color: var(--danger); font-weight: 600; }
+.pf-cal-day.is-on .pf-cal-num { background: var(--label); color: var(--bg); font-weight: 600; }
+.pf-cal-day.is-on.is-today .pf-cal-num { background: var(--danger); color: var(--on-accent); }
+.pf-cal-day:active .pf-cal-num { scale: 0.92; }
+.pf-cal-mark { width: 5px; height: 5px; border-radius: 50%; }
+.pf-cal-mark.is-on { background: var(--label-3); }
+
+.pf-cal-date { margin: 0; padding: var(--sp-2) 0; text-align: center; }
+
+/* ---- Hour grid ---- */
+.pf-cal-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.pf-cal-grid { position: relative; padding: var(--sp-2) var(--sp-4) var(--sp-8) 0; }
+.pf-cal-hour { position: relative; height: var(--hour); margin-left: 64px; border-top: 0.5px solid var(--separator); }
+.pf-cal-hl { position: absolute; right: 100%; top: 0; width: 56px; padding-right: var(--sp-2); translate: 0 -50%;
+  text-align: right; font-size: var(--fs-caption1); color: var(--label-2); }
+.pf-cal-hour:first-child .pf-cal-hl { translate: 0; }
+
+/* Block: top/height from its minutes (+ the grid's top padding), tinted by type with a solid bar on the left */
+.pf-cal-ev { --tone: var(--label-2); position: absolute; left: 68px; right: var(--sp-4);
+  top: calc(var(--sp-2) + var(--at) * var(--hour) / 60); height: max(calc(var(--len) * var(--hour) / 60 - 2px), 22px);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; overflow: hidden; padding: 3px var(--sp-2);
+  border: 0; border-left: 3px solid var(--tone); border-radius: 6px; background: color-mix(in srgb, var(--tone) 18%, var(--bg));
+  color: var(--label); font: inherit; text-align: left; cursor: pointer; }
+.pf-cal-ev:active { scale: 0.98; }
+.pf-cal-ev.blue { --tone: var(--color-blue); } .pf-cal-ev.purple { --tone: var(--color-purple); }
+.pf-cal-ev.red { --tone: var(--color-red); } .pf-cal-ev.green { --tone: var(--color-green); }
+.pf-cal-ev-title { font-size: var(--fs-footnote); font-weight: 600; line-height: var(--lh-tight); }
+.pf-cal-ev-meta { font-size: var(--fs-caption1); color: var(--label-2); line-height: var(--lh-tight); }
+/* under 45 minutes: one line, title then time */
+.pf-cal-ev.is-short { flex-direction: row; align-items: center; gap: var(--sp-2); padding-block: 0; white-space: nowrap; }
+.pf-cal-ev.is-short .pf-cal-ev-meta { overflow: hidden; text-overflow: ellipsis; }
+
+/* Now line (today only): red rule with the time in a red pill over the hour labels */
+.pf-cal-now { position: absolute; left: 64px; right: 0; top: calc(var(--sp-2) + var(--at) * var(--hour) / 60); z-index: 1;
+  height: 2px; background: var(--danger); pointer-events: none; }
+.pf-cal-now-t { position: absolute; right: 100%; top: 50%; translate: 4px -50%; padding: 1px 6px; border-radius: 99px;
+  background: var(--danger); color: var(--on-accent); font-size: var(--fs-caption1); font-weight: 600; }
+
+@keyframes pf-cal-in-next { from { transform: translateX(30%); opacity: 0; } }
+@keyframes pf-cal-in-prev { from { transform: translateX(-30%); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pf-cal-days.next, .pf-cal-days.prev { animation: none; } }

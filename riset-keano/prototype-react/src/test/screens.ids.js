@@ -1,5 +1,5 @@
-// The 65 screen/sheet ids of the prototype (the vanilla wireframe-mobile ids plus home.create and the profile.me
-// overlay; More became the tab bar's More panel, so home.more is gone). test-only
+// The 66 screen/sheet ids of the prototype (the vanilla wireframe-mobile ids plus home.create, the profile.me overlay
+// and its profile.calendar screen; More became the tab bar's More panel, so home.more is gone). test-only
 export const EXPECTED_IDS = [
   'auth.login', 'auth.account', 'auth.pending', 'auth.denied',
   'home.main', 'home.search', 'home.create',
@@ -16,5 +16,5 @@ export const EXPECTED_IDS = [
   'archive.list', 'archive.empty', 'archive.undo', 'archive.delete',
   'users.approve', 'users.roles',
   'settings.main', 'settings.profile', 'settings.leave',
-  'profile.me',
+  'profile.me', 'profile.calendar',
 ];
