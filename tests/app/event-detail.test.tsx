@@ -8,6 +8,7 @@ import {
 } from '../../app/components/events/EventDetailMenu';
 import { ACTION_COPY, DETAIL_COPY } from '../../app/components/events/event-detail.copy';
 import { describeError } from '../../app/lib/error-page';
+import { safeMeetingHref } from '../../app/lib/events-format';
 import { loader } from '../../app/routes/app/event-detail';
 import * as eventQuery from '../../server/event/events.query';
 import * as guard from '../../server/guard';
@@ -47,7 +48,7 @@ describe('the detail read', () => {
     expect(html.match(/<button/g)?.length ?? 0).toBe(1);
   });
 
-  it('never turns a non-web meeting link into an anchor, and reads an empty event kindly', async () => {
+  it('shows a non-web meeting link as plain text, and reads an empty event kindly', async () => {
     const html = await view(
       detail({
         meetingUrl: 'javascript:alert(1)', // test-only
@@ -59,7 +60,9 @@ describe('the detail read', () => {
         participants: [],
       }),
     );
-    expect(html).not.toContain('javascript:');
+    // Shown as plain text, never as an href or a button.
+    expect(html).toContain('javascript:alert(1)');
+    expect(html).not.toContain('href="javascript');
     expect(html).not.toContain(DETAIL_COPY.openLink);
     expect(html).toContain(DETAIL_COPY.noPlace);
     expect(html).toContain(DETAIL_COPY.noAgenda);
@@ -89,6 +92,31 @@ describe('the detail read', () => {
     expect(canceled).toContain(DETAIL_COPY.canceledTitle);
     expect(canceled).toContain('Alasan: Narasumber sakit');
     expect(canceled).toContain('Dibatalkan oleh Budi Santoso');
+  });
+});
+
+describe('safeMeetingHref', () => {
+  it.each([
+    'https://meet.example.test/abc', // test-only
+    'http://meet.example.test/abc', // test-only
+    'HTTPS://MEET.EXAMPLE.TEST/ABC', // test-only
+  ])('lets %s through as an href', (url) => {
+    expect(safeMeetingHref(url)).toBe(url);
+  });
+
+  it.each([
+    'javascript:alert(1)',
+    'JaVaScRiPt:alert(1)',
+    ' javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'vbscript:msgbox(1)',
+    'file:///etc/passwd',
+    'meet.example.test/abc',
+    'ht!tp://rusak',
+    '',
+    null,
+  ])('never makes %p an href', (url) => {
+    expect(safeMeetingHref(url)).toBeNull();
   });
 });
 

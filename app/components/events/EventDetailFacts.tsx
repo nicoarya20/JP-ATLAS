@@ -7,7 +7,7 @@ import {
   formatEventDay,
   formatTimeRange,
   locationLabel,
-  safeMeetingUrl,
+  safeMeetingHref,
 } from '~/lib/events-format';
 import { DETAIL_COPY } from './event-detail.copy';
 
@@ -27,7 +27,9 @@ type Props = { event: EventDetail; timeZone: string };
 /** When, where, which project and who made the event; everything the guests need before they come. */
 export function EventDetailFacts({ event, timeZone }: Props) {
   const place = locationLabel(event);
-  const link = safeMeetingUrl(event.meetingUrl);
+  const link = safeMeetingHref(event.meetingUrl);
+  // A link that is not a web address is shown as plain text, never as an href.
+  const rawLink = event.meetingUrl?.trim() || null;
   return (
     <Stack gap="md">
       <Fact label={DETAIL_COPY.when}>
@@ -38,6 +40,11 @@ export function EventDetailFacts({ event, timeZone }: Props) {
         <Text fw={500} style={{ overflowWrap: 'anywhere' }}>
           {place ?? DETAIL_COPY.noPlace}
         </Text>
+        {rawLink && !link && (
+          <Text size="sm" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
+            {rawLink}
+          </Text>
+        )}
         {link && (
           <div>
             <Button

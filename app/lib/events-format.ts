@@ -89,8 +89,8 @@ export function locationLabel(
   return e.locationType === 'online' ? 'Online' : null;
 }
 
-/** The meeting link when it is a web address; anything else (`javascript:`, junk) is never made a link. */
-export function safeMeetingUrl(url: string | null): string | null {
+/** The meeting link as an `href` only when it is an http(s) address; `javascript:`, `data:` and junk give null (show as plain text). */
+export function safeMeetingHref(url: string | null): string | null {
   if (!url) return null;
   try {
     const { protocol } = new URL(url.trim());
