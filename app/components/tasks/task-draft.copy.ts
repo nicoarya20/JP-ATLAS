@@ -59,5 +59,4 @@ export const WRITE_COPY = {
   rateTitle: 'Terlalu sering memakai Tulis saja',
   rateBody: (seconds: number) => `Coba lagi dalam ${seconds} detik, atau isi form saja.`,
   composeErrorTitle: 'Gagal menyusun draf',
-  discardForm: 'Isi form yang sudah kamu ketik akan hilang jika pindah ke Tulis saja.',
 } as const;

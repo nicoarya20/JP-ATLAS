@@ -9,9 +9,8 @@ import { notify } from '~/components/ui/notify';
 import { createTask, taskKeys } from '~/lib/tasks-api';
 import type { SavedTask } from './TaskCreateForm';
 import { composeBlock } from './task-draft';
-import { WRITE_COPY as COPY } from './task-draft.copy';
-import { saveDrafts } from './task-draft.save';
-import { initialWriteState, savedItems, writeReducer } from './task-draft.state';
+import { type Finished, finishedAfterEdit, runCompose, runSave } from './task-draft.flow';
+import { initialWriteState, writeReducer } from './task-draft.state';
 import { useTaskDraft } from './useTaskDraft';
 
 type Options = {
@@ -39,59 +38,48 @@ export function useTaskWrite(options: Options) {
     if (done) latest.current.options.onFinished(done);
   }, [done]);
 
-  const finish = useCallback((saved: SavedTask[], toast: boolean) => {
-    if (toast) {
-      notify.success(
-        saved.length === 1 && saved[0]
-          ? COPY.savedOne(saved[0].title)
-          : COPY.savedMany(saved.length),
-      );
-    }
+  const finish = useCallback((finished: Finished | null) => {
+    if (!finished) return;
     dispatch({ type: 'finished' });
-    setDone(saved);
+    setDone(finished.saved);
   }, []);
 
-  const compose = useCallback(async () => {
+  const compose = useCallback(() => {
     const { state: s, options: o } = latest.current;
-    if (draft.loading || !o.projectId || composeBlock(s.text, o.projectId)) return;
-    const out = await draft.compose(o.projectId, s.text.trim());
-    if (out.kind === 'ok') {
-      const defaultKindId = o.defaultKindId(o.projectId);
-      dispatch({ type: 'composed', response: out.body, projectId: o.projectId, defaultKindId });
-    } else if (out.kind === 'fallback') {
-      notify.error(COPY.fallbackTitle, COPY.fallbackBody);
-      o.onFallback(s.text);
-    } else if (out.kind === 'rate') {
-      notify.error(COPY.rateTitle, COPY.rateBody(out.seconds));
-    } else {
-      notify.error(COPY.composeErrorTitle, out.message);
-    }
+    if (draft.loading) return Promise.resolve();
+    return runCompose({
+      projectId: o.projectId,
+      text: s.text,
+      defaultKindId: o.defaultKindId,
+      request: draft.compose,
+      dispatch,
+      notice: notify,
+      onFallback: o.onFallback,
+    });
   }, [draft]);
 
   const save = useCallback(async () => {
     if (saving.current) return;
     saving.current = true;
     try {
-      const { items } = latest.current.state;
-      const before = savedItems(items).flatMap((i) => (i.saved ? [i.saved] : []));
-      const res = await saveDrafts(items, createTask, dispatch);
-      if (res.saved.length > 0) void queryClient.invalidateQueries({ queryKey: taskKeys.all });
-      if (res.failed > 0) notify.error(COPY.saveErrorTitle, COPY.someFailed(res.failed));
-      else if (res.saved.length > 0) finish([...before, ...res.saved], true);
+      finish(
+        await runSave({
+          items: latest.current.state.items,
+          create: createTask,
+          dispatch,
+          notice: notify,
+          onCreated: () => void queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+        }),
+      );
     } finally {
       saving.current = false;
     }
   }, [queryClient, finish]);
 
-  /** A draft was saved through the Ubah form (which already toasted); the last one ends the work. */
   const markSaved = useCallback(
     (id: string, task: SavedTask) => {
       dispatch({ type: 'saved', id, task });
-      const { items } = latest.current.state;
-      if (items.every((i) => i.id === id || i.status === 'saved')) {
-        const earlier = savedItems(items).flatMap((i) => (i.saved ? [i.saved] : []));
-        finish([...earlier, task], false);
-      }
+      finish(finishedAfterEdit(latest.current.state.items, id, task));
     },
     [finish],
   );

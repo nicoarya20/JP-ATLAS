@@ -45,6 +45,11 @@ export function TaskWriteSection({ write, projects, projectId, onProject, ...loo
               {state.text.trim()}
             </Text>
           </Paper>
+          {state.answer && (
+            <Text size="sm" c="dimmed">
+              {COPY.answered(state.answer)}
+            </Text>
+          )}
           {state.question && (
             <TaskDraftQuestion
               question={state.question}

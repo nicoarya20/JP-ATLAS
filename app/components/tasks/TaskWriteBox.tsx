@@ -26,7 +26,7 @@ export function TaskWriteBox({ text, onText, blocked, loading, again, onCompose 
     <Stack gap="xs">
       <Textarea
         label={COPY.boxLabel}
-        description={COPY.boxHint}
+        description={`${COPY.boxHint} ${COPY.noAiNote}`}
         placeholder={COPY.boxExample}
         value={text}
         onChange={(e) => onText(e.currentTarget.value)}

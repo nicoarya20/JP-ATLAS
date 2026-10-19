@@ -1,5 +1,5 @@
 /** Loader of /app/tasks/new (S2-11): writable projects from the server, `?proyek=` preset, the two 403 reasons. */
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test';
 import { TASK_FORM_COPY } from '../app/components/tasks/task-form.copy';
 import { PAGE_COPY } from '../app/components/tasks/tasks.copy';
 import { loader } from '../app/routes/app/task-new';
@@ -111,5 +111,23 @@ describe('task-new loader', () => {
 
   it('answers 403 with the Q5 reason to someone outside every project', async () => {
     expect(refused(await load(loner))).toEqual({ status: 403, reason: PAGE_COPY.createBlocked });
+  });
+});
+
+describe('task-new loader: Tulis saja availability', () => {
+  const KEY = 'ANTHROPIC_API_KEY';
+  const before = process.env[KEY];
+  afterEach(() => {
+    if (before === undefined) delete process.env[KEY];
+    else process.env[KEY] = before;
+  });
+
+  it('says Tulis saja is available only when a provider key is configured', async () => {
+    process.env[KEY] = 'sk-test-not-a-real-key'; // test-only
+    expect(allowed(await load(worker)).aiEnabled).toBe(true);
+    process.env[KEY] = '   '; // an empty value counts as unset
+    expect(allowed(await load(worker)).aiEnabled).toBe(false);
+    delete process.env[KEY];
+    expect(allowed(await load(worker)).aiEnabled).toBe(false);
   });
 });
