@@ -15,8 +15,8 @@ import { getPerson, listTeam, TEAM_LIMIT_DEFAULT, TEAM_SEARCH_MAX } from '../tea
 import { oneOf } from './app-common';
 import { appContext } from './app-context';
 
-/** The sorts the list accepts; `overdue` needs the right to see other people's numbers. */
-const TEAM_SORTS = ['name', 'overdue'] as const satisfies readonly TeamSort[];
+/** The sorts the list accepts; `active` and `overdue` need the right to see other people's numbers. */
+const TEAM_SORTS = ['name', 'active', 'overdue'] as const satisfies readonly TeamSort[];
 
 const ListQuery = t.Object({
   projectId: t.Optional(t.String({ minLength: 1 })),

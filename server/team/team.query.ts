@@ -97,7 +97,7 @@ export async function listTeam(
 ): Promise<ListTeamResult> {
   const ctx = await teamContext(p, input.projectId, exec);
   if (input.projectId && ctx.visibleProjects === 0) return { ok: false, code: 'NOT_FOUND' };
-  if (input.sort === 'overdue' && !canSortByLoad(p, ctx.myRoles))
+  if (input.sort && input.sort !== 'name' && !canSortByLoad(p, ctx.myRoles))
     return { ok: false, code: 'SORT_NOT_ALLOWED' };
   const q = input.q?.trim().slice(0, TEAM_SEARCH_MAX);
   const limit = clampLimit(input.limit);
@@ -151,6 +151,7 @@ export async function listTeam(
     };
   });
   if (input.sort === 'overdue') people.sort(byOverdue);
+  if (input.sort === 'active') people.sort(byActive);
   const total = Number(rows[0]?.total ?? 0);
   return { summary: summarize(ctx, total, people), people, total };
 }
@@ -168,6 +169,12 @@ function narrow(scope: LoadScope, projectId: string | undefined): LoadScope {
 /** `overdue desc, name`; a person without visible numbers sorts last, not as a zero. */
 function byOverdue(a: TeamPerson, b: TeamPerson): number {
   const score = (x: TeamPerson) => x.load?.overdue ?? -1;
+  return score(b) - score(a) || a.name.localeCompare(b.name);
+}
+
+/** `active desc, name`; same rule as `byOverdue` for people without visible numbers. */
+function byActive(a: TeamPerson, b: TeamPerson): number {
+  const score = (x: TeamPerson) => x.load?.active ?? -1;
   return score(b) - score(a) || a.name.localeCompare(b.name);
 }
 
