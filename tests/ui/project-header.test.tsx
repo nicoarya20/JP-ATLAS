@@ -21,6 +21,7 @@ import {
 import {
   BADGE_COPY,
   EXTEND_COPY,
+  OVERRIDE_COPY,
   REASON_LINE_COPY,
 } from '../../app/components/projects/summary/summary.copy';
 import { CONDITION_LABELS, PROJECT_STATUS_LABELS } from '../../app/lib/pm-labels';
@@ -59,6 +60,7 @@ const project = (over: Partial<ProjectHeaderData> = {}): ProjectHeaderData => ({
   can: { update: true, createTask: true },
   taskCounts: { active: 5, overdue: 0, live: 6 },
   extensionCount: 0,
+  conditionOverride: null,
   ...over,
 });
 const header = (over: Partial<ProjectHeaderData> = {}) =>
@@ -120,6 +122,16 @@ describe('ProjectHeader', () => {
       `${REASON_LINE_COPY.why}:`,
     );
     expect(await header({ condition: null })).not.toContain(`${REASON_LINE_COPY.why}:`);
+  });
+
+  it('says when the condition was set by hand, and by whom', async () => {
+    const html = await header({
+      condition: { level: 'off_track', reason: 'Vendor batal' },
+      conditionOverride: { setByName: 'Nico' } as ProjectHeaderData['conditionOverride'],
+    });
+    expect(html).toContain(`${REASON_LINE_COPY.why}: Vendor batal`);
+    expect(html).toContain(OVERRIDE_COPY.badge('Nico'));
+    expect(await header()).not.toContain('diatur manual');
   });
 
   it('shows the condition and its reason while the project runs', async () => {

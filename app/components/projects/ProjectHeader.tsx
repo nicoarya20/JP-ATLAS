@@ -15,7 +15,7 @@ import { DeadlineBadge } from './summary/DeadlineBadge';
 import { openExtendDeadlineModal } from './summary/ExtendDeadlineModal';
 import { canExtendDeadline } from './summary/header-caps';
 import { ProjectMenu } from './summary/ProjectMenu';
-import { EXTEND_COPY, REASON_LINE_COPY } from './summary/summary.copy';
+import { EXTEND_COPY, OVERRIDE_COPY, REASON_LINE_COPY } from './summary/summary.copy';
 
 /** Statuses that get the Q12 note: work is over or paused, yet tasks may still be added. */
 const CLOSED_STATUSES: readonly ProjectStatus[] = ['completed', 'canceled', 'on_hold'];
@@ -31,6 +31,7 @@ export type ProjectHeaderData = Pick<
   | 'can'
   | 'taskCounts'
   | 'extensionCount'
+  | 'conditionOverride'
 >;
 
 /** The condition is only meaningful while the project runs; the server already nulls it otherwise. */
@@ -102,6 +103,8 @@ export function ProjectHeader({ project, today }: Props) {
       {condition?.reason && (
         <Text size="sm" c="dimmed">
           {`${REASON_LINE_COPY.why}: ${condition.reason}`}
+          {project.conditionOverride &&
+            ` (${OVERRIDE_COPY.badge(project.conditionOverride.setByName)})`}
         </Text>
       )}
 

@@ -5,13 +5,10 @@ import { modals } from '@mantine/modals';
 import type { IsoDate } from '@server/metrics/types';
 import { EXTENSION_REASON_CATEGORIES, type ExtensionReasonCategory } from '@server/pm/enums';
 import { EXTENSION_REASON_MAX } from '@server/project/project.limits';
-import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useRevalidator } from 'react-router';
 import { formatCalendarDate } from '~/components/ui/DateText';
 import { describeApiError } from '~/lib/http';
 import { extendProjectDeadline } from '~/lib/project-deadline-api';
-import { projectKeys } from '~/lib/projects-api';
 import { useApiMutation } from '~/lib/use-api-mutation';
 import { quickDueDate } from '../QuickDates';
 import {
@@ -23,6 +20,7 @@ import {
   toExtendInput,
 } from './extend-deadline';
 import { EXTEND_CATEGORY_LABELS, EXTEND_COPY } from './summary.copy';
+import { useRefreshProject } from './useRefreshProject';
 
 const DATE_FORMAT = 'D MMMM YYYY';
 const CATEGORY_OPTIONS = EXTENSION_REASON_CATEGORIES.map((value) => ({
@@ -132,19 +130,14 @@ type FormProps = { projectId: string; currentDue: IsoDate; onClose: () => void }
 function ExtendDeadlineForm({ projectId, currentDue, onClose }: FormProps) {
   const [values, setValues] = useState<ExtendValues>(EMPTY_EXTEND);
   const [error, setError] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-  const revalidator = useRevalidator();
+  const refresh = useRefreshProject();
   const extend = useApiMutation({
     mutationFn: (input: NonNullable<ReturnType<typeof toExtendInput>>) =>
       extendProjectDeadline(projectId, input),
     successMessage: (_d, input) => EXTEND_COPY.saved(formatCalendarDate(input.newDueDate)),
     errorTitle: EXTEND_COPY.failed,
     onSuccess: async () => {
-      // The header (badge ×N, due date) comes from the route loader; lists and history from the cache.
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: projectKeys.all }),
-        revalidator.revalidate(),
-      ]);
+      await refresh();
       onClose();
     },
     onError: (err) => setError(describeApiError(err)),

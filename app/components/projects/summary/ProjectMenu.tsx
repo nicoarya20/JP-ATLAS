@@ -6,12 +6,16 @@ import { FiEdit2, FiMoreHorizontal } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { ProjectDeleteItem, showsDeleteProject } from '~/components/trash/ProjectDeleteItem';
 import { HEADER_COPY } from '../projects.copy';
+import { hasOverrideItems, OverrideMenuItems } from './OverrideMenuItems';
 
-export type ProjectMenuData = Pick<ProjectDetail, 'id' | 'name' | 'can' | 'taskCounts'>;
+export type ProjectMenuData = Pick<
+  ProjectDetail,
+  'id' | 'name' | 'can' | 'taskCounts' | 'status' | 'conditionOverride'
+>;
 
 /** True when the menu would hold at least one item, so an empty ⋯ is never drawn. */
-export function hasMenu(p: Pick<ProjectDetail, 'can'>): boolean {
-  return p.can.update === true || showsDeleteProject(p.can);
+export function hasMenu(p: ProjectMenuData): boolean {
+  return p.can.update === true || showsDeleteProject(p.can) || hasOverrideItems(p);
 }
 
 export function ProjectMenu({ project, today }: { project: ProjectMenuData; today: IsoDate }) {
@@ -33,6 +37,7 @@ export function ProjectMenu({ project, today }: { project: ProjectMenuData; toda
             {HEADER_COPY.edit}
           </Menu.Item>
         )}
+        <OverrideMenuItems project={project} today={today} />
         {showsDeleteProject(project.can) && (
           <ProjectDeleteItem
             target={{ id: project.id, name: project.name, tasks: project.taskCounts.live }}
