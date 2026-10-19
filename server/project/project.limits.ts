@@ -17,3 +17,17 @@ export const PROJECT_INITIAL_STATUSES = [
   'active',
 ] as const satisfies readonly ProjectStatus[];
 export type ProjectInitialStatus = (typeof PROJECT_INITIAL_STATUSES)[number];
+
+// --- Project plan (S5a) ---
+
+/** Most phases one project may have: a plan of more stages than this stops being readable on a phone. */
+export const PHASES_PER_PROJECT = 20;
+/** Most milestones one project may have; one per week for a year, which is already generous. */
+export const MILESTONES_PER_PROJECT = 60;
+export const PHASE_NAME_MAX = 80;
+export const PHASE_DESCRIPTION_MAX = 1000;
+export const MILESTONE_TITLE_MAX = 120;
+export const MILESTONE_DESCRIPTION_MAX = 1000;
+/** Free-text reason for a deadline extension or a manual condition; both are required and shown in the history. */
+export const EXTENSION_REASON_MAX = 500;
+export const OVERRIDE_REASON_MAX = 500;
