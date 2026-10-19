@@ -76,6 +76,7 @@ describe('page stubs', () => {
       'app/routes/app/task-edit.tsx',
       'app/routes/app/task-new.tsx',
       'app/routes/app/tasks.tsx',
+      'app/routes/app/team-detail.tsx',
       'app/routes/app/team.tsx',
       'app/routes/app/trash.tsx',
     ]);
