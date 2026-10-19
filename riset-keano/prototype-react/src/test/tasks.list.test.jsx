@@ -138,13 +138,15 @@ describe('tasks list', () => {
     expect(css.match(/\.tk-kcard\.card[^{]*\{[^}]*\}/)[0]).toMatch(/background: var\(--surface-raised\)/);
   });
 
-  it('says No tasks in an empty Kanban column', () => {
+  it('leaves an empty Kanban column with just its head and Add task, no No tasks text', () => {
     renderApp('tasks.board', 'member');
     fireEvent.click(dom.getByRole('tab', { name: 'My tasks' }));
     const empty = D.tasks.filter(t => t.who === D.me().name);
     const none = ['To do', 'In progress', 'In review', 'Done'].filter(s => !empty.some(t => t.status === s));
     expect(none.length).toBeGreaterThan(0);
-    expect(within(dom.getByRole('region', { name: `${none[0]}, 0 tasks` })).getByText('No tasks')).toBeInTheDocument();
+    const col = within(dom.getByRole('region', { name: `${none[0]}, 0 tasks` }));
+    expect(col.queryByText('No tasks')).not.toBeInTheDocument();
+    expect(col.getByRole('button', { name: 'Add task' })).toBeInTheDocument();
   });
 
   it('opens Kanban from All tasks with All still picked', () => {

@@ -35,7 +35,6 @@
 .tk-tone-progress { --tone: var(--accent); }
 .tk-tone-review { --tone: var(--warning); }
 .tk-tone-done { --tone: var(--success); }
-.tk-col-empty { text-align: center; padding: var(--sp-3) 0; margin: 0; }
 /* Task cards sit as cards inside the column card: raised surface, so they stay apart in dark too. */
 .tk-kcard.card.react-cupertino-ui-card { --card-padding-block: var(--sp-3); --card-padding-inline: var(--sp-3);
   background: var(--surface-raised); }

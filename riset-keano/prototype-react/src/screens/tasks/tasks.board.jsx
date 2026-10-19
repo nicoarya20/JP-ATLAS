@@ -58,7 +58,6 @@ export function TasksBoard({ params }) {
                 <span className="t-footnote muted">{list.length}</span>
               </h3>
               {list.map(t => <BoardCard key={t.no} t={t} mine={mine} />)}
-              {!list.length && <p className="t-footnote muted tk-col-empty">No tasks</p>}
               <div><Btn kind="plain" sm icon={<Plus size={16} aria-hidden="true" />} go="tasks.form">Add task</Btn></div>
             </section>
           );
