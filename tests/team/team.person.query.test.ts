@@ -8,7 +8,7 @@ import { toPrincipal } from '../../server/project/membership.query';
 import { ATLAS_REFERENCE_DATE } from '../../server/seed/atlas.data';
 import type { GetPersonResult, ListTeamResult, Refused } from '../../server/team/team.dto';
 import { isRefused } from '../../server/team/team.dto';
-import { getPerson } from '../../server/team/team.query';
+import { getPerson } from '../../server/team/team.person.query';
 import { createCleaner } from '../support/cleanup';
 import { ATLAS_NOW } from '../support/clock';
 import { createFactory } from '../support/factory.task';

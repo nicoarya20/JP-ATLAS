@@ -1,8 +1,8 @@
 /**
  * Team routes (`/api/app/team`, S6 M03/M04): the people the caller shares projects with, and one
  * person's detail. Reads only, open to every signed-in role; what a caller may not see is left out
- * of the body instead of being zeroed, so `load`, `alsoElsewhere`, `tasks` and `summary.active`
- * are simply absent (D10, `rencana/P7-s6-tim.md` §5).
+ * of the body instead of being zeroed, so `load`, `alsoElsewhere`, `tasks`, `accountRole` and
+ * `summary.active` are simply absent (D10, `rencana/P7-s6-tim.md` §5).
  *
  * Mounted after `teamPickerApi` in `app.ts` so `/team/picker` keeps answering the picker and is
  * never read as a `:userId`.
@@ -11,7 +11,8 @@ import { Elysia, t } from 'elysia';
 import { fail } from '../pm/respond';
 import { toPrincipal } from '../project/membership.query';
 import { isRefused, type TeamSort } from '../team/team.dto';
-import { getPerson, listTeam, TEAM_LIMIT_DEFAULT, TEAM_SEARCH_MAX } from '../team/team.query';
+import { getPerson } from '../team/team.person.query';
+import { listTeam, TEAM_LIMIT_DEFAULT, TEAM_SEARCH_MAX } from '../team/team.query';
 import { oneOf } from './app-common';
 import { appContext } from './app-context';
 
@@ -35,10 +36,10 @@ export const teamApi = new Elysia({ prefix: '/team' })
    * `{ summary: { people, projects, active?, overdue? }, people: [...], total }`. A `projectId` the
    * caller does not follow answers the same `404 NOT_FOUND` as one that does not exist (D8).
    *
-   * Known limit: `sort=overdue` orders **the page on screen**, not the whole team. The counts are
-   * only known once the page of people has been chosen — that is what keeps the list at four
-   * queries whatever its size — so paging through a team sorted by overdue re-sorts each page on
-   * its own. `sort=name` has no such limit. A caller with no right to anyone else's numbers gets
+   * `sort=active|overdue` ranks the whole filtered team, not the page on screen: up to
+   * `TEAM_SORT_SCAN_LIMIT` people are counted first and paged afterwards, in the same four queries
+   * (`team.sort.ts`). A team larger than that window is ranked among its first people by name, and
+   * `total` still reports the true size. A caller with no right to anyone else's numbers gets
    * `422 SORT_NOT_ALLOWED` rather than a silent fall back to the name order.
    */
   .get(
@@ -60,7 +61,8 @@ export const teamApi = new Elysia({ prefix: '/team' })
     { query: ListQuery },
   )
   /**
-   * `{ person, projects, tasks?, tasksVisible, load?, alsoElsewhere? }`. Someone the caller shares
+   * `{ person, accountRole?, projects, tasks?, tasksVisible, load?, alsoElsewhere? }`; `accountRole`
+   * is there only for an Admin or Super-admin. Someone the caller shares
    * no project with answers `404 NOT_FOUND`, never 403: the caller may not learn that the account
    * exists. An Admin may open a held or banned account; to everyone else it does not exist either.
    */
