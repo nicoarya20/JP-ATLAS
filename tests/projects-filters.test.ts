@@ -25,6 +25,7 @@ describe('parseProjectFilters', () => {
       urut: 'nama',
       q: 'Dapur',
       tampilan: 'list',
+      perhatian: false,
       hal: 3,
     });
   });
@@ -64,6 +65,61 @@ describe('parseProjectFilters', () => {
   });
 });
 
+describe('perhatian (Perlu perhatian)', () => {
+  it('reads ?perhatian=1 as on and anything else as off', () => {
+    expect(parse('perhatian=1').perhatian).toBe(true);
+    expect(parse('').perhatian).toBe(false);
+    for (const qs of [
+      'perhatian=0',
+      'perhatian=true',
+      'perhatian=',
+      'perhatian=ya',
+      'perhatian=11',
+    ]) {
+      expect(parse(qs).perhatian).toBe(false);
+    }
+  });
+
+  it('drops a status that comes with it, since attention already means running', () => {
+    expect(parse('perhatian=1&status=selesai').status).toBeNull();
+    expect(parse('perhatian=0&status=selesai').status).toBe('selesai');
+    const both = { ...DEFAULT_PROJECT_FILTERS, perhatian: true, status: 'selesai' } as const;
+    expect(projectFiltersToParams(both).toString()).toBe('perhatian=1');
+  });
+
+  it('writes nothing for the default and keeps the other filters', () => {
+    expect(
+      projectFiltersToParams({ ...DEFAULT_PROJECT_FILTERS, perhatian: false }).has('perhatian'),
+    ).toBe(false);
+    expect(projectFiltersToParams(parse('perhatian=1&lingkup=semua')).toString()).toBe(
+      'lingkup=semua&perhatian=1',
+    );
+  });
+
+  it('puts the flag in the API query, without a status', () => {
+    expect(toProjectQuery(parse('perhatian=1'), 20)).toEqual({
+      scope: 'mine',
+      sort: 'due',
+      perhatian: '1',
+      page: 1,
+      limit: 20,
+    });
+    expect(toProjectQuery(parse('perhatian=1&status=draf')).status).toBeUndefined();
+    expect('perhatian' in toProjectQuery(parse(''))).toBe(false);
+  });
+
+  it('counts as an active filter, so an empty result offers to clear it', () => {
+    expect(hasProjectFilters(parse('perhatian=1'))).toBe(true);
+    expect(hasProjectFilters(parse('perhatian=0'))).toBe(false);
+  });
+
+  it('gives each combination its own cache key', () => {
+    const key = (qs: string) => JSON.stringify(toProjectQuery(parse(qs)));
+    expect(key('perhatian=1')).not.toBe(key(''));
+    expect(key('perhatian=1&tampilan=gantt')).not.toBe(key('perhatian=1'));
+  });
+});
+
 describe('projectFiltersToParams', () => {
   it.each([
     '',
@@ -74,6 +130,8 @@ describe('projectFiltersToParams', () => {
     'hal=2',
     'lingkup=semua&status=selesai&urut=nama&q=Atlas&hal=4',
     'status=berjalan&tampilan=gantt',
+    'perhatian=1',
+    'lingkup=semua&urut=nama&q=Atlas&tampilan=gantt&perhatian=1',
   ])('round-trips "%s"', (qs) => {
     const filters = parse(qs);
     expect(parseProjectFilters(projectFiltersToParams(filters))).toEqual(filters);
@@ -120,13 +178,22 @@ describe('toProjectQuery', () => {
     expect(toProjectQuery(parse('tampilan=gantt'), 10).limit).toBe(10);
   });
 
-  it('does not put the view in the API query', () => {
-    expect(Object.keys(toProjectQuery(parse('tampilan=gantt'))).sort()).toEqual([
+  it('does not put the view itself in the API query; only the timeline asks for the plan', () => {
+    expect(Object.keys(toProjectQuery(parse('tampilan=grid'))).sort()).toEqual([
       'limit',
       'page',
       'scope',
       'sort',
     ]);
+    expect(Object.keys(toProjectQuery(parse('tampilan=gantt'))).sort()).toEqual([
+      'limit',
+      'page',
+      'rencana',
+      'scope',
+      'sort',
+    ]);
+    expect(toProjectQuery(parse('tampilan=gantt')).rencana).toBe('1');
+    expect(toProjectQuery(parse('')).rencana).toBeUndefined();
   });
 
   it('maps sort, search and page', () => {

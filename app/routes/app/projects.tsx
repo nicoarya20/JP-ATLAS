@@ -50,6 +50,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     status: query.status,
     q: query.q,
     sort: query.sort,
+    attention: query.perhatian === '1',
+    withPlan: query.rencana === '1',
     limit: query.limit,
     offset: 0,
     now,
@@ -129,7 +131,11 @@ export default function ProjectsPage({ loaderData }: Route.ComponentProps) {
           onMore={() => void pages.fetchNextPage()}
           empty={
             <ProjectEmpty
-              kind={emptyKind(hasProjectFilters(filters), loaderData.canCreate)}
+              kind={emptyKind(
+                hasProjectFilters(filters),
+                loaderData.canCreate,
+                filters.perhatian && filters.q.trim() === '',
+              )}
               createTo={NEW_PROJECT_PATH}
               clearTo={clearFiltersHref(filters)}
             />
