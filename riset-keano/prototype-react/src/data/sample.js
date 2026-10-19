@@ -8,12 +8,12 @@ const today = { date: 'Wednesday, Oct 7, 2026', short: 'Wed, Oct 7', long: 'Wedn
 
 // ---------- People ----------
 const people = {
-  nico: { name: 'Nico', full: 'Nico Pratama', title: 'Project Manager', division: 'Product', email: 'nico@kantor.id', phone: '0812-3456-7890', role: 'Project Manager' },
-  rina: { name: 'Rina', full: 'Rina Wulandari', title: 'UI Designer', division: 'Product', email: 'rina@kantor.id', phone: '0813-2211-4455', role: 'Member' },
-  dodi: { name: 'Dodi', full: 'Dodi Hartono', title: 'Backend Developer', division: 'Engineering', email: 'dodi@kantor.id', phone: '0815-7788-1122', role: 'Member' },
-  sri: { name: 'Sri', full: 'Sri Rahayu', title: 'QA Analyst', division: 'Product', email: 'sri@email.com', phone: '0817-5566-3344', role: 'Member' },
-  ayu: { name: 'Ayu', full: 'Ayu Lestari', title: 'Operations Lead', division: 'Operations', email: 'ayu@email.com', phone: '0811-9900-2233', role: 'Admin' },
-  lea: { name: 'Lea', full: 'Lea Santoso', title: 'Account Manager', division: 'Sales', email: 'lea@kantor.id', phone: '0819-4433-6677', role: 'Project Manager' },
+  nico: { name: 'Nico', full: 'Nico Pratama', title: 'Project Manager', division: 'Product', email: 'nico@kantor.id', role: 'Project Manager' },
+  rina: { name: 'Rina', full: 'Rina Wulandari', title: 'UI Designer', division: 'Product', email: 'rina@kantor.id', role: 'Member' },
+  dodi: { name: 'Dodi', full: 'Dodi Hartono', title: 'Backend Developer', division: 'Engineering', email: 'dodi@kantor.id', role: 'Member' },
+  sri: { name: 'Sri', full: 'Sri Rahayu', title: 'QA Analyst', division: 'Product', email: 'sri@email.com', role: 'Member' },
+  ayu: { name: 'Ayu', full: 'Ayu Lestari', title: 'Operations Lead', division: 'Operations', email: 'ayu@email.com', role: 'Admin' },
+  lea: { name: 'Lea', full: 'Lea Santoso', title: 'Account Manager', division: 'Sales', email: 'lea@kantor.id', role: 'Project Manager' },
 };
 /** Who is signed in for each prototype role. */
 const ME = { member: 'dodi', pm: 'nico', admin: 'ayu' };
@@ -157,7 +157,7 @@ const archive = [
 ];
 const users = {
   pending: [
-    { full: 'Sari Wulandari', email: 'sari@email.com', day: 'Oct 7', time: '2:02 PM', job: 'Finance Staff', division: 'Finance', phone: '0812 xxxx xxxx' },
+    { full: 'Sari Wulandari', email: 'sari@email.com', day: 'Oct 7', time: '2:02 PM', job: 'Finance Staff', division: 'Finance' },
     { full: 'Budi Santoso', email: 'budi@kantor.id', day: 'Today', time: '8:15 AM' },
   ],
   counts: { pending: 2, approved: 6, rejected: 1, disabled: 0 },

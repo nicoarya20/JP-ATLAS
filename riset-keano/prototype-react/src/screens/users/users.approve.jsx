@@ -11,7 +11,6 @@ function Pending() {
     <Section>
       <Who u={sari}>
         <span className="t-footnote muted">Position: {sari.job} · Division: {sari.division}</span>
-        <span className="t-footnote muted">Phone {sari.phone}</span>
       </Who>
       <div className="between"><span className="t-subhead">Starting role</span><Select toast="Member · Project Manager">Member</Select></div>
       <div className="us-two">

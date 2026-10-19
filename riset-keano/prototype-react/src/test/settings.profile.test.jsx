@@ -33,3 +33,14 @@ describe('Edit profile', () => {
     expect(document.querySelector('.react-cupertino-ui-textfield__label')).toBeNull();
   });
 });
+
+describe('no phone number anywhere', () => {
+  it('is not asked for or shown on the pending profile, Settings or user approval', () => {
+    expect(Object.values(D.people).some(p => 'phone' in p)).toBe(false);
+    for (const [id, role] of [['auth.pending', 'member'], ['settings.main', 'pm'], ['users.approve', 'admin']]) {
+      const { unmount } = renderApp(id, role);
+      expect(document.body.textContent).not.toMatch(/phone|08\d\d/i);
+      unmount();
+    }
+  });
+});

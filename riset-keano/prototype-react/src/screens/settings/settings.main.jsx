@@ -36,7 +36,7 @@ function Account() {
           <div className="grow stack xs">
             <span className="t-headline">{me.full}</span>
             <span className="t-footnote muted">{me.title} · {me.division} division</span>
-            <span className="t-footnote muted">{me.phone} · {me.email}</span>
+            <span className="t-footnote muted">{me.email}</span>
           </div>
         </div>
         <Btn block sm go="settings.profile">Edit profile</Btn>

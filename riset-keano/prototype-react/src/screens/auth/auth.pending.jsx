@@ -19,7 +19,6 @@ function AuthPending() {
       <Field label="Full name *" value="Budi Santoso" />
       <Field label="Email (from Google, cannot be changed)" value="budi@kantor.id" disabled />
       <Field label="Nickname" value="Budi" />
-      <Field label="Phone number" placeholder="08xx xxxx xxxx" />
       <Field label="Job title" placeholder="e.g. Finance Staff" />
       <Field label="Division" placeholder="e.g. Finance" />
       <Btn kind="primary" block toast="Profile saved">Save profile</Btn>
