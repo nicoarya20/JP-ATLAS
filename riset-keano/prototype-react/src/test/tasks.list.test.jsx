@@ -40,7 +40,7 @@ describe('tasks list', () => {
     expect(dom.queryByRole('button', { name: /^Filter$/ })).not.toBeInTheDocument();
     expect(dom.queryByRole('button', { name: /Sort: Due/ })).not.toBeInTheDocument();
     const icon = dom.getByRole('button', { name: 'Filter and sort' });
-    expect(icon.closest('.tk-search').querySelector('input')).toHaveAttribute('placeholder', 'Search title, #number, or tag…');
+    expect(icon.closest('.search-filter').querySelector('input')).toHaveAttribute('placeholder', 'Search title, #number, or tag…');
     expect(icon).not.toHaveClass('is-on');
     expect(dom.queryByText(/Sort: Due date/)).not.toBeInTheDocument();
   });
@@ -125,8 +125,8 @@ describe('tasks list', () => {
   });
 
   it('draws the filter icon as a grey rounded square like the search field, whose corners all match', () => {
-    const css = readFileSync(join(__dirname, '../screens/tasks/tasks.css'), 'utf8');
-    const rule = css.match(/\.tk-filter-btn \{[^}]*\}/)[0];
+    const css = readFileSync(join(__dirname, '../kit/filter.css'), 'utf8');
+    const rule = css.match(/\.filter-btn \{[^}]*\}/)[0];
     expect(rule).toMatch(/border-radius: 10px/);
     expect(rule).toMatch(/color: var\(--label-2\)/);
     const lib = readFileSync(join(__dirname, '../styles/library.css'), 'utf8');

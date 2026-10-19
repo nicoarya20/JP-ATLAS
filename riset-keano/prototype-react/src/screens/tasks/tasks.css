@@ -13,21 +13,8 @@
 
 /* Lists */
 .tk-filters { display: grid; gap: var(--sp-3); }
-.tk-search { display: flex; align-items: center; gap: var(--sp-2); }
-.tk-search > .grow { min-width: 0; }
-/* Filter & sort icon: a square in the search field's fill, height and 10px radius, icon in the search icon's grey;
-   a dot marks a non-default filter. */
-.tk-filter-btn { position: relative; flex: none; width: 36px; height: 36px; display: grid; place-items: center; padding: 0;
-  border: 0; border-radius: 10px; background: var(--fill); color: var(--label-2); cursor: pointer; }
-.tk-filter-btn:active { scale: 0.92; }
-.tk-filter-btn.is-on::after { content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
 .tk-switch { display: flex; align-items: center; gap: var(--sp-2); }
 .tk-switch > .grow { min-width: 0; }
-.tk-wrap .hscroll { flex-wrap: wrap; }
-/* Filter & sort overlay (kit FullSheet body): fields from the top, Reset / Apply pushed to the bottom edge. */
-.tk-fsheet { min-height: 100%; display: flex; flex-direction: column; gap: var(--sp-5); }
-.tk-fsheet-foot { margin-top: auto; padding-top: var(--sp-3); }
 .tk-seg { width: 96px; flex: none; }
 .tk-group { display: flex; align-items: baseline; gap: var(--sp-2); margin: var(--sp-2) 0 calc(var(--sp-2) * -1); }
 .tk-top { align-items: flex-start; }

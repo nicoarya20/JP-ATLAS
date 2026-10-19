@@ -5,3 +5,4 @@ export { Head, Section, Rows, Row, Field, Avatar, Avatars, Pill, Progress, Media
 export { Select, Search, Switch, Label, Snack } from './form';
 export { Sheet } from './sheet';
 export { FullSheet } from './fullsheet';
+export { SearchFilter, FilterPanel } from './filter';

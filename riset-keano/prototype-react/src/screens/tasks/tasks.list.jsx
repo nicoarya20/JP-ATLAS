@@ -1,10 +1,10 @@
 // Tasks ①, ②, ④: My tasks (grouped by urgency), All tasks (Atlas, bulk select) and the empty state; Kanban ③ is in tasks.board.
 // ① and ② show their screen params' Filter & sort query (tasks.query).
 import { ChevronRight, List, ListChecks, Plus, SearchX, SquareKanban } from 'lucide-react';
-import { Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
+import { Btn, Empty, Pill, Screen, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { FilterButton } from './tasks.filter';
+import { TasksSearch } from './tasks.filter';
 import { Tick } from './tasks.parts';
 import { SORTS, SORT_DUE, applyQuery, isFiltered, queryOf, queryParams, withoutQuery } from './tasks.query';
 import { TODAY, blocked, days, detailOf, note } from './tasks.shared';
@@ -29,10 +29,7 @@ export function ListScreen({ mine, board, children }) {
           <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]}
             on={board ? 1 : 0} onPick={i => open(mine, i === 1)} /></div>
         </div>
-        <div className="tk-search">
-          <div className="grow"><Search placeholder="Search title, #number, or tag…" /></div>
-          <FilterButton mine={mine} />
-        </div>
+        <TasksSearch mine={mine} />
       </div>
       {children}
     </Screen>
