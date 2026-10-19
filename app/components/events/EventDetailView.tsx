@@ -6,11 +6,13 @@
 import { Alert, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { FiXCircle } from 'react-icons/fi';
+import { useNavigate } from 'react-router';
 import { BackLink } from '~/components/ui/BackLink';
 import { PageContainer } from '~/components/ui/PageContainer';
-import type { EventDetail } from '~/lib/events-api';
+import { EVENTS_PATH, type EventDetail, eventHref } from '~/lib/events-api';
 import { type EventsClock, eventStatus } from '~/lib/events-format';
 import { EventDetailFacts } from './EventDetailFacts';
+import { EventDetailMenu } from './EventDetailMenu';
 import { EventDetailPeople } from './EventDetailPeople';
 import { EventKindBadge } from './EventKindBadge';
 import { EventStatusBadge } from './EventStatusBadge';
@@ -53,11 +55,12 @@ function CanceledBanner({ event }: { event: EventDetail }) {
 type Props = { event: EventDetail; clock: EventsClock };
 
 export function EventDetailView({ event, clock }: Props) {
+  const navigate = useNavigate();
   const status = eventStatus(event, clock.now);
   return (
     <PageContainer size="narrow">
       <div>
-        <BackLink fallback={'/app/events'} label={DETAIL_COPY.back} />
+        <BackLink fallback={EVENTS_PATH} label={DETAIL_COPY.back} />
       </div>
       <Stack gap="sm">
         {/* nowrap is safe: the only button is one icon and the title wraps inside its own column. */}
@@ -65,6 +68,14 @@ export function EventDetailView({ event, clock }: Props) {
           <Title order={2} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
             {event.title}
           </Title>
+          <EventDetailMenu
+            event={event}
+            status={status}
+            // The event is in the Trash now: leave for the list (the toast offers Urungkan), and
+            // come back to the event if the user takes it back.
+            afterDelete={() => navigate(EVENTS_PATH)}
+            afterRestore={(id) => navigate(eventHref(id))}
+          />
         </Group>
         <Group gap="xs" wrap="wrap">
           <EventStatusBadge status={status} />
