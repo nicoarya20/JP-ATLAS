@@ -86,10 +86,23 @@ describe('picking and saving', () => {
     expect(s.items[0]?.error).toBeNull();
   });
 
-  it('tracks a running batch', () => {
-    const s = run([{ type: 'batchStarted', total: 2 }]);
-    expect(s.batch).toEqual({ total: 2 });
+  it('counts a batch as drafts finish, saved or failed, and clears it at the end', () => {
+    const task = { id: 't', number: 1, title: 'x' };
+    let s = run([composed(), { type: 'batchStarted', total: 2 }]);
+    expect(s.batch).toEqual({ total: 2, done: 0 });
+    s = run([{ type: 'saved', id: 'draft-1', task }], s);
+    expect(s.batch).toEqual({ total: 2, done: 1 });
+    s = run([{ type: 'failed', id: 'draft-2', error: 'Gagal.' }], s);
+    expect(s.batch).toEqual({ total: 2, done: 2 });
     expect(run([{ type: 'batchEnded' }], s).batch).toBeNull();
+  });
+
+  it('a save outside a batch (the Ubah form) does not open one', () => {
+    const s = run([
+      composed(),
+      { type: 'saved', id: 'draft-1', task: { id: 't', number: 1, title: 'x' } },
+    ]);
+    expect(s.batch).toBeNull();
   });
 });
 

@@ -25,12 +25,14 @@ export type WriteState = {
   text: string;
   /** `write`: the story box; `result`: the drafts and the question below the story. */
   stage: 'write' | 'result';
+  /** True once an answer was shown, so the button reads "Susun ulang". */
+  composedOnce: boolean;
   items: DraftItem[];
   question: TaskDraftQuestion | null;
   /** The label of the option the user picked, kept so the answer stays visible. */
   answer: string | null;
-  /** Set while a batch runs: how many drafts it saves. */
-  batch: { total: number } | null;
+  /** Set while a batch runs: how many drafts it saves and how many are done (saved or failed). */
+  batch: { total: number; done: number } | null;
   /** Everything wanted is saved; the page is about to leave, so the unsaved warning stops. */
   finished: boolean;
 };
@@ -38,6 +40,7 @@ export type WriteState = {
 export const initialWriteState: WriteState = {
   text: '',
   stage: 'write',
+  composedOnce: false,
   items: [],
   question: null,
   answer: null,
@@ -77,6 +80,9 @@ export const hasUnsavedWork = (s: WriteState): boolean =>
 const patch = (items: DraftItem[], id: string, change: Partial<DraftItem>): DraftItem[] =>
   items.map((i) => (i.id === id ? { ...i, ...change } : i));
 
+const advance = (batch: WriteState['batch']): WriteState['batch'] =>
+  batch ? { ...batch, done: batch.done + 1 } : null;
+
 export function writeReducer(s: WriteState, a: WriteAction): WriteState {
   switch (a.type) {
     case 'text':
@@ -85,6 +91,7 @@ export function writeReducer(s: WriteState, a: WriteAction): WriteState {
       return {
         ...s,
         stage: 'result',
+        composedOnce: true,
         question: a.response.question,
         answer: null,
         items: a.response.drafts.map((d, n) => ({
@@ -119,15 +126,23 @@ export function writeReducer(s: WriteState, a: WriteAction): WriteState {
     case 'backToText':
       return { ...s, stage: 'write', items: [], question: null, answer: null };
     case 'batchStarted':
-      return { ...s, batch: { total: a.total } };
+      return { ...s, batch: { total: a.total, done: 0 } };
     case 'batchEnded':
       return { ...s, batch: null };
     case 'saving':
       return { ...s, items: patch(s.items, a.id, { status: 'saving', error: null }) };
     case 'saved':
-      return { ...s, items: patch(s.items, a.id, { status: 'saved', saved: a.task, error: null }) };
+      return {
+        ...s,
+        batch: advance(s.batch),
+        items: patch(s.items, a.id, { status: 'saved', saved: a.task, error: null }),
+      };
     case 'failed':
-      return { ...s, items: patch(s.items, a.id, { status: 'failed', error: a.error }) };
+      return {
+        ...s,
+        batch: advance(s.batch),
+        items: patch(s.items, a.id, { status: 'failed', error: a.error }),
+      };
     case 'finished':
       return { ...s, finished: true };
     default:

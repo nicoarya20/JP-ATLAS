@@ -34,15 +34,15 @@ const ISO_DATE_LENGTH = 10; // "YYYY-MM-DD"
  * Eden turns any JSON string shaped like a date into a `Date` (`YYYY-MM-DD` too), but the contract
  * says `dueDate` is a string the form and the create call take as is. Put such values back to text.
  */
-export function restoreDates<T>(value: T): T {
+export function restoreDates(value: unknown): unknown {
   if (value instanceof Date) {
     const iso = value.toISOString();
     // A date-only string parses to UTC midnight; anything else was a full timestamp.
-    return (iso.endsWith('T00:00:00.000Z') ? iso.slice(0, ISO_DATE_LENGTH) : iso) as T;
+    return iso.endsWith('T00:00:00.000Z') ? iso.slice(0, ISO_DATE_LENGTH) : iso;
   }
-  if (Array.isArray(value)) return value.map(restoreDates) as T;
+  if (Array.isArray(value)) return value.map(restoreDates);
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, restoreDates(v)])) as T;
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, restoreDates(v)]));
   }
   return value;
 }
@@ -55,8 +55,9 @@ export async function requestDraft(projectId: string, text: string): Promise<Dra
   } catch {
     return { kind: 'fallback' }; // fetch itself rejected: offline or blocked
   }
-  if (!res.error) return { kind: 'ok', body: restoreDates(res.data as TaskDraftResponse) };
-  const status = typeof res.error.status === 'number' ? res.error.status : 0;
+  if (!res.error) return { kind: 'ok', body: restoreDates(res.data) as TaskDraftResponse };
+  // The typed statuses leave out 401 (the app gate answers it before the route), so widen to number.
+  const status: number = typeof res.error.status === 'number' ? res.error.status : 0;
   const value = (res.error.value ?? {}) as ErrorValue;
   const hasServerBody = typeof value.code === 'string';
   // Eden reports a failed fetch as an error whose value is not our `{ error, code }` body.
