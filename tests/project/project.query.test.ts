@@ -286,6 +286,8 @@ describe('listProjectMembers', () => {
 describe('query counts stay constant (R04 §3.7)', () => {
   // Four reads of S1 plus the milestone and override batches of S5 (L5-02); still independent of the page size.
   const MAX_QUERIES = 6;
+  // The detail adds the deadline history (S5a-03): two more statements, the same for any history size.
+  const DETAIL_MAX_QUERIES = 8;
 
   async function listWith(n: number) {
     const lead = await f.user({ role: 'project_manager' });
@@ -315,7 +317,7 @@ describe('query counts stay constant (R04 §3.7)', () => {
     await f.tasks(p, 5);
     const detail = countQueries();
     await getProjectDetail(principal(lead), p.id, NOW, detail.exec);
-    expect(detail.queries.length).toBeLessThanOrEqual(MAX_QUERIES);
+    expect(detail.queries.length).toBeLessThanOrEqual(DETAIL_MAX_QUERIES);
     const members = countQueries();
     await listProjectMembers(principal(lead), p.id, members.exec);
     expect(members.queries.length).toBeLessThanOrEqual(MAX_QUERIES);
