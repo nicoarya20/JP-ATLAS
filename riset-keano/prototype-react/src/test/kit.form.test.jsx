@@ -1,6 +1,7 @@
-// Kit form parts: Select fires its nav props, Switch toggles, Snack action navigates.
+// Kit form parts: Select fires its nav props or picks from options, Switch toggles, Snack action navigates; the toast shell.
 import { describe, expect, it } from 'vitest';
-import { screen as dom } from '@testing-library/react';
+import { useState } from 'react';
+import { fireEvent, screen as dom } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { screen } from '../core/registry';
 import { Label, Select, Snack, Switch } from '../kit';
@@ -17,7 +18,12 @@ function F() {
     </div>
   );
 }
+function P() {
+  const [v, setV] = useState('b');
+  return <Select block label="Letter" value={v} onChange={setV} options={[{ value: 'a', label: 'Alpha' }, { value: 'b', label: 'Bravo' }]} />;
+}
 screen('t.form', { title: 'Form', group: 'Test', Component: F });
+screen('t.form.pick', { title: 'Pick', group: 'Test', Component: P });
 screen('t.form.done', { title: 'Done', group: 'Test', Component: () => <h1>Restored screen</h1> });
 
 describe('kit form parts', () => {
@@ -42,5 +48,23 @@ describe('kit form parts', () => {
     await userEvent.click(dom.getByRole('button', { name: 'Undo' }));
     expect(dom.getByRole('heading', { name: 'Restored screen' })).toBeInTheDocument();
     expect(await dom.findByText('Event restored')).toBeInTheDocument();
+  });
+
+  it('Select with options is a real picker that shows the picked label', () => {
+    renderApp('t.form.pick');
+    const pick = dom.getByRole('combobox', { name: 'Letter' });
+    expect(pick).toHaveValue('b');
+    expect(pick.closest('.select')).toHaveTextContent(/^BravoAlphaBravo$/);
+    fireEvent.change(pick, { target: { value: 'a' } });
+    expect(pick).toHaveValue('a');
+    expect(pick.closest('.select').firstChild).toHaveTextContent('Alpha');
+  });
+
+  it('shows the toast as the app toast at the top centre, without the glass panel', async () => {
+    renderApp('t.form');
+    await userEvent.click(dom.getByRole('button', { name: 'Member' }));
+    const toast = (await dom.findByText('Member · Project Manager')).closest('.react-cupertino-ui-toast');
+    expect(toast).toHaveClass('app-toast', 'position-top-center');
+    expect(toast).not.toHaveClass('is-glass');
   });
 });

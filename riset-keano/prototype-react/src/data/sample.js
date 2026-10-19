@@ -65,13 +65,13 @@ const templates = [
 
 // ---------- Tasks (Tasks ①–⑫) ----------
 const tasks = [
-  { no: 12, title: 'Fix SSO login', project: 'Atlas Project', type: 'Bug', priority: 'High', status: 'In progress', who: 'Nico', due: 'Oct 5', when: '2 days overdue', next: 'Request review', tags: ['sso', 'login'] },
-  { no: 17, title: 'Fix the save button on the profile page', project: 'Atlas Project', type: 'Bug', priority: 'Medium', status: 'In review', who: 'Dodi', due: 'Oct 8', when: 'Awaiting my review', next: 'Review', tags: ['profile'] },
-  { no: 14, title: 'Write the API spec', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Nico', due: 'Oct 7', when: 'Today', next: 'Start', tags: ['api'] },
-  { no: 15, title: 'Review the onboarding page design', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Rina', due: 'Oct 9', when: 'This week', next: 'Start', tags: ['design'] },
-  { no: 16, title: 'Prepare test data', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Dodi', due: 'Oct 16', when: 'Blocked by #12', next: 'View', tags: ['testing'] },
-  { no: 8, title: 'Draft the architecture design', project: 'Atlas Project', type: 'Task', priority: 'High', status: 'Done', who: 'Nico', due: 'Sep 20', when: 'Done Sep 20', next: 'Reopen', tags: [] },
-  { no: 9, title: 'Progress report for PT Sinar', project: 'PT Sinar Client Portal', type: 'Task', priority: 'Medium', status: 'To do', who: 'Nico', due: 'Oct 8', when: 'Tomorrow', next: 'Start', tags: [] },
+  { no: 12, title: 'Fix SSO login', project: 'Atlas Project', type: 'Bug', priority: 'High', status: 'In progress', who: 'Nico', due: 'Oct 5', when: '2 days overdue', next: 'Request review', updated: '2026-10-07T08:15', tags: ['sso', 'login'] },
+  { no: 17, title: 'Fix the save button on the profile page', project: 'Atlas Project', type: 'Bug', priority: 'Medium', status: 'In review', who: 'Dodi', due: 'Oct 8', when: 'Awaiting my review', next: 'Review', updated: '2026-10-06T16:20', tags: ['profile'] },
+  { no: 14, title: 'Write the API spec', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Nico', due: 'Oct 7', when: 'Today', next: 'Start', updated: '2026-10-05T10:00', tags: ['api'] },
+  { no: 15, title: 'Review the onboarding page design', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Rina', due: 'Oct 9', when: 'This week', next: 'Start', updated: '2026-10-04T14:30', tags: ['design'] },
+  { no: 16, title: 'Prepare test data', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Dodi', due: 'Oct 16', when: 'Blocked by #12', next: 'View', updated: '2026-10-02T09:10', tags: ['testing'] },
+  { no: 8, title: 'Draft the architecture design', project: 'Atlas Project', type: 'Task', priority: 'High', status: 'Done', who: 'Nico', due: 'Sep 20', when: 'Done Sep 20', next: 'Reopen', updated: '2026-09-20T17:45', tags: [] },
+  { no: 9, title: 'Progress report for PT Sinar', project: 'PT Sinar Client Portal', type: 'Task', priority: 'Medium', status: 'To do', who: 'Nico', due: 'Oct 8', when: 'Tomorrow', next: 'Start', updated: '2026-10-06T11:05', tags: [] },
 ];
 /** Task detail extras (Tasks ⑧–⑩). */
 const taskDetail = {

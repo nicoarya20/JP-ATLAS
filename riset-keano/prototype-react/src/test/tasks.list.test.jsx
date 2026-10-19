@@ -1,5 +1,5 @@
 // Tasks list: New task only on the tab bar "+", cards only open the task (its actions live in the detail),
-// filters and sort live in one full-height overlay opened from the icon next to the search field.
+// filters and sort live in one full-height overlay opened from the icon next to the search field (tasks.filter.test).
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -155,45 +155,5 @@ describe('tasks list', () => {
     expect(dom.getByRole('tab', { name: 'All tasks' })).toHaveAttribute('aria-selected', 'true');
     fireEvent.click(dom.getByRole('tab', { name: 'List' }));
     expect(window.location.hash).toBe('#tasks.all');
-  });
-
-  it('opens one sheet with the status, project and priority filters and the sort order', () => {
-    renderApp('tasks.my', 'member');
-    fireEvent.click(dom.getByRole('button', { name: 'Filter and sort' }));
-    const sheet = within(dom.getByRole('dialog'));
-    expect(sheet.getByRole('heading', { name: 'Filter & sort' })).toBeInTheDocument();
-    for (const s of ['All active', 'To do', 'In progress', 'In review', 'Done']) expect(sheet.getByRole('button', { name: s })).toBeInTheDocument();
-    expect(sheet.getByRole('button', { name: 'All active' })).toHaveAttribute('aria-pressed', 'true');
-    expect(sheet.getByRole('button', { name: 'All projects' })).toBeInTheDocument();
-    expect(sheet.getByRole('button', { name: 'High' })).toBeInTheDocument();
-    expect(sheet.getByRole('radio', { name: 'Due date' })).toBeChecked();
-    expect(sheet.getAllByRole('radio')).toHaveLength(4);
-  });
-
-  it('opens as a full-height overlay like the profile, closed by the X', () => {
-    renderApp('tasks.my', 'member');
-    fireEvent.click(dom.getByRole('button', { name: 'Filter and sort' }));
-    const dialog = dom.getByRole('dialog');
-    expect(dialog).toHaveClass('fs');
-    expect(within(dialog).getByRole('heading', { name: 'Filter & sort' })).toHaveAttribute('data-sheet-drag');
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
-    expect(dom.queryByRole('heading', { name: 'Filter & sort' })).not.toBeInTheDocument();
-  });
-
-  it('closes on Apply with a confirmation', () => {
-    renderApp('tasks.my', 'member');
-    fireEvent.click(dom.getByRole('button', { name: 'Filter and sort' }));
-    fireEvent.click(within(dom.getByRole('dialog')).getByRole('button', { name: 'Apply' }));
-    expect(dom.queryByRole('heading', { name: 'Filter & sort' })).not.toBeInTheDocument();
-    expect(dom.getByText('Filter applied')).toBeInTheDocument();
-  });
-
-  it('scopes All tasks to Atlas inside the sheet (dot on the icon) instead of a pill on the list', () => {
-    renderApp('tasks.all', 'pm');
-    expect(dom.queryByText(/^Project:/)).not.toBeInTheDocument();
-    const icon = dom.getByRole('button', { name: 'Filter and sort' });
-    expect(icon).toHaveClass('is-on');
-    fireEvent.click(icon);
-    expect(within(dom.getByRole('dialog')).getByRole('button', { name: D.project('atlas').name })).toBeInTheDocument();
   });
 });

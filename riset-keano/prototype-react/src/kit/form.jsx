@@ -6,11 +6,26 @@ import { ChevronDown } from 'lucide-react';
 import { useNav } from '../core/app.context';
 import { splitNav } from './controls';
 
-/** Dropdown look-alike. The prototype has no real menu, so a tap fires its nav props (usually `toast` listing the options). block = full width. */
-export function Select({ children, block, ...props }) {
+/** Dropdown pill. block = full width. With options ([{value, label}]) it is a real picker: a transparent native
+ *  <select> over the pill opens the OS menu, value is the picked value, onChange(value), label names it for screen
+ *  readers. Without options the prototype has no menu, so a tap fires its nav props (usually `toast`). */
+export function Select({ children, block, options, value, onChange, label, ...props }) {
   const [nav, rest] = splitNav(props);
+  const onClick = useNav(nav);
+  const cls = `select${block ? ' block' : ''}`;
+  if (options) {
+    return (
+      <span className={`${cls} select-native`}>
+        <span className="ellipsis">{options.find(o => o.value === value)?.label}</span>
+        <ChevronDown size={16} aria-hidden="true" />
+        <select className="select-pick" value={value} aria-label={label} onChange={e => onChange(e.target.value)}>
+          {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </span>
+    );
+  }
   return (
-    <button type="button" className={`select${block ? ' block' : ''}`} onClick={useNav(nav)} {...rest}>
+    <button type="button" className={cls} onClick={onClick} {...rest}>
       <span className="ellipsis">{children}</span>
       <ChevronDown size={16} aria-hidden="true" />
     </button>

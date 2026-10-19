@@ -44,9 +44,3 @@ export function blockedBy(t) {
 
 /** Task named in a taskDetail "blocks" line ("#16 Prepare test data · ..."), or null. */
 export const blocking = x => (x.blocks ? D.task(+x.blocks.match(/#(\d+)/)[1]) : null);
-
-/** Filter & sort overlay options (①b); index 0 is the default. Kept here, not in the .jsx,
- *  so the overlay file only exports components and stays Fast Refresh friendly. */
-export const STATUSES = ['All active', 'To do', 'In progress', 'In review', 'Done'];
-export const PRIORITIES = ['All', 'High', 'Medium', 'Low'];
-export const SORTS = ['Due date', 'Priority', 'Recently updated', 'Title (A–Z)'];

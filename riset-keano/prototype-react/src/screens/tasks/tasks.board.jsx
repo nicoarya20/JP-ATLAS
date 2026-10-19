@@ -3,7 +3,8 @@ import { Ban, Calendar, Circle, CircleCheck, CircleDashed, CircleDot, Flag, List
 import { Avatar, Btn, Section } from '../../kit';
 import { D } from '../../data/sample';
 import { ListScreen } from './tasks.list';
-import { atlasTasks, blocked, days, detailOf } from './tasks.shared';
+import { applyQuery, queryOf } from './tasks.query';
+import { blocked, days, detailOf } from './tasks.shared';
 
 // Status badge per column: icon + tone class (colour comes from tasks.css).
 const COLUMNS = [
@@ -41,10 +42,11 @@ function BoardCard({ t, mine }) {
 }
 
 /** ③ Kanban — one status column per screen width, the next column peeks; swipe to move.
- *  params.mine = my tasks across projects (card shows the project), otherwise every Atlas task. */
+ *  params.mine = my tasks across projects (card shows the project), otherwise every Atlas task; both narrowed and
+ *  ordered by the Filter & sort query in params (All active keeps the Done column). */
 export function TasksBoard({ params }) {
   const mine = !!params?.mine;
-  const tasks = mine ? D.tasks.filter(t => t.who === D.me().name) : atlasTasks();
+  const tasks = applyQuery(mine ? D.tasks.filter(t => t.who === D.me().name) : D.tasks, queryOf(params, mine), true);
   return (
     <ListScreen mine={mine} board>
       <div className="tk-board">

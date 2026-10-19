@@ -1,19 +1,26 @@
 // Tasks ①, ②, ④: My tasks (grouped by urgency), All tasks (Atlas, bulk select) and the empty state; Kanban ③ is in tasks.board.
-import { ChevronRight, List, ListChecks, Plus, SquareKanban } from 'lucide-react';
+// ① and ② show their screen params' Filter & sort query (tasks.query).
+import { ChevronRight, List, ListChecks, Plus, SearchX, SquareKanban } from 'lucide-react';
 import { Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { FilterButton } from './tasks.filter';
 import { Tick } from './tasks.parts';
-import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
+import { SORTS, SORT_DUE, applyQuery, isFiltered, queryOf, queryParams, withoutQuery } from './tasks.query';
+import { TODAY, blocked, days, detailOf, note } from './tasks.shared';
 
 /** List frame shared by ①–④: My/All switch with the List/Kanban view beside it, search with the Filter & sort icon
  *  (status, project, priority, sort live in its overlay). The two switches are independent: Kanban keeps My/All
- *  (tasks.board with params.mine) and My/All keeps the Kanban view.
+ *  (tasks.board with params.mine) and My/All keeps the Kanban view. List/Kanban keeps the query; My/All starts the
+ *  other list's own default (they scope projects differently).
  *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
 export function ListScreen({ mine, board, children }) {
-  const { go } = useApp();
-  const open = (my, kanban) => (kanban ? go('tasks.board', { params: my ? { mine: true } : {} }) : go(my ? 'tasks.my' : 'tasks.all'));
+  const { go, params } = useApp();
+  const open = (my, kanban) => {
+    const q = !!my === !!mine ? queryParams(params) : {};
+    if (kanban) go('tasks.board', { params: my ? { ...q, mine: true } : q });
+    else go(my ? 'tasks.my' : 'tasks.all', { params: q });
+  };
   return (
     <Screen title="Tasks" tab="tasks">
       <div className="tk-filters">
@@ -24,7 +31,7 @@ export function ListScreen({ mine, board, children }) {
         </div>
         <div className="tk-search">
           <div className="grow"><Search placeholder="Search title, #number, or tag…" /></div>
-          <FilterButton project={mine ? undefined : atlas().id} />
+          <FilterButton mine={mine} />
         </div>
       </div>
       {children}
@@ -57,19 +64,34 @@ function MyCard({ t }) {
   );
 }
 
-const GROUPS = ['Overdue', 'Today', 'Tomorrow', 'This week', 'Later'];
+const GROUPS = ['Overdue', 'Today', 'Tomorrow', 'This week', 'Later', 'Done'];
 const weekLeft = (7 - TODAY.getDay()) % 7;
-const groupOf = t => { const d = days(t.due); return d < 0 ? 0 : d <= 1 ? d + 1 : d <= weekLeft ? 3 : 4; };
+const groupOf = t => { const d = days(t.due); return t.status === 'Done' ? 5 : d < 0 ? 0 : d <= 1 ? d + 1 : d <= weekLeft ? 3 : 4; };
 
-/** ① My tasks. Manager reviews the queue; Admin may review any task. Everyone else sees only their own open tasks. */
-export function TasksMy() {
+/** Shown when the query leaves a list empty: Reset filters re-opens the list with its default query. */
+function NoMatch() {
+  const { current, params, go } = useApp();
+  return (
+    <Empty icon={<SearchX size={28} role="img" aria-label="No matches" />} title="No tasks match these filters."
+      text="Change the filters, or reset them to see the whole list."
+      action={<Btn kind="primary" onClick={() => go(current, { params: withoutQuery(params) })}>Reset filters</Btn>} />
+  );
+}
+
+/** ① My tasks. Manager reviews the queue; Admin may review any task. Everyone else sees only their own tasks.
+ *  Sorted by due date the list is grouped by urgency; any other sort is one list in that order. */
+export function TasksMy({ params }) {
   const { is } = useApp();
-  const review = is('member') ? [] : D.tasks.filter(t => t.status === 'In review');
-  const own = D.tasks.filter(t => t.who === D.me().name && t.status !== 'Done' && !review.includes(t));
-  const groups = GROUPS.map((g, i) => [g, own.filter(t => groupOf(t) === i)]).filter(([, list]) => list.length);
+  const q = queryOf(params, true);
+  const review = is('member') ? [] : applyQuery(D.tasks.filter(t => t.status === 'In review'), q);
+  const own = applyQuery(D.tasks.filter(t => t.who === D.me().name && !review.includes(t)), q);
+  const groups = q.sort === SORT_DUE
+    ? GROUPS.map((g, i) => [g, own.filter(t => groupOf(t) === i)]).filter(([, list]) => list.length)
+    : own.length ? [[SORTS[q.sort], own]] : [];
   if (review.length) groups.unshift([is('pm') ? 'Waiting for my review' : 'Waiting for review', review]);
   return (
     <ListScreen mine>
+      {!groups.length && isFiltered(q) && <NoMatch />}
       {groups.map(([g, list]) => [
         <h2 key={g} className="t-headline tk-group">{g}<span className="muted">{list.length}</span></h2>,
         ...list.map(t => <MyCard key={t.no} t={t} />),
@@ -78,11 +100,13 @@ export function TasksMy() {
   );
 }
 
-/** ② All tasks — checkbox for bulk select, card opens the detail. Filtered to the Atlas project. */
-export function TasksAll() {
-  const list = atlasTasks();
+/** ② All tasks — checkbox for bulk select, card opens the detail. Scoped to the Atlas project until the filter changes it. */
+export function TasksAll({ params }) {
+  const q = queryOf(params, false);
+  const list = applyQuery(D.tasks, q);
   return (
     <ListScreen>
+      {!list.length && <NoMatch />}
       {list.map(t => (
         <Section key={t.no} go={detailOf(t)} task={t.no}>
           <div className="row-flex tk-top">
@@ -99,7 +123,7 @@ export function TasksAll() {
           </div>
         </Section>
       ))}
-      <p className="t-footnote muted">1–{list.length} of {list.length} tasks · {atlas().name}</p>
+      {list.length > 0 && <p className="t-footnote muted">1–{list.length} of {list.length} tasks · {D.project(q.project)?.name || 'All projects'}</p>}
     </ListScreen>
   );
 }
