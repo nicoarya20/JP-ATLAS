@@ -3,14 +3,8 @@
  * with open tasks shows schedule groups; every other view is a table of at most five columns from
  * `sm` up (K15) and cards below it. `lockedProjectId` pins the list to one project.
  */
-import { Alert, Button, Center, Loader, Stack, Text } from '@mantine/core';
-import {
-  type TaskCounts,
-  type TaskPage,
-  taskErrorMessage,
-  useTaskCounts,
-  useTaskList,
-} from '~/lib/tasks-api';
+import { Stack } from '@mantine/core';
+import { type TaskCounts, type TaskPage, useTaskCounts, useTaskList } from '~/lib/tasks-api';
 import {
   hasTaskFilters,
   isGroupedView,
@@ -20,6 +14,8 @@ import {
 } from '~/lib/tasks-filters';
 import { TaskEmpty, type TaskEmptyVariant } from './TaskEmpty';
 import { TaskGroupList } from './TaskGroupList';
+import { TaskListSkeleton } from './TaskListSkeleton';
+import { TaskLoadError } from './TaskLoadError';
 import { TaskTable } from './TaskTable';
 import { LIST_COPY } from './tasks.copy';
 
@@ -45,25 +41,6 @@ type Props = {
   createTo?: string | null;
   seed?: TaskListSeed;
 };
-
-function LoadError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
-  return (
-    <Alert color="danger" title={LIST_COPY.loadFailed}>
-      <Stack gap="xs" align="flex-start">
-        <Text size="sm">{taskErrorMessage(error)}</Text>
-        <Button variant="light" onClick={onRetry}>
-          {LIST_COPY.retry}
-        </Button>
-      </Stack>
-    </Alert>
-  );
-}
-
-const Loading = () => (
-  <Center py="xl">
-    <Loader />
-  </Center>
-);
 
 export function TaskListView({
   filters,
@@ -105,8 +82,8 @@ export function TaskListView({
 
   if (grouped) {
     if (counts.isError)
-      return <LoadError error={counts.error} onRetry={() => void counts.refetch()} />;
-    if (!counts.data) return <Loading />;
+      return <TaskLoadError error={counts.error} onRetry={() => void counts.refetch()} />;
+    if (!counts.data) return <TaskListSkeleton />;
     return (
       <TaskGroupList
         key={JSON.stringify(query)}
@@ -119,16 +96,27 @@ export function TaskListView({
   }
 
   if (list.isError && !list.data) {
-    return <LoadError error={list.error} onRetry={() => void list.refetch()} />;
+    return <TaskLoadError error={list.error} onRetry={() => void list.refetch()} />;
   }
-  if (!list.data) return <Loading />;
+  if (!list.data) return <TaskListSkeleton />;
   return (
-    <TaskTable
-      rows={list.data.pages.flatMap((p) => p.items)}
-      empty={empty}
-      hasMore={list.hasNextPage}
-      loadingMore={list.isFetchingNextPage}
-      onMore={() => void list.fetchNextPage()}
-    />
+    <Stack gap="sm">
+      <TaskTable
+        rows={list.data.pages.flatMap((p) => p.items)}
+        empty={empty}
+        hasMore={list.hasNextPage}
+        loadingMore={list.isFetchingNextPage}
+        onMore={() => void list.fetchNextPage()}
+      />
+      {/* Rows already on screen stay; only the page that failed to arrive is reported. */}
+      {list.isError && (
+        <TaskLoadError
+          title={list.isFetchNextPageError ? LIST_COPY.loadMoreFailed : LIST_COPY.loadFailed}
+          error={list.error}
+          retrying={list.isFetching}
+          onRetry={() => void (list.isFetchNextPageError ? list.fetchNextPage() : list.refetch())}
+        />
+      )}
+    </Stack>
   );
 }

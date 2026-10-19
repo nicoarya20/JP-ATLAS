@@ -117,6 +117,8 @@ describe('Tugas tab', () => {
     expect(html).not.toContain(FILTER_COPY.scopeMine);
     expect(html).not.toContain(FILTER_COPY.projectLabel);
     expect(html).toContain(FILTER_COPY.personLabel);
+    expect(html).toContain(FILTER_COPY.statusDoing);
+    expect(html).toMatch(new RegExp(`<label[^>]*>${FILTER_COPY.dueLabel}</label>`));
     expect(html).not.toMatch(/Papan|Kanban|CSV|\bTag\b/);
   });
 });

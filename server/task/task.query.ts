@@ -34,7 +34,7 @@ import {
   liveTask,
   orderBy,
   SORTS,
-  titleMatches,
+  taskSearch,
   visibleTo,
 } from './task.sql';
 import { viewOf } from './task.view';
@@ -51,7 +51,7 @@ function filtersOf(p: Principal, i: ListTasksInput, today: string): (SQL | undef
     i.status?.length ? inArray(task.status, [...i.status]) : undefined,
     i.assigneeId ? eq(task.assigneeId, i.assigneeId) : undefined,
     i.priority?.length ? inArray(task.priority, [...i.priority]) : undefined,
-    q ? titleMatches(q) : undefined,
+    q ? taskSearch(q) : undefined,
     i.due ? inGroup(i.due, scheduleBounds(today)) : undefined,
   ];
 }

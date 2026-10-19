@@ -250,6 +250,17 @@ describe('filters and details', () => {
     expect(await titles({ q })).toEqual(expected);
   });
 
+  it('search finds a task by its number, with or without "#", and is not fooled by a huge number', async () => {
+    const all = good(await listTasks(principal(lead), { scope: 'project', projectId }, clock));
+    const target = all.items.find((i) => i.title === 'Cek_garis bawah');
+    if (!target) throw new Error('seeded task missing');
+    expect(await titles({ q: `#${target.number}` })).toEqual(['Cek_garis bawah']);
+    expect(await titles({ q: String(target.number) })).toContain('Cek_garis bawah');
+    // Digits that no task has, and a run too long to be a number, fall back to a plain title search.
+    expect(await titles({ q: '#999999999' })).toEqual([]);
+    expect(await titles({ q: '9'.repeat(30) })).toEqual([]);
+  });
+
   it('filters by status, priority and assignee', async () => {
     expect(await titles({ status: ['done', 'canceled'] })).toEqual([
       'Laporan akhir',
