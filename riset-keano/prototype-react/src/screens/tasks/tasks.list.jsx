@@ -1,6 +1,6 @@
-// Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Kanban (status columns, mine or Atlas) and the empty state.
+// Tasks ①, ②, ④: My tasks (grouped by urgency), All tasks (Atlas, bulk select) and the empty state; Kanban ③ is in tasks.board.
 import { ChevronRight, Kanban, List, ListChecks, Plus } from 'lucide-react';
-import { Avatar, Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
+import { Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { FilterButton } from './tasks.filter';
@@ -11,7 +11,7 @@ import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks
  *  (status, project, priority, sort live in its overlay). The two switches are independent: Kanban keeps My/All
  *  (tasks.board with params.mine) and My/All keeps the Kanban view.
  *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
-function ListScreen({ mine, board, children }) {
+export function ListScreen({ mine, board, children }) {
   const { go } = useApp();
   const open = (my, kanban) => (kanban ? go('tasks.board', { params: my ? { mine: true } : {} }) : go(my ? 'tasks.my' : 'tasks.all'));
   return (
@@ -112,52 +112,6 @@ export function TasksAll() {
         </Section>
       ))}
       <p className="t-footnote muted">1–{list.length} of {list.length} tasks · {atlas().name}</p>
-    </ListScreen>
-  );
-}
-
-// ③ Card button = next action; none when the card only opens the detail (Done, blocked, and for Member
-// other people's cards plus their own task in review).
-function boardAction(t, member) {
-  if (t.status === 'Done' || blocked(t) || (member && (t.who !== D.me().name || t.status === 'In review'))) return null;
-  if (t.status === 'In review') return ['Review', { go: 'tasks.detail-review', task: t.no }];
-  if (t.status === 'In progress') return ['Request review', { go: 'tasks.detail-review' }];
-  return ['Start working', { toast: 'Task started' }];
-}
-
-function BoardCard({ t, mine }) {
-  const a = boardAction(t, useApp().is('member'));
-  return (
-    <Section go={detailOf(t)} task={t.no}>
-      <div className="stack xs">
-        <CardTitle>{t.title}</CardTitle>
-        <span className="t-footnote muted">#{t.no} · {mine ? t.project : t.type} · {t.priority}</span>
-        <span className="t-footnote bold">{note(t)}</span>
-        <span className="row-flex t-footnote muted tk-meta"><Avatar name={t.who} size="sm" />{t.who}</span>
-        {a && <div className="tk-meta"><Btn sm block {...a[1]}>{a[0]}</Btn></div>}
-      </div>
-    </Section>
-  );
-}
-
-/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move.
- *  params.mine = my tasks across projects (card shows the project), otherwise every Atlas task. */
-export function TasksBoard({ params }) {
-  const mine = !!params?.mine;
-  const tasks = mine ? D.tasks.filter(t => t.who === D.me().name) : atlasTasks();
-  return (
-    <ListScreen mine={mine} board>
-      <div className="tk-board">
-        {['To do', 'In progress', 'In review', 'Done'].map(s => {
-          const list = tasks.filter(t => t.status === s);
-          return (
-            <section key={s} className="tk-col">
-              <h3 className="t-headline">{s} <span className="muted">{list.length}</span></h3>
-              {list.map(t => <BoardCard key={t.no} t={t} mine={mine} />)}
-            </section>
-          );
-        })}
-      </div>
     </ListScreen>
   );
 }

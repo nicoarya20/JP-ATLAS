@@ -1,6 +1,7 @@
 // Tasks module (Penpot "Project Manager · Tugas" ①–⑬): lists, board, create, CSV import, detail per status, sheets, settings.
 import { screen, sheet } from '../../core/registry';
-import { TasksAll, TasksBoard, TasksEmpty, TasksMy } from './tasks.list';
+import { TasksAll, TasksEmpty, TasksMy } from './tasks.list';
+import { TasksBoard } from './tasks.board';
 import { TasksCsv, TasksForm, TasksWrite } from './tasks.new';
 import { TasksDetailProgress, TasksDetailReview, TasksDetailTodo } from './tasks.detail.screens';
 import { TasksCancel, TasksReturn } from './tasks.sheets';

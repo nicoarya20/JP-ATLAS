@@ -77,7 +77,7 @@ describe('tasks list', () => {
   it('keeps My / All when switching to Kanban and keeps Kanban when switching My / All', () => {
     renderApp('tasks.my', 'member');
     const selected = name => dom.getByRole('tab', { name }).getAttribute('aria-selected');
-    const cards = () => document.querySelectorAll('.tk-col .tk-top').length;
+    const cards = () => document.querySelectorAll('.tk-col .tk-kcard').length;
     const mine = D.tasks.filter(t => t.who === D.me().name);
 
     fireEvent.click(dom.getByRole('tab', { name: 'Kanban' }));
@@ -97,6 +97,41 @@ describe('tasks list', () => {
 
     fireEvent.click(dom.getByRole('tab', { name: 'List' }));
     expect(window.location.hash).toBe('#tasks.my');
+  });
+
+  it('shows Kanban cards without action buttons; the task actions live in the detail', () => {
+    renderApp('tasks.board', 'pm');
+    for (const name of ['Start working', 'Request review', 'Review']) {
+      expect(dom.queryByRole('button', { name })).not.toBeInTheDocument();
+    }
+    fireEvent.click(dom.getByRole('button', { name: '#14 Write the API spec' }));
+    expect(window.location.hash).toBe('#tasks.detail-todo');
+    expect(dom.getByRole('button', { name: 'Start working' })).toBeInTheDocument();
+  });
+
+  it('gives each Kanban column a status badge, count and Add task, and marks late and blocked cards', () => {
+    renderApp('tasks.board', 'pm');
+    const col = name => within(dom.getByRole('region', { name: new RegExp(`^${name}, `) }));
+    for (const s of ['To do', 'In progress', 'In review', 'Done']) {
+      expect(col(s).getByRole('heading', { level: 3 })).toHaveTextContent(s);
+      expect(col(s).getByRole('button', { name: 'Add task' })).toBeInTheDocument();
+    }
+    expect(dom.getByRole('region', { name: 'To do, 3 tasks' })).toBeInTheDocument();
+    const sso = within(dom.getByRole('button', { name: '#12 Fix SSO login' }));
+    expect(sso.getByText('Oct 5').closest('.tk-chip')).toHaveClass('danger');      // 2 days overdue
+    expect(sso.getByText('2/3')).toBeInTheDocument();                              // checklist steps
+    expect(within(dom.getByRole('button', { name: '#16 Prepare test data' })).getByText('Blocked #12')).toBeInTheDocument();
+    fireEvent.click(col('Done').getByRole('button', { name: 'Add task' }));
+    expect(window.location.hash).toBe('#tasks.form');
+  });
+
+  it('says No tasks in an empty Kanban column', () => {
+    renderApp('tasks.board', 'member');
+    fireEvent.click(dom.getByRole('tab', { name: 'My tasks' }));
+    const empty = D.tasks.filter(t => t.who === D.me().name);
+    const none = ['To do', 'In progress', 'In review', 'Done'].filter(s => !empty.some(t => t.status === s));
+    expect(none.length).toBeGreaterThan(0);
+    expect(within(dom.getByRole('region', { name: `${none[0]}, 0 tasks` })).getByText('No tasks')).toBeInTheDocument();
   });
 
   it('opens Kanban from All tasks with All still picked', () => {
