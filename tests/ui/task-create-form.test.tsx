@@ -111,3 +111,31 @@ describe('Tahapan picker', () => {
     expect(block).not.toContain('disabled');
   });
 });
+
+describe('Batal', () => {
+  const cancelMarkup = (html: string) =>
+    new RegExp(`<(a|button)\\b[^>]*>(?:<[^>]*>)*${TASK_FORM_COPY.cancel}`).exec(html);
+
+  it('is a link back to cancelTo by default', async () => {
+    const found = cancelMarkup(await open(newTaskValues(null, null)));
+    expect(found?.[1]).toBe('a');
+    expect(found?.[0]).toContain('href="/app/tasks"');
+  });
+
+  it('is a plain button when onCancel is given, so a form in a dialog stays on the page', async () => {
+    const html = await renderUi(
+      <TaskCreateForm
+        projects={PROJECTS}
+        initialValues={newTaskValues(null, null)}
+        viewer={VIEWER}
+        today={TODAY}
+        cancelTo="/app/tasks"
+        onCancel={() => undefined}
+        onSubmitted={() => undefined}
+      />,
+    );
+    const found = cancelMarkup(html);
+    expect(found?.[1]).toBe('button');
+    expect(found?.[0]).not.toContain('href=');
+  });
+});

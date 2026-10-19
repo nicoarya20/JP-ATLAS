@@ -49,6 +49,8 @@ type Common = {
   initialMembers?: ProjectMemberItem[];
   submitting: boolean;
   cancelTo: string;
+  /** When set, Batal calls it instead of going to `cancelTo` (the form inside a dialog must not leave the page). */
+  onCancel?: () => void;
   /** Resolves with field errors to show, or null when the task was saved. */
   onSubmit: (values: TaskFormValues) => Promise<TaskFieldErrors | null>;
 };
@@ -231,9 +233,15 @@ export function TaskForm(props: TaskFormProps) {
           />
         </Collapse>
         <Group justify="flex-end" gap="xs" wrap="wrap">
-          <Button component={Link} to={cancelTo} variant="default">
-            {COPY.cancel}
-          </Button>
+          {props.onCancel ? (
+            <Button variant="default" onClick={props.onCancel}>
+              {COPY.cancel}
+            </Button>
+          ) : (
+            <Button component={Link} to={cancelTo} variant="default">
+              {COPY.cancel}
+            </Button>
+          )}
           <Button type="submit" loading={submitting}>
             {editing ? COPY.editSubmit : COPY.submit}
           </Button>
