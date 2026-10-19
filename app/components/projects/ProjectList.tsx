@@ -6,7 +6,15 @@ import type { ReactNode } from 'react';
 import { ProgressBar } from '~/components/pm/ProgressBar';
 import { StatusBadge } from '~/components/pm/StatusBadge';
 import { type ResponsiveColumn, ResponsiveTable } from '~/components/ui/ResponsiveTable';
-import { ConditionCell, DueCell, LeadCell, ProjectCard, ProjectNameLink } from './ProjectCard';
+import {
+  CLICK_CARD,
+  CLICK_ROW,
+  ConditionCell,
+  DueCell,
+  LeadCell,
+  ProjectCard,
+  ProjectNameLink,
+} from './ProjectCard';
 import { LIST_COPY } from './projects.copy';
 
 function columns(today: IsoDate): ResponsiveColumn<ProjectListItem>[] {
@@ -62,6 +70,8 @@ export function ProjectList({ items, total, today, empty, hasMore, loadingMore, 
         rows={items}
         getRowKey={(p) => p.id}
         renderCard={(p) => <ProjectCard project={p} today={today} />}
+        rowClassName={CLICK_ROW}
+        cardClassName={CLICK_CARD}
         empty={empty}
       />
       {items.length > 0 && (

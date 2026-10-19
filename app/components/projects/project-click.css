@@ -1,0 +1,55 @@
+/*
+ * Whole-row / whole-card click for the project list. The name stays a real link (keyboard, screen
+ * reader, "open in new tab"); its ::after stretches over the nearest positioned ancestor, so there
+ * is no onClick on <tr>. Plain global classes: CSS modules are not resolved under bun:test.
+ */
+
+.mk-click-row,
+.mk-click-card {
+  position: relative;
+  cursor: pointer;
+}
+
+/* z-index 1 keeps the overlay above positioned children such as Mantine's Progress. */
+.mk-row-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Anything interactive inside a clickable row stays on top and keeps its own action. */
+.mk-above {
+  position: relative;
+  z-index: 2;
+}
+
+.mk-click-card {
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.mk-click-card:hover {
+  border-color: var(--mk-focus-ring);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+/* The ring goes around the whole row or card, not just the name; the link's own outline would be redundant. */
+@supports selector(:has(a)) {
+  .mk-click-row:has(.mk-row-link:focus-visible),
+  .mk-click-card:has(.mk-row-link:focus-visible) {
+    outline: calc(0.1875rem * var(--mantine-scale)) solid var(--mk-focus-ring);
+    outline-offset: calc(-0.1875rem * var(--mantine-scale));
+  }
+
+  .mk-row-link:focus-visible {
+    outline: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-click-card {
+    transition: none;
+  }
+}
