@@ -171,6 +171,8 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('delete', '/api/app/events/e1/participants/u1')).toBeNull();
     expect(requiredScope('POST', '/api/app/events/e1/cancel')).toBeNull();
     expect(requiredScope('DELETE', '/api/app/events/e1')).toBeNull();
+    // The Urungkan half: restoring from the Trash is as sensitive as the delete (E-07).
+    expect(requiredScope('POST', '/api/app/trash/event/e1/restore')).toBeNull();
   });
 
   it('keeps the event reads, writes and minutes on app:read / app:write', () => {
