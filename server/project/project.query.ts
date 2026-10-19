@@ -25,6 +25,7 @@ import {
   toDetail,
   toListItem,
 } from './project.dto';
+import { loadProjectHistory } from './project-deadline.query';
 
 export const PROJECT_SORTS = ['due', 'name', 'recent'] as const;
 export type ProjectSort = (typeof PROJECT_SORTS)[number];
@@ -173,16 +174,26 @@ export async function getProjectDetail(
   const membership = (await loadMembership(p.id, [projectId], exec)).get(projectId) ?? null;
   // View first: `can{}` of a hidden project must never be computed, let alone returned.
   if (!canViewProject(p, row, membership).ok) return null;
-  const [tasks, [live]] = await Promise.all([
+  const [tasks, [live], history] = await Promise.all([
     loadTasks(exec, [projectId]),
     // Canceled tasks are outside `loadTasks` but still move to the Trash with the project (S1-18 dialog).
     exec
       .select({ n: count() })
       .from(task)
       .where(and(eq(task.projectId, projectId), isLive(task))),
+    loadProjectHistory(exec, projectId, row.status, now),
   ]);
   const can = projectCaps(p, row, membership);
-  return toDetail(row, tasks.get(projectId) ?? [], membership, can, now, cfg, live?.n ?? 0);
+  return toDetail(
+    row,
+    tasks.get(projectId) ?? [],
+    membership,
+    can,
+    now,
+    cfg,
+    live?.n ?? 0,
+    history,
+  );
 }
 
 const ROLE_RANK = new Map<string, number>(PROJECT_MEMBER_ROLES.map((r, i) => [r, i]));

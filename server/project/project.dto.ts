@@ -12,6 +12,7 @@ import type {
   ProjectPriority,
   ProjectStatus,
 } from '../pm/enums';
+import type { ConditionOverrideDto, DeadlineExtensionDto } from './project-plan.dto';
 
 /** Id and name only: no email or phone leaves through the project API (Q8). */
 export type ProjectLead = { id: string; name: string };
@@ -32,6 +33,21 @@ export type ProjectListItem = {
   myRole: ProjectMemberRole | null;
 };
 
+/** Deadline history and the manual condition in force, added to the detail by S5a-03. */
+export type ProjectHistory = {
+  /** How many times the due date was moved later ("Diperpanjang ×N"). */
+  extensionCount: number;
+  lastExtension: DeadlineExtensionDto | null;
+  /** The manual condition in force; null when none, expired, cleared or the project is not `active`. */
+  conditionOverride: ConditionOverrideDto | null;
+};
+
+export const NO_HISTORY: ProjectHistory = {
+  extensionCount: 0,
+  lastExtension: null,
+  conditionOverride: null,
+};
+
 export type ProjectDetail = ProjectListItem & {
   description: string | null;
   startDate: string | null;
@@ -39,7 +55,7 @@ export type ProjectDetail = ProjectListItem & {
   /** `live` counts every task not in the Trash, canceled ones too: what a delete would move with it. */
   taskCounts: { active: number; overdue: number; live: number };
   can: ProjectCaps;
-};
+} & ProjectHistory;
 
 export type ProjectMemberItem = {
   userId: string;
@@ -54,7 +70,7 @@ export type ProjectMemberItem = {
 /** The project columns the read side selects, plus the lead's name from the join. */
 export type ProjectRow = Omit<
   ProjectDetail,
-  'lead' | 'progress' | 'condition' | 'myRole' | 'taskCounts' | 'can'
+  'lead' | 'progress' | 'condition' | 'myRole' | 'taskCounts' | 'can' | keyof ProjectHistory
 > & {
   leadId: string | null;
   leadName: string | null;
@@ -106,6 +122,7 @@ export function toDetail(
   now: Date,
   cfg: MetricsConfig,
   liveTasks = 0,
+  history: ProjectHistory = NO_HISTORY,
 ): ProjectDetail {
   const today = isoDateIn(now, cfg.TIME_ZONE);
   return {
@@ -113,6 +130,7 @@ export function toDetail(
     description: row.description,
     startDate: row.startDate,
     originalDueDate: row.originalDueDate,
+    ...history,
     taskCounts: {
       active: tasks.filter(isActive).length,
       overdue: tasks.filter((t) => isOverdue(t, today)).length,
