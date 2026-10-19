@@ -1,4 +1,4 @@
-// Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Board (status columns) and the empty state.
+// Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Kanban (status columns) and the empty state.
 import { ChevronRight, ListChecks, Plus } from 'lucide-react';
 import { Avatar, Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
@@ -7,7 +7,7 @@ import { FilterButton } from './tasks.filter';
 import { Tick } from './tasks.parts';
 import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
 
-/** List frame shared by ①–④: My/All switch with the List/Board view beside it, search with the Filter & sort icon
+/** List frame shared by ①–④: My/All switch with the List/Kanban view beside it, search with the Filter & sort icon
  *  (status, project, priority, sort live in its overlay), CSV on All.
  *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
 function ListScreen({ all, board, children }) {
@@ -16,7 +16,7 @@ function ListScreen({ all, board, children }) {
       <div className="tk-filters">
         <div className="tk-switch">
           <div className="grow"><Seg items={['My tasks', 'All tasks']} on={all ? 1 : 0} gos={['tasks.my', 'tasks.all']} /></div>
-          <div className="tk-seg"><Seg items={['List', 'Board']} on={board ? 1 : 0} gos={['tasks.all', 'tasks.board']} /></div>
+          <div className="tk-seg"><Seg items={['List', 'Kanban']} on={board ? 1 : 0} gos={['tasks.all', 'tasks.board']} /></div>
         </div>
         <div className="tk-search">
           <div className="grow"><Search placeholder="Search title, #number, or tag…" /></div>
@@ -142,7 +142,7 @@ function BoardCard({ t }) {
   );
 }
 
-/** ③ Board — one status column per screen width, the next column peeks; swipe to move. */
+/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move. */
 export function TasksBoard() {
   return (
     <ListScreen all board>

@@ -33,7 +33,7 @@ export function ProjectsTasks() {
     <DetailScreen on={1}>
       <Chips items={['All', 'My tasks', 'Overdue', 'Awaiting review']} />
       <div className="between">
-        <div className="pj-seg"><Seg items={['List', 'Board']} on={0} gos={['', 'tasks.board']} /></div>
+        <div className="pj-seg"><Seg items={['List', 'Kanban']} on={0} gos={['', 'tasks.board']} /></div>
         <Btn kind="primary" sm go="tasks.form">+ New task</Btn>
       </div>
       {list.map(t => <TaskCard key={t.no} t={t} canEdit={canEdit} note={note} />)}

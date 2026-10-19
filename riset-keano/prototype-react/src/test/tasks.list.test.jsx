@@ -51,10 +51,10 @@ describe('tasks list', () => {
     expect(dom.queryByText(/Sort: Due date/)).not.toBeInTheDocument();
   });
 
-  it('puts the List / Board view on the same row as My / All', () => {
+  it('puts the List / Kanban view on the same row as My / All', () => {
     renderApp('tasks.my', 'member');
     const row = dom.getByRole('tab', { name: 'My tasks' }).closest('.tk-switch');
-    expect(within(row).getByRole('tab', { name: 'Board' })).toBeInTheDocument();
+    expect(within(row).getByRole('tab', { name: 'Kanban' })).toBeInTheDocument();
   });
 
   it('opens one sheet with the status, project and priority filters and the sort order', () => {
