@@ -189,12 +189,9 @@ describe('hasTaskFilters and grouping', () => {
     'lingkup=semua&orang=saya',
     'prioritas=tinggi',
     'q=x',
-  ])(
-    'is true for %s',
-    (qs) => {
-      expect(hasTaskFilters(parse(qs))).toBe(true);
-    },
-  );
+  ])('is true for %s', (qs) => {
+    expect(hasTaskFilters(parse(qs))).toBe(true);
+  });
 
   it('does not count an orang that "Tugas saya" ignores, but does on a project tab', () => {
     expect(hasTaskFilters(parse('orang=u-2'))).toBe(false);
