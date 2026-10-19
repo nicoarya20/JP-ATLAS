@@ -1,11 +1,13 @@
 // Events ② calendar: no Today button; Month / Week switch the grid; tapping a date shows that date's agenda;
-// Week arrows step a week at a time within October.
+// month arrows change the month, week arrows step a week (both crossing into other months).
 import { describe, expect, it } from 'vitest';
 import { fireEvent, screen as dom } from '@testing-library/react';
 import '../screens';
 import { renderApp } from './render';
 
 const dates = () => [...document.querySelectorAll('.ev-date')].map(b => Number(b.textContent));
+const dotted = () => [...document.querySelectorAll('.ev-date')].filter(b => !b.querySelector('.ev-dot.none')).map(b => Number(b.textContent));
+const lead = () => document.querySelector('.ev-grid > div')?.style.gridColumn || '';
 const date = name => dom.getByRole('button', { name });
 const agendaHead = () => dom.getAllByRole('heading', { level: 2 }).at(-1).textContent;
 const tap = name => fireEvent.click(dom.getByRole(/week|month/.test(name) ? 'button' : 'tab', { name }));
@@ -51,7 +53,28 @@ describe('events calendar', () => {
     expect(dates()).toHaveLength(31);
   });
 
-  it('Week arrows move the picked date a week, stopping at the edges of October', () => {
+  it('month arrows open the next and previous months, picking the 1st (today back in October)', () => {
+    renderApp('events.calendar', 'pm');
+    tap('Next month');
+    expect(dom.getByText('November 2026')).toBeInTheDocument();
+    expect(dates()).toHaveLength(30);
+    expect(lead()).toBe('span 6');   // Nov 1, 2026 is a Sunday
+    expect(dotted()).toEqual([6, 20]);   // the sprint review keeps repeating every 2 weeks
+    expect(agendaHead()).toBe('Sun, Nov 1 · 0 events');
+    fireEvent.click(date('Fri, Nov 6'));
+    expect(dom.getByText('Atlas sprint review')).toBeInTheDocument();
+    tap('Previous month');
+    tap('Previous month');
+    expect(dom.getByText('September 2026')).toBeInTheDocument();
+    expect(dates()).toHaveLength(30);
+    expect(lead()).toBe('span 1');   // Sep 1, 2026 is a Tuesday
+    expect(dotted()).toEqual([]);
+    tap('Next month');
+    expect(dom.getByText('October 2026')).toBeInTheDocument();
+    expect(date('Wed, Oct 7')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('Week arrows move the picked date a week, running into the next and previous months', () => {
     renderApp('events.calendar', 'pm');
     tap('Week');
     tap('Next week');
@@ -59,12 +82,15 @@ describe('events calendar', () => {
     expect(agendaHead()).toBe('Wed, Oct 14 · 0 events');
     tap('Previous week');
     tap('Previous week');
-    expect(dates()).toEqual([1, 2, 3, 4]);
-    expect(document.querySelectorAll('.ev-date')[0]).toBe(date('Thu, Oct 1'));
-    expect(dom.getByRole('button', { name: 'Previous week' })).toBeDisabled();
-    for (let i = 0; i < 4; i++) tap('Next week');
-    expect(dates()).toEqual([26, 27, 28, 29, 30, 31]);
-    expect(dom.getByRole('button', { name: 'Next week' })).toBeDisabled();
+    expect(dates()).toEqual([28, 29, 30, 1, 2, 3, 4]);
+    expect(dom.getByText('Sep 28 – Oct 4')).toBeInTheDocument();
+    expect(agendaHead()).toBe('Wed, Sep 30 · 0 events');
+    for (let i = 0; i < 5; i++) tap('Next week');
+    expect(dates()).toEqual([2, 3, 4, 5, 6, 7, 8]);
+    expect(dom.getByText('Nov 2 – 8')).toBeInTheDocument();
+    expect(dotted()).toEqual([6]);
+    tap('Month');
+    expect(dom.getByText('November 2026')).toBeInTheDocument();
   });
 
   it('opens the done kickoff\'s results from the agenda when Past shows it', () => {

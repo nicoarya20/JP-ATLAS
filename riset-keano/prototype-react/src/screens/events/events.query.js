@@ -33,7 +33,7 @@ export const queryOf = params => ({ ...BASE_QUERY, ...queryParams(params) });
 export const isFiltered = q => !!(q.when || q.type || q.project);
 
 /** Past: already done, or its first date is before today; everything else is upcoming. */
-export const isPast = e => e.status === 'Done' || datesOf(e)[0] < TODAY_DATE;
+export const isPast = e => e.status === 'Done' || firstDate(e) < TODAY;
 
 /** Events of the picked time (upcoming / past), type and project (every sample event belongs to PROJECT()). */
 export function applyQuery(events, q) {
@@ -51,20 +51,23 @@ export function groupEvents(events, q) {
   return keys.map(k => [k, events.filter(e => of(e) === k)]);
 }
 
-/** October date of today ("Wed, Oct 7" → 7); every sample event is in October 2026. */
-export const TODAY_DATE = Number(D.today.short.match(/\d+$/)[0]);
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DAY_MS = 24 * 60 * 60 * 1000;
+const [, TODAY_MON, TODAY_DAY, TODAY_YEAR] = D.today.date.match(/(\w{3}) (\d+), (\d{4})$/);
 
-/** October dates an event falls on: its own day, then its repeats within the month. */
-export function datesOf(e) {
-  const first = e.day === 'Today' ? TODAY_DATE : Number(e.day.match(/\d+$/)[0]);
+/** Today of the sample data ("Wednesday, Oct 7, 2026"), at midnight. */
+export const TODAY = new Date(Number(TODAY_YEAR), MONTHS.indexOf(TODAY_MON), Number(TODAY_DAY));
+
+/** An event's own date; every sample event starts in today's month ("Thu 8" → Oct 8, 2026). */
+export const firstDate = e => (e.day === 'Today' ? TODAY
+  : new Date(TODAY.getFullYear(), TODAY.getMonth(), Number(e.day.match(/\d+$/)[0])));
+
+/** True when an event falls on date: its own date, or (recurring) every step days after it, into any later month. */
+export function occursOn(e, date) {
+  const gap = Math.round((date - firstDate(e)) / DAY_MS);   // round: a DST change makes a day 23 or 25 hours
   const step = REPEAT_DAYS[e.repeat];
-  if (!step) return [first];
-  return Array.from({ length: Math.floor((31 - first) / step) + 1 }, (_, i) => first + i * step);
+  return gap === 0 || (!!step && gap > 0 && gap % step === 0);
 }
 
-/** Number of events per October date, for the calendar dots. */
-export function eventsPerDate(events) {
-  const count = {};
-  for (const n of events.flatMap(datesOf)) count[n] = (count[n] || 0) + 1;
-  return count;
-}
+/** Events falling on date, for the calendar dots and agenda. */
+export const eventsOn = (events, date) => events.filter(e => occursOn(e, date));
