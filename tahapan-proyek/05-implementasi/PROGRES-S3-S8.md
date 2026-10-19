@@ -11,7 +11,7 @@
 | S5a | Tahapan, milestone, perpanjang tenggat, Perlu perhatian, Gantt (dikerjakan lebih dulu atas permintaan user 19 Okt) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) L5-01..04, 08..11 + [P3](rencana/P3-s1-s2-proyek-tugas.md) tampilan proyek | 8 + 2 | 10 | **selesai (merged)** ke `feature/project-management` 19 Okt 2026; belum di-push |
 | S5b | Jenis tugas dan Bukti (unggah foto) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) L5-05..07, 12..14 | 6 | 0 | belum dikerjakan |
 | S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 1 | **1 selesai (merged)** (Z-01) |
-| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 4 | **4 selesai (merged)** (M01-M04); sisa M05-M10 |
+| S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 4 | **4 selesai (merged)** (M01-M04); **3 review** (M06, M07, M10 sebagian) di `feature/pm-team-menu`; sisa M05, M08, M09 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
 | S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 5 | **5 selesai (merged)** (E-01, E-02, E-03, E-05, E-06); E-04 DIBLOKIR (butuh notify dari cabang Inbox) |
 | | **Total** | | **98** | **19** | |
@@ -141,11 +141,11 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 | M03 | Rute daftar `GET /api/app/team` + tes privasi per peran | selesai | `feature/pm-s6-m01-team-policy` | `ccee194` merge `f47bbfb` | privasi beban per peran terkunci tes; +SORT_NOT_ALLOWED |
 | M04 | Rute detail `GET /api/app/team/:userId` | selesai | `feature/pm-s6-m01-team-policy` | `aca0cab` merge `f47bbfb` | detail: Admin boleh buka akun ter-ban/pending, lainnya NOT_FOUND |
 | M05 | Migrasi indeks `project_member (project_id, role)` — *sinkron: pemegang baton* | belum | – | – | – |
-| M06 | Halaman daftar Tim + NAV + rute | belum | – | – | – |
-| M07 | Halaman detail orang | belum | – | – | – |
+| M06 | Halaman daftar Tim + NAV + rute | review | `feature/pm-team-menu` | – | Tersambung ke API; urut Nama / Tugas aktif terbanyak; TANPA ketersediaan (keputusan user 20 Okt); satu daftar, tidak dipecah per proyek |
+| M07 | Halaman detail orang | review | `feature/pm-team-menu` | – | `/app/team/:userId`; URL `/app` 17 → 18; Peran akun hanya Admin/Super-admin |
 | M08 | A7 — Pra-cek hapus akun pengelola tunggal | belum | – | – | – |
 | M09 | A8 — Pengaturan tim Admin: pengingat acara bawaan *(BERSYARAT: setelah S7 Events; Could)* | belum | – | – | – |
-| M10 | Demo, smoke, dokumen kontrak (integrator) | belum | – | – | – |
+| M10 | Demo, smoke, dokumen kontrak (integrator) | review (sebagian) | `feature/pm-team-menu` | – | Smoke (40/40) dan README/CHANGELOG selesai; demo ke user belum |
 
 ### S6 · Pengaturan
 | ID | Tugas | Status | Cabang | Hash | Catatan |
@@ -223,7 +223,7 @@ bersih, mulai dari nol), E-09..E-16. Tim: M05-M10. Sampah: Z-02..Z-08.
    tanpa `projectId` terkunci `canCreateProject`, jadi Member bisa membuat acara pribadi tapi tidak bisa
    mengundang siapa pun. Usulan koordinator: batasi ke orang yang berbagi proyek, memakai `loadScopeFor`
    dari M01 — membuka fitur tanpa membuka direktori seluruh organisasi.
-2. **`sort=overdue`** di daftar Tim hanya mengurutkan halaman yang tampil (lihat §8).
+2. ~~**`sort=overdue`** di daftar Tim hanya mengurutkan halaman yang tampil~~ **Selesai 20 Okt 2026:** urutan beban kini global (jendela 200 orang).
 
 ## 7. Koreksi rencana yang ditemukan pekerja
 Empat kontradiksi internal ditemukan saat mengerjakan, semuanya diselesaikan dengan prinsip **kode fondasi menang**.
@@ -244,7 +244,7 @@ Rencana sudah dibetulkan; baris ini menjaga jejaknya.
 |---|---|---|
 | `PM_DENY_PENDING` berisi `DELETE trash/*` di `scopes.pm.ts` | Z-04, batas akhir gerbang Z-08 | Perancah agar sweep rute melapor *skipped*, bukan gagal, sampai rutenya ada |
 | Tuple enum notifikasi ada di `schema.notification.ts`, bukan `server/pm/enums.ts` | gerbang S3 | `pm-enum-check.test.ts` menuntut kolom+target tes per tuple di `enums.ts` |
-| `sort=overdue` di `GET /api/app/team` hanya mengurutkan **halaman yang tampil** | keputusan user sebelum M06 | Konsekuensi anggaran 4 kueri + paging offset (P7 §5); kemungkinan solusinya mengganti label, bukan kueri |
+| ~~`sort=overdue` di `GET /api/app/team` hanya mengurutkan halaman yang tampil~~ | **selesai 20 Okt 2026** | Diperluas ke jendela 200 orang (`team.sort.ts`), tetap 4 statement |
 | M05 (indeks `project_member (project_id, role)`) belum dikerjakan | M05 sendiri, setelah baton 0019 bebas | M02 terbukti benar tanpanya (yang diuji jumlah kueri) |
 
 ## 6. Log perubahan
