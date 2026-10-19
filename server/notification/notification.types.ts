@@ -33,7 +33,7 @@ export type ProjectCardPayload = { projectName: string; role?: ProjectMemberRole
 /** An account card (Admin queue): the display name only, so no contact detail reaches the Inbox. */
 export type AccountCardPayload = { name: string };
 
-/** An event card (reserved for S7): `startsAt` is an ISO string so the payload stays JSON. */
+/** An event card (S7): `startsAt` is an ISO string so the payload stays JSON. */
 export type EventCardPayload = { title: string; startsAt?: string; projectName?: string };
 
 /**
@@ -57,9 +57,11 @@ export type NotificationPayloadByKind = {
   task_review_fallback: TaskCardPayload;
   task_returned: TaskCardPayload;
   mention: TaskCardPayload;
-  // Reserved for S7 (Events).
+  // Shipped in S7 (Events).
   event_reminder: EventCardPayload;
   event_invited: EventCardPayload;
+  event_changed: EventCardPayload;
+  event_canceled: EventCardPayload;
 };
 
 export type NotificationKind = keyof NotificationPayloadByKind;

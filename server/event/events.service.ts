@@ -17,9 +17,16 @@ import {
 import type { EventSubject, Membership, Principal } from '../access/types';
 import { event, eventParticipant, eventReminder, project } from '../db/schema';
 import { logger } from '../logger';
+import {
+  emitEventCanceled,
+  emitEventChanged,
+  emitEventGuestRemoved,
+  emitEventInvited,
+} from '../notification/emit.event';
 import { EVENT_REMINDER_OFFSETS_MIN, type EventKind, type EventLocationType } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
 import { inTx, type Tx } from '../pm/tx';
+import { changesWhatGuestsSee } from './events.changes';
 import type { EventDetail, PersonRef } from './events.dto';
 import { inviteOnto, loadParticipants } from './events.participants';
 import { getEvent } from './events.query';
@@ -120,7 +127,9 @@ export async function createEvent(
         createdBy: p.id,
       })
       .returning({ id: event.id });
-    await inviteOnto(tx, row.id, guests, p.id);
+    const invited = await inviteOnto(tx, row.id, guests, p.id);
+    // The creator is the actor, so `notify()` leaves them out; only the other guests get a card.
+    await emitEventInvited(tx, row.id, invited, { by: p.id });
     logger.info(
       { eventId: row.id, projectId: input.projectId ?? null, guests: guests.length, actorId: p.id },
       'event created',
@@ -196,6 +205,9 @@ export async function updateEvent(
       // The claim row IS the "already reminded" flag, so dropping it re-arms both offsets (E-04).
       await tx.delete(eventReminder).where(eq(eventReminder.eventId, eventId));
     }
+    if (changesWhatGuestsSee(current, input, span)) {
+      await emitEventChanged(tx, eventId, { by: p.id });
+    }
     logger.info({ eventId, moved, actorId: p.id }, 'event updated');
     return read(p, eventId, tx);
   });
@@ -219,6 +231,7 @@ export async function cancelEvent(
       .where(eq(event.id, eventId));
     // Nothing is due any more, so pending claims would only keep rows alive for a dead event.
     await tx.delete(eventReminder).where(eq(eventReminder.eventId, eventId));
+    await emitEventCanceled(tx, eventId, { by: p.id, at: now });
     logger.info({ eventId, actorId: p.id }, 'event canceled');
     return read(p, eventId, tx);
   });
@@ -235,8 +248,9 @@ export async function addParticipants(
     if (!gated.ok) return gated;
     const bad = await checkGuests(tx, userIds);
     if (bad) return bad;
-    const added = await inviteOnto(tx, eventId, userIds, p.id);
-    logger.info({ eventId, added, actorId: p.id }, 'event participants added');
+    const invited = await inviteOnto(tx, eventId, userIds, p.id);
+    await emitEventInvited(tx, eventId, invited, { by: p.id });
+    logger.info({ eventId, added: invited.length, actorId: p.id }, 'event participants added');
     return { ok: true, participants: await loadParticipants(eventId, tx) };
   });
 }
@@ -253,6 +267,7 @@ export async function removeParticipant(
     await tx
       .delete(eventParticipant)
       .where(and(eq(eventParticipant.eventId, eventId), eq(eventParticipant.userId, userId)));
+    await emitEventGuestRemoved(tx, eventId, userId);
     logger.info({ eventId, actorId: p.id }, 'event participant removed');
     return { ok: true, participants: await loadParticipants(eventId, tx) };
   });

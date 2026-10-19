@@ -53,9 +53,12 @@ export const NOTIFICATION_KINDS: Readonly<Record<NotificationKind, KindMeta>> = 
   task_returned: { lane: 'action', category: 'action', shipped: false },
   // S4 (mention): needs the comment composer to send user ids.
   mention: { lane: 'action', category: 'action', ttlDays: MENTION_TTL_DAYS, shipped: false },
-  // S7 (Events).
-  event_reminder: { lane: 'info', category: 'event_reminder', shipped: false },
-  event_invited: { lane: 'action', category: 'action', shipped: false },
+  // S7 (Events). All four are news: an invitation has no "respond" step in this scope (no RSVP), so
+  // an `action` card would stay open and inflate the bell count forever (R07 §3.2 files it as info).
+  event_reminder: { lane: 'info', category: 'event_reminder', shipped: true },
+  event_invited: { lane: 'info', category: 'news', shipped: true },
+  event_changed: { lane: 'info', category: 'news', shipped: true },
+  event_canceled: { lane: 'info', category: 'news', shipped: true },
 });
 
 export type KindCopy = {
@@ -141,6 +144,17 @@ export const NOTIFICATION_COPY: Readonly<Record<NotificationKind, KindCopy>> = O
   event_invited: {
     sentence: '{actor} mengundang Anda ke acara {title}',
     system: 'Anda diundang ke acara {title}',
+    button: 'Lihat acara',
+  },
+  event_changed: {
+    sentence: '{actor} mengubah acara {title}',
+    bundled: '{count} perubahan pada acara {title}',
+    system: 'Acara {title} berubah',
+    button: 'Lihat acara',
+  },
+  event_canceled: {
+    sentence: '{actor} membatalkan acara {title}',
+    system: 'Acara {title} dibatalkan',
     button: 'Lihat acara',
   },
 });
