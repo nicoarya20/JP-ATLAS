@@ -1,0 +1,44 @@
+/* Sidebar utama (rail ikon: ikon di atas, nama menu kecil di bawah) + sidebar kedua menu Projects */
+.shell { display: flex; min-height: 0; }
+
+/* ---------- Rail menu utama ---------- */
+.sidebar { width: 76px; flex: none; border-right: 1.5px solid var(--line); padding: 8px 6px; overflow-y: auto; }
+.nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.nav a {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 2px; border-radius: 10px; border: 1.5px solid transparent;
+  color: inherit; text-decoration: none;
+}
+.nav a:hover { background: var(--hover); }
+.nav .ph-icon { width: 24px; height: 24px; border-radius: 6px; }
+.nav-label { max-width: 100%; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav a[aria-current="page"] { border-color: var(--line); background: var(--hover); }
+.nav a[aria-current="page"] .ph-icon { background-color: var(--soft); }
+.nav a[aria-current="page"] .nav-label { font-weight: 700; }
+
+/* ---------- Sidebar kedua: daftar project ---------- */
+.subnav { width: 260px; flex: none; border-right: 1.5px solid var(--line); padding: 12px 10px; overflow-y: auto; }
+.subnav[hidden] { display: none; }
+.subnav-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 4px 10px; }
+.subnav-head h2 { margin: 0; font-size: 17px; }
+.subnav-create { padding: 4px 10px; font-size: 13px; }
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree ul { margin: 2px 0 4px 17px; padding-left: 8px; border-left: 1.5px solid var(--soft); }
+.tree-row { display: flex; align-items: center; gap: 4px; border-radius: 8px; border: 1.5px solid transparent; }
+.tree-row:hover { background: var(--hover); }
+.tree-row[aria-current="page"] { border-color: var(--line); background: var(--hover); font-weight: 700; }
+.tree-item { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px; text-align: left; }
+.tree-item .ellipsis { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-add { width: 24px; height: 24px; margin-right: 4px; border-radius: 6px; opacity: 0; }
+.tree-row:hover .tree-add, .tree-add:focus-visible { opacity: 1; }
+.tree-add:hover { background: var(--soft); }
+.p-avatar { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border: 1.5px solid var(--line); border-radius: 6px; font-size: 12px; font-weight: 700; }
+.tree-new { color: var(--muted); }
+.tree .ph-icon { width: 16px; height: 16px; }
+
+@media (max-width: 720px) {
+  .shell { flex-direction: column; }
+  .sidebar { width: 100%; border-right: 0; border-bottom: 1.5px solid var(--line); padding: 4px 8px; }
+  .nav { grid-auto-flow: column; grid-auto-columns: 1fr; }
+  .subnav { width: 100%; max-height: 40vh; border-right: 0; border-bottom: 1.5px solid var(--line); }
+}
