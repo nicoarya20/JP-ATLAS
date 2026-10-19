@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Worktree Fitur PM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+
+<section class="slide cover" id="sampul">
+  <div class="slide-head">
+    <p class="eyebrow">Deck review · draf 5 Oktober 2026</p>
+    <h1>Fitur ClickUp yang lengkap, dibuat <span class="hl">mudah dipakai</span></h1>
+    <p class="lede">Worktree fitur aplikasi project manager untuk orang awam dan lansia. Fitur tidak dipangkas. Yang diatur ulang adalah kapan fitur muncul, bagaimana dipakai, dan siapa yang menyetelnya.</p>
+  </div>
+  <ol class="toc">
+    <li><a href="#masalah"><span class="mono">02</span>Satu contoh</a></li>
+    <li><a href="#prinsip"><span class="mono">03</span>8 prinsip</a></li>
+    <li><a href="#lapisan"><span class="mono">04</span>Lapisan tampil</a></li>
+    <li><a href="#struktur"><span class="mono">05</span>Struktur dan menu</a></li>
+    <li><a href="#peta"><span class="mono">06</span>Peta worktree</a></li>
+    <li><a href="#tahap-1"><span class="mono">07</span>Tahap 1 · Inti</a></li>
+    <li><a href="#tahap-2"><span class="mono">08</span>Tahap 2 · Sistem yang membantu</a></li>
+    <li><a href="#tahap-3"><span class="mono">09</span>Tahap 3 · Alat tambahan</a></li>
+    <li><a href="#tahap-4"><span class="mono">10</span>Tahap 4 · Nanti</a></li>
+    <li><a href="#alur"><span class="mono">11</span>Alur sebelum dan sesudah</a></li>
+    <li><a href="#kamus"><span class="mono">12</span>Kamus istilah</a></li>
+    <li><a href="#keputusan"><span class="mono">13</span>Yang perlu diputuskan</a></li>
+    <li><a href="workflow.html"><span class="mono">→</span>Alur kerja per menu (halaman terpisah)</a></li>
+  </ol>
+  <div class="meta mono muted">
+    <span>Sumber: workspace ClickUp (proyek riset ini) + riset rekan</span>
+    <span>Dokumen lengkap: penyederhanaan-fitur-clickup.md</span>
+    <span>Alur kerja: workflow.html</span>
+    <span>Navigasi: ← → atau tombol di kanan bawah</span>
+  </div>
+</section>
+
+<section class="slide" id="masalah">
+  <div class="slide-head">
+    <p class="eyebrow">Satu contoh</p>
+    <h2>Membuat tugas dengan tenggat dan orang</h2>
+  </div>
+  <div class="compare">
+    <div class="panel">
+      <h3>ClickUp <span class="bignum">±7</span></h3>
+      <ol class="steps">
+        <li>Buka modal Create Task</li><li>Isi nama tugas</li><li>Klik Assignee</li><li>Pilih orang</li>
+        <li>Klik Due date</li><li>Pilih tanggal</li><li>Klik Create</li>
+      </ol>
+      <p class="mono muted">10+ field tampil sekaligus. Jumlah klik masih perkiraan.</p>
+    </div>
+    <div class="panel">
+      <h3>Versi kita <span class="bignum">1</span></h3>
+      <div class="typebox">Bayar listrik Jumat, Budi</div>
+      <div class="chips"><span class="chip">📅 Jumat, 9 Okt</span><span class="chip">👤 Budi</span><span class="chip">📁 Harian</span></div>
+      <p class="muted">Ketik lalu Enter. Sistem membaca tanggal dan nama, lalu menampilkannya sebagai chip yang bisa diketuk untuk diubah. Field lain tetap ada di "Tambah detail".</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="prinsip">
+  <div class="slide-head">
+    <p class="eyebrow">Cara menyederhanakan</p>
+    <h2>8 prinsip</h2>
+  </div>
+  <div class="grid">
+    <div class="item"><span class="mono">P1</span><h3>Satu jalan utama</h3><p class="muted">Satu tombol + dan satu kotak ketik. Shortcut tetap ada, tapi tidak diajarkan di awal.</p></div>
+    <div class="item"><span class="mono">P2</span><h3>Fitur muncul saat relevan</h3><p class="muted">Awalnya cukup 3 hal. Sisanya muncul saat datanya ada atau saat diminta.</p></div>
+    <div class="item"><span class="mono">P3</span><h3>Sistem yang menyetel</h3><p class="muted">Mulai dari tujuan, lalu struktur dibuat otomatis.</p></div>
+    <div class="item"><span class="mono">P4</span><h3>Nama dari pertanyaan</h3><p class="muted">"Siapa sedang sibuk?", bukan "Workload".</p></div>
+    <div class="item"><span class="mono">P5</span><h3>Bahasa sehari-hari</h3><p class="muted">Tanpa Sprint, OKR, Dependency, Custom Field.</p></div>
+    <div class="item"><span class="mono">P6</span><h3>Sistem mengusulkan</h3><p class="muted">"Tiap tugas selesai, kabari Ibu? [Ya] [Tidak]" sebagai ganti pembuat automation.</p></div>
+    <div class="item"><span class="mono">P7</span><h3>Batalkan, bukan konfirmasi</h3><p class="muted">Aksi langsung jalan. Draf tersimpan tanpa bertanya.</p></div>
+    <div class="item"><span class="mono">P8</span><h3>Mudah dilihat dan disentuh</h3><p class="muted">Mode terang, ikon berlabel, target sentuh ≥ 48 px.</p></div>
+  </div>
+</section>
+
+<section class="slide" id="lapisan">
+  <div class="slide-head">
+    <p class="eyebrow">Penanda di setiap fitur</p>
+    <h2>Lapisan tampil</h2>
+    <p class="muted">Setiap fitur di worktree diberi satu lapisan. Tidak ada "Mode Lanjutan" global: fitur dibuka per tugas atau per proyek, di tempat yang membutuhkannya.</p>
+  </div>
+  <div class="grid">
+    <div class="item"><span><span class="lv lv-L1">L1</span></span><h3>Selalu</h3><p class="muted">Terlihat tanpa diminta. Contoh: Kapan, Siapa, tombol Selesai.</p></div>
+    <div class="item"><span><span class="lv lv-L2">L2</span></span><h3>Saat relevan</h3><p class="muted">Muncul sendiri bila datanya ada. Contoh: Jadwal bergaris.</p></div>
+    <div class="item"><span><span class="lv lv-L3">L3</span></span><h3>Diminta</h3><p class="muted">Di "Tambah detail" atau "Alat tambahan". Setelah dipakai, tetap tampil di item itu.</p></div>
+    <div class="item"><span><span class="lv lv-S">Sistem</span></span><h3>Dikerjakan sistem</h3><p class="muted">Pengguna cukup menjawab. Contoh: membaca tanggal dari kalimat.</p></div>
+    <div class="item"><span><span class="lv lv-N">Nanti</span></span><h3>Fase berikutnya</h3><p class="muted">Ditunda, tidak dihapus. Contoh: Whiteboard.</p></div>
+  </div>
+</section>
+
+<section class="slide" id="struktur">
+  <div class="slide-head">
+    <p class="eyebrow">Fondasi</p>
+    <h2>6 level jadi 3, 12+ menu jadi 5</h2>
+  </div>
+  <div class="compare">
+    <div class="panel">
+      <h3>Struktur data</h3>
+      <ul class="tree">
+        <li><span class="node-root">Proyek <span class="mono">ganti Space · Folder · List</span></span>
+          <ul>
+            <li><b>Tugas</b> <span class="mono muted">ganti Task</span>
+              <ul><li><b>Langkah</b> <span class="mono muted">ganti Subtask + Checklist</span></li></ul>
+            </li>
+            <li class="muted">Proyek bawaan "Harian" untuk tugas tanpa proyek</li>
+          </ul>
+        </li>
+      </ul>
+      <p class="mono muted">Workspace tidak ditampilkan: satu per akun.</p>
+    </div>
+    <div class="panel">
+      <h3>Menu bawah</h3>
+      <ul class="tree">
+        <li><span class="node-root">Aplikasi</span>
+          <ul>
+            <li><b>Hari Ini</b> <span class="muted">rencana harian + kartu yang butuh jawaban</span></li>
+            <li><b>Tugas</b> <span class="muted">semua tugas saya</span></li>
+            <li><b>Proyek</b> <span class="muted">Daftar · Papan · Kalender</span></li>
+            <li><b>Orang</b> <span class="muted">anggota, peran, siapa sedang sibuk</span></li>
+            <li><b>Pengaturan</b> <span class="muted">maks. 3 pilihan per hal</span></li>
+          </ul>
+        </li>
+      </ul>
+      <p class="mono muted">Tanpa Inbox, tanpa "More". Sama dengan riset rekan.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="peta">
+  <div class="slide-head">
+    <p class="eyebrow">Gambaran besar</p>
+    <h2>Peta worktree</h2>
+    <p class="muted">Empat tahap pengerjaan. Angka di dalam kurung adalah jumlah fitur per modul. Ketuk nama tahap untuk melihat detailnya.</p>
+  </div>
+  <div class="overview" id="overview"></div>
+  <div class="legend">
+    <span><span class="lv lv-L1">L1</span>Selalu</span><span><span class="lv lv-L2">L2</span>Saat relevan</span>
+    <span><span class="lv lv-L3">L3</span>Diminta</span><span><span class="lv lv-S">Sistem</span>Otomatis</span><span><span class="lv lv-N">Nanti</span>Fase berikutnya</span>
+  </div>
+</section>
+
+<div id="stages"></div>
+
+<section class="slide" id="alur">
+  <div class="slide-head">
+    <p class="eyebrow">Alur kerja inti</p>
+    <h2>Sebelum dan sesudah</h2>
+    <p class="muted">Jumlah langkah ClickUp masih perkiraan, belum dihitung ulang dengan uji langsung.</p>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Alur</th><th>ClickUp</th><th>Versi kita</th></tr></thead>
+    <tbody>
+      <tr><td>Mulai pertama kali</td><td>Buat Space, List, atur status, pilih view, baru buat task (≥ 5 langkah)</td><td class="new">"Mau mengurus apa?" → proyek dan langkah pertama jadi</td></tr>
+      <tr><td>Tugas dengan tenggat dan orang</td><td>Modal, nama, assignee, tanggal, Create (± 7 klik)</td><td class="new">Ketik "Bayar listrik Jumat, Budi" lalu Enter</td></tr>
+      <tr><td>Memecah tugas besar</td><td>Tab Subtask, + Add, isi nama, diulang per subtask</td><td class="new">Pecah jadi langkah → periksa → [Pakai]</td></tr>
+      <tr><td>Tugas berurutan</td><td>Set waiting on / blocking di dua task, lalu lihat Gantt</td><td class="new">"Harus setelah…". Tugas berikutnya aktif sendiri</td></tr>
+      <tr><td>Tugas terlambat</td><td>Notifikasi, buka task, ubah tanggal atau orang manual</td><td class="new">[Sudah selesai] [Besok saja] [Minta tolong]</td></tr>
+      <tr><td>Melapor ke atasan atau keluarga</td><td>Rakit dashboard dan widget, atau tanya Brain²</td><td class="new">Ringkasan terkirim otomatis dengan tombol aksi</td></tr>
+      <tr><td>Membuat otomasi</td><td>⚡ → trigger → kondisi → aksi → simpan</td><td class="new">Terima tawaran sistem: [Ya]</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="slide" id="kamus">
+  <div class="slide-head">
+    <p class="eyebrow">Bahasa sehari-hari</p>
+    <h2>Kamus istilah</h2>
+    <p class="muted">Istilah yang sudah ada di kamus rekan (U2) dipakai sama persis.</p>
+  </div>
+  <div class="kamus">
+    <div><s>Folder</s><span>Label kelompok</span></div><div><s>List</s><span>Proyek</span></div>
+    <div><s>Subtask / Checklist</s><span>Langkah</span></div><div><s>Assignee</s><span>Siapa</span></div>
+    <div><s>Due + Start date</s><span>Kapan</span></div><div><s>Priority</s><span>Penting ⭐</span></div>
+    <div><s>Custom status</s><span>Tahap tambahan</span></div><div><s>Dependency</s><span>Harus setelah…</span></div>
+    <div><s>Multi-List</s><span>Tampil juga di…</span></div><div><s>Gantt / Timeline</s><span>Jadwal bergaris</span></div>
+    <div><s>Watcher</s><span>Dikabari</span></div><div><s>Milestone</s><span>Titik penting</span></div>
+    <div><s>Custom Field</s><span>Info tambahan</span></div><div><s>Dashboard</s><span>Ringkasan</span></div>
+    <div><s>Goal / OKR</s><span>Target</span></div><div><s>Timesheet</s><span>Laporan waktu</span></div>
+    <div><s>Workload</s><span>Siapa sedang sibuk</span></div><div><s>Automation</s><span>Aturan otomatis</span></div>
+    <div><s>Comment / Chat</s><span>Obrolan</span></div><div><s>Template</s><span>Contoh langkah</span></div>
+  </div>
+</section>
+
+<section class="slide" id="keputusan">
+  <div class="slide-head">
+    <p class="eyebrow">Sebelum mulai Tahap 1</p>
+    <h2>Yang perlu diputuskan</h2>
+  </div>
+  <div class="callout">
+    <h3>Berbeda dengan riset rekan</h3>
+    <p>Rekan memakai 2 level (Proyek → Tugas). Deck ini menambahkan <b>Langkah</b>. Rekan juga menurunkan prioritas U4 Fitur Muncul Bertahap untuk lansia, sementara deck ini menjadikannya pusat desain.</p>
+  </div>
+  <ol class="decisions">
+    <li><b>Langkah</b>: checklist sederhana, atau sub-tugas penuh dengan orang dan tanggal? Ini menentukan model data Tahap 1.</li>
+    <li><b>Tahap tambahan</b>: batas 5 per proyek sudah tepat, atau status custom tidak diizinkan sama sekali?</li>
+    <li><b>Jadwal bergaris</b>: syarat ≥ 2 tugas berurutan bertanggal masih tebakan.</li>
+    <li><b>Membaca kalimat</b>: "Jumat depan", "habis magrib", nama panggilan.</li>
+    <li><b>Biaya AI</b> per pengguna perlu dihitung sebelum menjanjikan AI tanpa kredit.</li>
+    <li><b>Kanal luar</b> WhatsApp dan email menunggu keputusan rekan no. 1.</li>
+    <li><b>Tugas bersama</b>: 10 dari 29 tugas di data nyata tanpa satu penanggung jawab. Perlu "Bersama"?</li>
+    <li><b>Keputusan</b>: 6 dari 29 tugas berupa keputusan. Perlu bentuk khusus atau cukup tugas biasa?</li>
+  </ol>
+</section>
+
+<nav class="nav" aria-label="Navigasi slide">
+  <button id="prev" type="button" aria-label="Slide sebelumnya">←</button>
+  <span class="count" id="count" aria-live="polite">01 / 13</span>
+  <button id="next" type="button" aria-label="Slide berikutnya">→</button>
+</nav>
+
+<script src="fitur.data.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>

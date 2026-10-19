@@ -1,0 +1,126 @@
+/* Buku tulis: kertas bergaris tipis, pulpen biru untuk aksen, stabilo kuning untuk sorotan, garis margin merah di kiri slide */
+:root {
+  --paper: #F5F6F9; --surface: #FFFFFF; --ink: #172036; --muted: #566076;
+  --line: #D8DCE5; --accent: #1F5FBF; --mark: #FFD54A; --on-mark: #1B1A12; --margin: #E39A9A;
+  --f-display: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --s-1: .8125rem; --s0: 1rem; --s1: 1.25rem; --s2: 1.75rem; --s3: 2.5rem; --s4: clamp(2.4rem, 5vw, 3.6rem);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #12161F; --surface: #1A202C; --ink: #E8EBF2; --muted: #9AA3B5;
+  --line: #2C3445; --accent: #86AEFF; --mark: #E8B923; --margin: #8A4545; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #12161F; --surface: #1A202C; --ink: #E8EBF2; --muted: #9AA3B5;
+  --line: #2C3445; --accent: #86AEFF; --mark: #E8B923; --margin: #8A4545; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html { scroll-snap-type: y proximity; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--s0)/1.55 var(--f-body); }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: var(--s4); font-weight: 800; letter-spacing: -.02em; }
+h2 { font-size: var(--s3); font-weight: 800; letter-spacing: -.015em; }
+h3 { font-size: var(--s1); font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+.mono { font-family: var(--f-mono); font-size: var(--s-1); }
+.muted { color: var(--muted); }
+.hl { background: linear-gradient(transparent 55%, var(--mark) 55%); color: inherit; padding: 0 .1em; }
+.eyebrow { font: 500 var(--s-1)/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+
+/* Slide */
+.slide {
+  min-height: 100svh; scroll-snap-align: start; position: relative;
+  padding-block: 4.5rem 5.5rem; padding-inline: max(16px, 6vw);
+  border-bottom: 1px solid var(--line);
+  display: flex; flex-direction: column; justify-content: center; gap: 1.75rem;
+}
+.slide::before { content: ""; position: absolute; top: 0; bottom: 0; left: max(8px, 3vw); width: 2px; background: var(--margin); opacity: .7; }
+.slide > * { min-width: 0; max-width: 1180px; }
+.slide-head { display: grid; gap: .6rem; }
+
+/* Cover */
+.cover { gap: 2.5rem; }
+.cover .lede { font-size: var(--s1); color: var(--muted); }
+.toc { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .25rem 1.5rem; }
+.toc a { display: flex; gap: .75rem; padding: .45rem 0; color: var(--ink); text-decoration: none; border-bottom: 1px dashed var(--line); }
+.toc a:hover, .toc a:focus-visible { color: var(--accent); }
+.toc .mono { color: var(--muted); font-variant-numeric: tabular-nums; }
+.meta { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+
+/* Demo kotak ketik */
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1.25rem; display: grid; gap: .9rem; align-content: start; min-width: 0; }
+.panel h3 { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; }
+.steps { margin: 0; padding-left: 1.25rem; display: grid; gap: .2rem; color: var(--muted); }
+.typebox { border: 2px solid var(--accent); border-radius: 12px; padding: .9rem 1rem; font-size: var(--s1); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: .3rem .8rem; font-size: var(--s-1); font-weight: 600; background: var(--paper); }
+.bignum { font: 800 var(--s3)/1 var(--f-display); font-variant-numeric: tabular-nums; }
+
+/* Grid prinsip & lapisan */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem 1.5rem; }
+.item { display: grid; gap: .35rem; padding-top: .9rem; border-top: 2px solid var(--ink); align-content: start; }
+.item .mono { color: var(--accent); }
+
+/* Badge lapisan */
+.lv { display: inline-flex; align-items: center; justify-content: center; min-width: 2.6rem; padding: .15rem .45rem; border-radius: 6px;
+  font: 600 .72rem/1.3 var(--f-mono); letter-spacing: .04em; white-space: nowrap; border: 1.5px solid transparent; }
+.lv-L1 { background: var(--ink); color: var(--paper); }
+.lv-L2 { border-color: var(--accent); color: var(--accent); }
+.lv-L3 { border: 1.5px dashed var(--muted); color: var(--muted); }
+.lv-S { background: var(--mark); color: var(--on-mark); }
+.lv-N { background: var(--line); color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; align-items: center; font-size: var(--s-1); color: var(--muted); }
+.legend span { display: inline-flex; gap: .4rem; align-items: center; }
+
+/* Pohon */
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree ul { margin-left: .9rem; padding-left: 1.1rem; border-left: 2px solid var(--line); display: grid; gap: .1rem; }
+.tree ul > li { position: relative; padding: .45rem 0 .45rem .2rem; }
+.tree ul > li::before { content: ""; position: absolute; left: -1.1rem; top: 1.05rem; width: .9rem; border-top: 2px solid var(--line); }
+.node-root { font: 700 var(--s1)/1.3 var(--f-display); display: flex; gap: .6rem; align-items: baseline; flex-wrap: wrap; }
+.node-root .mono { color: var(--muted); font-weight: 500; }
+.modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem 2.5rem; }
+.feat { display: grid; gap: .2rem; }
+.feat-top { display: flex; gap: .6rem; align-items: baseline; justify-content: space-between; }
+.feat-name { font-weight: 700; }
+.feat-was { color: var(--muted); }
+.feat-was b { font-weight: 500; text-decoration: line-through; text-decoration-color: var(--margin); }
+.feat-desc { font-size: .94rem; }
+
+/* Ringkasan worktree */
+.overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+.overview .tree ul > li { padding-block: .25rem; }
+.stage-tag { font: 600 var(--s-1)/1 var(--f-mono); color: var(--accent); }
+
+/* Tabel */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; }
+th, td { text-align: left; vertical-align: top; padding: .7rem .9rem; border-bottom: 1px solid var(--line); }
+th { font: 600 var(--s-1)/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.new { font-weight: 600; }
+.kamus { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 1.5rem; }
+.kamus div { display: flex; justify-content: space-between; gap: 1rem; padding: .5rem 0; border-bottom: 1px dashed var(--line); }
+.kamus s { color: var(--muted); text-decoration-color: var(--margin); }
+
+/* Keputusan */
+.decisions { margin: 0; padding-left: 1.4rem; display: grid; gap: .8rem; max-width: 75ch; }
+.callout { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--mark); border-radius: 10px; padding: 1rem 1.2rem; display: grid; gap: .5rem; }
+
+/* Navigasi bawah */
+.nav { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 5;
+  display: flex; align-items: center; gap: .4rem; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 999px; padding: .3rem; box-shadow: 0 6px 20px rgba(20, 30, 60, .12); }
+.nav button { width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 0; background: transparent; color: var(--ink); font: 600 1.1rem/1 var(--f-body); cursor: pointer; }
+.nav button:hover { background: var(--paper); }
+.nav .count { font: 500 var(--s-1)/1 var(--f-mono); font-variant-numeric: tabular-nums; padding-inline: .3rem; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .slide { min-height: auto; padding-block: 3rem 4rem; }
+  .slide::before { display: none; }
+  .modules { grid-template-columns: 1fr; }
+}
