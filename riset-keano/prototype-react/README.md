@@ -1,7 +1,7 @@
 # PM Dashboard: mobile prototype (React + Cupertino)
 
 A clickable phone prototype of the PM Dashboard, built with React 18 and [react-cupertino-ui](https://react-cupertino-ui.pro) (iOS look).
-It replaces the vanilla `../wireframe-mobile/` prototype and keeps its 64 screen and sheet ids, three roles and sample data.
+It replaces the vanilla `../wireframe-mobile/` prototype and keeps its screen and sheet ids (65 in all, with `home.create` and the `profile.me` overlay added), three roles and sample data.
 
 ## Run
 ```bash

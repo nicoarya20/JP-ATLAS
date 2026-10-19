@@ -4,3 +4,4 @@ export { Btn, Link, Chips, Seg, Tabs } from './controls';
 export { Head, Section, Rows, Row, Field, Avatar, Avatars, Pill, Progress, Media, Empty } from './display';
 export { Select, Search, Switch, Label, Snack } from './form';
 export { Sheet } from './sheet';
+export { FullSheet } from './fullsheet';

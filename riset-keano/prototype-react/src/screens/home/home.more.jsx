@@ -1,5 +1,5 @@
 // Home More menu: the panel the More tab unfolds from the tab bar. Profile, then a grid of the secondary
-// destinations (Inbox, Team, Users for Admin, Archive, Settings). Sign out lives in Settings only.
+// destinations (Inbox, Team, Users for Admin, Archive, Settings). The profile card opens the Profile overlay.
 import { Archive, ChevronRight, Inbox, Settings, UserCog, Users } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
@@ -24,7 +24,7 @@ export default function MoreMenu({ close }) {
   return (
     <div className="mm">
       {/* tb-rise + --i: the kit tab bar staggers these in as the panel unfolds */}
-      <button type="button" className="mm-me tb-rise" style={{ '--i': 0 }} aria-label={`${me.full}, edit profile`} onClick={() => open('settings.profile')}>
+      <button type="button" className="mm-me tb-rise" style={{ '--i': 0 }} aria-label={`${me.full}, open profile`} onClick={() => open('profile.me')}>
         <Avatar name={me.name} />
         <span className="mm-who">
           <span className="mm-name">{me.full}</span>

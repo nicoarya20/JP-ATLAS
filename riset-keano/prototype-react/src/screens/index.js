@@ -9,3 +9,4 @@ import './team';
 import './users';
 import './archive';
 import './settings';
+import './profile';

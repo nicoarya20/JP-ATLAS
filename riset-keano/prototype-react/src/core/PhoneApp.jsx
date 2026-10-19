@@ -1,9 +1,10 @@
-// Phone shell: renders the current screen, its tab bar, the open bottom sheet and the toast; keeps the URL and the index in sync.
-import { useEffect, useState } from 'react';
+// Phone shell: renders the current screen, its tab bar, the open sheet (bottom or full-height) and the toast; keeps the URL and the index in sync.
+import { useEffect, useRef, useState } from 'react';
 import { BottomSheet, BottomSheetContent, BottomSheetTitle } from '@react-cupertino-ui/bottom-sheet';
 import { Toast } from '@react-cupertino-ui/toast';
 import { MSG, TOAST_MS, useApp } from './app.context';
 import { getScreen, getSheet } from './registry';
+import { FullSheet } from '../kit/fullsheet';
 import { AppTabBar, TabBarHost } from '../kit/layout';
 
 export const DEFAULT_SHEET_SNAP = 0.6;
@@ -30,20 +31,35 @@ function useIndexMessages(go) {
   }, [go]);
 }
 
+const titleOf = def => (typeof def.title === 'function' ? def.title() : def.title);
+
+/** The open sheet: a library BottomSheet, or a FullSheet overlay for sheets registered with full: true. */
 function OpenSheet() {
   const { sheet, closeSheet } = useApp();
   const def = sheet && getSheet(sheet.id);
-  const snap = def?.snap ?? DEFAULT_SHEET_SNAP;
+  const bottom = def && !def.full ? def : null;
+  const snap = bottom?.snap ?? DEFAULT_SHEET_SNAP;
+  // The last full sheet stays rendered after it closes so its slide-down exit animation has something to move.
+  const lastFull = useRef(null);
+  if (def?.full) lastFull.current = { ...sheet, def };
+  const full = lastFull.current;
   return (
-    <BottomSheet open={!!def} onOpenChange={open => { if (!open) closeSheet(); }}>
-      {def && (
-        <BottomSheetContent key={sheet.id} snapPoints={[snap]} initialSnap={snap} aria-describedby={undefined}>
-          {/* Radix needs a dialog title; sheets render their own visible heading through <Sheet title>. */}
-          <BottomSheetTitle className="sr-only">{typeof def.title === 'function' ? def.title() : def.title}</BottomSheetTitle>
-          <def.Component params={sheet.params} />
-        </BottomSheetContent>
+    <>
+      <BottomSheet open={!!bottom} onOpenChange={open => { if (!open) closeSheet(); }}>
+        {bottom && (
+          <BottomSheetContent key={sheet.id} snapPoints={[snap]} initialSnap={snap} aria-describedby={undefined}>
+            {/* Radix needs a dialog title; sheets render their own visible heading through <Sheet title>. */}
+            <BottomSheetTitle className="sr-only">{titleOf(bottom)}</BottomSheetTitle>
+            <bottom.Component params={sheet.params} />
+          </BottomSheetContent>
+        )}
+      </BottomSheet>
+      {full && (
+        <FullSheet open={!!def?.full} onClose={closeSheet} title={titleOf(full.def)}>
+          <full.def.Component key={full.id} params={full.params} />
+        </FullSheet>
       )}
-    </BottomSheet>
+    </>
   );
 }
 

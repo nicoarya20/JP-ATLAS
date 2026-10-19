@@ -23,10 +23,12 @@ export function Search({ placeholder }) {
   return <SearchBar value={text} onChangeValue={setText} onCancel={() => setText('')} placeholder={placeholder} showVoice={false} glass={false} />;
 }
 
-/** On/off switch. on = initial state; label is read by screen readers when no visible label sits next to it. */
-export function Switch({ on = false, label }) {
+/** On/off switch. on = initial state; label is read by screen readers when no visible label sits next to it;
+ *  onChange(checked) is told about every flip (for state that must outlive the switch). */
+export function Switch({ on = false, label, onChange }) {
   const [checked, setChecked] = useState(on);
-  return <Switcher checked={checked} onCheckedChange={setChecked} aria-label={label} glass={false} />;
+  const flip = v => { setChecked(v); onChange?.(v); };
+  return <Switcher checked={checked} onCheckedChange={flip} aria-label={label} glass={false} />;
 }
 
 /** Small uppercase label above a group (iOS grouped-table header). */

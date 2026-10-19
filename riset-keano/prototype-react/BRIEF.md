@@ -27,6 +27,7 @@ import { panel, screen, sheet } from '../../core/registry';
 screen('tasks.my', { title: '① My tasks', group: 'Tasks', Component: TasksMy });
 screen('users.roles', { ..., roles: ['admin'] });  // omit roles = every role
 sheet('tasks.return', { title: '…', group: 'Tasks', snap: 0.5, Component: ReturnSheet }); // snap = share of phone height, default 0.6
+sheet('profile.me', { title: '…', group: 'Profile', full: true, Component: ProfileMain }); // full = full-height overlay (kit FullSheet)
 panel('more', { Component: MoreMenu });  // what a tab unfolds from the tab bar instead of a screen; gets {close}
 ```
 
@@ -37,7 +38,7 @@ panel('more', { Component: MoreMenu });  // what a tab unfolds from the tab bar 
 - Data: `import { D } from '../../data/sample'`. `D.me()` is the signed-in person for the current role.
 
 Kit (`import { ... } from '../../kit'`):
-- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `header={false}` hides the nav bar; `header={<el/>}` replaces it. `tab` is one of `home`, `tasks`, `projects`, `events` and shows the bottom tab bar (a floating glass pill whose bubble slides and bounces to a tapped tab and follows a dragging finger, see `kit/tabbar.jsx`; PhoneApp draws this one bar so it stays mounted across screens, plus a round "+" that opens the tab's own "new" screen, or the `home.create` sheet on Home). The More tab is not a screen: it unfolds the pill upward into the More panel (`home/home.more.jsx`) over a dimmed screen; More again, the dim, Escape, another tab or a pick folds it.
+- `Screen`: props `title`, `sub`, `back`, `left`, `right`, `large`, `header`, `tab`. `header={false}` hides the nav bar; `header={<el/>}` replaces it. `tab` is one of `home`, `tasks`, `projects`, `events` and shows the bottom tab bar (a floating glass pill whose bubble slides and bounces to a tapped tab and follows a dragging finger, see `kit/tabbar.jsx`; PhoneApp draws this one bar so it stays mounted across screens, plus a round "+" that opens the tab's own "new" screen, or the `home.create` sheet on Home). The More tab is not a screen: it unfolds the pill upward into the More panel (`home/home.more.jsx`) over a dimmed screen; More again, the dim, Escape, another tab or a pick folds it. Its profile card opens the `profile.me` overlay.
 - `Section` is a card. Its props are `title`, `sub`, `right`, plus nav props, which make the whole card tappable.
 - `Rows` and `Row` make an iOS grouped list. Row props: `lead`, `title`, `sub`, `right`, `chev`.
 - `Btn`: `kind` is `primary`, `outline`, `ghost`, `danger` or `plain`. Other props: `block`, `sm`, `icon`.
@@ -52,10 +53,15 @@ Kit (`import { ... } from '../../kit'`):
   - `Empty`: props `icon`, `title`, `text`, `action`.
   - `Head`: a section heading.
 - `Sheet`: props `title`, `sub`, `actions`. Use it as the root of every sheet component.
+- `FullSheet`: the full-height overlay PhoneApp draws for sheets registered with `full: true`; you do not render it yourself.
+  - It slides up below the status bar and closes with the X in its top-left corner, Escape, a tap on the dim, or a swipe down
+    (past a quarter of its height, or a quick flick).
+  - The swipe starts on the grabber bar and on any element the content marks with `data-sheet-drag`.
+  - Escape inside an element marked `data-own-escape` (an inline editor) stays there instead of closing the overlay.
 - Form parts:
   - `Select`: a dropdown-looking pill. Props `block` (full width) plus nav props; usually `toast="Option A · Option B"`. Replaces the old `PJ.select` / `▾` labels (drop the `▾`).
   - `Search`: iOS search field, prop `placeholder`. Replaces the old `<label class="input"><input placeholder=…>` search boxes.
-  - `Switch`: props `on` (initial state), `label` (accessible name).
+  - `Switch`: props `on` (initial state), `label` (accessible name), `onChange(checked)` (optional, for state kept outside the switch).
   - `Label`: small uppercase group label.
   - `Snack`: snackbar above the tab bar. Props `action` (button text) plus nav props for that action.
 

@@ -48,12 +48,16 @@ describe('More panel', () => {
     expect(panel()).not.toBeInTheDocument();
   });
 
-  it('opens Edit profile from the profile card', async () => {
+  it('opens the Profile overlay from the profile card, and Edit profile from there', async () => {
     renderApp('home.main', 'member');
     await tapMore();
-    await userEvent.click(dom.getByRole('button', { name: /edit profile/ }));
+    await userEvent.click(dom.getByRole('button', { name: `${D.me().full}, open profile` }));
+    expect(panel()).not.toBeInTheDocument();
+    expect(window.location.hash).toBe('#home.main');          // an overlay, not a screen
+    expect(dom.getByRole('dialog', { name: /Profile/ })).toBeInTheDocument();
+    await userEvent.click(dom.getByRole('button', { name: 'Edit profile' }));
     expect(window.location.hash).toBe('#settings.profile');
-    expect(dom.getByText('Edit profile')).toBeInTheDocument();
+    expect(dom.queryByRole('dialog', { name: /Profile/ })).not.toBeInTheDocument();
     const back = dom.getByRole('button', { name: 'Back' });
     expect(back.textContent).toBe(''); // chevron icon only, no "Back" label
     expect(back.querySelector('svg')).not.toBeNull();
