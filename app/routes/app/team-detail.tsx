@@ -2,7 +2,7 @@ import { requireUser } from '@server/guard';
 import { toPrincipal } from '@server/project/membership.query';
 import { requestClock } from '@server/task/task.clock';
 import { isRefused } from '@server/team/team.dto';
-import { getPerson } from '@server/team/team.query';
+import { getPerson } from '@server/team/team.person.query';
 import { data } from 'react-router';
 import { TeamDetailView } from '~/components/team/TeamDetailView';
 import { DETAIL_COPY, NOT_FOUND_TEXT } from '~/components/team/team.detail.copy';
