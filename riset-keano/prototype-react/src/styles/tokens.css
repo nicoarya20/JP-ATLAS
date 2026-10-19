@@ -64,6 +64,7 @@
   --danger: var(--color-red);
   --bg: #f2f2f7;                         /* systemGroupedBackground */
   --surface: #ffffff;                    /* secondarySystemGroupedBackground: cards, lists */
+  --surface-raised: #ffffff;             /* a card inside a card (Kanban task on its column) */
   --fill: rgba(118, 118, 128, 0.12);     /* tertiarySystemFill: chips, inputs, icon squares */
   --label: #000000;
   --label-2: rgba(60, 60, 67, 0.6);      /* secondaryLabel */
@@ -132,6 +133,7 @@
   --accent-soft: rgba(10, 132, 255, 0.2);
   --bg: #000000;
   --surface: #1c1c1e;
+  --surface-raised: #2c2c2e;             /* one step above --surface, which the column fill matches in dark */
   --fill: rgba(118, 118, 128, 0.24);
   --label: #ffffff;
   --label-2: rgba(235, 235, 245, 0.6);

@@ -12,7 +12,7 @@ const block = sel => tokens.slice(tokens.indexOf(`${sel} {`), tokens.indexOf('}'
 const defined = text => new Set([...text.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
 
 // --accent is absent on purpose: it follows --color-blue, which .dark redefines.
-const THEMED = ['--bg', '--surface', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent-soft',
+const THEMED = ['--bg', '--surface', '--surface-raised', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent-soft',
   '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb',
   '--glass-bar', '--glass-bar-edge', '--glass-bar-shine', '--glass-bar-active', '--glass-bar-shadow',
   '--glass-bar-open'];

@@ -133,6 +133,12 @@ describe('tasks list', () => {
     expect(lib).toMatch(/search-bar:not\(\.is-focused\) \.react-cupertino-ui-search-bar__cancel \{ display: none; \}/);
   });
 
+  it('draws Kanban tasks as raised cards inside the column card', () => {
+    const css = readFileSync(join(__dirname, '../screens/tasks/tasks.css'), 'utf8');
+    expect(css.match(/\.tk-col \{[^}]*\}/)[0]).toMatch(/background: var\(--fill\)/);
+    expect(css.match(/\.tk-kcard\.card[^{]*\{[^}]*\}/)[0]).toMatch(/background: var\(--surface-raised\)/);
+  });
+
   it('says No tasks in an empty Kanban column', () => {
     renderApp('tasks.board', 'member');
     fireEvent.click(dom.getByRole('tab', { name: 'My tasks' }));
