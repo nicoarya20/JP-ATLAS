@@ -25,7 +25,7 @@ type Props = {
   onSubmit: (values: MilestoneFormValues) => Promise<boolean>;
 };
 
-function MilestoneFormBody({
+export function MilestoneFormBody({
   milestone,
   phases,
   loading,

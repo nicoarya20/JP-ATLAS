@@ -30,7 +30,7 @@ type Props = {
   onSubmit: (values: PhaseFormValues, initial: PhaseFormValues) => Promise<boolean>;
 };
 
-function PhaseFormBody({ phase, loading, onClose, onSubmit }: Omit<Props, 'opened'>) {
+export function PhaseFormBody({ phase, loading, onClose, onSubmit }: Omit<Props, 'opened'>) {
   const initial = phase ? phaseValues(phase) : emptyPhaseValues();
   const form = useForm<PhaseFormValues>({
     mode: 'uncontrolled',

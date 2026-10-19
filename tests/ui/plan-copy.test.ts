@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { readFileSync } from 'node:fs';
 import { PLAN_COPY } from '../../app/components/projects/plan/plan.copy';
 import {
   emptyMilestoneValues,
@@ -16,6 +17,7 @@ import {
   isMilestoneOverdue,
   movedOrder,
 } from '../../app/components/projects/plan/plan-view';
+import { PROJECT_TABS } from '../../app/components/projects/projects.copy';
 import { PHASE_NAME_MAX } from '../../server/project/project.limits';
 
 // test-only fixtures
@@ -129,5 +131,28 @@ describe('milestone form', () => {
     expect(toMilestoneInput({ title: 'Rilis', dueDate: '2026-11-30', phaseId: null }).phaseId).toBe(
       null,
     );
+  });
+});
+
+describe('project tabs', () => {
+  it('names the tabs Ringkasan · Tugas · Tahapan · Anggota', () => {
+    expect(Object.values(PROJECT_TABS)).toEqual(['Ringkasan', 'Tugas', 'Tahapan', 'Anggota']);
+  });
+
+  it('puts Tahapan between Tugas and Anggota in the layout, at the phases path', () => {
+    const src = readFileSync('app/routes/app/project/layout.tsx', 'utf8');
+    const block = src.slice(src.indexOf('const TABS = ['), src.indexOf('] as const;'));
+    const order = [...block.matchAll(/\{ to: '([^']*)', label: PROJECT_TABS\.(\w+)/g)].map((m) => [
+      m[1],
+      m[2],
+    ]);
+    expect(order).toEqual([
+      ['', 'summary'],
+      ['tasks', 'tasks'],
+      ['phases', 'phases'],
+      ['members', 'members'],
+    ]);
+    const routes = readFileSync('app/routes.ts', 'utf8');
+    expect(routes).toContain("route('phases', 'routes/app/project/phases.tsx')");
   });
 });

@@ -75,12 +75,12 @@ const SHARED_FILES = words(`
 `);
 
 /**
- * The sixteen /app URLs (docs/decisions/0004-contract-v1-hybrid-menus.md added /app/inbox, /app/events and /app/team): the thirteen: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
+ * The seventeen /app URLs (docs/decisions/0004-contract-v1-hybrid-menus.md added /app/inbox, /app/events and /app/team; S5a UI-05 added the Tahapan tab, see 0002 §6): the thirteen: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
  * 15 Oct 2026, option B) and /app/tasks/:number/edit (S2-13, "Ubah tugas"); both compatible additions, see 0002-contract-v1.md §6. /profile is outside /app/.
  */
 const APP_URLS = words(`
   /app /app/projects /app/projects/new /app/projects/:projectId /app/projects/:projectId/tasks
-  /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
+  /app/projects/:projectId/phases /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
   /app/tasks/:number /app/tasks/:number/edit /app/settings /app/trash
   /app/inbox /app/events /app/team
 `);
@@ -152,8 +152,8 @@ describe('contract-v1 routes and menu', () => {
     (u) => u === '/app' || u.startsWith('/app/'),
   );
 
-  it('registers exactly sixteen /app URLs', () => {
-    expect(appUrls).toHaveLength(16);
+  it('registers exactly seventeen /app URLs', () => {
+    expect(appUrls).toHaveLength(17);
     expect(appUrls.sort()).toEqual([...APP_URLS].sort());
   });
 

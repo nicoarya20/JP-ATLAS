@@ -37,6 +37,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 const TABS = [
   { to: '', label: PROJECT_TABS.summary, end: true },
   { to: 'tasks', label: PROJECT_TABS.tasks, end: false },
+  { to: 'phases', label: PROJECT_TABS.phases, end: false },
   { to: 'members', label: PROJECT_TABS.members, end: false },
 ] as const;
 
@@ -50,7 +51,7 @@ function Tab({ to, label, end }: (typeof TABS)[number]) {
   );
 }
 
-/** Header plus the Ringkasan · Tugas · Anggota tabs around the active tab's page. */
+/** Header plus the Ringkasan · Tugas · Tahapan · Anggota tabs around the active tab's page. */
 export default function ProjectLayout({ loaderData }: Route.ComponentProps) {
   const { project, today } = loaderData;
   return (
