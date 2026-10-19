@@ -141,6 +141,35 @@ export const VIEW_COPY = {
   gantt: { label: 'Gantt', hint: 'Tampilan jadwal (Gantt)' },
 } as const;
 
+/** Gantt view of the project list: the bars, the "today" line and the projects without dates. */
+export const GANTT_COPY = {
+  rowsHeader: 'Proyek',
+  today: 'Hari ini',
+  todayIn: (date: string) => `Garis putus-putus merah: hari ini, ${date}.`,
+  todayOut: (date: string) => `Hari ini (${date}) di luar rentang yang ditampilkan.`,
+  scrollHint: 'Geser ke samping untuk melihat bulan lainnya.',
+  legendTitle: 'Arti warna batang',
+  legendNoCondition: 'Proyek tanpa kondisi memakai warna statusnya.',
+  dueOnlyLegend: 'Belah ketupat: baru ada tenggat, belum ada tanggal mulai.',
+  nothingToDraw: 'Belum ada proyek yang punya tanggal untuk digambar.',
+  nothingToDrawHint: 'Isi tanggal mulai dan tenggat proyek agar tampil di jadwal.',
+  unscheduledTitle: 'Belum ada tanggal',
+  unscheduledHint: 'Proyek ini belum punya tenggat, jadi belum bisa digambar di jadwal.',
+  onlyStart: (date: string) => `Baru ada tanggal mulai: ${date}.`,
+  range: (from: string, to: string) => `${from} – ${to}`,
+  dueOnly: (date: string) => `Tenggat ${date}`,
+  barLabel: (name: string, from: string, to: string, status: string, progress: string) =>
+    `${name}: ${from} sampai ${to}. Status ${status}. ${progress}`,
+  dueLabel: (name: string, date: string, status: string) =>
+    `${name}: tenggat ${date}. Status ${status}.`,
+  progress: (percent: number) => `${percent}% selesai`,
+  noTasks: 'Belum ada tugas',
+  stageDone: (label: string) => `Tahap ${label} (selesai)`,
+  stageOpen: (label: string) => `Tahap ${label} (belum selesai)`,
+  milestoneReached: (label: string) => `Tonggak ${label} (tercapai)`,
+  milestoneOpen: (label: string) => `Tonggak ${label} (belum tercapai)`,
+} as const;
+
 /** Empty states: no project yet (can create), Member not in any project, filters matching nothing. */
 export const EMPTY_COPY = {
   creatorTitle: 'Belum ada proyek.',
