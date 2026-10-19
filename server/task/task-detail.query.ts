@@ -6,7 +6,7 @@ import { and, asc, eq, type SQL } from 'drizzle-orm';
 import { canViewTask } from '../access/task.policy';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { project, task, taskChecklistItem, taskKind } from '../db/schema';
+import { project, projectPhase, task, taskChecklistItem, taskKind } from '../db/schema';
 import type { Executor } from '../pm/tx';
 import { loadMembership, loadReviewerPool } from '../project/membership.query';
 import type { TaskClock, TaskDetail, TaskDetailResult } from './task.dto';
@@ -65,10 +65,13 @@ export async function getTaskDetail(
       kindId: taskKind.id,
       kindName: taskKind.name,
       kindBase: taskKind.baseKind,
+      phaseId: task.phaseId,
+      phaseName: projectPhase.name,
     })
     .from(task)
     .innerJoin(project, eq(project.id, task.projectId))
     .innerJoin(taskKind, eq(taskKind.id, task.kindId))
+    .leftJoin(projectPhase, eq(projectPhase.id, task.phaseId))
     .where(and(liveTask, byRef));
   if (!row) return notFound;
 
@@ -106,6 +109,7 @@ export async function getTaskDetail(
     description: row.description,
     startDate: row.startDate,
     kind: { id: row.kindId, name: row.kindName, baseKind: row.kindBase },
+    phase: row.phaseId && row.phaseName ? { id: row.phaseId, name: row.phaseName } : null,
     creator: person(row.createdBy),
     reviewer: person(row.reviewerId),
     needsReview: row.needsReview,

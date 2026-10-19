@@ -44,7 +44,7 @@ const Day = t.Nullable(t.String({ format: 'date' }));
 export const Id = t.String({ minLength: 1 });
 const Priority = oneOf(PROJECT_PRIORITIES);
 
-/** Fields that belong to later slices (tags S4, estimates S5): present = 422. `phaseId` is only open on edit (S5a-02). */
+/** Fields that belong to later slices (tags S4, estimates S5): present = 422. */
 const LATER = {
   tags: t.Optional(t.Never()),
   estimateHours: t.Optional(t.Never()),
@@ -68,7 +68,7 @@ export const CreateBody = t.Object(
     ),
     // Review stays off until S4 (KB-6): a form may send `false`, never `true`.
     needsReview: t.Optional(t.Literal(false)),
-    phaseId: t.Optional(t.Never()),
+    phaseId: t.Optional(t.Nullable(Id)),
     ...LATER,
   },
   { additionalProperties: false },

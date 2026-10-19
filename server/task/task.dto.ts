@@ -93,6 +93,8 @@ export interface TaskDetail extends Omit<TaskListItem, 'checklist'> {
   description: string | null;
   startDate: string | null;
   kind: { id: string; name: string; baseKind: TaskBaseKind };
+  /** The phase of the task's project it belongs to (H-B5), or null. */
+  phase: { id: string; name: string } | null;
   creator: PersonRef | null;
   reviewer: PersonRef | null;
   needsReview: boolean;

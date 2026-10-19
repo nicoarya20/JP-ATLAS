@@ -35,7 +35,9 @@ const KINDS = [
   { id: 'k-task', name: 'Tugas', baseKind: 'task' as const },
   { id: 'k-bug', name: 'Bug', baseKind: 'issue' as const },
 ]; // test-only
-const PROJECTS: TaskFormProject[] = [{ id: 'p-1', name: 'Renovasi Dapur', kinds: KINDS }]; // test-only
+const PROJECTS: TaskFormProject[] = [
+  { id: 'p-1', name: 'Renovasi Dapur', kinds: KINDS, phases: [] },
+]; // test-only
 
 const member = (userId: string, name: string, role: ProjectMemberItem['role']) =>
   ({ userId, name, role, image: null, jobTitle: null, isLead: false, joinedAt: '' }) as const;

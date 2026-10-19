@@ -4,7 +4,7 @@
  * policies (`canCreateTask`, `canViewTask`, `canEditTask`); this file only loads rows and writes.
  * Logs carry ids only (C-LOG-1). Deleting a task is not here: the Trash for tasks ships in S6 (X1-Q1).
  */
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { levelOf } from '../access/level';
 import {
   canCreateTask,
@@ -13,25 +13,25 @@ import {
   resolveNeedsReviewOnCreate,
 } from '../access/task.policy';
 import type { Principal } from '../access/types';
-import {
-  project,
-  projectMember,
-  task,
-  taskActivity,
-  taskChecklistItem,
-  taskKind,
-} from '../db/schema';
+import { project, task, taskActivity, taskChecklistItem } from '../db/schema';
 import { logger } from '../logger';
 import { emitTaskAssigned } from '../notification/emit.task';
 import type { ProjectPriority } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
-import { DEFAULT_TASK_KINDS } from '../pm/limits';
-import { inTx, type Tx } from '../pm/tx';
+import { inTx } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
-import { PLAN_MESSAGES, phaseInProject } from '../project/project-plan.write';
 import type { TaskClock, TaskDetail } from './task.dto';
-import { isTaskWorkerRole, TASK_ACTIVITY, TASK_WRITE_MESSAGES } from './task.limits';
+import { TASK_ACTIVITY, TASK_WRITE_MESSAGES } from './task.limits';
 import { getTaskDetail, resolveTaskRef } from './task-detail.query';
+import { checkPhase, phaseChangePayload } from './task-phase.write';
+import {
+  checkWorker,
+  invalid,
+  type Refusal,
+  refused,
+  resolveKind,
+  startAfterDue,
+} from './task-write.check';
 
 /** Who writes: the policy principal plus the display name stored on activity rows. */
 export type TaskAuthor = { principal: Principal; name: string };
@@ -47,6 +47,8 @@ export type CreateTaskInput = {
   startDate?: string | null;
   /** Defaults to the project's "Tugas" kind. */
   kindId?: string;
+  /** A phase of the same project (H-B5); omitted or null = no phase. */
+  phaseId?: string | null;
   /** First checklist steps, in order. */
   checklist?: readonly string[];
 };
@@ -68,47 +70,7 @@ export type TaskWriteResult =
   | { ok: true; task: TaskDetail }
   | { ok: false; code: PmCode; error?: string };
 
-type Refusal = Extract<TaskWriteResult, { ok: false }>;
 type Written = Refusal | { ok: true; id: string };
-const invalid = (error: string): Refusal => ({ ok: false, code: 'VALIDATION', error });
-const refused = (code: PmCode): Refusal => ({ ok: false, code });
-
-/** Refuses an assignee who is not a manager or member of the project (viewers cannot do the work). */
-async function checkWorker(tx: Tx, projectId: string, userId: string): Promise<Refusal | null> {
-  const [row] = await tx
-    .select({ role: projectMember.role })
-    .from(projectMember)
-    .where(and(eq(projectMember.projectId, projectId), eq(projectMember.userId, userId)));
-  const works = isTaskWorkerRole(row?.role);
-  return works ? null : invalid(TASK_WRITE_MESSAGES.assigneeNotWorker);
-}
-
-/** The given kind when it is an active kind of the project, else the project's default ("Tugas") kind. */
-async function resolveKind(
-  tx: Tx,
-  projectId: string,
-  kindId: string | undefined,
-): Promise<string | Refusal> {
-  const defaultName = DEFAULT_TASK_KINDS[0]?.name ?? '';
-  const [row] = await tx
-    .select({ id: taskKind.id })
-    .from(taskKind)
-    .where(
-      and(
-        eq(taskKind.projectId, projectId),
-        isNull(taskKind.archivedAt),
-        kindId ? eq(taskKind.id, kindId) : eq(taskKind.baseKind, 'task'),
-      ),
-    )
-    .orderBy(sql`lower(${taskKind.name}) = lower(${defaultName}) DESC`, asc(taskKind.position))
-    .limit(1);
-  if (row) return row.id;
-  return invalid(kindId ? TASK_WRITE_MESSAGES.kindNotInProject : TASK_WRITE_MESSAGES.noDefaultKind);
-}
-
-// ISO dates compare correctly as strings.
-const startAfterDue = (start: string | null | undefined, due: string | null | undefined) =>
-  Boolean(start && due && start > due);
 
 /** The detail the caller now sees; the write just committed, so a miss is a bug, not a 404. */
 async function detailOf(p: Principal, w: Written, clock: TaskClock): Promise<TaskWriteResult> {
@@ -154,6 +116,8 @@ export async function createTask(
     if (badWorker) return badWorker;
     const kindId = await resolveKind(tx, proj.id, input.kindId);
     if (typeof kindId !== 'string') return kindId;
+    const badPhase = input.phaseId ? await checkPhase(tx, proj.id, input.phaseId) : null;
+    if (badPhase) return badPhase;
     // Always false while the review UI is off (M25); the route already refuses `needsReview: true`.
     const needsReview = resolveNeedsReviewOnCreate({
       projectDefault: proj.needsReviewDefault,
@@ -165,6 +129,7 @@ export async function createTask(
       .values({
         projectId: proj.id,
         kindId,
+        phaseId: input.phaseId ?? null,
         title,
         description: input.description?.trim() || null,
         priority: input.priority ?? 'medium',
@@ -214,7 +179,7 @@ function patchOf(input: UpdateTaskInput) {
   };
 }
 
-/** Applies a partial change the editor may make; assignee, due date and priority changes each get an activity row. */
+/** Applies a partial change the editor may make; assignee, due date, priority and phase changes each get an activity row. */
 export async function updateTask(
   author: TaskAuthor,
   ref: string,
@@ -235,6 +200,7 @@ export async function updateTask(
         status: task.status,
         createdBy: task.createdBy,
         assigneeId: task.assigneeId,
+        phaseId: task.phaseId,
         reviewerId: task.reviewerId,
         needsReview: task.needsReview,
         priority: task.priority,
@@ -264,9 +230,8 @@ export async function updateTask(
     }
     const kindId = input.kindId ? await resolveKind(tx, cur.projectId, input.kindId) : undefined;
     if (kindId !== undefined && typeof kindId !== 'string') return kindId;
-    if (input.phaseId && !(await phaseInProject(tx, cur.projectId, input.phaseId))) {
-      return invalid(PLAN_MESSAGES.PHASE_MISSING);
-    }
+    const badPhase = input.phaseId ? await checkPhase(tx, cur.projectId, input.phaseId) : null;
+    if (badPhase) return badPhase;
     const phase = input.phaseId === undefined ? {} : { phaseId: input.phaseId };
     const set = { ...next, ...(kindId ? { kindId } : {}), ...phase };
     if (Object.keys(set).length === 0) return { ok: true, id: cur.id };
@@ -279,6 +244,10 @@ export async function updateTask(
     track(TASK_ACTIVITY.assigneeChanged, cur.assigneeId, next.assigneeId);
     track(TASK_ACTIVITY.dueDateChanged, cur.dueDate, next.dueDate);
     track(TASK_ACTIVITY.priorityChanged, cur.priority, next.priority);
+    if (input.phaseId !== undefined && input.phaseId !== cur.phaseId) {
+      const moved = await phaseChangePayload(tx, cur.phaseId, input.phaseId);
+      changes.push([TASK_ACTIVITY.phaseChanged, moved]);
+    }
 
     await tx
       .update(task)

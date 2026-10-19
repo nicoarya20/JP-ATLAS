@@ -64,6 +64,10 @@ export const ACTIVITY_COPY = {
     `mengubah tenggat${from ? ` dari ${from}` : ''}${to ? ` ke ${to}` : ' (dikosongkan)'}`,
   priority_changed: (from: string | null, to: string | null) =>
     `mengubah prioritas${from ? ` dari ${from}` : ''}${to ? ` ke ${to}` : ''}`,
+  phase_changed: (from: string | null, to: string | null) =>
+    to
+      ? `memindahkan tugas ke tahapan ${to}${from ? ` (dari ${from})` : ''}`
+      : `mengeluarkan tugas dari tahapan${from ? ` ${from}` : ''}`,
   started: 'mulai mengerjakan tugas ini',
   unstarted: 'mengembalikan tugas ke belum dikerjakan',
   completed: 'menandai tugas selesai',

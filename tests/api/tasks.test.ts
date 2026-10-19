@@ -43,6 +43,7 @@ const DETAIL_KEYS = [
   'description',
   'kind',
   'needsReview',
+  'phase',
   'reopenCount',
   'reviewer',
   'startDate',
