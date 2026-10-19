@@ -145,6 +145,9 @@ describe('PM routes denied to API keys (D10)', () => {
   it('keeps ordinary PM routes on app:read / app:write', () => {
     expect(requiredScope('POST', '/api/app/tasks')).toBe('app:write');
     expect(requiredScope('PATCH', '/api/app/tasks/1')).toBe('app:write');
+    // "Tulis saja" calls a paid provider but changes no data; it is a POST, so a read-only key is refused (A1).
+    expect(requiredScope('POST', '/api/app/tasks/draft')).toBe('app:write');
+    expect(requiredScope('post', '/api/app/tasks/draft/')).toBe('app:write');
     expect(requiredScope('GET', '/api/app/projects')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/tasks')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');

@@ -17,6 +17,7 @@ describe('task route scopes', () => {
     ['GET', '/api/app/tasks/482', 'app:read'],
     ['GET', '/api/app/tasks/7f1c2d3e-task-id', 'app:read'],
     ['POST', '/api/app/tasks', 'app:write'],
+    ['POST', '/api/app/tasks/draft', 'app:write'],
     ['PATCH', '/api/app/tasks/482', 'app:write'],
     ['PATCH', '/api/app/tasks/7f1c2d3e-task-id', 'app:write'],
   ] as const)('%s %s needs %s', (method, path, scope) => {
@@ -35,6 +36,7 @@ describe('task route scopes', () => {
         'GET /api/app/tasks/counts',
         'GET /api/app/tasks/:ref',
         'POST /api/app/tasks/',
+        'POST /api/app/tasks/draft',
         'PATCH /api/app/tasks/:ref',
       ].sort(),
     );

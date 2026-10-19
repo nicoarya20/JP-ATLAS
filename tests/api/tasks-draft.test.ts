@@ -6,7 +6,7 @@ import { task, taskActivity } from '../../server/db/schema';
 import { freezeAt } from '../support/clock';
 import { installDraftHarness, modelDraft } from '../support/draft-harness';
 
-const { auth, provider, f, world, draft, answerWith } = installDraftHarness('tddraft');
+const { auth, f, world, draft, answerWith } = installDraftHarness('tddraft');
 
 describe('drafts', () => {
   it('turns one paragraph about two people into two drafts, dates computed by the code', async () => {
