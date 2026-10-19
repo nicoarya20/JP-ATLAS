@@ -284,7 +284,8 @@ describe('listProjectMembers', () => {
 });
 
 describe('query counts stay constant (R04 §3.7)', () => {
-  const MAX_QUERIES = 4;
+  // Four reads of S1 plus the milestone and override batches of S5 (L5-02); still independent of the page size.
+  const MAX_QUERIES = 6;
 
   async function listWith(n: number) {
     const lead = await f.user({ role: 'project_manager' });

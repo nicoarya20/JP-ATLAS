@@ -30,10 +30,13 @@ const EXPECTED: Record<string, readonly (string | number)[]> = {
   EVENT_LOCATION_TYPES: ['offline', 'online'],
   EVENT_NOTE_STATUSES: ['draft', 'confirmed'],
   EVENT_REMINDER_OFFSETS_MIN: [1440, 30],
+  // S5a-01 (P10 L5-01): enums of the project plan tables, see migration 0019.
+  PHASE_STATUSES: ['not_started', 'in_progress', 'done'],
+  EXTENSION_REASON_CATEGORIES: ['scope_change', 'dependency', 'resource', 'other'],
 };
 
 describe('shared enum tuples', () => {
-  it('exports exactly the S0-S2 and S7 Event tuples (no other stage tuples)', () => {
+  it('exports exactly the S0-S2, S5a plan and S7 Event tuples (no other stage tuples)', () => {
     expect(Object.keys(enums).sort()).toEqual(Object.keys(EXPECTED).sort());
   });
 

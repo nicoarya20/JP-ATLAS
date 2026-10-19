@@ -3,6 +3,7 @@
  * overrides. Pure and browser-safe (types plus row mappers, no DB import), so the API, the UI and tests
  * share one contract. Field names follow R02: `title`, `endDate`, `oldDueDate`, `extendedBy`, `setBy`.
  */
+import type { ConditionMilestone, ConditionOverride } from '../metrics/condition';
 import type { ExtensionReasonCategory, PhaseStatus, ProjectCondition } from '../pm/enums';
 
 /** Counters the service computes per phase: live tasks that point at it, and how many of those are done. */
@@ -79,6 +80,18 @@ export type ConditionOverrideRow = Omit<
   createdAt: Date;
   setByName?: string | null;
 };
+
+/** An override as `computeCondition` reads it, with the manager's own sentence kept for display. */
+export type ConditionOverrideInput = ConditionOverride & { readonly reason: string };
+
+/** What the S5 condition needs besides tasks: the project's milestones and its not-cleared overrides. */
+export type ConditionPlanInput = {
+  readonly milestones: readonly ConditionMilestone[];
+  readonly overrides: readonly ConditionOverrideInput[];
+};
+
+/** Plan input of a project with no milestones and no overrides. */
+export const NO_CONDITION_PLAN: ConditionPlanInput = { milestones: [], overrides: [] };
 
 const iso = (d: Date | null): string | null => (d ? d.toISOString() : null);
 

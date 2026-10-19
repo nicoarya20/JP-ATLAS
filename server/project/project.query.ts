@@ -1,7 +1,7 @@
 /**
- * Read side of projects (S1-02): the list, one project's detail and its member list. At most 4
- * statements per call whatever the page size (R04 §3.7): tasks and memberships are fetched for
- * the whole page at once, never per project.
+ * Read side of projects (S1-02): the list, one project's detail and its member list. At most 6
+ * statements per call whatever the page size (R04 §3.7): tasks, memberships, milestones and overrides
+ * are fetched for the whole page at once, never per project.
  */
 import { and, asc, count, desc, eq, ilike, inArray, ne, type SQL, sql } from 'drizzle-orm';
 import { projectCaps } from '../access/capabilities';
@@ -25,6 +25,7 @@ import {
   toDetail,
   toListItem,
 } from './project.dto';
+import { loadConditionInputs, planOf } from './project-condition.query';
 
 export const PROJECT_SORTS = ['due', 'name', 'recent'] as const;
 export type ProjectSort = (typeof PROJECT_SORTS)[number];
@@ -148,13 +149,21 @@ export async function listProjects(
   ]);
 
   const ids = rows.map((r) => r.id);
-  const [memberships, tasks] = await Promise.all([
+  const [memberships, tasks, plans] = await Promise.all([
     loadMembership(p.id, ids, exec),
     loadTasks(exec, ids),
+    loadConditionInputs(ids, input.now, exec),
   ]);
   return {
     items: rows.map((r) =>
-      toListItem(r, tasks.get(r.id) ?? [], memberships.get(r.id) ?? null, input.now, cfg),
+      toListItem(
+        r,
+        tasks.get(r.id) ?? [],
+        memberships.get(r.id) ?? null,
+        input.now,
+        cfg,
+        planOf(plans, r.id),
+      ),
     ),
     total: totalRow?.n ?? 0,
   };
@@ -173,8 +182,9 @@ export async function getProjectDetail(
   const membership = (await loadMembership(p.id, [projectId], exec)).get(projectId) ?? null;
   // View first: `can{}` of a hidden project must never be computed, let alone returned.
   if (!canViewProject(p, row, membership).ok) return null;
-  const [tasks, [live]] = await Promise.all([
+  const [tasks, plans, [live]] = await Promise.all([
     loadTasks(exec, [projectId]),
+    loadConditionInputs([projectId], now, exec),
     // Canceled tasks are outside `loadTasks` but still move to the Trash with the project (S1-18 dialog).
     exec
       .select({ n: count() })
@@ -182,7 +192,16 @@ export async function getProjectDetail(
       .where(and(eq(task.projectId, projectId), isLive(task))),
   ]);
   const can = projectCaps(p, row, membership);
-  return toDetail(row, tasks.get(projectId) ?? [], membership, can, now, cfg, live?.n ?? 0);
+  return toDetail(
+    row,
+    tasks.get(projectId) ?? [],
+    membership,
+    can,
+    now,
+    cfg,
+    live?.n ?? 0,
+    planOf(plans, projectId),
+  );
 }
 
 const ROLE_RANK = new Map<string, number>(PROJECT_MEMBER_ROLES.map((r, i) => [r, i]));
