@@ -75,6 +75,8 @@ export function TaskFilters({ filters, onChange, projects, people, locked }: Pro
       {!locked && (
         <SegmentedControl
           aria-label={FILTER_COPY.scopeLabel}
+          // The theme sets no size for these, and the default is under the 44 px touch target of /app.
+          size="lg"
           data={SCOPES}
           value={filters.lingkup}
           // "Tugas saya" is already one person, so leaving an Orang filter behind would empty it.
@@ -122,7 +124,7 @@ export function TaskFilters({ filters, onChange, projects, people, locked }: Pro
       >
         <Group gap="xs" wrap="wrap" role="group" aria-label={FILTER_COPY.statusLabel}>
           {STATUS_CHIPS.map((c) => (
-            <Chip key={c.value} value={c.value}>
+            <Chip key={c.value} value={c.value} size="xl">
               {c.label}
             </Chip>
           ))}

@@ -212,6 +212,12 @@ describe('filters', () => {
     }
   });
 
+  it('makes the status chips and the scope toggle large enough to tap', async () => {
+    const html = await render('?', data('', { counts: counts({ today: 1 }) }));
+    expect(html.match(/mantine-Chip-root"[^>]*data-size="xl"/g)).toHaveLength(5);
+    expect(html).toMatch(/mantine-SegmentedControl-root"[^>]*data-size="lg"/);
+  });
+
   it('"Tugas saya" has no Orang filter, since every task there is already mine', async () => {
     const html = await render('?', data('', { counts: counts({ today: 1 }) }));
     expect(html).not.toContain(FILTER_COPY.personLabel);
