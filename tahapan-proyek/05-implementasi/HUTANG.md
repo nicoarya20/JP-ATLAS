@@ -4,7 +4,7 @@
 
 **Cara memakai:** pilih bagian lalu panggil dengan ID-nya (mis. "kerjakan H-A3"). Kolom **Sumber** menunjuk dokumen dengan rincian lengkap. Tanda **(pengamatan)** berarti dicatat dari kondisi kode nyata, bukan dari dokumen rencana.
 
-**Kondisi kode saat berkas ini dibuat:** cabang `feature/project-management` di `9ab8261` (sudah di-push). 5506 tes lulus, typecheck nol, `smoke:prod` 39/39.
+**Kondisi kode saat berkas ini dibuat (diperbarui 19 Okt 2026 untuk menu Tugas, cabang `feature/pm-tasks-menu`: 5790 tes lulus, typecheck nol, `smoke:prod` 39/39):** cabang `feature/project-management` di `9ab8261` (sudah di-push). 5506 tes lulus, typecheck nol, `smoke:prod` 39/39.
 
 ## 0. Apa itu "MVP 1"
 
@@ -49,7 +49,7 @@ Menurut [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) §1, **MVP Inti = S0 (a
 
 | ID | Hutang | Catatan | Sumber |
 |---|---|---|---|
-| H-B5 | **Pemilih Tahapan di form tugas** + `phaseId` di DTO tugas | Server sudah menerima `PATCH /tasks/:ref {phaseId}`; yang kurang DTO tugas dan UI. **Dikerjakan bersamaan dengan menu Tugas** | laporan `ui-05` |
+| H-B5 | ~~Pemilih Tahapan di form tugas + `phaseId` di DTO tugas~~ **Selesai 19 Okt 2026 (F1)**: form buat/ubah, `POST` menerima `phaseId`, detail memuat `phase`, riwayat `phase_changed`. **Sisa:** kolom/lencana Tahapan di **daftar** tugas (`phase` belum ada di `TaskListItem`) | Kecil; kerjakan bersama H-C12 | laporan `tm-F1` |
 | H-B6 | Kartu "Tugas yang perlu perhatian" belum memuat tugas **jatuh tempo hari ini** dan "Menunggu diperiksa saya" | Yang kedua menunggu S4 Periksa | laporan `ui-06` |
 | H-B7 | Hak **Perpanjang tenggat / Atur kondisi** memakai `can.update`, belum punya `can.extend`/`can.override` sendiri | Ubah bila ingin hak dibedakan | laporan `ui-06` |
 | H-B8 | `extend-deadline` dan `condition-override` **ditolak untuk API key** (konservatif) | Bila butuh otomasi, buka dengan sadar + tes | laporan `s5a-04` |
@@ -65,17 +65,23 @@ Menurut [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) §1, **MVP Inti = S0 (a
 
 | ID | Hutang | MVP 1? | Sumber |
 |---|---|---|---|
-| H-C1 | **Audit menu Tugas terhadap wireframe** (seperti yang dilakukan untuk Proyek): daftar, filter, form, detail, tab Tugas di proyek. Belum pernah dibandingkan sejak S2 selesai **(pengamatan)** | **ya** | sesi 19 Okt |
+| H-C1 | ~~Audit menu Tugas terhadap wireframe~~ **Selesai 19 Okt 2026** untuk daftar (L1, 7 selisih diperbaiki) dan form buat/ubah (F1). **Sisa audit:** halaman **detail** tugas dan tab Tugas proyek terhadap wireframe, serta pengecekan visual di browser (belum pernah dilihat; tes klik hanya tingkat alur) | **ya** (sisa) | laporan `tm-L1`, `tm-F1` |
 | H-C2 | **Periksa** (T7): minta diperiksa, setujui/kembalikan, pemeriksa tidak boleh menyetujui hasil sendiri | pasca | `P10` L4-05, L4-09 |
 | H-C3 | **Dependensi** ("Menunggu tugas lain") + "Giliran Anda" | pasca | `P10` L4-02, L4-04, L4-10 |
 | H-C4 | **Tag** pada tugas | pasca | `P10` L4-06, L4-11 |
 | H-C5 | **Papan/Kanban** di daftar tugas dan tab Tugas proyek (`?tampilan=papan`) | pasca | `P10` L4-12 |
 | H-C6 | **Mention** (@nama) di komentar | pasca | `P10` L4-03, L4-13 |
-| H-C7 | **Hapus tugas ke Sampah** dengan tombol Urungkan (T1). Sengaja tidak dipasang di S2 karena Sampah tugas baru ada di S6 | pasca (bergantung Sampah, H-D5) | KEPUTUSAN X1-Q1 |
+| H-C7 | ~~Hapus tugas ke Sampah dengan tombol Urungkan (T1)~~ **Selesai 19 Okt 2026 (D1)**: `DELETE /api/app/tasks/:ref` (hapus lunak, izin pembuat + Pengelola + Admin), pulihkan, bagian Tugas di `/app/trash`. **Sisa:** hapus permanen dan pembersihan 30 hari tetap di H-D5 | selesai | laporan `tm-D1` |
 | H-C8 | **Bukti** (unggah foto/PDF ≤10 MB) dan **kelola jenis tugas** (S5b) | pasca | `P10` L5-05..07, L5-12..14 |
-| H-C9 | Impor/unduh CSV, pilih massal, "Tulis saja ✦" (AI), estimasi jam tampil | fase 5 | `P3` §2 Tugas ②⑤⑦ |
+| H-C9 | Impor/unduh CSV, pilih massal, estimasi jam tampil. ("Tulis saja ✦" **selesai 19 Okt 2026**: backend A1 + UI U1; **belum diuji ke API Anthropic sungguhan**, lihat H-C14) | fase 5 | `P3` §2 Tugas ②⑤⑦ |
 | H-C10 | Kartu Inbox **"Terlambat"** dan "Geser tenggat" dari kartu ke modal Perpanjang tenggat | pasca | `P10` L4-14, L5-11 |
 | H-C11 | Hitungan **Atlas 70% (wireframe) vs 17% (rumus)**: seed, UI, dan tes memakai 17% | catatan | `P3` KB-10 |
+| H-C12 | Kolom/lencana **Tahapan** di daftar tugas; **nomor tugas** (`#42`) kecil di baris daftar supaya pencarian `#nomor` berguna; teks **"1–6 dari N tugas"** (butuh `total` di `GET /tasks`, KB-11 memilih tanpa total); lencana status di baris "Tugas saya" bila tak ada label utama **(RAGU dari L1)** | belum diputuskan | laporan `tm-L1` RAGU-1..3 |
+| H-C13 | **Chip Belum/Sedang dikerjakan dan filter Tenggat** ditambahkan L1 di luar teks P3 (ada di wireframe SCR-TUGAS-01). Mudah dicabut bila terlalu ramai bagi penguji awam; putuskan setelah uji pengguna | catatan | laporan `tm-L1` RAGU-4 |
+| H-C14 | **"Tulis saja ✦" belum diuji ke API Anthropic sungguhan** (semua tes memakai stub). Butuh `ANTHROPIC_API_KEY` di `.env`; periksa kualitas draf bahasa Indonesia, pencocokan nama, dan tanggal relatif ("Jumat") terhadap contoh di `03-tugas.md`; ukur latensi dan biaya per draf. Model default `claude-haiku-5-5` (`TASK_AI_MODEL`) | **ya** (bila AI dipamerkan) | laporan `tm-A1` |
+| H-C15 | **Eden mengubah string `YYYY-MM-DD` menjadi objek `Date`** di klien (`app/lib/eden.ts`). U1 memulihkannya di `useTaskDraft`, tetapi pembaca Eden lain bisa terdampak diam-diam. Audit semua pemakai `client.api.app.*` yang membaca tanggal; perbaikan paling bersih di klien Eden bersama | **ya** | laporan `tm-U1` |
+| H-C16 | `EmptyState` memakai tombol `size="sm"` (36 px) di semua layar `/app` (seharusnya `lg`); `ProjectFilters` Chip masih 28 px. Perbaikan terbersih di tema (`theme-components.ts`: Chip `xl`, SegmentedControl/MultiSelect `lg`) | kecil | laporan `tm-L1` RAGU-5 |
+| H-C17 | Hapus tugas **tidak menulis `logActivity`** (hanya `audit()`); komentar usang di `app-tasks.write.ts` soal hapus belum dibersihkan; riwayat tugas tak mencatat "dihapus/dipulihkan" | kecil | laporan `tm-D1` |
 
 > **Migrasi:** S5a memakai `0019`. S4 (H-C2..C6) harus mulai dari **`0020`**, lalu S5b.
 
@@ -116,7 +122,7 @@ AI: cerita proyek, notulensi foto/suara, Ask Data (butuh `ai_enabled`, D3) · Te
 |---|---|---|---|
 | H-G1 | Tutup jalur ubah tenggat langsung (KB-3)? | Ya, arahkan ke Perpanjang tenggat | H-A7 |
 | H-G2 | Buka `extend-deadline`/`condition-override` untuk API key? | Tetap ditolak | H-B8 |
-| H-G3 | Fitur AI: penyedia, biaya, dan privasi data | belum ada usulan | H-B1 |
+| H-G3 | Fitur AI: penyedia, biaya, dan privasi data | **Default sementara dipakai (19 Okt 2026):** Anthropic Messages API lewat `fetch`, kunci opsional `ANTHROPIC_API_KEY`, hanya teks + nama anggota yang dikirim, tanpa log teks. Menunggu persetujuan user; biaya belum diukur (H-C14) | H-B1 |
 | H-G4 | Pencarian peserta Event untuk Member (H-D8-1) | Batasi ke orang sekawan proyek (`loadScopeFor`) | E-09 |
 | H-G5 | `sort=overdue` Tim: ganti label atau perluas kueri (H-D8-2) | Ganti label | M06 |
 | H-G6 | Arsip/duplikat proyek perlu? (H-B13) | Tunda | |
@@ -125,8 +131,7 @@ AI: cerita proyek, notulensi foto/suara, Ask Data (butuh `ai_enabled`, D3) · Te
 
 ## Urutan yang disarankan untuk MVP 1
 
-1. **H-C1** audit menu Tugas terhadap wireframe, lalu perbaiki selisihnya (seperti Proyek).
-2. **H-B5** pemilih Tahapan di form tugas, dikerjakan bersama H-C1.
+1. ~~**H-C1** audit menu Tugas, **H-B5** pemilih Tahapan~~ selesai untuk daftar dan form (19 Okt); sisa: audit detail tugas + cek visual di browser, **H-C15** (Eden Date), **H-C14** (uji AI sungguhan), **H-C12** (kolom Tahapan/nomor di daftar).
 3. **H-A7 / H-G1** putuskan KB-3 (kecil, tapi memengaruhi riwayat tenggat).
 4. **H-A4** jalankan smoke binary dan coldboot dengan Bun 1.4.2.
 5. **H-A1..A3** cari penguji nyata, jalankan uji pengguna, lalu **H-A2** gerbang demo S2.
