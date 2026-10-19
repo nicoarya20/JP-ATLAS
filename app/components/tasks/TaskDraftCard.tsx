@@ -14,6 +14,8 @@ import { longDate } from './task-draft';
 import { WRITE_COPY as COPY } from './task-draft.copy';
 import type { DraftItem } from './task-draft.state';
 
+const WRAP_TEXT = { overflowWrap: 'anywhere' } as const;
+
 type Props = {
   item: DraftItem;
   /** Name of the chosen assignee, or null when unknown (members still loading). */
@@ -33,6 +35,7 @@ export function TaskDraftCard({ item, assigneeName, kindName, busy, onToggle, on
   const PriorityIcon = priority.icon;
   return (
     <Paper withBorder p="sm" radius="md" data-draft-status={status}>
+      {/* nowrap is safe: the text column below has minWidth 0 and the box and Ubah do not shrink. */}
       <Group align="flex-start" wrap="nowrap" gap="sm">
         <Checkbox
           checked={item.selected}
@@ -46,13 +49,17 @@ export function TaskDraftCard({ item, assigneeName, kindName, busy, onToggle, on
             {values.title}
           </Text>
           <Group gap="xs" wrap="wrap">
-            <Group gap={4} wrap="nowrap">
+            <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
               <FiUser size="1.25em" aria-hidden />
-              <Text size="sm" c={assigneeName || !item.note ? undefined : 'warn.8'}>
+              <Text
+                size="sm"
+                c={assigneeName || !item.note ? undefined : 'warn.8'}
+                style={WRAP_TEXT}
+              >
                 {assigneeName ?? item.note ?? COPY.assigneeNone}
               </Text>
             </Group>
-            <Group gap={4} wrap="nowrap">
+            <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
               <FiCalendar size="1.25em" aria-hidden />
               <Text size="sm">{values.dueDate ? longDate(values.dueDate) : COPY.dueNone}</Text>
             </Group>
@@ -86,7 +93,7 @@ export function TaskDraftCard({ item, assigneeName, kindName, busy, onToggle, on
 function CardStatus({ item }: { item: DraftItem }) {
   if (item.status === 'saving') {
     return (
-      <Group gap={4} wrap="nowrap" role="status">
+      <Group gap={4} wrap="nowrap" role="status" style={{ minWidth: 0 }}>
         <FiLoader size="1.25em" aria-hidden />
         <Text size="sm">{COPY.saving}</Text>
       </Group>
