@@ -48,7 +48,6 @@ export function ParticipantPicker({ value, onChange, projectId, error, wrapperPr
       label={COPY.participants}
       description={COPY.participantsHint}
       placeholder={value.length === 0 ? COPY.participantsPlaceholder : undefined}
-      size="lg"
       searchable
       clearable
       hidePickedOptions
