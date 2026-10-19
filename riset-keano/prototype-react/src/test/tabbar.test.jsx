@@ -20,6 +20,15 @@ describe('glass tab bar', () => {
     expect(dom.getByRole('tab', { name: 'Tasks' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('gives Tasks, Projects and Events the same title-only nav bar', () => {
+    for (const id of ['tasks.my', 'projects.list', 'events.list']) {
+      const { unmount } = renderApp(id, 'pm');
+      const bar = document.querySelector('.react-cupertino-ui-navigation-bar');
+      expect(bar.querySelector('.subtitle')).toBeNull();
+      unmount();
+    }
+  });
+
   it('opens New task from the round create button on Tasks', async () => {
     renderApp('tasks.my', 'member');
     await userEvent.click(dom.getByRole('button', { name: 'New task' }));

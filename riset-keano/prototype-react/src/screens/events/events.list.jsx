@@ -5,9 +5,9 @@ import { D } from '../../data/sample';
 import { Btn, Empty, Pill, Screen, Search, Section, Seg, Tabs } from '../../kit';
 import { EV, STATUS_TONE } from './events.shared';
 
-/** Screen frame of the Events tab: title, sub line and the tab bar (its "+" creates the event). */
+/** Screen frame of the Events tab: title and the tab bar (its "+" creates the event); no sub line, same bar height as Tasks and Projects. */
 export function EventsScreen({ children }) {
-  return <Screen title="Events" sub="Meetings and team events" tab="events">{children}</Screen>;
+  return <Screen title="Events" tab="events">{children}</Screen>;
 }
 
 /** Search, Filter sheet and the List / Calendar switch; on = 0 list, 1 calendar. */
