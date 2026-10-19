@@ -57,6 +57,18 @@ describe('tasks list', () => {
     expect(within(row).getByRole('tab', { name: 'Kanban' })).toBeInTheDocument();
   });
 
+  it('shows List / Kanban as icons and keeps their names for screen readers', () => {
+    renderApp('tasks.my', 'member');
+    for (const name of ['List', 'Kanban']) {
+      const tab = dom.getByRole('tab', { name });
+      expect(tab.closest('.seg')).toHaveClass('seg-icons');
+      expect(tab.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    }
+    expect(dom.getByRole('tab', { name: 'My tasks' }).closest('.seg')).not.toHaveClass('seg-icons');
+    fireEvent.click(dom.getByRole('tab', { name: 'Kanban' }));
+    expect(window.location.hash).toBe('#tasks.board');
+  });
+
   it('opens one sheet with the status, project and priority filters and the sort order', () => {
     renderApp('tasks.my', 'member');
     fireEvent.click(dom.getByRole('button', { name: 'Filter and sort' }));

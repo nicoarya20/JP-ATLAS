@@ -29,7 +29,7 @@
 /* Filter & sort overlay (kit FullSheet body): fields from the top, Reset / Apply pushed to the bottom edge. */
 .tk-fsheet { min-height: 100%; display: flex; flex-direction: column; gap: var(--sp-5); }
 .tk-fsheet-foot { margin-top: auto; padding-top: var(--sp-3); }
-.tk-seg { width: 136px; flex: none; }
+.tk-seg { width: 96px; flex: none; }
 .tk-group { display: flex; align-items: baseline; gap: var(--sp-2); margin: var(--sp-2) 0 calc(var(--sp-2) * -1); }
 .tk-top { align-items: flex-start; }
 .tk-chev { flex: none; margin-top: 2px; }

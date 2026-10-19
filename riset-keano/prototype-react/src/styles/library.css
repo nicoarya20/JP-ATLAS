@@ -112,6 +112,10 @@
 .seg { --seg-n: 2; --seg-i: 0; min-width: 0; } /* kit Seg sets both inline: item count and picked index */
 .seg .react-cupertino-ui-segmented-control__indicator { right: auto;
   width: calc((100% - 0.4rem) / var(--seg-n)) !important; transform: translateX(calc(var(--seg-i) * 100%)) !important; }
+/* Icon-only segments (kit Seg icons): the label stays in the button for screen readers but is visually hidden. */
+.seg-icons .react-cupertino-ui-segmented-control__icon { display: grid; place-items: center; margin: 0; }
+.seg-icons .react-cupertino-ui-segmented-control__label { position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---- Suggestion chip (kit Chips, secondary) ---- */
 .react-cupertino-ui-suggestion-chip.variant-secondary,

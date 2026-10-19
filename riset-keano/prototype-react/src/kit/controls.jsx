@@ -52,14 +52,15 @@ export function Chips({ items, on = 0, gos, bleed }) {
   );
 }
 
-/** Segmented control. items = labels; on = active index; gos[i] optionally navigates. */
-export function Seg({ items, on = 0, gos }) {
+/** Segmented control. items = labels; on = active index; gos[i] optionally navigates.
+ *  icons = optional lucide elements (same order): the segments show only the icon and keep the label for screen readers. */
+export function Seg({ items, on = 0, gos, icons }) {
   const [picked, pick] = usePick(on, gos);
   // --seg-n / --seg-i place the thumb (library.css): upstream shifts it by its own width × index / n, so item 2 of 2 stopped halfway.
   return (
-    <div className="seg" style={{ '--seg-n': items.length, '--seg-i': picked }}>
+    <div className={`seg${icons ? ' seg-icons' : ''}`} style={{ '--seg-n': items.length, '--seg-i': picked }}>
       <SegmentedControl variant="solid" size="sm" fullWidth value={String(picked)}
-        options={items.map((label, i) => ({ value: String(i), label }))} onChange={v => pick(Number(v))} />
+        options={items.map((label, i) => ({ value: String(i), label, icon: icons?.[i] }))} onChange={v => pick(Number(v))} />
     </div>
   );
 }

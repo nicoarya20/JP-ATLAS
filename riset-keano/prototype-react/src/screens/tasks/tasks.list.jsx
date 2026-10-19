@@ -1,5 +1,5 @@
 // Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Kanban (status columns) and the empty state.
-import { ChevronRight, ListChecks, Plus } from 'lucide-react';
+import { ChevronRight, Kanban, List, ListChecks, Plus } from 'lucide-react';
 import { Avatar, Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
@@ -16,7 +16,8 @@ function ListScreen({ all, board, children }) {
       <div className="tk-filters">
         <div className="tk-switch">
           <div className="grow"><Seg items={['My tasks', 'All tasks']} on={all ? 1 : 0} gos={['tasks.my', 'tasks.all']} /></div>
-          <div className="tk-seg"><Seg items={['List', 'Kanban']} on={board ? 1 : 0} gos={['tasks.all', 'tasks.board']} /></div>
+          <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <Kanban size={18} aria-hidden="true" />]} on={board ? 1 : 0}
+            gos={['tasks.all', 'tasks.board']} /></div>
         </div>
         <div className="tk-search">
           <div className="grow"><Search placeholder="Search title, #number, or tag…" /></div>

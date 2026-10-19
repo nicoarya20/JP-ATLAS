@@ -19,7 +19,7 @@
 .pj-bullets { margin: var(--sp-1) 0 0; padding-left: var(--sp-5); }
 .pj-indent { padding-left: var(--sp-6); }
 .pj-divider { width: 100%; margin: 0; border: 0; border-top: 1px solid var(--separator); }
-.pj-seg { width: 150px; }
+.pj-seg { width: 96px; }
 
 /* Phase step indicator (Overview). */
 .pj-steps { display: grid; grid-template-columns: repeat(4, 1fr); }
