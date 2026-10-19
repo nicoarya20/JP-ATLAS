@@ -1,5 +1,5 @@
 // Tasks ①, ②, ④: My tasks (grouped by urgency), All tasks (Atlas, bulk select) and the empty state; Kanban ③ is in tasks.board.
-import { ChevronRight, Kanban, List, ListChecks, Plus } from 'lucide-react';
+import { ChevronRight, List, ListChecks, Plus, SquareKanban } from 'lucide-react';
 import { Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
@@ -19,7 +19,7 @@ export function ListScreen({ mine, board, children }) {
       <div className="tk-filters">
         <div className="tk-switch">
           <div className="grow"><Seg items={['My tasks', 'All tasks']} on={mine ? 0 : 1} onPick={i => open(i === 0, board)} /></div>
-          <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <Kanban size={18} aria-hidden="true" />]}
+          <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]}
             on={board ? 1 : 0} onPick={i => open(mine, i === 1)} /></div>
         </div>
         <div className="tk-search">

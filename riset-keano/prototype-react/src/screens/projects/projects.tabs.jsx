@@ -1,5 +1,5 @@
 // Projects ⑨–⑪: detail tabs Tasks, Phases and Members (header and tabs come from DetailScreen).
-import { Kanban, List } from 'lucide-react';
+import { List, SquareKanban } from 'lucide-react';
 import { Avatar, Btn, Chips, Link, Pill, Progress, Section, Seg, Select } from '../../kit';
 import { D } from '../../data/sample';
 import { DetailScreen, atlas, atlasTasks, useCanEdit, useNote } from './projects.detail';
@@ -34,7 +34,7 @@ export function ProjectsTasks() {
     <DetailScreen on={1}>
       <Chips items={['All', 'My tasks', 'Overdue', 'Awaiting review']} />
       <div className="between">
-        <div className="pj-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <Kanban size={18} aria-hidden="true" />]} on={0} gos={['', 'tasks.board']} /></div>
+        <div className="pj-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]} on={0} gos={['', 'tasks.board']} /></div>
         <Btn kind="primary" sm go="tasks.form">+ New task</Btn>
       </div>
       {list.map(t => <TaskCard key={t.no} t={t} canEdit={canEdit} note={note} />)}
