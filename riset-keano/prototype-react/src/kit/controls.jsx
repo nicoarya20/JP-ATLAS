@@ -31,10 +31,10 @@ export function Link({ children, className = '', ...props }) {
 }
 
 /** Index of the item the user picked; also navigates when gos[i] is set (gos = screen ids, same order as items). */
-function usePick(on, gos) {
+function usePick(on, gos, onPick) {
   const { go } = useApp();
   const [picked, setPicked] = useState(on);
-  const pick = i => { setPicked(i); if (gos?.[i]) go(gos[i]); };
+  const pick = i => { setPicked(i); if (onPick) onPick(i); else if (gos?.[i]) go(gos[i]); };
   return [picked, pick];
 }
 
@@ -52,10 +52,11 @@ export function Chips({ items, on = 0, gos, bleed }) {
   );
 }
 
-/** Segmented control. items = labels; on = active index; gos[i] optionally navigates.
- *  icons = optional lucide elements (same order): the segments show only the icon and keep the label for screen readers. */
-export function Seg({ items, on = 0, gos, icons }) {
-  const [picked, pick] = usePick(on, gos);
+/** Segmented control. items = labels; on = active index; gos[i] optionally navigates; onPick(i) replaces gos when
+ *  the target depends on other state. icons = optional lucide elements (same order): the segments show only the icon
+ *  and keep the label for screen readers. */
+export function Seg({ items, on = 0, gos, onPick, icons }) {
+  const [picked, pick] = usePick(on, gos, onPick);
   // --seg-n / --seg-i place the thumb (library.css): upstream shifts it by its own width × index / n, so item 2 of 2 stopped halfway.
   return (
     <div className={`seg${icons ? ' seg-icons' : ''}`} style={{ '--seg-n': items.length, '--seg-i': picked }}>

@@ -69,6 +69,45 @@ describe('tasks list', () => {
     expect(window.location.hash).toBe('#tasks.board');
   });
 
+  it('has no Download / Import CSV buttons on All tasks', () => {
+    renderApp('tasks.all', 'pm');
+    expect(dom.queryByRole('button', { name: /CSV/ })).not.toBeInTheDocument();
+  });
+
+  it('keeps My / All when switching to Kanban and keeps Kanban when switching My / All', () => {
+    renderApp('tasks.my', 'member');
+    const selected = name => dom.getByRole('tab', { name }).getAttribute('aria-selected');
+    const cards = () => document.querySelectorAll('.tk-col .tk-top').length;
+    const mine = D.tasks.filter(t => t.who === D.me().name);
+
+    fireEvent.click(dom.getByRole('tab', { name: 'Kanban' }));
+    expect(window.location.hash).toBe('#tasks.board');
+    expect(selected('My tasks')).toBe('true');
+    expect(cards()).toBe(mine.length);
+    expect(dom.getAllByText(new RegExp(`#${mine[0].no} · ${mine[0].project}`)).length).toBeGreaterThan(0);
+
+    fireEvent.click(dom.getByRole('tab', { name: 'All tasks' }));
+    expect(window.location.hash).toBe('#tasks.board');
+    expect(selected('Kanban')).toBe('true');
+    expect(cards()).toBe(D.tasks.filter(t => t.project === D.project('atlas').name).length);
+
+    fireEvent.click(dom.getByRole('tab', { name: 'My tasks' }));
+    expect(window.location.hash).toBe('#tasks.board');
+    expect(cards()).toBe(mine.length);
+
+    fireEvent.click(dom.getByRole('tab', { name: 'List' }));
+    expect(window.location.hash).toBe('#tasks.my');
+  });
+
+  it('opens Kanban from All tasks with All still picked', () => {
+    renderApp('tasks.all', 'pm');
+    fireEvent.click(dom.getByRole('tab', { name: 'Kanban' }));
+    expect(window.location.hash).toBe('#tasks.board');
+    expect(dom.getByRole('tab', { name: 'All tasks' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(dom.getByRole('tab', { name: 'List' }));
+    expect(window.location.hash).toBe('#tasks.all');
+  });
+
   it('opens one sheet with the status, project and priority filters and the sort order', () => {
     renderApp('tasks.my', 'member');
     fireEvent.click(dom.getByRole('button', { name: 'Filter and sort' }));

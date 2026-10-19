@@ -1,4 +1,4 @@
-// Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Kanban (status columns) and the empty state.
+// Tasks ①–④: My tasks (grouped by urgency), All tasks (Atlas, bulk select), Kanban (status columns, mine or Atlas) and the empty state.
 import { ChevronRight, Kanban, List, ListChecks, Plus } from 'lucide-react';
 import { Avatar, Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
@@ -8,27 +8,24 @@ import { Tick } from './tasks.parts';
 import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
 
 /** List frame shared by ①–④: My/All switch with the List/Kanban view beside it, search with the Filter & sort icon
- *  (status, project, priority, sort live in its overlay), CSV on All.
+ *  (status, project, priority, sort live in its overlay). The two switches are independent: Kanban keeps My/All
+ *  (tasks.board with params.mine) and My/All keeps the Kanban view.
  *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
-function ListScreen({ all, board, children }) {
+function ListScreen({ mine, board, children }) {
+  const { go } = useApp();
+  const open = (my, kanban) => (kanban ? go('tasks.board', { params: my ? { mine: true } : {} }) : go(my ? 'tasks.my' : 'tasks.all'));
   return (
     <Screen title="Tasks" tab="tasks">
       <div className="tk-filters">
         <div className="tk-switch">
-          <div className="grow"><Seg items={['My tasks', 'All tasks']} on={all ? 1 : 0} gos={['tasks.my', 'tasks.all']} /></div>
-          <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <Kanban size={18} aria-hidden="true" />]} on={board ? 1 : 0}
-            gos={['tasks.all', 'tasks.board']} /></div>
+          <div className="grow"><Seg items={['My tasks', 'All tasks']} on={mine ? 0 : 1} onPick={i => open(i === 0, board)} /></div>
+          <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <Kanban size={18} aria-hidden="true" />]}
+            on={board ? 1 : 0} onPick={i => open(mine, i === 1)} /></div>
         </div>
         <div className="tk-search">
           <div className="grow"><Search placeholder="Search title, #number, or tag…" /></div>
-          <FilterButton project={all ? atlas().id : undefined} />
+          <FilterButton project={mine ? undefined : atlas().id} />
         </div>
-        {all && (
-          <div className="row-flex tk-tools tk-csv">
-            <Btn kind="plain" sm toast="CSV downloaded">Download CSV</Btn>
-            <Btn kind="plain" sm go="tasks.csv">Import CSV</Btn>
-          </div>
-        )}
       </div>
       {children}
     </Screen>
@@ -84,7 +81,7 @@ export function TasksMy() {
   const groups = GROUPS.map((g, i) => [g, own.filter(t => groupOf(t) === i)]).filter(([, list]) => list.length);
   if (review.length) groups.unshift([is('pm') ? 'Waiting for my review' : 'Waiting for review', review]);
   return (
-    <ListScreen>
+    <ListScreen mine>
       {groups.map(([g, list]) => [
         <h2 key={g} className="t-headline tk-group">{g}<span className="muted">{list.length}</span></h2>,
         ...list.map(t => <MyCard key={t.no} t={t} />),
@@ -97,7 +94,7 @@ export function TasksMy() {
 export function TasksAll() {
   const list = atlasTasks();
   return (
-    <ListScreen all>
+    <ListScreen>
       {list.map(t => (
         <Section key={t.no} go={detailOf(t)} task={t.no}>
           <div className="row-flex tk-top">
@@ -128,13 +125,13 @@ function boardAction(t, member) {
   return ['Start working', { toast: 'Task started' }];
 }
 
-function BoardCard({ t }) {
+function BoardCard({ t, mine }) {
   const a = boardAction(t, useApp().is('member'));
   return (
     <Section go={detailOf(t)} task={t.no}>
       <div className="stack xs">
         <CardTitle>{t.title}</CardTitle>
-        <span className="t-footnote muted">#{t.no} · {t.type} · {t.priority}</span>
+        <span className="t-footnote muted">#{t.no} · {mine ? t.project : t.type} · {t.priority}</span>
         <span className="t-footnote bold">{note(t)}</span>
         <span className="row-flex t-footnote muted tk-meta"><Avatar name={t.who} size="sm" />{t.who}</span>
         {a && <div className="tk-meta"><Btn sm block {...a[1]}>{a[0]}</Btn></div>}
@@ -143,17 +140,20 @@ function BoardCard({ t }) {
   );
 }
 
-/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move. */
-export function TasksBoard() {
+/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move.
+ *  params.mine = my tasks across projects (card shows the project), otherwise every Atlas task. */
+export function TasksBoard({ params }) {
+  const mine = !!params?.mine;
+  const tasks = mine ? D.tasks.filter(t => t.who === D.me().name) : atlasTasks();
   return (
-    <ListScreen all board>
+    <ListScreen mine={mine} board>
       <div className="tk-board">
         {['To do', 'In progress', 'In review', 'Done'].map(s => {
-          const list = atlasTasks().filter(t => t.status === s);
+          const list = tasks.filter(t => t.status === s);
           return (
             <section key={s} className="tk-col">
               <h3 className="t-headline">{s} <span className="muted">{list.length}</span></h3>
-              {list.map(t => <BoardCard key={t.no} t={t} />)}
+              {list.map(t => <BoardCard key={t.no} t={t} mine={mine} />)}
             </section>
           );
         })}
@@ -165,7 +165,7 @@ export function TasksBoard() {
 /** ④ My tasks empty — still offers New task. */
 export function TasksEmpty() {
   return (
-    <ListScreen>
+    <ListScreen mine>
       <Empty icon={<ListChecks size={28} role="img" aria-label="No tasks" />} title="No tasks for you yet."
         text="Tasks assigned to you will show up here." action={<Btn kind="primary" icon={<Plus size={18} />} go="tasks.write">New task</Btn>} />
     </ListScreen>
