@@ -25,9 +25,10 @@ const downStatements = (file: string) =>
     .map((s) => s.trim())
     .filter(Boolean);
 const DOWN_STATEMENTS = downStatements(ROLLBACK);
-// Migrations are rolled back newest first: 0017's `notification` and 0016's `task` tables both reference
+// Migrations are rolled back newest first: 0019's plan tables, 0017's `notification` and 0016's `task` tables all reference
 // `project`, so their rollbacks must run before it (a later migration that points at `project` joins this list).
 const DEPENDENT_DOWN_STATEMENTS = [
+  '0019_project_plan',
   '0018_event_core',
   '0017_notification_core',
   '0016_task_core',

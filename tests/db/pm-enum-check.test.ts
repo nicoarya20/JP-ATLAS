@@ -174,13 +174,44 @@ const TARGETS: Target[] = [
       };
     },
   },
+  {
+    tuple: 'PHASE_STATUSES',
+    table: 'project_phase',
+    column: 'status',
+    plan: (v, p) => ({
+      setup: [],
+      statement: `INSERT INTO "project_phase" ("id","project_id","name","position","status")
+        VALUES (${lit(newId())},${lit(p.projectId)},'Tahap',0,${lit(v)})`, // test-only
+    }),
+  },
+  {
+    tuple: 'EXTENSION_REASON_CATEGORIES',
+    table: 'project_deadline_extension',
+    column: 'reason_category',
+    plan: (v, p) => ({
+      setup: [],
+      statement: `INSERT INTO "project_deadline_extension"
+        ("id","project_id","old_due_date","new_due_date","reason_category","reason")
+        VALUES (${lit(newId())},${lit(p.projectId)},'2026-12-01','2026-12-31',${lit(v)},'alasan')`, // test-only
+    }),
+  },
+  {
+    tuple: 'PROJECT_CONDITIONS',
+    table: 'project_condition_override',
+    column: 'condition',
+    plan: (v, p) => ({
+      setup: [],
+      statement: `INSERT INTO "project_condition_override" ("id","project_id","condition","reason")
+        VALUES (${lit(newId())},${lit(p.projectId)},${lit(v)},'alasan')`, // test-only
+    }),
+  },
 ];
 
-// Tuples with no column: PROJECT_CONDITIONS backs project_condition_override, which is deferred past S2.
+// Tuples with no column:
 // EVENT_REMINDER_OFFSETS_MIN is not an enum at all — it is the DEFAULT of event.reminders_minutes (int[]),
 // proven by tests/db/events-schema.test.ts, and a per-event list may legitimately hold other offsets.
 // The coverage test below forces a new entry here or in TARGETS whenever enums.ts gains a tuple.
-const TUPLES_WITHOUT_COLUMN = ['PROJECT_CONDITIONS', 'EVENT_REMINDER_OFFSETS_MIN'];
+const TUPLES_WITHOUT_COLUMN = ['EVENT_REMINDER_OFFSETS_MIN'];
 
 const tupleValues = (name: string) => [...ALL_TUPLES[name]];
 
