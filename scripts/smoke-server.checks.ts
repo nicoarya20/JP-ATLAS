@@ -81,6 +81,15 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
       header: { name: 'location', includes: '/login' },
     }),
   ),
+  ...['/app/events', '/app/events/new', '/app/events/e1'].map(
+    (path): SmokeCheck => ({
+      // Same gate for the Events pages (S7): list, two-stage form, and the real shape of a detail URL.
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
   {
     // The person detail guards itself with requireUser (S6 layar 2), so an anonymous visitor reaches /login.
     name: 'halaman /app/team/:userId anonim → login',
@@ -88,7 +97,7 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     status: 302,
     header: { name: 'location', includes: '/login' },
   },
-  ...['/api/app/projects', '/api/app/trash', '/api/app/tasks'].map(
+  ...['/api/app/projects', '/api/app/trash', '/api/app/tasks', '/api/app/events'].map(
     (path): SmokeCheck => ({
       name: `API ${path} anonim → 401`,
       path,

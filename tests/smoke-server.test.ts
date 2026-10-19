@@ -50,7 +50,20 @@ describe('smoke checks', () => {
       bodyIncludes: '"code":"UNAUTHORIZED"',
       header: { name: 'x-request-id' },
     });
-    expect(SMOKE_CHECKS).toHaveLength(39);
+  });
+  test('S7 event routes are pinned: anonymous pages redirect to /login, the API answers 401 with a request id', () => {
+    const byPath = (path: string) => SMOKE_CHECKS.find((c) => c.path === path);
+    for (const path of ['/app/events', '/app/events/new', '/app/events/e1'])
+      expect(byPath(path)).toMatchObject({
+        status: 302,
+        header: { name: 'location', includes: '/login' },
+      });
+    expect(byPath('/api/app/events')).toMatchObject({
+      status: 401,
+      bodyIncludes: '"code":"UNAUTHORIZED"',
+      header: { name: 'x-request-id' },
+    });
+    expect(SMOKE_CHECKS).toHaveLength(43);
   });
   test('the person detail page answers an anonymous visitor with a redirect to /login', () => {
     expect(SMOKE_CHECKS.find((c) => c.path === '/app/team/u1')).toMatchObject({

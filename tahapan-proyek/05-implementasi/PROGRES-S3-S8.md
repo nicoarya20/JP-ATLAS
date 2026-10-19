@@ -13,8 +13,8 @@
 | S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 1 | **1 selesai (merged)** (Z-01) |
 | S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 4 | **4 selesai (merged)** (M01-M04); **3 review** (M06, M07, M10 sebagian) di `feature/pm-team-menu`; sisa M05, M08, M09 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
-| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 5 | **5 selesai (merged)** (E-01, E-02, E-03, E-05, E-06); E-04 terbuka sejak G21 (`notify()` sudah ada); lingkup dipangkas 20 Okt, lihat P6 §3 |
-| | **Total** | | **98** | **19** | |
+| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 13 | **13 selesai** (E-01..E-12, E-15): E-01..E-03, E-05, E-06 merged; E-04, E-07..E-12, E-15 di `feature/pm-events-menu` / `nicoarya20/events-c-integrasi` (belum di-merge ke `feature/project-management`); E-13, E-14, E-16 ditunda (HUTANG H-D3b/c/d). Lingkup dipangkas 20 Okt: buat, batalkan, hapus ke Sampah |
+| | **Total** | | **98** | **27** | |
 
 **Syarat sebelum tugas pertama dimulai:**
 1. Gerbang S2 lulus (S2-16 uji pengguna nyata, lalu S2-17), kecuali S3a Inbox (I01-I04) bila user menyetujuinya.
@@ -31,7 +31,7 @@
 | S5a | Tahapan, milestone, tenggat, Perlu perhatian, Gantt | **selesai, merged** (5506 tes lulus, `smoke:prod` 39/39; `smoke:binary` belum jalan: butuh Bun 1.4.2) |
 | S5b | Jenis tugas dan Bukti | belum |
 | S6 | Sampah, Tim, Pengaturan | belum |
-| S7 | Event | belum |
+| S7 | Event | **lingkup dipangkas lulus otomatis (review)**: `tests/e2e-flow/events-gate.test.ts`, 6059 lulus/0 gagal, typecheck 0, `smoke:prod` dan `smoke:binary` 44/44. **Belum:** cek visual di browser dan uji pengguna nyata (aturan global melarang Playwright tanpa perintah) |
 | S8 | Pengerasan dan rilis (belum direncanakan) | belum |
 
 ## 3. Migrasi dan kontrak
@@ -43,7 +43,7 @@
 | Periksa, dependensi, tag | **0020** (bergeser dari 0019 karena S5a dikerjakan lebih dulu; L4-01 wajib memakai nomor berikutnya yang bebas) | L4-01 | belum |
 | Bukti (lampiran tugas, S5b) | nomor bebas berikutnya setelah L4-01 | L5-01 (sisa) | belum |
 | Indeks `project_member (project_id, role)` | menurut baton (0019) | M05 | **masih terbuka** — sengaja dipisah dari M02; M02 terbukti tanpa indeks ini |
-| `contract-v1` + 3 URL Event (13 → 16) | PCC `docs/decisions/0003-contract-v1-event-urls.md` | **ADR: E-01 (selesai). Kenaikan hitungan: E-09..E-11** | disetujui user (§5 no. 2); hitungan masih 13 sampai rutenya terdaftar |
+| `contract-v1` + 3 URL Event (13 → 16) | PCC `docs/decisions/0003-contract-v1-event-urls.md` | **ADR: E-01 (selesai). Kenaikan hitungan: E-09..E-11 (selesai)** | disetujui user (§5 no. 2); ketiga rute terdaftar, hitungan beku kini **20** (tab Tahapan dan detail orang Tim ikut menambah) |
 | `GET /api/app/home` | tambahan kompatibel | B-06 | belum |
 
 ## 4. Daftar tugas per irisan
@@ -166,18 +166,18 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 | E-01 | Skema acara + migrasi 0018 + Permintaan Perubahan Kontrak | selesai | `feature/pm-s7-e01-event-schema` | `09cf69c` merge `7cec339` | 4226 lulus/0 gagal; migrasi 0018 + rollback + PCC 0003 |
 | E-02 | Kebijakan akses & kemampuan acara | selesai | `feature/pm-s7-e01-event-schema` | `ad81d54` merge `7cec339` | kebijakan acara murni + kemampuan |
 | E-03 | Servis & kueri acara (CRUD, peserta, batal) | selesai | `feature/pm-s7-e01-event-schema` | `d7003d3` merge `7cec339` | 4341 lulus/0 gagal; `listEvents` tepat 3 kueri, tetap 3 pada halaman 20x lebih panjang; tanpa email/HP di payload |
-| E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | belum | – | – | Terbuka: `notify()` ada. Cabang kerja `feature/pm-events-menu` (20 Okt) |
+| E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | selesai | `feature/events-a-server-e04-e07` | `ea89ba7`, `ba75243` merge `9302a57` | kartu undangan/ubah/batal + tick idempoten; `event_invited` dipindah ke lane info; kartu pengingat lama belum ditutup saat acara batal/dihapus (H-D3i) |
 | E-05 | Notulensi ketik dengan kunci optimis | selesai | `feature/pm-s7-e01-event-schema` | `dd05f9e` merge `7cec339` | kunci optimis via date_trunc(milliseconds); body tidak pernah di-log |
 | E-06 | Rute API acara + pemetaan scope | selesai | `feature/pm-s7-e01-event-schema` | `4f9a020` merge `7cec339` | 4432 lulus/0 gagal; semua rute kecuali Sampah; +NOTE_CONFLICT/EVENT_CANCELED |
-| E-07 | Hapus ke Sampah + Urungkan + ikut hapus proyek | belum | – | – | – |
-| E-08 | Klien, kunci kueri, dan komponen bersama acara | belum | – | – | – |
-| E-09 | Halaman Daftar Acara | belum | – | – | – |
-| E-10 | Form 2 tahap | belum | – | – | – |
-| E-11 | Detail acara, peserta, notulensi, Agenda Beranda | belum | – | – | 20 Okt: tanpa notulensi UI (teks "segera hadir") dan tanpa Agenda Beranda (H-D3a, H-D3e) |
-| E-12 | Integrasi, README kontrak, CHANGELOG — Integrator · S7 · S · 0,75 hari · dep E-06..E-11 · ★ SP-E3 | belum | – | – | – |
+| E-07 | Hapus ke Sampah + Urungkan + ikut hapus proyek | selesai | `feature/events-a-server-e04-e07` | `214104d` merge `9302a57` | Sampah bagian Acara; acara ikut proyek ke Sampah (tanpa baris sendiri) dan pulih bersamanya; kunci API ditolak |
+| E-08 | Klien, kunci kueri, dan komponen bersama acara | selesai | `nicoarya20/events-b-daftar` | `01d2412` merge `7a12b3c` | klien Eden, `events-format`, filter URL; `events.dummy.ts` dan `MonthGrid.tsx` dihapus (`15de33f`) |
+| E-09 | Halaman Daftar Acara | selesai | `nicoarya20/events-b-daftar` | `a6756f0` merge `7a12b3c` | tab, cari, saring jenis/proyek; tanpa Daftar/Kalender. Acara yang sedang berlangsung tampil di Sudah lewat (H-D3j, keputusan user menunggu) |
+| E-10 | Form 2 tahap | selesai | `nicoarya20/events-b-form` | `9953bf1` merge `7d116ba` | `/app/events/new`; pemilih peserta lewat `/team?q=` (H-D3h); satu tanggal saja (H-D3k) |
+| E-11 | Detail acara, peserta, notulensi, Agenda Beranda | selesai (dipangkas) | `nicoarya20/events-b-detail` | `213f40e`, `f0a3e45`, `bac319a` merge `405ba73` | detail, Batalkan dengan alasan, Hapus + Urungkan; tautan rapat hanya http(s) (`d2c4c03` server). Tanpa notulensi UI dan Agenda Beranda (H-D3a, H-D3e); tanpa Ubah/peserta (H-D3g) |
+| E-12 | Integrasi, README kontrak, CHANGELOG — Integrator · S7 · S · 0,75 hari · dep E-06..E-11 · ★ SP-E3 | selesai | `nicoarya20/events-c-integrasi` | `e77651b`, `bfb45f7` | CHANGELOG, README (halaman Event, aturan http(s)), ADR 0003/0004, `TimeInput`/`MultiSelect` masuk tema; `readme-endpoint` dan `changelog` hijau |
 | E-13 | Tugas dari rapat (E4, Could) | ditunda | – | – | HUTANG H-D3b (keputusan user 20 Okt 2026) |
 | E-14 | Kalender Bulan/Minggu (E5, Could) | ditunda | – | – | HUTANG H-D3c (keputusan user 20 Okt 2026) |
-| E-15 | QA, smoke, uji gerbang S7 | belum | – | – | – |
+| E-15 | QA, smoke, uji gerbang S7 | selesai | `nicoarya20/events-c-integrasi` | `ad9af2b` | `events-gate.test.ts` (12 tes bernama), 4 pemeriksaan smoke baru; `smoke:prod` dan `smoke:binary` 44/44 (binary: Bun 1.4.2 dari folder sementara, Bun terpasang 1.3.14 tidak punya `--asset`) |
 | E-16 | Acara berulang (E6, Could) | ditunda | – | – | HUTANG H-D3d (keputusan user 20 Okt 2026) |
 
 
@@ -215,8 +215,8 @@ Tiga pekerjaan terkunci sampai keempat cabang menyatu:
 
 ### Yang belum dikerjakan sama sekali
 Inbox: I08 (klien), I09 (lonceng/NAV/rute), I10 (halaman), I12 (QA lintas-jalur), I13 (gerbang demo).
-Event: E-04 (diblokir), E-07, **E-08a** (klien+komponen, sempat diluncurkan lalu dihentikan — worktree
-bersih, mulai dari nol), E-09..E-16. Tim: M05-M10. Sampah: Z-02..Z-08.
+Event: tidak ada yang tersisa dari lingkup 20 Okt (E-04, E-07..E-12, E-15 selesai); E-13, E-14, E-16 ditunda
+(HUTANG H-D3b/c/d). Tim: M05-M10. Sampah: Z-02..Z-08.
 
 ### Dua keputusan user yang masih menggantung
 1. **Pencarian peserta untuk Member.** `GET /events/people` mendelegasikan ke `pickPeople`; pencarian
@@ -242,12 +242,14 @@ Rencana sudah dibetulkan; baris ini menjaga jejaknya.
 ## 8. Hutang teknis terbuka
 | Hutang | Pemilik penghapusan | Catatan |
 |---|---|---|
+| Berkas binary `simple-pm` (hasil `build:binary`) ikut terlacak git sejak `3a41a76`; `smoke:binary` menimpanya dan `git status` jadi kotor | siapa pun yang berikutnya menyentuh build | Seharusnya di `.gitignore`; `git checkout -- simple-pm` memulihkannya. Ditemukan E-15 |
 | `PM_DENY_PENDING` berisi `DELETE trash/*` di `scopes.pm.ts` | Z-04, batas akhir gerbang Z-08 | Perancah agar sweep rute melapor *skipped*, bukan gagal, sampai rutenya ada |
 | Tuple enum notifikasi ada di `schema.notification.ts`, bukan `server/pm/enums.ts` | gerbang S3 | `pm-enum-check.test.ts` menuntut kolom+target tes per tuple di `enums.ts` |
 | ~~`sort=overdue` di `GET /api/app/team` hanya mengurutkan halaman yang tampil~~ | **selesai 20 Okt 2026** | Diperluas ke jendela 200 orang (`team.sort.ts`), tetap 4 statement |
 | M05 (indeks `project_member (project_id, role)`) belum dikerjakan | M05 sendiri, setelah baton 0019 bebas | M02 terbukti benar tanpanya (yang diuji jumlah kueri) |
 
 ## 6. Log perubahan
+- **20 Okt 2026** — **S7 Event dipangkas** (buat, batalkan, hapus ke Sampah + Urungkan) selesai di `feature/pm-events-menu`: server E-04/E-07, klien + daftar E-08/E-09, form E-10, detail E-11, integrasi E-12 dan gerbang E-15 di `nicoarya20/events-c-integrasi`. Tanpa notulensi UI, kalender, berulang, Agenda Beranda (HUTANG H-D3a..e). Hutang baru dari para pekerja: H-D3g..H-D3n.
 - **19 Okt 2026** — **S5a** dikerjakan lebih dulu atas permintaan user (Gantt, tab Tahapan, Perpanjang tenggat, Perlu perhatian, tampilan List/Grid/Gantt, klik penuh baris). Run `run_16a50a64efba` + `run_cba6e636b9fb`, tujuh pekerja, semua digabung di `feature/pm-s5a-project-plan` (dari `fix/pm-project-back-link`). Hasil: 5506 tes lulus/0 gagal, typecheck nol, `smoke:prod` 39/39. **Belum** di-push dan belum di-merge. Migrasi S5a = 0019, jadi L4-01 (S4) bergeser ke 0020. Hutang: KB-3 (form Ubah proyek masih bisa mengubah tenggat langsung), pemilih Tahapan di form tugas, status tahapan diubah manual, batas pindai 1000 proyek untuk filter Perlu perhatian, `smoke:binary` belum dijalankan.
 - **18 Okt 2026** — Gelombang **G21** (run `run_8c394266a4d2`) dikerjakan: 10 tugas berstatus `review` di empat cabang, nol gagal di tiap cabang. Urutan menu mengikuti permintaan user: Inbox, Event, Tim, Sampah; Beranda (P4) ditunda. Sepuluh keputusan §5 dipakai apa adanya dan gerbang S2 diterobos atas keputusan user. Dua gangguan: batas pemakaian akun memutus tiga pekerja (kerja diselamatkan karena belum ter-commit), lalu restart aplikasi Orca mematikan tiga terminal (dipulihkan di worktree yang sama). Cacat setup yang ditemukan dan diperbaiki: semua worktree memakai **socket dan port Postgres yang sama** (`socketDir()` = path tetap, port default 54329), sehingga tes satu pekerja berjalan di database pekerja lain; sejak itu tiap pekerja diberi `LOCAL_PG_PORT`/`LOCAL_PG_SOCKET_DIR`/`LOCAL_PG_DB` sendiri.
 - **18 Okt 2026** — Berkas dibuat dari tujuh rencana menu (run `run_ae24b153ade5`). Semua tugas berstatus `belum`.

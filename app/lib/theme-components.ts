@@ -21,6 +21,9 @@ export const themeComponents: MantineThemeComponents = {
   Select: LARGE,
   // Project forms use DateInput (CLAUDE.md); left at `md` it would sit next to 50 px inputs.
   DateInput: LARGE,
+  // Event form (S7): TimeInput and MultiSelect also sit beside 50 px inputs and defaulted to `md`.
+  TimeInput: LARGE,
+  MultiSelect: LARGE,
   Checkbox: LARGE,
   Radio: LARGE,
   Switch: LARGE,

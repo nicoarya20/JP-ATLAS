@@ -76,19 +76,8 @@ export function EventFormView({
             {...form.getInputProps('date')}
           />
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
-            <TimeInput
-              label={COPY.startTime}
-              size="lg"
-              withAsterisk
-              {...startProps}
-              onChange={onStart}
-            />
-            <TimeInput
-              label={COPY.endTime}
-              size="lg"
-              withAsterisk
-              {...form.getInputProps('endTime')}
-            />
+            <TimeInput label={COPY.startTime} withAsterisk {...startProps} onChange={onStart} />
+            <TimeInput label={COPY.endTime} withAsterisk {...form.getInputProps('endTime')} />
           </SimpleGrid>
         </Stack>
         <TextInput
