@@ -31,7 +31,6 @@ export function ProjectsNew() {
         hint="Good if you already know the project details." go="projects.form" />
       <Way title="Use a template" desc="Start from a project structure you made before."
         hint="Good for projects similar to a previous one." go="projects.template" />
-      <div className="mt-2"><Btn block back>Cancel</Btn></div>
     </FootScreen>
   );
 }
