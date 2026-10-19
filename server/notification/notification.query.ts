@@ -14,6 +14,7 @@ import { isAdminRole } from '../permissions';
 import { decodeCursor, encodeCursor } from '../pm/keyset';
 import { PAGE_LIMIT_DEFAULT, PAGE_LIMIT_MAX } from '../pm/limits';
 import type { Executor } from '../pm/tx';
+import { refNotTrashed } from './notification.alive';
 import { cardButton, cardSentence, isNotificationKind } from './notification.catalog';
 import type { NotificationLane } from './notification.types';
 
@@ -146,6 +147,7 @@ export async function listInbox(
         eq(notification.recipientId, p.id),
         laneFilter(input.lane),
         visibleTo(p, projectIdOf),
+        refNotTrashed,
         after,
       ),
     )
@@ -194,7 +196,12 @@ export async function inboxActionCount(p: Principal, exec: Executor = db): Promi
     .select({ n: sql<number>`count(*)::int` })
     .from(notification)
     .where(
-      and(eq(notification.recipientId, p.id), laneFilter('action'), visibleTo(p, projectIdOf)),
+      and(
+        eq(notification.recipientId, p.id),
+        laneFilter('action'),
+        visibleTo(p, projectIdOf),
+        refNotTrashed,
+      ),
     );
   return row?.n ?? 0;
 }
@@ -211,6 +218,7 @@ export async function inboxCounts(p: Principal, exec: Executor = db): Promise<In
         eq(notification.lane, 'info'),
         isNull(notification.readAt),
         visibleTo(p, projectIdOf),
+        refNotTrashed,
       ),
     );
   return { action, infoUnread: unread?.n ?? 0 };

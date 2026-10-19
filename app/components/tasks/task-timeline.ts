@@ -58,6 +58,8 @@ export function activityText(entry: Activity): string {
       return ACTIVITY_COPY.due_date_changed(dateLabel(p.from), dateLabel(p.to));
     case 'priority_changed':
       return ACTIVITY_COPY.priority_changed(priorityLabel(p.from), priorityLabel(p.to));
+    case 'phase_changed':
+      return ACTIVITY_COPY.phase_changed(str(p.from), str(p.to));
     case 'created':
     case 'assignee_changed':
     case 'started':

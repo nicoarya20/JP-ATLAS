@@ -67,7 +67,7 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts
   'POST trash/*': 'app-trash.ts',
   'DELETE trash/*': 'app-trash.ts',
-  'DELETE tasks/:id': 'app-tasks.write.ts',
+  'DELETE tasks/:id': 'app-tasks.delete.ts',
   'DELETE tasks/*/checklist/*': 'app-tasks.detail.ts',
   'DELETE tasks/*/comments/*': 'app-tasks.detail.ts',
   '* events/*/participants*': 'app-events.write.ts',

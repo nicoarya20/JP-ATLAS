@@ -29,10 +29,17 @@ export type TrashProjectItem = {
   can: TrashItemCaps;
 };
 
-export type ListTrashInput = { limit: number; offset: number; now: Date; metrics?: MetricsConfig };
+export type ListTrashInput = {
+  limit: number;
+  offset: number;
+  now: Date;
+  metrics?: MetricsConfig;
+  /** Only these projects (the merged Trash list hydrates the ids of one page); still scoped to the caller. */
+  ids?: readonly string[];
+};
 
 /** SQL twin of `trashListScope`/`canViewTrashItem`: deleted by the caller or managed by them. */
-function scopeWhere(p: Principal, exec: Executor): SQL | undefined {
+export function scopeWhere(p: Principal, exec: Executor): SQL | undefined {
   const scope = trashListScope(p);
   if (scope.kind === 'all') return undefined;
   const managed = exec
@@ -49,7 +56,11 @@ export async function listTrashProjects(
   exec: Executor = db,
 ): Promise<{ items: TrashProjectItem[]; total: number }> {
   const cfg = input.metrics ?? METRICS;
-  const where = and(isNotNull(project.deletedAt), scopeWhere(p, exec));
+  const where = and(
+    isNotNull(project.deletedAt),
+    scopeWhere(p, exec),
+    input.ids ? inArray(project.id, [...input.ids]) : undefined,
+  );
   const [[totalRow], rows] = await Promise.all([
     exec.select({ n: count() }).from(project).where(where),
     exec

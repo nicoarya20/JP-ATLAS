@@ -11,6 +11,7 @@ import type { TaskListItem } from '~/lib/tasks-api';
 import { NextStepButton } from './NextStepButton';
 import { TaskCard } from './TaskCard';
 import { TaskBadges, TaskTitle } from './TaskRow';
+import { TaskRowMenu } from './TaskRowMenu';
 import { LIST_COPY } from './tasks.copy';
 
 export const TASK_COLUMNS: ResponsiveColumn<TaskListItem>[] = [
@@ -18,12 +19,15 @@ export const TASK_COLUMNS: ResponsiveColumn<TaskListItem>[] = [
     key: 'task',
     header: LIST_COPY.colTask,
     cell: (t) => (
-      <Stack gap={4} style={{ minWidth: 0 }}>
-        <TaskTitle task={t} />
-        <Text size="sm" c="dimmed" truncate>
-          {t.project.name}
-        </Text>
-      </Stack>
+      <Group gap="xs" wrap="nowrap" justify="space-between">
+        <Stack gap={4} style={{ minWidth: 0 }}>
+          <TaskTitle task={t} />
+          <Text size="sm" c="dimmed" truncate>
+            {t.project.name}
+          </Text>
+        </Stack>
+        <TaskRowMenu task={t} />
+      </Group>
     ),
   },
   {

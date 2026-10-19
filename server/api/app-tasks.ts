@@ -10,12 +10,16 @@ import { requestClock } from '../task/task.clock';
 import { countTasks, listTasks } from '../task/task.query';
 import { getTaskDetail } from '../task/task-detail.query';
 import { appContext } from './app-context';
+import { taskDeleteApi } from './app-tasks.delete';
+import { taskDraftApi } from './app-tasks.draft';
 import { asList, ListQuery } from './app-tasks.schema';
 import { taskWriteApi } from './app-tasks.write';
 
 export const tasksApi = new Elysia({ prefix: '/tasks' })
   .use(appContext)
   .use(taskWriteApi)
+  .use(taskDeleteApi)
+  .use(taskDraftApi)
   /**
    * One page of tasks the caller may see: `{ items, nextCursor, caps }`. `scope=project` needs a
    * `projectId` (422 otherwise); a malformed or foreign cursor answers 400 `BAD_CURSOR`.

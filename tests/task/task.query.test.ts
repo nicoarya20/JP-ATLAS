@@ -92,6 +92,43 @@ describe('Atlas lists', () => {
     expect(res.items.map((i) => i.id)).toEqual(expected.map((k) => key(k)));
   });
 
+  // Bug: the Proyek filter of the Tugas page sends `projectId` with scope `mine` or `all`, and the query ignored it.
+  it.each([
+    ['mine', 'nico', 'atlas', ['architecture', 'fixSso', 'specApi', 'reviewDesign']],
+    ['mine', 'nico', 'sinar', ['sinarReport']],
+  ] as const)(
+    'narrows scope %s to the chosen project (%s, %s)',
+    async (scope, who, projectKey, expected) => {
+      const res = good(
+        await listTasks(
+          principal(atlas.users[who]),
+          { scope, projectId: atlas.projects[projectKey].id },
+          clock,
+        ),
+      );
+      expect(res.items.map((i) => i.id)).toEqual(expected.map((k) => key(k)));
+      expect(new Set(res.items.map((i) => i.project.id))).toEqual(
+        new Set([atlas.projects[projectKey].id]),
+      );
+    },
+  );
+
+  it('narrows "all" to the chosen project and still hides projects the caller may not see', async () => {
+    const nico = principal(atlas.users.nico);
+    const inSinar = good(
+      await listTasks(nico, { scope: 'all', projectId: atlas.projects.sinar.id }, clock),
+    );
+    expect(inSinar.items.length).toBeGreaterThan(0);
+    expect(new Set(inSinar.items.map((i) => i.project.id))).toEqual(
+      new Set([atlas.projects.sinar.id]),
+    );
+    // An id the caller cannot see (or that does not exist) is an empty list, never another project's rows.
+    const unknown = good(
+      await listTasks(nico, { scope: 'all', projectId: `${f.tag}-no-such-project` }, clock),
+    );
+    expect(unknown.items).toEqual([]);
+  });
+
   it('keeps finished tasks out of every schedule group filter', async () => {
     const res = good(
       await listTasks(principal(atlas.users.nico), { scope: 'mine', due: 'overdue' }, clock),
@@ -248,6 +285,17 @@ describe('filters and details', () => {
     ['no match', 'tidak ada', []],
   ])('search: %s', async (_name, q, expected) => {
     expect(await titles({ q })).toEqual(expected);
+  });
+
+  it('search finds a task by its number, with or without "#", and is not fooled by a huge number', async () => {
+    const all = good(await listTasks(principal(lead), { scope: 'project', projectId }, clock));
+    const target = all.items.find((i) => i.title === 'Cek_garis bawah');
+    if (!target) throw new Error('seeded task missing');
+    expect(await titles({ q: `#${target.number}` })).toEqual(['Cek_garis bawah']);
+    expect(await titles({ q: String(target.number) })).toContain('Cek_garis bawah');
+    // Digits that no task has, and a run too long to be a number, fall back to a plain title search.
+    expect(await titles({ q: '#999999999' })).toEqual([]);
+    expect(await titles({ q: '9'.repeat(30) })).toEqual([]);
   });
 
   it('filters by status, priority and assignee', async () => {

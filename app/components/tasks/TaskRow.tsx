@@ -9,8 +9,10 @@ import { Link } from 'react-router';
 import { PriorityBadge } from '~/components/pm/PriorityBadge';
 import { TaskLabelChip } from '~/components/pm/TaskLabelChip';
 import { DateText } from '~/components/ui/DateText';
+import { TASK_LABEL_PRIORITY } from '~/lib/pm-labels';
 import type { TaskListItem } from '~/lib/tasks-api';
 import { NextStepButton } from './NextStepButton';
+import { TaskRowMenu } from './TaskRowMenu';
 import { LIST_COPY } from './tasks.copy';
 
 /** Detail page of a task; the number is the handle people read aloud (M16). */
@@ -54,15 +56,16 @@ export function TaskTitle({ task }: { task: TaskListItem }) {
   );
 }
 
-/** Priority and the row labels, each icon plus text (WCAG 1.4.1). */
+/**
+ * Priority and the one label of the row, icon plus text (WCAG 1.4.1). A task that is late and stale
+ * and reopened shows only the most urgent (03-tugas §4.3); the detail page lists them all.
+ */
 export function TaskBadges({ task }: { task: TaskListItem }) {
-  const labels = task.labels.filter((l) => ROW_LABELS.includes(l));
+  const label = TASK_LABEL_PRIORITY.find((l) => ROW_LABELS.includes(l) && task.labels.includes(l));
   return (
     <Group gap="xs" wrap="wrap">
       <PriorityBadge priority={task.priority} />
-      {labels.map((label) => (
-        <TaskLabelChip key={label} label={label} />
-      ))}
+      {label && <TaskLabelChip label={label} />}
     </Group>
   );
 }
@@ -101,9 +104,12 @@ export function TaskRow({ task }: { task: TaskListItem }) {
           <TaskBadges task={task} />
           <TaskFacts task={task} withAssignee={false} />
         </Stack>
-        <Box pos="relative" style={{ zIndex: 1 }}>
-          <NextStepButton taskRef={String(task.number)} primary={task.primary} />
-        </Box>
+        <Group gap="xs" wrap="nowrap">
+          <Box pos="relative" style={{ zIndex: 1 }}>
+            <NextStepButton taskRef={String(task.number)} primary={task.primary} />
+          </Box>
+          <TaskRowMenu task={task} />
+        </Group>
       </Group>
     </Paper>
   );

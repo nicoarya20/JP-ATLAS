@@ -51,6 +51,7 @@ import {
   type PrimaryAction,
   primaryAction,
 } from './task-flow.policy';
+import { canTrashTask } from './task-trash.policy';
 import type { EventSubject, Membership, Principal, ProjectSubject, TaskSubject } from './types';
 import { canManageUsers } from './user.policy';
 
@@ -76,6 +77,7 @@ export const TASK_CAP_KEYS = [
   'needsReviewOn',
   'needsReviewOff',
   'changeReviewer',
+  'trash',
 ] as const;
 export type TaskCapKey = (typeof TASK_CAP_KEYS)[number];
 
@@ -166,6 +168,7 @@ export function taskCaps(
     needsReviewOn: canToggleNeedsReview(p, task, m, true, rules),
     needsReviewOff: canToggleNeedsReview(p, task, m, false, rules),
     changeReviewer: canChangeReviewer(p, task, m, reviewerProbe, pool, rules),
+    trash: canTrashTask(p, task, m, rules),
   });
   return { ...can, primary: primaryAction(p, task, m, pool, rules) };
 }

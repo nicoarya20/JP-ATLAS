@@ -32,6 +32,7 @@ import {
   type PrimaryAction,
   primaryAction,
 } from '../../server/access/task-flow.policy';
+import { canTrashTask } from '../../server/access/task-trash.policy';
 import type { ProjectSubject, TaskSubject } from '../../server/access/types';
 import { ROLES, type Role } from '../../server/permissions';
 import { TASK_STATUSES, type TaskStatus } from '../../server/pm/enums';
@@ -126,8 +127,20 @@ describe('taskCaps: named cases', () => {
       needsReviewOn: true,
       needsReviewOff: true,
       changeReviewer: true,
+      trash: true,
       primary: 'requestReview',
     });
+  });
+
+  it('offers trash to the creator and to a manager, never to a plain assignee or an observer', () => {
+    const rina = personaNamed('Rina'); // creator of #12, an ordinary member
+    const dodi = personaNamed('Dodi'); // member who is only the assignee
+    const sri = persona('PT'); // observer
+    expect(caps12(rina).trash).toBe(true);
+    expect(caps12(nico).trash).toBe(true);
+    expect(caps12(persona('AD')).trash).toBe(true);
+    expect(caps12(dodi, { assigneeId: dodi.principal.id }).trash).toBeUndefined();
+    expect('trash' in caps12(sri)).toBe(false);
   });
 
   it('the assignee cannot approve their own work, but the control stays visible and disabled', () => {
@@ -216,6 +229,7 @@ function direct(who: Persona, t: TaskSubject): Record<TaskCapKey, Verdict> {
     needsReviewOn: canToggleNeedsReview(p, t, m, true, r),
     needsReviewOff: canToggleNeedsReview(p, t, m, false, r),
     changeReviewer: canChangeReviewer(p, t, m, candidate ?? '', POOL, r),
+    trash: canTrashTask(p, t, m, r),
   };
 }
 

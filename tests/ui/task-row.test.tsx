@@ -77,6 +77,16 @@ describe('TaskRow', () => {
     },
   );
 
+  it('shows only the most urgent label when a task carries several', async () => {
+    const html = await row({ labels: ['reopened', 'stale', 'overdue'] });
+    expect(html).toContain(TASK_LABEL_LABELS.overdue.label);
+    expect(html).not.toContain(TASK_LABEL_LABELS.stale.label);
+    expect(html).not.toContain(TASK_LABEL_LABELS.reopened.label);
+    const stale = await row({ labels: ['reopened', 'stale'] });
+    expect(stale).toContain(TASK_LABEL_LABELS.stale.label);
+    expect(stale).not.toContain(TASK_LABEL_LABELS.reopened.label);
+  });
+
   it('leaves out labels that arrive with review and dependencies (S4)', async () => {
     const html = await row({ labels: ['awaiting_my_review', 'blocked'] });
     expect(html).not.toContain(TASK_LABEL_LABELS.awaiting_my_review.label);

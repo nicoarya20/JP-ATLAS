@@ -5,7 +5,7 @@ import { requestClock } from '@server/task/task.clock';
 import type { TaskDetail } from '@server/task/task.dto';
 import { getTaskDetail } from '@server/task/task-detail.query';
 import { useQuery } from '@tanstack/react-query';
-import { data } from 'react-router';
+import { data, useNavigate } from 'react-router';
 import { TaskChecklist } from '~/components/tasks/TaskChecklist';
 import { TaskHeader } from '~/components/tasks/TaskHeader';
 import { TaskTimeline } from '~/components/tasks/TaskTimeline';
@@ -50,6 +50,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 /** Header, step buttons, description, steps and the comment-and-history stream of one task. */
 export default function TaskDetailPage({ loaderData, params }: Route.ComponentProps) {
   const { today, back, loadedAt, viewerId } = loaderData;
+  const navigate = useNavigate();
   // Every task write invalidates `taskKeys.all`, so this refetches after a step or a 409 conflict.
   const { data: task } = useQuery({
     queryKey: taskKeys.detail(params.number),
@@ -62,7 +63,8 @@ export default function TaskDetailPage({ loaderData, params }: Route.ComponentPr
       <div>
         <BackLink fallback={back} label={DETAIL_COPY.back} />
       </div>
-      <TaskHeader task={task} today={today} />
+      {/* The task is gone after a delete: leave for the list it was opened from (the toast offers Urungkan). */}
+      <TaskHeader task={task} today={today} afterDelete={() => navigate(back)} />
       <Stack gap="lg">
         <Paper withBorder p={{ base: 'sm', md: 'md' }} radius="md">
           <Stack gap="xs">

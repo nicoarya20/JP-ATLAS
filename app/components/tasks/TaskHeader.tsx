@@ -53,9 +53,9 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-type Props = { task: TaskHeaderData; today: IsoDate };
+type Props = { task: TaskHeaderData; today: IsoDate; afterDelete?: () => void };
 
-export function TaskHeader({ task, today }: Props) {
+export function TaskHeader({ task, today, afterDelete }: Props) {
   const settled = task.status === 'done' || task.status === 'canceled';
   return (
     <Stack gap="sm">
@@ -67,7 +67,7 @@ export function TaskHeader({ task, today }: Props) {
             {task.title}
           </Title>
         </Stack>
-        <TaskMenu task={task} />
+        <TaskMenu task={task} afterDelete={afterDelete} />
       </Group>
 
       <Group gap="xs" wrap="wrap">

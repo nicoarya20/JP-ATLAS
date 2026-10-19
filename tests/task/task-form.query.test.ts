@@ -3,9 +3,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import type { Principal } from '../../server/access/types';
 import { db } from '../../server/db';
-import { project, taskKind } from '../../server/db/schema';
+import { project, projectPhase, taskKind } from '../../server/db/schema';
 import { DEFAULT_TASK_KINDS } from '../../server/pm/limits';
-import { listTaskFormProjects, loadTaskKinds } from '../../server/task/task-form.query';
+import {
+  listTaskFormProjects,
+  loadTaskKinds,
+  loadTaskPhases,
+} from '../../server/task/task-form.query';
 import { createCleaner } from '../support/cleanup';
 import type { TestProject } from '../support/factory.project';
 import { createFactory } from '../support/factory.task';
@@ -80,7 +84,21 @@ describe('listTaskFormProjects', () => {
     expect(kinds.map((k) => k.baseKind)).toEqual(['task', 'issue']);
   });
 
+  it('carries the phases of each project in display order, none for a project without any', async () => {
+    await db.insert(projectPhase).values([
+      { projectId: open.id, name: 'Bangun', position: 1 },
+      { projectId: open.id, name: 'Desain', position: 0 },
+    ]); // test-only
+    const rows = await listTaskFormProjects(principal(worker));
+    expect(rows.find((p) => p.id === open.id)?.phases.map((p) => p.name)).toEqual([
+      'Desain',
+      'Bangun',
+    ]);
+    expect(rows.find((p) => p.id === closed.id)?.phases).toEqual([]);
+  });
+
   it('answers an empty map for no projects without a query', async () => {
     expect((await loadTaskKinds([])).size).toBe(0);
+    expect((await loadTaskPhases([])).size).toBe(0);
   });
 });

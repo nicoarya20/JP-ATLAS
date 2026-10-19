@@ -8,7 +8,7 @@ import { useForm } from '@mantine/form';
 import type { IsoDate } from '@server/metrics/types';
 import { PROJECT_PRIORITIES } from '@server/pm/enums';
 import { isTaskWorkerRole, TASK_TITLE_MAX } from '@server/task/task.limits';
-import type { TaskFormKind, TaskFormProject } from '@server/task/task-form.query';
+import type { TaskFormKind, TaskFormPhase, TaskFormProject } from '@server/task/task-form.query';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
@@ -18,6 +18,7 @@ import { fetchProjectMembers, type ProjectMemberItem, projectKeys } from '~/lib/
 import { useUnsavedGuard } from '~/lib/use-unsaved-guard';
 import { TASK_DATE_FORMAT, TaskFormMore } from './TaskFormMore';
 import {
+  hasFoldedValues,
   QUICK_DUE_LABELS,
   QUICK_DUES,
   quickDue,
@@ -48,6 +49,8 @@ type Common = {
   initialMembers?: ProjectMemberItem[];
   submitting: boolean;
   cancelTo: string;
+  /** When set, Batal calls it instead of going to `cancelTo` (the form inside a dialog must not leave the page). */
+  onCancel?: () => void;
   /** Resolves with field errors to show, or null when the task was saved. */
   onSubmit: (values: TaskFormValues) => Promise<TaskFieldErrors | null>;
 };
@@ -61,6 +64,7 @@ type EditProps = Common & {
   mode: 'edit';
   project: { id: string; name: string };
   kinds: TaskFormKind[];
+  phases: TaskFormPhase[];
   initial: TaskFormValues;
 };
 export type TaskFormProps = CreateProps | EditProps;
@@ -69,10 +73,17 @@ export function TaskForm(props: TaskFormProps) {
   const { today, viewer, submitting, cancelTo, initial } = props;
   const editing = props.mode === 'edit';
   const [saved, setSaved] = useState(false);
-  const [more, setMore] = useState(editing);
+  // A draft that fills the folded fields opens them, so nothing it filled is hidden from the user.
+  const [more, setMore] = useState(editing || hasFoldedValues(initial));
   // Project picked by hand: once its members load, the viewer becomes the default assignee if they work there.
   const [autoAssign, setAutoAssign] = useState<string | null>(null);
-  const form = useForm<TaskFormValues>({ initialValues: initial, validate: validateTask });
+  // Fields with their own rule are checked when the user leaves them; project and the rest wait for Simpan,
+  // so tabbing past an untouched Proyek does not shout "Pilih proyek" before the user got there.
+  const form = useForm<TaskFormValues>({
+    initialValues: initial,
+    validate: validateTask,
+    validateInputOnBlur: ['title', 'description', 'dueDate', 'startDate'],
+  });
   useUnsavedGuard(!saved && form.isDirty());
 
   const projectId = editing ? props.project.id : form.values.projectId;
@@ -83,9 +94,9 @@ export function TaskForm(props: TaskFormProps) {
     initialData: projectId === initial.projectId ? props.initialMembers : undefined,
   });
   const workers = workersOf(members.data ?? []);
-  const kinds = editing
-    ? props.kinds
-    : (props.projects.find((p) => p.id === projectId)?.kinds ?? []);
+  const chosen = editing ? undefined : props.projects.find((p) => p.id === projectId);
+  const kinds = editing ? props.kinds : (chosen?.kinds ?? []);
+  const phases = editing ? props.phases : (chosen?.phases ?? []);
 
   useEffect(() => {
     if (!autoAssign || autoAssign !== projectId || !members.data) return;
@@ -99,6 +110,8 @@ export function TaskForm(props: TaskFormProps) {
     form.setFieldValue('assigneeId', null);
     const next = editing ? undefined : props.projects.find((p) => p.id === id);
     form.setFieldValue('kindId', next ? defaultKindId(next.kinds) : null);
+    // A phase belongs to one project, so the old pick cannot follow the task to another.
+    form.setFieldValue('phaseId', null);
     setAutoAssign(id);
   };
   const submit = form.onSubmit(async (values) => {
@@ -106,7 +119,8 @@ export function TaskForm(props: TaskFormProps) {
     if (errors) {
       form.setErrors(errors);
       // A refused field may sit in the folded part; open it so the message is seen.
-      if (errors.description || errors.kindId || errors.startDate || errors.steps) setMore(true);
+      if (errors.description || errors.kindId || errors.phaseId || errors.startDate || errors.steps)
+        setMore(true);
     } else setSaved(true);
   });
 
@@ -210,12 +224,24 @@ export function TaskForm(props: TaskFormProps) {
           </Button>
         </Group>
         <Collapse expanded={more} id="task-form-more">
-          <TaskFormMore form={form} kinds={kinds} withSteps={!editing} />
+          <TaskFormMore
+            form={form}
+            kinds={kinds}
+            phases={phases}
+            hasProject={Boolean(projectId)}
+            withSteps={!editing}
+          />
         </Collapse>
         <Group justify="flex-end" gap="xs" wrap="wrap">
-          <Button component={Link} to={cancelTo} variant="default">
-            {COPY.cancel}
-          </Button>
+          {props.onCancel ? (
+            <Button variant="default" onClick={props.onCancel}>
+              {COPY.cancel}
+            </Button>
+          ) : (
+            <Button component={Link} to={cancelTo} variant="default">
+              {COPY.cancel}
+            </Button>
+          )}
           <Button type="submit" loading={submitting}>
             {editing ? COPY.editSubmit : COPY.submit}
           </Button>
