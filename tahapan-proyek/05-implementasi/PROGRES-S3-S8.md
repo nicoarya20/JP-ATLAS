@@ -13,7 +13,7 @@
 | S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 1 | **1 selesai (merged)** (Z-01) |
 | S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 4 | **4 selesai (merged)** (M01-M04); **3 review** (M06, M07, M10 sebagian) di `feature/pm-team-menu`; sisa M05, M08, M09 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
-| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 5 | **5 selesai (merged)** (E-01, E-02, E-03, E-05, E-06); E-04 DIBLOKIR (butuh notify dari cabang Inbox) |
+| S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 5 | **5 selesai (merged)** (E-01, E-02, E-03, E-05, E-06); E-04 terbuka sejak G21 (`notify()` sudah ada); lingkup dipangkas 20 Okt, lihat P6 §3 |
 | | **Total** | | **98** | **19** | |
 
 **Syarat sebelum tugas pertama dimulai:**
@@ -166,19 +166,19 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 | E-01 | Skema acara + migrasi 0018 + Permintaan Perubahan Kontrak | selesai | `feature/pm-s7-e01-event-schema` | `09cf69c` merge `7cec339` | 4226 lulus/0 gagal; migrasi 0018 + rollback + PCC 0003 |
 | E-02 | Kebijakan akses & kemampuan acara | selesai | `feature/pm-s7-e01-event-schema` | `ad81d54` merge `7cec339` | kebijakan acara murni + kemampuan |
 | E-03 | Servis & kueri acara (CRUD, peserta, batal) | selesai | `feature/pm-s7-e01-event-schema` | `d7003d3` merge `7cec339` | 4341 lulus/0 gagal; `listEvents` tepat 3 kueri, tetap 3 pada halaman 20x lebih panjang; tanpa email/HP di payload |
-| E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | belum | – | – | – |
+| E-04 | Pengingat T-1 hari & T-30 menit + kait notifikasi | belum | – | – | Terbuka: `notify()` ada. Cabang kerja `feature/pm-events-menu` (20 Okt) |
 | E-05 | Notulensi ketik dengan kunci optimis | selesai | `feature/pm-s7-e01-event-schema` | `dd05f9e` merge `7cec339` | kunci optimis via date_trunc(milliseconds); body tidak pernah di-log |
 | E-06 | Rute API acara + pemetaan scope | selesai | `feature/pm-s7-e01-event-schema` | `4f9a020` merge `7cec339` | 4432 lulus/0 gagal; semua rute kecuali Sampah; +NOTE_CONFLICT/EVENT_CANCELED |
 | E-07 | Hapus ke Sampah + Urungkan + ikut hapus proyek | belum | – | – | – |
 | E-08 | Klien, kunci kueri, dan komponen bersama acara | belum | – | – | – |
 | E-09 | Halaman Daftar Acara | belum | – | – | – |
 | E-10 | Form 2 tahap | belum | – | – | – |
-| E-11 | Detail acara, peserta, notulensi, Agenda Beranda | belum | – | – | – |
+| E-11 | Detail acara, peserta, notulensi, Agenda Beranda | belum | – | – | 20 Okt: tanpa notulensi UI (teks "segera hadir") dan tanpa Agenda Beranda (H-D3a, H-D3e) |
 | E-12 | Integrasi, README kontrak, CHANGELOG — Integrator · S7 · S · 0,75 hari · dep E-06..E-11 · ★ SP-E3 | belum | – | – | – |
-| E-13 | Tugas dari rapat (E4, Could) | belum | – | – | Could; geser bila waktu tidak cukup |
-| E-14 | Kalender Bulan/Minggu (E5, Could) | belum | – | – | Could |
+| E-13 | Tugas dari rapat (E4, Could) | ditunda | – | – | HUTANG H-D3b (keputusan user 20 Okt 2026) |
+| E-14 | Kalender Bulan/Minggu (E5, Could) | ditunda | – | – | HUTANG H-D3c (keputusan user 20 Okt 2026) |
 | E-15 | QA, smoke, uji gerbang S7 | belum | – | – | – |
-| E-16 | Acara berulang (E6, Could) | belum | – | – | Could |
+| E-16 | Acara berulang (E6, Could) | ditunda | – | – | HUTANG H-D3d (keputusan user 20 Okt 2026) |
 
 
 ## 5. Log merge per gelombang

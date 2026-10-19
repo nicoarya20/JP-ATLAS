@@ -41,6 +41,8 @@
 
 **Non-lingkup (disembunyikan, bukan tombol mati — P3 §2):** foto/suara/AI notulensi, Google Calendar, email/push, jam tenang, ubah seluruh rangkaian, tanggal akhir pengulangan, "Siap/Belum siap" (R07 D6), kartu "Hasil rapat menunggu konfirmasi" (R07 D3), pilih zona waktu per pengguna (Q1: semua WIB lewat `APP_TIME_ZONE`).
 
+**Keputusan user 20 Okt 2026 (lingkup menu Events dipangkas, cabang `feature/pm-events-menu`):** yang dikerjakan sekarang hanya **buat acara, batalkan, dan hapus ke Sampah** (E-04 sebagian, E-07, E-08, E-09, E-10, E-11 tanpa notulensi dan tanpa Agenda Beranda, E-12, E-15). Digeser ke HUTANG H-D3a..H-D3e: notulensi ketik di UI, rekam suara/foto/AI dan tugas dari rapat (E-13), widget Agenda Beranda, kalender Bulan/Minggu (E-14), acara berulang (E-16). Di detail acara, blok notulensi diganti **teks pasif "segera hadir"** tanpa tombol (selaras aturan "bukan tombol mati"). Tombol pilih tampilan Daftar/Kalender disembunyikan sampai E-14. Hapus acara mengikuti **T1** (tanpa dialog, toast Urungkan); modal "Hapus event?" di wireframe layar 8 dinyatakan perlu direvisi. "Batalkan" tetap dialog `modals.openConfirmModal` dengan alasan. Backend E-05 (notulensi) tetap ada dan tidak dihapus.
+
 ## 4. Layar & perilaku
 | Layar (rute) | Perilaku utama | Empty state / mobile / teks |
 |---|---|---|
