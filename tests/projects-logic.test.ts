@@ -304,10 +304,11 @@ describe('the Trash for projects', () => {
     if (!bin) throw new Error('expected a bin');
     const taken = addProject(bin.list, input({ name: 'Atlas' }), 'Nico').list; // takes the id "atlas"
     const back = restoreProject(taken, bin.trash, 'atlas');
+    if (!back) throw new Error('expected the project to come back');
     // The new project kept "atlas"; the restored one got an id made from its own name.
-    expect(back?.list.map((p) => p.id)).toEqual(['proyek-atlas', 'atlas', 'sinar', 'migrasi']);
-    expect(back?.list.find((p) => p.id === 'proyek-atlas')?.name).toBe('Proyek Atlas');
-    expect(new Set(back?.list.map((p) => p.id)).size).toBe(back?.list.length);
+    expect(back.list.map((p) => p.id)).toEqual(['proyek-atlas', 'atlas', 'sinar', 'migrasi']);
+    expect(back.list.find((p) => p.id === 'proyek-atlas')?.name).toBe('Proyek Atlas');
+    expect(new Set(back.list.map((p) => p.id)).size).toBe(back.list.length);
   });
 
   it('shows up on the Sampah page as a "Proyek" item', () => {
