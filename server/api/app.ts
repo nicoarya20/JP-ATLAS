@@ -13,6 +13,7 @@ import { inboxApi } from './app-inbox';
 import { profileApi } from './app-profile';
 import { projectsApi } from './app-projects';
 import { projectMembersApi } from './app-projects.members';
+import { projectScheduleApi } from './app-projects.schedule';
 import { projectTrashApi } from './app-projects.trash';
 import { tasksApi } from './app-tasks';
 import { taskDetailApi } from './app-tasks.detail';
@@ -29,6 +30,7 @@ export const appApi = new Elysia({ prefix: '/app' })
   .use(projectsApi)
   .use(projectMembersApi)
   .use(projectTrashApi)
+  .use(projectScheduleApi)
   .use(teamPickerApi)
   .use(teamApi)
   .use(trashApi)
