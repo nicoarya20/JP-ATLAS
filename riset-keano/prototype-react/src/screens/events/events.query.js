@@ -4,8 +4,8 @@ import { D } from '../../data/sample';
 import { PROJECT, TYPES } from './events.shared';
 
 /** Overlay options; index 0 is the default. */
-export const WHEN = ['All', 'Upcoming', 'Past'];
-const WHEN_PAST = 2;
+export const WHEN = ['Upcoming', 'Past'];
+const WHEN_PAST = 1;
 export const TYPE_FILTERS = ['All', ...TYPES];
 export const GROUPS = ['Schedule', 'Type'];
 export const GROUP_TYPE = 1;
@@ -13,7 +13,7 @@ export const GROUP_TYPE = 1;
 const KEYS = ['when', 'type', 'project', 'group'];
 const REPEAT_DAYS = { 'every 2 weeks': 14 };   // how far apart a recurring event's next dates are
 
-/** Query a list starts with: upcoming and past, every type, every project, grouped by schedule. */
+/** Query a list starts with: upcoming events, every type, every project, grouped by schedule. */
 export const BASE_QUERY = { when: 0, type: 0, project: '', group: 0 };
 
 /** Project picker options. */
@@ -28,7 +28,8 @@ export const withoutQuery = params => Object.fromEntries(Object.entries(params |
 /** Query from screen params, defaults filled in. */
 export const queryOf = params => ({ ...BASE_QUERY, ...queryParams(params) });
 
-/** True when the query narrows the events (the dot on the filter icon); grouping alone does not count. */
+/** True when the query narrows the events beyond the default (the dot on the filter icon): Past, a type or a project;
+ *  Upcoming is the default and grouping alone does not count. */
 export const isFiltered = q => !!(q.when || q.type || q.project);
 
 /** Past: already done, or its first date is before today; everything else is upcoming. */
@@ -38,7 +39,7 @@ export const isPast = e => e.status === 'Done' || datesOf(e)[0] < TODAY_DATE;
 export function applyQuery(events, q) {
   const name = q.project && D.project(q.project)?.name;
   return events
-    .filter(e => !q.when || isPast(e) === (q.when === WHEN_PAST))
+    .filter(e => isPast(e) === (q.when === WHEN_PAST))
     .filter(e => !q.type || e.type === TYPE_FILTERS[q.type])
     .filter(() => !name || name === PROJECT());
 }

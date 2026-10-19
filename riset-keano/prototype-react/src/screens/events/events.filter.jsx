@@ -13,7 +13,7 @@ export function EventsSearch() {
     onFilter={() => openSheet('events.filter')} />;
 }
 
-/** ①b Filter & sort: upcoming / past, event type and project filters, then how the list is grouped, edited as a draft. Reset puts the
+/** ①b Filter & sort: upcoming (default) or past, event type and project filters, then how the list is grouped, edited as a draft. Reset puts the
  *  draft back to the default; Apply re-opens the screen underneath with the draft as its params, which closes the overlay. */
 export function EventsFilter() {
   const { current, params: screen, go } = useApp();

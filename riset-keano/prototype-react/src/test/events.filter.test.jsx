@@ -14,6 +14,7 @@ const apply = sheet => fireEvent.click(sheet.getByRole('button', { name: 'Apply'
 const shown = e => !!dom.queryByText(e.title);
 const PAST = ['kickoff', 'daily'];   // done, or before today
 const isPast = e => PAST.includes(e.id);
+const upcoming = () => D.events.filter(e => !isPast(e));
 const heads = () => dom.getAllByRole('heading', { level: 2 }).map(h => h.textContent);
 /** Dot class of an October date in the month grid: '' one event, 'two' more, 'none' no event. */
 const dot = n => document.querySelectorAll('.ev-date')[n - 1].querySelector('.ev-dot').className.replace('ev-dot', '').trim();
@@ -37,8 +38,8 @@ describe('events filter & sort', () => {
     expect(dom.getByRole('dialog')).toHaveClass('fs');
     expect(sheet.getByRole('heading', { name: 'Filter & sort' })).toHaveAttribute('data-sheet-drag');
     expect(sheet.getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual(['Show', 'Event type', 'Project', 'Group by']);
-    for (const t of ['All', 'Upcoming', 'Past']) expect(field(sheet, 'Show').getByRole('button', { name: t })).toBeInTheDocument();
-    expect(field(sheet, 'Show').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(field(sheet, 'Show').getAllByRole('button').map(b => b.textContent)).toEqual(['Upcoming', 'Past']);
+    expect(field(sheet, 'Show').getByRole('button', { name: 'Upcoming' })).toHaveAttribute('aria-pressed', 'true');
     for (const t of ['All', 'Meeting', 'Review', 'Important', 'Team event', 'Other']) expect(field(sheet, 'Event type').getByRole('button', { name: t })).toBeInTheDocument();
     expect(field(sheet, 'Event type').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
     expect(sheet.getByRole('combobox', { name: 'Project' })).toHaveDisplayValue('All projects');
@@ -58,15 +59,12 @@ describe('events filter & sort', () => {
     expect(icon()).toHaveClass('is-on');
   });
 
-  it('shows only the upcoming events, keeping the type filter on top of it', () => {
+  it('opens on the upcoming events without lighting the dot, and keeps the type filter on top of it', () => {
     renderApp('events.list', 'pm');
-    let sheet = openFilter();
-    fireEvent.click(sheet.getByRole('button', { name: 'Upcoming' }));
-    apply(sheet);
-    expect(D.events.filter(e => !isPast(e)).every(shown)).toBe(true);
+    expect(upcoming().every(shown)).toBe(true);
     expect(D.events.filter(isPast).some(shown)).toBe(false);
-    sheet = openFilter();
-    expect(field(sheet, 'Show').getByRole('button', { name: 'Upcoming' })).toHaveAttribute('aria-pressed', 'true');
+    expect(icon()).not.toHaveClass('is-on');
+    const sheet = openFilter();
     fireEvent.click(sheet.getByRole('button', { name: 'Meeting' }));
     apply(sheet);
     expect(D.events.filter(e => e.type === 'Meeting' && !isPast(e)).map(e => e.id)).toEqual(['rehearsal']);
@@ -92,7 +90,7 @@ describe('events filter & sort', () => {
     fireEvent.click(sheet.getByRole('radio', { name: 'Type' }));
     apply(sheet);
     expect(heads()).toEqual(['Meeting', 'Review', 'Important', 'Team event']);
-    expect(D.events.every(shown)).toBe(true);
+    expect(upcoming().every(shown)).toBe(true);
     expect(icon()).not.toHaveClass('is-on');
   });
 
@@ -103,7 +101,7 @@ describe('events filter & sort', () => {
     apply(sheet);
     expect(dom.getByRole('heading', { name: 'No events match these filters.' })).toBeInTheDocument();
     fireEvent.click(dom.getByRole('button', { name: 'Reset filters' }));
-    expect(D.events.every(shown)).toBe(true);
+    expect(upcoming().every(shown)).toBe(true);
     expect(icon()).not.toHaveClass('is-on');
   });
 
@@ -112,11 +110,11 @@ describe('events filter & sort', () => {
     const sheet = openFilter();
     fireEvent.change(sheet.getByRole('combobox', { name: 'Project' }), { target: { value: 'atlas' } });
     apply(sheet);
-    expect(D.events.every(shown)).toBe(true);
+    expect(upcoming().every(shown)).toBe(true);
     expect(icon()).toHaveClass('is-on');
   });
 
-  it('Reset puts the draft back to upcoming and past, every type, every project, by schedule', () => {
+  it('Reset puts the draft back to upcoming, every type, every project, by schedule', () => {
     renderApp('events.list', 'pm');
     const sheet = openFilter();
     fireEvent.click(sheet.getByRole('button', { name: 'Past' }));
@@ -124,19 +122,19 @@ describe('events filter & sort', () => {
     fireEvent.change(sheet.getByRole('combobox', { name: 'Project' }), { target: { value: 'sinar' } });
     fireEvent.click(sheet.getByRole('radio', { name: 'Type' }));
     fireEvent.click(sheet.getByRole('button', { name: 'Reset' }));
-    expect(field(sheet, 'Show').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(field(sheet, 'Show').getByRole('button', { name: 'Upcoming' })).toHaveAttribute('aria-pressed', 'true');
     expect(field(sheet, 'Event type').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
     expect(sheet.getByRole('combobox', { name: 'Project' })).toHaveValue('');
     expect(sheet.getByRole('radio', { name: 'Schedule' })).toBeChecked();
   });
 
-  it('draws the calendar dots and today\'s agenda from the events, in start-time order', () => {
+  it('draws the calendar dots and today\'s agenda from the upcoming events by default', () => {
     renderApp('events.calendar', 'pm');
-    expect([1, 7, 8, 9, 13, 15, 23].map(dot)).toEqual(['', 'two', '', '', '', '', '']);
-    expect(dot(2)).toBe('none');
-    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 2 events' })).toBeInTheDocument();
-    const daily = dom.getByText('Atlas daily stand-up');
-    expect(daily.compareDocumentPosition(dom.getByText('Onboarding design review')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect([7, 8, 9, 13, 15, 23].map(dot)).toEqual(['', '', '', '', '', '']);
+    expect([1, 2].map(dot)).toEqual(['none', 'none']);
+    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 1 event' })).toBeInTheDocument();
+    expect(dom.getByText('Onboarding design review')).toBeInTheDocument();
+    expect(dom.queryByText('Atlas daily stand-up')).not.toBeInTheDocument();
   });
 
   it('keeps the query on the calendar: dots and agenda show only the filtered events', () => {
