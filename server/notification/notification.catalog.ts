@@ -137,8 +137,8 @@ export const NOTIFICATION_COPY: Readonly<Record<NotificationKind, KindCopy>> = O
     button: 'Balas',
   },
   event_reminder: {
-    sentence: 'Acara {title} segera dimulai',
-    system: 'Acara {title} segera dimulai',
+    sentence: 'Pengingat acara {title}',
+    system: 'Pengingat acara {title}',
     button: 'Lihat acara',
   },
   event_invited: {

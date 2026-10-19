@@ -184,7 +184,7 @@ describe('copy', () => {
       'Dodi membatalkan acara Rapat kickoff',
     );
     expect(cardSentence('event_canceled', { title })).toBe('Acara Rapat kickoff dibatalkan');
-    expect(cardSentence('event_reminder', { title })).toBe('Acara Rapat kickoff segera dimulai');
+    expect(cardSentence('event_reminder', { title })).toBe('Pengingat acara Rapat kickoff');
     expect(cardButton('event_canceled')).toBe('Lihat acara');
   });
 
