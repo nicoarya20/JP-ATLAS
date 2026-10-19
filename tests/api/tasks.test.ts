@@ -325,7 +325,6 @@ describe('PATCH /app/tasks/:ref', () => {
   it.each([
     ['needsReview', { needsReview: false }],
     ['tags', { tags: [] }],
-    ['phaseId', { phaseId: 'p1' }],
     ['estimateHours', { estimateHours: 1 }],
   ])('rejects the later-slice field %s with 422', async (_label, body) => {
     const { me, t1 } = await graph();

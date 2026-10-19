@@ -3,8 +3,10 @@
  * goes through, the result type, the user-facing messages and the small validators both services use.
  * Same shape as `managed()` in `project.service.ts`, plus the plan's own limit codes.
  */
+import { and, eq } from 'drizzle-orm';
 import { canManageProject } from '../access/project.policy';
 import type { Principal } from '../access/types';
+import { projectPhase } from '../db/schema';
 import type { PmCode } from '../pm/errors';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from './membership.query';
@@ -84,3 +86,16 @@ export function lengthProblem(raw: string | null | undefined, max: number): stri
 
 /** Trimmed text, with empty text stored as null. */
 export const cleanOptional = (raw: string | null | undefined): string | null => raw?.trim() || null;
+
+/**
+ * True when the phase exists in this project; another project's phase looks the same as a missing one.
+ * The row is read FOR SHARE so a phase being deleted at the same moment cannot be assigned from under it.
+ */
+export async function phaseInProject(tx: Tx, projectId: string, phaseId: string): Promise<boolean> {
+  const [row] = await tx
+    .select({ id: projectPhase.id })
+    .from(projectPhase)
+    .where(and(eq(projectPhase.id, phaseId), eq(projectPhase.projectId, projectId)))
+    .for('share');
+  return Boolean(row);
+}

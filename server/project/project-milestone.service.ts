@@ -22,6 +22,7 @@ import {
   managedPlan,
   PLAN_MESSAGES,
   type PlanResult,
+  phaseInProject,
   rangeProblem,
 } from './project-plan.write';
 
@@ -47,15 +48,6 @@ function problemOf(input: UpdateMilestoneInput): string | null {
   const text = lengthProblem(input.description, MILESTONE_DESCRIPTION_MAX);
   // A one-sided range check validates the single date as a calendar date.
   return text ?? (input.dueDate === undefined ? null : rangeProblem(input.dueDate, null));
-}
-
-/** True when the phase exists in this project; another project's phase looks the same as a missing one. */
-async function phaseInProject(tx: Tx, projectId: string, phaseId: string): Promise<boolean> {
-  const [row] = await tx
-    .select({ id: projectPhase.id })
-    .from(projectPhase)
-    .where(and(eq(projectPhase.id, phaseId), eq(projectPhase.projectId, projectId)));
-  return Boolean(row);
 }
 
 /** Adds a milestone (managers, Admin); more than `MILESTONES_PER_PROJECT` is a 422. */
