@@ -91,6 +91,24 @@ describe('ProjectHeader', () => {
     },
   );
 
+  it('links back to the project list, for everyone who can open the project', async () => {
+    for (const can of [
+      { update: true, createTask: true },
+      { update: 'NOT_MANAGER', createTask: true },
+      { createTask: true },
+    ] as const) {
+      const html = await header({ can });
+      expect(html).toContain(HEADER_COPY.back);
+      expect(html).toMatch(/<a [^>]*href="\/app\/projects"[^>]*>/);
+    }
+  });
+
+  it('puts the way back before the title, so it is the first thing a reader reaches', async () => {
+    const html = await header();
+    expect(html.indexOf(HEADER_COPY.back)).toBeGreaterThan(-1);
+    expect(html.indexOf(HEADER_COPY.back)).toBeLessThan(html.indexOf('Renovasi Dapur'));
+  });
+
   it('offers the ⋯ menu only when the server allows editing', async () => {
     expect(await header()).toContain(`aria-label="${HEADER_COPY.menuLabel}"`);
     expect(await header({ can: { update: 'NOT_MANAGER', createTask: true } })).not.toContain(

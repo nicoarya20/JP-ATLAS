@@ -1,10 +1,10 @@
 /** Project detail header (⑧): name, status, condition (active only), lead, due date, ⋯ menu and notes. */
-import { ActionIcon, Alert, Group, Menu, Stack, Text, Title } from '@mantine/core';
+import { ActionIcon, Alert, Button, Group, Menu, Stack, Text, Title } from '@mantine/core';
 import type { IsoDate } from '@server/metrics/types';
 import type { ProjectStatus } from '@server/pm/enums';
 import type { ProjectDetail } from '@server/project/project.dto';
 import type { ReactNode } from 'react';
-import { FiEdit2, FiInfo, FiMoreHorizontal } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit2, FiInfo, FiMoreHorizontal } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { ConditionPill } from '~/components/pm/ConditionPill';
 import { StatusBadge } from '~/components/pm/StatusBadge';
@@ -51,6 +51,18 @@ export function ProjectHeader({ project, today }: Props) {
   const canDelete = showsDeleteProject(project.can);
   return (
     <Stack gap="sm">
+      {/* Always the list, never `navigate(-1)`: from a tab, "back" would otherwise land on the previous tab. */}
+      <Button
+        component={Link}
+        to="/app/projects"
+        variant="subtle"
+        size="sm"
+        px="xs"
+        style={{ alignSelf: 'flex-start' }}
+        leftSection={<FiArrowLeft size="1.25em" aria-hidden />}
+      >
+        {HEADER_COPY.back}
+      </Button>
       {/* nowrap is safe: the only button is one 44px icon and the title itself wraps. */}
       <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
         <Title order={2} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>

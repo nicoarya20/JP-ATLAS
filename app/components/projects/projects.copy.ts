@@ -20,6 +20,7 @@ export const PROJECT_TABS = {
 } as const;
 
 export const HEADER_COPY = {
+  back: 'Kembali ke daftar proyek',
   menuLabel: 'Menu proyek',
   edit: 'Ubah proyek',
   due: 'Tenggat',
