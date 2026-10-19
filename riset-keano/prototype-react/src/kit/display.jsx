@@ -1,4 +1,5 @@
 // Content building blocks: cards, list rows, form fields, avatars, pills, progress, media placeholders, empty states.
+import { useId } from 'react';
 import { Avatar as LibAvatar } from '@react-cupertino-ui/avatar';
 import { Badge } from '@react-cupertino-ui/badge';
 import { Card } from '@react-cupertino-ui/card';
@@ -51,6 +52,7 @@ export function Row({ lead, title, sub, right, chev, ...props }) {
 
 /** Form field. value = filled-in text; placeholder; area = multi-line; disabled; icon = trailing element. */
 export function Field({ label, value, placeholder, area, disabled, icon }) {
+  const id = useId();
   if (area) {
     return (
       <label className="field">
@@ -59,9 +61,15 @@ export function Field({ label, value, placeholder, area, disabled, icon }) {
       </label>
     );
   }
+  // The label sits above the box: the library's floating label scales from its centre, so labels of different
+  // lengths drift right by different amounts. The library also drops variant="filled" from its class map
+  // (BaseVariants has no "filled" key), so the class is passed by hand for library.css to style the box.
   return (
-    <TextField label={label} variant="filled" defaultValue={value} placeholder={placeholder} disabled={disabled}
-      rightIcon={icon} />
+    <div className="field">
+      <label className="t-footnote muted" htmlFor={id}>{label}</label>
+      <TextField id={id} className="variant-filled" defaultValue={value} placeholder={placeholder} disabled={disabled}
+        rightIcon={icon} />
+    </div>
   );
 }
 
