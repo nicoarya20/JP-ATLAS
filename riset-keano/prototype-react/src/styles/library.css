@@ -10,7 +10,8 @@
 .react-cupertino-ui-checkbox__box::before, .react-cupertino-ui-radio__ring::before { content: none; }
 
 /* ---- Navigation bar ---- */
-.react-cupertino-ui-navigation-bar { background: var(--bg); border-bottom: 1px solid var(--separator); flex: none; }
+.react-cupertino-ui-navigation-bar { background: var(--bg); border-bottom: 1px solid var(--separator); flex: none;
+  z-index: 10; }  /* upstream 100 put the bar above the More panel's dim (89); 10 still keeps its ⋯ menus over the content */
 .react-cupertino-ui-navigation-bar .title-compact { color: var(--label); }
 /* kit NavBar back: chevron only, 44px tap target, nudged left so the chevron lines up with the content edge */
 .react-cupertino-ui-navigation-bar .nav-back { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -14px;
@@ -48,7 +49,10 @@
 .glassbar-tabs, .glassbar-fab {
   background: var(--glass-bar); color: var(--label); border: 0.5px solid var(--glass-bar-edge);
   box-shadow: inset 0 1px 0 var(--glass-bar-shine), var(--glass-bar-shadow);
-  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); }
+  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  transition: background-color 280ms ease; }
+/* More panel open: the glass sits on the dimmed screen, so it takes the denser open tint */
+.glassbar-scrim.is-open + .glassbar :is(.glassbar-tabs, .glassbar-fab) { background: var(--glass-bar-open); }
 
 /* ---- Bottom sheet: its own background, and cards inside it one step lighter ---- */
 .react-cupertino-ui-bottom-sheet__overlay { background: var(--overlay); }

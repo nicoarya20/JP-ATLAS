@@ -80,6 +80,7 @@
   --glass-bar-shine: rgba(255, 255, 255, 0.8);  /* top inner highlight */
   --glass-bar-active: rgba(118, 118, 128, 0.16); /* pill behind the active tab */
   --glass-bar-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --glass-bar-open: rgba(255, 255, 255, 0.88);  /* bar + panel over the dim: 0.6 white over the dark scrim reads grey */
   --sheet-bg: #f2f2f7;                   /* bottom sheet background */
   --sheet-surface: #ffffff;              /* cards and lists inside a sheet */
   --overlay: rgba(0, 0, 0, 0.4);         /* dimming behind a sheet */
@@ -143,6 +144,7 @@
   --glass-bar-shine: rgba(255, 255, 255, 0.1);
   --glass-bar-active: rgba(255, 255, 255, 0.1);
   --glass-bar-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --glass-bar-open: rgba(40, 40, 42, 0.55);     /* same as closed: dark glass already reads right over the dim */
   --sheet-bg: #1c1c1e;
   --sheet-surface: #2c2c2e;
   --overlay: rgba(0, 0, 0, 0.6);

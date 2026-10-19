@@ -14,7 +14,8 @@ const defined = text => new Set([...text.matchAll(/(--[\w-]+)\s*:/g)].map(m => m
 // --accent is absent on purpose: it follows --color-blue, which .dark redefines.
 const THEMED = ['--bg', '--surface', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent-soft',
   '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb',
-  '--glass-bar', '--glass-bar-edge', '--glass-bar-shine', '--glass-bar-active', '--glass-bar-shadow'];
+  '--glass-bar', '--glass-bar-edge', '--glass-bar-shine', '--glass-bar-active', '--glass-bar-shadow',
+  '--glass-bar-open'];
 
 describe('theme layer', () => {
   it('is imported after the screens so it wins over the library scss', () => {
@@ -60,5 +61,12 @@ describe('theme layer', () => {
   it('stops avatars from shrinking into ovals', () => {
     expect(library).toMatch(/\.react-cupertino-ui-avatar\s*\{[^}]*flex:\s*none/);
     expect(library).toMatch(/\.react-cupertino-ui-list-item-icon\s*\{[^}]*width:\s*auto/);
+  });
+
+  it('dims the nav bar with the rest of the screen and tints the glass denser while More is open', () => {
+    const app = read('styles/app.css');
+    const z = (css, sel) => Number(css.match(new RegExp(`${sel}\\s*\\{[^}]*z-index:\\s*(\\d+)`))[1]);
+    expect(z(library, '\\.react-cupertino-ui-navigation-bar')).toBeLessThan(z(app, '\\.glassbar-scrim'));
+    expect(library).toMatch(/\.glassbar-scrim\.is-open \+ \.glassbar[^{]*\{[^}]*var\(--glass-bar-open\)/);
   });
 });
