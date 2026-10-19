@@ -162,6 +162,6 @@ describe('API keys', () => {
     expect(manager.status).toBe(200);
     expect(names(manager.body)[0]).toBe(`${g.mk} Budi`);
     const member = await send(g.awan);
-    expectApiError(member, 422, 'SORT_NOT_ALLOWED');
+    expect([member.status, member.body.code]).toEqual([422, 'SORT_NOT_ALLOWED']);
   });
 });
