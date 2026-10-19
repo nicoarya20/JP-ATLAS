@@ -57,6 +57,15 @@ export const formatEventTime = (iso: string, timeZone: string): string =>
     new Date(iso),
   );
 
+/** `Selasa, 20 Oktober 2026` in the team zone, for the detail page. */
+export const formatEventDay = (iso: string, timeZone: string): string =>
+  formatter('day', timeZone, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(iso));
+
 /** `09.00–10.00`; an event that ends on another day names that day: `23.00–21 Okt 01.00`. */
 export function formatTimeRange(
   e: Pick<EventListItem, 'startsAt' | 'endsAt'>,
@@ -78,6 +87,18 @@ export function locationLabel(
   const text = e.locationText?.trim();
   if (text) return text;
   return e.locationType === 'online' ? 'Online' : null;
+}
+
+/** The meeting link when it is a web address; anything else (`javascript:`, junk) is never made a link. */
+export function safeMeetingUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const { protocol } = new URL(url.trim());
+    return protocol === 'https:' || protocol === 'http:' ? url.trim() : null;
+  } catch {
+    // Not a URL at all: the place text still shows, only the "Buka tautan rapat" button is left out.
+    return null;
+  }
 }
 
 const RELATIVE_DAYS: Record<number, string> = { [-1]: 'Kemarin', 0: 'Hari ini', 1: 'Besok' };
