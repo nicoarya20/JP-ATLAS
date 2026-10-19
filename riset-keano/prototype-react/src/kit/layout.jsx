@@ -22,15 +22,19 @@ export const CREATE = {
   projects: { go: 'projects.new', label: 'New project' },
   events: { go: 'events.new', label: 'New event' },
 };
-/** Home, More, and a tab whose "new" screen the role can't open (Member on Projects) get the Create sheet to pick from. */
+/** Home and More have no "new" of their own, so their "+" opens the Create sheet to pick from. */
 const CREATE_MENU = { go: 'home.create', label: 'Create' };
-export const createFor = (tab, role) => (CREATE[tab] && allowed(CREATE[tab].go, role) ? CREATE[tab] : CREATE_MENU);
+/** The "+" target for a tab, or null when the role can't open that tab's "new" screen (Member on Projects): no "+" then. */
+export const createFor = (tab, role) => {
+  if (!CREATE[tab]) return CREATE_MENU;
+  return allowed(CREATE[tab].go, role) ? CREATE[tab] : null;
+};
 
 const MORE = 'more';
 
 /**
  * Bottom navigation as a floating liquid-glass pill (icons only, labels kept for screen readers; a draggable bubble
- * marks the active tab, see GlassTabs) plus a round "+" create button (see createFor).
+ * marks the active tab, see GlassTabs) plus a round "+" create button (see createFor); the pill widens where there is no "+".
  * active = 'home' | 'tasks' | 'projects' | 'events'. Tabs reset history (top-level jump). More unfolds the pill into
  * the More panel over a dimmed screen; More again, the dim, Escape, another tab or any navigation folds it away.
  */
@@ -60,7 +64,9 @@ export function AppTabBar({ active }) {
       <div className="glassbar">
         <GlassTabs className="glassbar-tabs" items={items} activeId={open ? MORE : active} onChange={pick} onReselect={pick}
           panel={Panel && <Panel close={close} />} panelOpen={open} panelLabel="More" />
-        <button type="button" className="glassbar-fab" aria-label={create.label} onClick={() => { close(); go(create.go); }}>
+        {/* Stays mounted when there is nothing to create so it can fold away (and back) instead of popping */}
+        <button type="button" className={`glassbar-fab${create ? '' : ' is-hidden'}`} aria-label={create?.label ?? 'Create'}
+          aria-hidden={!create} inert={create ? undefined : ''} onClick={() => { close(); go(create.go); }}>
           <Plus size={TAB_ICON + 4} />
         </button>
       </div>

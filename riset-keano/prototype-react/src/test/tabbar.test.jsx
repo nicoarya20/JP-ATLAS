@@ -34,10 +34,25 @@ describe('glass tab bar', () => {
     expect(createFor('tasks', 'member').go).toBe('tasks.write');
   });
 
-  it('falls back to the Create sheet on Home, More, and Projects for a Member', () => {
+  it('falls back to the Create sheet on Home and More', () => {
     expect(createFor('home', 'pm').go).toBe('home.create');
     expect(createFor('more', 'admin').go).toBe('home.create');
-    expect(createFor('projects', 'member').go).toBe('home.create');
+    expect(createFor('home', 'member').go).toBe('home.create');
+  });
+
+  it('has no "+" where the role cannot create the tab\'s item (Member on Projects)', () => {
+    expect(createFor('projects', 'member')).toBeNull();
+  });
+
+  it('folds the "+" away for a Member on Projects and brings it back on Tasks', async () => {
+    renderApp('projects.list', 'member');
+    const fab = document.querySelector('.glassbar-fab');
+    expect(fab).toHaveClass('is-hidden');
+    expect(fab).toHaveAttribute('inert');
+    expect(dom.queryByRole('button', { name: /^(Create|New project)$/ })).not.toBeInTheDocument();
+    await userEvent.click(dom.getByRole('tab', { name: 'Tasks' }));
+    expect(document.querySelector('.glassbar-fab')).not.toHaveClass('is-hidden');
+    expect(dom.getByRole('button', { name: 'New task' })).toBeInTheDocument();
   });
 
   it('opens New project from "+" on Projects', async () => {
