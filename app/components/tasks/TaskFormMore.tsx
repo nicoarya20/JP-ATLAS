@@ -1,6 +1,6 @@
 /**
- * "Tampilkan lebih banyak" of the task form: Deskripsi, Jenis, Tanggal mulai and, when creating,
- * Langkah awal. Tag, Perlu diperiksa, Estimasi and Tahapan wait for S4-S5 (P3 §2 Tugas ⑥).
+ * "Tampilkan lebih banyak" of the task form: Deskripsi, Jenis, Tahapan, Tanggal mulai and, when
+ * creating, Langkah awal. Tag, Perlu diperiksa and Estimasi wait for S4-S5 (P3 §2 Tugas ⑥).
  */
 import {
   ActionIcon,
@@ -20,7 +20,7 @@ import {
   TASK_CHECKLIST_TEXT_MAX,
   TASK_DESCRIPTION_MAX,
 } from '@server/task/task.limits';
-import type { TaskFormKind } from '@server/task/task-form.query';
+import type { TaskFormKind, TaskFormPhase } from '@server/task/task-form.query';
 import type { KeyboardEvent } from 'react';
 import { FiPlus, FiX } from 'react-icons/fi';
 import type { TaskFormValues } from './task-form';
@@ -31,11 +31,20 @@ export const TASK_DATE_FORMAT = 'D MMMM YYYY';
 type Props = {
   form: UseFormReturnType<TaskFormValues>;
   kinds: TaskFormKind[];
+  /** Phases of the chosen project; empty = the picker explains why there is nothing to pick. */
+  phases: TaskFormPhase[];
+  /** Whether a project is chosen yet, so the picker can ask for one first. */
+  hasProject: boolean;
   /** Initial steps are a create-only field; later steps are added on the task detail. */
   withSteps: boolean;
 };
 
-export function TaskFormMore({ form, kinds, withSteps }: Props) {
+export function TaskFormMore({ form, kinds, phases, hasProject, withSteps }: Props) {
+  const phaseHint = !hasProject
+    ? COPY.phaseNeedsProject
+    : phases.length === 0
+      ? COPY.phaseNone
+      : COPY.phaseHint;
   const steps = form.getValues().steps;
   const full = steps.length >= TASK_CHECKLIST_INITIAL_MAX;
   const addStep = () => {
@@ -67,6 +76,17 @@ export function TaskFormMore({ form, kinds, withSteps }: Props) {
           disabled={kinds.length === 0}
           key={form.key('kindId')}
           {...form.getInputProps('kindId')}
+        />
+        <Select
+          label={COPY.phase}
+          description={phaseHint}
+          placeholder={COPY.phasePlaceholder}
+          data={phases.map((ph) => ({ value: ph.id, label: ph.name }))}
+          clearable
+          searchable
+          disabled={phases.length === 0}
+          key={form.key('phaseId')}
+          {...form.getInputProps('phaseId')}
         />
         <DateInput
           label={COPY.startDate}

@@ -1,13 +1,13 @@
 /**
  * Read side of the task form (S2-11): the projects the caller may add a task to, each with its
- * active task kinds. Three queries whatever the number of projects; the policy decides, not SQL.
+ * active task kinds and phases. Four queries whatever the number of projects; the policy decides, not SQL.
  */
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { atLeast, levelOf } from '../access/level';
 import { canCreateTask } from '../access/task.policy';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { project, projectMember, taskKind } from '../db/schema';
+import { project, projectMember, projectPhase, taskKind } from '../db/schema';
 import type { TaskBaseKind } from '../pm/enums';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
@@ -16,7 +16,14 @@ import { loadMembership } from '../project/membership.query';
 export const TASK_FORM_PROJECT_LIMIT = 100;
 
 export type TaskFormKind = { id: string; name: string; baseKind: TaskBaseKind };
-export type TaskFormProject = { id: string; name: string; kinds: TaskFormKind[] };
+export type TaskFormPhase = { id: string; name: string };
+export type TaskFormProject = {
+  id: string;
+  name: string;
+  kinds: TaskFormKind[];
+  /** Phases of the project in display order, for the Tahapan picker (H-B5). */
+  phases: TaskFormPhase[];
+};
 
 /** Active kinds of the given projects in their display order, keyed by project id. */
 export async function loadTaskKinds(
@@ -38,6 +45,26 @@ export async function loadTaskKinds(
   for (const { projectId, ...k } of rows) {
     const list = byProject.get(projectId) ?? [];
     list.push(k);
+    byProject.set(projectId, list);
+  }
+  return byProject;
+}
+
+/** Phases of the given projects in their display order, keyed by project id. */
+export async function loadTaskPhases(
+  projectIds: readonly string[],
+  exec: Executor = db,
+): Promise<Map<string, TaskFormPhase[]>> {
+  const byProject = new Map<string, TaskFormPhase[]>();
+  if (projectIds.length === 0) return byProject;
+  const rows = await exec
+    .select({ projectId: projectPhase.projectId, id: projectPhase.id, name: projectPhase.name })
+    .from(projectPhase)
+    .where(inArray(projectPhase.projectId, [...new Set(projectIds)]))
+    .orderBy(asc(projectPhase.position), asc(projectPhase.createdAt), asc(projectPhase.id));
+  for (const { projectId, ...ph } of rows) {
+    const list = byProject.get(projectId) ?? [];
+    list.push(ph);
     byProject.set(projectId, list);
   }
   return byProject;
@@ -81,11 +108,17 @@ export async function listTaskFormProjects(
         .orderBy(sql`lower(${project.name})`, asc(project.id))
         .limit(TASK_FORM_PROJECT_LIMIT);
   const ids = rows.map((r) => r.id);
-  const [memberships, kinds] = await Promise.all([
+  const [memberships, kinds, phases] = await Promise.all([
     loadMembership(p.id, ids, exec),
     loadTaskKinds(ids, exec),
+    loadTaskPhases(ids, exec),
   ]);
   return rows
     .filter((r) => canCreateTask(p, r, memberships.get(r.id) ?? null).ok)
-    .map((r) => ({ id: r.id, name: r.name, kinds: kinds.get(r.id) ?? [] }));
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      kinds: kinds.get(r.id) ?? [],
+      phases: phases.get(r.id) ?? [],
+    }));
 }

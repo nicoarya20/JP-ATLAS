@@ -39,6 +39,8 @@ export const TASK_ACTIVITY = {
   assigneeChanged: 'assignee_changed',
   dueDateChanged: 'due_date_changed',
   priorityChanged: 'priority_changed',
+  // H-B5: payload `{ from, to }` holds phase names (null = no phase), so the row reads right after a rename.
+  phaseChanged: 'phase_changed',
   // Status steps (S2-05): one row per transition, payload `{ from, to, ... }`.
   start: 'started',
   unstart: 'unstarted',
@@ -79,6 +81,7 @@ export const TASK_WRITE_MESSAGES = {
   kindNotInProject: 'Jenis tugas ini tidak ada di proyek ini.',
   noDefaultKind: 'Proyek ini belum punya jenis tugas. Hubungi pengelola proyek.',
   startAfterDue: 'Tanggal mulai tidak boleh sesudah tenggat.',
+  phaseNotInProject: 'Tahapan tidak ditemukan di proyek ini. Pilih tahapan lain.',
   stepTooLong: `Langkah paling panjang ${TASK_CHECKLIST_TEXT_MAX} karakter.`,
   tooManySteps: `Satu tugas paling banyak punya ${TASK_CHECKLIST_MAX_ITEMS} langkah.`,
   emptyComment: 'Komentar tidak boleh kosong.',

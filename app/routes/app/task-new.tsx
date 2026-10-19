@@ -4,14 +4,14 @@ import { toPrincipal } from '@server/project/membership.query';
 import { getProjectDetail, listProjectMembers, listProjects } from '@server/project/project.query';
 import { requestClock } from '@server/task/task.clock';
 import { listTaskFormProjects } from '@server/task/task-form.query';
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { FiLock } from 'react-icons/fi';
 import { data, useNavigate } from 'react-router';
-import { defaultKindId, TaskForm, workersOf } from '~/components/tasks/TaskForm';
-import { newTaskValues, taskFieldErrors, toCreateTaskInput } from '~/components/tasks/task-form';
+import { type SavedTask, TaskCreateForm } from '~/components/tasks/TaskCreateForm';
+import { defaultKindId, workersOf } from '~/components/tasks/TaskForm';
+import { newTaskValues } from '~/components/tasks/task-form';
 import { TASK_FORM_COPY } from '~/components/tasks/task-form.copy';
 import { PAGE_COPY } from '~/components/tasks/tasks.copy';
-import { useTaskActions } from '~/components/tasks/useTaskActions';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
 import type { Route } from './+types/task-new';
@@ -65,14 +65,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function TaskNewPage({ loaderData }: Route.ComponentProps) {
-  const { create } = useTaskActions();
   const navigate = useNavigate();
-  const [savedNumber, setSavedNumber] = useState<number | null>(null);
-  // Navigate after the guard re-rendered without the unsaved-changes block.
-  useEffect(() => {
-    if (savedNumber !== null) navigate(`/app/tasks/${savedNumber}`);
-  }, [savedNumber, navigate]);
   const back = { to: LIST_PATH, label: TASK_FORM_COPY.back };
+  // A stable callback: the form reports once per save, and a new function each render would re-run its effect.
+  const toDetail = useCallback(
+    (saved: SavedTask) => navigate(`/app/tasks/${saved.number}`),
+    [navigate],
+  );
 
   if (!loaderData.allowed) {
     return (
@@ -91,23 +90,14 @@ export default function TaskNewPage({ loaderData }: Route.ComponentProps) {
         description={TASK_FORM_COPY.description}
         back={back}
       />
-      <TaskForm
-        mode="create"
+      <TaskCreateForm
         projects={loaderData.projects}
-        initial={loaderData.initial}
+        initialValues={loaderData.initial}
         initialMembers={loaderData.members}
         viewer={loaderData.viewer}
         today={loaderData.today}
-        submitting={create.loading}
         cancelTo={loaderData.cancelTo}
-        onSubmit={async (values) => {
-          const res = await create.run(toCreateTaskInput(values));
-          if (res.ok) {
-            setSavedNumber(res.data.number);
-            return null;
-          }
-          return taskFieldErrors(res.error) ?? {};
-        }}
+        onSubmitted={toDetail}
       />
     </PageContainer>
   );

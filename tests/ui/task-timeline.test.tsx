@@ -88,6 +88,17 @@ describe('timeline text', () => {
       'mengubah prioritas dari Sedang ke Tinggi',
     );
   });
+
+  it('writes a phase move with both names, and a phase removal', () => {
+    const base = { kind: 'activity', id: 'a-2', at: AT, author: null, action: 'phase_changed' };
+    const text = (payload: object) =>
+      activityText({ ...base, payload } as unknown as Extract<TimelineEntry, { kind: 'activity' }>);
+    expect(text({ from: 'Desain', to: 'Bangun' })).toBe(
+      'memindahkan tugas ke tahapan Bangun (dari Desain)',
+    );
+    expect(text({ from: null, to: 'Bangun' })).toBe('memindahkan tugas ke tahapan Bangun');
+    expect(text({ from: 'Bangun', to: null })).toBe('mengeluarkan tugas dari tahapan Bangun');
+  });
 });
 
 describe('sendKeepingDraft', () => {

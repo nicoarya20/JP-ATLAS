@@ -11,6 +11,7 @@ export function editTaskValues(task: TaskDetail): TaskFormValues {
     dueDate: task.dueDate,
     description: task.description ?? '',
     kindId: task.kind.id,
+    phaseId: task.phase?.id ?? null,
     startDate: task.startDate,
     steps: [],
   };

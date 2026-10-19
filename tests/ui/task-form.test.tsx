@@ -1,5 +1,5 @@
 /**
- * Task form (S2-11, P3 §2 Tugas ⑥): the S2 fields only (no Tag, Perlu diperiksa, Estimasi, Tahapan),
+ * Task form (S2-11, P3 §2 Tugas ⑥): the S2 fields and the Tahapan picker (no Tag, Perlu diperiksa, Estimasi),
  * a required title with an example, quick due buttons from the server's today, the 403 page for a
  * Pemantau and for someone outside every project (Q5), and the `edit` mode the task detail reuses.
  */
@@ -19,14 +19,17 @@ import {
   QUICK_DUES,
   quickDue,
   type TaskFormValues,
+  taskFieldErrors,
   toCreateTaskInput,
   toTaskPatch,
 } from '../../app/components/tasks/task-form';
 import { TASK_FORM_COPY } from '../../app/components/tasks/task-form.copy';
 import { PAGE_COPY } from '../../app/components/tasks/tasks.copy';
+import { ApiError } from '../../app/lib/http';
 import type { ProjectMemberItem } from '../../app/lib/projects-api';
 import TaskNewPage from '../../app/routes/app/task-new';
 import type { IsoDate } from '../../server/metrics/types';
+import { TASK_WRITE_MESSAGES } from '../../server/task/task.limits';
 import type { TaskFormProject } from '../../server/task/task-form.query';
 
 const TODAY = '2026-10-30' as IsoDate; // test-only
@@ -35,7 +38,13 @@ const KINDS = [
   { id: 'k-task', name: 'Tugas', baseKind: 'task' as const },
   { id: 'k-bug', name: 'Bug', baseKind: 'issue' as const },
 ]; // test-only
-const PROJECTS: TaskFormProject[] = [{ id: 'p-1', name: 'Renovasi Dapur', kinds: KINDS }]; // test-only
+const PHASES = [
+  { id: 'ph-1', name: 'Desain' },
+  { id: 'ph-2', name: 'Bangun' },
+]; // test-only
+const PROJECTS: TaskFormProject[] = [
+  { id: 'p-1', name: 'Renovasi Dapur', kinds: KINDS, phases: PHASES },
+]; // test-only
 
 const member = (userId: string, name: string, role: ProjectMemberItem['role']) =>
   ({ userId, name, role, image: null, jobTitle: null, isLead: false, joinedAt: '' }) as const;
@@ -78,11 +87,19 @@ const createForm = () =>
   );
 
 /** The folded part on its own, with one initial step, as it renders once unfolded. */
-function MoreHarness({ withSteps }: { withSteps: boolean }) {
+function MoreHarness({
+  withSteps,
+  phases = PHASES,
+}: {
+  withSteps: boolean;
+  phases?: typeof PHASES;
+}) {
   const form = useForm<TaskFormValues>({
     initialValues: { ...newTaskValues('p-1', null), kindId: 'k-task', steps: ['Ukur lantai'] },
   });
-  return <TaskFormMore form={form} kinds={KINDS} withSteps={withSteps} />;
+  return (
+    <TaskFormMore form={form} kinds={KINDS} phases={phases} hasProject withSteps={withSteps} />
+  );
 }
 
 const values = (over: Partial<TaskFormValues> = {}): TaskFormValues => ({
@@ -113,7 +130,7 @@ describe('TaskForm create', () => {
     ]) {
       expect(html).toContain(label);
     }
-    for (const later of ['Tag', 'Perlu diperiksa', 'Pemeriksa', 'Estimasi', 'Tahapan']) {
+    for (const later of ['Tag', 'Perlu diperiksa', 'Pemeriksa', 'Estimasi']) {
       expect(html).not.toContain(later);
     }
     // Visible text only: attribute names such as `name="assigneeId"` are not words the user reads.
@@ -143,6 +160,7 @@ describe('TaskForm create', () => {
     for (const label of [
       TASK_FORM_COPY.descriptionLabel,
       TASK_FORM_COPY.kind,
+      TASK_FORM_COPY.phase,
       TASK_FORM_COPY.startDate,
       TASK_FORM_COPY.steps,
       TASK_FORM_COPY.addStep,
@@ -150,7 +168,7 @@ describe('TaskForm create', () => {
       expect(folded).toContain(label);
     }
     expect(folded).toContain(TASK_FORM_COPY.descriptionHint);
-    for (const later of ['Tag', 'Perlu diperiksa', 'Estimasi', 'Tahapan']) {
+    for (const later of ['Tag', 'Perlu diperiksa', 'Estimasi']) {
       expect(folded).not.toContain(later);
     }
   });
@@ -168,12 +186,14 @@ describe('TaskForm edit', () => {
       description: 'Pakai nat abu',
       dueDate: '2026-11-02',
       kindId: 'k-bug',
+      phaseId: 'ph-2',
     });
     const html = await render(
       <TaskForm
         mode="edit"
         project={{ id: 'p-1', name: 'Renovasi Dapur' }}
         kinds={KINDS}
+        phases={PHASES}
         initial={initial}
         initialMembers={MEMBERS}
         viewer={VIEWER}
@@ -191,6 +211,8 @@ describe('TaskForm edit', () => {
     expect(html).toContain(TASK_FORM_COPY.editSubmit);
     expect(html).not.toContain(TASK_FORM_COPY.steps);
     expect(html).toContain('aria-expanded="true"');
+    // The task's phase is picked: the Tahapan select shows its name.
+    expect(fieldBlock(html, TASK_FORM_COPY.phase)).toContain('value="Bangun"');
   });
 
   it('sends only what changed, never the project', () => {
@@ -211,6 +233,14 @@ describe('TaskForm edit', () => {
       dueDate: null,
     });
   });
+
+  it('sends the phase only when it changed, and null when it was cleared', () => {
+    const initial = values({ phaseId: 'ph-1' });
+    expect(toTaskPatch(initial, initial)).toEqual({});
+    expect(toTaskPatch(initial, { ...initial, phaseId: 'ph-2' })).toEqual({ phaseId: 'ph-2' });
+    expect(toTaskPatch(initial, { ...initial, phaseId: null })).toEqual({ phaseId: null });
+    expect(toTaskPatch(values(), { ...values(), phaseId: 'ph-1' })).toEqual({ phaseId: 'ph-1' });
+  });
 });
 
 describe('task form helpers', () => {
@@ -228,6 +258,27 @@ describe('task form helpers', () => {
   it('defaults the kind to the "Tugas" kind', () => {
     expect(defaultKindId([...KINDS].reverse())).toBe('k-task');
     expect(defaultKindId([])).toBeNull();
+  });
+
+  it('sends the phase in the create body only when one is picked', () => {
+    expect(toCreateTaskInput(values({ phaseId: 'ph-1' }))).toMatchObject({ phaseId: 'ph-1' });
+    expect(toCreateTaskInput(values())).not.toHaveProperty('phaseId');
+  });
+
+  it('shows a refused phase on the Tahapan field, from the schema path or the service sentence', () => {
+    const byMessage = new ApiError({
+      status: 422,
+      code: 'VALIDATION',
+      message: TASK_WRITE_MESSAGES.phaseNotInProject,
+    });
+    expect(taskFieldErrors(byMessage)).toEqual({ phaseId: TASK_WRITE_MESSAGES.phaseNotInProject });
+    const byPath = new ApiError({
+      status: 422,
+      code: 'VALIDATION',
+      message: 'x',
+      issues: [{ path: '/phaseId', message: 'Pilih tahapan lain.' }],
+    });
+    expect(taskFieldErrors(byPath)).toEqual({ phaseId: 'Pilih tahapan lain.' });
   });
 
   it('leaves blanks and empty steps out of the create body', () => {
