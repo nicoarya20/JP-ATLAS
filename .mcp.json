@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "penpot": {
+      "type": "http",
+      "url": "https://design.penpot.app/mcp/stream?userToken=${PENPOT_TOKEN}"
+    },
     "makuro-debug": {
       "type": "http",
       "url": "http://localhost:3005/api/mcp",
