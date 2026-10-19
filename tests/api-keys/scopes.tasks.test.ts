@@ -25,9 +25,17 @@ describe('task route scopes', () => {
     expect(requiredScope(method, path)).toBe(scope);
   });
 
-  test('no task route is session-only: keys may create and edit tasks (X1-Q9)', () => {
-    for (const r of routes) expect(isPmKeyDenied(r.method, r.path)).toBe(false);
+  test('only the delete is session-only: keys may create and edit tasks (X1-Q9), not delete them (D1)', () => {
+    for (const r of routes) expect(isPmKeyDenied(r.method, r.path)).toBe(r.method === 'DELETE');
   });
+
+  test.each(['/api/app/tasks/482', '/api/app/tasks/7f1c2d3e-task-id'])(
+    'DELETE %s sends the task to the Trash and is session only',
+    (path) => {
+      expect(isPmKeyDenied('DELETE', path)).toBe(true);
+      expect(requiredScope('DELETE', path)).toBeNull();
+    },
+  );
 
   test('every route the task plugin registers is covered above', () => {
     expect(routes.map((r) => `${r.method} ${r.path}`).sort()).toEqual(
@@ -38,6 +46,7 @@ describe('task route scopes', () => {
         'POST /api/app/tasks/',
         'POST /api/app/tasks/draft',
         'PATCH /api/app/tasks/:ref',
+        'DELETE /api/app/tasks/:ref',
       ].sort(),
     );
   });
