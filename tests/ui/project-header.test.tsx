@@ -5,21 +5,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
-import { ProgressVsTime } from '../../app/components/projects/ProgressVsTime';
 import {
   isReadOnly,
   ProjectHeader,
   type ProjectHeaderData,
 } from '../../app/components/projects/ProjectHeader';
-import { ProjectSummary } from '../../app/components/projects/ProjectSummary';
+import { BANNER_COPY, HEADER_COPY, LABEL_LEAD } from '../../app/components/projects/projects.copy';
 import {
-  BANNER_COPY,
-  HEADER_COPY,
-  LABEL_LEAD,
-  SUMMARY_COPY,
-} from '../../app/components/projects/projects.copy';
+  BADGE_COPY,
+  EXTEND_COPY,
+  OVERRIDE_COPY,
+  REASON_LINE_COPY,
+} from '../../app/components/projects/summary/summary.copy';
 import { CONDITION_LABELS, PROJECT_STATUS_LABELS } from '../../app/lib/pm-labels';
-import { taskKeys } from '../../app/lib/tasks-api';
 
 const TODAY = '2026-10-07'; // test-only
 const CLOCK = { now: Date.parse('2026-10-07T03:00:00.000Z'), timeZone: 'UTC' }; // test-only
@@ -32,9 +30,7 @@ async function render(node: ReactNode): Promise<string> {
   const context = await handler.query(new Request('http://x/'));
   if (context instanceof Response) throw new Error(`Unexpected redirect ${context.status}`);
   const router = createStaticRouter(handler.dataRoutes, context);
-  // The highlights card (S2-14) reads the task API; seed it empty (no `:projectId` at this path).
   const client = new QueryClient();
-  client.setQueryData(taskKeys.highlights(''), []);
   return renderToStaticMarkup(
     <QueryClientProvider client={client}>
       <MantineProvider>
@@ -53,6 +49,8 @@ const project = (over: Partial<ProjectHeaderData> = {}): ProjectHeaderData => ({
   dueDate: '2026-10-31',
   can: { update: true, createTask: true },
   taskCounts: { active: 5, overdue: 0, live: 6 },
+  extensionCount: 0,
+  conditionOverride: null,
   ...over,
 });
 const header = (over: Partial<ProjectHeaderData> = {}) =>
@@ -68,13 +66,63 @@ describe('ProjectHeader', () => {
     expect(html).toContain('31 Okt 2026');
   });
 
-  it.each([...PROJECT_STATUSES])(
-    'has no Tahapan, Diperpanjang or Perpanjang (status %s)',
-    async (s) => {
-      const html = await header({ status: s });
-      for (const cut of ['Tahapan', 'Diperpanjang', 'Perpanjang']) expect(html).not.toContain(cut);
+  it.each([...PROJECT_STATUSES])('has no Diperpanjang badge without extensions (%s)', async (s) => {
+    expect(await header({ status: s })).not.toContain('Diperpanjang');
+  });
+
+  it.each(['draft', 'active', 'on_hold'] as ProjectStatus[])(
+    'offers Perpanjang tenggat to a manager of a %s project that has a due date',
+    async (status) => {
+      expect(await header({ status })).toContain(EXTEND_COPY.open);
     },
   );
+
+  it.each(['completed', 'canceled'] as ProjectStatus[])(
+    'does not offer Perpanjang tenggat on a %s project',
+    async (status) => {
+      expect(await header({ status })).not.toContain(EXTEND_COPY.open);
+    },
+  );
+
+  it('offers Perpanjang tenggat only when the server says the viewer manages the project', async () => {
+    for (const can of [
+      { update: 'NOT_MANAGER', createTask: true },
+      { createTask: true },
+      {},
+    ] as const) {
+      expect(await header({ can })).not.toContain(EXTEND_COPY.open);
+    }
+    expect(await header({ can: { update: true } })).toContain(EXTEND_COPY.open);
+  });
+
+  it('has nothing to extend without a due date', async () => {
+    expect(await header({ dueDate: null })).not.toContain(EXTEND_COPY.open);
+  });
+
+  it('shows the Diperpanjang ×N badge next to the due date once it was moved', async () => {
+    const html = await header({ extensionCount: 2 });
+    expect(html).toContain(BADGE_COPY.label(2));
+    expect(html.indexOf('31 Okt 2026')).toBeLessThan(html.indexOf(BADGE_COPY.label(2)));
+  });
+
+  it('puts the reason in a "Kenapa:" line, only while there is a condition to explain', async () => {
+    const html = await header();
+    expect(html).toContain(`${REASON_LINE_COPY.why}: 1 tugas penting terlambat`);
+    expect(await header({ condition: { level: 'on_track', reason: null } })).not.toContain(
+      `${REASON_LINE_COPY.why}:`,
+    );
+    expect(await header({ condition: null })).not.toContain(`${REASON_LINE_COPY.why}:`);
+  });
+
+  it('says when the condition was set by hand, and by whom', async () => {
+    const html = await header({
+      condition: { level: 'off_track', reason: 'Vendor batal' },
+      conditionOverride: { setByName: 'Nico' } as ProjectHeaderData['conditionOverride'],
+    });
+    expect(html).toContain(`${REASON_LINE_COPY.why}: Vendor batal`);
+    expect(html).toContain(OVERRIDE_COPY.badge('Nico'));
+    expect(await header()).not.toContain('diatur manual');
+  });
 
   it('shows the condition and its reason while the project runs', async () => {
     const html = await header();
@@ -155,51 +203,5 @@ describe('ProjectHeader', () => {
     expect(isReadOnly({ can: {} })).toBe(true);
     expect(await header()).not.toContain(BANNER_COPY.readOnly);
     expect(isReadOnly({ can: { createTask: true } })).toBe(false);
-  });
-});
-
-describe('ProgressVsTime', () => {
-  it('shows — for time when the project has no start or due date', async () => {
-    const html = await render(<ProgressVsTime progress={{ done: 1, total: 6 }} elapsed={null} />);
-    expect(html).toContain(SUMMARY_COPY.timeUnknown);
-    expect(html).toContain(SUMMARY_COPY.timeUnknownHint);
-    expect(html).toContain('1 dari 6 tugas selesai');
-  });
-
-  it('shows the elapsed share, and "lewat tenggat" once overrun', async () => {
-    const running = await render(
-      <ProgressVsTime progress={{ done: 0, total: 0 }} elapsed={{ percent: 40, overrun: false }} />,
-    );
-    expect(running).toContain(SUMMARY_COPY.timeUsed(40));
-    expect(running).toContain('Belum ada tugas');
-    const late = await render(
-      <ProgressVsTime progress={{ done: 2, total: 4 }} elapsed={{ percent: 100, overrun: true }} />,
-    );
-    expect(late).toContain(SUMMARY_COPY.timeOverrun);
-  });
-});
-
-describe('ProjectSummary', () => {
-  const summary = (overdue: number) =>
-    render(
-      <ProjectSummary
-        project={{
-          progress: { done: 1, total: 6, percent: 17 },
-          taskCounts: { active: 5, overdue, live: 6 },
-        }}
-        elapsed={null}
-      />,
-    );
-
-  it('counts overdue tasks and keeps the highlights card as an empty state', async () => {
-    const html = await summary(2);
-    expect(html).toContain(`${SUMMARY_COPY.overdueTitle}: 2`);
-    expect(html).toContain(SUMMARY_COPY.overdueSome(2));
-    expect(html).toContain(SUMMARY_COPY.highlightsEmpty);
-    expect(html).toContain('17%');
-  });
-
-  it('says plainly when nothing is overdue', async () => {
-    expect(await summary(0)).toContain(SUMMARY_COPY.overdueNone);
   });
 });

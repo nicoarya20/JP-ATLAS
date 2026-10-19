@@ -39,18 +39,21 @@ export const BANNER_COPY = {
 } as const;
 
 export const SUMMARY_COPY = {
-  progressTitle: 'Progres tugas',
-  progressHint: 'Tugas yang selesai dibanding semua tugas aktif.',
-  timeTitle: 'Waktu berjalan',
-  timeHint: 'Bagian waktu proyek yang sudah terpakai, dari tanggal mulai sampai tenggat.',
+  progressTitle: 'Progres',
+  tasksLabel: 'Tugas selesai',
+  timeLabel: 'Waktu berjalan',
   timeUnknown: '—',
   timeUnknownHint: 'Isi tanggal mulai dan tenggat agar waktu berjalan bisa dihitung.',
   timeOverrun: 'Tenggat sudah lewat',
-  timeUsed: (percent: number) => `${percent}% waktu terpakai`,
-  overdueTitle: 'Tugas terlambat',
+  timeUsed: (percent: number) => `${percent}%`,
+  datesStart: (date: string) => `Mulai ${date}`,
+  datesDue: (date: string) => `tenggat ${date}`,
+  datesLeft: (days: number) => `sisa ${days} hari`,
+  datesDueToday: 'tenggat hari ini',
+  datesLate: (days: number) => `terlambat ${days} hari`,
   overdueNone: 'Tidak ada tugas yang terlambat.',
   overdueSome: (n: number) => `${n} tugas melewati tenggat.`,
-  highlightsTitle: 'Tugas terlambat dan penting',
+  highlightsTitle: 'Tugas yang perlu perhatian',
   highlightsEmpty: 'Belum ada tugas yang perlu disorot.',
   highlightsEmptyHint: 'Tugas yang terlambat atau berprioritas tinggi akan muncul di sini.',
 } as const;

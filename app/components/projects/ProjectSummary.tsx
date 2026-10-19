@@ -1,42 +1,49 @@
-/** Body of the "Ringkasan" tab: progress vs time, the overdue count and the highlighted tasks. */
-import { Group, Paper, Stack, Text } from '@mantine/core';
+/** Body of the "Ringkasan" tab: progress, phases and milestone on the left; tasks that need attention and activity on the right. */
+import { SimpleGrid, Stack } from '@mantine/core';
+import type { IsoDate } from '@server/metrics/dates';
 import type { ElapsedResult } from '@server/metrics/project.metrics';
 import type { ProjectDetail } from '@server/project/project.dto';
-import { FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
+import type { ProjectPlan } from '@server/project/project-plan.query';
+import type { ActivityPage } from '~/lib/project-deadline-api';
 import { ProgressVsTime } from './ProgressVsTime';
 import { ProjectTaskHighlights } from './ProjectTaskHighlights';
-import { SUMMARY_COPY } from './projects.copy';
+import { ActivityCard } from './summary/ActivityCard';
+import { NextPhaseCard } from './summary/NextPhaseCard';
 
 type Props = {
-  project: Pick<ProjectDetail, 'progress' | 'taskCounts'>;
+  project: Pick<ProjectDetail, 'id' | 'progress' | 'taskCounts' | 'startDate' | 'dueDate' | 'can'>;
   elapsed: ElapsedResult | null;
+  today: IsoDate;
+  plan: Pick<ProjectPlan, 'phases' | 'currentPhase' | 'nextMilestone'>;
+  /** First page of the activity feed, loaded with the page. */
+  activity: ActivityPage;
 };
 
-function OverdueCard({ overdue }: { overdue: number }) {
-  const Icon = overdue > 0 ? FiAlertCircle : FiCheckCircle;
-  return (
-    <Paper withBorder p="md" radius="md">
-      <Group gap="sm" wrap="nowrap" align="flex-start">
-        <Text c={overdue > 0 ? 'danger' : 'ok'} lh={1}>
-          <Icon size="1.25em" aria-hidden />
-        </Text>
-        <Stack gap={2} style={{ minWidth: 0 }}>
-          <Text fw={600}>{`${SUMMARY_COPY.overdueTitle}: ${overdue}`}</Text>
-          <Text size="sm" c="dimmed">
-            {overdue > 0 ? SUMMARY_COPY.overdueSome(overdue) : SUMMARY_COPY.overdueNone}
-          </Text>
-        </Stack>
-      </Group>
-    </Paper>
-  );
-}
+// minWidth: 0 lets a column shrink below its widest child (the phase stepper scrolls inside its card).
+const COLUMN = { minWidth: 0 } as const;
 
-export function ProjectSummary({ project, elapsed }: Props) {
+export function ProjectSummary({ project, elapsed, today, plan, activity }: Props) {
   return (
-    <Stack gap="md">
-      <ProgressVsTime progress={project.progress} elapsed={elapsed} />
-      <OverdueCard overdue={project.taskCounts.overdue} />
-      <ProjectTaskHighlights />
-    </Stack>
+    <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+      <Stack gap="md" style={COLUMN}>
+        <ProgressVsTime
+          progress={project.progress}
+          elapsed={elapsed}
+          startDate={project.startDate}
+          dueDate={project.dueDate}
+          today={today}
+        />
+        <NextPhaseCard
+          projectId={project.id}
+          plan={plan}
+          today={today}
+          canPlan={project.can.update === true}
+        />
+      </Stack>
+      <Stack gap="md" style={COLUMN}>
+        <ProjectTaskHighlights overdue={project.taskCounts.overdue} />
+        <ActivityCard projectId={project.id} first={activity} />
+      </Stack>
+    </SimpleGrid>
   );
 }
