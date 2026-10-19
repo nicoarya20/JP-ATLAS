@@ -7,6 +7,7 @@
 ## 1. Urutan baca
 1. [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) — semua keputusan user. **Bila bentrok dengan dokumen lain, ini yang berlaku.**
 2. [`PROGRES.md`](PROGRES.md) — apa yang sudah dan belum.
+   Daftar semua yang **belum** dikerjakan (penutup MVP 1, hutang per menu, hutang teknis, keputusan terbuka): [`HUTANG.md`](HUTANG.md).
 3. Rencana tugas sesuai irisan: [`rencana/P1`](rencana/P1-s0a-akun-akses.md) (S0.0 dan S0.a), [`rencana/P2`](rencana/P2-s0b-kontrak-beku.md) (S0.b), [`rencana/P3`](rencana/P3-s1-s2-proyek-tugas.md) (S1 dan S2).
 4. [`tinjauan/X1`](tinjauan/X1-keputusan-teknis.md) (10 keputusan teknis D1-D10), [`X2`](tinjauan/X2-keputusan-domain.md) (tabel izin final, konstanta asumsi), [`X3`](tinjauan/X3-konsistensi-kontrak.md) (nama kanonik, peta kepemilikan berkas).
 5. [`riset/R01..R14`](riset/) — alasan di balik keputusan; baca hanya bagian yang dirujuk tugas.
