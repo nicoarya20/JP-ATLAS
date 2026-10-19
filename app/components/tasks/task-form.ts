@@ -23,6 +23,8 @@ export type TaskFormValues = {
   dueDate: string | null;
   description: string;
   kindId: string | null;
+  /** A phase of the chosen project (H-B5); null = no phase. */
+  phaseId: string | null;
   startDate: string | null;
   /** Initial checklist steps; only the create form sends them. */
   steps: string[];
@@ -43,9 +45,14 @@ export const newTaskValues = (
   dueDate: null,
   description: '',
   kindId: null,
+  phaseId: null,
   startDate: null,
   steps: [],
 });
+
+/** Whether the values already fill something kept behind "Tampilkan lebih banyak", so it opens on its own. */
+export const hasFoldedValues = (v: TaskFormValues): boolean =>
+  Boolean(v.description.trim() || v.phaseId || v.startDate || v.steps.some((s) => s.trim()));
 
 /** Client checks mirror the route schema; the server stays the judge (assignee, kind, dates). */
 export function validateTask(v: TaskFormValues): TaskFieldErrors {
@@ -100,6 +107,7 @@ export function toCreateTaskInput(v: TaskFormValues): TaskCreateInput {
     ...(v.assigneeId ? { assigneeId: v.assigneeId } : {}),
     ...(description ? { description } : {}),
     ...(v.kindId ? { kindId: v.kindId } : {}),
+    ...(v.phaseId ? { phaseId: v.phaseId } : {}),
     ...(v.dueDate ? { dueDate: v.dueDate } : {}),
     ...(v.startDate ? { startDate: v.startDate } : {}),
     ...(steps.length ? { checklist: steps } : {}),
@@ -118,6 +126,7 @@ export function toTaskPatch(initial: TaskFormValues, v: TaskFormValues): TaskPat
   if (v.dueDate !== initial.dueDate) patch.dueDate = v.dueDate;
   if (v.startDate !== initial.startDate) patch.startDate = v.startDate;
   if (v.kindId && v.kindId !== initial.kindId) patch.kindId = v.kindId;
+  if (v.phaseId !== initial.phaseId) patch.phaseId = v.phaseId;
   return patch;
 }
 
@@ -126,6 +135,7 @@ const MESSAGE_FIELD: Record<string, keyof TaskFormValues> = {
   [TASK_WRITE_MESSAGES.emptyTitle]: 'title',
   [TASK_WRITE_MESSAGES.assigneeNotWorker]: 'assigneeId',
   [TASK_WRITE_MESSAGES.kindNotInProject]: 'kindId',
+  [TASK_WRITE_MESSAGES.phaseNotInProject]: 'phaseId',
   [TASK_WRITE_MESSAGES.startAfterDue]: 'dueDate',
   [TASK_WRITE_MESSAGES.emptyStep]: 'steps',
   [TASK_WRITE_MESSAGES.stepTooLong]: 'steps',

@@ -34,6 +34,7 @@ describe('editTaskValues', () => {
       startDate: null,
       description: null,
       kind: { id: 'k-1', name: 'Tugas', baseKind: 'task' },
+      phase: null,
     } as unknown as TaskDetail;
     expect(editTaskValues(task)).toEqual({
       projectId: 'p-1',
@@ -43,6 +44,7 @@ describe('editTaskValues', () => {
       dueDate: '2026-10-20',
       description: '',
       kindId: 'k-1',
+      phaseId: null,
       startDate: null,
       steps: [],
     });

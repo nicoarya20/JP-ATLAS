@@ -3,7 +3,7 @@ import { toPrincipal } from '@server/project/membership.query';
 import { listProjectMembers } from '@server/project/project.query';
 import { requestClock } from '@server/task/task.clock';
 import { getTaskDetail } from '@server/task/task-detail.query';
-import { loadTaskKinds } from '@server/task/task-form.query';
+import { loadTaskKinds, loadTaskPhases } from '@server/task/task-form.query';
 import { useEffect, useState } from 'react';
 import { data, useNavigate } from 'react-router';
 import { TaskForm } from '~/components/tasks/TaskForm';
@@ -32,14 +32,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const { task } = res;
   // The server's own verdict: without `can.update` the page is the same 404 as a hidden task would get.
   if (task.can.update !== true) throw data(NOT_FOUND_TEXT, { status: 404 });
-  const [members, kinds] = await Promise.all([
+  const [members, kinds, phases] = await Promise.all([
     listProjectMembers(principal, task.project.id),
     loadTaskKinds([task.project.id]),
+    loadTaskPhases([task.project.id]),
   ]);
   return {
     number: task.number,
     project: { id: task.project.id, name: task.project.name },
     kinds: kinds.get(task.project.id) ?? [],
+    phases: phases.get(task.project.id) ?? [],
     members: members ?? [],
     initial: editTaskValues(task),
     viewer: { id: actor.user.id, name: actor.user.name },
@@ -68,6 +70,7 @@ export default function TaskEditPage({ loaderData }: Route.ComponentProps) {
         mode="edit"
         project={loaderData.project}
         kinds={loaderData.kinds}
+        phases={loaderData.phases}
         initial={initial}
         initialMembers={loaderData.members}
         viewer={loaderData.viewer}
