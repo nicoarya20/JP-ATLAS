@@ -25,6 +25,8 @@ export type ProjectListItem = {
   status: ProjectStatus;
   priority: ProjectPriority;
   lead: ProjectLead | null;
+  /** Feeds the list's Gantt view; null when the project has no start date. */
+  startDate: string | null;
   dueDate: string | null;
   progress: ProjectProgress;
   condition: ProjectConditionDto | null; // only `active` projects have one
@@ -34,7 +36,6 @@ export type ProjectListItem = {
 
 export type ProjectDetail = ProjectListItem & {
   description: string | null;
-  startDate: string | null;
   originalDueDate: string | null;
   /** `live` counts every task not in the Trash, canceled ones too: what a delete would move with it. */
   taskCounts: { active: number; overdue: number; live: number };
@@ -90,6 +91,7 @@ export function toListItem(
     status: row.status,
     priority: row.priority,
     lead: row.leadId && row.leadName ? { id: row.leadId, name: row.leadName } : null,
+    startDate: row.startDate,
     dueDate: row.dueDate,
     progress: { done, total, percent },
     condition: cond ? { level: cond.effective, reason: reason || null } : null,
