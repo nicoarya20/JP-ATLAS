@@ -126,6 +126,13 @@ AI: cerita proyek, notulensi foto/suara, Ask Data (butuh `ai_enabled`, D3) · Te
 | H-G4 | Pencarian peserta Event untuk Member (H-D8-1) | Batasi ke orang sekawan proyek (`loadScopeFor`) | E-09 |
 | H-G5 | `sort=overdue` Tim: ganti label atau perluas kueri (H-D8-2) | Ganti label | M06 |
 | H-G6 | Arsip/duplikat proyek perlu? (H-B13) | Tunda | |
+| H-G7 | **Menu Tugas, 19 Okt 2026:** setujui atau ganti penyedia AI "Tulis saja ✦" (sama dengan H-G3, kini sudah dibangun): Anthropic via `fetch`, model default `claude-haiku-5-5`. Perlu `ANTHROPIC_API_KEY` dari user untuk uji sungguhan | Setujui, lalu jalankan H-C14 | H-C14 |
+| H-G8 | **Eden mengubah `YYYY-MM-DD` menjadi `Date`:** perbaiki di klien Eden bersama (`app/lib/eden.ts`) atau tetap menambal per pemakai seperti `useTaskDraft`? | Perbaiki di klien bersama, setelah audit semua pembaca tanggal | H-C15 |
+| H-G9 | **Chip Belum/Sedang dikerjakan dan filter Tenggat** di daftar tugas (tambahan L1, ada di wireframe tapi bukan di P3): pertahankan atau cabut? | Pertahankan sampai uji pengguna nyata, lalu putuskan dari temuan | H-C13 |
+| H-G10 | **Daftar tugas:** tampilkan **nomor `#42`** di baris? Tambah kolom/lencana **Tahapan**? Tambah **total** ("1–6 dari N tugas") padahal KB-11 memilih keyset tanpa total? Lencana status di "Tugas saya" bila tak ada label? | Nomor: ya (satu baris kecil di bawah judul). Tahapan: ya. Total: tunda. Lencana status: tunda | H-C12 |
+| H-G11 | **Ukuran sentuh di tema:** ubah `theme-components.ts` (Chip `xl`, SegmentedControl dan MultiSelect `lg`) dan tombol `EmptyState` jadi `lg` untuk seluruh `/app`? | Ya, satu PR kecil `chore(theme)` | H-C16 |
+| H-G12 | **Cek visual di browser** menu Tugas (daftar, Tulis saja, Hapus + Urungkan, Sampah) belum pernah dilakukan; aturan global melarang Playwright tanpa perintah eksplisit | User memerintahkan "buka browser dan cek …" atau mengeceknya sendiri | H-C1 |
+| H-G13 | **Push dan PR cabang `feature/pm-tasks-menu`** ke `origin`/`main`, lalu hapus 5 worktree anak (`tm-l1-list`, `tm-f1-form`, `tm-a1-ai-draft` di folder `tm-l1-ai-draft`, `tm-d1-delete`, `tm-u1-write-ui`). Wajib laporan Pre-Push Guarantee dan perintah eksplisit "push"; merge ke `main` hanya atas persetujuan | Push setelah H-G7..G12 diputuskan atau dicatat | H-A9 |
 
 ---
 
