@@ -32,15 +32,6 @@ export function ListScreen({ mine, board, children }) {
   );
 }
 
-// ① Card button = next action for its status, or none when the only thing to do is open the task (the card itself does that).
-// Member: their own task waiting on a reviewer has no action.
-function action(t, member) {
-  if (t.status === 'In review') return member ? null : ['Review', { go: 'tasks.detail-review', task: t.no }];
-  if (blocked(t)) return null;
-  if (t.status === 'In progress') return ['Request review', { toast: 'Review requested' }];
-  return ['Start working', { toast: 'Task started' }];
-}
-
 /** Title row of a tappable card: the title wraps, a chevron says the card opens. */
 function CardTitle({ children }) {
   return (
@@ -51,8 +42,8 @@ function CardTitle({ children }) {
   );
 }
 
+/** ① Card: opens the task; its actions (Start working, Request review, Review) live in the detail. */
 function MyCard({ t }) {
-  const a = action(t, useApp().is('member'));
   const late = days(t.due) < 0;
   return (
     <Section go={detailOf(t)} task={t.no}>
@@ -60,10 +51,7 @@ function MyCard({ t }) {
         <CardTitle>{t.title}</CardTitle>
         <span className="t-footnote muted">#{t.no} · {t.project} · {t.priority}</span>
         {(t.status !== 'To do' || blocked(t)) && <span className="t-footnote bold">{note(t)}</span>}
-        <div className="between tk-meta">
-          <span className={`t-footnote ${late ? 'danger bold' : 'muted'}`}>Due {t.due}</span>
-          {a && <Btn sm {...a[1]}>{a[0]}</Btn>}
-        </div>
+        <span className={`t-footnote tk-meta ${late ? 'danger bold' : 'muted'}`}>Due {t.due}</span>
       </div>
     </Section>
   );

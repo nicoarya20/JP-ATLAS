@@ -1,4 +1,4 @@
-// Tasks list: New task only on the tab bar "+", cards offer a real next action (never a bare View),
+// Tasks list: New task only on the tab bar "+", cards only open the task (its actions live in the detail),
 // filters and sort live in one full-height overlay opened from the icon next to the search field.
 import { describe, expect, it } from 'vitest';
 import { fireEvent, screen as dom, within } from '@testing-library/react';
@@ -16,28 +16,20 @@ describe('tasks list', () => {
     expect(dom.queryByRole('button', { name: /\+ New task/ })).not.toBeInTheDocument();
   });
 
-  // Next action per card, worked out from the sample data for the active role.
-  const expected = member => {
-    const open = D.tasks.filter(t => t.who === D.me().name && t.status !== 'Done' && t.status !== 'In review' && !blocked(t));
-    return {
-      'Start working': open.filter(t => t.status === 'To do').length,
-      'Request review': open.filter(t => t.status === 'In progress').length,
-      Review: member ? 0 : D.tasks.filter(t => t.status === 'In review').length,
-    };
-  };
-
-  it.each([['member', true], ['pm', false]])('gives %s cards an action only where there is something to do', (role, member) => {
+  it.each(['member', 'pm'])('gives %s cards no action buttons; the card opens the detail with the actions', role => {
     renderApp('tasks.my', role);
-    const want = expected(member);
-    expect(count('View')).toBe(0);
-    for (const [name, n] of Object.entries(want)) expect(count(name)).toBe(n);
+    for (const name of ['Start working', 'Request review', 'Review', 'View']) expect(count(name)).toBe(0);
+    const t = D.tasks.find(x => x.who === D.me().name);
+    fireEvent.click(dom.getByText(t.title));
+    expect(window.location.hash).toMatch(/^#tasks\.detail-/);
   });
 
-  it('leaves Manager with real actions to take (guards the check above against empty data)', () => {
+  it('keeps Start working in the task detail', () => {
     renderApp('tasks.my', 'pm');
-    expect(count('Start working')).toBeGreaterThan(0);
-    expect(count('Request review')).toBeGreaterThan(0);
-    expect(count('Review')).toBeGreaterThan(0);
+    const t = D.tasks.find(x => x.who === D.me().name && x.status === 'To do' && !blocked(x));
+    fireEvent.click(dom.getByText(t.title));
+    expect(window.location.hash).toBe('#tasks.detail-todo');
+    expect(dom.getByRole('button', { name: 'Start working' })).toBeInTheDocument();
   });
 
   it('has no status chips or Filter / Sort pills on the list, only the filter icon beside the search field', () => {
