@@ -26,7 +26,10 @@ describe('Edit profile', () => {
     renderApp('settings.profile', 'pm');
     const boxes = document.querySelectorAll('.react-cupertino-ui-textfield');
     expect(boxes.length).toBe(6);
-    boxes.forEach(box => expect(box).toHaveClass('variant-filled'));
+    boxes.forEach(box => {
+      expect(box).toHaveClass('variant-filled');
+      expect(box).not.toHaveClass('variant-glass'); // glass adds a gradient highlight and a light edge
+    });
     expect(document.querySelector('.react-cupertino-ui-textfield__label')).toBeNull();
   });
 });

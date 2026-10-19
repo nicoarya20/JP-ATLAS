@@ -88,7 +88,9 @@
 .react-cupertino-ui-button.variant-outline { border-radius: 999px; }
 
 /* ---- Text field (kit Field, filled) ---- */
-.react-cupertino-ui-textfield.variant-filled { background: var(--fill); color: var(--label); border-color: transparent; }
+/* Plain iOS fill: no glass blur, inset highlight or border, and the same corner as the multi-line field. */
+.react-cupertino-ui-textfield.variant-filled { background: var(--fill); color: var(--label); border: 0; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: var(--radius-sm); }
 .react-cupertino-ui-textfield__label, .react-cupertino-ui-textfield__icon { color: var(--label-2); }
 .react-cupertino-ui-textfield__input::placeholder { color: var(--label-3); }
 

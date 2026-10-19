@@ -62,12 +62,12 @@ export function Field({ label, value, placeholder, area, disabled, icon }) {
     );
   }
   // The label sits above the box: the library's floating label scales from its centre, so labels of different
-  // lengths drift right by different amounts. The library also drops variant="filled" from its class map
-  // (BaseVariants has no "filled" key), so the class is passed by hand for library.css to style the box.
+  // lengths drift right by different amounts. variant="filled" keeps the library off its default glass look, but
+  // BaseVariants has no "filled" key and emits no class, so the class is passed by hand for library.css.
   return (
     <div className="field">
       <label className="t-footnote muted" htmlFor={id}>{label}</label>
-      <TextField id={id} className="variant-filled" defaultValue={value} placeholder={placeholder} disabled={disabled}
+      <TextField id={id} variant="filled" className="variant-filled" defaultValue={value} placeholder={placeholder} disabled={disabled}
         rightIcon={icon} />
     </div>
   );
