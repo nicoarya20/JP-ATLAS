@@ -18,7 +18,9 @@ import {
   type ProjectInput,
   removePerson,
   removeProject,
+  restoreProject,
   seedProjects,
+  trashProject,
   uniqueId,
   updateProject,
 } from '../app/components/projects/projects.logic';
@@ -30,8 +32,13 @@ import {
   percentTime,
   shortDate,
 } from '../app/components/projects/projects.read';
-import { getProjects, projectActions } from '../app/components/projects/projects.store';
+import {
+  getProjects,
+  getTrashedProjects,
+  projectActions,
+} from '../app/components/projects/projects.store';
 import { TASKS } from '../app/components/tasks/tasks.dummy';
+import { projectToItem } from '../app/components/trash/trash.projects';
 import { DUMMY_TODAY } from '../app/lib/dummy-clock';
 import { ROLES } from '../server/permissions';
 
@@ -269,5 +276,71 @@ describe('projectActions (the in-memory store)', () => {
     expect(projectActions.extend('atlas', '2026-01-01', 'Nico')).toBe('NOT_LATER');
     expect(projectActions.removePerson('atlas', 'Nico', 'Nico')).toBe('IS_LEAD');
     expect(getProjects()).toBe(before);
+  });
+});
+
+describe('the Trash for projects', () => {
+  it('keeps a deleted project whole, dated, and out of the list', () => {
+    const bin = trashProject(seedProjects(), [], 'atlas', TODAY);
+    if (!bin) throw new Error('expected a bin');
+    expect(bin.list.map((p) => p.id)).toEqual(['sinar', 'migrasi']);
+    expect(bin.trash[0]).toMatchObject({ id: 'atlas', deletedAt: TODAY });
+    expect(bin.trash[0]?.team).toHaveLength(4);
+    expect(trashProject(seedProjects(), [], 'zzz')).toBeNull();
+  });
+
+  it('brings it back first in the list, without the deletion date', () => {
+    const bin = trashProject(seedProjects(), [], 'atlas', TODAY);
+    if (!bin) throw new Error('expected a bin');
+    const back = restoreProject(bin.list, bin.trash, 'atlas');
+    expect(back?.list.map((p) => p.id)).toEqual(['atlas', 'sinar', 'migrasi']);
+    expect(back?.trash).toEqual([]);
+    expect(back?.list[0]).not.toHaveProperty('deletedAt');
+    expect(restoreProject(bin.list, bin.trash, 'zzz')).toBeNull();
+  });
+
+  it('gives a restored project a new id when its own was taken in the meantime', () => {
+    const bin = trashProject(seedProjects(), [], 'atlas', TODAY);
+    if (!bin) throw new Error('expected a bin');
+    const taken = addProject(bin.list, input({ name: 'Atlas' }), 'Nico').list; // takes the id "atlas"
+    const back = restoreProject(taken, bin.trash, 'atlas');
+    // The new project kept "atlas"; the restored one got an id made from its own name.
+    expect(back?.list.map((p) => p.id)).toEqual(['proyek-atlas', 'atlas', 'sinar', 'migrasi']);
+    expect(back?.list.find((p) => p.id === 'proyek-atlas')?.name).toBe('Proyek Atlas');
+    expect(new Set(back?.list.map((p) => p.id)).size).toBe(back?.list.length);
+  });
+
+  it('shows up on the Sampah page as a "Proyek" item', () => {
+    const bin = trashProject(seedProjects(), [], 'sinar', TODAY);
+    const item = bin?.trash[0] && projectToItem(bin.trash[0]);
+    expect(item).toEqual({
+      id: 'sinar',
+      kind: 'project',
+      title: 'Portal Klien PT Sinar',
+      project: 'Portal Klien PT Sinar',
+      deletedAt: TODAY,
+    });
+  });
+});
+
+describe('projectActions: delete and restore', () => {
+  beforeEach(() => projectActions.reset());
+
+  it('moves a project to the Trash and back, and says no the second time', () => {
+    expect(projectActions.remove('atlas')).toBe(true);
+    expect(getProjects().map((p) => p.id)).toEqual(['sinar', 'migrasi']);
+    expect(getTrashedProjects().map((p) => p.id)).toEqual(['atlas']);
+    expect(projectActions.remove('atlas')).toBe(false);
+    expect(projectActions.restore('atlas')).toBe(true);
+    expect(getProjects().map((p) => p.id)).toEqual(['atlas', 'sinar', 'migrasi']);
+    expect(getTrashedProjects()).toEqual([]);
+    expect(projectActions.restore('atlas')).toBe(false);
+  });
+
+  it('empties the Trash on reset', () => {
+    projectActions.remove('atlas');
+    projectActions.reset();
+    expect(getTrashedProjects()).toEqual([]);
+    expect(getProjects()).toHaveLength(3);
   });
 });

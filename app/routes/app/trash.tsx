@@ -2,6 +2,7 @@ import { Badge, Button, Group, Paper, SegmentedControl, Stack, Text } from '@man
 import { requireUser } from '@server/guard';
 import { useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
+import { projectActions, useTrashedProjects } from '~/components/projects/projects.store';
 import {
   RETENTION_DAYS,
   TRASH,
@@ -10,6 +11,7 @@ import {
   type TrashKind,
 } from '~/components/trash/trash.dummy';
 import { countsOf, daysLeft, ofKind } from '~/components/trash/trash.filter';
+import { projectToItem } from '~/components/trash/trash.projects';
 import { formatCalendarDate } from '~/components/ui/DateText';
 import { EmptyState } from '~/components/ui/EmptyState';
 import { notify } from '~/components/ui/notify';
@@ -30,13 +32,16 @@ type Tab = TrashKind | 'all';
 
 /** Trash with hardcoded dummy data (trash.dummy.ts). Restoring is safe, so it needs no confirm dialog. */
 export default function TrashPage() {
-  const [items, setItems] = useState<TrashItem[]>(TRASH);
+  const [others, setOthers] = useState<TrashItem[]>(TRASH);
+  // Deleted projects live in the project store, so "Pulihkan" can put them back in the list.
+  const items = [...useTrashedProjects().map(projectToItem), ...others];
   const [tab, setTab] = useState<Tab>('all');
   const counts = countsOf(items);
   const rows = ofKind(items, tab);
 
   const restore = (item: TrashItem) => {
-    setItems((all) => all.filter((i) => i.id !== item.id));
+    if (item.kind === 'project') projectActions.restore(item.id);
+    else setOthers((all) => all.filter((i) => i.id !== item.id));
     notify.success(`"${item.title}" dipulihkan.`);
   };
 

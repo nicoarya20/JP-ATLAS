@@ -246,3 +246,33 @@ export const toInput = (p: ProjectRecord): ProjectInput => ({
   due: p.due,
   members: p.members.filter((m) => m !== p.lead),
 });
+
+/** A project that was deleted: kept whole, so restoring brings back its team, phases and feed. */
+export type TrashedProject = ProjectRecord & { deletedAt: string };
+export type Bin = { list: ProjectRecord[]; trash: TrashedProject[] };
+
+export function trashProject(
+  list: ProjectRecord[],
+  trash: TrashedProject[],
+  id: string,
+  today: string = DUMMY_TODAY,
+): Bin | null {
+  const p = list.find((x) => x.id === id);
+  if (!p) return null;
+  return { list: removeProject(list, id), trash: [{ ...p, deletedAt: today }, ...trash] };
+}
+
+/** Puts it back first in the list; if its id was taken in the meantime it gets a fresh one. */
+export function restoreProject(
+  list: ProjectRecord[],
+  trash: TrashedProject[],
+  id: string,
+): Bin | null {
+  const item = trash.find((x) => x.id === id);
+  if (!item) return null;
+  const { deletedAt: _deletedAt, ...record } = item;
+  const back = list.some((x) => x.id === id)
+    ? { ...record, id: uniqueId(record.name, list) }
+    : record;
+  return { list: [back, ...list], trash: trash.filter((x) => x.id !== id) };
+}

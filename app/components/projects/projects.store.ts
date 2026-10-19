@@ -12,13 +12,17 @@ import {
   type ProjectRecord,
   type Result,
   removePerson,
-  removeProject,
+  restoreProject,
   seedProjects,
+  type TrashedProject,
+  trashProject,
   updateProject,
 } from './projects.logic';
 
 const INITIAL = seedProjects();
 let state: ProjectRecord[] = INITIAL;
+const NO_TRASH: TrashedProject[] = [];
+let trashed: TrashedProject[] = NO_TRASH;
 const listeners = new Set<() => void>();
 
 function set(next: ProjectRecord[]) {
@@ -46,8 +50,20 @@ export const projectActions = {
   },
   update: (id: string, input: ProjectInput, who: string) =>
     apply(updateProject(state, id, input, who)),
-  remove(id: string) {
-    set(removeProject(state, id));
+  /** Moves the project to the Trash (kept whole, restorable); false if it is already gone. */
+  remove(id: string): boolean {
+    const bin = trashProject(state, trashed, id);
+    if (!bin) return false;
+    trashed = bin.trash;
+    set(bin.list);
+    return true;
+  },
+  restore(id: string): boolean {
+    const bin = restoreProject(state, trashed, id);
+    if (!bin) return false;
+    trashed = bin.trash;
+    set(bin.list);
+    return true;
   },
   extend: (id: string, newDue: string, who: string, reason?: string) =>
     apply(extendDue(state, id, newDue, who, undefined, reason)),
@@ -59,11 +75,13 @@ export const projectActions = {
     apply(removePerson(state, id, name, who)),
   /** Back to the three seeded projects; tests use it, and so can a "reset demo" button. */
   reset() {
+    trashed = NO_TRASH;
     set(seedProjects());
   },
 };
 
 export const getProjects = () => state;
+export const getTrashedProjects = () => trashed;
 
 /** The live list of projects; the server and the first client render both see the seed. */
 export function useProjects(): ProjectRecord[] {
@@ -76,4 +94,13 @@ export function useProjects(): ProjectRecord[] {
 
 export function useProject(id: string | undefined): ProjectRecord | undefined {
   return useProjects().find((p) => p.id === id);
+}
+
+/** Projects in the Trash, newest first; the Sampah page lists them next to the other deleted things. */
+export function useTrashedProjects(): TrashedProject[] {
+  return useSyncExternalStore(
+    subscribe,
+    () => trashed,
+    () => NO_TRASH,
+  );
 }
