@@ -1,9 +1,12 @@
 /**
  * Deadline, manual-condition and activity routes (`/api/app/projects/:id/...`, S5a-03). Writes need
- * a manager of the project or an Admin; reads need only the right to see the project. Mounted by
- * `app-projects.ts`/`app.ts` (L5-08), not here.
+ * a manager of the project or an Admin; reads need only the right to see the project. Mounted through
+ * `app-projects.schedule.ts`. Setting or clearing the manual condition is audited; a key may not call
+ * it, nor `extend-deadline` (`PM_KEY_DENY`).
  */
 import { Elysia, t } from 'elysia';
+import { maskEmail } from '../account/mask-email';
+import { AUDIT_ACTIONS, audit } from '../audit';
 import { EXTENSION_REASON_CATEGORIES, PROJECT_CONDITIONS } from '../pm/enums';
 import { PAGE_LIMIT_MAX } from '../pm/limits';
 import { fail } from '../pm/respond';
@@ -78,18 +81,41 @@ export const projectDeadlineApi = new Elysia({ prefix: '/projects' })
   /** Set a manual condition (replaces the one in force); active projects only. */
   .post(
     '/:id/condition-override',
-    async ({ actor, body, params, refuse, status }) => {
+    async ({ actor, body, params, refuse, request, status }) => {
       const r = await setConditionOverride(toPrincipal(actor), params.id, body);
-      return r.ok ? status(201, { conditionOverride: r.value }) : refuse(r);
+      if (!r.ok) return refuse(r);
+      // The reason stays out of the audit text: it is free text the manager wrote for the project.
+      void audit({
+        actor: { id: actor.user.id, email: maskEmail(actor.user.email) },
+        headers: request.headers,
+        action: AUDIT_ACTIONS.PROJECT_CONDITION_SET,
+        targetType: 'project',
+        targetId: params.id,
+        summary: `Kondisi proyek diatur manual: ${body.condition}`,
+        meta: { condition: body.condition },
+      });
+      return status(201, { conditionOverride: r.value });
     },
     { params: IdParam, body: OverrideBody },
   )
   /** Remove the manual condition in force; asking when none is set is not an error. */
   .delete(
     '/:id/condition-override',
-    async ({ actor, params, refuse }) => {
+    async ({ actor, params, refuse, request }) => {
       const r = await clearConditionOverride(toPrincipal(actor), params.id);
-      return r.ok ? { conditionOverride: null, cleared: r.value.cleared } : refuse(r);
+      if (!r.ok) return refuse(r);
+      // Nothing to record when there was nothing to clear.
+      if (r.value.cleared > 0) {
+        void audit({
+          actor: { id: actor.user.id, email: maskEmail(actor.user.email) },
+          headers: request.headers,
+          action: AUDIT_ACTIONS.PROJECT_CONDITION_CLEAR,
+          targetType: 'project',
+          targetId: params.id,
+          summary: 'Kondisi proyek manual dicabut',
+        });
+      }
+      return { conditionOverride: null, cleared: r.value.cleared };
     },
     { params: IdParam },
   )

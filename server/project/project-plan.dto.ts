@@ -35,6 +35,26 @@ export type MilestoneDto = {
   reachedAt: string | null; // ISO instant; null = not reached yet
 };
 
+/** A phase as the project list carries it for the Gantt view: only what a bar needs. */
+export type ProjectListPhase = {
+  id: string;
+  name: string;
+  startDate: string | null; // YYYY-MM-DD
+  endDate: string | null; // YYYY-MM-DD
+  status: PhaseStatus;
+};
+
+export type ProjectListMilestone = {
+  id: string;
+  title: string;
+  dueDate: string; // YYYY-MM-DD
+  reachedAt: string | null; // ISO instant; null = not reached yet
+  phaseId: string | null;
+};
+
+/** Plan of one list item, present only when the list was asked for it (`rencana=1`). */
+export type ProjectListPlan = { phases: ProjectListPhase[]; milestones: ProjectListMilestone[] };
+
 export type DeadlineExtensionDto = {
   id: string;
   projectId: string;

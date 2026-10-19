@@ -17,6 +17,7 @@ import {
   type ConditionPlanInput,
   type DeadlineExtensionDto,
   NO_CONDITION_PLAN,
+  type ProjectListPlan,
 } from './project-plan.dto';
 
 /** Id and name only: no email or phone leaves through the project API (Q8). */
@@ -38,6 +39,8 @@ export type ProjectListItem = {
   condition: ProjectConditionDto | null; // only `active` projects have one
   /** The caller's own role; null for an Admin/PM who reads without being a member. */
   myRole: ProjectMemberRole | null;
+  /** Phases and milestones for the Gantt view; only on a list asked with `rencana=1`, never otherwise. */
+  plan?: ProjectListPlan;
 };
 
 /** Deadline history and the manual condition in force, added to the detail by S5a-03. */
@@ -76,7 +79,14 @@ export type ProjectMemberItem = {
 /** The project columns the read side selects, plus the lead's name from the join. */
 export type ProjectRow = Omit<
   ProjectDetail,
-  'lead' | 'progress' | 'condition' | 'myRole' | 'taskCounts' | 'can' | keyof ProjectHistory
+  | 'lead'
+  | 'progress'
+  | 'condition'
+  | 'myRole'
+  | 'plan'
+  | 'taskCounts'
+  | 'can'
+  | keyof ProjectHistory
 > & {
   leadId: string | null;
   leadName: string | null;

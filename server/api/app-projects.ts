@@ -17,11 +17,17 @@ const ListQuery = t.Object({
   status: t.Optional(oneOf(PROJECT_STATUSES)),
   q: t.Optional(t.String({ maxLength: SEARCH_MAX_LENGTH })),
   sort: t.Optional(oneOf(PROJECT_SORTS)),
+  // Flags in the URL style the list filters use: present as `1`, absent otherwise (anything else is a 422).
+  perhatian: t.Optional(t.Literal('1')),
+  rencana: t.Optional(t.Literal('1')),
 });
 
 export const projectsApi = new Elysia({ prefix: '/projects' })
   .use(appContext)
-  /** Projects the caller may see: `{ items, total, page, limit }`; a Member asking for `all` gets `mine`. */
+  /**
+   * Projects the caller may see: `{ items, total, page, limit }`; a Member asking for `all` gets `mine`.
+   * `perhatian=1` keeps active projects that are at risk or late; `rencana=1` adds `plan` to each item.
+   */
   .get(
     '/',
     async ({ actor, query }) => {
@@ -32,6 +38,8 @@ export const projectsApi = new Elysia({ prefix: '/projects' })
         status: query.status,
         q: query.q?.trim() || undefined,
         sort: query.sort,
+        attention: query.perhatian === '1',
+        withPlan: query.rencana === '1',
         limit,
         // Capped so an absurd `page` stays a valid, empty page instead of a database error.
         offset: Math.min((page - 1) * limit, Number.MAX_SAFE_INTEGER),

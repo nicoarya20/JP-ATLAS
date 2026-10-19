@@ -40,6 +40,22 @@ export const PM_KEY_DENY: readonly Deny[] = [
   },
   // Every delete under /events, so the Trash route of E-07 is covered the moment it exists.
   { id: 'DELETE events/*', method: 'DELETE', path: /^\/api\/app\/events\/.+/i },
+  // S5a-04. Deleting a phase or milestone and clearing the manual condition are already session only
+  // through `DELETE projects/*`; the two writes below are not deletes, so they get their own rules.
+  // A manual condition overrides what the numbers say and is what the client is told: a judgment call
+  // of the manager, never of a leaked key.
+  {
+    id: 'POST projects/*/condition-override',
+    method: 'POST',
+    path: /^\/api\/app\/projects\/.*\/condition-override(?:\/.*)?$/i,
+  },
+  // Moving the due date changes what was promised to the client. A key may read the history and edit
+  // phases, but it does not commit the project to a new date: conservative default, session only.
+  {
+    id: 'POST projects/*/extend-deadline',
+    method: 'POST',
+    path: /^\/api\/app\/projects\/.*\/extend-deadline(?:\/.*)?$/i,
+  },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -57,6 +73,8 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   '* events/*/participants*': 'app-events.write.ts',
   'POST events/*/cancel': 'app-events.write.ts',
   'DELETE events/*': 'app-events.write.ts', // guest removal today; `DELETE /events/:id` lands here in E-07
+  'POST projects/*/condition-override': 'app-projects.deadline.ts',
+  'POST projects/*/extend-deadline': 'app-projects.deadline.ts',
 };
 
 /**
