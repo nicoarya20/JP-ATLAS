@@ -73,13 +73,14 @@ const SHARED_FILES = words(`
 `);
 
 /**
- * The thirteen /app URLs: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
+ * The sixteen /app URLs (docs/decisions/0004-contract-v1-hybrid-menus.md added /app/inbox, /app/events and /app/team): the thirteen: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
  * 15 Oct 2026, option B) and /app/tasks/:number/edit (S2-13, "Ubah tugas"); both compatible additions, see 0002-contract-v1.md §6. /profile is outside /app/.
  */
 const APP_URLS = words(`
   /app /app/projects /app/projects/new /app/projects/:projectId /app/projects/:projectId/tasks
   /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
   /app/tasks/:number /app/tasks/:number/edit /app/settings /app/trash
+  /app/inbox /app/events /app/team
 `);
 
 const DECLARATION =
@@ -149,17 +150,20 @@ describe('contract-v1 routes and menu', () => {
     (u) => u === '/app' || u.startsWith('/app/'),
   );
 
-  it('registers exactly thirteen /app URLs', () => {
-    expect(appUrls).toHaveLength(13);
+  it('registers exactly sixteen /app URLs', () => {
+    expect(appUrls).toHaveLength(16);
     expect(appUrls.sort()).toEqual([...APP_URLS].sort());
   });
 
-  // Sampah joined the menu with its page (S1-18), before Pengaturan.
-  it('keeps exactly five items in the /app menu', () => {
+  // Sampah joined the menu with its page (S1-18); Inbox, Events and Tim joined with 0004.
+  it('keeps exactly eight items in the /app menu', () => {
     expect(NAV.map((n) => n.to)).toEqual([
       '/app',
+      '/app/inbox',
       '/app/projects',
       '/app/tasks',
+      '/app/events',
+      '/app/team',
       '/app/trash',
       '/app/settings',
     ]);
