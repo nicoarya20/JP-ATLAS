@@ -17,7 +17,7 @@ import {
   TaskHeader,
   type TaskHeaderData,
 } from '../../app/components/tasks/TaskHeader';
-import { hasTaskMenu } from '../../app/components/tasks/TaskMenu';
+import { hasTaskMenu, menuItemsOf } from '../../app/components/tasks/TaskMenu';
 import { cancelNote } from '../../app/components/tasks/TaskStatusBanner';
 import {
   CANCEL_CATEGORY_LABELS,
@@ -168,7 +168,7 @@ describe('TaskHeader menu and banners', () => {
     expect(hasTaskMenu({ number: 1, can: { cancel: 'IMPERSONATING' } })).toBe(true);
   });
 
-  it('the menu cancels with an explanation and has no delete item', () => {
+  it('the menu cancels with an explanation, and deletes only through can.trash without a dialog', () => {
     const src = readFileSync(
       path.join(import.meta.dir, '../../app/components/tasks/TaskMenu.tsx'),
       'utf8',
@@ -177,7 +177,10 @@ describe('TaskHeader menu and banners', () => {
     expect(DETAIL_COPY.cancelHint).toBe(
       'Batalkan tugas — tugas tidak dihapus; tetap tercatat sebagai Dibatalkan dan bisa dipulihkan.',
     );
-    expect(src).not.toMatch(/Hapus|delete|segera/i);
+    // Hapus tugas is T1 (S6 D1): no confirm dialog; it is offered per the server's can.trash.
+    expect(src).toContain('TaskDeleteItem');
+    expect(src).not.toMatch(/openConfirmModal|confirmAction|window\.confirm|segera/i);
+    expect(menuItemsOf({ number: 1, can: { cancel: true } })).not.toContain('delete');
   });
 
   it.each(['completed', 'canceled', 'on_hold'] as const)(

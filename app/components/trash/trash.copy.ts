@@ -6,7 +6,7 @@
 export const TRASH_PAGE_COPY = {
   title: 'Sampah',
   description:
-    'Proyek yang dihapus disimpan di sini dan bisa dipulihkan bersama tugas-tugasnya sampai tanggal yang tertera.',
+    'Proyek dan tugas yang dihapus disimpan di sini. Proyek dipulihkan bersama tugas-tugasnya, tugas bisa dipulihkan sendiri, sampai tanggal yang tertera.',
   tableLabel: 'Proyek di Sampah',
   loadFailed: 'Gagal memuat Sampah',
   more: 'Tampilkan lebih banyak',
@@ -49,4 +49,28 @@ export const TRASH_CONFIRM_COPY = {
   body: (tasks: number, until: string) =>
     `${tasks > 0 ? `${tasks} tugas di dalamnya ikut dipindah ke Sampah. ` : ''}Proyek ini bisa dipulihkan dari halaman Sampah sampai ${until}.`,
   confirmLabel: 'Hapus proyek',
+} as const;
+
+/**
+ * The Tugas section of the Trash page (S6 D1). Same honesty as above: nothing here promises a
+ * permanent delete or an automatic cleanup, because neither exists yet.
+ */
+export const TRASH_COPY = {
+  projectsHeading: 'Proyek',
+  tasksHeading: 'Tugas',
+  tasksTableLabel: 'Tugas di Sampah',
+  noProjects: {
+    title: 'Tidak ada proyek di Sampah',
+    description: 'Proyek yang dihapus muncul di sini.',
+  },
+  noTasks: {
+    title: 'Tidak ada tugas di Sampah',
+    description: 'Tugas yang dihapus muncul di sini dan masih bisa dipulihkan.',
+  },
+  columnTask: 'Tugas',
+  shownTasks: (shown: number, total: number) => `Menampilkan ${shown} dari ${total} tugas`,
+  taskRef: (number: number, project: string) => `#${number} · ${project}`,
+  restoreTask: (number: number, title: string) => `Pulihkan tugas #${number} ${title}`,
+  blocked: 'Pulihkan proyeknya dulu',
+  loadFailed: 'Gagal memuat tugas di Sampah',
 } as const;

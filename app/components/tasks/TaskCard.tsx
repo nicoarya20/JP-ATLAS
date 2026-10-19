@@ -7,6 +7,7 @@ import { StatusBadge } from '~/components/pm/StatusBadge';
 import type { TaskListItem } from '~/lib/tasks-api';
 import { NextStepButton } from './NextStepButton';
 import { TaskBadges, TaskFacts, TaskRowLink, TaskTitle } from './TaskRow';
+import { TaskRowMenu } from './TaskRowMenu';
 
 export function TaskCard({ task }: { task: TaskListItem }) {
   return (
@@ -19,9 +20,12 @@ export function TaskCard({ task }: { task: TaskListItem }) {
           <TaskBadges task={task} />
         </Group>
         <TaskFacts task={task} />
-        <Box pos="relative" style={{ zIndex: 1 }}>
-          <NextStepButton taskRef={String(task.number)} primary={task.primary} fullWidth />
-        </Box>
+        <Group gap="xs" wrap="nowrap" align="center">
+          <Box pos="relative" style={{ zIndex: 1, flex: 1, minWidth: 0 }}>
+            <NextStepButton taskRef={String(task.number)} primary={task.primary} fullWidth />
+          </Box>
+          <TaskRowMenu task={task} />
+        </Group>
       </Stack>
     </Box>
   );

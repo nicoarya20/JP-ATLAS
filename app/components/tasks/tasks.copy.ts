@@ -74,6 +74,20 @@ export const ACTION_COPY = {
 } as const;
 
 /**
+ * "Hapus tugas" (S6 D1, T1): no dialog, the task goes to the Trash and the toast offers "Urungkan".
+ * The hint is honest about what happens: it moves to the Trash page, nothing is erased yet.
+ */
+export const DELETE_COPY = {
+  menuItem: 'Hapus tugas',
+  rowMenuLabel: (number: number) => `Aksi lain untuk tugas #${number}`,
+  hint: 'Dipindah ke Sampah. Bisa dipulihkan dari halaman Sampah.',
+  deleted: 'Tugas dihapus.',
+  deleteFailed: 'Gagal menghapus tugas',
+  restored: (number: number) => `Tugas #${number} dipulihkan.`,
+  restoreFailed: 'Gagal memulihkan tugas',
+} as const;
+
+/**
  * Task-specific wording for API error codes; wins over the server text. Codes not listed fall back
  * to the server's own message (handlers write it for the user).
  */
@@ -152,7 +166,7 @@ export const DETAIL_COPY = {
   edit: 'Ubah tugas',
   reopen: 'Buka lagi',
   uncancel: 'Pulihkan',
-  // X1-Q1: there is no delete; canceling keeps the task, so the menu says so in plain words.
+  // Canceling keeps the task, so the menu says so in plain words (deleting is DELETE_COPY).
   cancel: 'Batalkan tugas',
   cancelReason: 'Alasan dibatalkan',
   cancelHint:
