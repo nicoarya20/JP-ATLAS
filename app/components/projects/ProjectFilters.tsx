@@ -1,4 +1,4 @@
-/** Search, scope, view switch, status chips and sort of the project list (wireframe rows 2-3); state lives in the URL. */
+/** Search, scope, view switch, status chips, "Perlu perhatian" and sort of the project list (wireframe rows 2-3); state lives in the URL. */
 import {
   Chip,
   Divider,
@@ -10,10 +10,11 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useDebouncedCallback } from '@mantine/hooks';
-import { type ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { PROJECT_STATUS_LABELS } from '~/lib/pm-labels';
 import {
+  attentionPatch,
   DEFAULT_PROJECT_FILTERS,
   type ProjectFilters as Filters,
   PROJECT_FILTER_PARAMS,
@@ -21,14 +22,18 @@ import {
   type ScopeSlug,
   type SortSlug,
   type StatusSlug,
+  statusPatch,
 } from '~/lib/projects-filters';
 import type { FilterPatch } from '~/lib/use-url-filters';
+import { AttentionChip } from './AttentionChip';
 import { LIST_COPY } from './projects.copy';
 import { ViewToggle } from './ViewToggle';
 
 /** Typing pauses this long before the URL (and the query) changes. */
 const SEARCH_DEBOUNCE_MS = 350;
 const ALL = '';
+/** Selected by no chip: while "Perlu perhatian" is on, no status chip looks active. */
+const NO_STATUS_CHIP = '-';
 
 /** The chips of the wireframe, in its order; canceled projects are reachable by search only. */
 const STATUS_CHIPS: { value: StatusSlug | typeof ALL; label: string }[] = [
@@ -55,12 +60,10 @@ type Props = {
   /** From the server's list policy; a Member never sees the toggle (and is clamped anyway, M11). */
   canSeeAll: boolean;
   onChange: (patch: FilterPatch) => void;
-  /** Extra chips after the status chips (e.g. "Perlu perhatian"); a thin divider is drawn before them. */
-  extraChips?: ReactNode;
 };
 const SORT_LABEL_ID = 'project-sort-label';
 
-export function ProjectFilters({ filters, canSeeAll, onChange, extraChips }: Props) {
+export function ProjectFilters({ filters, canSeeAll, onChange }: Props) {
   const P = PROJECT_FILTER_PARAMS;
   const [search, setSearch] = useState(filters.q);
   const commitSearch = useDebouncedCallback(
@@ -106,8 +109,8 @@ export function ProjectFilters({ filters, canSeeAll, onChange, extraChips }: Pro
       <Group gap="md" wrap="wrap" align="center">
         <Chip.Group
           multiple={false}
-          value={filters.status ?? ALL}
-          onChange={(v) => onChange({ [P.status]: v })}
+          value={filters.perhatian ? NO_STATUS_CHIP : (filters.status ?? ALL)}
+          onChange={(v) => onChange(statusPatch(v))}
         >
           <Group gap="xs" wrap="wrap" role="group" aria-label={LIST_COPY.statusLabel}>
             {STATUS_CHIPS.map((c) => (
@@ -117,12 +120,8 @@ export function ProjectFilters({ filters, canSeeAll, onChange, extraChips }: Pro
             ))}
           </Group>
         </Chip.Group>
-        {extraChips && (
-          <>
-            <Divider orientation="vertical" visibleFrom="sm" />
-            {extraChips}
-          </>
-        )}
+        <Divider orientation="vertical" visibleFrom="sm" />
+        <AttentionChip active={filters.perhatian} onChange={(on) => onChange(attentionPatch(on))} />
         <Group gap="xs" wrap="wrap" ml="auto">
           <Text id={SORT_LABEL_ID} size="sm" c="dimmed">
             {LIST_COPY.sortPrefix}

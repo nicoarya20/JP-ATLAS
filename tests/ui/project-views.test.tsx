@@ -175,11 +175,11 @@ describe('ProjectFilters layout', () => {
     expect(LIST_COPY.searchPlaceholder).not.toContain('deskripsi');
   });
 
-  it('draws no divider until extra chips are given, then divider and chips', async () => {
-    expect(await filters()).not.toContain('mantine-Divider-root');
-    const html = await filters({ extraChips: <span data-slot="x">Perlu perhatian</span> });
-    expect(html).toContain('mantine-Divider-root');
-    expect(html.indexOf('mantine-Divider-root')).toBeLessThan(html.indexOf('data-slot="x"'));
+  it('puts "Perlu perhatian" after a thin divider that follows the status chips', async () => {
+    const html = await filters();
+    const divider = html.indexOf('mantine-Divider-root');
+    expect(html.indexOf('>Draf<')).toBeLessThan(divider);
+    expect(divider).toBeLessThan(html.indexOf('Perlu perhatian'));
   });
 
   it('wraps both rows so nothing overflows 375px', async () => {

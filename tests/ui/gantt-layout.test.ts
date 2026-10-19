@@ -1,5 +1,6 @@
 /** Pure geometry of the project timeline: range, bars, markers, ticks and the "today" line. */
 import { describe, expect, it } from 'bun:test';
+import type { ProjectListPhase } from '@server/project/project-plan.dto';
 import {
   GANTT,
   type GanttBarRow,
@@ -8,6 +9,7 @@ import {
   layoutGantt,
   monthLabel,
 } from '../../app/components/projects/gantt-layout';
+import { ganttPlanOf } from '../../app/components/projects/gantt-plan';
 
 const src = (id: string, startDate: string | null, dueDate: string | null): GanttSource => ({
   id,
@@ -151,25 +153,172 @@ describe('layoutGantt month ticks', () => {
 describe('layoutGantt stages and milestones', () => {
   const withExtras: GanttSource = {
     ...src('a', '2026-10-01', '2026-10-31'),
-    segments: [{ startDate: '2026-10-01', dueDate: '2026-10-10', label: 'Desain', done: true }],
-    milestones: [{ date: '2026-10-16', label: 'Persetujuan', reached: false }],
+    segments: [
+      { id: 's1', startDate: '2026-10-01', dueDate: '2026-10-10', label: 'Desain', status: 'done' },
+    ],
+    milestones: [{ id: 'm1', date: '2026-10-16', label: 'Persetujuan', reached: false }],
   };
 
-  it('places segments and milestones on the same scale', () => {
+  it('places segments and milestones on the same scale as the bar', () => {
     const row = layoutGantt([withExtras], TODAY).rows[0] as GanttBarRow;
-    expect(row.segments[0]).toMatchObject({ label: 'Desain', done: true, leftPct: 0 });
+    expect(row.segments[0]).toMatchObject({ label: 'Desain', status: 'done', leftPct: 0 });
     expect(row.segments[0]?.widthPct).toBeCloseTo((10 / 31) * 100, 6);
     expect(row.milestones[0]?.leftPct).toBeCloseTo((15.5 / 31) * 100, 6);
+  });
+
+  it('puts a segment inside the bar when its dates lie inside the project dates', () => {
+    const row = layoutGantt(
+      [
+        {
+          ...withExtras,
+          segments: [
+            {
+              id: 's2',
+              startDate: '2026-10-11',
+              dueDate: '2026-10-20',
+              label: 'Bangun',
+              status: 'in_progress',
+            },
+          ],
+        },
+      ],
+      TODAY,
+    ).rows[0] as GanttBarRow;
+    const seg = row.segments[0];
+    expect(seg?.leftPct).toBeGreaterThanOrEqual(row.leftPct);
+    expect((seg?.leftPct ?? 0) + (seg?.widthPct ?? 0)).toBeLessThanOrEqual(
+      row.leftPct + row.widthPct + 1e-9,
+    );
+    expect(seg?.leftPct).toBeCloseTo((10 / 31) * 100, 6);
+  });
+
+  it('keeps one id per piece so two stages with the same name stay distinct', () => {
+    const row = layoutGantt(
+      [
+        {
+          ...withExtras,
+          segments: [
+            {
+              id: 'a',
+              startDate: '2026-10-01',
+              dueDate: '2026-10-05',
+              label: 'Tahap',
+              status: 'done',
+            },
+            {
+              id: 'b',
+              startDate: '2026-10-01',
+              dueDate: '2026-10-05',
+              label: 'Tahap',
+              status: 'not_started',
+            },
+          ],
+        },
+      ],
+      TODAY,
+    ).rows[0] as GanttBarRow;
+    expect(row.segments.map((g) => g.id)).toEqual(['a', 'b']);
   });
 
   it('widens the range to include them and is unchanged without them', () => {
     const wide: GanttSource = {
       ...withExtras,
-      milestones: [{ date: '2026-12-02', label: 'x', reached: true }],
+      milestones: [{ id: 'm2', date: '2026-12-02', label: 'x', reached: true }],
     };
     expect(layoutGantt([wide], TODAY).range?.end).toBe('2026-12-31');
+    const before: GanttSource = {
+      ...withExtras,
+      milestones: [{ id: 'm3', date: '2026-08-20', label: 'y', reached: true }],
+    };
+    expect(layoutGantt([before], TODAY).range?.start).toBe('2026-08-01');
     const row = layoutGantt([src('a', '2026-10-01', '2026-10-31')], TODAY).rows[0] as GanttBarRow;
     expect(row.segments).toEqual([]);
     expect(row.milestones).toEqual([]);
+  });
+
+  it('widens the range for a stage that ends after the project', () => {
+    const late: GanttSource = {
+      ...withExtras,
+      segments: [
+        {
+          id: 's9',
+          startDate: '2026-10-20',
+          dueDate: '2027-01-15',
+          label: 'Serah terima',
+          status: 'not_started',
+        },
+      ],
+    };
+    expect(layoutGantt([late], TODAY).range?.end).toBe('2027-01-31');
+  });
+
+  it('does not let a project without dates into the range through its stages', () => {
+    const dateless: GanttSource = { ...withExtras, startDate: null, dueDate: null };
+    const layout = layoutGantt([dateless], TODAY);
+    expect(layout.rows).toEqual([]);
+    expect(layout.unscheduled).toEqual(['a']);
+  });
+
+  it('draws stages and milestones of a project that only has a due date', () => {
+    const row = layoutGantt([{ ...withExtras, startDate: null }], TODAY).rows[0] as GanttDueRow;
+    expect(row.kind).toBe('due');
+    expect(row.segments).toHaveLength(1);
+    expect(row.milestones).toHaveLength(1);
+  });
+});
+
+describe('ganttPlanOf', () => {
+  const phase = (over: Partial<ProjectListPhase> = {}): ProjectListPhase => ({
+    id: 'ph-1',
+    name: 'Desain',
+    startDate: '2026-10-01',
+    endDate: '2026-10-10',
+    status: 'in_progress',
+    ...over,
+  });
+
+  it('gives nothing for a list item without a plan', () => {
+    expect(ganttPlanOf(undefined)).toEqual({ segments: [], milestones: [] });
+  });
+
+  it('draws only phases with both dates', () => {
+    const plan = ganttPlanOf({
+      phases: [
+        phase(),
+        phase({ id: 'ph-2', name: 'Tanpa akhir', endDate: null }),
+        phase({ id: 'ph-3', name: 'Tanpa mulai', startDate: null }),
+        phase({ id: 'ph-4', name: 'Tanpa tanggal', startDate: null, endDate: null }),
+      ],
+      milestones: [],
+    });
+    expect(plan.segments).toEqual([
+      {
+        id: 'ph-1',
+        label: 'Desain',
+        startDate: '2026-10-01',
+        dueDate: '2026-10-10',
+        status: 'in_progress',
+      },
+    ]);
+  });
+
+  it('marks a milestone reached only when it has a reached time', () => {
+    const plan = ganttPlanOf({
+      phases: [],
+      milestones: [
+        {
+          id: 'm1',
+          title: 'Serah terima',
+          dueDate: '2026-10-30',
+          reachedAt: '2026-10-29T03:00:00.000Z',
+          phaseId: null,
+        },
+        { id: 'm2', title: 'Persetujuan', dueDate: '2026-10-16', reachedAt: null, phaseId: 'ph-1' },
+      ],
+    });
+    expect(plan.milestones).toEqual([
+      { id: 'm1', label: 'Serah terima', date: '2026-10-30', reached: true },
+      { id: 'm2', label: 'Persetujuan', date: '2026-10-16', reached: false },
+    ]);
   });
 });

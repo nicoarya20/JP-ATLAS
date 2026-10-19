@@ -1,18 +1,42 @@
-/** Optional extras of a Gantt row: stage bars under the project bar and milestone diamonds above it. */
+/** Stage pieces (inside the project bar) and milestone diamonds (above it) of one timeline row. */
 import { Box } from '@mantine/core';
+import { Link } from 'react-router';
+import { formatCalendarDate } from '~/components/ui/DateText';
 import type { PlacedMilestone, PlacedSegment } from './gantt-layout';
-import { filled, light, scaledRem } from './gantt-style';
-import { GANTT_COPY } from './projects.copy';
+import { GANTT_PLAN_COPY } from './gantt-plan.copy';
+import {
+  MILESTONE_SIZE_EM,
+  milestoneStyle,
+  milestoneTop,
+  scaledRem,
+  stageHeight,
+  stageStyle,
+  stageTop,
+} from './gantt-style';
 
-export function GanttSegments({ segments }: { segments: PlacedSegment[] }) {
+/** Both kinds are links to the project like the bar, so a click on them never "misses" the row. */
+type Props = { href: string };
+
+export function GanttSegments({
+  segments,
+  color,
+  href,
+}: Props & { segments: PlacedSegment[]; color: string }) {
   return (
     <>
       {segments.map((g) => {
-        const label = g.done ? GANTT_COPY.stageDone(g.label) : GANTT_COPY.stageOpen(g.label);
+        const label = GANTT_PLAN_COPY.stage(
+          g.label,
+          formatCalendarDate(g.startDate),
+          formatCalendarDate(g.dueDate),
+          GANTT_PLAN_COPY.status[g.status],
+        );
         return (
           <Box
-            key={`${g.label}-${g.startDate}`}
-            role="img"
+            key={g.id}
+            component={Link}
+            to={href}
+            tabIndex={-1}
             aria-label={label}
             title={label}
             style={{
@@ -20,12 +44,11 @@ export function GanttSegments({ segments }: { segments: PlacedSegment[] }) {
               left: `${g.leftPct}%`,
               width: `${g.widthPct}%`,
               minWidth: scaledRem(0.5),
-              bottom: '0.4em',
-              height: '0.5em',
-              borderRadius: '0.25em',
-              background: g.done ? filled('ok') : light('gray'),
-              border: `1px solid ${g.done ? filled('ok') : filled('gray')}`,
+              top: stageTop(),
+              height: stageHeight(),
+              borderRadius: '0.2em',
               zIndex: 1,
+              ...stageStyle(g.status, color),
             }}
           />
         );
@@ -34,30 +57,35 @@ export function GanttSegments({ segments }: { segments: PlacedSegment[] }) {
   );
 }
 
-export function GanttMilestones({ milestones }: { milestones: PlacedMilestone[] }) {
+export function GanttMilestones({
+  milestones,
+  hasStages,
+  href,
+}: Props & { milestones: PlacedMilestone[]; hasStages: boolean }) {
   return (
     <>
       {milestones.map((m) => {
+        const date = formatCalendarDate(m.date);
         const label = m.reached
-          ? GANTT_COPY.milestoneReached(m.label)
-          : GANTT_COPY.milestoneOpen(m.label);
+          ? GANTT_PLAN_COPY.milestoneReached(m.label, date)
+          : GANTT_PLAN_COPY.milestoneOpen(m.label, date);
         return (
           <Box
-            key={`${m.label}-${m.leftPct}`}
-            role="img"
+            key={m.id}
+            component={Link}
+            to={href}
+            tabIndex={-1}
             aria-label={label}
             title={label}
             style={{
               position: 'absolute',
               left: `${m.leftPct}%`,
-              top: '0.4em',
-              width: '0.9em',
-              height: '0.9em',
-              transform: 'translateX(-50%) rotate(45deg)',
-              // Filled when reached, hollow when not: the shape state is readable without colour.
-              background: m.reached ? filled('ok') : 'var(--mantine-color-body)',
-              border: `2px solid ${filled('ok')}`,
+              top: milestoneTop(hasStages),
+              width: `${MILESTONE_SIZE_EM}em`,
+              height: `${MILESTONE_SIZE_EM}em`,
+              transform: 'translate(-50%, -50%) rotate(45deg)',
               zIndex: 1,
+              ...milestoneStyle(m.reached),
             }}
           />
         );

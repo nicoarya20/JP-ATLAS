@@ -168,10 +168,6 @@ export const GANTT_COPY = {
     `${name}: tenggat ${date}. Status ${status}.`,
   progress: (percent: number) => `${percent}% selesai`,
   noTasks: 'Belum ada tugas',
-  stageDone: (label: string) => `Tahap ${label} (selesai)`,
-  stageOpen: (label: string) => `Tahap ${label} (belum selesai)`,
-  milestoneReached: (label: string) => `Tonggak ${label} (tercapai)`,
-  milestoneOpen: (label: string) => `Tonggak ${label} (belum tercapai)`,
 } as const;
 
 /** Empty states: no project yet (can create), Member not in any project, filters matching nothing. */

@@ -5,7 +5,7 @@
 import type { ProjectStatus } from '@server/pm/enums';
 import { PAGE_LIMIT_MAX } from '@server/pm/limits';
 import type { ProjectSort } from '@server/project/project.query';
-import { PAGE_PARAM, readEnum, readInt, readString } from './use-url-filters';
+import { type FilterPatch, PAGE_PARAM, readEnum, readInt, readString } from './use-url-filters';
 
 export const PROJECT_FILTER_PARAMS = {
   scope: 'lingkup',
@@ -13,6 +13,7 @@ export const PROJECT_FILTER_PARAMS = {
   sort: 'urut',
   q: 'q',
   view: 'tampilan',
+  attention: 'perhatian',
   page: PAGE_PARAM,
 } as const;
 
@@ -45,6 +46,8 @@ export type ProjectFilters = {
   urut: SortSlug;
   q: string;
   tampilan: ViewSlug;
+  /** "Perlu perhatian": only running projects that are at risk or late. It replaces the status filter. */
+  perhatian: boolean;
   hal: number;
 };
 
@@ -54,6 +57,8 @@ export const PROJECT_PAGE_SIZE = 20;
 /** The timeline needs many projects at once to span a useful range; the server's page maximum is the cap. */
 export const PROJECT_GANTT_PAGE_SIZE = PAGE_LIMIT_MAX;
 const ALL_STATUS = '';
+/** The only value of `?perhatian=`; anything else leaves the filter off. */
+const ATTENTION_ON = '1';
 
 export const DEFAULT_PROJECT_FILTERS: ProjectFilters = {
   lingkup: 'saya',
@@ -61,6 +66,7 @@ export const DEFAULT_PROJECT_FILTERS: ProjectFilters = {
   urut: 'tenggat',
   q: '',
   tampilan: 'list',
+  perhatian: false,
   hal: 1,
 };
 
@@ -75,12 +81,15 @@ export function parseProjectFilters(sp: URLSearchParams): ProjectFilters {
     [ALL_STATUS, ...keysOf(STATUS_SLUGS)],
     ALL_STATUS,
   );
+  const perhatian = sp.get(P.attention) === ATTENTION_ON;
   return {
     lingkup: readEnum(sp, P.scope, keysOf(SCOPE_SLUGS), DEFAULT_PROJECT_FILTERS.lingkup),
-    status: status === ALL_STATUS ? null : status,
+    // Attention already means "running", so a status in the same link is dropped.
+    status: status === ALL_STATUS || perhatian ? null : status,
     urut: readEnum(sp, P.sort, keysOf(SORT_SLUGS), DEFAULT_PROJECT_FILTERS.urut),
     q: readString(sp, P.q).slice(0, PROJECT_SEARCH_MAX),
     tampilan: readEnum(sp, P.view, VIEW_SLUGS, DEFAULT_PROJECT_FILTERS.tampilan),
+    perhatian,
     hal: readInt(sp, P.page, { fallback: 1, min: 1 }),
   };
 }
@@ -91,10 +100,11 @@ export function projectFiltersToParams(f: ProjectFilters): URLSearchParams {
   const D = DEFAULT_PROJECT_FILTERS;
   const sp = new URLSearchParams();
   if (f.lingkup !== D.lingkup) sp.set(P.scope, f.lingkup);
-  if (f.status) sp.set(P.status, f.status);
+  if (f.status && !f.perhatian) sp.set(P.status, f.status);
   if (f.urut !== D.urut) sp.set(P.sort, f.urut);
   if (f.q.trim()) sp.set(P.q, f.q.trim());
   if (f.tampilan !== D.tampilan) sp.set(P.view, f.tampilan);
+  if (f.perhatian) sp.set(P.attention, ATTENTION_ON);
   if (f.hal > 1) sp.set(P.page, String(f.hal));
   return sp;
 }
@@ -105,6 +115,10 @@ export type ProjectListQuery = {
   status?: ProjectStatus;
   sort: ProjectSort;
   q?: string;
+  /** `'1'` keeps only running projects that need attention (the API takes the literal flag). */
+  perhatian?: typeof ATTENTION_ON;
+  /** `'1'` adds each project's phases and milestones; only the timeline draws them. */
+  rencana?: typeof ATTENTION_ON;
   page: number;
   limit: number;
 };
@@ -119,15 +133,29 @@ export function toProjectQuery(
 ): ProjectListQuery {
   return {
     scope: SCOPE_SLUGS[f.lingkup],
-    ...(f.status ? { status: STATUS_SLUGS[f.status] } : {}),
+    ...(f.status && !f.perhatian ? { status: STATUS_SLUGS[f.status] } : {}),
     sort: SORT_SLUGS[f.urut],
     ...(f.q.trim() ? { q: f.q.trim() } : {}),
+    ...(f.perhatian ? { perhatian: ATTENTION_ON } : {}),
+    ...(f.tampilan === 'gantt' ? { rencana: ATTENTION_ON } : {}),
     page: f.hal,
     limit,
   };
 }
 
-/** True when a status or search narrows the list, so an empty result offers "Hapus saringan". */
+/** True when a status, "Perlu perhatian" or a search narrows the list, so an empty result offers "Hapus saringan". */
 export function hasProjectFilters(f: ProjectFilters): boolean {
-  return f.status !== null || f.q.trim() !== '';
+  return f.status !== null || f.perhatian || f.q.trim() !== '';
 }
+
+/** URL change for the "Perlu perhatian" chip: turning it on clears the status, which it replaces. */
+export const attentionPatch = (on: boolean): FilterPatch => ({
+  [PROJECT_FILTER_PARAMS.attention]: on ? ATTENTION_ON : null,
+  [PROJECT_FILTER_PARAMS.status]: null,
+});
+
+/** URL change for a status chip (`''` = "Semua"): choosing any status ends "Perlu perhatian". */
+export const statusPatch = (slug: string): FilterPatch => ({
+  [PROJECT_FILTER_PARAMS.status]: slug,
+  [PROJECT_FILTER_PARAMS.attention]: null,
+});

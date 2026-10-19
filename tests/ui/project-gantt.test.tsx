@@ -1,5 +1,8 @@
 /** Gantt view of the project list: bars, markers, today line, unscheduled projects and links. */
 import { describe, expect, it } from 'bun:test';
+import type { ProjectListItem } from '@server/project/project.dto';
+import type { ProjectListMilestone, ProjectListPhase } from '@server/project/project-plan.dto';
+import { GANTT_PLAN_COPY } from '../../app/components/projects/gantt-plan.copy';
 import { ProjectGantt } from '../../app/components/projects/ProjectGantt';
 import { ProjectResults } from '../../app/components/projects/ProjectResults';
 import { GANTT_COPY, LIST_COPY } from '../../app/components/projects/projects.copy';
@@ -108,20 +111,11 @@ describe('ProjectGantt', () => {
     expect(html).not.toMatch(/(?:width|height|min-width)\s*:\s*\d+px/);
   });
 
-  it('renders stages and milestones when given, and nothing extra otherwise', async () => {
-    expect(await gantt([BAR])).not.toContain('Tonggak');
-    const html = await gantt([BAR], {
-      plans: {
-        'p-bar': {
-          segments: [
-            { startDate: '2026-10-01', dueDate: '2026-10-10', label: 'Desain', done: true },
-          ],
-          milestones: [{ date: '2026-10-20', label: 'Persetujuan', reached: false }],
-        },
-      },
-    });
-    expect(html).toContain(GANTT_COPY.stageDone('Desain'));
-    expect(html).toContain(GANTT_COPY.milestoneOpen('Persetujuan'));
+  it('draws no stage, milestone or plan legend when the list carries no plan', async () => {
+    const html = await gantt([BAR]);
+    expect(html).not.toContain('Tahap ');
+    expect(html).not.toContain('Tonggak');
+    expect(html).not.toContain(GANTT_PLAN_COPY.legendTitle);
   });
 
   it('shows the empty node when the page has no projects', async () => {
@@ -151,5 +145,164 @@ describe('ProjectGantt', () => {
     );
     expect(html).toContain('mk-gantt-label');
     expect(html).not.toContain('<table');
+  });
+});
+
+describe('ProjectGantt stages and milestones', () => {
+  const phase = (over: Partial<ProjectListPhase> = {}): ProjectListPhase => ({
+    id: 'ph-1',
+    name: 'Desain',
+    startDate: '2026-10-01',
+    endDate: '2026-10-10',
+    status: 'done',
+    ...over,
+  });
+  const milestone = (over: Partial<ProjectListMilestone> = {}): ProjectListMilestone => ({
+    id: 'm-1',
+    title: 'Persetujuan',
+    dueDate: '2026-10-16',
+    reachedAt: null,
+    phaseId: null,
+    ...over,
+  });
+  const planned = (
+    phases: ProjectListPhase[],
+    milestones: ProjectListMilestone[] = [],
+    over: Partial<ProjectListItem> = {},
+  ) => item({ id: 'p-bar', plan: { phases, milestones }, ...over });
+
+  /** The opening `<a ...>` tag whose aria-label starts with `start`. */
+  const tagOf = (html: string, start: string): string => {
+    const m = new RegExp(`<a [^>]*aria-label="${start}[^"]*"[^>]*>`).exec(html);
+    if (!m) throw new Error(`No element labelled "${start}"`);
+    return m[0];
+  };
+  const pct = (tag: string, prop: 'left' | 'width') =>
+    Number(new RegExp(`${prop}:([\\d.]+)%`).exec(tag)?.[1]);
+
+  it('draws each dated stage inside the bar, sized in percent of the month range', async () => {
+    const html = await gantt([planned([phase()])]);
+    const tag = tagOf(html, 'Tahap Desain');
+    expect(tag).toContain('aria-label="Tahap Desain: 1 Okt 2026 sampai 10 Okt 2026 (selesai)"');
+    // October has 31 days and the project fills it: 10 days from the left edge.
+    expect(pct(tag, 'left')).toBeCloseTo(0, 6);
+    expect(pct(tag, 'width')).toBeCloseTo((10 / 31) * 100, 3);
+    expect(tag).toContain('title="Tahap Desain');
+  });
+
+  it('shows done, running and not-started stages with different shapes, not just colours', async () => {
+    const html = await gantt([
+      planned([
+        phase({ id: 'a', name: 'Satu', status: 'done' }),
+        phase({
+          id: 'b',
+          name: 'Dua',
+          status: 'in_progress',
+          startDate: '2026-10-11',
+          endDate: '2026-10-20',
+        }),
+        phase({
+          id: 'c',
+          name: 'Tiga',
+          status: 'not_started',
+          startDate: '2026-10-21',
+          endDate: '2026-10-31',
+        }),
+      ]),
+    ]);
+    const done = tagOf(html, 'Tahap Satu');
+    const running = tagOf(html, 'Tahap Dua');
+    const waiting = tagOf(html, 'Tahap Tiga');
+    expect(done).toContain('(selesai)');
+    expect(running).toContain('(sedang berjalan)');
+    expect(waiting).toContain('(belum mulai)');
+    expect(running).toContain('repeating-linear-gradient');
+    expect(done).not.toContain('repeating-linear-gradient');
+    expect(done).not.toContain('dashed');
+    expect(waiting).toContain('dashed');
+    expect(running).not.toContain('dashed');
+  });
+
+  it('draws no piece for a stage without both dates', async () => {
+    const html = await gantt([
+      planned([
+        phase({ id: 'a', name: 'Lengkap' }),
+        phase({ id: 'b', name: 'Tanpa akhir', endDate: null }),
+        phase({ id: 'c', name: 'Tanpa tanggal', startDate: null, endDate: null }),
+      ]),
+    ]);
+    expect(html).toContain('Tahap Lengkap');
+    expect(html).not.toContain('Tanpa akhir');
+    expect(html).not.toContain('Tanpa tanggal');
+  });
+
+  it('makes the bar taller only when it carries stages', async () => {
+    const plain = await gantt([BAR]);
+    const staged = await gantt([planned([phase()])]);
+    expect(tagOf(plain, 'Renovasi Dapur')).toContain('height:1.75em');
+    expect(tagOf(staged, 'Renovasi Dapur')).toContain('height:2.75em');
+  });
+
+  it('marks a reached milestone with a filled diamond and says "tercapai"', async () => {
+    const html = await gantt([planned([], [milestone({ reachedAt: '2026-10-15T02:00:00.000Z' })])]);
+    const tag = tagOf(html, 'Tonggak Persetujuan');
+    expect(tag).toContain('aria-label="Tonggak Persetujuan: 16 Okt 2026 (tercapai)"');
+    expect(tag).toContain('rotate(45deg)');
+    expect(tag).toContain('background:var(--mantine-color-text)');
+  });
+
+  it('marks an open milestone with a hollow diamond and says "belum tercapai"', async () => {
+    const html = await gantt([planned([], [milestone()])]);
+    const tag = tagOf(html, 'Tonggak Persetujuan');
+    expect(tag).toContain('aria-label="Tonggak Persetujuan: 16 Okt 2026 (belum tercapai)"');
+    expect(tag).toContain('background:var(--mantine-color-body)');
+    expect(tag).not.toContain('background:var(--mantine-color-text)');
+  });
+
+  it('places a milestone on its day at the centre of the column', async () => {
+    const html = await gantt([planned([], [milestone()])]);
+    expect(pct(tagOf(html, 'Tonggak'), 'left')).toBeCloseTo((15.5 / 31) * 100, 3);
+  });
+
+  it('widens the month range for a milestone beyond the project dates', async () => {
+    const html = await gantt([planned([], [milestone({ dueDate: '2026-12-05' })])]);
+    expect(html).toContain('Des 2026');
+    const only = await gantt([BAR]);
+    expect(only).not.toContain('Des 2026');
+  });
+
+  it('sends a click on a stage or milestone to the project, like the bar', async () => {
+    const html = await gantt([planned([phase()], [milestone()])]);
+    for (const start of ['Tahap Desain', 'Tonggak Persetujuan', 'Renovasi Dapur']) {
+      expect(tagOf(html, start)).toContain('href="/app/projects/p-bar"');
+    }
+  });
+
+  it('keeps a project without dates under "Belum ada tanggal", even with a plan', async () => {
+    const html = await gantt([
+      planned([phase()], [milestone()], { startDate: null, dueDate: null }),
+    ]);
+    expect(html).toContain(GANTT_COPY.unscheduledTitle);
+    expect(html).not.toContain('Tahap Desain');
+    expect(html).not.toContain('Tonggak Persetujuan');
+  });
+
+  it('explains stages and milestones in the legend only when some are drawn', async () => {
+    const html = await gantt([planned([phase()], [milestone()])]);
+    expect(html).toContain(`aria-label="${GANTT_PLAN_COPY.legendTitle}"`);
+    for (const text of [
+      ...Object.values(GANTT_PLAN_COPY.legendStage),
+      GANTT_PLAN_COPY.legendMilestoneReached,
+      GANTT_PLAN_COPY.legendMilestoneOpen,
+    ]) {
+      expect(html).toContain(text);
+    }
+    expect(await gantt([planned([])])).not.toContain(GANTT_PLAN_COPY.legendTitle);
+  });
+
+  it('gives rows with a plan more height without fixed pixels', async () => {
+    const html = await gantt([planned([phase()], [milestone()])]);
+    expect(html).toContain('min-height:calc(5.5rem * var(--mantine-scale))');
+    expect(html).not.toMatch(/(?:width|height|min-width)\s*:\s*\d+px/);
   });
 });
