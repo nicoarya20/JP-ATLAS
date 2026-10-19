@@ -8,11 +8,13 @@ import { GanttMilestones, GanttSegments } from './GanttMarks';
 import type { GanttRowLayout, MonthTick } from './gantt-layout';
 import {
   BAR_MIN_WIDTH,
+  barHeight,
   filled,
   GRID_LINE,
   ganttColor,
   LABEL_WIDTH,
   light,
+  rowMinHeight,
   scaledRem,
 } from './gantt-style';
 import './project-click.css';
@@ -82,6 +84,7 @@ function LabelCell({ project: p, row }: Pick<Props, 'project' | 'row'>) {
 }
 
 function Track({ project: p, row }: Pick<Props, 'project' | 'row'>) {
+  const hasStages = row.segments.length > 0;
   const color = ganttColor(p);
   const status = PROJECT_STATUS_LABELS[p.status].label;
   const percent = p.progress.percent ?? 0;
@@ -129,7 +132,7 @@ function Track({ project: p, row }: Pick<Props, 'project' | 'row'>) {
         width: `${row.widthPct}%`,
         minWidth: BAR_MIN_WIDTH,
         top: '50%',
-        height: '1.75em',
+        height: barHeight(hasStages),
         transform: 'translateY(-50%)',
         borderRadius: '0.25em',
         overflow: 'hidden',
@@ -153,6 +156,8 @@ function Track({ project: p, row }: Pick<Props, 'project' | 'row'>) {
 }
 
 export function GanttRow({ project, row, months, todayPct, timelineRem }: Props) {
+  const hasStages = row.segments.length > 0;
+  const href = projectHref(project.id);
   return (
     <Box className="mk-gantt-row" style={{ display: 'flex', borderBottom: GRID_LINE }}>
       <LabelCell project={project} row={row} />
@@ -160,7 +165,7 @@ export function GanttRow({ project, row, months, todayPct, timelineRem }: Props)
         style={{
           position: 'relative',
           flex: `1 0 ${scaledRem(timelineRem)}`,
-          minHeight: scaledRem(4.5),
+          minHeight: rowMinHeight(hasStages || row.milestones.length > 0),
         }}
       >
         {months.map((m) => (
@@ -191,8 +196,8 @@ export function GanttRow({ project, row, months, todayPct, timelineRem }: Props)
           />
         )}
         <Track project={project} row={row} />
-        <GanttSegments segments={row.segments} />
-        <GanttMilestones milestones={row.milestones} />
+        <GanttSegments segments={row.segments} color={ganttColor(project)} href={href} />
+        <GanttMilestones milestones={row.milestones} hasStages={hasStages} href={href} />
       </Box>
     </Box>
   );

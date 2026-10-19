@@ -21,7 +21,7 @@ export function AttentionChip({ active, onChange }: Props) {
       title={ATTENTION_COPY.hint}
       aria-pressed={active}
     >
-      <Group gap={6} wrap="nowrap" component="span">
+      <Group gap={6} wrap="wrap" component="span">
         <AttentionIcon size="1.25em" aria-hidden />
         {ATTENTION_COPY.chip}
       </Group>

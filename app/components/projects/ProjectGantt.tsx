@@ -7,18 +7,14 @@ import { Link } from 'react-router';
 import { formatCalendarDate } from '~/components/ui/DateText';
 import { EmptyState } from '~/components/ui/EmptyState';
 import { GanttHeader, GanttLegend } from './GanttHeader';
+import { GanttPlanLegend } from './GanttPlanLegend';
 import { GanttRow } from './GanttRow';
-import { type GanttMilestone, type GanttSegment, layoutGantt } from './gantt-layout';
+import { layoutGantt } from './gantt-layout';
+import { ganttPlanOf } from './gantt-plan';
 import { GRID_LINE } from './gantt-style';
 import { projectHref } from './ProjectCard';
 import { ProjectMore, type ProjectViewProps } from './ProjectMore';
 import { GANTT_COPY, LIST_COPY } from './projects.copy';
-
-/** Stages and milestones per project id; the stage feature fills it in, nothing passes it yet. */
-export type GanttPlans = Record<
-  string,
-  { segments?: GanttSegment[]; milestones?: GanttMilestone[] }
->;
 
 function Unscheduled({ projects }: { projects: ProjectListItem[] }) {
   if (projects.length === 0) return null;
@@ -53,8 +49,7 @@ function Unscheduled({ projects }: { projects: ProjectListItem[] }) {
   );
 }
 
-type Props = ProjectViewProps & { plans?: GanttPlans };
-
+/** Each item's `plan` is there only when the list was asked for it (`rencana=1`); without it the bars are plain. */
 export function ProjectGantt({
   items,
   total,
@@ -63,8 +58,7 @@ export function ProjectGantt({
   hasMore,
   loadingMore,
   onMore,
-  plans,
-}: Props) {
+}: ProjectViewProps) {
   const layout = useMemo(
     () =>
       layoutGantt(
@@ -72,11 +66,11 @@ export function ProjectGantt({
           id: p.id,
           startDate: p.startDate,
           dueDate: p.dueDate,
-          ...plans?.[p.id],
+          ...ganttPlanOf(p.plan),
         })),
         today,
       ),
-    [items, plans, today],
+    [items, today],
   );
   if (items.length === 0) return <>{empty}</>;
   const byId = new Map(items.map((p) => [p.id, p]));
@@ -90,6 +84,7 @@ export function ProjectGantt({
       {rows.length > 0 ? (
         <>
           <GanttLegend layout={layout} today={today} />
+          <GanttPlanLegend layout={layout} />
           <Text size="xs" c="dimmed" hiddenFrom="md">
             {GANTT_COPY.scrollHint}
           </Text>

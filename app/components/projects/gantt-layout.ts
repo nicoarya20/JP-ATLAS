@@ -4,6 +4,7 @@
  * Dates are `YYYY-MM-DD` strings; nothing here reads the clock ("today" comes from the server).
  */
 import type { IsoDate } from '@server/metrics/dates';
+import type { PhaseStatus } from '@server/pm/enums';
 import {
   buildMonths,
   dayNum,
@@ -27,10 +28,16 @@ export const GANTT = {
 
 const PCT = 100;
 
-/** Optional stage (tahapan) bar inside a project; filled in once stages exist. */
-export type GanttSegment = { startDate: string; dueDate: string; label: string; done: boolean };
-/** Optional milestone (tonggak) marker of a project. */
-export type GanttMilestone = { date: string; label: string; reached: boolean };
+/** A stage (tahapan) drawn inside the project bar; one without both dates is not drawn. */
+export type GanttSegment = {
+  id: string;
+  startDate: string;
+  dueDate: string;
+  label: string;
+  status: PhaseStatus;
+};
+/** A milestone (tonggak) marker; it widens the range when it lies outside the project's own dates. */
+export type GanttMilestone = { id: string; date: string; label: string; reached: boolean };
 
 export type GanttSource = {
   id: string;
