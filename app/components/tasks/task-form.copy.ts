@@ -51,6 +51,9 @@ export const TASK_FORM_COPY = {
   cancel: 'Batal',
   submit: 'Simpan tugas',
   editSubmit: 'Simpan perubahan',
+  // The task is visible but the viewer may not change it (Pemantau, or an Anggota on someone else's task).
+  editForbidden:
+    'Anda tidak bisa mengubah tugas ini. Tugas hanya bisa diubah oleh Pengelola proyek, atau Anggota yang membuat atau mengerjakannya.',
   // P3 §2 Tugas ⑥: a Pemantau or a PM outside the project may only read it.
   viewerOnly: 'Anda hanya bisa melihat proyek ini.',
 } as const;

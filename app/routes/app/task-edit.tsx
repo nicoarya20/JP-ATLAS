@@ -1,3 +1,5 @@
+import { Alert } from '@mantine/core';
+import { capMessage } from '@server/access/capabilities';
 import { requireUser } from '@server/guard';
 import { toPrincipal } from '@server/project/membership.query';
 import { listProjectMembers } from '@server/project/project.query';
@@ -5,6 +7,7 @@ import { requestClock } from '@server/task/task.clock';
 import { getTaskDetail } from '@server/task/task-detail.query';
 import { loadTaskKinds, loadTaskPhases } from '@server/task/task-form.query';
 import { useEffect, useState } from 'react';
+import { FiLock } from 'react-icons/fi';
 import { data, useNavigate } from 'react-router';
 import { TaskForm } from '~/components/tasks/TaskForm';
 import { taskFieldErrors, toTaskPatch } from '~/components/tasks/task-form';
@@ -30,14 +33,19 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const res = await getTaskDetail(principal, params.number, clock);
   if (!res.ok) throw data(NOT_FOUND_TEXT, { status: 404 });
   const { task } = res;
-  // The server's own verdict: without `can.update` the page is the same 404 as a hidden task would get.
-  if (task.can.update !== true) throw data(NOT_FOUND_TEXT, { status: 404 });
+  const detail = `/app/tasks/${task.number}`;
+  // The viewer can open the task (a hidden one was a 404 above), so a refusal gets its reason, not a 404.
+  if (task.can.update !== true) {
+    const reason = task.can.update ? capMessage(task.can.update) : TASK_FORM_COPY.editForbidden;
+    return data({ allowed: false as const, reason, detail }, { status: 403 });
+  }
   const [members, kinds, phases] = await Promise.all([
     listProjectMembers(principal, task.project.id),
     loadTaskKinds([task.project.id]),
     loadTaskPhases([task.project.id]),
   ]);
   return {
+    allowed: true as const,
     number: task.number,
     project: { id: task.project.id, name: task.project.name },
     kinds: kinds.get(task.project.id) ?? [],
@@ -50,6 +58,25 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export default function TaskEditPage({ loaderData }: Route.ComponentProps) {
+  if (!loaderData.allowed) {
+    return (
+      <PageContainer>
+        <PageHeader
+          title={TASK_FORM_COPY.editTitle}
+          back={{ to: loaderData.detail, label: TASK_FORM_COPY.backToTask }}
+        />
+        <Alert color="gray" variant="light" icon={<FiLock size="1.25em" aria-hidden />}>
+          {loaderData.reason}
+        </Alert>
+      </PageContainer>
+    );
+  }
+  return <TaskEditContent loaderData={loaderData} />;
+}
+
+type EditData = Extract<Route.ComponentProps['loaderData'], { allowed: true }>;
+
+function TaskEditContent({ loaderData }: { loaderData: EditData }) {
   const { number, initial } = loaderData;
   const { update } = useTaskActions();
   const navigate = useNavigate();

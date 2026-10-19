@@ -75,7 +75,13 @@ export function TaskForm(props: TaskFormProps) {
   const [more, setMore] = useState(editing || hasFoldedValues(initial));
   // Project picked by hand: once its members load, the viewer becomes the default assignee if they work there.
   const [autoAssign, setAutoAssign] = useState<string | null>(null);
-  const form = useForm<TaskFormValues>({ initialValues: initial, validate: validateTask });
+  // Fields with their own rule are checked when the user leaves them; project and the rest wait for Simpan,
+  // so tabbing past an untouched Proyek does not shout "Pilih proyek" before the user got there.
+  const form = useForm<TaskFormValues>({
+    initialValues: initial,
+    validate: validateTask,
+    validateInputOnBlur: ['title', 'description', 'dueDate', 'startDate'],
+  });
   useUnsavedGuard(!saved && form.isDirty());
 
   const projectId = editing ? props.project.id : form.values.projectId;
