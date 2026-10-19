@@ -19,6 +19,7 @@ export const EVENT_WRITE_MESSAGES = {
   endsBeforeStarts: 'Jam selesai harus setelah jam mulai.',
   spanRequired: 'Jam mulai dan jam selesai wajib diisi.',
   unknownGuest: 'Ada peserta yang tidak ditemukan atau belum disetujui.',
+  meetingUrl: 'Tautan rapat harus diawali http:// atau https://.',
 } as const;
 
 export const invalid = (error: string): Refusal => ({ ok: false, code: 'VALIDATION', error });
@@ -38,6 +39,23 @@ export function refuse(code: string): Refusal {
 function instantOf(value: string, field: string): Date | Refusal {
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? invalid(`Nilai ${field} bukan tanggal yang sah.`) : d;
+}
+
+/**
+ * Refuses a meeting link that is not http(s). The detail page renders it as an `href`, so a
+ * `javascript:` or `data:` value stored through the API directly would run script on click.
+ */
+export function checkMeetingUrl(value: string | null | undefined): Refusal | null {
+  if (value === undefined || value === null || value.trim() === '') return null;
+  try {
+    const { protocol } = new URL(value.trim());
+    return protocol === 'http:' || protocol === 'https:'
+      ? null
+      : invalid(EVENT_WRITE_MESSAGES.meetingUrl);
+  } catch {
+    // An unparseable string is user input, not an error: answer with the refusal the form shows.
+    return invalid(EVENT_WRITE_MESSAGES.meetingUrl);
+  }
 }
 
 /**

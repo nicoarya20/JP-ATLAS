@@ -31,7 +31,14 @@ import type { EventDetail, PersonRef } from './events.dto';
 import { inviteOnto, loadParticipants } from './events.participants';
 import { getEvent } from './events.query';
 import { loadEventRow, membershipFor, subjectOf } from './events.sql';
-import { checkGuests, isRefusal, type Refusal, refuse, resolveSpan } from './events.validate';
+import {
+  checkGuests,
+  checkMeetingUrl,
+  isRefusal,
+  type Refusal,
+  refuse,
+  resolveSpan,
+} from './events.validate';
 
 export type CreateEventInput = {
   title: string;
@@ -98,6 +105,8 @@ export async function createEvent(
 ): Promise<EventWriteResult> {
   const span = resolveSpan(input);
   if (isRefusal(span)) return span;
+  const badUrl = checkMeetingUrl(input.meetingUrl);
+  if (badUrl) return badUrl;
 
   return inTx(async (tx) => {
     const subject = await projectSubjectOf(tx, input.projectId);
@@ -174,6 +183,8 @@ export async function updateEvent(
   eventId: string,
   input: UpdateEventInput,
 ): Promise<EventWriteResult> {
+  const badUrl = checkMeetingUrl(input.meetingUrl);
+  if (badUrl) return badUrl;
   return inTx(async (tx) => {
     const gated = await gate(p, eventId, tx, (s, m) => canManageEvent(p, s, m));
     if (!gated.ok) return gated;

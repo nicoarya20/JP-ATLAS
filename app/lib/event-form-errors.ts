@@ -32,6 +32,7 @@ export const SERVICE_MESSAGE_FIELD: Record<string, keyof EventFormValues> = {
   'Jam selesai harus setelah jam mulai.': 'endTime',
   'Jam mulai dan jam selesai wajib diisi.': 'startTime',
   'Ada peserta yang tidak ditemukan atau belum disetujui.': 'participantIds',
+  'Tautan rapat harus diawali http:// atau https://.': 'meetingUrl',
 };
 const BAD_INSTANT = /^Nilai (jam mulai|jam selesai) bukan tanggal yang sah\.$/;
 

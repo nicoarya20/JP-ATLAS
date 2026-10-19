@@ -154,6 +154,25 @@ describe('createEvent', () => {
     });
   });
 
+  it('refuses a meeting link that is not http(s), so the detail page never renders a script href', async () => {
+    for (const meetingUrl of [
+      'javascript:alert(1)',
+      'data:text/html,x',
+      'vbscript:x',
+      'meet.example',
+    ]) {
+      expect(await create(member, { meetingUrl })).toEqual({
+        ok: false,
+        code: 'VALIDATION',
+        error: EVENT_WRITE_MESSAGES.meetingUrl,
+      });
+    }
+    expect(await create(member, { meetingUrl: 'https://meet.example.test/ok' })).toMatchObject({
+      ok: true,
+    });
+    expect(await create(member, { meetingUrl: null })).toMatchObject({ ok: true });
+  });
+
   it('refuses a guest who is unknown or not approved, and writes nothing', async () => {
     const before = await db.select({ id: event.id }).from(event);
     expect(await create(member, { participantIds: [pending.id] })).toEqual({
@@ -182,6 +201,18 @@ describe('updateEvent', () => {
     expect(res.event.locationType).toBe('online');
     expect(res.event.agenda).toBe('Bahas rilis');
     expect(res.event.startsAt).toBe(e.startsAt.toISOString());
+  });
+
+  it('refuses a non-http(s) meeting link on update and keeps the stored one', async () => {
+    const e = await perTest.event({
+      project,
+      creator: lead,
+      meetingUrl: 'https://meet.example.test/a',
+    });
+    const res = await updateEvent(principal(lead), e.id, { meetingUrl: 'javascript:alert(1)' });
+    expect(res).toEqual({ ok: false, code: 'VALIDATION', error: EVENT_WRITE_MESSAGES.meetingUrl });
+    const [row] = await db.select({ url: event.meetingUrl }).from(event).where(eq(event.id, e.id));
+    expect(row.url).toBe('https://meet.example.test/a');
   });
 
   it('clears the reminder claims when the start moves, so the tick fires at the new time', async () => {

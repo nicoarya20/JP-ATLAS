@@ -313,6 +313,7 @@ describe('Event form — Simpan and refusals', () => {
         EVENT_WRITE_MESSAGES.endsBeforeStarts,
         EVENT_WRITE_MESSAGES.spanRequired,
         EVENT_WRITE_MESSAGES.unknownGuest,
+        EVENT_WRITE_MESSAGES.meetingUrl,
       ].sort(),
     );
   });
