@@ -35,7 +35,6 @@ export function TaskWriteBox({ text, onText, blocked, loading, again, onCompose 
         maxRows={16}
         disabled={loading}
         error={over ? COPY.tooLong(TASK_DRAFT_TEXT_MAX) : undefined}
-        aria-describedby={COUNTER_ID}
       />
       <Text id={COUNTER_ID} size="xs" c={over ? 'danger' : 'dimmed'} ta="right" aria-live="polite">
         {COPY.counter(used, TASK_DRAFT_TEXT_MAX)}
