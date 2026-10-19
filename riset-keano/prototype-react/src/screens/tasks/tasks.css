@@ -46,6 +46,15 @@
 .tk-prio-high svg { color: var(--danger); }
 .tk-prio-medium svg { color: var(--warning); }
 .tk-prio-low svg { color: var(--label-3); }
+/* Drag and drop (tasks.drag): the lifted card leaves a faded slot, a tilted ghost follows the finger above the phone,
+   and the column it would land in is outlined. No text selection or iOS callout on the long press. */
+.tk-board .tk-kcard { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.tk-board.is-dragging { cursor: grabbing; }
+.tk-col { transition: box-shadow 150ms ease, background-color 150ms ease; }
+.tk-col.is-over { box-shadow: inset 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--fill)); }
+.tk-kcard.is-lifted { opacity: 0.35; }
+.tk-ghost.card.react-cupertino-ui-card { position: absolute; top: 0; left: 0; z-index: 50; margin: 0; pointer-events: none;
+  transition: none; rotate: 2deg; scale: 1.03; box-shadow: var(--glass-shadow); }
 
 /* Forms */
 .tk-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }

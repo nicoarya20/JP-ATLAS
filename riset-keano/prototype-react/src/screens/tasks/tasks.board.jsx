@@ -1,10 +1,15 @@
-// Tasks ③ Kanban: one column per status, compact cards that only open the task (its actions live in the detail).
+// Tasks ③ Kanban: one column per status, compact cards that open the task (its actions live in the detail);
+// hold and drag a card onto another column to change its status (tasks.drag).
+import { useRef } from 'react';
 import { Calendar, Circle, CircleCheck, CircleDashed, CircleDot, Flag, ListChecks, Plus } from 'lucide-react';
 import { Avatar, Btn, Section } from '../../kit';
+import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
+import { useBoardDrag } from './tasks.drag';
 import { ListScreen } from './tasks.list';
 import { applyQuery, queryOf } from './tasks.query';
 import { days, detailOf } from './tasks.shared';
+import { moveTask, useTaskMoves } from './tasks.store';
 
 // Status badge per column: icon + tone class (colour comes from tasks.css).
 const COLUMNS = [
@@ -25,7 +30,7 @@ function steps(no) {
 function BoardCard({ t, mine }) {
   const late = t.status !== 'Done' && days(t.due) < 0, s = steps(t.no);
   return (
-    <Section go={detailOf(t)} task={t.no} className="tk-kcard" aria-label={`#${t.no} ${t.title}`}>
+    <Section go={detailOf(t)} task={t.no} className="tk-kcard" data-no={t.no} aria-label={`#${t.no} ${t.title}`}>
       <div className="stack xs">
         <span className="t-subhead bold">{t.title}</span>
         <span className="t-footnote muted">#{t.no} · {mine ? t.project : t.type}</span>
@@ -40,19 +45,23 @@ function BoardCard({ t, mine }) {
   );
 }
 
-/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move.
+/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move, hold a card to drag it.
  *  params.mine = my tasks across projects (card shows the project), otherwise every Atlas task; both narrowed and
  *  ordered by the Filter & sort query in params (All active keeps the Done column). */
 export function TasksBoard({ params }) {
   const mine = !!params?.mine;
+  const { toast } = useApp();
+  const board = useRef(null);
+  useTaskMoves();
+  const drag = useBoardDrag(board, (no, status) => { moveTask(no, status); toast(`Moved to ${status}`); });
   const tasks = applyQuery(mine ? D.tasks.filter(t => t.who === D.me().name) : D.tasks, queryOf(params, mine), true);
   return (
     <ListScreen mine={mine} board>
-      <div className="tk-board">
+      <div className="tk-board" ref={board} {...drag}>
         {COLUMNS.map(([status, Icon, tone]) => {
           const list = tasks.filter(t => t.status === status);
           return (
-            <section key={status} className="tk-col" aria-label={`${status}, ${list.length} tasks`}>
+            <section key={status} className="tk-col" data-status={status} aria-label={`${status}, ${list.length} tasks`}>
               <h3 className="tk-col-head">
                 <span className={`tk-badge tk-tone-${tone} t-caption`}><Icon size={ICON} aria-hidden="true" />{status}</span>
                 <span className="t-footnote muted">{list.length}</span>
