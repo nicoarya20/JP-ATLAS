@@ -81,6 +81,13 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
       header: { name: 'location', includes: '/login' },
     }),
   ),
+  {
+    // The person detail guards itself with requireUser (S6 layar 2), so an anonymous visitor reaches /login.
+    name: 'halaman /app/team/:userId anonim → login',
+    path: '/app/team/u1',
+    status: 302,
+    header: { name: 'location', includes: '/login' },
+  },
   ...['/api/app/projects', '/api/app/trash', '/api/app/tasks'].map(
     (path): SmokeCheck => ({
       name: `API ${path} anonim → 401`,

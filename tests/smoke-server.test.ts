@@ -50,7 +50,13 @@ describe('smoke checks', () => {
       bodyIncludes: '"code":"UNAUTHORIZED"',
       header: { name: 'x-request-id' },
     });
-    expect(SMOKE_CHECKS).toHaveLength(38);
+    expect(SMOKE_CHECKS).toHaveLength(39);
+  });
+  test('the person detail page answers an anonymous visitor with a redirect to /login', () => {
+    expect(SMOKE_CHECKS.find((c) => c.path === '/app/team/u1')).toMatchObject({
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    });
   });
   test('auth gate checks pin the closed Better Auth endpoints to a uniform 404', () => {
     const byName = (n: string) => SMOKE_CHECKS.find((c) => c.name === n);
