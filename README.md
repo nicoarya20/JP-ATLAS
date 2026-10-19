@@ -434,6 +434,8 @@ Halaman S1 (semua butuh login): `/app/projects` (daftar), `/app/projects/new` (p
 
 Halaman Tim (semua butuh login): `/app/team` (daftar orang, urut Nama atau Tugas aktif terbanyak, saring proyek dan nama) dan `/app/team/:userId` (detail orang: profil, proyek bersama, tugas aktif; kartu Peran akun hanya untuk Admin dan Super-admin). Ketersediaan/cuti belum ada dan tidak ditampilkan.
 
+Halaman Event (semua butuh login): `/app/events` (daftar acara: tab Akan datang/Sudah lewat, cari, saring jenis dan proyek), `/app/events/new` (form dua tahap; tombolnya hanya untuk yang boleh membuat acara), dan `/app/events/:id` (detail acara dengan menu ⋯: Batalkan dengan alasan, Hapus ke Sampah dengan Urungkan). Kalender, notulensi di layar, dan acara berulang belum ada; notulensi di detail acara tampil sebagai teks "segera hadir".
+
 ### Kontrak API Inbox (S3)
 
 Semua di `/api/app/inbox` (sesi atau API key ber-scope `app:read`/`app:write`). Inbox hanya milik penelepon: `userId` di query diabaikan, dan kartu orang lain dijawab `404` yang sama dengan kartu yang tidak ada. **Tidak ada rute untuk membuat atau menghapus kartu** — kartu muncul karena sebuah layanan memanggil `notify()` dan hilang karena layanan menutupnya, jadi klien tidak bisa memalsukannya. Kunci API memakai kartu pemilik kunci itu.
@@ -447,13 +449,13 @@ Semua di `/api/app/inbox` (sesi atau API key ber-scope `app:read`/`app:write`). 
 
 ### Kontrak API Event (S7)
 
-Semua di `/api/app/events`. Acara boleh milik proyek atau pribadi (`projectId: null`: hanya pembuat dan tamunya yang melihat). Acara yang tidak boleh dilihat dijawab `404` yang sama dengan acara yang tidak ada. Pemantau tidak bisa membuat acara di proyek yang hanya ia pantau (`403 NOT_MEMBER`), dan proyek di Sampah menolak acara baru (`409 PROJECT_IN_TRASH`). Bodi permintaan **ditutup**: field yang belum ada (berulang, hasil rapat) dijawab `422`, bukan diabaikan diam-diam.
+Semua di `/api/app/events`. Acara boleh milik proyek atau pribadi (`projectId: null`: hanya pembuat dan tamunya yang melihat). Acara yang tidak boleh dilihat dijawab `404` yang sama dengan acara yang tidak ada. Pemantau tidak bisa membuat acara di proyek yang hanya ia pantau (`403 NOT_MEMBER`), dan proyek di Sampah menolak acara baru (`409 PROJECT_IN_TRASH`). Bodi permintaan **ditutup**: field yang belum ada (berulang, hasil rapat) dijawab `422`, bukan diabaikan diam-diam. `meetingUrl` hanya menerima alamat `http://` atau `https://`; skema lain (mis. `javascript:`) dijawab `422 VALIDATION`.
 
 | Endpoint | Fungsi |
 |---|---|
 | `GET /events?tab=upcoming\|past&kind=&projectId=&q=&limit=&cursor=` | Daftar acara yang boleh dilihat → `{ items, nextCursor, caps: { createEvent } }`; `kind` boleh diulang (`meeting`, `review`, `important`, `team`, `other`). Kursor rusak → `400 BAD_CURSOR` |
 | `GET /events/agenda` | Agenda Beranda: paling banyak 4 acara saya, hari ini dan besok → `{ items }` |
-| `GET /events/people?projectId=&q=` | Calon tamu → `{ items }` (nama dan jabatan saja); memakai aturan pemilih Tim di atas, jadi tanpa `projectId` hanya untuk yang boleh membuat proyek |
+| `GET /events/people?projectId=&q=` | Calon tamu → `{ items }` (nama dan jabatan saja); memakai aturan pemilih Tim di atas, jadi tanpa `projectId` hanya untuk yang boleh membuat proyek; form Event baru tidak memakai endpoint ini, melainkan `GET /team?q=` |
 | `GET /events/:id` | Satu acara beserta tamu, notulensi, dan peta `can{}` |
 | `POST /events` `{ title, startsAt, endsAt, projectId?, participantIds?, kind?, locationType?, locationText?, meetingUrl?, agenda?, remindersMinutes? }` | Buat acara dan undang tamunya dalam satu transaksi → `201` detail; `endsAt` harus setelah `startsAt` |
 | `PATCH /events/:id` (field sama, semua opsional) | Ubah acara; memindahkan `startsAt` menyetel ulang pengingatnya. Acara tidak bisa pindah proyek dan tamu tidak diubah di sini (`projectId`/`participantIds` → `422`) |
