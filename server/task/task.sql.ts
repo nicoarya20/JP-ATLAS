@@ -36,6 +36,16 @@ export function titleMatches(q: string): SQL {
   return ilike(task.title, `%${q.replace(/[\\%_]/g, '\\$&')}%`);
 }
 
+/** "12" or "#12": at most 15 digits, so the number stays well inside 2^53 (`number` is a bigint read as a JS number). */
+const SEARCH_NUMBER = /^#?(\d{1,15})$/;
+
+/** List search: the title contains the text, or the text is a task number ("12" or "#12", the handle people read aloud). */
+export function taskSearch(q: string): SQL {
+  const digits = SEARCH_NUMBER.exec(q)?.[1];
+  const byTitle = titleMatches(q);
+  return digits ? (or(byTitle, eq(task.number, Number(digits))) as SQL) : byTitle;
+}
+
 const date = (v: string) => sql`${v}::date`;
 
 /** `due_date` condition of one schedule group; mirrors `scheduleGroupOf`, and only open tasks belong to a group. */
