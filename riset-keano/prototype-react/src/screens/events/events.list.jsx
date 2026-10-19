@@ -3,7 +3,7 @@
 import { CalendarDays, List, Plus, Repeat, SearchX } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Btn, Empty, Pill, Screen, Section, Seg, Tabs } from '../../kit';
+import { Btn, Empty, Pill, Screen, Section, Seg } from '../../kit';
 import { EventsSearch } from './events.filter';
 import { applyQuery, groupEvents, queryOf, queryParams, withoutQuery } from './events.query';
 import { EV, STATUS_TONE } from './events.shared';
@@ -25,9 +25,6 @@ export function EventsTools({ on }) {
     </div>
   );
 }
-
-/** Upcoming / Past tabs (prototype shows Upcoming). */
-const ListTabs = () => <Tabs items={['Upcoming', 'Past']} on={0} />;
 
 /** Event card. Tap: not done → detail (recurring → ④b); done → its outcomes. */
 function EventCard({ e }) {
@@ -60,7 +57,7 @@ function EventCard({ e }) {
   );
 }
 
-/** D.events narrowed by the query and grouped by schedule or type; a Member sees only events they attend.
+/** D.events narrowed by the query (upcoming / past lives there, not in tabs) and grouped by schedule or type; a Member sees only events they attend.
  *  Nothing left: an empty state whose Reset filters re-opens the screen with its default query. */
 function Groups() {
   const { is, current, params, go } = useApp();
@@ -84,7 +81,6 @@ function Groups() {
 export function EventsList({ overlay }) {
   return (
     <EventsScreen>
-      <ListTabs />
       <EventsTools on={0} />
       <Groups />
       {overlay}
@@ -96,7 +92,6 @@ export function EventsList({ overlay }) {
 export function EventsEmpty() {
   return (
     <EventsScreen>
-      <ListTabs />
       <EventsTools on={0} />
       <Empty icon={<CalendarDays size={28} />} title="No events yet" text="Meetings or events you attend will show up here."
         action={<Btn kind="primary" icon={<Plus size={16} />} go="events.new">New event</Btn>} />

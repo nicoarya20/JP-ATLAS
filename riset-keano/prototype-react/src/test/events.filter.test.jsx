@@ -1,5 +1,5 @@
 // Events ①b Filter & sort: the same icon + full-height overlay as Tasks. Apply re-opens the list / calendar with the
-// query, which narrows the events (type, project), groups the list (schedule or type) and redraws the calendar dots.
+// query, which narrows the events (upcoming / past, type, project), groups the list (schedule or type) and redraws the calendar dots.
 import { describe, expect, it } from 'vitest';
 import { fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
@@ -8,8 +8,12 @@ import { renderApp } from './render';
 
 const icon = () => dom.getByRole('button', { name: 'Filter and sort' });
 const openFilter = () => { fireEvent.click(icon()); return within(dom.getByRole('dialog')); };
+/** One labelled field of the overlay (Show and Event type both have an "All" chip). */
+const field = (sheet, name) => within(sheet.getByRole('heading', { name, level: 3 }).closest('.field'));
 const apply = sheet => fireEvent.click(sheet.getByRole('button', { name: 'Apply' }));
 const shown = e => !!dom.queryByText(e.title);
+const PAST = ['kickoff', 'daily'];   // done, or before today
+const isPast = e => PAST.includes(e.id);
 const heads = () => dom.getAllByRole('heading', { level: 2 }).map(h => h.textContent);
 /** Dot class of an October date in the month grid: '' one event, 'two' more, 'none' no event. */
 const dot = n => document.querySelectorAll('.ev-date')[n - 1].querySelector('.ev-dot').className.replace('ev-dot', '').trim();
@@ -23,20 +27,50 @@ describe('events filter & sort', () => {
     const tools = icon().closest('.ev-tools');
     expect(within(tools).getByRole('tab', { name: 'List' })).toBeInTheDocument();
     expect(within(tools).getByRole('tab', { name: 'Calendar' })).toBeInTheDocument();
+    expect(dom.queryByRole('tab', { name: 'Upcoming' })).not.toBeInTheDocument();
+    expect(dom.queryByRole('tab', { name: 'Past' })).not.toBeInTheDocument();
   });
 
-  it('opens a full-height Filter & sort overlay with type, project and group by, closed by the X', () => {
+  it('opens a full-height Filter & sort overlay with show, type, project and group by, closed by the X', () => {
     renderApp('events.list', 'pm');
     const sheet = openFilter();
     expect(dom.getByRole('dialog')).toHaveClass('fs');
     expect(sheet.getByRole('heading', { name: 'Filter & sort' })).toHaveAttribute('data-sheet-drag');
-    for (const t of ['All', 'Meeting', 'Review', 'Important', 'Team event', 'Other']) expect(sheet.getByRole('button', { name: t })).toBeInTheDocument();
-    expect(sheet.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(sheet.getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual(['Show', 'Event type', 'Project', 'Group by']);
+    for (const t of ['All', 'Upcoming', 'Past']) expect(field(sheet, 'Show').getByRole('button', { name: t })).toBeInTheDocument();
+    expect(field(sheet, 'Show').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    for (const t of ['All', 'Meeting', 'Review', 'Important', 'Team event', 'Other']) expect(field(sheet, 'Event type').getByRole('button', { name: t })).toBeInTheDocument();
+    expect(field(sheet, 'Event type').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
     expect(sheet.getByRole('combobox', { name: 'Project' })).toHaveDisplayValue('All projects');
     expect(sheet.getByRole('radio', { name: 'Schedule' })).toBeChecked();
     expect(sheet.getAllByRole('radio')).toHaveLength(2);
     fireEvent.click(sheet.getByRole('button', { name: 'Close' }));
     expect(dom.queryByRole('heading', { name: 'Filter & sort' })).not.toBeInTheDocument();
+  });
+
+  it('shows only the past events (done, or before today) and lights the dot', () => {
+    renderApp('events.list', 'pm');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Past' }));
+    apply(sheet);
+    expect(D.events.filter(isPast).every(shown)).toBe(true);
+    expect(D.events.filter(e => !isPast(e)).some(shown)).toBe(false);
+    expect(icon()).toHaveClass('is-on');
+  });
+
+  it('shows only the upcoming events, keeping the type filter on top of it', () => {
+    renderApp('events.list', 'pm');
+    let sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Upcoming' }));
+    apply(sheet);
+    expect(D.events.filter(e => !isPast(e)).every(shown)).toBe(true);
+    expect(D.events.filter(isPast).some(shown)).toBe(false);
+    sheet = openFilter();
+    expect(field(sheet, 'Show').getByRole('button', { name: 'Upcoming' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(sheet.getByRole('button', { name: 'Meeting' }));
+    apply(sheet);
+    expect(D.events.filter(e => e.type === 'Meeting' && !isPast(e)).map(e => e.id)).toEqual(['rehearsal']);
+    expect(D.events.filter(shown).map(e => e.id)).toEqual(['rehearsal']);
   });
 
   it('narrows the list to one event type and lights the dot, without a toast', () => {
@@ -82,14 +116,16 @@ describe('events filter & sort', () => {
     expect(icon()).toHaveClass('is-on');
   });
 
-  it('Reset puts the draft back to every type, every project, by schedule', () => {
+  it('Reset puts the draft back to upcoming and past, every type, every project, by schedule', () => {
     renderApp('events.list', 'pm');
     const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Past' }));
     fireEvent.click(sheet.getByRole('button', { name: 'Meeting' }));
     fireEvent.change(sheet.getByRole('combobox', { name: 'Project' }), { target: { value: 'sinar' } });
     fireEvent.click(sheet.getByRole('radio', { name: 'Type' }));
     fireEvent.click(sheet.getByRole('button', { name: 'Reset' }));
-    expect(sheet.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(field(sheet, 'Show').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(field(sheet, 'Event type').getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
     expect(sheet.getByRole('combobox', { name: 'Project' })).toHaveValue('');
     expect(sheet.getByRole('radio', { name: 'Schedule' })).toBeChecked();
   });
@@ -116,5 +152,16 @@ describe('events filter & sort', () => {
     expect(dom.queryByText('Atlas daily stand-up')).not.toBeInTheDocument();
     fireEvent.click(dom.getByRole('tab', { name: 'List' }));
     expect(D.events.filter(e => e.type !== 'Review').some(shown)).toBe(false);
+  });
+
+  it('keeps Past on the calendar: only the done kickoff and stand-up have dots', () => {
+    renderApp('events.calendar', 'pm');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Past' }));
+    apply(sheet);
+    expect([1, 7].map(dot)).toEqual(['', '']);
+    expect([8, 9, 13, 15, 23].map(dot)).toEqual(['none', 'none', 'none', 'none', 'none']);
+    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 1 event' })).toBeInTheDocument();
+    expect(dom.getByText('Atlas daily stand-up')).toBeInTheDocument();
   });
 });
