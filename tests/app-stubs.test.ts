@@ -66,6 +66,7 @@ describe('page stubs', () => {
       'app/routes/app/project-new.tsx',
       'app/routes/app/project/layout.tsx',
       'app/routes/app/project/members.tsx',
+      'app/routes/app/project/phases.tsx',
       'app/routes/app/project/settings.tsx',
       'app/routes/app/project/summary.tsx',
       'app/routes/app/project/tasks.tsx',

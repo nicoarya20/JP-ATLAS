@@ -16,6 +16,7 @@ export const PROJECT_TABS_LABEL = 'Bagian proyek';
 export const PROJECT_TABS = {
   summary: 'Ringkasan',
   tasks: 'Tugas',
+  phases: 'Tahapan',
   members: 'Anggota',
 } as const;
 
