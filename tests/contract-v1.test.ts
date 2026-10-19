@@ -33,6 +33,8 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/access/rules.ts': 'ACCESS_RULES AccessRules',
   'server/access/task-flow.policy.ts':
     'CancelInput FlowAction FlowAllow FlowDecision FlowEffect PrimaryAction TASK_TRANSITIONS TaskTransition canCancelTask canCompleteTask canReopenTask canStartTask canUncancelTask canUnstartTask findTransition nextStatuses primaryAction',
+  // Split out of trash.policy so capabilities can use it without an import cycle (D1); trash.policy re-exports it.
+  'server/access/task-trash.policy.ts': 'canTrashTask',
   'server/access/task.policy.ts':
     'NeedsReviewOnCreate NotVisible TaskActor TaskDecision authorizeTask canComment canCreateTask canEditTask canManageKinds canToggleNeedsReview canViewTask guardTask resolveNeedsReviewOnCreate taskOpen',
   'server/access/team.policy.ts': 'LoadScope canSortByLoad loadScopeFor scopeCovers',
