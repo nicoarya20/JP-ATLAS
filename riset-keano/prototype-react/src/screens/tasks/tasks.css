@@ -22,7 +22,7 @@
 .tk-filter-btn:active { scale: 0.92; }
 .tk-filter-btn.is-on::after { content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
   background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
-.tk-sum { min-width: 0; }
+.tk-view { display: flex; justify-content: flex-end; }
 .tk-csv { justify-content: flex-end; }
 .tk-wrap .hscroll { flex-wrap: wrap; }
 /* Filter & sort overlay (kit FullSheet body): fields from the top, Reset / Apply pushed to the bottom edge. */

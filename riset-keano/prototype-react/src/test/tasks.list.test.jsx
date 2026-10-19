@@ -48,6 +48,7 @@ describe('tasks list', () => {
     const icon = dom.getByRole('button', { name: 'Filter and sort' });
     expect(icon.closest('.tk-search').querySelector('input')).toHaveAttribute('placeholder', 'Search title, #number, or tag…');
     expect(icon).not.toHaveClass('is-on');
+    expect(dom.queryByText(/Sort: Due date/)).not.toBeInTheDocument();
   });
 
   it('opens one sheet with the status, project and priority filters and the sort order', () => {

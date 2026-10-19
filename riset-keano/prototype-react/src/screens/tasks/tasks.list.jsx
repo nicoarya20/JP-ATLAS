@@ -5,10 +5,10 @@ import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { FilterButton } from './tasks.filter';
 import { Tick } from './tasks.parts';
-import { SORTS, STATUSES, TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
+import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
 
 /** List frame shared by ①–④: My/All switch, search with the Filter & sort icon (status, project, priority, sort live in
- *  its sheet), the current filter line with the List/Board view, CSV on All.
+ *  its overlay), the List/Board view, CSV on All.
  *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
 function ListScreen({ all, board, children }) {
   return (
@@ -19,8 +19,7 @@ function ListScreen({ all, board, children }) {
           <div className="grow"><Search placeholder="Search title, #number, or tag…" /></div>
           <FilterButton project={all ? atlas().id : undefined} />
         </div>
-        <div className="between">
-          <span className="t-footnote muted ellipsis tk-sum">{[all && atlas().name, STATUSES[0], `Sort: ${SORTS[0]}`].filter(Boolean).join(' · ')}</span>
+        <div className="tk-view">
           <div className="tk-seg"><Seg items={['List', 'Board']} on={board ? 1 : 0} gos={['tasks.all', 'tasks.board']} /></div>
         </div>
         {all && (
