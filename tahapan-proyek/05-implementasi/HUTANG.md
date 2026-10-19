@@ -94,11 +94,11 @@ Menurut [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) §1, **MVP Inti = S0 (a
 | H-D1 | **Beranda** | `GET /api/app/home` belum ada | Seluruh P4 (12 tugas): kartu hitungan, fokus, agenda, ringkasan. Rilis dua tahap tanpa "Perlu Anda tanggapi" dulu | `P4`; `PROGRES-S3-S8` §4 |
 | H-D2 | **Inbox** | I01-I07, I11, I14 selesai (kartu, `notify()`, API, pembersihan) | I08 klien, I09 lonceng/NAV/rute, I10 halaman, I12 QA lintas-jalur, I13 gerbang demo | `P5` |
 | H-D3 | **Events** | E-01..E-03, E-05, E-06 selesai (tabel, izin, mesin baca-tulis, API) | E-04 pengingat (menunggu `notify()`), E-07 Sampah acara, E-08a klien, E-09..E-16 halaman dan QA. Tambah 3 URL `/app/events*` ke `contract-v1` | `P6` |
-| H-D4 | **Tim** | M01-M04 selesai (aturan, baca data, API daftar/detail) | M05 indeks `project_member (project_id, role)`, M06..M10 halaman dan QA. `sort=overdue` hanya mengurutkan halaman tampil | `P7` |
+| H-D4 | **Tim** | M01-M04 selesai; **M06 (daftar) dan M07 (detail) selesai 20 Okt 2026** di `feature/pm-team-menu`: tersambung ke API, urutan Nama / Tugas aktif terbanyak (global, jendela 200 orang), Peran akun hanya Admin/Super-admin, ketersediaan disembunyikan | M05 indeks `project_member (project_id, role)` (tidak diperlukan sejauh ini), M08 pra-cek hapus akun pengelola tunggal, M09 pengaturan tim, sisa M10 (demo). **Ketersediaan/cuti dan urutan ketersediaan:** menunggu cuti (fase 5) dan Events | `P7` |
 | H-D5 | **Sampah** | Z-01 (aturan). Sampah **proyek** sudah jalan (S1-18) | Z-02..Z-08: Sampah tugas dan acara, hapus permanen (Admin), pembersihan 30 hari, Urungkan | `P8` |
 | H-D6 | **Pengaturan lanjutan** | Profil + ukuran teks sudah (S1-14) | Seluruh P9 (9 tugas, G-01..G-09): bagian "Keamanan dan perangkat", hapus akun sendiri (T3; Super-admin dulu), saklar Pemberitahuan dan efeknya di Inbox, pengaturan tim (pengingat acara bawaan), QA | `P9` |
-| H-D7 | Berkas bingkai (`app/routes.ts`, `NAV`, `AppFrame.tsx`) diklaim dua rencana (I09 dan E-08) | Satu tugas integrator memasang NAV+rute Inbox dan Event sekaligus, `APP_URLS` naik. **Hitungan URL kini 17** (tab Tahapan) | `PROGRES-S3-S8` §6b |
-| H-D8 | Dua keputusan user menggantung: (1) pencarian peserta untuk Member (`GET /events/people`), (2) `sort=overdue` Tim | Butuh jawaban sebelum E-09 dan M06 | `PROGRES-S3-S8` §6b |
+| H-D7 | Berkas bingkai (`app/routes.ts`, `NAV`, `AppFrame.tsx`) diklaim dua rencana (I09 dan E-08) | Satu tugas integrator memasang NAV+rute Inbox dan Event sekaligus, `APP_URLS` naik. **Hitungan URL kini 18** (tab Tahapan dan `/app/team/:userId`) | `PROGRES-S3-S8` §6b |
+| H-D8 | Keputusan user menggantung: (1) pencarian peserta untuk Member (`GET /events/people`). ~~(2) `sort=overdue` Tim~~ **selesai 20 Okt 2026**: urutan beban kini global (jendela 200 orang) | Butuh jawaban sebelum E-09 dan M06 | `PROGRES-S3-S8` §6b |
 
 ## H-E. Hutang teknis
 
@@ -111,6 +111,8 @@ Menurut [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) §1, **MVP Inti = S0 (a
 | H-E5 | Batas 1000 proyek pada filter perhatian, tanpa cache kondisi | lihat H-B9 | laporan `s5a-04` |
 | H-E6 | Audit baru `project.condition.set/cleared` ditambahkan di luar permintaan pasti; hapus bila tak diinginkan | keputusan user | laporan `s5a-04` |
 | H-E7 | Tes `project.query` memakai anggaran query detail 8 (naik dari 4-6 karena riwayat tenggat + rencana kondisi); tinjau bila detail ditambah | pemilik query detail | penggabungan S5a |
+| H-E8 | **Tes yang sesekali gagal:** `tests/db/pm-indexes.test.ts` (`tasks by assignee … task_assignee_id_status_due_date_idx`, statistik perencana Postgres) gagal sekali dari tiga run penuh dan lulus saat diulang; `membership.query` dilaporkan serupa oleh worker. Tidak terkait menu Tim | pemilik tes indeks | gelombang Tim 20 Okt |
+| H-E9 | **Tes rute hanya membaca teks sumber** (`tests/app-routes.test.ts`), tidak mengimpor loader: impor yang rusak (`getPerson` dipindah modul) lolos dari `bun run test` dan baru ditolak typecheck/build. Tambah tes yang mengimpor tiap modul rute, atau jadikan typecheck gerbang wajib | pemilik tes rute | gelombang Tim 20 Okt |
 
 ## H-F. Fase 5 dan sesudahnya (sengaja belum dijadwalkan)
 
@@ -124,7 +126,7 @@ AI: cerita proyek, notulensi foto/suara, Ask Data (butuh `ai_enabled`, D3) · Te
 | H-G2 | Buka `extend-deadline`/`condition-override` untuk API key? | Tetap ditolak | H-B8 |
 | H-G3 | Fitur AI: penyedia, biaya, dan privasi data | **Default sementara dipakai (19 Okt 2026):** Anthropic Messages API lewat `fetch`, kunci opsional `ANTHROPIC_API_KEY`, hanya teks + nama anggota yang dikirim, tanpa log teks. Menunggu persetujuan user; biaya belum diukur (H-C14) | H-B1 |
 | H-G4 | Pencarian peserta Event untuk Member (H-D8-1) | Batasi ke orang sekawan proyek (`loadScopeFor`) | E-09 |
-| H-G5 | `sort=overdue` Tim: ganti label atau perluas kueri (H-D8-2) | Ganti label | M06 |
+| H-G5 | ~~`sort=overdue` Tim: ganti label atau perluas kueri (H-D8-2)~~ | **Selesai 20 Okt 2026**: dijawab dengan memperluas kueri (jendela 200 orang) | M06 |
 | H-G6 | Arsip/duplikat proyek perlu? (H-B13) | Tunda | |
 | H-G7 | **Menu Tugas, 19 Okt 2026:** setujui atau ganti penyedia AI "Tulis saja ✦" (sama dengan H-G3, kini sudah dibangun): Anthropic via `fetch`, model default `claude-haiku-5-5`. Perlu `ANTHROPIC_API_KEY` dari user untuk uji sungguhan | Setujui, lalu jalankan H-C14 | H-C14 |
 | H-G8 | **Eden mengubah `YYYY-MM-DD` menjadi `Date`:** perbaiki di klien Eden bersama (`app/lib/eden.ts`) atau tetap menambal per pemakai seperti `useTaskDraft`? | Perbaiki di klien bersama, setelah audit semua pembaca tanggal | H-C15 |

@@ -1,11 +1,9 @@
-/** Pure helpers behind the dummy Events, Inbox and Tim pages (Sampah is real in this branch). */
+/** Pure helpers behind the dummy Events and Inbox pages (Sampah is real in this branch). */
 import { describe, expect, it } from 'bun:test';
 import { EVENTS } from '../app/components/events/events.dummy';
 import { filterEvents, groupEvents, groupOf } from '../app/components/events/events.filter';
 import { monthCells } from '../app/components/events/MonthGrid';
 import { LATEST_NEWS, NEEDS_ACTION } from '../app/components/inbox/inbox.dummy';
-import { TEAM_PROJECTS } from '../app/components/team/team.dummy';
-import { canSeeWorkload, filterTeam, summaryOf } from '../app/components/team/team.filter';
 
 const ids = (rows: { id: string }[]) => rows.map((r) => r.id);
 /** Value that must exist; fails the test with a clear message instead of using `!`. */
@@ -55,28 +53,5 @@ describe('inbox', () => {
     expect(new Set(ids(all)).size).toBe(all.length);
     for (const i of all) expect(i.to.startsWith('/app/')).toBe(true);
     for (const i of NEEDS_ACTION) expect(i.actionLabel).toBeTruthy();
-  });
-});
-
-describe('team', () => {
-  it('summarises a project like the wireframe', () => {
-    expect(summaryOf(must(TEAM_PROJECTS[0]))).toBe(
-      'Proyek Atlas · 3 orang · 9 tugas aktif · 2 terlambat',
-    );
-  });
-
-  it('shows workload only for the viewer themself unless they manage the project', () => {
-    const [dodi, nico] = must(TEAM_PROJECTS[0]).members;
-    expect(canSeeWorkload(must(dodi))).toBe(true);
-    expect(canSeeWorkload(must(nico))).toBe(false);
-    expect(canSeeWorkload(must(nico), true)).toBe(true);
-  });
-
-  it('narrows by project and name and drops empty projects', () => {
-    expect(filterTeam(TEAM_PROJECTS, 'Proyek Atlas', '')).toHaveLength(1);
-    expect(filterTeam(TEAM_PROJECTS, null, 'budi').map((p) => p.name)).toEqual([
-      'Portal Klien PT Sinar',
-    ]);
-    expect(filterTeam(TEAM_PROJECTS, null, 'zzz')).toEqual([]);
   });
 });
