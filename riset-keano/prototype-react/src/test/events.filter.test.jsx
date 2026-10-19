@@ -162,4 +162,12 @@ describe('events filter & sort', () => {
     expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 1 event' })).toBeInTheDocument();
     expect(dom.getByText('Atlas daily stand-up')).toBeInTheDocument();
   });
+
+  it('leaves the View button off the upcoming cards; tapping the card still opens the event', () => {
+    renderApp('events.list', 'pm');
+    expect(dom.queryByRole('button', { name: 'View' })).not.toBeInTheDocument();
+    fireEvent.click(dom.getByText('Onboarding design review').closest('[role="button"]'));
+    expect(dom.queryByRole('button', { name: 'Filter and sort' })).not.toBeInTheDocument();
+    expect(dom.getAllByText('Onboarding design review').length).toBeGreaterThan(0);
+  });
 });

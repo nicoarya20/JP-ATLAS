@@ -26,13 +26,13 @@ export function EventsTools({ on }) {
   );
 }
 
-/** Event card. Tap: not done → detail (recurring → ④b); done → its outcomes. */
+/** Event card. Tap: not done → detail (recurring → ④b), with no button of its own; done → its outcomes, with a results button. */
 function EventCard({ e }) {
   const { is } = useApp();
   const done = e.status === 'Done';
   const target = done ? EV.results(e) : EV.detail(e);
   const status = EV.status(e);
-  const btn = !done ? <Btn sm go={target}>View</Btn>
+  const btn = !done ? null
     : EV.confirmed(e) || is('member') ? <Btn sm go={target}>View results</Btn>
       : <Btn kind="primary" sm go={target}>Check results</Btn>;
   return (
