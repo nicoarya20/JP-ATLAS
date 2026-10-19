@@ -121,6 +121,20 @@ describe('listProjects search, filter, order and paging', () => {
     ]);
   });
 
+  it('carries startDate and dueDate on every list item (null when unset), for the Gantt view', async () => {
+    const mk = marker();
+    const lead = await f.user({ role: 'project_manager' });
+    await f.project({ lead, name: `${mk} a`, startDate: '2026-10-01', dueDate: '2026-11-15' });
+    await f.project({ lead, name: `${mk} b`, dueDate: '2026-12-01' });
+    await f.project({ lead, name: `${mk} c` });
+    const r = await list(lead, mk);
+    expect(r.items.map((i) => [i.name.slice(-1), i.startDate, i.dueDate])).toEqual([
+      ['a', '2026-10-01', '2026-11-15'],
+      ['b', null, '2026-12-01'],
+      ['c', null, null],
+    ]);
+  });
+
   it('pages with offset and reports the full total, even past the end', async () => {
     const mk = marker();
     const lead = await f.user({ role: 'project_manager' });

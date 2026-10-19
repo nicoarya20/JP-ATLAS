@@ -1,4 +1,4 @@
-/** One project as a mobile card (< sm), plus the cells the list table shares with it. */
+/** One project as a card (mobile list and grid view), plus the cells the list table shares with it. */
 import { Anchor, Button, Group, Stack, Text } from '@mantine/core';
 import type { IsoDate } from '@server/metrics/types';
 import type { ProjectListItem } from '@server/project/project.dto';
@@ -9,7 +9,14 @@ import { ProgressBar } from '~/components/pm/ProgressBar';
 import { StatusBadge } from '~/components/pm/StatusBadge';
 import { DateText } from '~/components/ui/DateText';
 import { AvatarStack } from '~/components/ui/MemberAvatar';
+import './project-click.css';
 import { HEADER_COPY, LABEL_LEAD, LIST_COPY } from './projects.copy';
+
+/** Class names of `project-click.css`: the row/card is the click area, the name link stretches over it. */
+export const CLICK_ROW = 'mk-click-row';
+export const CLICK_CARD = 'mk-click-card';
+const ROW_LINK = 'mk-row-link';
+const ABOVE = 'mk-above';
 
 export const projectHref = (id: string) => `/app/projects/${encodeURIComponent(id)}`;
 
@@ -66,6 +73,7 @@ export function ProjectNameLink({ project }: { project: ProjectListItem }) {
     <Anchor
       component={Link}
       to={projectHref(project.id)}
+      className={ROW_LINK}
       fw={600}
       style={{ overflowWrap: 'anywhere' }}
     >
@@ -76,7 +84,7 @@ export function ProjectNameLink({ project }: { project: ProjectListItem }) {
 
 type Props = { project: ProjectListItem; today: IsoDate };
 
-/** Mobile card: name and status first, then condition, progress and dates, the action last. */
+/** Card body: name and status first, then condition, progress and dates, the action last. */
 export function ProjectCard({ project, today }: Props) {
   return (
     <Stack gap="sm">
@@ -99,6 +107,7 @@ export function ProjectCard({ project, today }: Props) {
       <Button
         component={Link}
         to={projectHref(project.id)}
+        className={ABOVE}
         variant="light"
         fullWidth
         rightSection={<FiArrowRight size="1.25em" aria-hidden />}

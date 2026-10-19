@@ -10,7 +10,7 @@ import { FiAlertCircle, FiPlus } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { clearFiltersHref, emptyKind, ProjectEmpty } from '~/components/projects/ProjectEmpty';
 import { ProjectFilters } from '~/components/projects/ProjectFilters';
-import { ProjectList } from '~/components/projects/ProjectList';
+import { ProjectResults } from '~/components/projects/ProjectResults';
 import { LIST_COPY } from '~/components/projects/projects.copy';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
@@ -119,7 +119,8 @@ export default function ProjectsPage({ loaderData }: Route.ComponentProps) {
             {projectErrorMessage(pages.error)}
           </Alert>
         )}
-        <ProjectList
+        <ProjectResults
+          view={filters.tampilan}
           items={items}
           total={total}
           today={loaderData.today}

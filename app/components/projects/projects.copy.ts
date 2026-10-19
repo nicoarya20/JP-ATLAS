@@ -105,14 +105,18 @@ export const LIST_COPY = {
   description: 'Proyek yang Anda ikuti dan perkembangannya.',
   create: 'Proyek baru',
   tableLabel: 'Daftar proyek',
+  gridLabel: 'Kartu proyek',
+  ganttLabel: 'Jadwal proyek',
   searchLabel: 'Cari proyek',
-  searchPlaceholder: 'Ketik nama proyek',
+  // The server matches the name only, so the placeholder must not promise a description search.
+  searchPlaceholder: 'Cari nama proyek…',
   scopeLabel: 'Tampilkan',
   scopeMine: 'Proyek saya',
   scopeAll: 'Semua proyek',
   statusLabel: 'Saring menurut status',
   statusAll: 'Semua',
   sortLabel: 'Urutkan',
+  sortPrefix: 'Urutkan:',
   sortDue: 'Tenggat terdekat',
   sortRecent: 'Terakhir diubah',
   sortName: 'Nama',
@@ -127,6 +131,43 @@ export const LIST_COPY = {
   more: 'Tampilkan lebih banyak',
   shown: (shown: number, total: number) => `Menampilkan ${shown} dari ${total} proyek`,
   loadFailed: 'Gagal memuat proyek',
+} as const;
+
+/** Switch between the table, the cards and the timeline of the project list. */
+export const VIEW_COPY = {
+  label: 'Pilih tampilan daftar proyek',
+  list: { label: 'List', hint: 'Tampilan daftar' },
+  grid: { label: 'Grid', hint: 'Tampilan kartu' },
+  gantt: { label: 'Gantt', hint: 'Tampilan jadwal (Gantt)' },
+} as const;
+
+/** Gantt view of the project list: the bars, the "today" line and the projects without dates. */
+export const GANTT_COPY = {
+  rowsHeader: 'Proyek',
+  today: 'Hari ini',
+  todayIn: (date: string) => `Garis putus-putus merah: hari ini, ${date}.`,
+  todayOut: (date: string) => `Hari ini (${date}) di luar rentang yang ditampilkan.`,
+  scrollHint: 'Geser ke samping untuk melihat bulan lainnya.',
+  legendTitle: 'Arti warna batang',
+  legendNoCondition: 'Proyek tanpa kondisi memakai warna statusnya.',
+  dueOnlyLegend: 'Belah ketupat: baru ada tenggat, belum ada tanggal mulai.',
+  nothingToDraw: 'Belum ada proyek yang punya tanggal untuk digambar.',
+  nothingToDrawHint: 'Isi tanggal mulai dan tenggat proyek agar tampil di jadwal.',
+  unscheduledTitle: 'Belum ada tanggal',
+  unscheduledHint: 'Proyek ini belum punya tenggat, jadi belum bisa digambar di jadwal.',
+  onlyStart: (date: string) => `Baru ada tanggal mulai: ${date}.`,
+  range: (from: string, to: string) => `${from} – ${to}`,
+  dueOnly: (date: string) => `Tenggat ${date}`,
+  barLabel: (name: string, from: string, to: string, status: string, progress: string) =>
+    `${name}: ${from} sampai ${to}. Status ${status}. ${progress}`,
+  dueLabel: (name: string, date: string, status: string) =>
+    `${name}: tenggat ${date}. Status ${status}.`,
+  progress: (percent: number) => `${percent}% selesai`,
+  noTasks: 'Belum ada tugas',
+  stageDone: (label: string) => `Tahap ${label} (selesai)`,
+  stageOpen: (label: string) => `Tahap ${label} (belum selesai)`,
+  milestoneReached: (label: string) => `Tonggak ${label} (tercapai)`,
+  milestoneOpen: (label: string) => `Tonggak ${label} (belum tercapai)`,
 } as const;
 
 /** Empty states: no project yet (can create), Member not in any project, filters matching nothing. */

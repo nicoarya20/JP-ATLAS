@@ -24,6 +24,9 @@ type Props<T> = {
   empty: ReactNode;
   /** Accessible name of the table for screen readers. */
   label: string;
+  /** Class for each body row / mobile card, e.g. the stretched-link click area of the project list. */
+  rowClassName?: string;
+  cardClassName?: string;
 };
 
 /**
@@ -37,6 +40,8 @@ export function ResponsiveTable<T>({
   renderCard,
   empty,
   label,
+  rowClassName,
+  cardClassName,
 }: Props<T>) {
   if (rows.length === 0) return <>{empty}</>;
   return (
@@ -54,7 +59,7 @@ export function ResponsiveTable<T>({
           </Table.Thead>
           <Table.Tbody>
             {rows.map((row) => (
-              <Table.Tr key={getRowKey(row)}>
+              <Table.Tr key={getRowKey(row)} className={rowClassName}>
                 {columns.map((c) => (
                   <Table.Td key={c.key} visibleFrom={c.hideBelow} ta={c.align}>
                     {c.cell(row)}
@@ -67,7 +72,14 @@ export function ResponsiveTable<T>({
       </Box>
       <Stack gap="xs" hiddenFrom="sm" aria-label={label} role="list">
         {rows.map((row) => (
-          <Paper key={getRowKey(row)} withBorder p="sm" radius="md" role="listitem">
+          <Paper
+            key={getRowKey(row)}
+            withBorder
+            p="sm"
+            radius="md"
+            role="listitem"
+            className={cardClassName}
+          >
             {renderCard(row)}
           </Paper>
         ))}
