@@ -123,7 +123,7 @@ export function ProjectFilters({ filters, canSeeAll, onChange, extraChips }: Pro
             {extraChips}
           </>
         )}
-        <Group gap="xs" wrap="nowrap" ml="auto">
+        <Group gap="xs" wrap="wrap" ml="auto">
           <Text id={SORT_LABEL_ID} size="sm" c="dimmed">
             {LIST_COPY.sortPrefix}
           </Text>

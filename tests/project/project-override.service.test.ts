@@ -48,9 +48,14 @@ const rows = (id: string) =>
     .where(eq(projectConditionOverride.projectId, id))
     .orderBy(asc(projectConditionOverride.createdAt));
 const actions = async (id: string) =>
-  (await db.select().from(projectActivity).where(eq(projectActivity.projectId, id))).map(
-    (a) => a.action,
-  );
+  (
+    await db
+      .select()
+      .from(projectActivity)
+      .where(eq(projectActivity.projectId, id))
+      // Without an order Postgres may return the rows in any order, which made this suite flaky.
+      .orderBy(asc(projectActivity.createdAt))
+  ).map((a) => a.action);
 
 describe('setConditionOverride', () => {
   it('stores the override with its author and logs the activity', async () => {

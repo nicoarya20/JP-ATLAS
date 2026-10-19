@@ -73,6 +73,7 @@ describe('GET /app/projects', () => {
         'name',
         'priority',
         'progress',
+        'startDate', // added for the Gantt view (S5a): the list now carries the start date
         'status',
       ].sort(),
     );

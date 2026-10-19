@@ -22,7 +22,7 @@ export function GanttLegend({ layout, today }: { layout: GanttLayout; today: Iso
         {LEGEND.map(([level, color]) => {
           const { label, icon: Icon } = CONDITION_LABELS[level];
           return (
-            <Group key={level} gap={6} wrap="nowrap">
+            <Group key={level} gap={6} wrap="wrap">
               <Box
                 aria-hidden
                 style={{

@@ -66,7 +66,7 @@ function LabelCell({ project: p, row }: Pick<Props, 'project' | 'row'>) {
           </Text>
         </Group>
         {cond && CondIcon && (
-          <Group gap={4} wrap="nowrap" c={`${cond.color}.8`}>
+          <Group gap={4} wrap="wrap" c={`${cond.color}.8`}>
             <CondIcon size="1.25em" aria-hidden />
             <Text size="xs" fw={600} inherit>
               {cond.label}
