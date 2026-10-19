@@ -92,6 +92,43 @@ describe('Atlas lists', () => {
     expect(res.items.map((i) => i.id)).toEqual(expected.map((k) => key(k)));
   });
 
+  // Bug: the Proyek filter of the Tugas page sends `projectId` with scope `mine` or `all`, and the query ignored it.
+  it.each([
+    ['mine', 'nico', 'atlas', ['architecture', 'fixSso', 'specApi', 'reviewDesign']],
+    ['mine', 'nico', 'sinar', ['sinarReport']],
+  ] as const)(
+    'narrows scope %s to the chosen project (%s, %s)',
+    async (scope, who, projectKey, expected) => {
+      const res = good(
+        await listTasks(
+          principal(atlas.users[who]),
+          { scope, projectId: atlas.projects[projectKey].id },
+          clock,
+        ),
+      );
+      expect(res.items.map((i) => i.id)).toEqual(expected.map((k) => key(k)));
+      expect(new Set(res.items.map((i) => i.project.id))).toEqual(
+        new Set([atlas.projects[projectKey].id]),
+      );
+    },
+  );
+
+  it('narrows "all" to the chosen project and still hides projects the caller may not see', async () => {
+    const nico = principal(atlas.users.nico);
+    const inSinar = good(
+      await listTasks(nico, { scope: 'all', projectId: atlas.projects.sinar.id }, clock),
+    );
+    expect(inSinar.items.length).toBeGreaterThan(0);
+    expect(new Set(inSinar.items.map((i) => i.project.id))).toEqual(
+      new Set([atlas.projects.sinar.id]),
+    );
+    // An id the caller cannot see (or that does not exist) is an empty list, never another project's rows.
+    const unknown = good(
+      await listTasks(nico, { scope: 'all', projectId: `${f.tag}-no-such-project` }, clock),
+    );
+    expect(unknown.items).toEqual([]);
+  });
+
   it('keeps finished tasks out of every schedule group filter', async () => {
     const res = good(
       await listTasks(principal(atlas.users.nico), { scope: 'mine', due: 'overdue' }, clock),

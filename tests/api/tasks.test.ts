@@ -120,6 +120,22 @@ describe('GET /app/tasks', () => {
     expectApiError(await call('GET', `${BASE}?scope=project`), 422, 'VALIDATION');
   });
 
+  // The Proyek filter on the Tugas page sends `projectId` together with scope `mine` or `all`.
+  it('narrows "mine" and "all" to the chosen project, and shows nothing of a project the caller may not see', async () => {
+    const { lead, me, mine, other, hidden } = await graph();
+    const leadInMine = await f.task({ project: mine, assignee: lead, creator: lead });
+    auth.as(lead);
+    const ids = async (qs: string) =>
+      (await call('GET', `${BASE}?${qs}`)).body.items.map((i: Json) => i.id).sort();
+    expect(await ids('scope=mine')).toEqual([hidden.id, leadInMine.id].sort());
+    expect(await ids(`scope=mine&projectId=${other.id}`)).toEqual([hidden.id]);
+    expect(await ids(`scope=mine&projectId=${mine.id}`)).toEqual([leadInMine.id]);
+    expect(await ids(`scope=all&projectId=${other.id}`)).toEqual([hidden.id]);
+    // A member of `mine` only: naming another project is an empty list, not a way to read it.
+    auth.as(me);
+    expect(await ids(`scope=all&projectId=${other.id}`)).toEqual([]);
+  });
+
   it('pages with the keyset cursor without duplicates or gaps', async () => {
     const { me, mine } = await graph();
     await f.tasks(mine, 3, (i) => ({ assignee: me, due: `2030-02-0${i + 1}` }));

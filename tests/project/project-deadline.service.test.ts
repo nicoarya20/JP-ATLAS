@@ -43,7 +43,9 @@ const extensions = (id: string) =>
     .select()
     .from(projectDeadlineExtension)
     .where(eq(projectDeadlineExtension.projectId, id))
-    .orderBy(asc(projectDeadlineExtension.createdAt));
+    // Chain order, not `created_at`: that column is the transaction start time, so two simultaneous
+    // extensions can be stamped out of order while still forming one valid chain (each date is later).
+    .orderBy(asc(projectDeadlineExtension.oldDueDate));
 
 describe('extendDeadline', () => {
   it('moves the due date, fixes the baseline and writes history plus activity', async () => {
