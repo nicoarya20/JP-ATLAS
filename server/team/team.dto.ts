@@ -8,11 +8,15 @@
  * simply scan for the key names.
  */
 
+import type { Role } from '../permissions';
 import type { ProjectMemberRole, TaskStatus } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
 
-/** `name` is self first then A-Z; `overdue` is most overdue first, then name (managers and Admin only). */
-export type TeamSort = 'name' | 'overdue';
+/**
+ * `name` is self first then A-Z; `active` is most open tasks first and `overdue` most overdue
+ * first, both then name (managers and Admin only, the ones who may see other people's numbers).
+ */
+export type TeamSort = 'name' | 'active' | 'overdue';
 
 export type ListTeamInput = {
   /** Narrows the list to one project; a project the caller may not see answers `NOT_FOUND`. */
@@ -77,6 +81,11 @@ export type TeamTaskRef = {
 
 export type GetPersonOk = {
   person: TeamPersonProfile;
+  /**
+   * The stored account role, read like the user directory reads it. **Absent** (never `null`)
+   * unless the viewer is Admin or Super-admin: a colleague's account role is not for colleagues.
+   */
+  accountRole?: Role;
   projects: TeamProjectRef[];
   /** At most `PERSON_TASKS_MAX`, and only within the viewer's `LoadScope`. */
   tasks?: TeamTaskRef[];
