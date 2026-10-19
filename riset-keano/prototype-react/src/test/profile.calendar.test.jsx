@@ -17,8 +17,10 @@ const grid = () => document.querySelector('.pf-cal-grid');
 function swipeWeek(dx) {
   const strip = dom.getByRole('group', { name: 'Week' });
   act(() => {
-    fireEvent.pointerDown(strip, { clientX: 200, pointerId: 1 });
-    fireEvent.pointerUp(strip, { clientX: 200 + dx, pointerId: 1 });
+    fireEvent.pointerDown(strip, { clientX: 200, clientY: 50, pointerId: 1, button: 0 });
+    fireEvent.pointerMove(strip, { clientX: 200 + dx / 2, clientY: 50, pointerId: 1 });
+    fireEvent.pointerMove(strip, { clientX: 200 + dx, clientY: 50, pointerId: 1 });
+    fireEvent.pointerUp(strip, { clientX: 200 + dx, clientY: 50, pointerId: 1 });
   });
 }
 
@@ -88,8 +90,30 @@ describe('My calendar screen', () => {
     swipeWeek(80);
     swipeWeek(80);
     expect(selected()).toHaveAccessibleName('Wednesday, Sep 30, 2026');
-    swipeWeek(-20); // too short to count as a swipe
+    swipeWeek(-12); // too short to page: springs back
     expect(selected()).toHaveAccessibleName('Wednesday, Sep 30, 2026');
+    expect(document.querySelector('.pf-cal-track').style.getPropertyValue('--wk-drag')).toBe('0px');
+  });
+
+  it('drags the week strip with the finger and ignores a vertical move', () => {
+    renderApp('profile.calendar', 'pm');
+    const strip = dom.getByRole('group', { name: 'Week' });
+    const track = document.querySelector('.pf-cal-track');
+    expect(track.querySelectorAll('.pf-cal-days')).toHaveLength(3); // last, this and next week ready to slide in
+    act(() => {
+      fireEvent.pointerDown(strip, { clientX: 200, clientY: 50, pointerId: 1, button: 0 });
+      fireEvent.pointerMove(strip, { clientX: 170, clientY: 50, pointerId: 1 });
+    });
+    expect(track.style.getPropertyValue('--wk-drag')).toBe('-30px');
+    expect(track).toHaveClass('is-dragging');
+    act(() => { fireEvent.pointerCancel(strip, { pointerId: 1 }); });
+    expect(track.style.getPropertyValue('--wk-drag')).toBe('0px');
+    act(() => {
+      fireEvent.pointerDown(strip, { clientX: 200, clientY: 50, pointerId: 2, button: 0 });
+      fireEvent.pointerMove(strip, { clientX: 190, clientY: 120, pointerId: 2 });
+      fireEvent.pointerUp(strip, { clientX: 120, clientY: 120, pointerId: 2 });
+    });
+    expect(selected()).toHaveAccessibleName(`${D.today.date}, today`);
   });
 
   it('has no month or Today controls; the month title follows the swiped week', () => {
