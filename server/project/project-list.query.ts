@@ -1,6 +1,6 @@
 /**
- * Project list (S1-02, KB-9): visibility,  filters, sort and the "needs attention" filter.
- * At most 6 statements per call whatever the page size (R04 §3.7): tasks,
+ * Project list (S1-02, KB-9): visibility, filters, sort, the "needs attention" filter and the optional
+ * plan for the Gantt view. At most 7 statements per call whatever the page size (R04 §3.7): tasks,
  * memberships, milestones, overrides and plans are fetched for the whole page at once, never per project.
  */
 import { and, asc, count, desc, eq, ilike, inArray, type SQL, sql } from 'drizzle-orm';
@@ -17,6 +17,7 @@ import type { Executor } from '../pm/tx';
 import { loadMembership } from './membership.query';
 import { type ProjectListItem, type ProjectRow, toListItem } from './project.dto';
 import { loadConditionInputs, planOf } from './project-condition.query';
+import { listPlanOf, loadListPlans } from './project-plan-list.query';
 import { loadTasks, projectColumns } from './project-rows.query';
 
 export const PROJECT_SORTS = ['due', 'name', 'recent'] as const;
@@ -41,6 +42,8 @@ export type ListProjectsInput = {
   sort?: ProjectSort;
   /** Only `active` projects whose effective condition is at risk or late; `total` counts those. */
   attention?: boolean;
+  /** Give every item its phases and milestones (`plan`). */
+  withPlan?: boolean;
   limit: number;
   offset: number;
   /** Injected so "today" is testable; the handler passes `new Date()`. */
@@ -82,6 +85,20 @@ async function toItems(
       planOf(plans, r.id),
     ),
   );
+}
+
+/** Adds `plan` to each item of the page when the caller asked for it; otherwise the items pass through. */
+async function withPlans(
+  items: ProjectListItem[],
+  input: ListProjectsInput,
+  exec: Executor,
+): Promise<ProjectListItem[]> {
+  if (!input.withPlan) return items;
+  const plans = await loadListPlans(
+    items.map((i) => i.id),
+    exec,
+  );
+  return items.map((i) => ({ ...i, plan: listPlanOf(plans, i.id) }));
 }
 
 /**
@@ -126,12 +143,13 @@ export async function listProjects(
       (i) => i.condition && ATTENTION_CONDITIONS.includes(i.condition.level),
     );
     const page = flagged.slice(input.offset, input.offset + input.limit);
-    return { items: page, total: flagged.length };
+    return { items: await withPlans(page, input, exec), total: flagged.length };
   }
 
   const [[totalRow], rows] = await Promise.all([
     exec.select({ n: count() }).from(project).where(where),
     ordered.limit(input.limit).offset(input.offset),
   ]);
-  return { items: await toItems(p, rows, input, exec), total: totalRow?.n ?? 0 };
+  const items = await withPlans(await toItems(p, rows, input, exec), input, exec);
+  return { items, total: totalRow?.n ?? 0 };
 }
