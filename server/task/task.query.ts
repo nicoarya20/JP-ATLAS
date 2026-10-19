@@ -47,7 +47,8 @@ function filtersOf(p: Principal, i: ListTasksInput, today: string): (SQL | undef
   const q = i.q?.trim().slice(0, TASK_SEARCH_MAX);
   return [
     i.scope === 'mine' ? eq(task.assigneeId, p.id) : undefined,
-    i.scope === 'project' ? eq(task.projectId, i.projectId as string) : undefined,
+    // Whenever a project is named, not only for `scope=project`: the Proyek filter of the Tugas page sends it with `mine` and `all`.
+    i.projectId ? eq(task.projectId, i.projectId) : undefined,
     i.status?.length ? inArray(task.status, [...i.status]) : undefined,
     i.assigneeId ? eq(task.assigneeId, i.assigneeId) : undefined,
     i.priority?.length ? inArray(task.priority, [...i.priority]) : undefined,
