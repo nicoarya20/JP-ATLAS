@@ -8,7 +8,8 @@
 | S3 | Inbox | [P5](rencana/P5-s3-inbox.md) | 14 | 0 | **9 review** (I01-I07, I11, I14); sisa I08-I10, I12, I13 |
 | S3 | Beranda | [P4](rencana/P4-s3-beranda.md) | 12 | 0 | rencana selesai, belum dikerjakan |
 | S4 | Tugas lanjutan (Periksa, dependensi, tag, Papan) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 15 | 0 | rencana selesai, belum dikerjakan |
-| S5 | Tugas lanjutan (Tahapan, tenggat, bukti) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) | 14 | 0 | rencana selesai, belum dikerjakan |
+| S5a | Tahapan, milestone, perpanjang tenggat, Perlu perhatian, Gantt (dikerjakan lebih dulu atas permintaan user 19 Okt) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) L5-01..04, 08..11 + [P3](rencana/P3-s1-s2-proyek-tugas.md) tampilan proyek | 8 + 2 | 0 | **review** di cabang `feature/pm-s5a-project-plan`; belum di-merge, belum di-push |
+| S5b | Jenis tugas dan Bukti (unggah foto) | [P10](rencana/P10-s4-s5-tugas-lanjutan.md) L5-05..07, 12..14 | 6 | 0 | belum dikerjakan |
 | S6 | Sampah | [P8](rencana/P8-s6-sampah.md) | 8 | 0 | **1 review** (Z-01) |
 | S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 0 | **4 review** (M01-M04); sisa M05-M10 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
@@ -27,7 +28,8 @@
 | S3a | Inbox I01-I04 (tabel, `notify()`, API baca) | **lulus (review)** — keempatnya hijau di `feature/pm-s3-i01-i02-notification-core` |
 | S3 | Demo Inbox dan Beranda; uji pengguna S3 (Beranda ≤10 detik) | belum |
 | S4 | Periksa, dependensi, tag, Papan | belum |
-| S5 | Tahapan, tenggat, bukti | belum |
+| S5a | Tahapan, milestone, tenggat, Perlu perhatian, Gantt | **kode selesai, review** (5506 tes lulus, `smoke:prod` 39/39; `smoke:binary` belum jalan: butuh Bun 1.4.2) |
+| S5b | Jenis tugas dan Bukti | belum |
 | S6 | Sampah, Tim, Pengaturan | belum |
 | S7 | Event | belum |
 | S8 | Pengerasan dan rilis (belum direncanakan) | belum |
@@ -37,8 +39,9 @@
 |---|---|---|---|
 | Inbox: `notification`, `notification_pref` | 0017 | I01 | review (`9dcb52d`) |
 | Event | 0018 | E-01 | review (`09cf69c`) |
-| Periksa, dependensi, tag | 0019 | L4-01 | belum |
-| Tahapan, tenggat, bukti | 0020 | L5-01 | belum |
+| Tahapan, milestone, perpanjangan, override kondisi, `task.phase_id` | **0019** (`0019_project_plan`) | S5a-01 | review (cabang `feature/pm-s5a-project-plan`) |
+| Periksa, dependensi, tag | **0020** (bergeser dari 0019 karena S5a dikerjakan lebih dulu; L4-01 wajib memakai nomor berikutnya yang bebas) | L4-01 | belum |
+| Bukti (lampiran tugas, S5b) | nomor bebas berikutnya setelah L4-01 | L5-01 (sisa) | belum |
 | Indeks `project_member (project_id, role)` | menurut baton (0019) | M05 | **masih terbuka** — sengaja dipisah dari M02; M02 terbukti tanpa indeks ini |
 | `contract-v1` + 3 URL Event (13 → 16) | PCC `docs/decisions/0003-contract-v1-event-urls.md` | **ADR: E-01 (selesai). Kenaikan hitungan: E-09..E-11** | disetujui user (§5 no. 2); hitungan masih 13 sampai rutenya terdaftar |
 | `GET /api/app/home` | tambahan kompatibel | B-06 | belum |
@@ -103,17 +106,17 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 ### S5 · Tugas lanjutan (Tahapan, tenggat, bukti)
 | ID | Tugas | Status | Cabang | Hash | Catatan |
 |---|---|---|---|---|---|
-| L5-01 | Migrasi 0020: Tahapan, tenggat, bukti [MIG]* | belum | – | – | – |
-| L5-02 | Kondisi proyek: ≥ 12 kasus tabel | belum | – | – | – |
-| L5-03 | Tahapan dan milestone (service + rute) | belum | – | – | – |
-| L5-04 | Perpanjang tenggat dan override kondisi | belum | – | – | – |
+| L5-01 | Migrasi: Tahapan, milestone, perpanjangan, override [MIG]* | review | `feature/pm-s5a-project-plan` | – | Nomor **0019**. Tabel Bukti sengaja tidak ikut (S5b) |
+| L5-02 | Kondisi proyek: ≥ 12 kasus tabel | review | `feature/pm-s5a-project-plan` | – | 13 kasus + milestone/override sungguhan di query daftar dan detail |
+| L5-03 | Tahapan dan milestone (service + rute) | review | `feature/pm-s5a-project-plan` | – | Nama field mengikuti R02 (`endDate`, `title`, `in_progress`) |
+| L5-04 | Perpanjang tenggat dan override kondisi | review | `feature/pm-s5a-project-plan` | – | Termasuk `GET activity` untuk kartu Aktivitas |
 | L5-05 | Kelola jenis tugas | belum | – | – | – |
 | L5-06 | Pengenal tipe berkas (magic bytes) murni | belum | – | – | – |
 | L5-07 | Bukti: unggah, daftar, unduh | belum | – | – | – |
-| L5-08 | Perakitan rute S5 + scope + penjaga (SP-S5a) | belum | – | – | – |
-| L5-09 | Klien API S5 | belum | – | – | – |
-| L5-10 | UI Tahapan dan milestone | belum | – | – | – |
-| L5-11 | UI Perpanjang tenggat dan kondisi | belum | – | – | – |
+| L5-08 | Perakitan rute S5 + scope + penjaga (SP-S5a) | review | `feature/pm-s5a-project-plan` | – | Hanya rute S5a; `extend-deadline` dan override ditolak untuk kunci API; juga filter `?perhatian=1`/`?rencana=1` |
+| L5-09 | Klien API S5 | review | `feature/pm-s5a-project-plan` | – | Bagian S5a: `project-plan-api.ts`, `project-deadline-api.ts` |
+| L5-10 | UI Tahapan dan milestone | review | `feature/pm-s5a-project-plan` | – | Tab sendiri `/app/projects/:id/phases` (URL `/app` 16 → 17). Pemilih Tahapan di form tugas belum (DTO tugas belum membawa `phaseId`) |
+| L5-11 | UI Perpanjang tenggat dan kondisi | review | `feature/pm-s5a-project-plan` | – | Modal, lencana ×N, atur kondisi, baris "Kenapa:". "Geser tenggat" Inbox (L4-14) belum ada |
 | L5-12 | UI Bukti | belum | – | – | – |
 | L5-13 | UI kelola jenis tugas | belum | – | – | – |
 | L5-14 | Smoke, QA, dokumen, gerbang S5 | belum | – | – | – |
@@ -246,5 +249,6 @@ Rencana sudah dibetulkan; baris ini menjaga jejaknya.
 | M05 (indeks `project_member (project_id, role)`) belum dikerjakan | M05 sendiri, setelah baton 0019 bebas | M02 terbukti benar tanpanya (yang diuji jumlah kueri) |
 
 ## 6. Log perubahan
+- **19 Okt 2026** — **S5a** dikerjakan lebih dulu atas permintaan user (Gantt, tab Tahapan, Perpanjang tenggat, Perlu perhatian, tampilan List/Grid/Gantt, klik penuh baris). Run `run_16a50a64efba` + `run_cba6e636b9fb`, tujuh pekerja, semua digabung di `feature/pm-s5a-project-plan` (dari `fix/pm-project-back-link`). Hasil: 5506 tes lulus/0 gagal, typecheck nol, `smoke:prod` 39/39. **Belum** di-push dan belum di-merge. Migrasi S5a = 0019, jadi L4-01 (S4) bergeser ke 0020. Hutang: KB-3 (form Ubah proyek masih bisa mengubah tenggat langsung), pemilih Tahapan di form tugas, status tahapan diubah manual, batas pindai 1000 proyek untuk filter Perlu perhatian, `smoke:binary` belum dijalankan.
 - **18 Okt 2026** — Gelombang **G21** (run `run_8c394266a4d2`) dikerjakan: 10 tugas berstatus `review` di empat cabang, nol gagal di tiap cabang. Urutan menu mengikuti permintaan user: Inbox, Event, Tim, Sampah; Beranda (P4) ditunda. Sepuluh keputusan §5 dipakai apa adanya dan gerbang S2 diterobos atas keputusan user. Dua gangguan: batas pemakaian akun memutus tiga pekerja (kerja diselamatkan karena belum ter-commit), lalu restart aplikasi Orca mematikan tiga terminal (dipulihkan di worktree yang sama). Cacat setup yang ditemukan dan diperbaiki: semua worktree memakai **socket dan port Postgres yang sama** (`socketDir()` = path tetap, port default 54329), sehingga tes satu pekerja berjalan di database pekerja lain; sejak itu tiap pekerja diberi `LOCAL_PG_PORT`/`LOCAL_PG_SOCKET_DIR`/`LOCAL_PG_DB` sendiri.
 - **18 Okt 2026** — Berkas dibuat dari tujuh rencana menu (run `run_ae24b153ade5`). Semua tugas berstatus `belum`.

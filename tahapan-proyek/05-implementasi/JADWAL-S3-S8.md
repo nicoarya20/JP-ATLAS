@@ -28,8 +28,8 @@ Lajur paralel yang aman: Tim (S6) tidak bergantung pada Inbox; Pengaturan G-01/G
 ## 3. Titik bersama yang harus diatur koordinator
 | Hal | Rincian | Keputusan |
 |---|---|---|
-| Baton migrasi | 0017 (Inbox) → 0018 (Event) → 0019/0020 (Tugas). Satu pemegang baton, dua `db:generate` bersamaan dilarang | tetap aturan README §3 |
-| Perubahan kontrak | Menu Event menambah 3 URL `/app/events*` → Permintaan Perubahan Kontrak (13 → 16 URL, ADR baru). Beranda menambah `GET /api/app/home` (tambahan kompatibel). P10 sengaja tanpa URL baru (Tahapan = seksi di Ringkasan, Papan = `?tampilan=papan`) | butuh persetujuan user (Q-E2) |
+| Baton migrasi | 0017 (Inbox) → 0018 (Event) → 0019 (**S5a: Tahapan/milestone**, sudah dipakai) → 0020+ (S4 Tugas lanjutan, lalu Bukti). Satu pemegang baton, dua `db:generate` bersamaan dilarang | tetap aturan README §3 |
+| Perubahan kontrak | Menu Event menambah 3 URL `/app/events*` → Permintaan Perubahan Kontrak (13 → 16 URL, ADR baru). Beranda menambah `GET /api/app/home` (tambahan kompatibel). P10 semula tanpa URL baru (Tahapan = seksi di Ringkasan, Papan = `?tampilan=papan`); **Tahapan kini tab sendiri `/app/projects/:id/phases` (keputusan user 19 Okt 2026, S5a): URL `/app` 16 → 17, dicatat di `docs/decisions/0002 §6`** | butuh persetujuan user (Q-E2) |
 | `PM_KEY_DENY` | Tambah: `DELETE trash/*`, `DELETE tasks/:id`, hapus acara, Approve/Return | per rencana |
 | Berkas sempit | `task.service.ts` 290/300 baris → kait Inbox ≤ 10 baris atau pecah dulu | P5 |
 | Sampah multi-jenis | Dipasang lewat registri `TrashKind` (P8) agar Event (S7) dan Lampiran (S5) tinggal mendaftar | P8 |
