@@ -57,7 +57,9 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/pm/enums.ts':
     // The EVENT_* tuples are additions by the S7 slice owner, allowed by 0002-contract-v1.md §2
     // ("menambah") and recorded as a written decision in 0003-contract-v1-event-urls.md.
-    'APPROVAL_STATUSES ApprovalStatus EVENT_KINDS EVENT_LOCATION_TYPES EVENT_NOTE_STATUSES EVENT_REMINDER_OFFSETS_MIN EventKind EventLocationType EventNoteStatus EventReminderOffset PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
+    // EXTENSION_REASON_CATEGORIES and PHASE_STATUSES are additions by S5a-01 (P10 L5-01): enum tuples for the
+    // project plan tables, nothing existing changes.
+    'APPROVAL_STATUSES ApprovalStatus EVENT_KINDS EVENT_LOCATION_TYPES EVENT_NOTE_STATUSES EVENT_REMINDER_OFFSETS_MIN EXTENSION_REASON_CATEGORIES EventKind EventLocationType EventNoteStatus EventReminderOffset ExtensionReasonCategory PHASE_STATUSES PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES PhaseStatus ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
   'server/pm/errors.ts':
     'DENY_CODES DenyCode PM_API_CODES PM_ERRORS PmApiCode PmCode PmErrorEntry PmHttp isDenyCode',
   'server/pm/limits.ts':
@@ -73,13 +75,14 @@ const SHARED_FILES = words(`
 `);
 
 /**
- * The thirteen /app URLs: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
+ * The seventeen /app URLs (docs/decisions/0004-contract-v1-hybrid-menus.md added /app/inbox, /app/events and /app/team; S5a UI-05 added the Tahapan tab, see 0002 §6): the thirteen: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
  * 15 Oct 2026, option B) and /app/tasks/:number/edit (S2-13, "Ubah tugas"); both compatible additions, see 0002-contract-v1.md §6. /profile is outside /app/.
  */
 const APP_URLS = words(`
   /app /app/projects /app/projects/new /app/projects/:projectId /app/projects/:projectId/tasks
-  /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
+  /app/projects/:projectId/phases /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
   /app/tasks/:number /app/tasks/:number/edit /app/settings /app/trash
+  /app/inbox /app/events /app/team
 `);
 
 const DECLARATION =
@@ -149,17 +152,20 @@ describe('contract-v1 routes and menu', () => {
     (u) => u === '/app' || u.startsWith('/app/'),
   );
 
-  it('registers exactly thirteen /app URLs', () => {
-    expect(appUrls).toHaveLength(13);
+  it('registers exactly seventeen /app URLs', () => {
+    expect(appUrls).toHaveLength(17);
     expect(appUrls.sort()).toEqual([...APP_URLS].sort());
   });
 
-  // Sampah joined the menu with its page (S1-18), before Pengaturan.
-  it('keeps exactly five items in the /app menu', () => {
+  // Sampah joined the menu with its page (S1-18); Inbox, Events and Tim joined with 0004.
+  it('keeps exactly eight items in the /app menu', () => {
     expect(NAV.map((n) => n.to)).toEqual([
       '/app',
+      '/app/inbox',
       '/app/projects',
       '/app/tasks',
+      '/app/events',
+      '/app/team',
       '/app/trash',
       '/app/settings',
     ]);

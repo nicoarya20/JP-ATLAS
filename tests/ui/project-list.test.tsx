@@ -42,6 +42,7 @@ const item = (over: Partial<ProjectListItem> = {}): ProjectListItem => ({
   status: 'active',
   priority: 'medium',
   lead: { id: 'u-1', name: 'Dodi' },
+  startDate: '2026-10-01',
   dueDate: '2026-10-31',
   progress: { done: 1, total: 6, percent: 17 },
   condition: { level: 'at_risk', reason: '1 tugas penting terlambat' },

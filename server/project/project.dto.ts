@@ -12,6 +12,13 @@ import type {
   ProjectPriority,
   ProjectStatus,
 } from '../pm/enums';
+import {
+  type ConditionOverrideDto,
+  type ConditionPlanInput,
+  type DeadlineExtensionDto,
+  NO_CONDITION_PLAN,
+  type ProjectListPlan,
+} from './project-plan.dto';
 
 /** Id and name only: no email or phone leaves through the project API (Q8). */
 export type ProjectLead = { id: string; name: string };
@@ -25,21 +32,39 @@ export type ProjectListItem = {
   status: ProjectStatus;
   priority: ProjectPriority;
   lead: ProjectLead | null;
+  /** Feeds the list's Gantt view; null when the project has no start date. */
+  startDate: string | null;
   dueDate: string | null;
   progress: ProjectProgress;
   condition: ProjectConditionDto | null; // only `active` projects have one
   /** The caller's own role; null for an Admin/PM who reads without being a member. */
   myRole: ProjectMemberRole | null;
+  /** Phases and milestones for the Gantt view; only on a list asked with `rencana=1`, never otherwise. */
+  plan?: ProjectListPlan;
+};
+
+/** Deadline history and the manual condition in force, added to the detail by S5a-03. */
+export type ProjectHistory = {
+  /** How many times the due date was moved later ("Diperpanjang ×N"). */
+  extensionCount: number;
+  lastExtension: DeadlineExtensionDto | null;
+  /** The manual condition in force; null when none, expired, cleared or the project is not `active`. */
+  conditionOverride: ConditionOverrideDto | null;
+};
+
+export const NO_HISTORY: ProjectHistory = {
+  extensionCount: 0,
+  lastExtension: null,
+  conditionOverride: null,
 };
 
 export type ProjectDetail = ProjectListItem & {
   description: string | null;
-  startDate: string | null;
   originalDueDate: string | null;
   /** `live` counts every task not in the Trash, canceled ones too: what a delete would move with it. */
   taskCounts: { active: number; overdue: number; live: number };
   can: ProjectCaps;
-};
+} & ProjectHistory;
 
 export type ProjectMemberItem = {
   userId: string;
@@ -54,7 +79,14 @@ export type ProjectMemberItem = {
 /** The project columns the read side selects, plus the lead's name from the join. */
 export type ProjectRow = Omit<
   ProjectDetail,
-  'lead' | 'progress' | 'condition' | 'myRole' | 'taskCounts' | 'can'
+  | 'lead'
+  | 'progress'
+  | 'condition'
+  | 'myRole'
+  | 'plan'
+  | 'taskCounts'
+  | 'can'
+  | keyof ProjectHistory
 > & {
   leadId: string | null;
   leadName: string | null;
@@ -69,6 +101,7 @@ export function toListItem(
   membership: Membership,
   now: Date,
   cfg: MetricsConfig,
+  plan: ConditionPlanInput = NO_CONDITION_PLAN,
 ): ProjectListItem {
   const { done, total, percent } = progress(tasks);
   const cond = computeCondition(
@@ -76,20 +109,23 @@ export function toListItem(
       status: row.status,
       dueDate: row.dueDate,
       tasks,
-      milestones: [], // S5 adds milestones and overrides; the signature already takes them
-      overrides: [],
+      milestones: plan.milestones,
+      overrides: plan.overrides,
       today: isoDateIn(now, cfg.TIME_ZONE),
       now,
     },
     cfg,
   );
-  const reason = cond?.computed.reasons.map(formatConditionReason).join(', ');
+  // A manual condition is the manager's own explanation; the computed reasons would contradict it.
+  const reason =
+    cond?.override?.reason ?? cond?.computed.reasons.map(formatConditionReason).join(', ');
   return {
     id: row.id,
     name: row.name,
     status: row.status,
     priority: row.priority,
     lead: row.leadId && row.leadName ? { id: row.leadId, name: row.leadName } : null,
+    startDate: row.startDate,
     dueDate: row.dueDate,
     progress: { done, total, percent },
     condition: cond ? { level: cond.effective, reason: reason || null } : null,
@@ -106,13 +142,16 @@ export function toDetail(
   now: Date,
   cfg: MetricsConfig,
   liveTasks = 0,
+  plan: ConditionPlanInput = NO_CONDITION_PLAN,
+  history: ProjectHistory = NO_HISTORY,
 ): ProjectDetail {
   const today = isoDateIn(now, cfg.TIME_ZONE);
   return {
-    ...toListItem(row, tasks, membership, now, cfg),
+    ...toListItem(row, tasks, membership, now, cfg, plan),
     description: row.description,
     startDate: row.startDate,
     originalDueDate: row.originalDueDate,
+    ...history,
     taskCounts: {
       active: tasks.filter(isActive).length,
       overdue: tasks.filter((t) => isOverdue(t, today)).length,

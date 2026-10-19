@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '../../server/db';
 import { introspectDrizzleSchema } from '../../server/db/schema-introspect';
 
-// Frozen contract of the 8 PM tables (migrations 0015 + 0016, R02 §3.2): table names, column names, types and
+// Frozen contract of the 12 PM tables (migrations 0015, 0016 and 0019, R02 §3.2): table names, column names, types and
 // nullability written out by hand. Any drift between the Drizzle schema, the migrated test DB and this list turns
 // the test red, so a column change must be made on purpose by editing the literal below in the same commit.
 // Entry format: `<column> <type>`, with a trailing `?` when the column is nullable (R02 legend: `?` = NULL).
@@ -56,6 +56,7 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
     'id text',
     'project_id text',
     'number bigint',
+    'phase_id text?',
     'kind_id text',
     'title text',
     'description text?',
@@ -113,6 +114,51 @@ const EXPECTED_COLUMNS: Record<string, string[]> = {
     'payload jsonb?',
     'created_at timestamptz',
   ],
+  project_phase: [
+    'id text',
+    'project_id text',
+    'name text',
+    'description text?',
+    'position smallint',
+    'start_date date?',
+    'end_date date?',
+    'status text',
+    'started_at timestamptz?',
+    'finished_at timestamptz?',
+    'created_at timestamptz',
+    'updated_at timestamptz',
+  ],
+  project_milestone: [
+    'id text',
+    'project_id text',
+    'phase_id text?',
+    'title text',
+    'description text?',
+    'due_date date',
+    'reached_at timestamptz?',
+    'created_at timestamptz',
+    'updated_at timestamptz',
+  ],
+  project_deadline_extension: [
+    'id text',
+    'project_id text',
+    'old_due_date date',
+    'new_due_date date',
+    'reason_category text',
+    'reason text',
+    'extended_by text?',
+    'created_at timestamptz',
+  ],
+  project_condition_override: [
+    'id text',
+    'project_id text',
+    'condition text',
+    'reason text',
+    'set_by text?',
+    'expires_at timestamptz?',
+    'cleared_at timestamptz?',
+    'created_at timestamptz',
+  ],
 };
 const PM_TABLES = Object.keys(EXPECTED_COLUMNS);
 // Deliberately broad: a future PM table (project_phase, task_tag, ...) must be added to the contract on purpose.
@@ -149,14 +195,14 @@ async function dbColumns(table: string): Promise<string[]> {
 }
 
 describe('PM schema contract (project + task tables)', () => {
-  it('the migrated test DB holds exactly the 8 PM tables', async () => {
+  it('the migrated test DB holds exactly the 12 PM tables', async () => {
     const rows = await db.execute<{ name: string }>(sql`
       SELECT table_name AS name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name ~ ${PM_TABLE_PATTERN}`);
     expect([...rows].map((r) => r.name).sort()).toEqual([...PM_TABLES].sort());
   });
 
-  it('the Drizzle schema exports exactly the same 8 PM tables', () => {
+  it('the Drizzle schema exports exactly the same 12 PM tables', () => {
     const names = introspectDrizzleSchema()
       .tables.map((t) => t.name)
       .filter((name) => new RegExp(PM_TABLE_PATTERN).test(name));

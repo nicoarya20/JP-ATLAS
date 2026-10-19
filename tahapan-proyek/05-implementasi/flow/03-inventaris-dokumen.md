@@ -79,7 +79,7 @@ Kondisi nyata (PRG 16 Okt): 58 dari 93 tugas selesai (S0.0 9/9, S0.a 16/16, S0.b
 | FIT-64 | Pengaturan › Notifikasi (2 saklar) | S6 | DITUNDA | R10 G2 |
 | FIT-65 | Impor / Unduh CSV tugas, pilih-massal | fase 5 | TIDAK DIRENCANAKAN (D03 #11, D04 #4 menjadikannya fitur Member → kalah) | P3 §2; KON-04 |
 | FIT-66 | "Tulis saja ✦" (AI → tugas), Briefing AI, Ask Data | fase 5 | TIDAK DIRENCANAKAN | R10 T15, H5; R13 #1 |
-| FIT-67 | Gantt / tampilan jadwal | "fase 2" (D02 #6, D03 #14) / fase 5 (`_BRIEF` §20) | TIDAK DIRENCANAKAN (tanpa irisan) | KON-05 |
+| FIT-67 | Gantt / tampilan jadwal | "fase 2" (D02 #6, D03 #14) / fase 5 (`_BRIEF` §20) | **ADA sejak S5a (19 Okt 2026)**: Gantt level proyek di `/app/projects?tampilan=gantt` | KON-05 |
 | FIT-68 | Tab Retro, kartu commits, status update AI | "fase 2" / fase 5 | TIDAK DIRENCANAKAN | D02 #6; `_BRIEF` |
 | FIT-69 | Menu Ticket dan menu Pengembangan (ide) terpisah | ditunda | TIDAK DIRENCANAKAN | D03 #2; `_BRIEF` |
 | FIT-70 | Mode Pendamping (versi baca-saja untuk pendamping) | W | TIDAK DIRENCANAKAN (Pemantau jadi pengganti) | D09 #8; R10 F7 |
@@ -336,7 +336,7 @@ Hitungan: 78 fitur (DIBANGUN 17 · SEDANG 18 · DITUNDA 27 · TIDAK DIRENCANAKAN
 | TND-22 | Gantt, Retro, commits, menu Ticket/Pengembangan | tak ada irisan | "fase 2"/"fase 5" | D02 #6; D03 #2 |
 | TND-23 | Push/PWA, email, WhatsApp, SSE | W | polesan | R10 I3 |
 | TND-24 | Tampilan HP disempurnakan | rekan | di luar fokus | D00 §5 |
-| TND-25 | Daftar proyek "Grid" dan "Comfy/dense/refresh/timeline" | dibuang/S5 | dibuang desain | D02 #13 |
+| TND-25 | Daftar proyek "Grid" dan "Comfy/dense/refresh/timeline" | dibuang/S5 | **Grid dan Gantt dikerjakan 19 Okt 2026 (S5a)** atas permintaan user; Comfy/dense/refresh tetap dibuang | D02 #13 |
 | TND-26 | Form profil di halaman Menunggu persetujuan | S1 (`/app/settings`) | pilihan A | KEP §6 |
 
 ---
@@ -348,7 +348,7 @@ Hitungan: 78 fitur (DIBANGUN 17 · SEDANG 18 · DITUNDA 27 · TIDAK DIRENCANAKAN
 | KON-02 | Janji "bisa dipulihkan sampai {tanggal}" (S1-18) vs R10 Z2 "janji 30 hari hanya bila purge aktif" (purge baru S6) | **BELUM DIPUTUSKAN**; di MVP Inti proyek di Sampah tak pernah dihapus otomatis |
 | KON-03 | "Ceritakan proyeknya" (AI) masuk v1 (D02 #8) dan saklar AI bawaan hidup (D09 #6) vs AI fase 5 / bawaan mati | **KEP + X1-Q7**; kedua dokumen desain belum disunting |
 | KON-04 | CSV fitur Member (D03 #11, D04 #4, wireframe) vs fase 5 | **P3/KEP** (CSV ditunda); wireframe masih memuatnya |
-| KON-05 | Gantt/Retro: "fase 2" (D02/D03) vs "fase 5" (`_BRIEF`) vs tak ada irisan | Tak ada irisan nyata; tulis "belum dijadwalkan" |
+| KON-05 | Gantt/Retro: "fase 2" (D02/D03) vs "fase 5" (`_BRIEF`) vs tak ada irisan | Gantt level proyek **dikerjakan di S5a (19 Okt 2026)**, dengan tahapan dan milestone di batangnya; Retro tetap "belum dijadwalkan" |
 | KON-06 | Mesin periksa: R10 T7 = S4; X2 N3 = mesin 12 transisi + endpoint di S2; KB-6 = enam kata kerja, endpoint S4; P2 K2 = kebijakan saja | **P3/P2 (PRG)**: kebijakan lengkap ada, endpoint & UI Periksa S4, `needs_review` tak bisa true (422) |
 | KON-07 | Pembulatan progres: R03 `floor` (Atlas 16%) vs X2 `round` cap 99 (17%) | **X2/P2 K4/KEP D12** → 17% |
 | KON-08 | Atlas 70% (wireframe/prototipe) vs 17% (rumus) | **Rumus 17%**; wireframe Penpot ⑨ perlu disesuaikan pemiliknya (X2 C5) |

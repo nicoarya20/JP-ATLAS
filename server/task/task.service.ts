@@ -28,6 +28,7 @@ import type { PmCode } from '../pm/errors';
 import { DEFAULT_TASK_KINDS } from '../pm/limits';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
+import { PLAN_MESSAGES, phaseInProject } from '../project/project-plan.write';
 import type { TaskClock, TaskDetail } from './task.dto';
 import { isTaskWorkerRole, TASK_ACTIVITY, TASK_WRITE_MESSAGES } from './task.limits';
 import { getTaskDetail, resolveTaskRef } from './task-detail.query';
@@ -59,6 +60,8 @@ export type UpdateTaskInput = {
   dueDate?: string | null;
   startDate?: string | null;
   kindId?: string;
+  /** A phase of the task's own project; `null` takes the task out of its phase. */
+  phaseId?: string | null;
 };
 
 export type TaskWriteResult =
@@ -261,7 +264,11 @@ export async function updateTask(
     }
     const kindId = input.kindId ? await resolveKind(tx, cur.projectId, input.kindId) : undefined;
     if (kindId !== undefined && typeof kindId !== 'string') return kindId;
-    const set = { ...next, ...(kindId ? { kindId } : {}) };
+    if (input.phaseId && !(await phaseInProject(tx, cur.projectId, input.phaseId))) {
+      return invalid(PLAN_MESSAGES.PHASE_MISSING);
+    }
+    const phase = input.phaseId === undefined ? {} : { phaseId: input.phaseId };
+    const set = { ...next, ...(kindId ? { kindId } : {}), ...phase };
     if (Object.keys(set).length === 0) return { ok: true, id: cur.id };
 
     const changes: Array<[string, Change]> = [];

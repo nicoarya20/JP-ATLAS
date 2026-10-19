@@ -7,7 +7,11 @@ import * as barrel from '../../server/db/schema';
 import {
   project,
   projectActivity,
+  projectConditionOverride,
+  projectDeadlineExtension,
   projectMember,
+  projectMilestone,
+  projectPhase,
   task,
   taskActivity,
   taskChecklistItem,
@@ -18,7 +22,14 @@ import {
 const DB_DIR = path.join(import.meta.dir, '../../server/db');
 const SCHEMA_FILE = /^schema\.[a-z][a-z-]*\.ts$/;
 // Modules registered up front so later tasks never edit the barrel or the drizzle config.
-const PROJECT_STUBS = ['profile', 'project', 'project-history', 'task', 'task-detail'];
+const PROJECT_STUBS = [
+  'profile',
+  'project',
+  'project-history',
+  'project-plan',
+  'task',
+  'task-detail',
+];
 
 const schemaModules = readdirSync(DB_DIR)
   .filter((f) => SCHEMA_FILE.test(f))
@@ -174,14 +185,38 @@ describe('project tables (S0B-02)', () => {
     ]);
   });
 
-  test('the out-of-scope S5 tables are not defined yet', async () => {
+  test('the four S5 plan tables are defined', async () => {
     const names = new Set<string>();
     for (const mod of schemaModules) {
       for (const [, t] of await tablesOf(mod)) names.add(cfg(t as PgTable).name);
     }
-    for (const n of ['project_phase', 'project_milestone', 'project_deadline_extension']) {
-      expect(names.has(n)).toBe(false);
+    for (const n of [
+      'project_phase',
+      'project_milestone',
+      'project_deadline_extension',
+      'project_condition_override',
+    ]) {
+      expect(names.has(n)).toBe(true);
     }
+  });
+
+  test('plan tables: project cascade, phase and author set null, one-way date/position columns', () => {
+    for (const t of [
+      projectPhase,
+      projectMilestone,
+      projectDeadlineExtension,
+      projectConditionOverride,
+    ]) {
+      expect(fk(t, 'project_id')?.onDelete).toBe('cascade');
+    }
+    expect(fk(projectMilestone, 'phase_id')?.onDelete).toBe('set null');
+    expect(fk(projectDeadlineExtension, 'extended_by')?.onDelete).toBe('set null');
+    expect(fk(projectConditionOverride, 'set_by')?.onDelete).toBe('set null');
+    expect(col(projectPhase, 'position')?.getSQLType()).toBe('smallint');
+    expect(col(projectMilestone, 'due_date')?.getSQLType()).toBe('date');
+    expect(col(projectConditionOverride, 'expires_at')?.getSQLType()).toBe(
+      'timestamp with time zone',
+    );
   });
 });
 
@@ -242,8 +277,9 @@ describe('task tables (S0B-05)', () => {
     expect(fk(task, 'deleted_with_project_id')?.onDelete).toBe('set null');
   });
 
-  test('task: phase_id is not created while project_phase is deferred', () => {
-    expect(col(task, 'phase_id')).toBeUndefined();
+  test('task: phase_id is nullable and set null when the phase goes away', () => {
+    expect(col(task, 'phase_id')?.notNull).toBe(false);
+    expect(fk(task, 'phase_id')?.onDelete).toBe('set null');
   });
 
   test('task: the S2 transition columns stay in the table', () => {

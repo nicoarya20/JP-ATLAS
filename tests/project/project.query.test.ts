@@ -121,6 +121,20 @@ describe('listProjects search, filter, order and paging', () => {
     ]);
   });
 
+  it('carries startDate and dueDate on every list item (null when unset), for the Gantt view', async () => {
+    const mk = marker();
+    const lead = await f.user({ role: 'project_manager' });
+    await f.project({ lead, name: `${mk} a`, startDate: '2026-10-01', dueDate: '2026-11-15' });
+    await f.project({ lead, name: `${mk} b`, dueDate: '2026-12-01' });
+    await f.project({ lead, name: `${mk} c` });
+    const r = await list(lead, mk);
+    expect(r.items.map((i) => [i.name.slice(-1), i.startDate, i.dueDate])).toEqual([
+      ['a', '2026-10-01', '2026-11-15'],
+      ['b', null, '2026-12-01'],
+      ['c', null, null],
+    ]);
+  });
+
   it('pages with offset and reports the full total, even past the end', async () => {
     const mk = marker();
     const lead = await f.user({ role: 'project_manager' });
@@ -284,7 +298,10 @@ describe('listProjectMembers', () => {
 });
 
 describe('query counts stay constant (R04 §3.7)', () => {
-  const MAX_QUERIES = 4;
+  // Four reads of S1 plus the milestone and override batches of S5 (L5-02); still independent of the page size.
+  const MAX_QUERIES = 6;
+  // The detail adds the deadline history (S5a-03): two more statements, the same for any history size.
+  const DETAIL_MAX_QUERIES = 8;
 
   async function listWith(n: number) {
     const lead = await f.user({ role: 'project_manager' });
@@ -314,7 +331,7 @@ describe('query counts stay constant (R04 §3.7)', () => {
     await f.tasks(p, 5);
     const detail = countQueries();
     await getProjectDetail(principal(lead), p.id, NOW, detail.exec);
-    expect(detail.queries.length).toBeLessThanOrEqual(MAX_QUERIES);
+    expect(detail.queries.length).toBeLessThanOrEqual(DETAIL_MAX_QUERIES);
     const members = countQueries();
     await listProjectMembers(principal(lead), p.id, members.exec);
     expect(members.queries.length).toBeLessThanOrEqual(MAX_QUERIES);

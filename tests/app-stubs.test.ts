@@ -58,12 +58,15 @@ describe('page stubs', () => {
     const appFiles = [...registered].filter((f) => f.startsWith('app/routes/app/'));
     const nonStubs = appFiles.filter((f) => !(f in ROUTE_STUBS)).sort();
     expect(nonStubs).toEqual([
+      'app/routes/app/events.tsx',
       'app/routes/app/home.tsx',
+      'app/routes/app/inbox.tsx',
       'app/routes/app/layout.tsx',
       'app/routes/app/profile.tsx',
       'app/routes/app/project-new.tsx',
       'app/routes/app/project/layout.tsx',
       'app/routes/app/project/members.tsx',
+      'app/routes/app/project/phases.tsx',
       'app/routes/app/project/settings.tsx',
       'app/routes/app/project/summary.tsx',
       'app/routes/app/project/tasks.tsx',
@@ -73,6 +76,7 @@ describe('page stubs', () => {
       'app/routes/app/task-edit.tsx',
       'app/routes/app/task-new.tsx',
       'app/routes/app/tasks.tsx',
+      'app/routes/app/team.tsx',
       'app/routes/app/trash.tsx',
     ]);
   });

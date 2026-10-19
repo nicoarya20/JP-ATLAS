@@ -10,7 +10,7 @@ import { FiAlertCircle, FiPlus } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { clearFiltersHref, emptyKind, ProjectEmpty } from '~/components/projects/ProjectEmpty';
 import { ProjectFilters } from '~/components/projects/ProjectFilters';
-import { ProjectList } from '~/components/projects/ProjectList';
+import { ProjectResults } from '~/components/projects/ProjectResults';
 import { LIST_COPY } from '~/components/projects/projects.copy';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
@@ -50,6 +50,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     status: query.status,
     q: query.q,
     sort: query.sort,
+    attention: query.perhatian === '1',
+    withPlan: query.rencana === '1',
     limit: query.limit,
     offset: 0,
     now,
@@ -119,7 +121,8 @@ export default function ProjectsPage({ loaderData }: Route.ComponentProps) {
             {projectErrorMessage(pages.error)}
           </Alert>
         )}
-        <ProjectList
+        <ProjectResults
+          view={filters.tampilan}
           items={items}
           total={total}
           today={loaderData.today}
@@ -128,7 +131,11 @@ export default function ProjectsPage({ loaderData }: Route.ComponentProps) {
           onMore={() => void pages.fetchNextPage()}
           empty={
             <ProjectEmpty
-              kind={emptyKind(hasProjectFilters(filters), loaderData.canCreate)}
+              kind={emptyKind(
+                hasProjectFilters(filters),
+                loaderData.canCreate,
+                filters.perhatian && filters.q.trim() === '',
+              )}
               createTo={NEW_PROJECT_PATH}
               clearTo={clearFiltersHref(filters)}
             />
