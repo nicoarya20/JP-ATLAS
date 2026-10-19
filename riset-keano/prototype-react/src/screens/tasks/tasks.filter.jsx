@@ -1,13 +1,12 @@
-// Tasks ①b: one Filter & sort sheet opened from the icon next to the search field (replaces the status chips and the Filter / Sort pills).
+// Tasks ①b: one Filter & sort overlay (full-height, like the profile) opened from the icon next to the search field;
+// it replaces the status chips and the Filter / Sort pills.
 import { Radio } from '@react-cupertino-ui/radio';
 import { SlidersHorizontal } from 'lucide-react';
-import { Btn, Chips, Label, Select, Sheet } from '../../kit';
+import { Btn, Chips, Label, Select } from '../../kit';
 import { useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
+import { PRIORITIES, SORTS, STATUSES } from './tasks.shared';
 
-export const STATUSES = ['All active', 'To do', 'In progress', 'In review', 'Done'];
-const PRIORITIES = ['All', 'High', 'Medium', 'Low'];
-export const SORTS = ['Due date', 'Priority', 'Recently updated', 'Title (A–Z)'];
 
 /** Round filter icon on the right of the search field. project = project id the list is scoped to (shows a dot: a filter is on). */
 export function FilterButton({ project }) {
@@ -19,16 +18,13 @@ export function FilterButton({ project }) {
   );
 }
 
-/** ①b Filter & sort: status, project and priority filters, then the sort order; Reset or Apply (the prototype only toasts). */
+/** ①b Filter & sort: status, project and priority filters, then the sort order; Reset or Apply pinned at the bottom
+ *  (the prototype only toasts). The title row is a drag zone, so the overlay swipes down from there too. */
 export function TasksFilter({ params }) {
   const project = D.project(params?.project);
   return (
-    <Sheet title="Filter & sort" actions={(
-      <div className="tk-two">
-        <Btn block toast="Filters reset">Reset</Btn>
-        <Btn kind="primary" block close toast="Filter applied">Apply</Btn>
-      </div>
-    )}>
+    <div className="tk-fsheet">
+      <h2 className="t-title2" data-sheet-drag="">Filter &amp; sort</h2>
       <div className="field tk-wrap">
         <Label>Status</Label>
         <Chips items={STATUSES} on={0} />
@@ -47,6 +43,10 @@ export function TasksFilter({ params }) {
           {SORTS.map((s, i) => <Radio key={s} variant="solid" name="tk-sort" size="sm" defaultChecked={i === 0} label={s} />)}
         </div>
       </div>
-    </Sheet>
+      <div className="tk-two tk-fsheet-foot">
+        <Btn block toast="Filters reset">Reset</Btn>
+        <Btn kind="primary" block close toast="Filter applied">Apply</Btn>
+      </div>
+    </div>
   );
 }

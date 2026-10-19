@@ -1,5 +1,5 @@
 // Tasks list: New task only on the tab bar "+", cards offer a real next action (never a bare View),
-// filters and sort live in one sheet opened from the icon next to the search field.
+// filters and sort live in one full-height overlay opened from the icon next to the search field.
 import { describe, expect, it } from 'vitest';
 import { fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
@@ -61,6 +61,16 @@ describe('tasks list', () => {
     expect(sheet.getByRole('button', { name: 'High' })).toBeInTheDocument();
     expect(sheet.getByRole('radio', { name: 'Due date' })).toBeChecked();
     expect(sheet.getAllByRole('radio')).toHaveLength(4);
+  });
+
+  it('opens as a full-height overlay like the profile, closed by the X', () => {
+    renderApp('tasks.my', 'member');
+    fireEvent.click(dom.getByRole('button', { name: 'Filter and sort' }));
+    const dialog = dom.getByRole('dialog');
+    expect(dialog).toHaveClass('fs');
+    expect(within(dialog).getByRole('heading', { name: 'Filter & sort' })).toHaveAttribute('data-sheet-drag');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+    expect(dom.queryByRole('heading', { name: 'Filter & sort' })).not.toBeInTheDocument();
   });
 
   it('closes on Apply with a confirmation', () => {

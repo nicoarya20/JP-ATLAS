@@ -11,7 +11,7 @@ import './tasks.css';
 const G = 'Tasks';
 
 screen('tasks.my', { title: '① My tasks (List)', group: G, Component: TasksMy });
-sheet('tasks.filter', { title: '①b Sheet · Filter & sort', group: G, snap: 0.85, Component: TasksFilter });
+sheet('tasks.filter', { title: '①b Overlay · Filter & sort', group: G, full: true, Component: TasksFilter });
 screen('tasks.all', { title: '② All tasks (List)', group: G, Component: TasksAll });
 screen('tasks.board', { title: '③ Board', group: G, Component: TasksBoard });
 screen('tasks.empty', { title: '④ My tasks empty', group: G, Component: TasksEmpty });

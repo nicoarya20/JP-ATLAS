@@ -3,9 +3,9 @@ import { ChevronRight, ListChecks, Plus } from 'lucide-react';
 import { Avatar, Btn, Empty, Pill, Screen, Search, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { FilterButton, SORTS, STATUSES } from './tasks.filter';
+import { FilterButton } from './tasks.filter';
 import { Tick } from './tasks.parts';
-import { TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
+import { SORTS, STATUSES, TODAY, atlas, atlasTasks, blocked, days, detailOf, note } from './tasks.shared';
 
 /** List frame shared by ①–④: My/All switch, search with the Filter & sort icon (status, project, priority, sort live in
  *  its sheet), the current filter line with the List/Board view, CSV on All.
