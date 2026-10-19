@@ -16,6 +16,20 @@ export type ProjectMemberRole = (typeof PROJECT_MEMBER_ROLES)[number];
 export const PROJECT_CONDITIONS = ['on_track', 'at_risk', 'off_track'] as const;
 export type ProjectCondition = (typeof PROJECT_CONDITIONS)[number];
 
+// Stored in project_phase.status; `in_progress` (not `active`) follows R02 so the DB and the DTO share one word.
+export const PHASE_STATUSES = ['not_started', 'in_progress', 'done'] as const;
+export type PhaseStatus = (typeof PHASE_STATUSES)[number];
+
+// Why a deadline was moved (S5). Four buckets keep the select short for non-technical users;
+// the free-text `reason` carries the detail. Replaces the five-value draft in R02 (see the S5a-01 report).
+export const EXTENSION_REASON_CATEGORIES = [
+  'scope_change',
+  'dependency',
+  'resource',
+  'other',
+] as const;
+export type ExtensionReasonCategory = (typeof EXTENSION_REASON_CATEGORIES)[number];
+
 export const TASK_BASE_KINDS = ['task', 'issue', 'idea'] as const;
 export type TaskBaseKind = (typeof TASK_BASE_KINDS)[number];
 

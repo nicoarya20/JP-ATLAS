@@ -1,8 +1,7 @@
 /**
  * Task core tables (task_kind, task). Migration 0016 (S0B-06) creates them.
  * Names are singular and there are no `relations()`; joins are written explicitly (R02 §3.2).
- * `phase_id` is intentionally absent: `project_phase` is deferred, so the column is added later
- * as a nullable expand-only change (P2 S0B-05).
+ * `phase_id` came later (migration 0019) as a nullable expand-only change, once `project_phase` existed.
  */
 import { sql } from 'drizzle-orm';
 import {
@@ -28,6 +27,7 @@ import {
 import { user } from './schema.auth';
 import { createdAt, oneOf, pk, softDelete, updatedAt } from './schema.columns';
 import { project } from './schema.project';
+import { projectPhase } from './schema.project-plan';
 
 const tz = (name: string) => timestamp(name, { withTimezone: true });
 
@@ -66,6 +66,8 @@ export const task = pgTable(
     number: bigint('number', { mode: 'number' }).generatedByDefaultAsIdentity({
       name: 'task_number_seq',
     }),
+    // Nullable + SET NULL: deleting a phase must never delete its tasks; they fall back to "no phase" (L5-01).
+    phaseId: text('phase_id').references(() => projectPhase.id, { onDelete: 'set null' }),
     // NO ACTION (not RESTRICT): deleting a project cascades tasks and kinds in one statement, and the
     // check runs at statement end, so the order of the cascade cannot fail it (R02 §3.4 #11).
     kindId: text('kind_id')
@@ -135,6 +137,8 @@ export const task = pgTable(
     index('task_project_id_reviewer_id_idx')
       .on(t.projectId, t.reviewerId)
       .where(sql`${t.status} = 'in_review' AND ${t.deletedAt} IS NULL`),
+    // Phase task counts and the SET NULL on phase delete; most tasks have no phase, so the index skips them.
+    index('task_phase_id_idx').on(t.phaseId).where(sql`${t.phaseId} IS NOT NULL`),
     // Trash view and purge job only look at deleted rows.
     index('task_deleted_at_idx').on(t.deletedAt).where(sql`${t.deletedAt} IS NOT NULL`),
     // Restoring a project finds the tasks trashed with it.

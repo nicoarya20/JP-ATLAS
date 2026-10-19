@@ -57,7 +57,9 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/pm/enums.ts':
     // The EVENT_* tuples are additions by the S7 slice owner, allowed by 0002-contract-v1.md §2
     // ("menambah") and recorded as a written decision in 0003-contract-v1-event-urls.md.
-    'APPROVAL_STATUSES ApprovalStatus EVENT_KINDS EVENT_LOCATION_TYPES EVENT_NOTE_STATUSES EVENT_REMINDER_OFFSETS_MIN EventKind EventLocationType EventNoteStatus EventReminderOffset PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
+    // EXTENSION_REASON_CATEGORIES and PHASE_STATUSES are additions by S5a-01 (P10 L5-01): enum tuples for the
+    // project plan tables, nothing existing changes.
+    'APPROVAL_STATUSES ApprovalStatus EVENT_KINDS EVENT_LOCATION_TYPES EVENT_NOTE_STATUSES EVENT_REMINDER_OFFSETS_MIN EXTENSION_REASON_CATEGORIES EventKind EventLocationType EventNoteStatus EventReminderOffset ExtensionReasonCategory PHASE_STATUSES PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES PhaseStatus ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
   'server/pm/errors.ts':
     'DENY_CODES DenyCode PM_API_CODES PM_ERRORS PmApiCode PmCode PmErrorEntry PmHttp isDenyCode',
   'server/pm/limits.ts':

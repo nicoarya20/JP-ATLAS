@@ -12,5 +12,6 @@ export * from './schema.notification';
 export * from './schema.profile';
 export * from './schema.project';
 export * from './schema.project-history';
+export * from './schema.project-plan';
 export * from './schema.task';
 export * from './schema.task-detail';

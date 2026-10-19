@@ -4,7 +4,7 @@ import { db } from '../../server/db';
 import { introspectDrizzleSchema } from '../../server/db/schema-introspect';
 
 // Index contract of the 8 PM tables (R02 §3.2 + §3.7). Primary keys are checked separately because Postgres lists
-// them as indexes too; the 14 below are the secondary and unique ones. `where` is the partial-index predicate.
+// them as indexes too; the 15 below are the secondary and unique ones. `where` is the partial-index predicate.
 const TAG = 'pm_indexes_contract';
 type ExpectedIndex = { table: string; columns: string[]; unique: boolean; where?: string };
 const LIVE = 'deleted_at IS NULL';
@@ -58,6 +58,12 @@ const EXPECTED_INDEXES: Record<string, ExpectedIndex> = {
     columns: ['deleted_with_project_id'],
     unique: false,
     where: 'deleted_with_project_id IS NOT NULL',
+  },
+  task_phase_id_idx: {
+    table: 'task',
+    columns: ['phase_id'],
+    unique: false,
+    where: 'phase_id IS NOT NULL',
   },
   task_checklist_item_task_id_position_idx: {
     table: 'task_checklist_item',

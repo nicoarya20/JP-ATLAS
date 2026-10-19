@@ -30,7 +30,7 @@ export interface ConditionOverride {
   readonly clearedAt: Date | null;
 }
 
-// Milestones and overrides stay in the signature even while S1 passes `[]`, so S5 adds data, not a new contract.
+// Milestones and overrides were in the signature from S1 (callers passed `[]`); S5 feeds real rows without a new contract.
 export interface ConditionInput<O extends ConditionOverride = ConditionOverride> {
   readonly status: ProjectStatus;
   readonly dueDate: IsoDate | null;

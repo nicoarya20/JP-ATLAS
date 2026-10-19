@@ -12,6 +12,7 @@ import type {
   ProjectPriority,
   ProjectStatus,
 } from '../pm/enums';
+import { type ConditionPlanInput, NO_CONDITION_PLAN } from './project-plan.dto';
 
 /** Id and name only: no email or phone leaves through the project API (Q8). */
 export type ProjectLead = { id: string; name: string };
@@ -69,6 +70,7 @@ export function toListItem(
   membership: Membership,
   now: Date,
   cfg: MetricsConfig,
+  plan: ConditionPlanInput = NO_CONDITION_PLAN,
 ): ProjectListItem {
   const { done, total, percent } = progress(tasks);
   const cond = computeCondition(
@@ -76,14 +78,16 @@ export function toListItem(
       status: row.status,
       dueDate: row.dueDate,
       tasks,
-      milestones: [], // S5 adds milestones and overrides; the signature already takes them
-      overrides: [],
+      milestones: plan.milestones,
+      overrides: plan.overrides,
       today: isoDateIn(now, cfg.TIME_ZONE),
       now,
     },
     cfg,
   );
-  const reason = cond?.computed.reasons.map(formatConditionReason).join(', ');
+  // A manual condition is the manager's own explanation; the computed reasons would contradict it.
+  const reason =
+    cond?.override?.reason ?? cond?.computed.reasons.map(formatConditionReason).join(', ');
   return {
     id: row.id,
     name: row.name,
@@ -106,10 +110,11 @@ export function toDetail(
   now: Date,
   cfg: MetricsConfig,
   liveTasks = 0,
+  plan: ConditionPlanInput = NO_CONDITION_PLAN,
 ): ProjectDetail {
   const today = isoDateIn(now, cfg.TIME_ZONE);
   return {
-    ...toListItem(row, tasks, membership, now, cfg),
+    ...toListItem(row, tasks, membership, now, cfg, plan),
     description: row.description,
     startDate: row.startDate,
     originalDueDate: row.originalDueDate,
