@@ -1,13 +1,12 @@
 /** Client for `GET /api/app/team/:userId` (S6 layar ②): one person's profile, shared projects and open work. */
-import type { Role } from '@server/permissions';
 import type { GetPersonOk } from '@server/team/team.dto';
 import { useQuery } from '@tanstack/react-query';
 import { NOT_FOUND_TEXT } from '../components/team/team.detail.copy';
 import { client } from './eden';
 import { ApiError, describeApiError, redirectToSession } from './http';
 
-/** `accountRole` is sent only to an Admin or Super-admin; for anyone else the key is absent. */
-export type PersonDetail = GetPersonOk & { accountRole?: Role };
+/** The response body; `accountRole` is sent only to an Admin or Super-admin, for anyone else the key is absent. */
+export type PersonDetail = GetPersonOk;
 
 /** React-query keys; one entry per person. */
 export const teamPersonKeys = {
