@@ -15,7 +15,7 @@ import { atLeast, levelOf } from './level';
 import { notVisible } from './not-visible';
 import { canRestoreProject, NOT_VISIBLE, type ProjectDecision } from './project.policy';
 import { ACCESS_RULES, type AccessRules } from './rules';
-import { guardTask, type TaskDecision } from './task.policy';
+import type { TaskDecision } from './task.policy';
 import type { Membership, Principal, ProjectSubject, TaskSubject } from './types';
 
 /** Which trashed projects the Trash list may include, as a descriptor the repository turns into SQL. */
@@ -76,24 +76,7 @@ export function trashListScope(p: Principal): TrashListScope {
   return isAdminRole(p.appRole) ? { kind: 'all' } : { kind: 'deletedByOrManaged', userId: p.id };
 }
 
-/**
- * Whether `p` may move the task to the Trash: its creator, any manager of the project (a
- * Member-manager included) and Admin/Super-admin; a Member who is only the assignee may not, and
- * an Observer may not either (user decision in `JADWAL-S3-S8.md` §5 no. 4, answering P8 Q1; the
- * "Member-manager may not" rule is about trashing a *project*, CLAUDE.md T2, not a task).
- * Impersonation is refused first because the delete is destructive (Q9); the task's own trash state
- * is checked last, so deleting twice reads as `WRONG_STATE` and a task inside a trashed project as
- * `PROJECT_IN_TRASH`.
- */
-export function canTrashTask(
-  p: Principal,
-  task: TaskSubject,
-  m: Membership,
-  rules: AccessRules = ACCESS_RULES,
-): TaskDecision {
-  if (p.impersonating) return deny('IMPERSONATING');
-  return guardTask(p, task, m, 'creator', rules);
-}
+export { canTrashTask } from './task-trash.policy';
 
 /**
  * Whether `p` may bring a trashed task back: any manager of its project, Admin/Super-admin, or

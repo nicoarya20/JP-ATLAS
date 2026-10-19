@@ -12,6 +12,7 @@ import { DateText } from '~/components/ui/DateText';
 import { TASK_LABEL_PRIORITY } from '~/lib/pm-labels';
 import type { TaskListItem } from '~/lib/tasks-api';
 import { NextStepButton } from './NextStepButton';
+import { TaskRowMenu } from './TaskRowMenu';
 import { LIST_COPY } from './tasks.copy';
 
 /** Detail page of a task; the number is the handle people read aloud (M16). */
@@ -103,9 +104,12 @@ export function TaskRow({ task }: { task: TaskListItem }) {
           <TaskBadges task={task} />
           <TaskFacts task={task} withAssignee={false} />
         </Stack>
-        <Box pos="relative" style={{ zIndex: 1 }}>
-          <NextStepButton taskRef={String(task.number)} primary={task.primary} />
-        </Box>
+        <Group gap="xs" wrap="nowrap">
+          <Box pos="relative" style={{ zIndex: 1 }}>
+            <NextStepButton taskRef={String(task.number)} primary={task.primary} />
+          </Box>
+          <TaskRowMenu task={task} />
+        </Group>
       </Group>
     </Paper>
   );
