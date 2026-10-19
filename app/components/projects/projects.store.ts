@@ -49,7 +49,8 @@ export const projectActions = {
   remove(id: string) {
     set(removeProject(state, id));
   },
-  extend: (id: string, newDue: string, who: string) => apply(extendDue(state, id, newDue, who)),
+  extend: (id: string, newDue: string, who: string, reason?: string) =>
+    apply(extendDue(state, id, newDue, who, undefined, reason)),
   changeRole: (id: string, name: string, role: ProjectRole, who: string) =>
     apply(changeRole(state, id, name, role, who)),
   addPerson: (id: string, name: string, role: ProjectRole, who: string) =>

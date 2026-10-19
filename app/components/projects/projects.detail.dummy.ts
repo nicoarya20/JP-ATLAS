@@ -10,7 +10,14 @@ export type Phase = {
   progress: number;
   milestones: Milestone[];
 };
-export type Activity = { who: string; text: string /** `YYYY-MM-DD` */; date: string };
+export type Activity = {
+  who: string;
+  text: string;
+  /** `YYYY-MM-DD` */
+  date: string;
+  /** Why, when the person gave a reason (e.g. for moving the due date). */
+  note?: string;
+};
 
 export type ProjectRole = 'manager' | 'member' | 'viewer';
 export const ROLE_LABELS: Record<ProjectRole, string> = {

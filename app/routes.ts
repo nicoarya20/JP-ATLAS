@@ -21,6 +21,7 @@ export default [
     route('app/projects/:projectId', 'routes/app/project/layout.tsx', [
       index('routes/app/project/summary.tsx'),
       route('tasks', 'routes/app/project/tasks.tsx'),
+      route('phases', 'routes/app/project/phases.tsx'),
       route('members', 'routes/app/project/members.tsx'),
       route('settings', 'routes/app/project/settings.tsx'),
     ]),

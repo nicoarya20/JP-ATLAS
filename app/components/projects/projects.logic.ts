@@ -137,6 +137,7 @@ export function extendDue(
   newDue: string,
   who: string,
   today: string = DUMMY_TODAY,
+  reason?: string,
 ): Result {
   const p = list.find((x) => x.id === id);
   if (!p) return fail('NOT_FOUND');
@@ -155,6 +156,7 @@ export function extendDue(
           who,
           text: `memperpanjang tenggat ${shortDate(x.due)} → ${shortDate(newDue)}`,
           date: today,
+          note: reason,
         },
         ...x.activity,
       ],
@@ -232,3 +234,15 @@ export function removePerson(
     patch(list, id, (x) => setTeam(x, team, `mengeluarkan ${name} dari proyek`, who, today)),
   );
 }
+
+/** The form's view of a project, for "Ubah proyek". The dummy world only has Draf and Berjalan. */
+export const toInput = (p: ProjectRecord): ProjectInput => ({
+  name: p.name,
+  description: p.description,
+  status: p.status as ProjectInput['status'],
+  priority: p.priority,
+  lead: p.lead,
+  start: p.start,
+  due: p.due,
+  members: p.members.filter((m) => m !== p.lead),
+});

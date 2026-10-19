@@ -3,6 +3,7 @@ import { diffDays } from '@server/metrics/dates';
 import { elapsed } from '@server/metrics/project.metrics';
 import { DUMMY_TODAY } from '~/lib/dummy-clock';
 import type { DummyTask } from '../tasks/tasks.dummy';
+import type { Milestone, Phase } from './projects.detail.dummy';
 import type { DummyProject } from './projects.dummy';
 
 const shortFmt = new Intl.DateTimeFormat('id-ID', {
@@ -58,4 +59,16 @@ export function dueText(due: string, today: string = DUMMY_TODAY): string {
   if (d === 0) return 'Hari ini';
   if (d === 1) return 'Besok';
   return shortDate(due);
+}
+
+/** The phase being worked on; when none is marked current, the first one that is not finished. */
+export const currentPhase = (phases: readonly Phase[]): Phase | undefined =>
+  phases.find((p) => p.state === 'current') ?? phases.find((p) => p.state !== 'done');
+
+/** The soonest milestone that is not reached yet, across all phases. */
+export function nextMilestone(phases: readonly Phase[]): Milestone | undefined {
+  return phases
+    .flatMap((p) => p.milestones)
+    .filter((m) => !m.done)
+    .sort((a, b) => a.due.localeCompare(b.due))[0];
 }
