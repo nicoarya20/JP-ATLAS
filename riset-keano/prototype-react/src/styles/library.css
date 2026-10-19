@@ -13,9 +13,10 @@
 .react-cupertino-ui-navigation-bar { background: var(--bg); border-bottom: 1px solid var(--separator); flex: none;
   z-index: 10; }  /* upstream 100 put the bar above the More panel's dim (89); 10 still keeps its ⋯ menus over the content */
 .react-cupertino-ui-navigation-bar .title-compact { color: var(--label); }
-/* kit NavBar back: chevron only, 44px tap target, nudged left so the chevron lines up with the content edge */
+/* kit NavBar back: chevron only in the label colour (not the accent), 44px tap target, nudged left so the chevron lines
+   up with the content edge */
 .react-cupertino-ui-navigation-bar .nav-back { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -14px;
-  padding: 0; border: 0; background: none; color: var(--accent); cursor: pointer; }
+  padding: 0; border: 0; background: none; color: var(--label); cursor: pointer; }
 
 /* ---- Card (kit Section) ---- */
 .card.react-cupertino-ui-card { --card-padding-block: var(--sp-4); --card-padding-inline: var(--sp-4);
