@@ -17,9 +17,9 @@
    Side inset 20px (iOS inset-grouped margin) on both bar and body so the X lines up with the content. */
 .fs-bar { flex: none; position: relative; height: 52px; display: flex; align-items: center; padding: 0 var(--sp-5); touch-action: none; }
 .fs-grab { position: absolute; top: 6px; left: 50%; width: 36px; height: 5px; margin-left: -18px; border-radius: 99px; background: var(--label-3); }
-/* Close: a bare X (no circle behind it), 44px tap target nudged left so the X lines up with the content edge */
+/* Close: a bare X in the label colour like the back chevron (no circle behind it), 44px tap target nudged left so the X lines up with the content edge */
 .fs-x { width: 44px; height: 44px; margin-left: -12px; display: grid; place-items: center; padding: 0; border: 0;
-  border-radius: 50%; background: none; color: var(--label-2); cursor: pointer; }
+  border-radius: 50%; background: none; color: var(--label); cursor: pointer; }
 .fs-x:active { scale: 0.92; }
 .fs-x:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .fs [data-sheet-drag] { touch-action: none; }
