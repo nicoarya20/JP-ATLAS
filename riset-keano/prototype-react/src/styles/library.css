@@ -110,9 +110,13 @@
 .react-cupertino-ui-segmented-control__indicator { background: var(--seg-thumb); box-shadow: 0 2px 6px var(--overlay); }
 .react-cupertino-ui-segmented-control__option, .react-cupertino-ui-segmented-control__option.is-active { color: var(--label); }
 .seg { --seg-n: 2; --seg-i: 0; min-width: 0; } /* kit Seg sets both inline: item count and picked index */
+/* Thumb = one option: inner width minus the 0.25rem gaps between options, stepped by option + gap. */
 .seg .react-cupertino-ui-segmented-control__indicator { right: auto;
-  width: calc((100% - 0.4rem) / var(--seg-n)) !important; transform: translateX(calc(var(--seg-i) * 100%)) !important; }
+  width: calc((100% - 0.4rem - (var(--seg-n) - 1) * 0.25rem) / var(--seg-n)) !important;
+  transform: translateX(calc(var(--seg-i) * (100% + 0.25rem))) !important; }
 /* Icon-only segments (kit Seg icons): the label stays in the button for screen readers but is visually hidden. */
+/* No side padding: upstream's 1rem each side left ~11px in a 96px control, so the 18px icon spilled to the right. */
+.seg-icons .react-cupertino-ui-segmented-control__option { padding-inline: 0; }
 .seg-icons .react-cupertino-ui-segmented-control__icon { display: grid; place-items: center; margin: 0; }
 .seg-icons .react-cupertino-ui-segmented-control__label { position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap; }
