@@ -459,6 +459,15 @@ Semua di `/api/app/events`. Acara boleh milik proyek atau pribadi (`projectId: n
 
 Memindahkan acara ke Sampah (`DELETE /events/:id`) belum ada; polanya sudah ditolak untuk API key lebih dulu.
 
+### Kontrak API Tulis saja (A1)
+
+`POST /api/app/tasks/draft` `{ projectId, text }` menyusun **draf** tugas dari satu cerita penugasan dan **tidak menyimpan apa pun**; klien membuat tugasnya sendiri lewat `POST /api/app/tasks`. `text` 1 sampai 2000 karakter (kosong → `400 TEXT_EMPTY`, terlalu panjang → `400 TEXT_TOO_LONG`). Izinnya sama dengan membuat tugas di proyek itu: Pemantau `403 NOT_MEMBER`, bukan anggota `404`, proyek di Sampah `409 PROJECT_IN_TRASH`. Jawaban `200`: `{ drafts: [{ title, assigneeId, assigneeNote, dueDate, priority, kindId, description }], question }`, paling banyak 10 draf. Nama hanya dicocokkan dengan Pengelola dan Anggota proyek itu (nama yang cocok dengan dua orang menjadi satu `question` berisi kandidat, tidak ditebak), dan `dueDate` dihitung server dari "hari ini" di zona waktu app, bukan oleh AI. Bentuk lengkap ada di `server/ai/task-draft.types.ts`.
+
+- **Penyedia:** Anthropic Messages API lewat `fetch`, tanpa paket tambahan. Atur dengan `ANTHROPIC_API_KEY` (wajib untuk menyalakan), `TASK_AI_MODEL`, `TASK_AI_TIMEOUT_MS`, `TASK_AI_MAX_TOKENS`, dan `ANTHROPIC_BASE_URL`; semuanya dibaca saat dipakai, dan app tetap berjalan tanpa kunci.
+- **Gagal lunak:** tanpa kunci → `503 AI_DISABLED`; penyedia gagal, lambat, atau menjawab sesuatu yang tidak sah → `502 AI_UNAVAILABLE`. Klien lalu menampilkan form dengan tulisan pengguna di Judul.
+- **Batas:** 10 permintaan per menit per pengguna (`429 RATE_LIMITED` dengan `retry-after`), berlaku juga untuk API key (scope `app:write`).
+- **Privasi:** ke penyedia hanya dikirim tulisan, nama tampilan anggota, nama jenis tugas, dan daftar prioritas. Tulisan dan jawaban model tidak pernah masuk log; log hanya memuat id pengguna, id proyek, lama panggilan, dan hasil.
+
 ## API keys
 
 Akses terprogram ke `/api/*` tanpa cookie sesi. Dikelola super-admin di `/dev/api-keys`; dibangun di atas plugin `@better-auth/api-key` (kunci di-hash, hanya prefix yang disimpan terbaca).
