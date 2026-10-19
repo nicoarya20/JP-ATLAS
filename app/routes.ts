@@ -31,6 +31,7 @@ export default [
     route('app/tasks/:number/edit', 'routes/app/task-edit.tsx'),
     route('app/events/new', 'routes/app/event-new.tsx'),
     route('app/events', 'routes/app/events.tsx'),
+    route('app/events/:id', 'routes/app/event-detail.tsx'),
     route('app/team', 'routes/app/team.tsx'),
     route('app/team/:userId', 'routes/app/team-detail.tsx'),
     route('app/trash', 'routes/app/trash.tsx'),

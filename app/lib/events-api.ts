@@ -1,6 +1,7 @@
 /**
- * Client for `/api/app/events` through Eden: keyset pages (`nextCursor`), the DTO types the server
- * sends, the react-query keys and the create call. Cancel and delete join in later slices.
+ * Client for `/api/app/events` through Eden: keyset pages (`nextCursor`), one event, the writes
+ * (create, cancel, send to the Trash, restore), the DTO types the server sends, and the
+ * react-query keys.
  */
 import type { EventDetail, EventListItem, PersonRef } from '@server/event/events.dto';
 import type { EventKind, EventLocationType } from '@server/pm/enums';
@@ -26,7 +27,8 @@ export const eventKeys = {
   people: (q: string, projectId: string | null) => ['events', 'people', q, projectId] as const,
 };
 
-/** Where the event pages live; the detail and the form are built by their own slices. */
+/** Where the event pages live; the form is built by its own slice. */
+export const EVENTS_PATH = '/app/events';
 export const NEW_EVENT_PATH = '/app/events/new';
 export const eventHref = (id: string) => `/app/events/${encodeURIComponent(id)}`;
 
@@ -58,6 +60,35 @@ export async function fetchEvents(query: EventListQuery, cursor?: string): Promi
   return unwrapEvent(
     await client.api.app.events.get({ query: cursor ? { ...query, cursor } : query }),
   ) as EventPage;
+}
+
+/** Eden pastes path params as they are, so ids are escaped here. */
+const pathId = (id: string) => encodeURIComponent(id);
+
+/** One event with its guests and `can{}`; 404 when it is missing, in the Trash or hidden from the viewer. */
+export async function fetchEvent(id: string): Promise<EventDetail> {
+  return unwrapEvent(await client.api.app.events({ id: pathId(id) }).get()) as EventDetail;
+}
+
+/** Cancels an event with the reason its guests read; the answer is the event as it is now. */
+export async function cancelEvent(id: string, reason: string): Promise<EventDetail> {
+  return unwrapEvent(
+    await client.api.app.events({ id: pathId(id) }).cancel.post({ reason }),
+  ) as EventDetail;
+}
+
+/** What `DELETE /events/:id` answers: enough to name the event and to restore it by id. */
+export type TrashedEvent = { kind: 'event'; id: string; label: string };
+
+/** Sends the event to the Trash (a soft delete the Trash page can undo). */
+export async function trashEvent(id: string): Promise<TrashedEvent> {
+  const res = unwrapEvent(await client.api.app.events({ id: pathId(id) }).delete());
+  return (res as { trash: TrashedEvent }).trash;
+}
+
+/** Brings a trashed event back by id, with its guests and minutes. */
+export async function restoreEvent(id: string): Promise<{ id: string }> {
+  return unwrapEvent(await client.api.app.trash.event({ id: pathId(id) }).restore.post());
 }
 
 /** What the route loader hands over: the first page for exactly this query, if the server answered. */

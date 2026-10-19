@@ -77,14 +77,14 @@ const SHARED_FILES = words(`
 `);
 
 /**
- * The nineteen /app URLs (S7 E-10 added /app/events/new, the two-stage event form; docs/decisions/0004-contract-v1-hybrid-menus.md added /app/inbox, /app/events and /app/team; S5a UI-05 added the Tahapan tab and S5a tim-b2 the person detail, see 0002 §6): the thirteen: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
+ * The twenty /app URLs (S7 E-10 added /app/events/new, the two-stage event form, and E-11 /app/events/:id, the event detail; docs/decisions/0004-contract-v1-hybrid-menus.md added /app/inbox, /app/events and /app/team; S5a UI-05 added the Tahapan tab and S5a tim-b2 the person detail, see 0002 §6): the thirteen: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
  * 15 Oct 2026, option B) and /app/tasks/:number/edit (S2-13, "Ubah tugas"); both compatible additions, see 0002-contract-v1.md §6. /profile is outside /app/.
  */
 const APP_URLS = words(`
   /app /app/projects /app/projects/new /app/projects/:projectId /app/projects/:projectId/tasks
   /app/projects/:projectId/phases /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
   /app/tasks/:number /app/tasks/:number/edit /app/settings /app/trash
-  /app/inbox /app/events /app/events/new /app/team /app/team/:userId
+  /app/inbox /app/events /app/events/new /app/events/:id /app/team /app/team/:userId
 `);
 
 const DECLARATION =
@@ -154,8 +154,8 @@ describe('contract-v1 routes and menu', () => {
     (u) => u === '/app' || u.startsWith('/app/'),
   );
 
-  it('registers exactly nineteen /app URLs', () => {
-    expect(appUrls).toHaveLength(19);
+  it('registers exactly twenty /app URLs', () => {
+    expect(appUrls).toHaveLength(20);
     expect(appUrls.sort()).toEqual([...APP_URLS].sort());
   });
 
