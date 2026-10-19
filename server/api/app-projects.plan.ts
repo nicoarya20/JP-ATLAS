@@ -1,8 +1,8 @@
 /**
  * Project plan routes (`/api/app/projects/:id/...`, S5a-02): the plan read, phases (create, edit,
  * delete, reorder) and milestones (create, edit, delete, reach, unreach). Anyone who may view the
- * project reads; only its managers and Admin write (checked in the services). Not mounted here:
- * `app-projects.ts` assembles it with the scope map (S5a-04). Lists are capped per project, so no paging.
+ * project reads; only its managers and Admin write (checked in the services). Mounted through
+ * `app-projects.schedule.ts`. Lists are capped per project, so no paging.
  */
 import { Elysia, t } from 'elysia';
 import { PHASE_STATUSES } from '../pm/enums';
