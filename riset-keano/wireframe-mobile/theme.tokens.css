@@ -1,0 +1,70 @@
+/* Theme tokens — color palette copied from ClickUp "Customize › Themes" (screenshot sampled 2026-10-15).
+   Two attributes on <html>, set by theme.switcher.js:
+     data-theme  = light | dark            (resolved appearance; "Auto" is resolved to one of these in JS)
+     data-accent = black | purple | blue | pink | violet | indigo | orange | teal | bronze | mint
+   Every color in the prototype must come from a token below — no raw hex in screen modules. */
+
+/* ---------- Accent palette (ClickUp theme swatches) ----------
+   Selector is attribute-only so a swatch element can carry its own data-accent and preview that color. */
+[data-accent="black"]  { --accent: #5a5d65; }
+[data-accent="purple"] { --accent: #7e77e9; }
+[data-accent="blue"]   { --accent: #428eda; }
+[data-accent="pink"]   { --accent: #dd6798; }
+[data-accent="violet"] { --accent: #ab64d9; }
+[data-accent="indigo"] { --accent: #6f84f7; }
+[data-accent="orange"] { --accent: #d27231; }
+[data-accent="teal"]   { --accent: #479b9e; }
+[data-accent="bronze"] { --accent: #a58e82; }
+[data-accent="mint"]   { --accent: #63b68e; }
+
+/* Fallback when <html> has no data-accent yet (= Purple, ClickUp default).
+   Must NOT live in the plain :root block: :root and [data-accent="x"] share specificity (0,1,0),
+   so a later :root { --accent } would override the chosen accent on <html>. */
+:root:not([data-accent]) { --accent: #7e77e9; }
+
+/* ---------- Light appearance (default) ---------- */
+:root {
+  color-scheme: light;
+  --page: #eef0f3;                   /* desktop backdrop behind the phone */
+  --paper: #ffffff;                  /* main surface: phone, cards, sheets, inputs */
+  --bar: #f9f9fa;                    /* app bar, tab bar */
+  --soft: #f0f1f3;                   /* filled cards, seg track, disabled inputs */
+  --ink: #202124;                    /* primary text */
+  --muted: #6b6f76;                  /* secondary text */
+  --line: #e6e7ea;                   /* hairlines, card borders */
+  --line-strong: #c9ccd1;            /* input / outline-button / chip borders */
+  --ph: #e2e4e8;                     /* placeholder bars, avatar fallback, sheet grab */
+  --inverse: #202124;                /* toast / snackbar background */
+  --on-inverse: #ffffff;
+  --on-accent: #ffffff;              /* text/icons on an accent fill */
+  --scrim: rgba(0, 0, 0, .4);
+}
+/* Derived accent shades. Declared on [data-accent] too so a swatch recomputes them from its own --accent. */
+:root, [data-accent] {
+  --accent-strong: color-mix(in oklab, var(--accent) 86%, black);      /* pressed / hover fill */
+  --accent-soft: color-mix(in oklab, var(--accent) 13%, var(--paper)); /* selected background tint */
+  --accent-ink: color-mix(in oklab, var(--accent) 78%, black);         /* accent-colored text on paper/soft */
+}
+
+/* ---------- Dark appearance (sampled from ClickUp dark UI) ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #070707;
+  --paper: #191919;
+  --bar: #111111;
+  --soft: #292929;
+  --ink: #ffffff;
+  --muted: #959595;
+  --line: #262626;
+  --line-strong: #4b4b4b;
+  --ph: #333333;
+  --inverse: #ececec;
+  --on-inverse: #111111;
+  --on-accent: #ffffff;
+  --scrim: rgba(0, 0, 0, .6);
+}
+:root[data-theme="dark"], :root[data-theme="dark"] [data-accent] {
+  --accent-strong: color-mix(in oklab, var(--accent) 85%, white);
+  --accent-soft: color-mix(in oklab, var(--accent) 22%, var(--paper));
+  --accent-ink: color-mix(in oklab, var(--accent) 55%, white);
+}
