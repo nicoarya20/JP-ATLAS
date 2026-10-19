@@ -30,12 +30,12 @@ h1, h2, h3 { margin: 0; }
 .glassbar-fab { --fab-ease: cubic-bezier(0.32, 0.72, 0, 1); flex: none; width: 60px; height: 60px; border-radius: 50%;
   display: grid; place-items: center; overflow: hidden; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
   transition: transform 220ms ease, width 380ms var(--fab-ease), margin-left 380ms var(--fab-ease),
-    opacity 220ms ease 120ms, scale 380ms var(--fab-ease); }
+    opacity 220ms ease 120ms, scale 380ms var(--fab-ease), background-color 280ms ease; }
 .glassbar-fab:active { transform: scale(0.94); }
 /* No "+" on this tab for the role: shrink to nothing and cancel the 10px gap, so the pill slides out to the full width */
 .glassbar-fab.is-hidden { width: 0; margin-left: -10px; opacity: 0; scale: 0.6; pointer-events: none;
   transition: transform 220ms ease, width 380ms var(--fab-ease), margin-left 380ms var(--fab-ease),
-    opacity 160ms ease, scale 260ms var(--fab-ease); }
+    opacity 160ms ease, scale 260ms var(--fab-ease), background-color 280ms ease; }
 @media (prefers-reduced-motion: reduce) {
   .glassbar-fab, .glassbar-fab.is-hidden { transition: opacity 120ms ease; scale: 1; }
 }

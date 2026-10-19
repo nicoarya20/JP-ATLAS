@@ -69,4 +69,15 @@ describe('theme layer', () => {
     expect(z(library, '\\.react-cupertino-ui-navigation-bar')).toBeLessThan(z(app, '\\.glassbar-scrim'));
     expect(library).toMatch(/\.glassbar-scrim\.is-open \+ \.glassbar[^{]*\{[^}]*var\(--glass-bar-open\)/);
   });
+
+  it('animates the "+" both ways: only app.css sets its transition, with width in both states', () => {
+    const app = read('styles/app.css');
+    const rules = css => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*)\}/g)].map(m => ({ sel: m[1].trim(), body: m[2] }));
+    const fabTransitions = css => rules(css).filter(r => /\.glassbar-fab\b/.test(r.sel) && !r.sel.includes('@media')
+      && !/:active/.test(r.sel) && /transition:/.test(r.body));
+    expect(fabTransitions(library)).toEqual([]);
+    const own = fabTransitions(app).filter(r => !/reduce/.test(r.sel));
+    expect(own.map(r => r.sel)).toEqual(['.glassbar-fab', '.glassbar-fab.is-hidden']);
+    for (const r of own) expect(r.body).toMatch(/width 380ms/);
+  });
 });
