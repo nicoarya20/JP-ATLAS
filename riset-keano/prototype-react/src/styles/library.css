@@ -130,6 +130,9 @@
 .react-cupertino-ui-suggestion-chip.variant-secondary[data-active="true"],
 .react-cupertino-ui-suggestion-chip.variant-secondary[data-active="true"]:hover:not(:disabled) {
   background: var(--accent); color: var(--on-accent); }
+/* Upstream lifts the active chip 1px; .hscroll's overflow-x clips the y axis too, so the pill's top got cut off.
+   :not(:active) keeps the press scale (press.css). */
+.react-cupertino-ui-suggestion-chip[data-active="true"]:not(:active) { transform: none; }
 
 /* ---- Underline tabs (kit Tabs) ---- */
 .react-cupertino-ui-tabs__list.variant-underline .react-cupertino-ui-tabs__trigger { color: var(--label-2); }
