@@ -103,6 +103,9 @@
 .react-cupertino-ui-search-bar__input::placeholder,
 .react-cupertino-ui-search-bar__input-wrapper .search-icon { color: var(--label-2); }
 .react-cupertino-ui-search-bar .clear-button { background: var(--label-3); color: var(--surface); }
+/* Unfocused Cancel is parked at margin-right -70px but is narrower than that, so the field ran ~3px past the
+   container clip and its right corners came out square. Take it out of the row until the field is focused. */
+.react-cupertino-ui-search-bar:not(.is-focused) .react-cupertino-ui-search-bar__cancel { display: none; }
 
 /* ---- Segmented control (kit Seg) ---- */
 .react-cupertino-ui-segmented-control, .react-cupertino-ui-segmented-control.variant-solid { background: var(--fill);

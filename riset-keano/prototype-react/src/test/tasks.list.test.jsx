@@ -124,6 +124,15 @@ describe('tasks list', () => {
     expect(css).not.toMatch(/scroll-snap-(type|align)/);
   });
 
+  it('draws the filter icon as a grey rounded square like the search field, whose corners all match', () => {
+    const css = readFileSync(join(__dirname, '../screens/tasks/tasks.css'), 'utf8');
+    const rule = css.match(/\.tk-filter-btn \{[^}]*\}/)[0];
+    expect(rule).toMatch(/border-radius: 10px/);
+    expect(rule).toMatch(/color: var\(--label-2\)/);
+    const lib = readFileSync(join(__dirname, '../styles/library.css'), 'utf8');
+    expect(lib).toMatch(/search-bar:not\(\.is-focused\) \.react-cupertino-ui-search-bar__cancel \{ display: none; \}/);
+  });
+
   it('says No tasks in an empty Kanban column', () => {
     renderApp('tasks.board', 'member');
     fireEvent.click(dom.getByRole('tab', { name: 'My tasks' }));
