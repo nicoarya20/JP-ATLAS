@@ -81,7 +81,7 @@ export default function SettingsMain() {
         </Setting>
       </Group>
       {admin && <TeamSettings />}
-      <Btn block go="auth.login" replace>Sign out</Btn>
+      <Btn kind="danger" block go="auth.login" replace>Sign out</Btn>
       <p className="t-footnote muted center">Project settings live inside each project.{admin && ' Account roles are managed in Users (Admin).'}</p>
     </Screen>
   );

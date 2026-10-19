@@ -23,7 +23,7 @@ describe('More panel', () => {
     expect(scrim()).toHaveClass('is-open');
     expect(bubblePos()).toBe('4');                     // the bubble moves to More while it is open
     expect(dom.getByRole('button', { name: `Inbox, ${D.inbox.respond.length} new` })).toBeInTheDocument();
-    expect(dom.getByRole('button', { name: 'Sign out' })).toBeInTheDocument();
+    expect(dom.queryByRole('button', { name: 'Sign out' })).not.toBeInTheDocument(); // Settings only
   });
 
   it('folds away on More again, on the dim and on Escape, and the bubble goes back', async () => {
@@ -92,11 +92,9 @@ describe('More panel', () => {
     expect(dom.getByRole('button', { name: `Users, ${D.users.counts.pending} new` })).toBeInTheDocument();
   });
 
-  it('has no Users for a Member, and Sign out leaves for the login screen', async () => {
+  it('has no Users for a Member', async () => {
     renderApp('home.main', 'member');
     await tapMore();
     expect(dom.queryByRole('button', { name: /^Users/ })).not.toBeInTheDocument();
-    await userEvent.click(dom.getByRole('button', { name: 'Sign out' }));
-    expect(window.location.hash).toBe('#auth.login');
   });
 });

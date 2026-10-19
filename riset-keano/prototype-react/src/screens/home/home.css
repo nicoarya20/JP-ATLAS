@@ -35,7 +35,7 @@
   background: var(--fill); transition: scale 180ms var(--tb-spring, ease); }
 .mm-item:active .mm-tile { scale: 0.9; transition-duration: 60ms; }
 .mm-tile.blue { color: var(--color-blue); } .mm-tile.green { color: var(--color-green); }
-.mm-tile.orange { color: var(--color-orange); } .mm-tile.gray { color: var(--label-2); } .mm-tile.red { color: var(--color-red); }
+.mm-tile.orange { color: var(--color-orange); } .mm-tile.gray { color: var(--label-2); }
 .mm-badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box;
   border-radius: 999px; display: grid; place-items: center; background: var(--color-red); color: var(--on-accent);
   font-size: var(--fs-caption2); font-weight: 700; }

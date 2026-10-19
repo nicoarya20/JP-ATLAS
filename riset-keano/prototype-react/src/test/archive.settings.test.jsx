@@ -36,4 +36,12 @@ describe('settings', () => {
     await userEvent.click(dom.getByRole('button', { name: 'Set leave' }));
     expect(await dom.findByText('Admin leave applies immediately, no approval.')).toBeInTheDocument();
   });
+
+  it('signs out from a red button and leaves for the login screen', async () => {
+    renderApp('settings.main', 'member');
+    const out = dom.getByRole('button', { name: 'Sign out' });
+    expect(out).toHaveClass('variant-destructive');
+    await userEvent.click(out);
+    expect(window.location.hash).toBe('#auth.login');
+  });
 });
