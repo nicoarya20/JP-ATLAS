@@ -1,24 +1,36 @@
-/** Project detail header (⑧): name, status, condition (active only), lead, due date, ⋯ menu and notes. */
-import { ActionIcon, Alert, Button, Group, Menu, Stack, Text, Title } from '@mantine/core';
+/** Project detail header (⑧): name, status, condition (active only), lead, due date, extend button, ⋯ menu and notes. */
+import { Alert, Button, Group, Stack, Text, Title } from '@mantine/core';
 import type { IsoDate } from '@server/metrics/types';
 import type { ProjectStatus } from '@server/pm/enums';
 import type { ProjectDetail } from '@server/project/project.dto';
 import type { ReactNode } from 'react';
-import { FiArrowLeft, FiEdit2, FiInfo, FiMoreHorizontal } from 'react-icons/fi';
+import { FiArrowLeft, FiClock, FiInfo } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { ConditionPill } from '~/components/pm/ConditionPill';
 import { StatusBadge } from '~/components/pm/StatusBadge';
-import { ProjectDeleteItem, showsDeleteProject } from '~/components/trash/ProjectDeleteItem';
 import { DateText } from '~/components/ui/DateText';
 import { PROJECT_STATUS_LABELS } from '~/lib/pm-labels';
 import { BANNER_COPY, HEADER_COPY, LABEL_LEAD } from './projects.copy';
+import { DeadlineBadge } from './summary/DeadlineBadge';
+import { openExtendDeadlineModal } from './summary/ExtendDeadlineModal';
+import { canExtendDeadline } from './summary/header-caps';
+import { ProjectMenu } from './summary/ProjectMenu';
+import { EXTEND_COPY, REASON_LINE_COPY } from './summary/summary.copy';
 
 /** Statuses that get the Q12 note: work is over or paused, yet tasks may still be added. */
 const CLOSED_STATUSES: readonly ProjectStatus[] = ['completed', 'canceled', 'on_hold'];
 
 export type ProjectHeaderData = Pick<
   ProjectDetail,
-  'id' | 'name' | 'status' | 'condition' | 'lead' | 'dueDate' | 'can' | 'taskCounts'
+  | 'id'
+  | 'name'
+  | 'status'
+  | 'condition'
+  | 'lead'
+  | 'dueDate'
+  | 'can'
+  | 'taskCounts'
+  | 'extensionCount'
 >;
 
 /** The condition is only meaningful while the project runs; the server already nulls it otherwise. */
@@ -48,7 +60,7 @@ export function ProjectHeader({ project, today }: Props) {
   const condition = shownCondition(project);
   const closed = CLOSED_STATUSES.includes(project.status);
   const settled = project.status === 'completed' || project.status === 'canceled';
-  const canDelete = showsDeleteProject(project.can);
+  const { dueDate } = project;
   return (
     <Stack gap="sm">
       {/* Always the list, never `navigate(-1)`: from a tab, "back" would otherwise land on the previous tab. */}
@@ -63,52 +75,35 @@ export function ProjectHeader({ project, today }: Props) {
       >
         {HEADER_COPY.back}
       </Button>
-      {/* nowrap is safe: the only button is one 44px icon and the title itself wraps. */}
-      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-        <Title order={2} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
-          {project.name}
-        </Title>
-        {(project.can.update === true || canDelete) && (
-          <Menu position="bottom-end" withinPortal>
-            <Menu.Target>
-              <ActionIcon variant="subtle" color="gray" aria-label={HEADER_COPY.menuLabel}>
-                <FiMoreHorizontal size="1.25em" aria-hidden />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {project.can.update === true && (
-                <Menu.Item
-                  component={Link}
-                  to={`/app/projects/${encodeURIComponent(project.id)}/settings`}
-                  leftSection={<FiEdit2 size="1.25em" aria-hidden />}
-                >
-                  {HEADER_COPY.edit}
-                </Menu.Item>
-              )}
-              {canDelete && (
-                <ProjectDeleteItem
-                  target={{ id: project.id, name: project.name, tasks: project.taskCounts.live }}
-                  today={today}
-                />
-              )}
-            </Menu.Dropdown>
-          </Menu>
-        )}
+      <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
+        <Group gap="sm" wrap="wrap" align="center" style={{ minWidth: 0, flex: 1 }}>
+          <Title order={2} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+            {project.name}
+          </Title>
+          <StatusBadge status={project.status} />
+          {condition && <ConditionPill condition={condition.level} />}
+        </Group>
+        <Group gap="xs" wrap="wrap" justify="flex-end">
+          {canExtendDeadline(project) && dueDate && (
+            <Button
+              variant="light"
+              leftSection={<FiClock size="1.25em" aria-hidden />}
+              onClick={() =>
+                openExtendDeadlineModal({ projectId: project.id, currentDue: dueDate })
+              }
+            >
+              {EXTEND_COPY.open}
+            </Button>
+          )}
+          <ProjectMenu project={project} today={today} />
+        </Group>
       </Group>
 
-      <Group gap="sm" wrap="wrap">
-        <StatusBadge status={project.status} />
-        {condition && (
-          <Group gap={6} wrap="wrap" style={{ minWidth: 0 }}>
-            <ConditionPill condition={condition.level} />
-            {condition.reason && (
-              <Text size="sm" c="dimmed">
-                {condition.reason}
-              </Text>
-            )}
-          </Group>
-        )}
-      </Group>
+      {condition?.reason && (
+        <Text size="sm" c="dimmed">
+          {`${REASON_LINE_COPY.why}: ${condition.reason}`}
+        </Text>
+      )}
 
       <Group gap="lg" wrap="wrap">
         <Fact label={LABEL_LEAD}>
@@ -117,11 +112,12 @@ export function ProjectHeader({ project, today }: Props) {
           </Text>
         </Fact>
         <Fact label={HEADER_COPY.due}>
-          {project.dueDate ? (
-            <DateText value={project.dueDate} mode="due" today={today} settled={settled} />
+          {dueDate ? (
+            <DateText value={dueDate} mode="due" today={today} settled={settled} />
           ) : (
             <Text size="sm">{HEADER_COPY.noDue}</Text>
           )}
+          <DeadlineBadge projectId={project.id} count={project.extensionCount} />
         </Fact>
       </Group>
 
