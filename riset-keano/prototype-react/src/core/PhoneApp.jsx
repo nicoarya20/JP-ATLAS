@@ -78,7 +78,7 @@ export function PhoneApp() {
       {tab && <AppTabBar active={tab} />}
       <OpenSheet />
       {app.toastState && (
-        <Toast key={app.toastState.key} className="app-toast" title={app.toastState.msg} position="top-center" duration={TOAST_MS} onClose={app.clearToast} />
+        <Toast key={app.toastState.key} className="app-toast" title={app.toastState.msg} position="top-center" glass={false} duration={TOAST_MS} onClose={app.clearToast} />
       )}
     </div>
   );

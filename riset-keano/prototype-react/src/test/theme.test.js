@@ -80,4 +80,11 @@ describe('theme layer', () => {
     expect(own.map(r => r.sel)).toEqual(['.glassbar-fab', '.glassbar-fab.is-hidden']);
     for (const r of own) expect(r.body).toMatch(/width 380ms/);
   });
+
+  it('places the toast under the status bar, centred, in the snackbar colours (upstream has no position rules)', () => {
+    const rule = library.match(/\.app-toast\.react-cupertino-ui-toast \{[^}]*\}/)[0];
+    for (const d of ['position: absolute', 'top: calc(var(--statusbar-h)', 'margin-inline: auto', 'width: fit-content',
+      'background: var(--snack-bg)', 'color: var(--snack-label)']) expect(rule).toContain(d);
+    expect(library).toMatch(/\.app-toast \.react-cupertino-ui-toast-close \{[^}]*background: none/);
+  });
 });
