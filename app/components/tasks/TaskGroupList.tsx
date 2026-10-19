@@ -3,12 +3,14 @@
  * Which group a task is in is decided by the server (`due=<group>`, team-zone clock), never by the
  * browser's date; each group loads its own keyset pages.
  */
-import { Button, Group, Stack, Text } from '@mantine/core';
+import { Button, Stack } from '@mantine/core';
 import { SCHEDULE_GROUPS, type ScheduleGroup } from '@server/metrics/schedule';
 import { type ReactNode, useEffect, useState } from 'react';
 import { type TaskCounts, useTaskList } from '~/lib/tasks-api';
 import type { TaskListQuery } from '~/lib/tasks-filters';
 import { ScheduleHeader, scheduleHeadingId } from './ScheduleHeader';
+import { TaskListSkeleton } from './TaskListSkeleton';
+import { TaskLoadError } from './TaskLoadError';
 import { TaskRow } from './TaskRow';
 import { LIST_COPY } from './tasks.copy';
 
@@ -32,13 +34,14 @@ function GroupSection({ group, query, count, onLoaded }: SectionProps) {
   return (
     <Stack gap="xs" component="section" aria-labelledby={scheduleHeadingId(group)}>
       <ScheduleHeader group={group} count={shown} />
+      {list.isPending && <TaskListSkeleton rows={2} />}
       {list.isError && (
-        <Group gap="xs" wrap="wrap">
-          <Text c="danger">{LIST_COPY.loadFailed}</Text>
-          <Button variant="light" onClick={() => void list.refetch()}>
-            {LIST_COPY.retry}
-          </Button>
-        </Group>
+        <TaskLoadError
+          title={list.isFetchNextPageError ? LIST_COPY.loadMoreFailed : LIST_COPY.loadFailed}
+          error={list.error}
+          retrying={list.isFetching}
+          onRetry={() => void (list.isFetchNextPageError ? list.fetchNextPage() : list.refetch())}
+        />
       )}
       <Stack gap="xs" role="list">
         {rows.map((task) => (

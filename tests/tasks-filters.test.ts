@@ -25,14 +25,15 @@ describe('parseTaskFilters', () => {
   it('reads every Indonesian key and value', () => {
     expect(
       parse(
-        'lingkup=semua&proyek=p-1&orang=u-2&prioritas=tinggi,kritis&status=selesai&urut=prioritas&q=Cat',
+        'lingkup=semua&proyek=p-1&orang=u-2&prioritas=tinggi,kritis&status=dikerjakan&tenggat=minggu-ini&urut=prioritas&q=Cat',
       ),
     ).toEqual({
       lingkup: 'semua',
       proyek: 'p-1',
       orang: 'u-2',
       prioritas: ['tinggi', 'kritis'],
-      status: 'selesai',
+      status: 'dikerjakan',
+      tenggat: 'minggu-ini',
       urut: 'prioritas',
       q: 'Cat',
     });
@@ -43,6 +44,11 @@ describe('parseTaskFilters', () => {
     ['lingkup=project', { lingkup: 'saya' }],
     ['status=done', { status: 'aktif' }],
     ['status=SELESAI', { status: 'aktif' }],
+    ['tenggat=kemarin', { tenggat: null }],
+    ['tenggat=constructor', { tenggat: null }],
+    // A finished or canceled task has no schedule group, so the filter would only empty the list.
+    ['status=selesai&tenggat=terlambat', { status: 'selesai', tenggat: null }],
+    ['status=dibatalkan&tenggat=besok', { status: 'dibatalkan', tenggat: null }],
     ['urut=due', { urut: 'tenggat' }],
     ['prioritas=high', { prioritas: [] }],
     ['prioritas=tinggi,urgent', { prioritas: ['tinggi'] }],
@@ -59,7 +65,14 @@ describe('parseTaskFilters', () => {
   });
 
   it('keeps orang=saya as a word, so a shared link means the reader', () => {
-    expect(parse('orang=saya').orang).toBe(PERSON_ME);
+    expect(parse('lingkup=semua&orang=saya').orang).toBe(PERSON_ME);
+  });
+
+  it.each(['belum', 'dikerjakan'])('reads the single-status chip status=%s', (slug) => {
+    expect(parse(`status=${slug}&tenggat=terlambat`)).toMatchObject({
+      status: slug,
+      tenggat: 'terlambat',
+    });
   });
 });
 
@@ -73,9 +86,11 @@ describe('round trip URL ⇄ filters', () => {
       orang: PERSON_ME,
       prioritas: ['rendah', 'sedang'],
       status: 'selesai',
+      tenggat: null,
       urut: 'dibuat',
       q: 'pasang keramik',
     },
+    { ...DEFAULT_TASK_FILTERS, lingkup: 'semua', status: 'belum', tenggat: 'terlambat' },
   ];
   it.each(cases.map((c, i) => [i, c] as const))('case %d survives the URL', (_i, f) => {
     expect(parseTaskFilters(taskFiltersToParams(f))).toEqual(f);
@@ -116,6 +131,35 @@ describe('toTaskQuery', () => {
     expect(toTaskQuery(parse('lingkup=semua&orang=saya'), ctx).assigneeId).toBe(ME);
   });
 
+  it.each([
+    ['belum', ['todo']],
+    ['dikerjakan', ['in_progress']],
+  ])('maps the status chip %s to exactly that status', (slug, status) => {
+    expect(toTaskQuery(parse(`status=${slug}`), ctx).status).toEqual(status as never);
+  });
+
+  it.each([
+    ['terlambat', 'overdue'],
+    ['hari-ini', 'today'],
+    ['besok', 'tomorrow'],
+    ['minggu-ini', 'week'],
+    ['nanti', 'later'],
+    ['tanpa-tenggat', 'none'],
+  ])('maps tenggat=%s to the schedule group %s', (slug, due) => {
+    expect(toTaskQuery(parse(`lingkup=semua&tenggat=${slug}`), ctx).due).toBe(due as never);
+  });
+
+  it('sends no due group when there is no tenggat filter', () => {
+    expect('due' in toTaskQuery(DEFAULT_TASK_FILTERS, ctx)).toBe(false);
+  });
+
+  it('ignores a stale orang in "Tugas saya", where every task is already mine', () => {
+    expect(toTaskQuery(parse('orang=u-2'), ctx).assigneeId).toBeUndefined();
+    expect(toTaskQuery(parse('orang=u-2'), { ...ctx, lockedProjectId: 'p-1' }).assigneeId).toBe(
+      'u-2',
+    );
+  });
+
   it('pins a project tab to its project, whatever the URL says', () => {
     const q = toTaskQuery(parse('lingkup=semua&proyek=other'), { ...ctx, lockedProjectId: 'p-7' });
     expect(q.scope).toBe('project');
@@ -137,19 +181,34 @@ describe('hasTaskFilters and grouping', () => {
     expect(hasTaskFilters(parse('urut=terbaru&lingkup=semua'))).toBe(false);
   });
 
-  it.each(['status=selesai', 'proyek=p-1', 'orang=saya', 'prioritas=tinggi', 'q=x'])(
+  it.each([
+    'status=selesai',
+    'status=belum',
+    'tenggat=terlambat',
+    'proyek=p-1',
+    'lingkup=semua&orang=saya',
+    'prioritas=tinggi',
+    'q=x',
+  ])(
     'is true for %s',
     (qs) => {
       expect(hasTaskFilters(parse(qs))).toBe(true);
     },
   );
 
+  it('does not count an orang that "Tugas saya" ignores, but does on a project tab', () => {
+    expect(hasTaskFilters(parse('orang=u-2'))).toBe(false);
+    expect(hasTaskFilters(parse('orang=u-2'), { lockedProjectId: 'p-1' })).toBe(true);
+  });
+
   it('ignores the project param on a project tab, where it is locked', () => {
     expect(hasTaskFilters(parse('proyek=p-1'), { lockedProjectId: 'p-1' })).toBe(false);
   });
 
   it('clearing the narrowing params leaves no filter but keeps scope and sort', () => {
-    const sp = new URLSearchParams('lingkup=semua&urut=terbaru&status=selesai&orang=saya&q=x');
+    const sp = new URLSearchParams(
+      'lingkup=semua&urut=terbaru&status=belum&tenggat=besok&orang=saya&q=x',
+    );
     const cleared = parseTaskFilters(
       mergeFilterParams(sp, Object.fromEntries(TASK_NARROWING_PARAMS.map((k) => [k, null]))),
     );
@@ -162,6 +221,9 @@ describe('hasTaskFilters and grouping', () => {
     expect(isGroupedView(DEFAULT_TASK_FILTERS)).toBe(true);
     expect(isGroupedView(parse('lingkup=semua'))).toBe(false);
     expect(isGroupedView(parse('status=selesai'))).toBe(false);
+    expect(isGroupedView(parse('status=belum'))).toBe(false);
+    // One due date is one group, shown as a flat list.
+    expect(isGroupedView(parse('tenggat=terlambat'))).toBe(false);
     expect(isGroupedView(DEFAULT_TASK_FILTERS, { lockedProjectId: 'p-1' })).toBe(false);
   });
 });
