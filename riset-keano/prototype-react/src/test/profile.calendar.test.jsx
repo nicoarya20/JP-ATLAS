@@ -1,11 +1,11 @@
-// Profile ② My calendar (profile.calendar): week strip, month arrows, swipe between weeks and the day's hour grid.
+// Profile ② My calendar (profile.calendar): week strip, swipe between weeks and the day's hour grid.
 import { describe, expect, it } from 'vitest';
 import { act, fireEvent, screen as dom, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '../screens';
 import { D } from '../data/sample';
 import {
-  TODAY, addDays, clock, dayLabel, eventsFor, hourLabel, itemsOn, shiftMonth, weekOf,
+  TODAY, addDays, clock, dayLabel, eventsFor, hourLabel, itemsOn, monthLabel, weekOf,
 } from '../screens/profile/profile.calendar.dates';
 import { renderApp } from './render';
 
@@ -27,12 +27,11 @@ describe('My calendar dates', () => {
     expect(dayLabel(TODAY)).toBe(D.today.date);
   });
 
-  it('builds Sunday-first weeks and moves between months', () => {
+  it('builds Sunday-first weeks', () => {
     expect(weekOf(TODAY).map(d => d.getDate())).toEqual([4, 5, 6, 7, 8, 9, 10]);
     expect(weekOf(new Date(2026, 10, 1)).map(d => d.getDate())).toEqual([1, 2, 3, 4, 5, 6, 7]);
-    expect(dayLabel(shiftMonth(TODAY, 1))).toBe('Sunday, Nov 1, 2026');
-    expect(dayLabel(shiftMonth(new Date(2026, 10, 1), -1))).toBe(D.today.date);
-    expect(dayLabel(shiftMonth(TODAY, -10))).toBe('Monday, Dec 1, 2025');
+    expect(weekOf(new Date(2026, 9, 1)).map(d => d.getDate())).toEqual([27, 28, 29, 30, 1, 2, 3]);
+    expect(monthLabel(TODAY)).toBe('October 2026');
   });
 
   it('formats hours and clock times', () => {
@@ -93,16 +92,15 @@ describe('My calendar screen', () => {
     expect(selected()).toHaveAccessibleName('Wednesday, Sep 30, 2026');
   });
 
-  it('moves between months and back to today', async () => {
+  it('has no month or Today controls; the month title follows the swiped week', () => {
     renderApp('profile.calendar', 'pm');
-    await userEvent.click(dom.getByRole('button', { name: 'Next month' }));
-    expect(dom.getByRole('heading', { name: 'November 2026' })).toBeInTheDocument();
-    expect(selected()).toHaveAccessibleName('Sunday, Nov 1, 2026');
-    await userEvent.click(dom.getByRole('button', { name: 'Previous month' }));
-    await userEvent.click(dom.getByRole('button', { name: 'Previous month' }));
+    expect(dom.queryByRole('button', { name: /month/ })).not.toBeInTheDocument();
+    expect(dom.queryByText('Today')).not.toBeInTheDocument();
+    swipeWeek(80);
     expect(dom.getByRole('heading', { name: 'September 2026' })).toBeInTheDocument();
-    await userEvent.click(dom.getByText('Today'));
-    expect(selected()).toHaveAccessibleName(`${D.today.date}, today`);
+    for (let i = 0; i < 5; i += 1) swipeWeek(-80);
+    expect(selected()).toHaveAccessibleName('Wednesday, Nov 4, 2026');
+    expect(dom.getByRole('heading', { name: 'November 2026' })).toBeInTheDocument();
   });
 
   it('shows the repeating sprint review two weeks on and opens an event', async () => {

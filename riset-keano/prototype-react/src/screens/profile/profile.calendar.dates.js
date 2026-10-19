@@ -20,12 +20,6 @@ const daysBetween = (a, b) => Math.round((Date.UTC(b.getFullYear(), b.getMonth()
 /** The seven days (Sunday first, as in iOS Calendar) of the week holding d. */
 export const weekOf = d => Array.from({ length: 7 }, (_, i) => addDays(d, i - d.getDay()));
 
-/** Day to select after moving n months from d: today when the target month holds it, else the 1st. */
-export function shiftMonth(d, n) {
-  const first = new Date(d.getFullYear(), d.getMonth() + n, 1);
-  return first.getFullYear() === TODAY.getFullYear() && first.getMonth() === TODAY.getMonth() ? TODAY : first;
-}
-
 /** "October 2026". */
 export const monthLabel = d => `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 /** "Wednesday, Oct 7, 2026". */

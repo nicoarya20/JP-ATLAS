@@ -1,14 +1,12 @@
-// Profile ② My calendar: a simple iOS-style week view of the signed-in person's events. Month title with arrows to
-// switch month, a Sunday-first week strip (swipe to change week, tap a day), then that day's hours with event blocks
-// and a red now line on today. Today in the nav bar jumps back.
+// Profile ② My calendar: a simple iOS-style week view of the signed-in person's events. Month title, a Sunday-first
+// week strip (swipe to change week, tap a day), then that day's hours with event blocks and a red now line on today.
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Link, Screen } from '../../kit';
+import { Screen } from '../../kit';
 import { EV } from '../events/events.shared';
 import {
-  NOW_MIN, TODAY, WEEKDAYS, addDays, clock, dayLabel, eventsFor, hourLabel, itemsOn, monthLabel, sameDay, shiftMonth, weekOf,
+  NOW_MIN, TODAY, WEEKDAYS, addDays, clock, dayLabel, eventsFor, hourLabel, itemsOn, monthLabel, sameDay, weekOf,
 } from './profile.calendar.dates';
 
 const HOUR_PX = 56;           // height of one hour row
@@ -99,17 +97,10 @@ export default function ProfileCalendar() {
   const pick = (d, dir) => setView(v => ({ day: d, dir: dir ?? (d > v.day ? 'next' : d < v.day ? 'prev' : v.dir) }));
   const { day, dir } = view;
   const todays = itemsOn(items, day);
-  const month = n => pick(shiftMonth(day, n), n > 0 ? 'next' : 'prev');
   return (
-    <Screen title="My calendar" back className="pf-cal" right={<Link onClick={() => pick(TODAY)}>Today</Link>}>
+    <Screen title="My calendar" back className="pf-cal">
       <div className="pf-cal-head">
-        <div className="between pf-cal-month">
-          <h2 className="t-title3">{monthLabel(day)}</h2>
-          <span className="row-flex">
-            <button type="button" className="pf-cal-arrow" aria-label="Previous month" onClick={() => month(-1)}><ChevronLeft size={22} /></button>
-            <button type="button" className="pf-cal-arrow" aria-label="Next month" onClick={() => month(1)}><ChevronRight size={22} /></button>
-          </span>
-        </div>
+        <h2 className="pf-cal-month t-title3">{monthLabel(day)}</h2>
         <WeekStrip day={day} pick={pick} dir={dir} marked={d => itemsOn(items, d).length > 0} />
         <p className="pf-cal-date t-subhead bold">
           {dayLabel(day)}<span className="muted"> · {todays.length ? `${todays.length} event${todays.length > 1 ? 's' : ''}` : 'No events'}</span>
