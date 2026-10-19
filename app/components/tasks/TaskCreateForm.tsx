@@ -27,6 +27,8 @@ export type TaskCreateFormProps = {
   today: IsoDate;
   /** Where the Batal button goes. */
   cancelTo: string;
+  /** Batal calls this instead of going to `cancelTo`; for a form shown in a dialog. */
+  onCancel?: () => void;
   /** Called once the task is saved and the unsaved-changes guard has been released. */
   onSubmitted: (task: SavedTask) => void;
 };
