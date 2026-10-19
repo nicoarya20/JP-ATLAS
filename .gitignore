@@ -21,3 +21,4 @@ makuro.exe
 *.service
 # local Orca CLI binary dropped in the repo root; never commit
 /orca-office
+/catatan-pagi
