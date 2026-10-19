@@ -1,7 +1,6 @@
-// Tasks module shared parts: page frame with a pinned foot bar, tick box, labelled select, detail section and task link card.
+// Tasks module shared parts: page frame with a pinned foot bar, tick box, labelled select, detail section.
 import { Checkbox } from '@react-cupertino-ui/checkbox';
-import { Screen, Section, Select } from '../../kit';
-import { detailOf } from './tasks.shared';
+import { Screen, Select } from '../../kit';
 
 /** Bottom action bar pinned under the scrolling content. */
 export function Foot({ children }) {
@@ -39,17 +38,5 @@ export function Sec({ title, right, children }) {
       <div className="between"><h3 className="t-headline">{title}</h3>{right}</div>
       {children}
     </section>
-  );
-}
-
-/** Card linking to another task's detail; extra = trailing content. */
-export function TaskLink({ t, extra }) {
-  return (
-    <Section go={detailOf(t)} task={t.no}>
-      <div className="stack xs">
-        <span className="row-flex wrap t-footnote"><b>#{t.no}</b>{t.title} · {t.who} · {t.status}</span>
-        {extra}
-      </div>
-    </Section>
   );
 }

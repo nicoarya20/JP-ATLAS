@@ -2,20 +2,15 @@
 import { Btn, Link, Section } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Sec, TaskLink } from './tasks.parts';
+import { Sec } from './tasks.parts';
 import { Evidence, Step, TaskDetail, baseFacts, stepsTitle } from './tasks.detail';
-import { blockedBy, blocking, info, pick, reviewer } from './tasks.shared';
+import { info, pick, reviewer } from './tasks.shared';
 
-/** ⑧ To do — review off, so Mark done finishes directly. A blocked task can't start: it links to its blocker. */
+/** ⑧ To do — review off, so Mark done finishes directly. */
 export function TasksDetailTodo({ params }) {
   const member = useApp().is('member');
-  const no = pick(params, 'tasks.detail-todo', 14), x = info(no), b = blockedBy(D.task(no));
-  const actions = b ? (
-    <div className="stack sm">
-      <span className="t-footnote bold">Blocked by #{b.no} · can start once it's done</span>
-      <TaskLink t={b} extra={<span className="link">Open →</span>} />
-    </div>
-  ) : (
+  const no = pick(params, 'tasks.detail-todo', 14), x = info(no);
+  const actions = (
     <div className="row-flex">
       <Btn kind="primary" go="tasks.detail-progress" toast="Task started">Start working</Btn>
       <Btn toast="Marked as done">Mark done</Btn>
@@ -37,7 +32,7 @@ export function TasksDetailTodo({ params }) {
  * Done tasks open here too, with their status shown and Reopen instead of Request review.
  */
 export function TasksDetailProgress({ params }) {
-  const no = pick(params, 'tasks.detail-progress', 12), x = info(no), b = blocking(x);
+  const no = pick(params, 'tasks.detail-progress', 12), x = info(no);
   const actions = D.task(no).status === 'Done'
     ? <Btn block toast="Task reopened">Reopen</Btn>
     : <Btn kind="primary" block go="tasks.detail-review" toast="Review requested">Request review</Btn>;
@@ -54,7 +49,6 @@ export function TasksDetailProgress({ params }) {
           <div><Link toast="Evidence attached">+ Attach evidence</Link></div>
         </Sec>
       )}
-      {b && <Sec title="Blocking 1 task"><TaskLink t={b} /></Sec>}
     </TaskDetail>
   );
 }

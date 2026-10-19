@@ -1,10 +1,10 @@
 // Tasks ③ Kanban: one column per status, compact cards that only open the task (its actions live in the detail).
-import { Ban, Calendar, Circle, CircleCheck, CircleDashed, CircleDot, Flag, ListChecks, Plus } from 'lucide-react';
+import { Calendar, Circle, CircleCheck, CircleDashed, CircleDot, Flag, ListChecks, Plus } from 'lucide-react';
 import { Avatar, Btn, Section } from '../../kit';
 import { D } from '../../data/sample';
 import { ListScreen } from './tasks.list';
 import { applyQuery, queryOf } from './tasks.query';
-import { blocked, days, detailOf } from './tasks.shared';
+import { days, detailOf } from './tasks.shared';
 
 // Status badge per column: icon + tone class (colour comes from tasks.css).
 const COLUMNS = [
@@ -21,7 +21,7 @@ function steps(no) {
   return list.length ? `${list.filter(([, done]) => done).length}/${list.length}` : null;
 }
 
-/** Card: title, #number with project (mine) or type, then chips for assignee, due date, priority, blocked and steps. */
+/** Card: title, #number with project (mine) or type, then chips for assignee, due date, priority and steps. */
 function BoardCard({ t, mine }) {
   const late = t.status !== 'Done' && days(t.due) < 0, s = steps(t.no);
   return (
@@ -33,7 +33,6 @@ function BoardCard({ t, mine }) {
           <span className="tk-chip" title={D.person(t.who)?.full || t.who}><Avatar name={t.who} size="sm" /></span>
           <span className={`tk-chip${late ? ' danger' : ''}`}><Calendar size={ICON} aria-hidden="true" />{t.due}</span>
           <span className={`tk-chip tk-prio-${t.priority.toLowerCase()}`}><Flag size={ICON} aria-hidden="true" />{t.priority}</span>
-          {blocked(t) && <span className="tk-chip danger"><Ban size={ICON} aria-hidden="true" />{t.when.replace('Blocked by ', 'Blocked ')}</span>}
           {s && <span className="tk-chip"><ListChecks size={ICON} aria-hidden="true" />{s}</span>}
         </div>
       </div>

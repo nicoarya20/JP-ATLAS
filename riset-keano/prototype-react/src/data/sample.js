@@ -69,7 +69,7 @@ const tasks = [
   { no: 17, title: 'Fix the save button on the profile page', project: 'Atlas Project', type: 'Bug', priority: 'Medium', status: 'In review', who: 'Dodi', due: 'Oct 8', when: 'Awaiting my review', next: 'Review', updated: '2026-10-06T16:20', tags: ['profile'] },
   { no: 14, title: 'Write the API spec', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Nico', due: 'Oct 7', when: 'Today', next: 'Start', updated: '2026-10-05T10:00', tags: ['api'] },
   { no: 15, title: 'Review the onboarding page design', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Rina', due: 'Oct 9', when: 'This week', next: 'Start', updated: '2026-10-04T14:30', tags: ['design'] },
-  { no: 16, title: 'Prepare test data', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Dodi', due: 'Oct 16', when: 'Blocked by #12', next: 'View', updated: '2026-10-02T09:10', tags: ['testing'] },
+  { no: 16, title: 'Prepare test data', project: 'Atlas Project', type: 'Task', priority: 'Medium', status: 'To do', who: 'Dodi', due: 'Oct 16', when: 'Next week', next: 'Start', updated: '2026-10-02T09:10', tags: ['testing'] },
   { no: 8, title: 'Draft the architecture design', project: 'Atlas Project', type: 'Task', priority: 'High', status: 'Done', who: 'Nico', due: 'Sep 20', when: 'Done Sep 20', next: 'Reopen', updated: '2026-09-20T17:45', tags: [] },
   { no: 9, title: 'Progress report for PT Sinar', project: 'PT Sinar Client Portal', type: 'Task', priority: 'Medium', status: 'To do', who: 'Nico', due: 'Oct 8', when: 'Tomorrow', next: 'Start', updated: '2026-10-06T11:05', tags: [] },
 ];
@@ -78,7 +78,7 @@ const taskDetail = {
   14: { phase: 'Development', desc: 'Write the login and profile endpoint spec for the mobile team.', by: 'Nico · Oct 5', steps: [], history: [['Nico created this task', 'Oct 5']] },
   12: { phase: 'Development', desc: 'SSO login fails on staging after the redirect.', by: 'Rina · Oct 3', reviewer: 'Admin',
     steps: [['Check the SSO config on staging', true], ['Fix the redirect after login', true], ['Retest in Safari and Chrome', false]],
-    proof: [['login-screenshot.png', '"Redirect is correct in Chrome" · Nico · Oct 6']], blocks: '#16 Prepare test data · Dodi · To do',
+    proof: [['login-screenshot.png', '"Redirect is correct in Chrome" · Nico · Oct 6']],
     history: [['Rina created this task', 'Oct 3'], ['Nico started working', 'Oct 4'], ['Dodi: "the error still shows on staging"', 'Oct 6'], ['Nico attached proof login-screenshot.png', 'Oct 6']] },
   17: { phase: 'Development', desc: "The save button can't be tapped on phones.", by: 'Nico · Oct 5', reviewer: 'Nico (creator, Manager)', asked: 'Dodi asked you to review this task · Oct 7',
     steps: [['Reproduce on Android', true], ['Fix the button hit area', true]],

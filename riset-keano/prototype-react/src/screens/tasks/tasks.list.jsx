@@ -7,7 +7,7 @@ import { D } from '../../data/sample';
 import { TasksSearch } from './tasks.filter';
 import { Tick } from './tasks.parts';
 import { SORTS, SORT_DUE, applyQuery, isFiltered, queryOf, queryParams, withoutQuery } from './tasks.query';
-import { TODAY, blocked, days, detailOf, note } from './tasks.shared';
+import { TODAY, days, detailOf, note } from './tasks.shared';
 
 /** List frame shared by ①–④: My/All switch with the List/Kanban view beside it, search with the Filter & sort icon
  *  (status, project, priority, sort live in its overlay). The two switches are independent: Kanban keeps My/All
@@ -54,7 +54,7 @@ function MyCard({ t }) {
       <div className="stack xs">
         <CardTitle>{t.title}</CardTitle>
         <span className="t-footnote muted">#{t.no} · {t.project} · {t.priority}</span>
-        {(t.status !== 'To do' || blocked(t)) && <span className="t-footnote bold">{note(t)}</span>}
+        {t.status !== 'To do' && <span className="t-footnote bold">{note(t)}</span>}
         <span className={`t-footnote tk-meta ${late ? 'danger bold' : 'muted'}`}>Due {t.due}</span>
       </div>
     </Section>

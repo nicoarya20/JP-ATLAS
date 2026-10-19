@@ -6,7 +6,6 @@ import { join } from 'node:path';
 import { fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
 import { D } from '../data/sample';
-import { blocked } from '../screens/tasks/tasks.shared';
 import { renderApp } from './render';
 
 const count = name => dom.queryAllByRole('button', { name }).length;
@@ -28,7 +27,7 @@ describe('tasks list', () => {
 
   it('keeps Start working in the task detail', () => {
     renderApp('tasks.my', 'pm');
-    const t = D.tasks.find(x => x.who === D.me().name && x.status === 'To do' && !blocked(x));
+    const t = D.tasks.find(x => x.who === D.me().name && x.status === 'To do');
     fireEvent.click(dom.getByText(t.title));
     expect(window.location.hash).toBe('#tasks.detail-todo');
     expect(dom.getByRole('button', { name: 'Start working' })).toBeInTheDocument();
@@ -103,7 +102,7 @@ describe('tasks list', () => {
     expect(dom.getByRole('button', { name: 'Start working' })).toBeInTheDocument();
   });
 
-  it('gives each Kanban column a status badge, count and Add task, and marks late and blocked cards', () => {
+  it('gives each Kanban column a status badge, count and Add task, and marks late cards without any Blocked chip', () => {
     renderApp('tasks.board', 'pm');
     const col = name => within(dom.getByRole('region', { name: new RegExp(`^${name}, `) }));
     for (const s of ['To do', 'In progress', 'In review', 'Done']) {
@@ -114,7 +113,7 @@ describe('tasks list', () => {
     const sso = within(dom.getByRole('button', { name: '#12 Fix SSO login' }));
     expect(sso.getByText('Oct 5').closest('.tk-chip')).toHaveClass('danger');      // 2 days overdue
     expect(sso.getByText('2/3')).toBeInTheDocument();                              // checklist steps
-    expect(within(dom.getByRole('button', { name: '#16 Prepare test data' })).getByText('Blocked #12')).toBeInTheDocument();
+    expect(dom.queryByText(/Blocked/)).not.toBeInTheDocument();                   // no task dependencies, as on desktop
     fireEvent.click(col('Done').getByRole('button', { name: 'Add task' }));
     expect(window.location.hash).toBe('#tasks.form');
   });
@@ -155,5 +154,18 @@ describe('tasks list', () => {
     expect(dom.getByRole('tab', { name: 'All tasks' })).toHaveAttribute('aria-selected', 'true');
     fireEvent.click(dom.getByRole('tab', { name: 'List' }));
     expect(window.location.hash).toBe('#tasks.all');
+  });
+
+  it('lets the former blocked task start like any To do, and lists no Blocking task on #12', () => {
+    renderApp('tasks.board', 'pm');
+    fireEvent.click(dom.getByRole('button', { name: '#16 Prepare test data' }));
+    expect(window.location.hash).toBe('#tasks.detail-todo');
+    expect(dom.getByRole('button', { name: 'Start working' })).toBeInTheDocument();
+    expect(dom.queryByText(/Blocked by/)).not.toBeInTheDocument();
+    fireEvent.click(dom.getByRole('button', { name: 'Back' }));
+    fireEvent.click(dom.getByRole('button', { name: '#12 Fix SSO login' }));
+    expect(window.location.hash).toBe('#tasks.detail-progress');
+    expect(dom.getByRole('button', { name: 'Request review' })).toBeInTheDocument();
+    expect(dom.queryByText(/Blocking/)).not.toBeInTheDocument();
   });
 });
