@@ -1,8 +1,11 @@
 // Events ① list, ⑨ empty (Member), and the toolbar/app bar shared with ② calendar. EventsList is reused by Archive ③ Undo.
-import { CalendarDays, Plus, Repeat, SlidersHorizontal } from 'lucide-react';
+// The list shows its screen params' Filter & sort query (events.query).
+import { CalendarDays, List, Plus, Repeat, SearchX } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Btn, Empty, Pill, Screen, Search, Section, Seg, Tabs } from '../../kit';
+import { Btn, Empty, Pill, Screen, Section, Seg, Tabs } from '../../kit';
+import { EventsSearch } from './events.filter';
+import { applyQuery, groupEvents, queryOf, queryParams, withoutQuery } from './events.query';
 import { EV, STATUS_TONE } from './events.shared';
 
 /** Screen frame of the Events tab: title and the tab bar (its "+" creates the event); no sub line, same bar height as Tasks and Projects. */
@@ -10,15 +13,15 @@ export function EventsScreen({ children }) {
   return <Screen title="Events" tab="events">{children}</Screen>;
 }
 
-/** Search, Filter sheet and the List / Calendar switch; on = 0 list, 1 calendar. */
+/** List / Calendar switch, then search with the Filter & sort icon (laid out like Tasks); on = 0 list, 1 calendar.
+ *  Switching keeps the query. */
 export function EventsTools({ on }) {
+  const { go, params } = useApp();
   return (
     <div className="ev-tools">
-      <Search placeholder="Search title or location…" />
-      <div className="ev-tools-row">
-        <Btn sm icon={<SlidersHorizontal size={16} />} sheet="events.filter">Filter</Btn>
-        <Seg items={['List', 'Calendar']} on={on} gos={['events.list', 'events.calendar']} />
-      </div>
+      <Seg items={['List', 'Calendar']} icons={[<List size={18} aria-hidden="true" />, <CalendarDays size={18} aria-hidden="true" />]}
+        on={on} onPick={i => go(i ? 'events.calendar' : 'events.list', { params: queryParams(params) })} />
+      <EventsSearch />
     </div>
   );
 }
@@ -57,15 +60,22 @@ function EventCard({ e }) {
   );
 }
 
-/** D.events grouped by schedule; a Member sees only events they attend. */
+/** D.events narrowed by the query and grouped by schedule or type; a Member sees only events they attend.
+ *  Nothing left: an empty state whose Reset filters re-opens the screen with its default query. */
 function Groups() {
-  const { is } = useApp();
+  const { is, current, params, go } = useApp();
   const me = D.me().name;
   const mine = D.events.filter(e => !is('member') || e.attendees.includes(me));
-  return [...new Set(mine.map(e => e.group))].map(g => (
+  const q = queryOf(params);
+  const groups = groupEvents(applyQuery(mine, q), q);
+  if (!groups.length) {
+    return <Empty icon={<SearchX size={28} />} title="No events match these filters."
+      action={<Btn kind="primary" onClick={() => go(current, { params: withoutQuery(params) })}>Reset filters</Btn>} />;
+  }
+  return groups.map(([g, list]) => (
     <section key={g} className="stack sm">
       <h2 className="t-footnote muted bold ev-day">{g}</h2>
-      {mine.filter(e => e.group === g).map(e => <EventCard key={e.id} e={e} />)}
+      {list.map(e => <EventCard key={e.id} e={e} />)}
     </section>
   ));
 }

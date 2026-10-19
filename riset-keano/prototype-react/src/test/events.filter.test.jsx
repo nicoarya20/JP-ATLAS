@@ -1,0 +1,120 @@
+// Events ①b Filter & sort: the same icon + full-height overlay as Tasks. Apply re-opens the list / calendar with the
+// query, which narrows the events (type, project), groups the list (schedule or type) and redraws the calendar dots.
+import { describe, expect, it } from 'vitest';
+import { fireEvent, screen as dom, within } from '@testing-library/react';
+import '../screens';
+import { D } from '../data/sample';
+import { renderApp } from './render';
+
+const icon = () => dom.getByRole('button', { name: 'Filter and sort' });
+const openFilter = () => { fireEvent.click(icon()); return within(dom.getByRole('dialog')); };
+const apply = sheet => fireEvent.click(sheet.getByRole('button', { name: 'Apply' }));
+const shown = e => !!dom.queryByText(e.title);
+const heads = () => dom.getAllByRole('heading', { level: 2 }).map(h => h.textContent);
+/** Dot class of an October date in the month grid: '' one event, 'two' more, 'none' no event. */
+const dot = n => document.querySelectorAll('.ev-date')[n - 1].querySelector('.ev-dot').className.replace('ev-dot', '').trim();
+
+describe('events filter & sort', () => {
+  it('puts the filter icon on the search field like Tasks, under the List / Calendar switch', () => {
+    renderApp('events.list', 'pm');
+    expect(dom.queryByRole('button', { name: /^Filter$/ })).not.toBeInTheDocument();
+    expect(icon().closest('.search-filter').querySelector('input')).toHaveAttribute('placeholder', 'Search title or location…');
+    expect(icon()).not.toHaveClass('is-on');
+    const tools = icon().closest('.ev-tools');
+    expect(within(tools).getByRole('tab', { name: 'List' })).toBeInTheDocument();
+    expect(within(tools).getByRole('tab', { name: 'Calendar' })).toBeInTheDocument();
+  });
+
+  it('opens a full-height Filter & sort overlay with type, project and group by, closed by the X', () => {
+    renderApp('events.list', 'pm');
+    const sheet = openFilter();
+    expect(dom.getByRole('dialog')).toHaveClass('fs');
+    expect(sheet.getByRole('heading', { name: 'Filter & sort' })).toHaveAttribute('data-sheet-drag');
+    for (const t of ['All', 'Meeting', 'Review', 'Important', 'Team event', 'Other']) expect(sheet.getByRole('button', { name: t })).toBeInTheDocument();
+    expect(sheet.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(sheet.getByRole('combobox', { name: 'Project' })).toHaveDisplayValue('All projects');
+    expect(sheet.getByRole('radio', { name: 'Schedule' })).toBeChecked();
+    expect(sheet.getAllByRole('radio')).toHaveLength(2);
+    fireEvent.click(sheet.getByRole('button', { name: 'Close' }));
+    expect(dom.queryByRole('heading', { name: 'Filter & sort' })).not.toBeInTheDocument();
+  });
+
+  it('narrows the list to one event type and lights the dot, without a toast', () => {
+    renderApp('events.list', 'pm');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Review' }));
+    apply(sheet);
+    expect(dom.queryByRole('heading', { name: 'Filter & sort' })).not.toBeInTheDocument();
+    expect(dom.queryByText('Filter applied')).not.toBeInTheDocument();
+    expect(D.events.filter(e => e.type === 'Review').every(shown)).toBe(true);
+    expect(D.events.filter(e => e.type !== 'Review').some(shown)).toBe(false);
+    expect(icon()).toHaveClass('is-on');
+  });
+
+  it('groups the list by type in form order instead of by schedule', () => {
+    renderApp('events.list', 'pm');
+    expect(heads()).toContain('Today · Wed, Oct 7');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('radio', { name: 'Type' }));
+    apply(sheet);
+    expect(heads()).toEqual(['Meeting', 'Review', 'Important', 'Team event']);
+    expect(D.events.every(shown)).toBe(true);
+    expect(icon()).not.toHaveClass('is-on');
+  });
+
+  it('offers Reset filters when no event belongs to the picked project', () => {
+    renderApp('events.list', 'pm');
+    const sheet = openFilter();
+    fireEvent.change(sheet.getByRole('combobox', { name: 'Project' }), { target: { value: 'sinar' } });
+    apply(sheet);
+    expect(dom.getByRole('heading', { name: 'No events match these filters.' })).toBeInTheDocument();
+    fireEvent.click(dom.getByRole('button', { name: 'Reset filters' }));
+    expect(D.events.every(shown)).toBe(true);
+    expect(icon()).not.toHaveClass('is-on');
+  });
+
+  it('keeps the events of their own project (every sample event is Atlas)', () => {
+    renderApp('events.list', 'pm');
+    const sheet = openFilter();
+    fireEvent.change(sheet.getByRole('combobox', { name: 'Project' }), { target: { value: 'atlas' } });
+    apply(sheet);
+    expect(D.events.every(shown)).toBe(true);
+    expect(icon()).toHaveClass('is-on');
+  });
+
+  it('Reset puts the draft back to every type, every project, by schedule', () => {
+    renderApp('events.list', 'pm');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Meeting' }));
+    fireEvent.change(sheet.getByRole('combobox', { name: 'Project' }), { target: { value: 'sinar' } });
+    fireEvent.click(sheet.getByRole('radio', { name: 'Type' }));
+    fireEvent.click(sheet.getByRole('button', { name: 'Reset' }));
+    expect(sheet.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(sheet.getByRole('combobox', { name: 'Project' })).toHaveValue('');
+    expect(sheet.getByRole('radio', { name: 'Schedule' })).toBeChecked();
+  });
+
+  it('draws the calendar dots and today\'s agenda from the events, in start-time order', () => {
+    renderApp('events.calendar', 'pm');
+    expect([1, 7, 8, 9, 13, 15, 23].map(dot)).toEqual(['', 'two', '', '', '', '', '']);
+    expect(dot(2)).toBe('none');
+    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 2 events' })).toBeInTheDocument();
+    const daily = dom.getByText('Atlas daily stand-up');
+    expect(daily.compareDocumentPosition(dom.getByText('Onboarding design review')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('keeps the query on the calendar: dots and agenda show only the filtered events', () => {
+    renderApp('events.list', 'pm');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Review' }));
+    apply(sheet);
+    fireEvent.click(dom.getByRole('tab', { name: 'Calendar' }));
+    expect(icon()).toHaveClass('is-on');
+    expect([7, 9, 23].map(dot)).toEqual(['', '', '']);
+    expect([1, 8, 13, 15].map(dot)).toEqual(['none', 'none', 'none', 'none']);
+    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 1 event' })).toBeInTheDocument();
+    expect(dom.queryByText('Atlas daily stand-up')).not.toBeInTheDocument();
+    fireEvent.click(dom.getByRole('tab', { name: 'List' }));
+    expect(D.events.filter(e => e.type !== 'Review').some(shown)).toBe(false);
+  });
+});

@@ -12,9 +12,8 @@
   display: grid; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4) var(--sp-4); background: var(--bg);
   border-top: 1px solid var(--separator); }
 
-/* Toolbar: search, then Filter + List/Calendar. */
-.ev-tools { display: grid; gap: var(--sp-2); }
-.ev-tools-row { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-2); align-items: center; }
+/* Toolbar: List/Calendar, then search with the filter icon (kit SearchFilter). */
+.ev-tools { display: grid; gap: var(--sp-3); }
 
 /* Event card: time column + body. */
 .ev-card { cursor: pointer; }
@@ -83,4 +82,3 @@
 .ev-tall .field-area { min-height: 300px; }
 .ev-which { margin: 0; padding: 0; border: 0; }
 .ev-which legend { padding: 0; margin-bottom: var(--sp-1); }
-.ev-wrap .hscroll { flex-wrap: wrap; }

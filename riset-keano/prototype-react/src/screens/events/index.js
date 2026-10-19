@@ -8,12 +8,13 @@ import { EventsEmpty, EventsList } from './events.list';
 import { NewEvent, NewEventDetails } from './events.new';
 import { Step1, Step2, Step3 } from './events.outcomes';
 import { RecordReady, Recording } from './events.record';
-import { ArchiveRecurringSheet, ArchiveSheet, CancelRecurringSheet, CancelSheet, FilterSheet } from './events.sheets';
+import { EventsFilter } from './events.filter';
+import { ArchiveRecurringSheet, ArchiveSheet, CancelRecurringSheet, CancelSheet } from './events.sheets';
 
 const G = 'Events';
 
 screen('events.list', { title: '① Events · List', group: G, Component: EventsList });
-sheet('events.filter', { title: '①b Sheet · Filter', group: G, Component: FilterSheet });
+sheet('events.filter', { title: '①b Overlay · Filter & sort', group: G, full: true, Component: EventsFilter });
 screen('events.calendar', { title: '② Events · Calendar (Month)', group: G, Component: EventsCalendar });
 screen('events.new', { title: '③a New event · Short', group: G, Component: NewEvent });
 screen('events.new-details', { title: '③b New event · More details', group: G, Component: NewEventDetails });

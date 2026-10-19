@@ -1,11 +1,11 @@
-// Events sheets: ①b filter, ⑩/⑪ cancel and delete the one-off design review, ⑩b/⑪b the recurring sprint review.
+// Events sheets: ⑩/⑪ cancel and delete the one-off design review, ⑩b/⑪b the recurring sprint review.
 // Cancel keeps the event visible (reason sent to attendees); Archive moves it to Archive until restored and lands on Archive ③ (Undo).
 import { Checkbox } from '@react-cupertino-ui/checkbox';
 import { Radio } from '@react-cupertino-ui/radio';
 import { D } from '../../data/sample';
-import { Btn, Chips, Field, Link, Select, Seg, Sheet } from '../../kit';
-import { Box, EvField, Note, Two } from './events.parts';
-import { EV, TYPES } from './events.shared';
+import { Btn, Field, Link, Sheet } from '../../kit';
+import { Box, Note, Two } from './events.parts';
+import { EV } from './events.shared';
 
 const one = () => D.event('review');
 const series = () => D.event('sprint');
@@ -36,23 +36,6 @@ function Which({ name, opts, on }) {
         </div>
       ))}
     </fieldset>
-  );
-}
-
-/** Events ①b: filter by project and type, group by schedule or type. */
-export function FilterSheet() {
-  return (
-    <Sheet title="Filter events" actions={(
-      <Two>
-        <Btn block toast="Filters reset">Reset</Btn>
-        <Btn kind="primary" block close toast="Filter applied">Apply</Btn>
-      </Two>
-    )}>
-      <EvField label="Project"><Select block toast="Pick a project">All projects</Select></EvField>
-      <EvField label="Event type"><div className="ev-wrap"><Chips items={['All', ...TYPES]} on={0} /></div></EvField>
-      <EvField label="Group by"><Seg items={['Schedule', 'Type']} on={0} /></EvField>
-      <Note>Upcoming / Past tabs and search stay in the toolbar.</Note>
-    </Sheet>
   );
 }
 

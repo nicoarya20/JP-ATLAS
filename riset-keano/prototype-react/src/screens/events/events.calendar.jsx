@@ -1,22 +1,28 @@
 // Events ② month calendar: Month/Week switch, month title + Today, October 2026 grid with event dots, then today's agenda.
+// Dots and agenda show the events left by the screen params' Filter & sort query (events.query), same as the list.
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useNav } from '../../core/app.context';
+import { useApp, useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Btn, Section, Seg } from '../../kit';
 import { EventsScreen, EventsTools } from './events.list';
+import { TODAY_DATE, applyQuery, eventsPerDate, queryOf } from './events.query';
 import { EV } from './events.shared';
 
-// Dots mark days with events in D (2 = more than one): Oct 1 = Atlas kickoff (tap → results), Oct 23 = next sprint review.
-const DOTS = { 1: 1, 7: 2, 8: 1, 9: 1, 13: 1, 15: 1, 23: 1 };
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
-const TODAY = 7;
 
-function Day({ n, on, pick }) {
+/** Minutes since midnight of an event's start, to order the agenda ("2:00 PM" → 840). */
+const startMinutes = e => {
+  const [, h, m, pm] = EV.start(e).match(/^(\d+):(\d+) (AM|PM)$/) || [];
+  return (Number(h) % 12) * 60 + Number(m) + (pm === 'PM' ? 720 : 0);
+};
+
+/** dots = events on this date (2+ shows two dots). Oct 1 = Atlas kickoff: tapping it opens its results while it is shown. */
+function Day({ n, on, pick, dots }) {
   const kickoff = D.event('kickoff');
-  const open = useNav(n === 1 ? { go: EV.results(kickoff) } : undefined);
-  const dot = DOTS[n] === 2 ? 'two' : DOTS[n] ? '' : 'none';
+  const open = useNav(n === 1 && dots ? { go: EV.results(kickoff) } : undefined);
+  const dot = dots > 1 ? 'two' : dots ? '' : 'none';
   return (
     <button type="button" className={`ev-date${on ? ' on' : ''}`} aria-pressed={on}
       aria-label={n === 1 ? `Oct 1 · ${kickoff.title}` : undefined} onClick={e => { pick(n); open?.(e); }}>
@@ -26,13 +32,14 @@ function Day({ n, on, pick }) {
   );
 }
 
-function Month() {
-  const [picked, setPicked] = useState(TODAY);
+function Month({ events }) {
+  const [picked, setPicked] = useState(TODAY_DATE);
+  const dots = eventsPerDate(events);
   return (
     <div className="ev-grid">
       {WEEKDAYS.map(d => <span key={d} className="ev-wd">{d}</span>)}
       <div className="ev-lead" />
-      {DAYS.map(n => <Day key={n} n={n} on={n === picked} pick={setPicked} />)}
+      {DAYS.map(n => <Day key={n} n={n} on={n === picked} pick={setPicked} dots={dots[n] || 0} />)}
     </div>
   );
 }
@@ -58,7 +65,9 @@ function Arrow({ label, toast, children }) {
 
 /** Events ② calendar (month view). */
 export default function EventsCalendar() {
-  const todays = ['daily', 'review'].map(D.event);
+  const { params } = useApp();
+  const events = applyQuery(D.events, queryOf(params));
+  const todays = events.filter(e => e.day === 'Today').sort((a, b) => startMinutes(a) - startMinutes(b));
   return (
     <EventsScreen>
       <EventsTools on={1} />
@@ -71,9 +80,9 @@ export default function EventsCalendar() {
         </span>
         <Btn sm toast="Jumped to today">Today</Btn>
       </div>
-      <Month />
+      <Month events={events} />
       <div className="ev-sep" />
-      <h2 className="t-footnote muted bold">{D.today.short} · {todays.length} events</h2>
+      <h2 className="t-footnote muted bold">{D.today.short} · {todays.length} {todays.length === 1 ? 'event' : 'events'}</h2>
       {todays.map(e => <Agenda key={e.id} e={e} />)}
     </EventsScreen>
   );
