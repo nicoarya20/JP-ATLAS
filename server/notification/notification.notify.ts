@@ -44,6 +44,12 @@ const PAYLOAD_FIELDS: Readonly<Record<string, number | null>> = Object.freeze({
   name: TASK_TITLE_MAX,
   role: null,
   startsAt: null,
+  // Leave cards: the range and the numbers the approver decides on, and the outcome the requester reads.
+  startDate: null,
+  endDate: null,
+  days: null,
+  dueTasks: null,
+  decision: null,
 });
 
 export type NotifyInput<K extends NotificationKind = NotificationKind> = {

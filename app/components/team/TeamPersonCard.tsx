@@ -7,6 +7,7 @@ import { MemberAvatar } from '~/components/ui/MemberAvatar';
 import { teamPersonHref } from '~/lib/team-api';
 import '../projects/project-click.css';
 import { MEMBER_ROLE_LABELS } from '../projects/projects.copy';
+import { AvailabilityBadge } from './AvailabilityBadge';
 import { TEAM_COPY } from './team.copy';
 
 /** Class names of `project-click.css`: the card is the click area, the name link stretches over it. */
@@ -62,6 +63,9 @@ export function TeamPersonCard({ person }: { person: TeamPerson }) {
             <Text size="xs" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
               {roleLine(person.projects)}
             </Text>
+            <div>
+              <AvailabilityBadge availability={person.availability} />
+            </div>
           </Stack>
         </Group>
         {person.load && <LoadBlock load={person.load} />}

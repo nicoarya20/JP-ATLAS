@@ -22,8 +22,11 @@ export const isLoadSort = (sort: TeamSort | undefined): sort is 'active' | 'over
  * Most first, then name, then id so two people never swap between requests. Someone with no
  * visible numbers scores -1: they come last instead of tying with a real zero.
  */
-export function sortByLoad(people: readonly TeamPerson[], key: 'active' | 'overdue'): TeamPerson[] {
-  const score = (x: TeamPerson) => x.load?.[key] ?? -1;
+export function sortByLoad<T extends Pick<TeamPerson, 'id' | 'name' | 'load'>>(
+  people: readonly T[],
+  key: 'active' | 'overdue',
+): T[] {
+  const score = (x: T) => x.load?.[key] ?? -1;
   return [...people].sort(
     (a, b) =>
       score(b) - score(a) ||

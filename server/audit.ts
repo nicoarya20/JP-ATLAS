@@ -51,6 +51,11 @@ export const AUDIT_ACTIONS = {
   // Permanent delete by an Admin; `trash.retention` is the same thing done by the purge job.
   TRASH_PURGE: 'trash.purge',
   TRASH_RETENTION: 'trash.retention',
+  // Leave: the decision, the withdrawal and the workspace switch (Pengaturan > Ketersediaan).
+  LEAVE_APPROVE: 'leave.approve',
+  LEAVE_REJECT: 'leave.reject',
+  LEAVE_CANCEL: 'leave.cancel',
+  SETTINGS_LEAVE_UPDATE: 'settings.leave.update',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -65,6 +70,7 @@ export type AuditTargetType =
   | 'project'
   | 'task'
   | 'event'
+  | 'leave'
   // `trash` is the retention sweep itself: an entry that covers several rows, not one record.
   | 'trash';
 

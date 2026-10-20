@@ -125,6 +125,10 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'project.condition.clear': { label: 'Cabut kondisi proyek manual', color: 'gray' },
   'trash.purge': { label: 'Hapus selamanya dari Sampah', color: 'red' },
   'trash.retention': { label: 'Pembersihan Sampah otomatis', color: 'gray' },
+  'leave.approve': { label: 'Setujui cuti', color: 'teal' },
+  'leave.reject': { label: 'Tolak cuti', color: 'red' },
+  'leave.cancel': { label: 'Batalkan cuti', color: 'orange' },
+  'settings.leave.update': { label: 'Settings cuti', color: 'indigo' },
 };
 
 export function actionMeta(action: string): { label: string; color: string } {
@@ -140,5 +144,6 @@ export const TARGET_LABELS: Record<string, string> = {
   project: 'Proyek',
   task: 'Tugas',
   event: 'Acara',
+  leave: 'Cuti',
   trash: 'Sampah',
 };

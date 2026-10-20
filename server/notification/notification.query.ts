@@ -16,7 +16,12 @@ import { PAGE_LIMIT_DEFAULT, PAGE_LIMIT_MAX } from '../pm/limits';
 import type { Executor } from '../pm/tx';
 import { displayNameSql } from '../profile/profile.name';
 import { refNotTrashed } from './notification.alive';
-import { cardButton, cardSentence, isNotificationKind } from './notification.catalog';
+import {
+  cardButton,
+  cardSecondaryButton,
+  cardSentence,
+  isNotificationKind,
+} from './notification.catalog';
 import type { NotificationLane } from './notification.types';
 
 /** Day bucket of a card, decided by the server from `METRICS.TIME_ZONE`, never by the browser. */
@@ -40,6 +45,8 @@ export type InboxItem = {
   href: string;
   sentence: string | null;
   button: string | null;
+  /** Label of the second button; only the leave approval card has one. */
+  secondaryButton: string | null;
 };
 
 export type ListInboxInput = { lane: NotificationLane; limit?: number; cursor?: string };
@@ -88,6 +95,8 @@ function hrefOf(refType: string, refId: string, number: number | null): string {
     return number === null ? '/app/tasks' : `/app/tasks/${number}`;
   if (refType === 'project') return `/app/projects/${refId}`;
   if (refType === 'event') return `/app/events/${refId}`;
+  // A leave card has no page of its own: the requester's state lives in Pengaturan > Ketersediaan.
+  if (refType === 'leave') return '/app/settings';
   return refType === 'user' ? '/dashboard/users' : '/app/inbox';
 }
 
@@ -96,6 +105,12 @@ const numberOf = (p: Payload) => (typeof p.number === 'number' ? p.number : null
 const text = (p: Payload, key: string) =>
   typeof p[key] === 'string' ? (p[key] as string) : undefined;
 
+/** The word a `leave_decided` sentence uses for each stored decision. */
+const LEAVE_OUTCOMES: Readonly<Record<string, string>> = {
+  approved: 'disetujui',
+  rejected: 'ditolak',
+};
+
 /** Copy for a stored kind; a kind this build does not know renders without a sentence, not with a crash. */
 function copyOf(
   kind: string,
@@ -103,7 +118,7 @@ function copyOf(
   actor: string | null,
   count: number,
 ) {
-  if (!isNotificationKind(kind)) return { sentence: null, button: null };
+  if (!isNotificationKind(kind)) return { sentence: null, button: null, secondaryButton: null };
   const vars = {
     actor,
     count,
@@ -112,8 +127,13 @@ function copyOf(
     project: text(payload, 'projectName'),
     name: text(payload, 'name'),
     role: text(payload, 'role'),
+    outcome: LEAVE_OUTCOMES[text(payload, 'decision') ?? ''],
   };
-  return { sentence: cardSentence(kind, vars), button: cardButton(kind) };
+  return {
+    sentence: cardSentence(kind, vars),
+    button: cardButton(kind),
+    secondaryButton: cardSecondaryButton(kind),
+  };
 }
 
 /** One keyset page of the caller's cards in `lane`, newest first, in one query (actor joined in). */

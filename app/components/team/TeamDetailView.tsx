@@ -6,6 +6,7 @@ import { BackLink } from '~/components/ui/BackLink';
 import { MemberAvatar } from '~/components/ui/MemberAvatar';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { type PersonDetail, personErrorMessage, usePerson } from '~/lib/team-person-api';
+import { AvailabilityBadge } from './AvailabilityBadge';
 import { PersonProfileCard } from './PersonProfileCard';
 import { PersonTasksCard } from './PersonTasksCard';
 import { SharedProjectsCard } from './SharedProjectsCard';
@@ -37,6 +38,9 @@ export function TeamDetailView({ userId, initial, loadedAt, today }: Props) {
           <Text size="sm" c="dimmed">
             {subtitle}
           </Text>
+          <div>
+            <AvailabilityBadge availability={data.availability} />
+          </div>
         </Stack>
       </Group>
       {error && (

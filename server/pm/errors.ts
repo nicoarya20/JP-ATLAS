@@ -25,6 +25,9 @@ export const PM_API_CODES = [
   'ACCOUNT_PENDING',
   'ACCOUNT_REJECTED',
   'SORT_NOT_ALLOWED', // sorting by someone else's numbers: only for managers and Admin (S6 D10)
+  'LEAVE_OVERLAP', // a second open leave request that shares a day with another one of the same person
+  'ALREADY_DECIDED', // the first approver wins; the second one to decide the same leave request gets this
+  'LEAVE_EXPIRED', // a pending leave request whose last day has passed can no longer be decided
 ] as const;
 
 /**
@@ -165,6 +168,19 @@ export const PM_ERRORS: Record<PmCode, PmErrorEntry> = {
     message: 'Masa pemulihannya sudah lewat, jadi data ini tidak bisa dipulihkan lagi.',
   },
   SORT_NOT_ALLOWED: { http: 422, message: 'Pengurutan ini hanya untuk Pengelola dan Admin.' },
+  LEAVE_OVERLAP: {
+    http: 409,
+    message:
+      'Tanggal ini beririsan dengan cuti lain yang masih menunggu atau sudah disetujui. Pilih tanggal lain atau batalkan cuti sebelumnya.',
+  },
+  ALREADY_DECIDED: {
+    http: 409,
+    message: 'Pengajuan ini sudah diputuskan orang lain. Muat ulang untuk melihat hasilnya.',
+  },
+  LEAVE_EXPIRED: {
+    http: 409,
+    message: 'Tanggal cuti ini sudah lewat, jadi pengajuannya tidak bisa diputuskan lagi.',
+  },
   ROLE_CANNOT_PURGE: {
     http: 403,
     message: 'Hanya admin yang boleh menghapus selamanya. Minta admin melakukannya.',
