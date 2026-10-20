@@ -66,6 +66,8 @@ export const appSetting = pgTable('app_setting', {
   demoEnabled: boolean('demo_enabled').default(false).notNull(),
   /** Retired with the demo sandbox; unused, kept for the same expand/contract window. */
   demoTtlHours: integer('demo_ttl_hours'),
+  // Pengaturan tim > "Cuti perlu persetujuan" (Admin only). Off = every leave request is approved on submit.
+  leaveRequiresApproval: boolean('leave_requires_approval').default(true).notNull(),
   updatedAt: timestamp('updated_at')
     .$defaultFn(() => new Date())
     .notNull(),

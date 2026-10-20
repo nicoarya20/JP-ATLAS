@@ -2,6 +2,7 @@
 import { describe, expect, it, test } from 'bun:test';
 import {
   cardButton,
+  cardSecondaryButton,
   cardSentence,
   isNotificationKind,
   kindsByLane,
@@ -16,7 +17,8 @@ import {
 } from '../../server/notification/notification.catalog';
 import type { NotificationKind } from '../../server/notification/notification.types';
 
-// The kinds really emitted: S3's (P5 §5.2 "Katalog yang dikirim di S3", user_pending since I14) and S7's four event cards.
+// The kinds really emitted: S3's (P5 §5.2 "Katalog yang dikirim di S3", user_pending since I14), S7's four event cards
+// and the two leave cards (emit.leave.ts).
 const SHIPPED: NotificationKind[] = [
   'task_assigned',
   'task_unassigned',
@@ -30,6 +32,8 @@ const SHIPPED: NotificationKind[] = [
   'event_invited',
   'event_changed',
   'event_canceled',
+  'leave_requested',
+  'leave_decided',
 ];
 // Reserved on purpose: the feature behind them lands in S4 (Periksa, mention).
 const RESERVED: NotificationKind[] = [
@@ -50,6 +54,7 @@ const ALL_VARS = {
   project: 'Renovasi Dapur', // test-only
   name: 'Rina', // test-only
   role: 'Anggota',
+  outcome: 'disetujui',
   count: 5,
 };
 
@@ -196,5 +201,34 @@ describe('copy', () => {
       'Rina baru mendaftar dan menunggu persetujuan',
     );
     expect(cardButton('user_pending')).toBe('Buka Pengguna');
+  });
+});
+
+describe('leave cards', () => {
+  it('files the approval under work and the outcome under news', () => {
+    expect(NOTIFICATION_KINDS.leave_requested).toMatchObject({ lane: 'action', shipped: true });
+    expect(NOTIFICATION_KINDS.leave_decided).toMatchObject({ lane: 'info', shipped: true });
+    expect(prefCategoryOf('leave_requested')).toBeNull();
+    expect(prefCategoryOf('leave_decided')).toBe('news');
+  });
+
+  it('gives the approval card two buttons and every other card one', () => {
+    expect(cardButton('leave_requested')).toBe('Setujui');
+    expect(cardSecondaryButton('leave_requested')).toBe('Tolak');
+    const others = EVERY_KIND.filter((kind) => kind !== 'leave_requested');
+    expect(others.filter((kind) => cardSecondaryButton(kind) !== null)).toEqual([]);
+  });
+
+  it('names the requester on the approval card and the outcome on the answer', () => {
+    expect(cardSentence('leave_requested', { actor: 'Dodi', name: 'Dodi' })).toBe(
+      'Dodi mengajukan cuti',
+    );
+    expect(cardSentence('leave_requested', { name: 'Dodi' })).toBe('Dodi mengajukan cuti');
+    expect(cardSentence('leave_decided', { actor: 'Nico', outcome: 'ditolak' })).toBe(
+      'Pengajuan cuti Anda ditolak oleh Nico',
+    );
+    expect(cardSentence('leave_decided', { outcome: 'disetujui' })).toBe(
+      'Pengajuan cuti Anda disetujui',
+    );
   });
 });

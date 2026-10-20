@@ -28,8 +28,15 @@ const tz = (name: string) => timestamp(name, { withTimezone: true });
 export const NOTIFICATION_LANES = ['action', 'info'] as const;
 export type NotificationLane = (typeof NOTIFICATION_LANES)[number];
 
-/** What `ref_id` points at; the card's button is built from the pair (`event` is reserved for S7). */
-export const NOTIFICATION_REF_TYPES = ['task', 'project', 'user', 'event', 'comment'] as const;
+/** What `ref_id` points at; the card's button is built from the pair (`leave` joined with migration 0021). */
+export const NOTIFICATION_REF_TYPES = [
+  'task',
+  'project',
+  'user',
+  'event',
+  'comment',
+  'leave',
+] as const;
 export type NotificationRefType = (typeof NOTIFICATION_REF_TYPES)[number];
 
 /** Why a card stopped needing a response; written by the service that changed the target. */
