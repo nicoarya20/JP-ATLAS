@@ -15,16 +15,20 @@ import type { EventSubject, Principal } from '../access/types';
 import { db } from '../db';
 import { event, project, projectMember, user } from '../db/schema';
 import { METRICS } from '../metrics/config';
-import { isoDateIn } from '../metrics/dates';
-import { lastRestorableDate } from '../metrics/trash.metrics';
-import type { IsoDate, MetricsConfig } from '../metrics/types';
+import type { MetricsConfig } from '../metrics/types';
 import type { EventKind } from '../pm/enums';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
+import {
+  canSeeTrashedProject,
+  type TrashBlockedBy,
+  type TrashTiming,
+  trashTiming,
+} from '../trash/trash.item';
 import { loadParticipantSummaries } from './events.participants';
 
 /** One trashed event as the Trash page shows it; dates are decided by the server. */
-export type TrashEventItem = {
+export type TrashEventItem = TrashTiming & {
   kind: 'event';
   id: string;
   title: string;
@@ -35,13 +39,11 @@ export type TrashEventItem = {
   /** Null for a personal event. */
   project: { id: string; name: string } | null;
   /** Set while the event's project is in the Trash: the event only comes back after the project does. */
-  blockedBy: { projectId: string; name: string } | null;
-  /** ISO instant of the delete. */
-  deletedAt: string;
+  blockedBy: TrashBlockedBy | null;
+  /** Shorthand for `blockedBy !== null`: the project is in the Trash, so the restore answers 409. */
+  projectInTrash: boolean;
   /** Id and name only (Q8); null when the deleting account no longer exists. */
   deletedBy: { id: string; name: string } | null;
-  /** Last calendar day (team zone) the event may still be restored. */
-  restorableUntil: IsoDate;
   can: TrashItemCaps;
 };
 
@@ -92,6 +94,7 @@ export async function hydrateTrashEvents(
       projectId: event.projectId,
       projectName: project.name,
       projectDeletedAt: project.deletedAt,
+      projectDeletedBy: project.deletedBy,
     })
     .from(event)
     .leftJoin(project, eq(project.id, event.projectId))
@@ -129,11 +132,15 @@ export async function hydrateTrashEvents(
       project: hasProject ? { id: r.projectId as string, name: r.projectName as string } : null,
       blockedBy:
         hasProject && r.projectDeletedAt
-          ? { projectId: r.projectId as string, name: r.projectName as string }
+          ? {
+              projectId: r.projectId as string,
+              name: r.projectName as string,
+              visible: canSeeTrashedProject(p, r.projectDeletedBy, m),
+            }
           : null,
-      deletedAt: r.deletedAt.toISOString(),
+      projectInTrash: hasProject && r.projectDeletedAt !== null,
+      ...trashTiming(r.deletedAt, now, metrics),
       deletedBy: r.deletedBy && r.deletedByName ? { id: r.deletedBy, name: r.deletedByName } : null,
-      restorableUntil: lastRestorableDate(isoDateIn(r.deletedAt, metrics.TIME_ZONE), metrics),
       can: buildCaps({
         restore: canRestoreEvent(p, subject, m, now, undefined, metrics),
         purge: canPurge(p),

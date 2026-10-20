@@ -17,14 +17,18 @@ import type { Principal } from '../access/types';
 import { db } from '../db';
 import { project, projectMember, task, user } from '../db/schema';
 import { METRICS } from '../metrics/config';
-import { isoDateIn } from '../metrics/dates';
-import { lastRestorableDate } from '../metrics/trash.metrics';
-import type { IsoDate, MetricsConfig } from '../metrics/types';
+import type { MetricsConfig } from '../metrics/types';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
+import {
+  canSeeTrashedProject,
+  type TrashBlockedBy,
+  type TrashTiming,
+  trashTiming,
+} from '../trash/trash.item';
 
 /** One trashed task as the Trash page shows it; dates are decided by the server. */
-export type TrashTaskItem = {
+export type TrashTaskItem = TrashTiming & {
   kind: 'task';
   id: string;
   /** Global task number: stays the same after a restore. */
@@ -32,13 +36,11 @@ export type TrashTaskItem = {
   title: string;
   project: { id: string; name: string };
   /** Set while the task's project is in the Trash: the task only comes back after the project does. */
-  blockedBy: { projectId: string; name: string } | null;
-  /** ISO instant of the delete. */
-  deletedAt: string;
+  blockedBy: TrashBlockedBy | null;
+  /** Shorthand for `blockedBy !== null`: the project is in the Trash, so the restore answers 409. */
+  projectInTrash: boolean;
   /** Id and name only (Q8); null when the deleting account no longer exists. */
   deletedBy: { id: string; name: string } | null;
-  /** Last calendar day (team zone) the task may still be restored. */
-  restorableUntil: IsoDate;
   can: TrashItemCaps;
 };
 
@@ -80,6 +82,7 @@ export async function hydrateTrashTasks(
       projectId: project.id,
       projectName: project.name,
       projectDeletedAt: project.deletedAt,
+      projectDeletedBy: project.deletedBy,
     })
     .from(task)
     .innerJoin(project, eq(project.id, task.projectId))
@@ -100,10 +103,16 @@ export async function hydrateTrashTasks(
       number: r.number,
       title: r.title,
       project: { id: r.projectId, name: r.projectName },
-      blockedBy: r.projectDeletedAt ? { projectId: r.projectId, name: r.projectName } : null,
-      deletedAt: r.deletedAt.toISOString(),
+      blockedBy: r.projectDeletedAt
+        ? {
+            projectId: r.projectId,
+            name: r.projectName,
+            visible: canSeeTrashedProject(p, r.projectDeletedBy, m),
+          }
+        : null,
+      projectInTrash: r.projectDeletedAt !== null,
+      ...trashTiming(r.deletedAt, now, metrics),
       deletedBy: r.deletedBy && r.deletedByName ? { id: r.deletedBy, name: r.deletedByName } : null,
-      restorableUntil: lastRestorableDate(isoDateIn(r.deletedAt, metrics.TIME_ZONE), metrics),
       can: buildCaps({
         restore: canRestoreTask(p, r, m, now, undefined, metrics),
         purge: canPurge(p),

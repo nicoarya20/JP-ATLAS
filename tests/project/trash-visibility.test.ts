@@ -152,6 +152,8 @@ describe('listTrashProjects (SQL matches the policy)', () => {
       deletedAt: NOW.toISOString(),
       deletedBy: { id: (cast.lead as TestUser).id, name: (cast.lead as TestUser).name },
       restorableUntil: '2026-11-05',
+      daysLeft: 30, // deleted today, 30 days to go
+      cascade: { tasks: expect.any(Number), events: 0 },
       can: { restore: true },
     });
   });
