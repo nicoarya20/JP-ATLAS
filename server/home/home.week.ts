@@ -1,5 +1,5 @@
 /** Pure week boundary for "selesai minggu ini": Monday is the first day, same as `scheduleBounds`. */
-import type { IsoDate } from './types';
+import type { IsoDate } from '../metrics/types';
 
 const DAYS_PER_WEEK = 7;
 const MS_PER_DAY = 86_400_000;

@@ -1,6 +1,6 @@
 /** Start of the week for "selesai minggu ini": Monday first, across month and year ends. */
 import { describe, expect, it } from 'bun:test';
-import { weekStartDate } from '../../server/metrics/week';
+import { weekStartDate } from '../../server/home/home.week';
 
 describe('weekStartDate', () => {
   it.each([

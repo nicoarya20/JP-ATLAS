@@ -441,6 +441,16 @@ Halaman Tim (semua butuh login): `/app/team` (daftar orang, urut Nama atau Tugas
 
 Halaman Event (semua butuh login): `/app/events` (daftar acara: tab Akan datang/Sudah lewat, cari, saring jenis dan proyek), `/app/events/new` (form dua tahap; tombolnya hanya untuk yang boleh membuat acara), dan `/app/events/:id` (detail acara dengan menu ⋯: Batalkan dengan alasan, Hapus ke Sampah dengan Urungkan). Kalender, notulensi di layar, dan acara berulang belum ada; notulensi di detail acara tampil sebagai teks "segera hadir".
 
+### Kontrak API Beranda
+
+`GET /api/app/home` (sesi atau API key ber-scope `app:read`; tidak ada rute tulis) menjawab seluruh layar Beranda dalam satu panggilan, selalu untuk penelepon sendiri (`userId` di query diabaikan). Jawabannya `{ now, briefing, counters, focus, done, projects, agenda, activity, ask }`; setiap bagian selain `now` berbentuk `{ ok: true, data }` atau `{ ok: false }` bila bagian itu gagal dimuat, sehingga satu bagian yang rusak tidak mengosongkan halaman.
+
+- `now`: `{ iso, today, timeZone, greeting, dateLabel, timeLabel }`. "Hari ini", sapaan (`pagi`, `siang`, `sore`, `malam`), tanggal, dan jam penyusunan dihitung server di zona waktu app, bukan di klien.
+- `briefing`: `{ lines, updatedLabel }`, beberapa kalimat yang disusun dengan aturan dari data nyata (tugas terlambat, menunggu diperiksa, tugas dan acara hari ini, proyek yang perlu perhatian), **tanpa model AI**; `updatedLabel` adalah jam penyusunan sebenarnya.
+- `counters`: tugas tanpa penanggung jawab, sedang dikerjakan, dan selesai di proyek yang penelepon **kelola** (pengelola proyek), plus `managedProjects` dan `memberProjects`.
+- `focus`: sampai 5 tugas aktif milik penelepon, paling mendesak dulu (`action` = `complete`, `start`, atau `null` menurut izin), `total`, `overdueTotal`, `todayTotal`, dan tugas yang menunggu pemeriksaan penelepon. `done`: tugas selesai sejak Senin 00.00. `projects`: proyek berjalan yang diikuti dengan kondisi dan progres yang sama dengan menu Proyek. `activity`: perubahan dan catatan terbaru di proyek yang diikuti. `agenda`: sama dengan `GET /events/agenda`, tiap acara bertanda `today` atau `tomorrow`.
+- `ask`: tiga jawaban tetap (proyek yang tertinggal, tugas yang paling lama terlambat, siapa yang paling banyak tugas) dari data nyata; belum ada tanya bebas.
+
 ### Kontrak API Inbox (S3)
 
 Semua di `/api/app/inbox` (sesi atau API key ber-scope `app:read`/`app:write`). Inbox hanya milik penelepon: `userId` di query diabaikan, dan kartu orang lain dijawab `404` yang sama dengan kartu yang tidak ada. **Tidak ada rute untuk membuat atau menghapus kartu** — kartu muncul karena sebuah layanan memanggil `notify()` dan hilang karena layanan menutupnya, jadi klien tidak bisa memalsukannya. Kunci API memakai kartu pemilik kunci itu.
@@ -459,7 +469,7 @@ Semua di `/api/app/events`. Acara boleh milik proyek atau pribadi (`projectId: n
 | Endpoint | Fungsi |
 |---|---|
 | `GET /events?tab=upcoming\|past&kind=&projectId=&q=&limit=&cursor=` | Daftar acara yang boleh dilihat → `{ items, nextCursor, caps: { createEvent } }`; `kind` boleh diulang (`meeting`, `review`, `important`, `team`, `other`). Kursor rusak → `400 BAD_CURSOR` |
-| `GET /events/agenda` | Agenda Beranda: paling banyak 4 acara saya, hari ini dan besok → `{ items }` |
+| `GET /events/agenda` | Agenda Beranda: paling banyak 4 acara saya yang belum berakhir (yang sedang berlangsung ikut) dan mulai paling lambat besok → `{ items }` |
 | `GET /events/people?projectId=&q=` | Calon tamu → `{ items }` (nama dan jabatan saja); memakai aturan pemilih Tim di atas, jadi tanpa `projectId` hanya untuk yang boleh membuat proyek; form Event baru tidak memakai endpoint ini, melainkan `GET /team?q=` |
 | `GET /events/:id` | Satu acara beserta tamu, notulensi, dan peta `can{}` |
 | `POST /events` `{ title, startsAt, endsAt, projectId?, participantIds?, kind?, locationType?, locationText?, meetingUrl?, agenda?, remindersMinutes? }` | Buat acara dan undang tamunya dalam satu transaksi → `201` detail; `endsAt` harus setelah `startsAt` |

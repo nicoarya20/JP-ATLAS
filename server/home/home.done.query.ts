@@ -5,7 +5,6 @@ import { db } from '../db';
 import { profile, project, task, user } from '../db/schema';
 import { diffDays, isoDateIn } from '../metrics/dates';
 import type { IsoDate } from '../metrics/types';
-import { weekStartDate } from '../metrics/week';
 import type { Executor } from '../pm/tx';
 import { displayNameSql } from '../profile/profile.name';
 import { liveTask, visibleTo } from '../task/task.sql';
@@ -14,6 +13,7 @@ import { DONE_COPY } from './home.copy';
 import type { HomeDone } from './home.dto';
 import { weekdayOf } from './home.now';
 import { mineScope } from './home.scope';
+import { weekStartDate } from './home.week';
 
 /** "hari ini", "kemarin" or the weekday of the day the task was finished. */
 export function dayLabelOf(day: IsoDate, today: IsoDate): string {
