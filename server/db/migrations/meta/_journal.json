@@ -141,6 +141,13 @@
       "when": 1792382206758,
       "tag": "0019_project_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792482835394,
+      "tag": "0020_profile_nickname",
+      "breakpoints": true
     }
   ]
 }

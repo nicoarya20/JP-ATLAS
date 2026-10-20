@@ -27,8 +27,8 @@ export function SignOutButton() {
 
   return (
     <Button
-      variant="light"
-      color="red"
+      variant="default"
+      fw={700}
       leftSection={<FiLogOut size="1.25em" />}
       loading={leaving}
       onClick={() =>

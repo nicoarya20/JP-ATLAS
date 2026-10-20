@@ -1,5 +1,7 @@
 import { SimpleGrid, Stack } from '@mantine/core';
 import { requireUser } from '@server/guard';
+import { greetingName } from '@server/profile/profile.greeting';
+import { getProfile } from '@server/profile/profile.service';
 import { HomeAgenda } from '~/components/home/HomeAgenda';
 import { HomeAskData } from '~/components/home/HomeAskData';
 import { HomeBriefing } from '~/components/home/HomeBriefing';
@@ -9,7 +11,6 @@ import { HomeRecent } from '~/components/home/HomeRecent';
 import { TODAY_LABEL } from '~/components/home/home.dummy';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { PageHeader } from '~/components/ui/PageHeader';
-import { useApp } from '~/lib/app-context';
 import type { Route } from './+types/home';
 
 export function meta() {
@@ -17,19 +18,18 @@ export function meta() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  await requireUser(request);
-  return null;
+  const auth = await requireUser(request);
+  const profile = await getProfile(auth.user.id);
+  return { greeting: profile ? greetingName(profile) : 'pengguna' };
 }
 
 /** Beranda with hardcoded dummy data (see home.dummy.ts) until S3 wires the real queries. */
-export default function AppHome() {
-  const { user } = useApp();
-
+export default function AppHome({ loaderData }: Route.ComponentProps) {
   return (
     <PageContainer>
       <PageHeader
         title="Beranda"
-        description={`${TODAY_LABEL} · Selamat pagi, ${user.name || 'pengguna'}`}
+        description={`${TODAY_LABEL} · Selamat pagi, ${loaderData.greeting}`}
       />
       <HomeBriefing />
       <HomeCounters />

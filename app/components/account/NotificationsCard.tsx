@@ -1,10 +1,9 @@
-import { Loader, Stack, Switch, Text } from '@mantine/core';
+import { Group, Loader, Paper, Stack, Switch, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { notify } from '~/components/ui/notify';
 import { type NotificationPrefs, putNotificationPrefs } from '~/lib/profile-api';
-import { SettingsCard } from '../settings/SettingsParts';
 import { NOTIFICATIONS_COPY } from './account.copy';
 
 const SWITCHES = [
@@ -40,26 +39,37 @@ export function NotificationsCard({ initial }: { initial: NotificationPrefs }) {
   });
 
   return (
-    <SettingsCard title={NOTIFICATIONS_COPY.title} description={NOTIFICATIONS_COPY.description}>
+    <Paper withBorder radius="md" p={{ base: 'md', md: 'lg' }}>
       <Stack gap="md">
         {SWITCHES.map(({ key, label, hint }) => {
           const pending = save.isPending && key in (save.variables ?? {});
           return (
-            <Switch
-              key={key}
-              label={label}
-              description={hint}
-              checked={prefs[key]}
-              disabled={save.isPending}
-              thumbIcon={pending ? <Loader size="0.6em" color="gray" /> : undefined}
-              onChange={(e) => save.mutate({ [key]: e.currentTarget.checked })}
-            />
+            <Group key={key} justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+              <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+                <Text fw={700}>{label}</Text>
+                <Text size="sm" c="dimmed">
+                  {hint}
+                </Text>
+              </Stack>
+              <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+                <Text size="sm" fw={600}>
+                  {prefs[key] ? NOTIFICATIONS_COPY.on : NOTIFICATIONS_COPY.off}
+                </Text>
+                <Switch
+                  aria-label={label}
+                  checked={prefs[key]}
+                  disabled={save.isPending}
+                  thumbIcon={pending ? <Loader size="0.6em" color="gray" /> : undefined}
+                  onChange={(e) => save.mutate({ [key]: e.currentTarget.checked })}
+                />
+              </Group>
+            </Group>
           );
         })}
         <Text size="sm" c="dimmed">
           {NOTIFICATIONS_COPY.always}
         </Text>
       </Stack>
-    </SettingsCard>
+    </Paper>
   );
 }

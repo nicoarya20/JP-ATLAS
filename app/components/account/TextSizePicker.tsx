@@ -42,7 +42,7 @@ export function TextSizePicker({
                 lh={1.2}
                 style={{ fontSize: `${TEXT_SCALE[size]}rem` }}
               >
-                {TEXT_SIZE_LABELS[size]}
+                Aa {TEXT_SIZE_LABELS[size]}
               </Text>
               <Text component="span" size="sm" fw={active ? 600 : 400}>
                 {active ? (

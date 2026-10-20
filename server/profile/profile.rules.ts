@@ -2,6 +2,7 @@
 
 /** Max characters for each free-text profile field (after trimming). */
 export const PROFILE_NAME_MAX = 80;
+export const PROFILE_NICKNAME_MAX = 30;
 export const PROFILE_TITLE_MAX = 80;
 export const PROFILE_DEPARTMENT_MAX = 80;
 export const PROFILE_PHONE_MAX = 30;

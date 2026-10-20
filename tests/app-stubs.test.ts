@@ -73,6 +73,7 @@ describe('page stubs', () => {
       'app/routes/app/project/summary.tsx',
       'app/routes/app/project/tasks.tsx',
       'app/routes/app/projects.tsx',
+      'app/routes/app/settings-profile.tsx',
       'app/routes/app/settings.tsx',
       'app/routes/app/task-detail.tsx',
       'app/routes/app/task-edit.tsx',

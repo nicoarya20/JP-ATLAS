@@ -11,13 +11,14 @@ export type MyProfile = {
   name: string;
   email: string;
   displayName: string | null;
+  nickname: string | null;
   phone: string | null;
   jobTitle: string | null;
   department: string | null;
   textSize: TextSize;
 };
 export type MyProfilePatch = Partial<
-  Pick<MyProfile, 'displayName' | 'phone' | 'jobTitle' | 'department' | 'textSize'>
+  Pick<MyProfile, 'displayName' | 'nickname' | 'phone' | 'jobTitle' | 'department' | 'textSize'>
 >;
 
 const PROFILE_URL = '/api/app/profile';
