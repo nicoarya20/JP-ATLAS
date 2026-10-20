@@ -1,13 +1,14 @@
 // Events ② calendar: Month/Week switch, its title with arrows, the month grid (or the picked date's week) with event
-// dots, then the picked date's agenda. Dots and agenda show the events left by the screen params' Filter & sort query
-// (events.query), same as the list; a recurring event keeps repeating into later months.
+// dots, then the picked date's agenda. Dots and agenda show past and upcoming events of the screen params' type and
+// project filters (events.query); a Member sees only events they attend; a recurring event keeps repeating into later months.
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Section, Seg } from '../../kit';
+import { useEvents } from './events.store';
 import { EventsScreen, EventsTools } from './events.list';
-import { TODAY, applyQuery, eventsOn, queryOf } from './events.query';
+import { TODAY, applyQuery, eventsOn, firstDate, queryOf } from './events.query';
 import { EV } from './events.shared';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -76,15 +77,17 @@ function Title({ week, days, step }) {
   );
 }
 
-/** An event in the agenda under the grid; tap: not done → detail, done → its outcomes (same as the list card). */
-function Agenda({ e }) {
+/** An event in the agenda of date d; tap: not done → detail, done → its outcomes (same as the list card).
+ *  When only one occurrence of a series was canceled, its later dates are still Upcoming. */
+function Agenda({ e, d }) {
+  const status = e.canceled?.once && !sameDay(d, firstDate(e)) ? 'Upcoming' : EV.status(e);
   return (
-    <Section go={e.status === 'Done' ? EV.results(e) : EV.detail(e)} className="ev-card">
+    <Section {...EV.open(e)} className="ev-card">
       <div className="ev-card-grid">
         <span className="ev-when">{e.time}</span>
         <div className="stack xs">
           <p className="t-headline">{e.title}</p>
-          <p className="t-footnote muted">{e.type} · {EV.status(e)}</p>
+          <p className="t-footnote muted">{e.type} · {status}</p>
         </div>
       </div>
     </Section>
@@ -94,10 +97,13 @@ function Agenda({ e }) {
 /** Events ② calendar. Opens on Month with today picked. A month arrow picks the 1st of that month (today in today's
  *  month); a week arrow moves the picked date 7 days. Week shows the picked date's week. */
 export default function EventsCalendar() {
-  const { params } = useApp();
+  const { is, params } = useApp();
+  useEvents();
   const [view, setView] = useState(0);
   const [picked, setPicked] = useState(TODAY);
-  const events = applyQuery(D.events, queryOf(params));
+  const me = D.me().name;
+  const mine = D.events.filter(e => !is('member') || e.attendees.includes(me));
+  const events = applyQuery(mine, { ...queryOf(params), when: null });
   const week = view === WEEK;
   const days = week ? weekOf(picked) : monthOf(picked);
   const agenda = eventsOn(events, picked).sort((a, b) => startMinutes(a) - startMinutes(b));
@@ -114,7 +120,7 @@ export default function EventsCalendar() {
       <Grid days={days} picked={picked} pick={setPicked} events={events} />
       <div className="ev-sep" />
       <h2 className="t-footnote muted bold">{dateLabel(picked)} · {agenda.length} {agenda.length === 1 ? 'event' : 'events'}</h2>
-      {agenda.length ? agenda.map(e => <Agenda key={e.id} e={e} />) : <p className="t-footnote muted">No events on this day.</p>}
+      {agenda.length ? agenda.map(e => <Agenda key={e.id} e={e} d={picked} />) : <p className="t-footnote muted">No events on this day.</p>}
     </EventsScreen>
   );
 }

@@ -59,7 +59,7 @@ function WeekStrip({ day, pick, marked }) {
 /** One event on the hour grid, placed by its start minute and length; opens the event's own screen. */
 function EventBlock({ it }) {
   const { e } = it;
-  const open = useNav({ go: e.status === 'Done' ? EV.results(e) : EV.detail(e) });
+  const open = useNav(EV.open(e));
   return (
     <button type="button" className={`pf-cal-ev ${TONE[e.type] || 'gray'}${it.end - it.start < 45 ? ' is-short' : ''}`}
       style={{ '--at': it.start, '--len': it.end - it.start }} onClick={open}>

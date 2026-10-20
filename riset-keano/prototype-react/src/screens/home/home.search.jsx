@@ -38,7 +38,7 @@ function HomeSearch() {
         <Row title="Atlas Project" sub="Lead Nico · 70% · Due Oct 31" go="projects.overview" />
       </Group>
       <Group title="Events">
-        <Row title="Atlas sprint review" sub="Fri, Oct 9 · 1:00–2:00 PM · every 2 weeks" go="events.detail-recurring" />
+        <Row title="Atlas sprint review" sub="Fri, Oct 9 · 1:00–2:00 PM · every 2 weeks" go="events.detail-recurring" params={{ event: 'sprint' }} />
       </Group>
       <p className="t-footnote muted">Search task, project, event, and people names. Tap the mic to ask by voice.</p>
     </Screen>

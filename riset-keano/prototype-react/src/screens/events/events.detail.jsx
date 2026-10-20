@@ -1,24 +1,20 @@
-// Events ④ detail (one-off "Onboarding design review") and ④b detail (recurring "Atlas sprint review").
-// Edit/Cancel/Archive: Admin all events, PM own events or managed projects, Member only own events.
-// No sample event belongs to the Member, so a Member never gets the ⋯ menu or Edit.
+// Events ④ detail (one-off, default "Onboarding design review") and ④b detail (recurring, default "Atlas sprint
+// review") for the event in the screen params. Edit/Cancel/Archive: Admin all events, PM own events or managed
+// projects, Member only own events. A canceled event keeps only Move to Archive.
 import { Camera, ChevronRight, Mic, PenLine, Repeat } from 'lucide-react';
 import { useApp, useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Avatar, Btn, Menu, Pill, Screen } from '../../kit';
 import { Ai, Box, Bullets, EvHead, EvSec, Note } from './events.parts';
-import { EV, PROJECT } from './events.shared';
+import { EV, REPEATS, STATUS_TONE, eventOf } from './events.shared';
+import { useEvents } from './events.store';
 
-/** Last edit of each sample event (not in D). */
-const UPDATED = { review: 'Oct 7', sprint: 'Sep 25' };
-/** Sprint review has no agenda in D. */
-const SPRINT_AGENDA = ["Demo of this sprint's work", 'What went well and what to fix', 'Plan for the next sprint'];
-
-/** ⋯ menu: Cancel event (⑩) and Move to Archive (⑪); suffix '-recurring' opens ⑩b / ⑪b. */
-const menuItems = suffix => [
-  { label: 'Cancel event', sheet: `events.cancel${suffix}` },
-  { label: 'Move to Archive', sheet: `events.archive${suffix}`, danger: true },
-];
-
+/** ⋯ menu: Cancel event (⑩) and Move to Archive (⑪); a recurring event opens ⑩b / ⑪b; a canceled one can only be archived. */
+function menuItems(e) {
+  const suffix = e.repeat ? '-recurring' : '';
+  const archive = { label: 'Move to Archive', sheet: `events.archive${suffix}`, params: { event: e.id }, danger: true };
+  return e.canceled ? [archive] : [{ label: 'Cancel event', sheet: `events.cancel${suffix}`, params: { event: e.id } }, archive];
+}
 function Person({ name, role }) {
   return (
     <div className="ev-who">
@@ -31,12 +27,12 @@ function Person({ name, role }) {
 
 /** Time, location, project, repeat, reminder. */
 function Facts({ e }) {
-  const openProject = useNav({ go: 'projects.overview' });
+  const openProject = useNav({ go: 'projects.overview', params: { project: e.project || 'atlas' } });
   const rows = [
     ['Time', `${EV.date(e)} · ${e.range}`],
     ['Location', EV.where(e)],
-    ['Project', <button type="button" className="ev-kv-link row-flex" onClick={openProject}>{PROJECT()}<ChevronRight size={16} aria-hidden="true" /></button>],
-    ['Repeat', e.repeat ? e.repeat[0].toUpperCase() + e.repeat.slice(1) : 'No'],
+    ['Project', <button type="button" className="ev-kv-link row-flex" onClick={openProject}>{EV.project(e)}<ChevronRight size={16} aria-hidden="true" /></button>],
+    ['Repeat', REPEATS.find(([, v]) => v === (e.repeat || ''))?.[0] || e.repeat],
     ['Reminder', '1 day & 30 min before'],
   ];
   return (
@@ -47,13 +43,15 @@ function Facts({ e }) {
 }
 
 /** Ways to write the minutes: Type and Photo anytime, Voice from the start time. */
-function Minutes({ start }) {
+function Minutes({ e }) {
+  const start = EV.start(e);
+  const p = { event: e.id };
   return (
     <div className="ev-box stack sm">
       <p className="t-subhead">Type and Photo work anytime. Voice is active from the start time ({start}) until the meeting ends.</p>
-      <Btn block icon={<PenLine size={16} />} go="events.step2">Type</Btn>
+      <Btn block icon={<PenLine size={16} />} go="events.step2" params={p}>Type</Btn>
       <Btn block icon={<Camera size={16} />} toast="Take a photo of the whiteboard or notes">Photo</Btn>
-      <Btn block icon={<Mic size={16} />} go="events.record-ready">Voice · from {start}</Btn>
+      <Btn block icon={<Mic size={16} />} go="events.record-ready" params={p}>Voice · from {start}</Btn>
       <p className="t-footnote muted row-flex"><Ai /> = AI-assisted. The result is a text draft you can edit first.</p>
     </div>
   );
@@ -68,27 +66,42 @@ function Access({ e }) {
   return null;
 }
 
-/** Body of ④ (rec = false: D "review", created by Rina) and ④b (rec = true: D "sprint", created by Nico). */
+/** "Canceled by Nico: reason"; canceling one occurrence of a recurring event leaves the next ones. */
+function Canceled({ c }) {
+  return (
+    <Box>
+      <p className="bold">Canceled by {c.by}</p>
+      <p className="muted">{c.reason}</p>
+      {c.once && <p className="t-footnote muted">Only this occurrence; the next ones continue.</p>}
+    </Box>
+  );
+}
+
+/** Body of ④ (fallback "review", created by Rina) and ④b (fallback "sprint", created by Nico). */
 function Detail({ rec }) {
-  const { is } = useApp();
-  const e = D.event(rec ? 'sprint' : 'review');
-  const editor = !is('member');
+  const { is, params } = useApp();
+  useEvents();
+  const e = eventOf(params, rec ? 'sprint' : 'review');
+  const editor = !is('member') || D.me().name === e.creator;
   const role = n => [n === e.creator && 'Creator', n === e.noteTaker && 'Note-taker'].filter(Boolean).join(' · ');
   const people = [e.creator, ...e.attendees.filter(n => n !== e.creator)];
+  const status = EV.status(e);
+  const by = [`Created by ${e.creator}`, e.updated && `Updated ${e.updated}`, e.editor && `by ${e.editor}`].filter(Boolean).join(' · ');
   return (
-    <Screen back title="Event detail" right={editor ? <Menu items={menuItems(rec ? '-recurring' : '')} label="Event actions" /> : undefined}>
+    <Screen back title="Event detail" right={editor ? <Menu items={menuItems(e)} label="Event actions" /> : undefined}>
       <EvHead title={e.title}>
-        <Pill tone="accent">Upcoming</Pill>
+        <Pill tone={STATUS_TONE[status]}>{status}</Pill>
         <Pill tone="outline">{e.type}</Pill>
-        {rec ? <Pill><span className="row-flex ev-gap-1"><Repeat size={12} aria-hidden="true" />Repeats</span></Pill> : <Pill>Today</Pill>}
+        {e.repeat && <Pill><span className="row-flex ev-gap-1"><Repeat size={12} aria-hidden="true" />Repeats</span></Pill>}
       </EvHead>
-      {editor && <Btn kind="primary" block go="events.new">Edit</Btn>}
+      {e.canceled && <Canceled c={e.canceled} />}
+      {editor && !e.canceled && <Btn kind="primary" block go="events.new" params={{ event: e.id }}>Edit</Btn>}
       <Facts e={e} />
       <EvSec title={`Attendees (${people.length})`}>{people.map(n => <Person key={n} name={n} role={role(n)} />)}</EvSec>
-      <EvSec title="Agenda"><Bullets items={e.agenda || SPRINT_AGENDA} /></EvSec>
-      <EvSec title="Minutes" tag={<Pill>None yet</Pill>}><Minutes start={EV.start(e)} /></EvSec>
+      <EvSec title="Agenda">{e.agenda?.length ? <Bullets items={e.agenda} /> : <Note>No agenda yet</Note>}</EvSec>
+      {!e.canceled && <EvSec title="Minutes" tag={<Pill>None yet</Pill>}><Minutes e={e} /></EvSec>}
       <Access e={e} />
-      <Note>Created by {e.creator} · Updated {UPDATED[e.id]}</Note>
+      <Note>{by}</Note>
     </Screen>
   );
 }

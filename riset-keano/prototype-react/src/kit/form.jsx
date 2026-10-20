@@ -51,13 +51,14 @@ export function Label({ children }) {
   return <h3 className="label-head t-footnote muted">{children}</h3>;
 }
 
-/** Snackbar pinned above the tab bar: text + one action button (nav props go to the action). */
-export function Snack({ children, action, ...props }) {
+/** Snackbar pinned above the tab bar: text + one action button (nav props, or onAction, go to the action). */
+export function Snack({ children, action, onAction, ...props }) {
   const [nav] = splitNav(props);
+  const onNav = useNav(nav);
   return (
     <div className="snack" role="status">
       <span className="grow">{children}</span>
-      <button type="button" className="snack-action" onClick={useNav(nav)}>{action}</button>
+      <button type="button" className="snack-action" onClick={onAction || onNav}>{action}</button>
     </div>
   );
 }

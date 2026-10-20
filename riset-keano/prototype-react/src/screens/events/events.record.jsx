@@ -1,27 +1,37 @@
-// Events ⑤ recording mode (ready) and ⑥ recording, for the Atlas daily stand-up. Recording starts only after consent.
+// Events ⑤ recording mode (ready) and ⑥ recording, for the event in the screen params (else the Atlas daily stand-up).
+// Recording starts only after consent.
 import { useState } from 'react';
 import { Checkbox } from '@react-cupertino-ui/checkbox';
 import { Camera, Check, ChevronRight, Circle, Mic, PenLine } from 'lucide-react';
-import { D } from '../../data/sample';
+import { useApp } from '../../core/app.context';
 import { Btn, Link, Pill, Screen } from '../../kit';
 import { Ai, EvFoot, EvHead, EvSec, Note, Two } from './events.parts';
+import { EV, eventOf } from './events.shared';
 
-function Head() {
+/** The recorded event and the params that keep it on the next screens. */
+function useRecorded() {
+  const { params } = useApp();
+  const e = eventOf(params, 'daily');
+  return [e, { event: e.id }];
+}
+
+function Head({ e }) {
   return (
-    <EvHead title={D.event('daily').title}>
+    <EvHead title={e.title}>
       <Pill tone="accent">Ongoing</Pill>
-      <Pill tone="outline">Meeting</Pill>
+      <Pill tone="outline">{e.type}</Pill>
     </EvHead>
   );
 }
 
 /** Events ⑤: consent box, Start recording, other ways to take notes. */
 export function RecordReady() {
+  const [e, p] = useRecorded();
   const [told, setTold] = useState(false);
   return (
     <Screen back title="Recording mode">
-      <Head />
-      <Link className="ev-more-sm" go="events.step3">View meeting details <ChevronRight size={14} aria-hidden="true" /></Link>
+      <Head e={e} />
+      <Link className="ev-more-sm" go={EV.detail(e)} params={p}>View meeting details <ChevronRight size={14} aria-hidden="true" /></Link>
       <div className="ev-plain stack sm">
         <Checkbox variant="solid" label="Attendees have been told this meeting is recorded" checked={told}
           onChange={e => setTold(e.target.checked)} />
@@ -29,10 +39,10 @@ export function RecordReady() {
       </div>
       <div className="ev-rec">
         <span className="ev-rec-dot"><Mic size={36} aria-hidden="true" /></span>
-        <Btn kind="primary" icon={<Circle size={14} fill="currentColor" />} go="events.recording">Start recording</Btn>
+        <Btn kind="primary" icon={<Circle size={14} fill="currentColor" />} disabled={!told} go="events.recording" params={p}>Start recording</Btn>
       </div>
       <EvSec title="Other ways">
-        <Btn block icon={<PenLine size={16} />} go="events.step2">Type notes</Btn>
+        <Btn block icon={<PenLine size={16} />} go="events.step2" params={p}>Type notes</Btn>
         <Btn block icon={<Camera size={16} />} toast="Take a photo of the whiteboard">
           <span className="row-flex ev-gap-1">Photo of whiteboard <Ai /></span>
         </Btn>
@@ -44,9 +54,10 @@ export function RecordReady() {
 
 /** Events ⑥: recording in progress. */
 export function Recording() {
+  const [e, p] = useRecorded();
   return (
     <Screen back title="Recording mode" className="ev-has-foot">
-      <Head />
+      <Head e={e} />
       <div className="ev-rec">
         <span className="ev-rec-dot live"><Mic size={36} aria-hidden="true" /></span>
         <Pill tone="danger">Recording</Pill>
@@ -57,7 +68,7 @@ export function Recording() {
       <EvFoot>
         <Two wide>
           <Btn block toast="Recording paused">Pause</Btn>
-          <Btn kind="primary" block go="events.step1">Stop recording</Btn>
+          <Btn kind="primary" block go="events.step1" params={p}>Stop recording</Btn>
         </Two>
       </EvFoot>
     </Screen>

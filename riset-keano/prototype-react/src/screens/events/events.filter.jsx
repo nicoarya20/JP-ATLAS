@@ -1,15 +1,19 @@
 // Events ①b: the Filter & sort overlay (full-height, same as Tasks) opened from the icon next to the search field.
 // The query lives in the list / calendar screen's params (events.query); Apply re-opens that screen with it.
+// The calendar shows past and upcoming dates alike, so it has no Show field and its Show value is ignored.
 import { useState } from 'react';
 import { Radio } from '@react-cupertino-ui/radio';
 import { Chips, FilterPanel, Label, SearchFilter, Select } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { BASE_QUERY, GROUPS, TYPE_FILTERS, WHEN, isFiltered, projectOptions, queryOf } from './events.query';
 
+const CALENDAR = 'events.calendar';
+
 /** Search field with the Filter & sort icon; its dot shows when the screen's query filters the events. */
 export function EventsSearch() {
-  const { params, openSheet } = useApp();
-  return <SearchFilter placeholder="Search title or location…" on={isFiltered(queryOf(params))}
+  const { current, params, openSheet } = useApp();
+  const q = queryOf(params);
+  return <SearchFilter placeholder="Search title or location…" on={isFiltered(current === CALENDAR ? { ...q, when: 0 } : q)}
     onFilter={() => openSheet('events.filter')} />;
 }
 
@@ -23,10 +27,12 @@ export function EventsFilter() {
   const reset = () => { setDraft(BASE_QUERY); setResets(n => n + 1); };
   return (
     <FilterPanel onReset={reset} onApply={() => go(current, { params: { ...screen, ...draft } })}>
-      <div className="field">
-        <Label>Show</Label>
-        <Chips key={`when-${resets}`} items={WHEN} on={draft.when} onPick={i => set({ when: i })} />
-      </div>
+      {current !== CALENDAR && (
+        <div className="field">
+          <Label>Show</Label>
+          <Chips key={`when-${resets}`} items={WHEN} on={draft.when} onPick={i => set({ when: i })} />
+        </div>
+      )}
       <div className="field">
         <Label>Event type</Label>
         <Chips key={`type-${resets}`} items={TYPE_FILTERS} on={draft.type} onPick={i => set({ type: i })} />

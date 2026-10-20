@@ -7,6 +7,7 @@ import { Btn, Empty, Pill, Screen, Section, Seg } from '../../kit';
 import { EventsSearch } from './events.filter';
 import { applyQuery, groupEvents, queryOf, queryParams, withoutQuery } from './events.query';
 import { EV, STATUS_TONE } from './events.shared';
+import { useEvents } from './events.store';
 
 /** Screen frame of the Events tab: title and the tab bar (its "+" creates the event); no sub line, same bar height as Tasks and Projects. */
 export function EventsScreen({ children }) {
@@ -30,13 +31,13 @@ export function EventsTools({ on }) {
 function EventCard({ e }) {
   const { is } = useApp();
   const done = e.status === 'Done';
-  const target = done ? EV.results(e) : EV.detail(e);
+  const open = EV.open(e);
   const status = EV.status(e);
   const btn = !done ? null
-    : EV.confirmed(e) || is('member') ? <Btn sm go={target}>View results</Btn>
-      : <Btn kind="primary" sm go={target}>Check results</Btn>;
+    : EV.confirmed(e) || is('member') ? <Btn sm {...open}>View results</Btn>
+      : <Btn kind="primary" sm {...open}>Check results</Btn>;
   return (
-    <Section go={target} className="ev-card">
+    <Section {...open} className="ev-card">
       <div className="ev-card-grid">
         <span className="ev-when">{/^(Today|Tomorrow)/.test(e.group) ? e.time : e.day}</span>
         <div className="stack sm">
@@ -61,6 +62,7 @@ function EventCard({ e }) {
  *  Nothing left: an empty state whose Reset filters re-opens the screen with its default query. */
 function Groups() {
   const { is, current, params, go } = useApp();
+  useEvents();
   const me = D.me().name;
   const mine = D.events.filter(e => !is('member') || e.attendees.includes(me));
   const q = queryOf(params);

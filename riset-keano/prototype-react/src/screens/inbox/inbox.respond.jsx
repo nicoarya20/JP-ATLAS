@@ -4,6 +4,7 @@ import { Check, Sparkles } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Avatars, Btn, Empty } from '../../kit';
+import { EV } from '../events/events.shared';
 import { Card, InboxScreen, Who } from './inbox.parts';
 import { items, link } from './inbox.shared';
 
@@ -35,7 +36,7 @@ function Second() {
     );
   }
   return (
-    <Card action={<Btn kind="primary" sm go="events.step3">{it.action}</Btn>}>
+    <Card action={<Btn kind="primary" sm {...EV.open(D.event('daily'))}>{it.action}</Btn>}>
       <Who text={it.title} meta={it.meta} lead={<span className="ib-ai" aria-label="AI-assisted"><Sparkles size={18} /></span>} />
       <p className="t-footnote muted">{it.sub}</p>
     </Card>

@@ -128,13 +128,14 @@ describe('events filter & sort', () => {
     expect(sheet.getByRole('radio', { name: 'Schedule' })).toBeChecked();
   });
 
-  it('draws the calendar dots and today\'s agenda from the upcoming events by default', () => {
+  it('draws the calendar dots and today\'s agenda from past and upcoming events alike', () => {
     renderApp('events.calendar', 'pm');
-    expect([7, 8, 9, 13, 15, 23].map(dot)).toEqual(['', '', '', '', '', '']);
-    expect([1, 2].map(dot)).toEqual(['none', 'none']);
-    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 1 event' })).toBeInTheDocument();
+    expect([1, 8, 9, 13, 15, 23].map(dot)).toEqual(['', '', '', '', '', '']);
+    expect(dot(7)).toBe('two');
+    expect([2, 3].map(dot)).toEqual(['none', 'none']);
+    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 2 events' })).toBeInTheDocument();
     expect(dom.getByText('Onboarding design review')).toBeInTheDocument();
-    expect(dom.queryByText('Atlas daily stand-up')).not.toBeInTheDocument();
+    expect(dom.getByText('Atlas daily stand-up')).toBeInTheDocument();
   });
 
   it('keeps the query on the calendar: dots and agenda show only the filtered events', () => {
@@ -152,15 +153,11 @@ describe('events filter & sort', () => {
     expect(D.events.filter(e => e.type !== 'Review').some(shown)).toBe(false);
   });
 
-  it('keeps Past on the calendar: only the done kickoff and stand-up have dots', () => {
+  it('leaves Show off the calendar\'s overlay, since the calendar shows past and upcoming dates', () => {
     renderApp('events.calendar', 'pm');
     const sheet = openFilter();
-    fireEvent.click(sheet.getByRole('button', { name: 'Past' }));
-    apply(sheet);
-    expect([1, 7].map(dot)).toEqual(['', '']);
-    expect([8, 9, 13, 15, 23].map(dot)).toEqual(['none', 'none', 'none', 'none', 'none']);
-    expect(dom.getByRole('heading', { name: 'Wed, Oct 7 · 1 event' })).toBeInTheDocument();
-    expect(dom.getByText('Atlas daily stand-up')).toBeInTheDocument();
+    expect(sheet.getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual(['Event type', 'Project', 'Group by']);
+    expect(sheet.queryByRole('button', { name: 'Past' })).not.toBeInTheDocument();
   });
 
   it('leaves the View button off the upcoming cards; tapping the card still opens the event', () => {

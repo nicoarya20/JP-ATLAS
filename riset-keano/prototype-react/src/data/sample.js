@@ -111,14 +111,17 @@ const csv = {
 // ---------- Events (Events ①–⑪) ----------
 const events = [
   { id: 'kickoff', title: 'Atlas kickoff', group: 'Earlier · Thu, Oct 1', day: 'Thu 1', time: '10:00', range: '10:00–11:00 AM', place: 'Meeting Room 1', mode: 'In person', type: 'Meeting', status: 'Done', creator: 'Nico', attendees: ['Nico', 'Rina', 'Dodi', 'Sri'], noteTaker: 'Dodi' },
-  { id: 'review', title: 'Onboarding design review', group: 'Today · Wed, Oct 7', day: 'Today', time: '2:00', range: '2:00–3:00 PM', place: 'Meeting Room 2', mode: 'In person', type: 'Review', status: 'Upcoming', creator: 'Rina', attendees: ['Rina', 'Nico', 'Dodi'], noteTaker: 'Dodi',
+  { id: 'review', title: 'Onboarding design review', group: 'Today · Wed, Oct 7', day: 'Today', time: '2:00', range: '2:00–3:00 PM', place: 'Meeting Room 2', mode: 'In person', type: 'Review', status: 'Upcoming', creator: 'Rina', attendees: ['Rina', 'Nico', 'Dodi'], noteTaker: 'Dodi', updated: 'Oct 7',
     agenda: ['New onboarding flow', 'Feedback from the trial users', 'Trial schedule'] },
   { id: 'daily', title: 'Atlas daily stand-up', group: 'Today · Wed, Oct 7', day: 'Today', time: '9:00', range: '9:00–9:15 AM', place: 'Online', mode: 'Online', type: 'Meeting', status: 'Done', creator: 'Nico', attendees: ['Nico', 'Rina', 'Dodi'] },
   { id: 'sinar', title: 'Progress presentation to PT Sinar', group: 'Tomorrow · Thu, Oct 8', day: 'Thu 8', time: '10:00', range: '10:00–11:00 AM', place: 'Online', mode: 'Online', type: 'Important', status: 'Upcoming', creator: 'Nico', attendees: ['Nico', 'Rina'] },
-  { id: 'sprint', title: 'Atlas sprint review', group: 'This week', day: 'Fri 9', time: '1:00', range: '1:00–2:00 PM', place: 'Meeting Room 1', mode: 'In person', type: 'Review', status: 'Upcoming', repeat: 'every 2 weeks', creator: 'Nico', attendees: ['Nico', 'Rina', 'Dodi', 'Sri'] },
+  { id: 'sprint', title: 'Atlas sprint review', group: 'This week', day: 'Fri 9', time: '1:00', range: '1:00–2:00 PM', place: 'Meeting Room 1', mode: 'In person', type: 'Review', status: 'Upcoming', repeat: 'every 2 weeks', creator: 'Nico', attendees: ['Nico', 'Rina', 'Dodi', 'Sri'], updated: 'Sep 25',
+    agenda: ["Demo of this sprint's work", 'What went well and what to fix', 'Plan for the next sprint'] },
   { id: 'rehearsal', title: 'Presentation rehearsal', group: 'Later', day: 'Tue 13', time: '3:00', range: '3:00–4:00 PM', place: 'Meeting Room 3', mode: 'In person', type: 'Meeting', status: 'Upcoming', creator: 'Nico', attendees: ['Nico', 'Rina'] },
   { id: 'party', title: 'Office anniversary party', group: 'Later', day: 'Thu 15', time: '4:00', range: '4:00–5:00 PM', place: 'Pantry, 3rd floor', mode: 'In person', type: 'Team event', status: 'Upcoming', creator: 'Ayu', attendees: ['Ayu', 'Nico', 'Rina', 'Dodi', 'Sri'] },
 ];
+/** Events moved to Archive from their ⋯ menu (Events ⑪): out of the list and calendar, still found by D.event(). */
+const archivedEvents = [];
 /** Confirmed outcomes of "Atlas kickoff" (Events ⑦). */
 const kickoff = {
   title: 'Atlas kickoff', when: 'Thu, Oct 1, 2026 · 10:00–11:00 AM · Meeting Room 1', confirmed: 'Confirmed by Nico · Oct 1, 2026, 11:40 AM',
@@ -135,19 +138,19 @@ const standup = {
     'Dodi prepares test data once SSO is fixed.', 'Agreed: staging release moves to Monday, October 12.', 'Info: staging server maintenance Thursday night.',
     'Rina asked: does the client need a demo before release? Nico will answer.'],
   by: 'Written by Dodi (note-taker) · last edited 9:20 AM',
-  tasks: [{ title: 'Fix the login page before Friday', meta: 'For Rina · Due Fri, Oct 9 · Atlas Project' }, { title: 'Prepare test data once SSO is fixed', meta: 'For Dodi · No due date yet · Atlas Project' }],
+  tasks: [{ title: 'Fix the login page before Friday', who: 'Rina', due: 'Oct 9' }, { title: 'Prepare test data once SSO is fixed', who: 'Dodi', due: '' }],
+  decisions: ['Staging release moves to Monday, October 12'],
+  info: ['Staging server maintenance Thursday night'],
+  question: { text: 'Does the client need a demo before release?', meta: 'For Nico · unanswered · carried to the next meeting agenda' },
 };
 
 // ---------- Team, Archive, Users (Inbox lives in data.sample.inbox.js) ----------
 const team = {
-  summary: 'Projects you manage · 3 people · 10 active tasks · 3 overdue',
   list: [
-    { key: 'nico', role: 'Manager · Atlas Project (Lead)', status: 'Available', active: 4, overdue: '1 overdue' },
-    { key: 'rina', role: 'Member · Atlas Project', status: 'Available', active: 3, overdue: '1 overdue', extra: 'Also on other projects' },
-    { key: 'dodi', role: 'Member · Atlas Project', status: 'Leave planned Oct 12–14', active: 3, overdue: '1 overdue' },
+    { key: 'nico', role: 'Manager · Atlas Project (Lead)', status: 'Available' },
+    { key: 'rina', role: 'Member · Atlas Project', status: 'Available', extra: 'Also on other projects' },
+    { key: 'dodi', role: 'Member · Atlas Project', status: 'Leave planned Oct 12–14' },
   ],
-  /** Rina's active tasks as seen from Team ② (pill = status). */
-  rinaTasks: [['#11 Revise the profile icon', 'Atlas Project · 2 days overdue', 'Overdue'], ['#18 Review the onboarding design', 'Atlas Project · Due today', 'In progress'], ['#15 Review the onboarding page design', 'Atlas Project · Oct 9', 'To do']],
 };
 /** Archived items; includes = what an archived project takes with it. */
 const archive = [
@@ -166,20 +169,12 @@ const users = {
   approved: ['ayu', 'nico', 'lea', 'rina', 'dodi', 'sri'],
 };
 
-// ---------- Home (Daily Briefing, My Focus, Ask Data, Agenda & Projects) ----------
+// ---------- Home (Daily Briefing, Ask Data, done/activity; My Focus and Agenda & Projects read live data) ----------
 const home = {
   briefing: ['1 thing is overdue: the down payment for the tile installer is 2 days late.', 'Today you have 2 tasks and 1 meeting. Family Celebration needs attention because catering isn\'t ordered yet.'],
   briefingMeta: '✦ Built automatically from project data · updated 7:30 AM',
-  focus: {
-    overdue: [{ title: 'Pay the tile installer down payment', meta: 'Kitchen Renovation · 2 days overdue' }],
-    today: [{ title: 'Order catering for 80 people', meta: 'Family Celebration · most important today' }, { title: 'Confirm the tent with Mr. Budi', meta: 'Family Celebration' }],
-    week: [{ title: 'Buy wall paint', meta: 'Kitchen Renovation · Saturday' }, { title: 'Send invitations to relatives', meta: 'Family Celebration · Friday' }],
-    review: { title: 'Review: Fix the save button on the profile page', meta: 'Awaiting my review · Atlas Project · Dodi' },
-    all: 'See all tasks (9) · 1 awaiting review',
-  },
   ask: { questions: ['Which project is behind?', 'Which task has waited the longest?', 'Who has the most tasks?'],
     answer: 'Family Celebration is furthest behind: only 4 of 10 tasks done, with the event 16 days away.' },
-  agenda: { time: '10:00', title: 'Celebration committee meeting', warn: 'Not ready: catering not ordered yet' },
   projects: [
     { name: 'Family Celebration', pct: 40, state: 'Needs attention', meta: '4 of 10 tasks done · event Oct 24' },
     { name: 'Kitchen Renovation', pct: 70, state: '✓ On track', meta: '7 of 10 tasks done' },
@@ -191,7 +186,7 @@ const home = {
 
 export const D = {
   inbox,
-  today, people, ME, projects, atlas, story, templates, tasks, archivedTasks, taskDetail, quickWrite, csv, events, kickoff, standup, team, archive, users, home,
+  today, people, ME, projects, atlas, story, templates, tasks, archivedTasks, taskDetail, quickWrite, csv, events, archivedEvents, kickoff, standup, team, archive, users, home,
   /** Signed-in person for the active role. */
   me: () => ({ key: ME[getRole()], ...people[ME[getRole()]] }),
   /** Person by key or first name. */
@@ -199,5 +194,6 @@ export const D = {
   project: id => projects.find(p => p.id === id),
   /** Task by number, archived ones included. */
   task: no => tasks.find(t => t.no === no) || archivedTasks.find(t => t.no === no),
-  event: id => events.find(e => e.id === id),
+  /** Event by id, archived ones included. */
+  event: id => events.find(e => e.id === id) || archivedEvents.find(e => e.id === id),
 };

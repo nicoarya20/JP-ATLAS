@@ -1,7 +1,7 @@
 // Events ①b: the Filter & sort query — its options, applying it to the events, grouping them, and the calendar dots.
 // A query lives in the list/calendar screen's params ({when, type, project, group}), so Apply is a go() to the same screen.
 import { D } from '../../data/sample';
-import { PROJECT, TYPES } from './events.shared';
+import { EV, TYPES } from './events.shared';
 
 /** Overlay options; index 0 is the default. */
 export const WHEN = ['Upcoming', 'Past'];
@@ -11,7 +11,8 @@ export const GROUPS = ['Schedule', 'Type'];
 export const GROUP_TYPE = 1;
 
 const KEYS = ['when', 'type', 'project', 'group'];
-const REPEAT_DAYS = { 'every 2 weeks': 14 };   // how far apart a recurring event's next dates are
+/** How many days apart a recurring event's next dates are, per repeat option. */
+export const REPEAT_DAYS = { daily: 1, 'every week': 7, 'every 2 weeks': 14 };
 
 /** Query a list starts with: upcoming events, every type, every project, grouped by schedule. */
 export const BASE_QUERY = { when: 0, type: 0, project: '', group: 0 };
@@ -35,13 +36,13 @@ export const isFiltered = q => !!(q.when || q.type || q.project);
 /** Past: already done, or its first date is before today; everything else is upcoming. */
 export const isPast = e => e.status === 'Done' || firstDate(e) < TODAY;
 
-/** Events of the picked time (upcoming / past), type and project (every sample event belongs to PROJECT()). */
+/** Events of the picked time (upcoming / past; when = null keeps both, as the calendar does), type and project. */
 export function applyQuery(events, q) {
   const name = q.project && D.project(q.project)?.name;
   return events
-    .filter(e => isPast(e) === (q.when === WHEN_PAST))
+    .filter(e => q.when == null || isPast(e) === (q.when === WHEN_PAST))
     .filter(e => !q.type || e.type === TYPE_FILTERS[q.type])
-    .filter(() => !name || name === PROJECT());
+    .filter(e => !name || name === EV.project(e));
 }
 
 /** [title, events] sections: by schedule (the events' own group, in data order) or by type (form order). */
@@ -62,10 +63,11 @@ export const TODAY = new Date(Number(TODAY_YEAR), MONTHS.indexOf(TODAY_MON), Num
 export const firstDate = e => (e.day === 'Today' ? TODAY
   : new Date(TODAY.getFullYear(), TODAY.getMonth(), Number(e.day.match(/\d+$/)[0])));
 
-/** True when an event falls on date: its own date, or (recurring) every step days after it, into any later month. */
+/** True when an event falls on date: its own date, or (recurring) every step days after it, into any later month.
+ *  A series canceled as a whole stops repeating; its own date stays, marked Canceled. */
 export function occursOn(e, date) {
   const gap = Math.round((date - firstDate(e)) / DAY_MS);   // round: a DST change makes a day 23 or 25 hours
-  const step = REPEAT_DAYS[e.repeat];
+  const step = e.canceled && !e.canceled.once ? 0 : REPEAT_DAYS[e.repeat];
   return gap === 0 || (!!step && gap > 0 && gap % step === 0);
 }
 

@@ -1,5 +1,5 @@
 // Events ② calendar: no Today button; Month / Week switch the grid; tapping a date shows that date's agenda;
-// month arrows change the month, week arrows step a week (both crossing into other months).
+// month arrows change the month, week arrows step a week (both crossing into other months). Past events keep their dots.
 import { describe, expect, it } from 'vitest';
 import { fireEvent, screen as dom } from '@testing-library/react';
 import '../screens';
@@ -20,7 +20,7 @@ describe('events calendar', () => {
     expect(dom.getByText('October 2026')).toBeInTheDocument();
     expect(dates()).toEqual(Array.from({ length: 31 }, (_, i) => i + 1));
     expect(date('Wed, Oct 7')).toHaveAttribute('aria-pressed', 'true');
-    expect(agendaHead()).toBe('Wed, Oct 7 · 1 event');
+    expect(agendaHead()).toBe('Wed, Oct 7 · 2 events');
   });
 
   it('shows the agenda of the tapped date, a recurring event on each of its dates', () => {
@@ -93,11 +93,8 @@ describe('events calendar', () => {
     expect(dom.getByText('November 2026')).toBeInTheDocument();
   });
 
-  it('opens the done kickoff\'s results from the agenda when Past shows it', () => {
+  it('shows past dates too: the done kickoff\'s results open from its agenda', () => {
     renderApp('events.calendar', 'pm');
-    fireEvent.click(dom.getByRole('button', { name: 'Filter and sort' }));
-    fireEvent.click(dom.getByRole('button', { name: 'Past' }));
-    fireEvent.click(dom.getByRole('button', { name: 'Apply' }));
     fireEvent.click(date('Thu, Oct 1'));
     expect(agendaHead()).toBe('Thu, Oct 1 · 1 event');
     fireEvent.click(dom.getByText('Atlas kickoff').closest('[role="button"]'));
