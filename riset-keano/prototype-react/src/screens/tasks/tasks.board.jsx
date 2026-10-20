@@ -1,24 +1,19 @@
 // Tasks ③ Kanban: one column per status, compact cards that open the task (its actions live in the detail);
-// hold and drag a card onto another column to change its status (tasks.drag). A Member moves only their own tasks;
-// a PM or Admin moves any.
+// hold a card to open the move menu and slide (or tap) to a status (tasks.radial). A Member moves only their own
+// tasks; a PM or Admin moves any.
 import { useRef } from 'react';
-import { Calendar, Circle, CircleCheck, CircleDashed, CircleDot, Flag, ListChecks, Plus } from 'lucide-react';
+import { Calendar, Flag, ListChecks, Plus } from 'lucide-react';
 import { Avatars, Btn, Section } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { useBoardDrag } from './tasks.drag';
+import { COLUMNS } from './tasks.columns';
 import { ListScreen } from './tasks.list';
 import { applyQuery, queryOf } from './tasks.query';
 import { assigned, assignees, days, detailOf } from './tasks.shared';
+import { useMoveMenu } from './tasks.radial';
+import { MoveMenu } from './tasks.radial.menu';
 import { moveTask, useTaskMoves } from './tasks.store';
 
-// Status badge per column: icon + tone class (colour comes from tasks.css).
-const COLUMNS = [
-  ['To do', CircleDashed, 'todo'],
-  ['In progress', CircleDot, 'progress'],
-  ['In review', Circle, 'review'],
-  ['Done', CircleCheck, 'done'],
-];
 const ICON = 14;
 
 /** Checklist progress "2/3" from the task detail, or null when the task has no steps. */
@@ -46,7 +41,7 @@ function BoardCard({ t, mine }) {
   );
 }
 
-/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move, hold a card to drag it.
+/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move, hold a card to move it.
  *  params.mine = my tasks across projects (card shows the project), otherwise every Atlas task; both narrowed and
  *  ordered by the Filter & sort query in params (All active keeps the Done column). */
 export function TasksBoard({ params }) {
@@ -54,15 +49,15 @@ export function TasksBoard({ params }) {
   const { toast, is } = useApp();
   const board = useRef(null);
   useTaskMoves();
-  const drag = useBoardDrag(board, {
-    onDrop: (no, status) => { moveTask(no, status); toast(`Moved to ${status}`); },
-    canLift: no => !is('member') || assigned(D.task(no), D.me().name),
+  const move = useMoveMenu(board, {
+    onPick: (no, status) => { moveTask(no, status); toast(`Moved to ${status}`); },
+    canOpen: no => !is('member') || assigned(D.task(no), D.me().name),
     onDenied: no => toast(`Only ${assignees(D.task(no)).join(' or ')} can change this task`),
   });
   const tasks = applyQuery(mine ? D.tasks.filter(t => assigned(t, D.me().name)) : D.tasks, queryOf(params, mine), true);
   return (
     <ListScreen mine={mine} board>
-      <div className="tk-board" ref={board} {...drag}>
+      <div className="tk-board" ref={board} {...move.handlers}>
         {COLUMNS.map(([status, Icon, tone]) => {
           const list = tasks.filter(t => t.status === status);
           return (
@@ -77,6 +72,7 @@ export function TasksBoard({ params }) {
           );
         })}
       </div>
+      <MoveMenu menu={move.menu} onPick={move.pick} onClose={move.close} />
     </ListScreen>
   );
 }
