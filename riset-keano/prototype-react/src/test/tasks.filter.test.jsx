@@ -12,7 +12,6 @@ const icon = () => dom.getByRole('button', { name: 'Filter and sort' });
 const openFilter = () => { fireEvent.click(icon()); return within(dom.getByRole('dialog')); };
 const apply = sheet => fireEvent.click(sheet.getByRole('button', { name: 'Apply' }));
 const shown = t => !!dom.queryByText(t.title);
-const footer = () => dom.getByText(/^1–\d+ of \d+ tasks · /).textContent;
 /** Titles that are on screen, in document order. */
 const order = titles => titles.map(x => dom.getByText(x)).sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
   .map(el => el.textContent);
@@ -67,7 +66,7 @@ describe('tasks filter & sort', () => {
     expect(icon()).toHaveClass('is-on');
   });
 
-  it('narrows All tasks by priority and counts what is left', () => {
+  it('narrows All tasks by priority without a count footer', () => {
     renderApp('tasks.all', 'pm');
     const sheet = openFilter();
     fireEvent.click(sheet.getByRole('button', { name: 'High' }));
@@ -75,7 +74,7 @@ describe('tasks filter & sort', () => {
     const high = atlasActive().filter(t => t.priority === 'High');
     expect(high.every(shown)).toBe(true);
     expect(atlasActive().filter(t => t.priority !== 'High').some(shown)).toBe(false);
-    expect(footer()).toBe(`1–${high.length} of ${high.length} tasks · ${atlasName}`);
+    expect(dom.queryByText(/ of \d+ tasks/)).toBeNull();
   });
 
   it('picks another project from a real picker', () => {
@@ -88,7 +87,6 @@ describe('tasks filter & sort', () => {
     const list = D.tasks.filter(t => t.project === sinar.name && t.status !== 'Done');
     expect(list.every(shown)).toBe(true);
     expect(atlasActive().some(shown)).toBe(false);
-    expect(footer()).toBe(`1–${list.length} of ${list.length} tasks · ${sinar.name}`);
   });
 
   it('sorts All tasks by title and keeps the pick when the sheet opens again', () => {
@@ -165,6 +163,8 @@ describe('tasks filter & sort', () => {
     expect(cols.reduce((a, b) => a + b, 0)).toBe(high.length);
     expect(high.every(shown)).toBe(true);
     fireEvent.click(dom.getByRole('tab', { name: 'List' }));
-    expect(footer()).toMatch(/^1–1 of 1 tasks/);
+    const highActive = atlasActive().filter(t => t.priority === 'High');
+    expect(highActive.every(shown)).toBe(true);
+    expect(atlasActive().filter(t => t.priority !== 'High').some(shown)).toBe(false);
   });
 });

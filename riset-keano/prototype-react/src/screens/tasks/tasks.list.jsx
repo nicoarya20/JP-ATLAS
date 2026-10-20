@@ -120,7 +120,6 @@ export function TasksAll({ params }) {
           </div>
         </Section>
       ))}
-      {list.length > 0 && <p className="t-footnote muted">1–{list.length} of {list.length} tasks · {D.project(q.project)?.name || 'All projects'}</p>}
     </ListScreen>
   );
 }
