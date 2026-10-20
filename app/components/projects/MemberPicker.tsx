@@ -66,6 +66,21 @@ export function MemberPicker({ value, onChange, creator }: Props) {
           {PICKER_COPY.hint}
         </Text>
       </div>
+      <Select
+        label={PICKER_COPY.search}
+        placeholder={PICKER_COPY.searchPlaceholder}
+        leftSection={<FiSearch size="1.25em" aria-hidden />}
+        searchable
+        searchValue={search}
+        onSearchChange={setSearch}
+        // The server already searched; filtering again here would hide matches on job title.
+        filter={({ options: all }) => all}
+        data={options.map((p) => ({ value: p.id, label: p.name }))}
+        value={null}
+        onChange={add}
+        nothingFoundMessage={search.trim() ? PICKER_COPY.nothingFound : undefined}
+        error={people.isError ? PICKER_COPY.failed : undefined}
+      />
       <Paper withBorder p="sm" radius="md">
         <Group justify="space-between" gap="xs" wrap="wrap">
           <PersonLine name={`${creator.name} ${PICKER_COPY.you}`} jobTitle={null} image={null} />
@@ -97,21 +112,6 @@ export function MemberPicker({ value, onChange, creator }: Props) {
           </Group>
         </Paper>
       ))}
-      <Select
-        label={PICKER_COPY.search}
-        placeholder={PICKER_COPY.searchPlaceholder}
-        leftSection={<FiSearch size="1.25em" aria-hidden />}
-        searchable
-        searchValue={search}
-        onSearchChange={setSearch}
-        // The server already searched; filtering again here would hide matches on job title.
-        filter={({ options: all }) => all}
-        data={options.map((p) => ({ value: p.id, label: p.name }))}
-        value={null}
-        onChange={add}
-        nothingFoundMessage={search.trim() ? PICKER_COPY.nothingFound : undefined}
-        error={people.isError ? PICKER_COPY.failed : undefined}
-      />
     </Stack>
   );
 }
