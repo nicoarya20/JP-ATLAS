@@ -48,10 +48,11 @@ const PHASE_BTN = {
   Testing: { label: 'Start phase', kind: 'outline', toast: 'Phase started' },
 };
 
-function PhaseCard({ ph, i }) {
+/** Phase card; canEdit adds + Milestone and Complete / Start phase (Manager & Admin). */
+function PhaseCard({ ph, i, canEdit }) {
   const done = ph.state === 'Done', now = ph.state === 'In progress';
   const p = done ? 100 : now ? D.atlas.phasePct : 0;
-  const btn = PHASE_BTN[ph.state] || PHASE_BTN[ph.name];
+  const btn = canEdit && (PHASE_BTN[ph.state] || PHASE_BTN[ph.name]);
   return (
     <Section className={now ? 'pj-strong' : ''}>
       <div className="stack">
@@ -66,7 +67,7 @@ function PhaseCard({ ph, i }) {
         <div className="stack sm">
           <span className="t-subhead bold">Milestone</span>
           {ph.milestone && <><span className="t-subhead">◆ {ph.milestone}</span><span className="t-subhead muted pj-indent">{ph.mState}</span></>}
-          <div><Link toast="Add milestone">+ Milestone</Link></div>
+          {canEdit && <div><Link toast="Add milestone">+ Milestone</Link></div>}
         </div>
         {btn && <Btn kind={btn.kind} block sm toast={btn.toast}>{btn.label}</Btn>}
       </div>
@@ -76,11 +77,11 @@ function PhaseCard({ ph, i }) {
 
 /** ⑩ Detail · Phases. */
 export function ProjectsPhases() {
-  const A = D.atlas, H = A.deadlineHistory;
+  const A = D.atlas, H = A.deadlineHistory, canEdit = useCanEdit();
   return (
     <DetailScreen on={2}>
-      <div className="between"><span className="t-subhead muted">{A.phases.length} phases</span><Btn sm toast="Add phase">+ Phase</Btn></div>
-      {A.phases.map((ph, i) => <PhaseCard key={ph.name} ph={ph} i={i} />)}
+      <div className="between"><span className="t-subhead muted">{A.phases.length} phases</span>{canEdit && <Btn sm toast="Add phase">+ Phase</Btn>}</div>
+      {A.phases.map((ph, i) => <PhaseCard key={ph.name} ph={ph} i={i} canEdit={canEdit} />)}
       <Section title="Deadline history" className="pj-soft">
         <div className="stack sm">
           <span className="t-subhead muted">Original deadline: {H.original}</span>

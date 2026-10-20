@@ -24,9 +24,10 @@ export function useNote() {
 export function DetailScreen({ on, children }) {
   const P = atlas(), canEdit = useCanEdit();
   // ⋯ is not drawn on the ⑧–⑪ app bar in Penpot; "⋯ › Project settings" comes from Tasks ⑬, so ⋯ links straight there.
-  const more = <Btn kind="ghost" sm go="tasks.settings" aria-label="Project settings">⋯</Btn>;
+  // Members can't change project settings, so they get no ⋯ at all.
+  const more = canEdit && <Btn kind="ghost" sm go="tasks.settings" aria-label="Project settings">⋯</Btn>;
   return (
-    <Screen title={P.name} back right={more} tab="projects">
+    <Screen title={P.name} back right={more || undefined} tab="projects">
       <div className="stack sm">
         <div className="row-flex"><Pill tone="outline">{P.status}</Pill><Pill>{P.health}</Pill></div>
         <span className="t-subhead">Why: {P.why}</span>
