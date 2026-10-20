@@ -121,6 +121,22 @@ describe('tasks kanban move menu', () => {
     expect(menu()).toBeNull();
   });
 
+  it('plays a close: hidden at once and gone after it, with the picked status filled only when the task moved', () => {
+    renderApp('tasks.board', 'pm');
+    const closingMenu = () => document.querySelector('.tk-radial.is-closing');
+    flick(14, FAR, 0);
+    expect(menu()).toBeNull();
+    expect(closingMenu()).toHaveAttribute('aria-hidden', 'true');
+    expect(closingMenu().querySelector('.is-aimed')).toHaveTextContent('In progress');
+    act(() => vi.advanceTimersByTime(200));
+    expect(closingMenu()).toBeNull();
+    const board = hold(16);
+    press(board, 'pointerMove', -FAR, 0);
+    fireEvent.keyDown(window, { key: 'Escape' });   // aimed at Done, but closed without moving
+    expect(closingMenu().querySelector('.is-aimed')).toBeNull();
+    expect(D.task(16).status).toBe('To do');
+  });
+
   it('does not open when the finger moves before the hold ends, so a swipe on a card scrolls the board', () => {
     renderApp('tasks.board', 'pm');
     const el = card(14), board = el.closest('.tk-board');

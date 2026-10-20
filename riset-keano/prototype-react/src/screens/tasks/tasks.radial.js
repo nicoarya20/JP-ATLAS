@@ -23,12 +23,14 @@ export function aimOf(dx, dy) {
 
 /**
  * Move-menu handlers for the board around boardRef (cards are `.tk-kcard[data-no]` in `.tk-col[data-status]`).
- * Returns { handlers, menu, pick, close }: spread handlers on the board and render <MoveMenu> from menu, which is
- * { no, from, host, x, y, aim, angle, sticky } while open, else null. onPick(no, status) runs for a status other than
- * the task's own; canOpen(no) = false keeps the menu shut and runs onDenied(no) instead.
+ * Returns { handlers, menu, picked, pick, close }: spread handlers on the board and render <MoveMenu> from menu, which
+ * is { no, from, host, x, y, aim, angle, sticky } while open, else null; picked is the status the last menu moved its
+ * task to (null if it closed without a move). onPick(no, status) runs for a status other than the task's own;
+ * canOpen(no) = false keeps the menu shut and runs onDenied(no) instead.
  */
 export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied = () => {} }) {
   const [menu, setMenu] = useState(null);
+  const [picked, setPicked] = useState(null);
   const live = useRef(null);          // the menu as of the last event (handlers can run twice between renders)
   const hold = useRef(null);          // the press in progress
   const swallowClick = useRef(false);
@@ -41,13 +43,16 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
     clearTimeout(hold.current?.timer);
     hold.current = null;
     show(null);
+    setPicked(null);
   };
 
   /** Move the menu's task to status and close; its own status (or none) only closes. */
   const pick = status => {
     const m = live.current;
     close();
-    if (m && status && status !== m.from) cb.current.onPick(m.no, status);
+    if (!m || !status || status === m.from) return;
+    setPicked(status);
+    cb.current.onPick(m.no, status);
   };
 
   const open = h => {
@@ -131,5 +136,5 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
     e.stopPropagation();
   };
 
-  return { handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onContextMenu, onClickCapture }, menu, pick, close };
+  return { handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onContextMenu, onClickCapture }, menu, picked, pick, close };
 }

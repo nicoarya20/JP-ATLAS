@@ -72,7 +72,7 @@ export function TasksBoard({ params }) {
           );
         })}
       </div>
-      <MoveMenu menu={move.menu} onPick={move.pick} onClose={move.close} />
+      <MoveMenu menu={move.menu} picked={move.picked} onPick={move.pick} onClose={move.close} />
     </ListScreen>
   );
 }
