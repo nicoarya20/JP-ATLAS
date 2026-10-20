@@ -1,6 +1,6 @@
 /**
  * /app/settings (S1-14): the loader decides who may delete their account (Q4/N03: Super-admin only,
- * never while impersonating) and the "Lanjutan" section does not render the card for anyone else.
+ * never while impersonating) and the "Keamanan dan perangkat" section does not render the card for anyone else.
  */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
@@ -34,7 +34,7 @@ async function runLoader(cookie = SESSION) {
   return loader({ request } as Parameters<typeof loader>[0]);
 }
 
-/** Renders the Lanjutan cards under a data router (the cards read the root clock) and React Query. */
+/** Renders the Keamanan dan perangkat cards under a data router (the cards read the root clock) and React Query. */
 async function renderAdvanced(flags: AdvancedFlags) {
   const node = (
     <QueryClientProvider client={new QueryClient()}>
@@ -119,7 +119,7 @@ describe('settings loader', () => {
   });
 });
 
-describe('Lanjutan section', () => {
+describe('Keamanan dan perangkat section', () => {
   it('starts closed: the accordion renders its title but none of the cards', () => {
     const html = renderToString(
       <MantineProvider>
@@ -132,14 +132,15 @@ describe('Lanjutan section', () => {
         />
       </MantineProvider>,
     );
-    expect(html).toContain('Lanjutan');
+    expect(html).toContain('Keamanan dan perangkat');
+    expect(html).not.toContain('Lanjutan');
     expect(html).toContain('aria-expanded="false"');
     expect(html).not.toContain(DANGER_TITLE);
   });
 
   it('does not render the delete-account card for a member', async () => {
     const html = await renderAdvanced(FLAGS);
-    expect(html).toContain('Perangkat yang masuk');
+    expect(html).toContain('Perangkat yang sedang masuk');
     expect(html).not.toContain(DANGER_TITLE);
   });
 

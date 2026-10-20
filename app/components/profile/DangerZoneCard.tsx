@@ -83,7 +83,7 @@ export function DangerZoneCard({ email, hasPassword }: { email: string; hasPassw
       <Group justify="space-between" wrap="wrap" gap="sm">
         <Stack gap={2} style={{ flex: '1 1 260px' }}>
           <Group gap="xs">
-            <FiAlertTriangle size={14} color="var(--mantine-color-red-6)" />
+            <FiAlertTriangle size="1.25em" color="var(--mantine-color-red-6)" />
             <Text fw={500}>Hapus akun</Text>
           </Group>
           <Text size="sm" c="dimmed">
@@ -91,7 +91,7 @@ export function DangerZoneCard({ email, hasPassword }: { email: string; hasPassw
             untuk keperluan audit.
           </Text>
         </Stack>
-        <Button color="red" variant="outline" size="sm" onClick={open}>
+        <Button color="red" variant="outline" onClick={open}>
           Hapus akun…
         </Button>
       </Group>

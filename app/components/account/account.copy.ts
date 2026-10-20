@@ -59,6 +59,6 @@ export const SIGN_OUT_COPY = {
 } as const;
 
 export const ADVANCED_COPY = {
-  title: 'Lanjutan',
-  description: 'Perangkat yang masuk, riwayat masuk, dan kunci API.',
+  title: 'Keamanan dan perangkat',
+  description: 'Kata sandi, perangkat yang sedang masuk, riwayat masuk, dan kunci API.',
 } as const;

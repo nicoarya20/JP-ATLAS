@@ -48,7 +48,7 @@ export function ApiKeysCard({ role }: { role: string }) {
   };
   const empty = (
     <Stack align="center" gap={4} py="lg">
-      <FiKey size={22} opacity={0.4} />
+      <FiKey size="1.5em" opacity={0.4} />
       <Text size="sm" fw={500}>
         Belum ada kunci pribadi
       </Text>
@@ -69,13 +69,13 @@ export function ApiKeysCard({ role }: { role: string }) {
       }
     >
       {expiring.length > 0 && (
-        <Alert color="yellow" variant="light" icon={<FiClock size={16} />}>
+        <Alert color="yellow" variant="light" icon={<FiClock size="1.25em" />}>
           {expiring.length} kunci berakhir dalam {SOON_DAYS} hari:{' '}
           {expiring.map((k) => k.name).join(', ')}. Rotasi sekarang agar integrasi tidak putus.
         </Alert>
       )}
       {keys.isError && (
-        <Alert color="red" icon={<FiAlertCircle size={16} />} title="Gagal memuat kunci">
+        <Alert color="red" icon={<FiAlertCircle size="1.25em" />} title="Gagal memuat kunci">
           {(keys.error as Error).message}
         </Alert>
       )}
@@ -96,8 +96,7 @@ export function ApiKeysCard({ role }: { role: string }) {
       )}
       <Group justify="flex-end">
         <Button
-          size="sm"
-          leftSection={<FiPlus size={14} />}
+          leftSection={<FiPlus size="1.25em" />}
           disabled={atLimit || keys.isPending}
           onClick={() => actions.openCreate()}
         >

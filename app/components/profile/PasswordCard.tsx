@@ -11,9 +11,12 @@ const MIN_LEN = 8;
 /** Change password (credential accounts only); optionally sign out other devices. */
 export function PasswordCard({
   hasPassword,
+  loading = false,
   onChanged,
 }: {
   hasPassword: boolean;
+  /** Linked accounts are still loading, so "has a password" is not known yet. */
+  loading?: boolean;
   onChanged: () => void;
 }) {
   const [current, setCurrent] = useState('');
@@ -54,10 +57,20 @@ export function PasswordCard({
       notifications.show({ color: 'red', title: 'Gagal mengganti password', message: e.message }),
   });
 
+  if (loading) {
+    return (
+      <SettingsCard title="Password" description="Keamanan masuk dengan email dan password.">
+        <Text size="sm" c="dimmed">
+          Memuat…
+        </Text>
+      </SettingsCard>
+    );
+  }
+
   if (!hasPassword) {
     return (
       <SettingsCard title="Password" description="Keamanan masuk dengan email dan password.">
-        <Alert color="blue" variant="light" icon={<FiInfo size={16} />}>
+        <Alert color="blue" variant="light" icon={<FiInfo size="1.25em" />}>
           Akun ini masuk lewat provider eksternal dan belum punya password. Untuk menambahkan
           password, hubungi admin.
         </Alert>
@@ -101,12 +114,7 @@ export function PasswordCard({
         <Text size="xs" c="dimmed" style={{ flex: 1 }}>
           Sesi di perangkat ini tetap masuk.
         </Text>
-        <Button
-          size="sm"
-          onClick={() => change.mutate()}
-          loading={change.isPending}
-          disabled={!ready}
-        >
+        <Button onClick={() => change.mutate()} loading={change.isPending} disabled={!ready}>
           Ganti password
         </Button>
       </Group>

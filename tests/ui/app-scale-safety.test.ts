@@ -7,7 +7,7 @@ import { themeComponents } from '../../app/lib/theme-components';
 
 const GLOBS = [
   'app/routes/app/**/*.tsx',
-  'app/components/{projects,account,trash,ui,tasks}/**/*.{ts,tsx}',
+  'app/components/{projects,account,profile,trash,ui,tasks}/**/*.{ts,tsx}',
 ];
 const files = GLOBS.flatMap((g) => [...new Glob(g).scanSync('.')]).sort();
 const read = (f: string) => readFileSync(f, 'utf8');

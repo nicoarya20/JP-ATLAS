@@ -72,14 +72,13 @@ export function AvatarField({
         <Group gap="xs" wrap="wrap">
           <FileButton onChange={pick} accept={AVATAR_ACCEPT} disabled={busy}>
             {(props) => (
-              <Button {...props} size="sm" variant="light" loading={upload.isPending}>
+              <Button {...props} variant="light" loading={upload.isPending}>
                 Unggah foto
               </Button>
             )}
           </FileButton>
           {image && (
             <Button
-              size="sm"
               variant="subtle"
               color="red"
               onClick={confirmRemove}
