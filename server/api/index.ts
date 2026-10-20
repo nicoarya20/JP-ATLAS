@@ -11,6 +11,7 @@ import { rateLimitPlugin } from '../middleware/rate-limiter';
 import { startNotificationPurgeScheduler } from '../notification/notification.scheduler';
 import { applyRateLimitSettings } from '../settings';
 import { startRetentionScheduler } from '../settings-retention';
+import { startTrashPurgeScheduler } from '../trash/trash.scheduler';
 import { adminApi } from './admin';
 import { analyticsApi } from './analytics';
 import { apiKeysApi } from './api-keys';
@@ -48,6 +49,7 @@ if (process.env.NODE_ENV !== 'test') {
   schedulePurgeLegacyDemoUsers();
   startNotificationPurgeScheduler();
   startEventReminderScheduler();
+  startTrashPurgeScheduler();
 }
 
 /**
