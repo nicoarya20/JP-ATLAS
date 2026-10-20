@@ -41,7 +41,8 @@
 /* Select (tasks.board): a tick in the card's corner; picked cards get an accent ring; cards in the move stack fade out. */
 .tk-col-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
 .tk-col-sel { display: inline-flex; align-items: center; gap: var(--sp-2); padding-inline-end: var(--sp-1); }
-.tk-col-sel-btn { min-height: 32px; padding: 0 var(--sp-2); border: 0; border-radius: var(--radius-sm); font: inherit;
+/* Sized like the status badge beside it; font-family only, so the t-caption size class still applies. */
+.tk-col-sel-btn { padding: 2px var(--sp-2); border: 0; border-radius: var(--radius-sm); font-family: inherit;
   font-weight: 600; color: var(--label-2); background: var(--fill); cursor: pointer; }
 .tk-col-sel-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tk-kcheck { position: absolute; top: var(--sp-2); right: var(--sp-2); display: inline-flex; color: var(--label-3); }

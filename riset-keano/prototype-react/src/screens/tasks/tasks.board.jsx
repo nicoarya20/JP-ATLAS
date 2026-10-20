@@ -54,8 +54,8 @@ function BoardCard({ t, mine, select, lifted }) {
 function SelectControl({ on, count, onToggle }) {
   return (
     <span className="tk-col-sel">
-      {on && <span className="t-footnote muted" aria-hidden="true">{count} selected</span>}
-      <button type="button" className="tk-col-sel-btn t-footnote" onClick={onToggle}>{on ? 'Cancel' : 'Select'}</button>
+      {on && <span className="t-caption muted" aria-hidden="true">{count} selected</span>}
+      <button type="button" className="tk-col-sel-btn t-caption" onClick={onToggle}>{on ? 'Cancel' : 'Select'}</button>
     </span>
   );
 }
