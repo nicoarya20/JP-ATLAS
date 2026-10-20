@@ -1,4 +1,5 @@
 // Edit profile (settings.profile): no phone number, read-only role and email, every field a labelled filled box.
+// Settings (settings.main): title only, no subtitle.
 import { describe, expect, it } from 'vitest';
 import { screen as dom } from '@testing-library/react';
 import '../screens';
@@ -40,6 +41,17 @@ describe('no phone number anywhere', () => {
     for (const [id, role] of [['auth.pending', 'member'], ['settings.main', 'pm'], ['users.approve', 'admin']]) {
       const { unmount } = renderApp(id, role);
       expect(document.body.textContent).not.toMatch(/phone|08\d\d/i);
+      unmount();
+    }
+  });
+});
+
+describe('Settings', () => {
+  it('shows only the title, without a subtitle, for every role', () => {
+    for (const role of ['member', 'pm', 'admin']) {
+      const { unmount } = renderApp('settings.main', role);
+      expect(dom.getAllByText('Settings').length).toBeGreaterThan(0);
+      expect(dom.queryByText(/^Manage your account/)).not.toBeInTheDocument();
       unmount();
     }
   });

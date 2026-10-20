@@ -69,7 +69,7 @@ export default function SettingsMain() {
   const { is } = useApp();
   const admin = is('admin');
   return (
-    <Screen title="Settings" sub={admin ? 'Manage your account, notifications and team' : 'Manage your account and notifications'} back>
+    <Screen title="Settings" back>
       <Account />
       <Group label="Notifications" note="Requests that need your response always appear in Inbox and can't be turned off.">
         <Setting title="Event reminders" hint="1 day and 30 minutes before the event starts"><Switch on label="Event reminders" /></Setting>
