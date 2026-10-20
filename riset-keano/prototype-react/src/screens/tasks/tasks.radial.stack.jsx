@@ -1,6 +1,7 @@
 // Kanban move menu, group move (tasks.radial): the selected cards fly from where they sit on the board to the finger
-// and stack under it, the held card on top, with a count badge. Moved, the stack flies off toward the status picked;
-// cancelled, each card flies back to its place.
+// and stack under it as mini cards with the full title, the held card on top, with a count badge; their places on the
+// board stay empty meanwhile (tasks.board). Moved, the stack flies off toward the status picked; cancelled, each card
+// flies back to its place.
 import { D } from '../../data/sample';
 import { COLUMNS } from './tasks.columns';
 
@@ -16,7 +17,7 @@ export function MoveStack({ stack, closing, picked }) {
       {stack.map(({ no, dx, dy }, i) => (
         <div key={no} className="tk-stack-card" style={{ '--fx': `${dx}px`, '--fy': `${dy}px`, '--i': i,
           '--tilt': `${(i % 2 ? 1 : -1) * Math.ceil(i / 2) * TILT_DEG}deg`, '--lift': `${-i * LIFT_PX}px`, zIndex: stack.length - i }}>
-          <span className="t-caption muted">#{no}</span>
+          <span className="tk-stack-no">#{no}</span>
           <span className="tk-stack-title bold">{D.task(no).title}</span>
         </div>
       ))}
