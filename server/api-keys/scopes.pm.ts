@@ -69,6 +69,16 @@ export const PM_KEY_DENY: readonly Deny[] = [
     method: 'POST',
     path: /^\/api\/app\/projects\/.*\/extend-deadline(?:\/.*)?$/i,
   },
+  // Leave. Deciding speaks for the approver and tells the requester the outcome; withdrawing frees days
+  // an approver already agreed to; the switch changes who needs approval at all. A leaked key may send
+  // and read requests, but none of these three, which stay with the signed-in person.
+  {
+    id: 'POST leave/*/decision',
+    method: 'POST',
+    path: /^\/api\/app\/leave\/.*\/(?:approve|reject)\/?$/i,
+  },
+  { id: 'DELETE leave/*', method: 'DELETE', path: /^\/api\/app\/leave\/.+/i },
+  { id: 'PUT leave/settings', method: 'PUT', path: /^\/api\/app\/leave\/settings(?:\/.*)?$/i },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -90,6 +100,9 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'DELETE events/*': 'app-events.write.ts', // guest removal; `DELETE /events/:id` (E-07) is in app-events.trash.ts
   'POST projects/*/condition-override': 'app-projects.deadline.ts',
   'POST projects/*/extend-deadline': 'app-projects.deadline.ts',
+  'POST leave/*/decision': 'app-leave.decide.ts',
+  'DELETE leave/*': 'app-leave.me.ts',
+  'PUT leave/settings': 'app-leave.settings.ts',
 };
 
 /**
