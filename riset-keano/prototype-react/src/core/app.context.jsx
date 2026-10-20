@@ -12,7 +12,8 @@ const AppContext = createContext(null);
 function reducer(state, a) {
   switch (a.type) {
     case 'push': {
-      const stack = a.replace ? [] : state.stack.slice();
+      // replace = start a new history; top = swap only the current screen (the same item opening on another screen).
+      const stack = a.replace ? [] : a.top ? state.stack.slice(0, -1) : state.stack.slice();
       const top = stack[stack.length - 1];
       if (top?.id === a.id) stack[stack.length - 1] = { id: a.id, params: a.params };
       else stack.push({ id: a.id, params: a.params });
@@ -52,12 +53,12 @@ export function AppProvider({ start, children }) {
     dispatch({ type: 'sheet', sheet: { id, params } });
   }, [refuse, toast]);
 
-  /** Open a screen (or a sheet when the id is a sheet). opts: {replace: reset history, params: passed to the screen}. */
-  const go = useCallback((id, { replace = false, params = {} } = {}) => {
+  /** Open a screen (or a sheet when the id is a sheet). opts: {replace: reset history, top: swap the current screen, params: passed to the screen}. */
+  const go = useCallback((id, { replace = false, top = false, params = {} } = {}) => {
     const why = refuse(id);
     if (why) return toast(why);
     if (getSheet(id)) return openSheet(id, params);
-    dispatch({ type: 'push', id, params, replace });
+    dispatch({ type: 'push', id, params, replace, top });
   }, [refuse, toast, openSheet]);
 
   /** Close the open sheet, else pop one screen. skipSheet: always pop (used when a button also closes the sheet). */
@@ -75,7 +76,7 @@ export function AppProvider({ start, children }) {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
-/** Navigation + role API for screens: {role, is(), current, params, go(id, {replace, params}), back(), openSheet(id, params), closeSheet(), toast(msg)}. */
+/** Navigation + role API for screens: {role, is(), current, params, go(id, {replace, top, params}), back(), openSheet(id, params), closeSheet(), toast(msg)}. */
 export function useApp() {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useApp() must be used inside <AppProvider>');
