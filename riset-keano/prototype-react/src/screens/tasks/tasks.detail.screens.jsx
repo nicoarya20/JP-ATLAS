@@ -19,7 +19,7 @@ export function TasksDetailTodo({ params }) {
   const off = member ? 'Off · you may turn it on' : 'Off · Mark done directly';
   const review = D.taskDetail[no] && (x.reviewer ? 'Yes · Request review before Done' : off);
   return (
-    <TaskDetail no={no} cancel={!member} actions={actions} facts={baseFacts(no, review, x.reviewer ? [['Reviewer', x.reviewer]] : [])}>
+    <TaskDetail no={no} actions={actions} facts={baseFacts(no, review, x.reviewer ? [['Reviewer', x.reviewer]] : [])}>
       <Sec title={stepsTitle(x.steps)}>
         {x.steps.length ? x.steps.map(s => <Step key={s[0]} step={s} />) : <p className="t-footnote muted">No steps yet.</p>}
         <div><Link toast="Step added">+ Add step</Link></div>
@@ -59,7 +59,7 @@ function Asked({ asked }) {
   const [, asker, when] = asked.match(/^(\S+) .* · (.+)$/), me = D.me().name;
   const text = asker === me ? `You asked ${reviewer()}` : `${asker} asked ${reviewer() === me ? 'you' : reviewer()}`;
   return (
-    <Section className="tk-soft tk-strong">
+    <Section className="tk-soft">
       <div className="stack xs">
         <span className="t-headline">{text} to review this task</span>
         <span className="t-footnote">Requested {when}</span>

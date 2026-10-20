@@ -49,14 +49,25 @@ describe('task detail ⋯ menu', () => {
     }
   });
 
+  it('shows the review request banner without the accent border', () => {
+    detail(17);
+    const banner = dom.getByText(/asked you to review this task/).closest('.card');
+    expect(banner).toHaveClass('tk-soft');
+    expect(banner).not.toHaveClass('tk-strong');
+  });
+
   it('keeps the ⋯ for a PM on a task assigned to someone else', () => {
     detail(15);
     expect(menu().getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task', 'Cancel task']);
   });
 
-  it('gives a Member Edit task but not Cancel task on a To do task', () => {
-    detail(16, 'member');
-    expect(menu().getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task']);
+  it('gives a Member Edit task and Cancel task on their own task in every status', () => {
+    for (const no of [16, 17]) {
+      cleanup();
+      detail(no, 'member');
+      expect(D.task(no).who).toBe(D.me().name);
+      expect(menu().getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task', 'Cancel task']);
+    }
   });
 });
 

@@ -64,16 +64,15 @@ export function baseFacts(no, review, extra = []) {
 }
 
 /**
- * Detail page for task no. The ⋯ menu has Edit task; cancel = false leaves out Cancel task. A Member edits only their
- * own tasks, so on someone else's task there is no ⋯ at all. banner, actions, facts, after and children fill the
+ * Detail page for task no. The ⋯ menu has Edit task and Cancel task. A Member edits and cancels only their own tasks
+ * (in any status), so on someone else's task there is no ⋯ at all. banner, actions, facts, after and children fill the
  * slots. Re-renders when the task is edited or moved.
  */
-export function TaskDetail({ no, cancel = true, banner, actions, facts, after, children }) {
+export function TaskDetail({ no, banner, actions, facts, after, children }) {
   useTaskMoves();
   const t = D.task(no), x = info(no);
   const mine = !useApp().is('member') || assigned(t, D.me().name);
-  const items = [{ label: 'Edit task', go: 'tasks.edit', task: no },
-    ...(cancel ? [{ label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }] : [])];
+  const items = [{ label: 'Edit task', go: 'tasks.edit', task: no }, { label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }];
   const right = mine ? <Menu items={items} label="Task actions" /> : undefined;
   const foot = <Foot><input className="tk-comment" placeholder="Write a comment… (@name to mention)" aria-label="Comment" /></Foot>;
   return (
