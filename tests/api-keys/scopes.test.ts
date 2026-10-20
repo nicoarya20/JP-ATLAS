@@ -155,6 +155,11 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('GET', '/api/app/team')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/team/u1')).toBe('app:read');
   });
+  // The Beranda is one read-only call: a key may read the home of its owner, and nothing writes through it.
+  it('maps GET /api/app/home to app:read and refuses to write to it', () => {
+    expect(requiredScope('GET', '/api/app/home')).toBe('app:read');
+    expect(requiredScope('POST', '/api/app/home')).toBe('app:write');
+  });
   // The Inbox routes are not destructive, so a key may read the cards of its owner and mark them
   // read; nothing here is in PM_KEY_DENY (S3 I04).
   it('maps the Inbox routes to app:read / app:write', () => {

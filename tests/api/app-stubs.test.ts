@@ -15,10 +15,11 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 /** Every S0B-18 stub is now filled; the list stays so a future stub module has a place to be declared. */
 const STUBS: { file: string; plugin: string; prefix: string }[] = [];
 
-/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S3 I04 inbox, S6 M03 team, S7 E-06 events, S7 E-07 event Trash, leave): no longer stubs, still mounted by app.ts. */
+/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S3 I04 inbox, S3 B-06 home, S6 M03 team, S7 E-06 events, S7 E-07 event Trash, leave): no longer stubs, still mounted by app.ts. */
 const FILLED = [
   'profileApi',
   'inboxApi',
+  'homeApi',
   'projectsApi',
   'projectMembersApi',
   'teamPickerApi',
@@ -115,7 +116,7 @@ describe('module hygiene', () => {
   });
 
   test.each([
-    ['app.ts', 62], // 60 until the leave assembler joined; one import and one mount
+    ['app.ts', 64], // 60 until the leave assembler joined, 62 with it; the Beranda adds one import and one mount
     ['app-context.ts', 90],
     ['app-common.ts', 80],
     ['app-projects.ts', 150],

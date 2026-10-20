@@ -179,7 +179,7 @@ export async function getEvent(
 
 /**
  * The Agenda widget of the Beranda: at most four of my own events (mine = I created it or I am
- * invited) starting between `now` and the end of tomorrow. The day boundary is computed by Postgres
+ * invited) that have not ended yet and start before the end of tomorrow. The day boundary is computed by Postgres
  * from `clock.today` and the team zone, so a local midnight is never guessed in JavaScript.
  */
 export async function agendaFor(
@@ -201,7 +201,8 @@ export async function agendaFor(
         sql`(${event.createdBy} = ${p.id} OR EXISTS (
           SELECT 1 FROM "event_participant" ep
           WHERE ep."event_id" = ${event.id} AND ep."user_id" = ${p.id}))`,
-        sql`${event.startsAt} >= ${instant(clock.now)}`,
+        // Cut on `ends_at`, like the list's "Akan datang" tab: a meeting in progress is still on the agenda.
+        sql`${event.endsAt} > ${instant(clock.now)}`,
         sql`${event.startsAt} < ${endOfTomorrow}`,
       ),
     )
