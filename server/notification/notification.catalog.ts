@@ -59,6 +59,9 @@ export const NOTIFICATION_KINDS: Readonly<Record<NotificationKind, KindMeta>> = 
   event_invited: { lane: 'info', category: 'news', shipped: true },
   event_changed: { lane: 'info', category: 'news', shipped: true },
   event_canceled: { lane: 'info', category: 'news', shipped: true },
+  // Leave. The request is work for the approver (the only card with two buttons); the outcome is news.
+  leave_requested: { lane: 'action', category: 'action', shipped: true },
+  leave_decided: { lane: 'info', category: 'news', shipped: true },
 });
 
 export type KindCopy = {
@@ -68,8 +71,10 @@ export type KindCopy = {
   bundled?: string;
   /** Headline when the system acted and there is no actor to name. */
   system?: string;
-  /** Imperative label of the card's single button (P5 §4: one button per card). */
+  /** Imperative label of the card's button (P5 §4: one button per card). */
   button: string;
+  /** Label of a second button; only the leave approval card has one ("Setujui" / "Tolak"). */
+  secondaryButton?: string;
 };
 
 /** Indonesian copy per kind; plain words, no jargon, no role codes (R11 glossary). */
@@ -157,6 +162,18 @@ export const NOTIFICATION_COPY: Readonly<Record<NotificationKind, KindCopy>> = O
     system: 'Acara {title} dibatalkan',
     button: 'Lihat acara',
   },
+  leave_requested: {
+    sentence: '{actor} mengajukan cuti',
+    system: '{name} mengajukan cuti',
+    button: 'Setujui',
+    secondaryButton: 'Tolak',
+  },
+  // `{outcome}` is "disetujui" or "ditolak"; the Inbox query fills it from the stored decision.
+  leave_decided: {
+    sentence: 'Pengajuan cuti Anda {outcome} oleh {actor}',
+    system: 'Pengajuan cuti Anda {outcome}',
+    button: 'Lihat cuti',
+  },
 });
 
 const KIND_LIST = Object.keys(NOTIFICATION_KINDS) as NotificationKind[];
@@ -207,7 +224,12 @@ export function cardSentence(kind: NotificationKind, vars: CopyVars = {}): strin
   return fill(template, vars);
 }
 
-/** The label of the card's single button. */
+/** The label of the card's button. */
 export function cardButton(kind: NotificationKind): string {
   return NOTIFICATION_COPY[kind].button;
+}
+
+/** The label of the card's second button, or null: only the leave approval card has one. */
+export function cardSecondaryButton(kind: NotificationKind): string | null {
+  return NOTIFICATION_COPY[kind].secondaryButton ?? null;
 }
