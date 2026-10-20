@@ -128,7 +128,12 @@ describe('a colleague sees the profile but not the work', () => {
   it('gives a Member the documented keys, with no tasks, load or phone', async () => {
     const g = await graph();
     const body = await okBody(g.awan, g.budi);
-    expect(Object.keys(body).sort()).toEqual(['person', 'projects', 'tasksVisible']);
+    expect(Object.keys(body).sort()).toEqual([
+      'availability',
+      'person',
+      'projects',
+      'tasksVisible',
+    ]);
     expect(body.tasksVisible).toBe(false);
     expect(Object.keys(body.person).sort()).toEqual([
       'department',

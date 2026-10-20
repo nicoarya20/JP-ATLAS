@@ -34,6 +34,7 @@ const person = (over: Partial<TeamPerson> & Pick<TeamPerson, 'id' | 'name'>): Te
   image: null,
   isSelf: false,
   projects: [ATLAS],
+  availability: null,
   ...over,
 });
 const LIST_DEFAULTS = { total: 3, hasMore: false, loadingMore: false, onMore: () => {} };
@@ -71,11 +72,33 @@ describe('person cards', () => {
     expect(without).not.toContain('0 tugas');
   });
 
-  it('never mentions availability or leave', async () => {
+  it('draws no availability, and no stand-in such as "Tersedia", when there is none', async () => {
     const html = await render(
       <TeamList {...LIST_DEFAULTS} people={[dina, budi, sari]} empty={null} />,
     );
     expect(html).not.toMatch(/Tersedia|Cuti|Sedang cuti/i);
+  });
+
+  it('says "Cuti sampai 16 Okt" for an approved leave under way', async () => {
+    const away = person({
+      id: 'u-away',
+      name: 'Gita',
+      availability: { kind: 'on_leave', until: '2026-10-16' },
+    });
+    const html = await render(<TeamList {...LIST_DEFAULTS} people={[away, sari]} empty={null} />);
+    expect(html).toContain('Cuti sampai 16 Okt');
+    expect(html.match(/Cuti sampai/g)).toHaveLength(1);
+  });
+
+  it('says "Pengajuan cuti 14–16 Okt" for a pending request, with an icon beside the words', async () => {
+    const asking = person({
+      id: 'u-asking',
+      name: 'Hani',
+      availability: { kind: 'pending', from: '2026-10-14', to: '2026-10-16' },
+    });
+    const html = await render(<TeamList {...LIST_DEFAULTS} people={[asking]} empty={null} />);
+    expect(html).toContain('Pengajuan cuti 14–16 Okt');
+    expect(html).toMatch(/<svg[^>]*aria-hidden="true"[^>]*>[\s\S]*Pengajuan cuti/);
   });
 });
 

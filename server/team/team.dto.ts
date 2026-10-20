@@ -8,6 +8,7 @@
  * simply scan for the key names.
  */
 
+import type { LeaveStatusDto } from '../leave/leave.dto';
 import type { Role } from '../permissions';
 import type { ProjectMemberRole, TaskStatus } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
@@ -38,6 +39,14 @@ export type TeamProjectRef = { id: string; name: string; role: ProjectMemberRole
  */
 export type TeamLoad = { active: number; overdue: number; alsoElsewhere?: true };
 
+/**
+ * Leave as the Team shows it, already filtered for the viewer by `leaveStatusFor`: an approved
+ * leave under way (`on_leave`, visible to everyone), a pending request (`pending`, only to its
+ * owner, Project Managers and Admin) or `null` when there is nothing the viewer may see. Always
+ * present and never a stand-in for "available": `null` means "nothing to show".
+ */
+export type TeamAvailability = LeaveStatusDto | null;
+
 export type TeamPerson = {
   id: string;
   name: string;
@@ -46,6 +55,7 @@ export type TeamPerson = {
   isSelf: boolean;
   projects: TeamProjectRef[];
   load?: TeamLoad;
+  availability: TeamAvailability;
 };
 
 /**
@@ -89,6 +99,7 @@ export type GetPersonOk = {
   projects: TeamProjectRef[];
   /** At most `PERSON_TASKS_MAX`, and only within the viewer's `LoadScope`. */
   tasks?: TeamTaskRef[];
+  availability: TeamAvailability;
   /** False when the viewer may see the person but not their work; `tasks` and `load` are then absent. */
   tasksVisible: boolean;
   load?: TeamLoad;

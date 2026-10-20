@@ -33,7 +33,7 @@ function ok<T extends ListTeamResult | GetPersonResult>(r: T): Exclude<T, Refuse
 const refusal = (r: ListTeamResult | GetPersonResult) => (isRefused(r) ? r.code : 'allowed');
 
 describe('getPerson query budget', () => {
-  it('keeps the person detail inside three statements', async () => {
+  it('keeps the person detail inside four statements', async () => {
     const mk = marker();
     const boss = await f.user({ role: 'project_manager', name: `${mk} Boss` });
     const mate = await f.user({ name: `${mk} Mate` });
@@ -41,7 +41,7 @@ describe('getPerson query budget', () => {
     await f.task({ project: p, assignee: mate, status: 'todo', due: TODAY });
     const { exec, queries } = countQueries();
     await getPerson(principal(boss), mate.id, NOW, exec);
-    expect(queries.length).toBeLessThanOrEqual(3);
+    expect(queries.length).toBeLessThanOrEqual(4);
   });
 });
 

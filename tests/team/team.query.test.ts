@@ -349,12 +349,12 @@ describe('listTeam query budget', () => {
     return { r, count: queries.length };
   }
 
-  it('lists 3 and 40 people with at most four statements, and the same number for both', async () => {
+  it('lists 3 and 40 people with at most five statements, and the same number for both', async () => {
     const small = await listWith(3);
     const big = await listWith(40);
     expect(small.r.people).toHaveLength(4);
     expect(big.r.people).toHaveLength(41);
-    expect(small.count).toBeLessThanOrEqual(4);
+    expect(small.count).toBeLessThanOrEqual(5);
     expect(big.count).toBe(small.count);
   });
 });
