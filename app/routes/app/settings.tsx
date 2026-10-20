@@ -3,6 +3,7 @@ import { listLogins } from '@server/api/analytics-logins.query';
 import { hasGoogleAuth, isProd } from '@server/env';
 import { requireUser } from '@server/guard';
 import { canAccessDev } from '@server/permissions';
+import { getNotificationPrefs } from '@server/profile/notification-prefs.service';
 import { getProfile } from '@server/profile/profile.service';
 import { getSettings } from '@server/settings';
 import { resolveTextSize } from '@server/text-size.loader';
@@ -11,13 +12,14 @@ import { AccountCard } from '~/components/account/AccountCard';
 import { AdvancedSettings } from '~/components/account/AdvancedSettings';
 import { AppearanceCard } from '~/components/account/AppearanceCard';
 import { SETTINGS_INTRO, SETTINGS_TITLE } from '~/components/account/account.copy';
+import { NotificationsCard } from '~/components/account/NotificationsCard';
 import { SignOutButton } from '~/components/account/SignOutButton';
 import { useApp } from '~/lib/app-context';
 import { useSession } from '~/lib/auth-client';
 import { toJson } from '~/lib/loader-json';
 import type { LoginRow } from '~/lib/login-logs-api';
 import { loginAuthMode } from '~/lib/login-mode';
-import type { MyProfile } from '~/lib/profile-api';
+import type { MyProfile, NotificationPrefs } from '~/lib/profile-api';
 import type { Route } from './+types/settings';
 
 export function meta() {
@@ -27,14 +29,15 @@ export function meta() {
 const HISTORY = 8;
 
 /**
- * Profile, text size and the moved /profile cards. Every permission is decided here, so the page
- * never compares a role: deleting an account is Super-admin only (Q4/N03) and never while
+ * Profile, text size, notification switches and the moved /profile cards. Every permission is
+ * decided here, so the page never compares a role: deleting an account is Super-admin only (Q4/N03) and never while
  * impersonating (Q9), and the password cards follow the effective email sign-in mode.
  */
 export async function loader({ request }: Route.LoaderArgs) {
   const auth = await requireUser(request);
-  const [profile, logins, settings, textSize] = await Promise.all([
+  const [profile, notificationPrefs, logins, settings, textSize] = await Promise.all([
     getProfile(auth.user.id),
+    getNotificationPrefs(auth.user.id),
     listLogins({ userId: auth.user.id, limit: String(HISTORY) }),
     getSettings(),
     resolveTextSize(request),
@@ -43,6 +46,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return {
     profile: profile satisfies MyProfile,
     textSize,
+    notificationPrefs: notificationPrefs satisfies NotificationPrefs,
     logins: toJson<{ rows: LoginRow[]; total: number }>(logins),
     flags: {
       emailAuthEnabled: loginAuthMode(isProd, settings).emailAuthEnabled,
@@ -71,6 +75,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
       </div>
       <AccountCard profile={loaderData.profile} image={user.image ?? null} onSaved={refresh} />
       <AppearanceCard textSize={loaderData.textSize} />
+      <NotificationsCard initial={loaderData.notificationPrefs} />
       <Group justify="flex-end" wrap="wrap">
         <SignOutButton />
       </Group>

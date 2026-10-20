@@ -38,6 +38,18 @@ export const TEXT_SIZE_LABELS: Record<TextSize, string> = {
   sangat_besar: 'Sangat besar',
 };
 
+export const NOTIFICATIONS_COPY = {
+  title: 'Pemberitahuan',
+  description: 'Pilih kabar yang muncul di Kotak masuk. Perubahan tersimpan langsung.',
+  eventReminder: 'Ingatkan saya sebelum acara',
+  eventReminderHint: 'Kartu pengingat satu hari dan setengah jam sebelum acara dimulai.',
+  inboxNews: 'Tampilkan kabar terbaru di Kotak masuk',
+  inboxNewsHint: 'Perubahan tugas, komentar, dan acara di proyek Anda.',
+  always: 'Tugas yang perlu Anda tanggapi selalu tampil dan tidak bisa dimatikan.',
+  saved: 'Pemberitahuan diperbarui.',
+  saveFailed: 'Gagal menyimpan pemberitahuan',
+} as const;
+
 export const SIGN_OUT_COPY = {
   title: 'Keluar dari akun ini?',
   body: 'Kamu akan keluar dari akun ini. Kamu bisa masuk lagi kapan saja.',

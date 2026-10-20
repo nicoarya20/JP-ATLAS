@@ -1,4 +1,4 @@
-/** Own-profile routes (`/api/app/profile`): read, and edit contact details and the text size preference. */
+/** Own-profile routes (`/api/app/profile`): read, edit contact details and the text size; notification switches live in `app-profile.notifications.ts`. */
 import { Elysia, t } from 'elysia';
 import { TEXT_SIZES } from '../pm/enums';
 import { fail } from '../pm/respond';
@@ -12,6 +12,7 @@ import {
 } from '../profile/profile.service';
 import { textSizeCookie } from '../text-size';
 import { appContext } from './app-context';
+import { notificationPrefsApi } from './app-profile.notifications';
 
 const text = (maxLength: number) => t.Optional(t.Nullable(t.String({ maxLength })));
 
@@ -27,6 +28,7 @@ const ProfileBody = t.Object({
 
 export const profileApi = new Elysia({ prefix: '/profile' })
   .use(appContext)
+  .use(notificationPrefsApi)
   .get('/', async ({ actor, status }) => {
     const view = await getProfile(actor.user.id);
     return view ?? fail(status, 'NOT_FOUND');

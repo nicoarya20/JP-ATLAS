@@ -14,7 +14,7 @@ import {
 } from '../../app/components/account/AdvancedSettings';
 import { loader } from '../../app/routes/app/settings';
 import { db } from '../../server/db';
-import { profile } from '../../server/db/schema';
+import { notificationPref, profile } from '../../server/db/schema';
 import { installAuthSpies } from '../support/auth';
 import { createCleaner } from '../support/cleanup';
 import { createUserFactory } from '../support/factory.user';
@@ -77,6 +77,17 @@ describe('settings loader', () => {
     expect(data.profile.jobTitle).toBe('Bendahara');
     expect(data.textSize).toBe('besar');
     expect(data.flags.canDeleteAccount).toBe(false);
+  });
+
+  it('hands the page both notification switches, on until the user opts out', async () => {
+    const me = await users.user({ role: 'member' });
+    auth.as(me);
+    expect((await runLoader()).notificationPrefs).toEqual({ eventReminder: true, inboxNews: true });
+    await db.insert(notificationPref).values({ userId: me.id, category: 'news', inApp: false });
+    expect((await runLoader()).notificationPrefs).toEqual({
+      eventReminder: true,
+      inboxNews: false,
+    });
   });
 
   it('starts a new account at the Normal size (Q13)', async () => {

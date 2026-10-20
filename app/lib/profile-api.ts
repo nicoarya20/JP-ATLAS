@@ -36,6 +36,27 @@ export async function patchMyProfile(patch: MyProfilePatch): Promise<MyProfile> 
   return res.json();
 }
 
+/** The two Pengaturan › Pemberitahuan switches as GET/PUT /api/app/profile/notifications return them. */
+export type NotificationPrefs = { eventReminder: boolean; inboxNews: boolean };
+
+const NOTIFICATIONS_URL = `${PROFILE_URL}/notifications`;
+
+/** Saves the given switches (the rest stay as they are) and returns both as the server now has them. */
+export async function putNotificationPrefs(
+  patch: Partial<NotificationPrefs>,
+): Promise<NotificationPrefs> {
+  const res = await fetch(NOTIFICATIONS_URL, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `Gagal menyimpan pemberitahuan (${res.status}). Coba lagi.`);
+  }
+  return res.json();
+}
+
 export type MyLogins = { rows: LoginRow[]; total: number };
 
 export async function fetchMyLogins(limit = 10): Promise<MyLogins> {
