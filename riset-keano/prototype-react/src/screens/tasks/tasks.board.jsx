@@ -3,7 +3,7 @@
 // cards; holding one picked card then moves them all at once. A Member moves (and picks) only their own tasks; a PM
 // or Admin moves any.
 import { useRef, useState } from 'react';
-import { Calendar, Circle, CircleCheck, Flag, ListChecks, Plus } from 'lucide-react';
+import { Calendar, CheckCheck, Circle, CircleCheck, Flag, ListChecks, Plus } from 'lucide-react';
 import { Avatars, Btn, Section } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
@@ -49,12 +49,17 @@ function BoardCard({ t, mine, select, lifted }) {
   );
 }
 
-/** Grey control at the right of every column head: Select starts picking cards on the whole board; while on, it
- *  shows how many are picked and Cancel ends it (the screen-reader count lives once, in the board). */
-function SelectControl({ on, count, onToggle }) {
+/** Grey control at the right of every column head: Select starts picking cards on the whole board and Cancel ends it
+ *  (the screen-reader count lives once, in the board). While on, a select-all icon slides out from behind it and picks
+ *  every card in this column the viewer may change, or drops them when all are picked already (all). */
+function SelectControl({ on, status, all, canAll, onToggle, onAll }) {
   return (
-    <span className="tk-col-sel">
-      {on && <span className="t-caption muted" aria-hidden="true">{count} selected</span>}
+    <span className={`tk-col-sel${on ? ' is-on' : ''}`}>
+      <button type="button" className="tk-col-all" onClick={onAll} disabled={!canAll} aria-pressed={all}
+        aria-label={`${all ? 'Deselect' : 'Select'} all ${status} tasks`} tabIndex={on ? undefined : -1}
+        aria-hidden={on ? undefined : true} inert={on ? undefined : ''}>
+        <CheckCheck size={16} aria-hidden="true" />
+      </button>
       <button type="button" className="tk-col-sel-btn t-caption" onClick={onToggle}>{on ? 'Cancel' : 'Select'}</button>
     </span>
   );
@@ -80,6 +85,12 @@ export function TasksBoard({ params }) {
     if (!mayChange(no)) { deny(no); return; }
     setPicked(old => { const next = new Set(old); if (!next.delete(no)) next.add(no); return next; });
   };
+  /** Pick every card in list the viewer may change, or drop them all when they are all picked already. */
+  const pickAll = (nos, all) => setPicked(old => {
+    const next = new Set(old);
+    nos.forEach(no => (all ? next.delete(no) : next.add(no)));
+    return next;
+  });
   const move = useMoveMenu(board, {
     onPick: (nos, status) => {
       const moving = nos.filter(no => D.task(no).status !== status);
@@ -101,6 +112,7 @@ export function TasksBoard({ params }) {
       <div className="tk-board" ref={board} {...move.handlers}>
         {COLUMNS.map(([status, Icon, tone]) => {
           const list = tasks.filter(t => t.status === status);
+          const mayPick = list.map(t => t.no).filter(mayChange), all = mayPick.length > 0 && mayPick.every(no => picked.has(no));
           return (
             <section key={status} className="tk-col" data-status={status} aria-label={`${status}, ${list.length} tasks`}>
               <div className="tk-col-top">
@@ -108,7 +120,8 @@ export function TasksBoard({ params }) {
                   <span className={`tk-badge tk-tone-${tone} t-caption`}><Icon size={ICON} aria-hidden="true" />{status}</span>
                   <span className="t-footnote muted">{list.length}</span>
                 </h3>
-                <SelectControl on={selecting} count={chosen.length} onToggle={selecting ? endSelect : () => setSelecting(true)} />
+                <SelectControl on={selecting} status={status} all={all} canAll={mayPick.length > 0}
+                  onToggle={selecting ? endSelect : () => setSelecting(true)} onAll={() => pickAll(mayPick, all)} />
               </div>
               {list.map(t => (
                 <BoardCard key={t.no} t={t} mine={mine} lifted={lifted?.has(t.no)}

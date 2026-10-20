@@ -40,10 +40,21 @@
   position: relative; background: var(--surface-raised); transition: opacity 200ms ease, box-shadow 120ms ease; }
 /* Select (tasks.board): a tick in the card's corner; picked cards get an accent ring; cards in the move stack fade out. */
 .tk-col-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
-.tk-col-sel { display: inline-flex; align-items: center; gap: var(--sp-2); padding-inline-end: var(--sp-1); }
+.tk-col-sel { --all-gap: var(--sp-2); display: inline-flex; align-items: center; gap: var(--all-gap);
+  padding-inline-end: var(--sp-1); }
+/* Select all hides behind Select (shifted onto it, under it, faded) and slides out to its left while Select is on. */
+.tk-col-all { position: relative; display: inline-flex; padding: 3px; border: 0; border-radius: var(--radius-sm);
+  color: var(--label-2); background: var(--fill); cursor: pointer; opacity: 0; scale: 0.6;
+  translate: calc(100% + var(--all-gap)) 0; visibility: hidden;
+  transition: translate 220ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease, scale 220ms ease, visibility 0s 220ms; }
+.tk-col-sel.is-on .tk-col-all { opacity: 1; scale: 1; translate: 0 0; visibility: visible;
+  transition: translate 220ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease, scale 220ms ease, visibility 0s; }
+.tk-col-all[aria-pressed='true'] { color: var(--accent); }
+.tk-col-all:disabled { cursor: default; color: var(--label-3); }
+.tk-col-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Sized like the status badge beside it; font-family only, so the t-caption size class still applies. */
 .tk-col-sel-btn { padding: 2px var(--sp-2); border: 0; border-radius: var(--radius-sm); font-family: inherit;
-  font-weight: 600; color: var(--label-2); background: var(--fill); cursor: pointer; }
+  position: relative; z-index: 1; font-weight: 600; color: var(--label-2); background: var(--fill); cursor: pointer; }
 .tk-col-sel-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tk-kcheck { position: absolute; top: var(--sp-2); right: var(--sp-2); display: inline-flex; color: var(--label-3); }
 .tk-kcard.is-selected { box-shadow: inset 0 0 0 2px var(--accent); }
@@ -124,7 +135,7 @@
   .tk-stack.is-back .tk-stack-card { animation: none; }
   .tk-kcard.card.react-cupertino-ui-card { transition: none; }
   .tk-radial.is-closing { visibility: hidden; }
-  .tk-radial-opt { transition: none; }
+  .tk-radial-opt, .tk-col-all, .tk-col-sel.is-on .tk-col-all { transition: none; }
 }
 
 /* Forms */

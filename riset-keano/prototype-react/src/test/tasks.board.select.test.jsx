@@ -54,7 +54,6 @@ describe('tasks kanban select', () => {
     tap(12);
     expect(card(14)).toHaveAttribute('aria-pressed', 'true');
     note('2 selected, hold one to move them');
-    expect(within(col('In review')).getByText('2 selected')).toBeInTheDocument();
     expect(window.location.hash).toBe('#tasks.board');
     tap(12);
     expect(card(12)).toHaveAttribute('aria-pressed', 'false');
@@ -63,6 +62,27 @@ describe('tasks kanban select', () => {
     expect(card(14)).not.toHaveAttribute('aria-pressed');
     tap(14);
     expect(window.location.hash).toBe('#tasks.detail-todo');
+  });
+
+  it('slides a select-all icon out beside Select that picks or drops a whole column', () => {
+    renderApp('tasks.board', 'pm');
+    const all = () => within(col('To do')).queryByRole('button', { name: /all To do tasks$/ });
+    expect(all()).toBeNull();                                    // tucked behind Select: hidden, out of reach
+    expect(document.querySelector('.tk-col-all')).toHaveAttribute('inert');
+    fireEvent.click(btn('Select'));
+    expect(all()).toHaveAccessibleName('Select all To do tasks');
+    expect(dom.queryByText(/^\d+ selected$/)).toBeNull();       // no visible count
+    tap(16);
+    fireEvent.click(all());
+    expect([14, 15, 16].map(no => card(no).getAttribute('aria-pressed'))).toEqual(['true', 'true', 'true']);
+    expect(card(12)).toHaveAttribute('aria-pressed', 'false');
+    note('3 selected, hold one to move them');
+    expect(all()).toHaveAccessibleName('Deselect all To do tasks');
+    fireEvent.click(all());
+    expect(card(14)).toHaveAttribute('aria-pressed', 'false');
+    expect(within(col('In review')).getByRole('button', { name: 'Select all In review tasks' })).toBeEnabled();
+    fireEvent.click(btn('Cancel'));
+    expect(all()).toBeNull();
   });
 
   it('stacks the picked cards under the finger, held one on top, and moves them all to the status slid to', () => {
@@ -125,9 +145,12 @@ describe('tasks kanban select', () => {
   });
 
   it('lets a Member pick only their own tasks', () => {
-    pick('member', 14, 16, 17);   // Member = Dodi: #14 is Nico's, #16 and #17 are Dodi's
+    pick('member', 14, 17);   // Member = Dodi: #14 is Nico's, #16 and #17 are Dodi's
     expect(dom.getByText('Only Nico can change this task')).toBeInTheDocument();
     expect(card(14)).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(within(col('To do')).getByRole('button', { name: 'Select all To do tasks' }));
+    expect(card(14)).toHaveAttribute('aria-pressed', 'false');   // select all skips other people's tasks
+    expect(card(16)).toHaveAttribute('aria-pressed', 'true');
     holdAndGo(16, 0, FAR)();
     expect([16, 17].map(no => D.task(no).status)).toEqual(['In review', 'In review']);
     expect(dom.getByText('Moved 1 task to In review')).toBeInTheDocument();
