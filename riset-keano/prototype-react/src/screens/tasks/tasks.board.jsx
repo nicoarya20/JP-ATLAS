@@ -49,14 +49,14 @@ function BoardCard({ t, mine, select, lifted }) {
   );
 }
 
-/** Bar above the board: Select starts picking cards (with how many are picked), Cancel ends it. */
-function SelectBar({ on, count, onToggle }) {
-  const note = !on ? '' : count ? `${count} selected · hold one to move them` : 'Tap tasks to select them';
+/** Grey control at the right of every column head: Select starts picking cards on the whole board; while on, it
+ *  shows how many are picked and Cancel ends it (the screen-reader count lives once, in the board). */
+function SelectControl({ on, count, onToggle }) {
   return (
-    <div className="tk-selbar">
-      <span className="t-footnote muted" aria-live="polite">{note}</span>
-      <Btn kind="plain" sm onClick={onToggle}>{on ? 'Cancel' : 'Select'}</Btn>
-    </div>
+    <span className="tk-col-sel">
+      {on && <span className="t-footnote muted" aria-hidden="true">{count} selected</span>}
+      <button type="button" className="tk-col-sel-btn t-footnote" onClick={onToggle}>{on ? 'Cancel' : 'Select'}</button>
+    </span>
   );
 }
 
@@ -95,16 +95,21 @@ export function TasksBoard({ params }) {
   const lifted = move.menu?.stack ? new Set(move.menu.nos) : null;
   return (
     <ListScreen mine={mine} board>
-      <SelectBar on={selecting} count={chosen.length} onToggle={selecting ? endSelect : () => setSelecting(true)} />
+      <span className="sr-only" aria-live="polite">
+        {!selecting ? '' : chosen.length ? `${chosen.length} selected, hold one to move them` : 'Tap tasks to select them'}
+      </span>
       <div className="tk-board" ref={board} {...move.handlers}>
         {COLUMNS.map(([status, Icon, tone]) => {
           const list = tasks.filter(t => t.status === status);
           return (
             <section key={status} className="tk-col" data-status={status} aria-label={`${status}, ${list.length} tasks`}>
-              <h3 className="tk-col-head">
-                <span className={`tk-badge tk-tone-${tone} t-caption`}><Icon size={ICON} aria-hidden="true" />{status}</span>
-                <span className="t-footnote muted">{list.length}</span>
-              </h3>
+              <div className="tk-col-top">
+                <h3 className="tk-col-head">
+                  <span className={`tk-badge tk-tone-${tone} t-caption`}><Icon size={ICON} aria-hidden="true" />{status}</span>
+                  <span className="t-footnote muted">{list.length}</span>
+                </h3>
+                <SelectControl on={selecting} count={chosen.length} onToggle={selecting ? endSelect : () => setSelecting(true)} />
+              </div>
               {list.map(t => (
                 <BoardCard key={t.no} t={t} mine={mine} lifted={lifted?.has(t.no)}
                   select={selecting ? { on: picked.has(t.no), toggle: () => toggle(t.no) } : undefined} />

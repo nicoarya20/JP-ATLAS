@@ -1,4 +1,4 @@
-// Tasks ③ Kanban select: Select turns taps into picking cards; holding one picked card stacks them all under the
+// Tasks ③ Kanban select: the grey Select in a column head turns taps into picking cards; holding one picked card stacks them all under the
 // finger and the move menu moves them together. A Member picks only their own tasks.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, screen as dom, within } from '@testing-library/react';
@@ -12,7 +12,9 @@ const X = 150, Y = 300, HOLD = 400, FAR = 60, CLOSED = 250;   // test-only: pres
 const card = no => dom.getByRole('button', { name: new RegExp(`^#${no} `) });
 const menu = () => dom.queryByRole('dialog', { name: /^Move / });
 const option = status => within(menu()).getByRole('button', { name: new RegExp(`^${status}`) });
-const btn = name => within(document.querySelector('.tk-selbar')).getByRole('button', { name });
+const col = status => dom.getByRole('region', { name: new RegExp(`^${status},`) });
+const btn = (name, status = 'To do') => within(col(status)).getByRole('button', { name });   // the grey control in a column head
+const note = text => expect(document.querySelector('.sr-only[aria-live]')).toHaveTextContent(text);
 const stack = () => document.querySelector('.tk-stack');
 const press = (el, type, dx = 0, dy = 0) =>
   fireEvent[type](el, { pointerId: 1, button: 0, isPrimary: true, pointerType: 'touch', clientX: X + dx, clientY: Y + dy });
@@ -46,16 +48,18 @@ afterEach(() => { vi.useRealTimers(); act(resetTasks); });
 describe('tasks kanban select', () => {
   it('turns taps into picking cards, counts them, and Cancel drops the picks and lets a tap open again', () => {
     pick('pm');
-    expect(dom.getByText('Tap tasks to select them')).toBeInTheDocument();
+    note('Tap tasks to select them');
+    expect(btn('Cancel', 'Done')).toBeInTheDocument();   // every column head turns to Cancel
     tap(14);
     tap(12);
     expect(card(14)).toHaveAttribute('aria-pressed', 'true');
-    expect(dom.getByText('2 selected · hold one to move them')).toBeInTheDocument();
+    note('2 selected, hold one to move them');
+    expect(within(col('In review')).getByText('2 selected')).toBeInTheDocument();
     expect(window.location.hash).toBe('#tasks.board');
     tap(12);
     expect(card(12)).toHaveAttribute('aria-pressed', 'false');
-    expect(dom.getByText('1 selected · hold one to move them')).toBeInTheDocument();
-    fireEvent.click(btn('Cancel'));
+    note('1 selected, hold one to move them');
+    fireEvent.click(btn('Cancel', 'In progress'));
     expect(card(14)).not.toHaveAttribute('aria-pressed');
     tap(14);
     expect(window.location.hash).toBe('#tasks.detail-todo');
@@ -108,7 +112,7 @@ describe('tasks kanban select', () => {
     act(() => vi.advanceTimersByTime(CLOSED));
     expect(stack()).toBeNull();
     expect(card(14)).not.toHaveClass('is-lifted');
-    expect(dom.getByText('2 selected · hold one to move them')).toBeInTheDocument();
+    note('2 selected, hold one to move them');
   });
 
   it('moves only the held card when it is not one of the picks', () => {
@@ -117,7 +121,7 @@ describe('tasks kanban select', () => {
     expect(D.task(16).status).toBe('In progress');
     expect([14, 15].map(no => D.task(no).status)).toEqual(['To do', 'To do']);
     expect(dom.getByText('Moved to In progress')).toBeInTheDocument();
-    expect(dom.getByText('2 selected · hold one to move them')).toBeInTheDocument();
+    note('2 selected, hold one to move them');
   });
 
   it('lets a Member pick only their own tasks', () => {
