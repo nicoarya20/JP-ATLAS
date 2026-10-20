@@ -42,6 +42,8 @@ export function HomeFocusRow({ task, today }: Props) {
           variant={action === 'complete' ? 'default' : 'light'}
           style={{ flexShrink: 0 }}
           loading={step.loading}
+          // Every row says the same word, so the name carries the task for screen readers.
+          aria-label={`${action === 'complete' ? HOME_COPY.focus.done : HOME_COPY.focus.start}: ${task.title}`}
           onClick={() => void step.run(action)}
         >
           {action === 'complete' ? HOME_COPY.focus.done : HOME_COPY.focus.start}

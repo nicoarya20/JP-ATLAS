@@ -103,6 +103,7 @@ export function HomeFocus({ widget, counters, today, retry }: Props) {
                           to={`/app/tasks/${t.number}`}
                           variant="light"
                           style={{ flexShrink: 0 }}
+                          aria-label={`${HOME_COPY.focus.review}: ${t.title}`}
                         >
                           {HOME_COPY.focus.review}
                         </Button>
