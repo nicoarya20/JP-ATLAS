@@ -56,7 +56,7 @@ export function TrashList(props: Props) {
   }
   return (
     <Stack gap="sm">
-      <Text size="sm" fw={600}>
+      <Text size="sm" fw={700}>
         {TRASH_PAGE_COPY.summary(total)}
       </Text>
       {items.map((item) => {

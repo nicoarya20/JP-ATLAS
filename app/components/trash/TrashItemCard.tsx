@@ -48,6 +48,7 @@ function BlockedNote({
         type="button"
         size="sm"
         fw={700}
+        c="var(--mantine-color-text)"
         onClick={() => onViewProject(blocked.projectId)}
       >
         {TRASH_BLOCKED_COPY.viewProject}
@@ -70,7 +71,7 @@ export function TrashItemCard({
       id={trashCardId(view.key)}
       withBorder
       radius="md"
-      p="sm"
+      p="md"
       bd={highlighted ? '2px solid var(--mantine-primary-color-filled)' : undefined}
     >
       <Flex
@@ -80,7 +81,7 @@ export function TrashItemCard({
         justify="space-between"
       >
         <Group gap="md" wrap="nowrap" align="flex-start" style={{ minWidth: 0, flex: 1 }}>
-          <Badge variant="light" color="gray" miw="5em" style={{ flexShrink: 0 }}>
+          <Badge variant="light" color="gray" size="lg" miw="6em" style={{ flexShrink: 0 }}>
             {view.chip}
           </Badge>
           <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
