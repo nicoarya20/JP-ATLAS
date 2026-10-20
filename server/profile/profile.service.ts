@@ -5,11 +5,12 @@ import { profile, user } from '../db/schema';
 import type { TextSize } from '../pm/enums';
 import { DEFAULT_TEXT_SIZE, isTextSize } from '../text-size';
 
-/** Max characters for each free-text profile field (after trimming). */
-export const PROFILE_NAME_MAX = 80;
-export const PROFILE_TITLE_MAX = 80;
-export const PROFILE_DEPARTMENT_MAX = 80;
-export const PROFILE_PHONE_MAX = 30;
+export {
+  PROFILE_DEPARTMENT_MAX,
+  PROFILE_NAME_MAX,
+  PROFILE_PHONE_MAX,
+  PROFILE_TITLE_MAX,
+} from './profile.rules';
 
 /** The fields a caller may change; anything else in the request body never reaches this module. */
 export type ProfilePatch = {

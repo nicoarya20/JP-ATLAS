@@ -3,13 +3,14 @@ import { Elysia, t } from 'elysia';
 import { TEXT_SIZES } from '../pm/enums';
 import { fail } from '../pm/respond';
 import {
-  getProfile,
+  isPhoneFormat,
+  PHONE_FORMAT_ERROR,
   PROFILE_DEPARTMENT_MAX,
   PROFILE_NAME_MAX,
   PROFILE_PHONE_MAX,
   PROFILE_TITLE_MAX,
-  updateProfile,
-} from '../profile/profile.service';
+} from '../profile/profile.rules';
+import { getProfile, updateProfile } from '../profile/profile.service';
 import { textSizeCookie } from '../text-size';
 import { appContext } from './app-context';
 import { notificationPrefsApi } from './app-profile.notifications';
@@ -36,6 +37,9 @@ export const profileApi = new Elysia({ prefix: '/profile' })
   .patch(
     '/',
     async ({ actor, body, set, status }) => {
+      if (body.phone && !isPhoneFormat(body.phone)) {
+        return fail(status, 'VALIDATION', { error: PHONE_FORMAT_ERROR });
+      }
       const view = await updateProfile(actor.user.id, body);
       if (!view) return fail(status, 'NOT_FOUND');
       // The cookie lets the next page load scale text without a DB lookup (X1 D2).
