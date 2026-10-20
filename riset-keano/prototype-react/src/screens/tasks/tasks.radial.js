@@ -2,6 +2,8 @@
 // let go (quick), or let go without sliding and tap one (the menu stays open). Sliding out and back to the middle
 // before letting go cancels; Escape or a tap on the dim closes it. A swipe that starts on a card still scrolls the
 // board, because the menu only opens after the finger holds still. A card the viewer may not move never opens it.
+// Holding one card of a selected group opens the menu for the whole group: the cards fly from where they sit to the
+// finger and stack there (tasks.radial.stack).
 import { useEffect, useRef, useState } from 'react';
 import { COLUMNS } from './tasks.columns';
 
@@ -11,9 +13,17 @@ const PICK_PX = 28;       // slide at least this far from where the hold started
 const HAPTIC_MS = 10;     // short buzz on open and on each new aim, where the browser supports it
 // Keep the menu's centre this far from the phone's sides, top and bottom so every option and the hint stay on screen.
 const EDGE = { x: 164, top: 140, bottom: 200 };
+const GROUP_EDGE = { x: 172, top: 164, bottom: 250 };   // ...wider for a group, whose statuses sit further out
 
 const SIDE = Object.fromEntries(COLUMNS.map(([status, , , side]) => [side, status]));
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(v, hi));
+
+/** Where card el's centre sits from the menu centre (x, y in host px), pulled inside the host rect r so a card in a
+ *  column scrolled off screen flies in from that edge. */
+function offsetOf(el, r, x, y) {
+  const c = el.getBoundingClientRect();
+  return { dx: clamp(c.left + c.width / 2 - r.left, 0, r.width) - x, dy: clamp(c.top + c.height / 2 - r.top, 0, r.height) - y };
+}
 
 /** Status a slide of (dx, dy) px from the hold point aims at: the side of its longer axis, or null while still short. */
 export function aimOf(dx, dy) {
@@ -24,18 +34,20 @@ export function aimOf(dx, dy) {
 /**
  * Move-menu handlers for the board around boardRef (cards are `.tk-kcard[data-no]` in `.tk-col[data-status]`).
  * Returns { handlers, menu, picked, pick, close }: spread handlers on the board and render <MoveMenu> from menu, which
- * is { no, from, host, x, y, aim, angle, sticky } while open, else null; picked is the status the last menu moved its
- * task to (null if it closed without a move). onPick(no, status) runs for a status other than the task's own;
- * canOpen(no) = false keeps the menu shut and runs onDenied(no) instead.
+ * is { no, nos, from, host, x, y, aim, angle, sticky, stack } while open, else null; picked is the status the last
+ * menu moved its tasks to (null if it closed without a move). groupOf(no) = the task numbers a hold on card #no moves,
+ * held one first (default just [no]); for more than one, stack lists each card's { no, dx, dy } offset to fly in from.
+ * from = the status they share, or null. onPick(nos, status) runs for a status other than from; canOpen(no) = false
+ * keeps the menu shut and runs onDenied(no) instead.
  */
-export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied = () => {} }) {
+export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied = () => {}, groupOf = no => [no] }) {
   const [menu, setMenu] = useState(null);
   const [picked, setPicked] = useState(null);
   const live = useRef(null);          // the menu as of the last event (handlers can run twice between renders)
   const hold = useRef(null);          // the press in progress
   const swallowClick = useRef(false);
   const cb = useRef(null);
-  cb.current = { onPick, canOpen, onDenied };
+  cb.current = { onPick, canOpen, onDenied, groupOf };
   const show = m => { live.current = m; setMenu(m); };
 
   const close = () => {
@@ -46,13 +58,13 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
     setPicked(null);
   };
 
-  /** Move the menu's task to status and close; its own status (or none) only closes. */
+  /** Move the menu's tasks to status and close; the status they share (or none) only closes. */
   const pick = status => {
     const m = live.current;
     close();
     if (!m || !status || status === m.from) return;
     setPicked(status);
-    cb.current.onPick(m.no, status);
+    cb.current.onPick(m.nos, status);
   };
 
   const open = h => {
@@ -63,11 +75,15 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
       return;
     }
     const board = boardRef.current, host = board.closest('.phone-app') || document.body, r = host.getBoundingClientRect();
+    const nos = cb.current.groupOf(h.no), group = nos.length > 1, edge = group ? GROUP_EDGE : EDGE;
+    const cards = nos.map(no => board.querySelector(`.tk-kcard[data-no="${no}"]`));
+    const froms = new Set(cards.map(el => el.closest('.tk-col').dataset.status));
+    const x = clamp(h.x0 - r.left, edge.x, r.width - edge.x), y = clamp(h.y0 - r.top, edge.top, r.height - edge.bottom);
     h.open = true;
     board.setPointerCapture?.(h.id);
     navigator.vibrate?.(HAPTIC_MS);
-    show({ no: h.no, from: h.from, host, aim: null, angle: null, sticky: false,
-      x: clamp(h.x0 - r.left, EDGE.x, r.width - EDGE.x), y: clamp(h.y0 - r.top, EDGE.top, r.height - EDGE.bottom) });
+    show({ no: h.no, nos, from: froms.size === 1 ? [...froms][0] : null, host, x, y, aim: null, angle: null, sticky: false,
+      stack: group ? cards.map((el, i) => ({ no: nos[i], ...offsetOf(el, r, x, y) })) : null });
   };
 
   const isOpen = !!menu;
@@ -93,8 +109,7 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
     swallowClick.current = false;
     const card = e.button === 0 && e.isPrimary !== false && e.target.closest('.tk-kcard[data-no]');
     if (!card || hold.current || live.current) return;
-    const h = { id: e.pointerId, no: +card.dataset.no, from: card.closest('.tk-col').dataset.status,
-      x0: e.clientX, y0: e.clientY, open: false, left: false };
+    const h = { id: e.pointerId, no: +card.dataset.no, x0: e.clientX, y0: e.clientY, open: false, left: false };
     h.timer = setTimeout(() => open(h), HOLD_MS);
     hold.current = h;
   };

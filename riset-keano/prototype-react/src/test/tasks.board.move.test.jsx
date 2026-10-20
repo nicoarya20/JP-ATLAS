@@ -128,7 +128,7 @@ describe('tasks kanban move menu', () => {
     expect(menu()).toBeNull();
     expect(closingMenu()).toHaveAttribute('aria-hidden', 'true');
     expect(closingMenu().querySelector('.is-aimed')).toHaveTextContent('In progress');
-    act(() => vi.advanceTimersByTime(200));
+    act(() => vi.advanceTimersByTime(250));
     expect(closingMenu()).toBeNull();
     const board = hold(16);
     press(board, 'pointerMove', -FAR, 0);

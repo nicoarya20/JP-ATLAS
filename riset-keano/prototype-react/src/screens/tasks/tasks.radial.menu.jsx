@@ -2,14 +2,17 @@
 // the finger slides and the status it aims at fills with its colour; the task's own status is marked Now and is off.
 // On close it plays out for CLOSE_MS: the statuses fold back into the ring and the dim fades, while a picked status
 // stays filled and swells away. Closing, it is already hidden from assistive tech and lets every pointer through.
+// A group move (menu.stack) shows the stacked cards inside a wider ring, with the statuses further out.
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { D } from '../../data/sample';
 import { COLUMNS } from './tasks.columns';
+import { MoveStack } from './tasks.radial.stack';
 
 const ICON = 18;
-const CLOSE_MS = 180;   // the longest close animation in tasks.css (tk-radial-out)
-const RING_R = 18, RING_C = 2 * Math.PI * RING_R;   // inner ring radius and circumference, svg units
+const CLOSE_MS = 240;   // the longest close animation in tasks.css (tk-stack-back)
+const RING_PAD = 6;     // svg px between the ring and its box, room for the stroke
+const RING_PX = { one: 48, group: 124 };   // ring box: around the finger, or around a stack of cards
 const TONE = Object.fromEntries(COLUMNS.map(([status, , tone]) => [status, tone]));
 
 /**
@@ -28,20 +31,23 @@ export function MoveMenu({ menu: open, picked, onPick, onClose }) {
 
   const menu = open || last;
   if (!menu) return null;
-  const t = D.task(menu.no);
+  const t = D.task(menu.no), n = menu.nos.length, group = !!menu.stack;
+  const size = group ? RING_PX.group : RING_PX.one, half = size / 2, r = half - RING_PAD, c = 2 * Math.PI * r;
   const lit = closing ? picked : menu.aim;   // the filled status: aimed at while open, moved to while closing
   return createPortal(
-    <div className={`tk-radial${menu.sticky ? ' is-sticky' : ''}${closing ? ' is-closing' : ''}`} role="dialog"
-      aria-label={`Move #${t.no} ${t.title}`} aria-hidden={closing || undefined} inert={closing ? '' : undefined}>
+    <div className={`tk-radial${group ? ' is-group' : ''}${menu.sticky ? ' is-sticky' : ''}${closing ? ' is-closing' : ''}`}
+      role="dialog" aria-label={group ? `Move ${n} tasks` : `Move #${t.no} ${t.title}`} aria-hidden={closing || undefined} inert={closing ? '' : undefined}>
       <button type="button" className="tk-radial-dim" aria-label="Close" onClick={onClose} />
       <div className="tk-radial-wheel" style={{ left: menu.x, top: menu.y }}>
-        <svg className={`tk-radial-ring${lit ? ` tk-tone-${TONE[lit]}` : ''}`} viewBox="0 0 48 48" aria-hidden="true">
-          <circle cx="24" cy="24" r={RING_R} />
+        <svg className={`tk-radial-ring${lit ? ` tk-tone-${TONE[lit]}` : ''}`} viewBox={`0 0 ${size} ${size}`}
+          style={{ '--ring': `${size}px` }} aria-hidden="true">
+          <circle cx={half} cy={half} r={r} />
           {menu.angle != null && (
-            <circle className="tk-radial-arc" cx="24" cy="24" r={RING_R} strokeDasharray={`${RING_C / 4} ${RING_C}`}
+            <circle className="tk-radial-arc" cx={half} cy={half} r={r} strokeDasharray={`${c / 4} ${c}`}
               style={{ rotate: `${menu.angle - 45}deg` }} />
           )}
         </svg>
+        {group && <MoveStack stack={menu.stack} closing={closing} picked={picked} />}
         {COLUMNS.map(([status, Icon, tone, side]) => {
           const now = status === menu.from;
           return (
@@ -54,8 +60,10 @@ export function MoveMenu({ menu: open, picked, onPick, onClose }) {
         })}
       </div>
       <p className="tk-radial-hint">
-        <span className="t-subhead bold">#{t.no} {t.title}</span>
-        <span className="t-footnote muted">{menu.sticky ? 'Tap a status to move the task' : 'Slide to a status and let go'}</span>
+        <span className="t-subhead bold">{group ? `${n} tasks` : `#${t.no} ${t.title}`}</span>
+        <span className="t-footnote muted">
+          {menu.sticky ? `Tap a status to move the task${group ? 's' : ''}` : 'Slide to a status and let go'}
+        </span>
       </p>
     </div>,
     menu.host,

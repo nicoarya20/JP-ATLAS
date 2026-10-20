@@ -1,4 +1,4 @@
-// Task changes: a Kanban drop writes the new status, the ⋯ › Edit task form writes its fields into the sample task
+// Task changes: a Kanban move writes the new status, the ⋯ › Edit task form writes its fields into the sample task
 // (and its D.taskDetail extras) and New task · Fill form adds a task, so the board, the lists and the detail all show them. Readers re-render through
 // useTaskMoves(); a page reload brings the sample back.
 import { useSyncExternalStore } from 'react';
@@ -26,7 +26,7 @@ function whenOf(t, status) {
   return d < 0 ? `${-d} days overdue` : d === 0 ? 'Today' : `Due ${t.due}`;
 }
 
-/** Give task #no a new status (a Kanban drop). Same status = nothing changes. */
+/** Give task #no a new status (a Kanban move). Same status = nothing changes. */
 export function moveTask(no, status) {
   const t = D.task(no);
   if (!t) throw new Error(`Cannot move task #${no}: no such task`);
