@@ -1,7 +1,6 @@
-// Home per role (Penpot Home · Member / PM / Admin): stat chips, My Focus rows and list lengths change; layout stays.
+// Home per role (Penpot Home · Member / PM / Admin): stat chips and list lengths change; layout stays.
 import { CalendarDays, CircleCheck, Clock, FolderOpen, Hourglass, Inbox, TriangleAlert, UserCheck } from 'lucide-react';
 import { D } from '../../data/sample';
-import { Btn, Link, Row, Rows } from '../../kit';
 import { inboxToRespond, myTaskStats, upcomingThisMonth } from './home.stats';
 
 const ICON = 15;
@@ -40,56 +39,4 @@ export function roleHome(role) {
     admin: { stats: adminStats(), asks: 3, done: 4, activity: 3 },
   };
   return R[role];
-}
-
-/** Focus rows are Nico's Home sample (not D.tasks), so they open the sample task detail. */
-function FocusRow({ t, btn, ...nav }) {
-  return (
-    <Row title={t.title} sub={t.meta} chev={false} go="tasks.detail-progress" {...nav}
-      right={btn ?? <Btn sm toast="Task marked done">Done</Btn>} />
-  );
-}
-
-/** Small group label inside a card (Overdue / Today / This week). */
-const Label = ({ children }) => <p className="t-footnote muted hm-label">{children}</p>;
-
-const ALL_TASKS = 'See all tasks (9)';
-
-/** "My Focus" card body for the role. */
-export function Focus({ role }) {
-  const F = D.home.focus;
-  if (role === 'admin') {
-    return (
-      <>
-        <Label>Needs action</Label>
-        <Rows plain>
-          <Row title={`Approve ${D.users.counts.pending} new users`} sub="Users · Approval · Waiting 1 day" chev={false}
-            go="users.approve" right={<Btn sm kind="primary" go="users.approve">Open</Btn>} />
-        </Rows>
-        <Label>Today</Label>
-        <Rows plain>{F.today.map(t => <FocusRow key={t.title} t={t} />)}</Rows>
-        <Label>This week</Label>
-        <Rows plain><FocusRow t={F.week[0]} /></Rows>
-        <Link go="tasks.my">{ALL_TASKS}</Link>
-      </>
-    );
-  }
-  const week = role === 'member' ? F.week : [F.week[0]];
-  return (
-    <>
-      <Label>Overdue</Label>
-      <Rows plain>{F.overdue.map(t => <FocusRow key={t.title} t={t} />)}</Rows>
-      <Label>Today</Label>
-      <Rows plain>{F.today.map(t => <FocusRow key={t.title} t={t} />)}</Rows>
-      <Label>This week</Label>
-      <Rows plain>
-        {week.map(t => <FocusRow key={t.title} t={t} />)}
-        {role === 'pm' && (
-          <FocusRow t={F.review} go="tasks.detail-review" task={17}
-            btn={<Btn sm kind="primary" go="tasks.detail-review" task={17}>Review</Btn>} />
-        )}
-      </Rows>
-      <Link go="tasks.my">{role === 'pm' ? F.all : ALL_TASKS}</Link>
-    </>
-  );
 }

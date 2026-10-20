@@ -4,8 +4,9 @@ import { CircleCheck, Mic, Search, Sparkles } from 'lucide-react';
 import { SuggestionChip } from '@react-cupertino-ui/suggestion-chip';
 import { useApp, useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Avatar, Btn, Link, Pill, Progress, Row, Rows, Screen, Section } from '../../kit';
-import { Focus, roleHome } from './home.roles';
+import { Avatar, Btn, Link, Progress, Row, Rows, Screen, Section } from '../../kit';
+import { AgendaProjects, Focus } from './home.focus';
+import { roleHome } from './home.roles';
 
 /** ClickUp-style header: greeting left, avatar right, then a search field that opens Search. */
 function HomeHeader() {
@@ -75,21 +76,7 @@ function HomeMain() {
 
       <AskData count={R.asks} />
 
-      <Section title="Agenda & Projects" sub="Any meetings? How are my projects?">
-        <Rows plain>
-          <Row lead={<span className="hm-time">{H.agenda.time}</span>} title={H.agenda.title} sub={H.agenda.warn} go="events.detail-upcoming" />
-        </Rows>
-        <div className="between">
-          <h3 className="t-subhead bold">My projects</h3>
-          <Link go="projects.list" replace>See all</Link>
-        </div>
-        <Rows plain>
-          {H.projects.map(p => (
-            <Row key={p.name} title={p.name} go="projects.overview" right={<Pill>{p.state}</Pill>} chev={false}
-              sub={<span className="stack xs"><span>{p.meta}</span><Progress value={p.pct} /></span>} />
-          ))}
-        </Rows>
-      </Section>
+      <Section title="Agenda & Projects" sub="Any meetings? How are my projects?"><AgendaProjects role={role} /></Section>
 
       <Section title="Tasks Completed This Week">
         <Rows plain>
