@@ -1,5 +1,6 @@
 // Tasks ⑧–⑩ shared detail layout: header block, key/value facts, sections, history, and a pinned comment bar.
 import { Avatar, Media, Menu, Pill } from '../../kit';
+import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, Sec, Tick } from './tasks.parts';
 import { days, info } from './tasks.shared';
@@ -63,15 +64,17 @@ export function baseFacts(no, review, extra = []) {
 }
 
 /**
- * Detail page for task no. The ⋯ menu always has Edit task; cancel = false leaves out Cancel task. banner, actions,
- * facts, after and children fill the slots. Re-renders when the task is edited or moved.
+ * Detail page for task no. The ⋯ menu has Edit task; cancel = false leaves out Cancel task. A Member edits only their
+ * own tasks, so on someone else's task there is no ⋯ at all. banner, actions, facts, after and children fill the
+ * slots. Re-renders when the task is edited or moved.
  */
 export function TaskDetail({ no, cancel = true, banner, actions, facts, after, children }) {
   useTaskMoves();
   const t = D.task(no), x = info(no);
+  const mine = !useApp().is('member') || t.who === D.me().name;
   const items = [{ label: 'Edit task', go: 'tasks.edit', task: no },
     ...(cancel ? [{ label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }] : [])];
-  const right = <Menu items={items} label="Task actions" />;
+  const right = mine ? <Menu items={items} label="Task actions" /> : undefined;
   const foot = <Foot><input className="tk-comment" placeholder="Write a comment… (@name to mention)" aria-label="Comment" /></Foot>;
   return (
     <FootScreen title="Task detail" right={right} foot={foot}>

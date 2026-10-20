@@ -1,7 +1,7 @@
 // Tasks ⑧b Edit task: the detail ⋯ (label colour, not the accent) opens Edit task / Cancel task; Edit task changes
 // every field the detail shows and Save writes them back, so the detail and the lists show the new values.
 import { afterEach, describe, expect, it } from 'vitest';
-import { fireEvent, screen as dom, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
 import { D } from '../data/sample';
 import { resetTasks } from '../screens/tasks/tasks.store';
@@ -38,6 +38,20 @@ describe('task detail ⋯ menu', () => {
     menu();
     fireEvent.click(dom.getByRole('button', { name: 'Close menu' }));
     expect(dom.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  it("gives a Member no ⋯ on someone else's task, in any status", () => {
+    for (const no of [15, 12, 14]) {
+      cleanup();
+      detail(no, 'member');
+      expect(D.task(no).who).not.toBe(D.me().name);
+      expect(dom.queryByRole('button', { name: 'Task actions' })).not.toBeInTheDocument();
+    }
+  });
+
+  it('keeps the ⋯ for a PM on a task assigned to someone else', () => {
+    detail(15);
+    expect(menu().getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task', 'Cancel task']);
   });
 
   it('gives a Member Edit task but not Cancel task on a To do task', () => {
