@@ -73,6 +73,8 @@ const tasks = [
   { no: 8, title: 'Draft the architecture design', project: 'Atlas Project', type: 'Task', priority: 'High', status: 'Done', who: 'Nico', due: 'Sep 20', when: 'Done Sep 20', next: 'Reopen', updated: '2026-09-20T17:45', tags: [] },
   { no: 9, title: 'Progress report for PT Sinar', project: 'PT Sinar Client Portal', type: 'Task', priority: 'Medium', status: 'To do', who: 'Nico', due: 'Oct 8', when: 'Tomorrow', next: 'Start', updated: '2026-10-06T11:05', tags: [] },
 ];
+/** Tasks canceled from the detail ⋯ (Tasks ⑫): out of every list, listed in Archive, still found by D.task(). */
+const archivedTasks = [];
 /** Task detail extras (Tasks ⑧–⑩). */
 const taskDetail = {
   14: { phase: 'Development', desc: 'Write the login and profile endpoint spec for the mobile team.', by: 'Nico · Oct 5', steps: [], history: [['Nico created this task', 'Oct 5']] },
@@ -189,12 +191,13 @@ const home = {
 
 export const D = {
   inbox,
-  today, people, ME, projects, atlas, story, templates, tasks, taskDetail, quickWrite, csv, events, kickoff, standup, team, archive, users, home,
+  today, people, ME, projects, atlas, story, templates, tasks, archivedTasks, taskDetail, quickWrite, csv, events, kickoff, standup, team, archive, users, home,
   /** Signed-in person for the active role. */
   me: () => ({ key: ME[getRole()], ...people[ME[getRole()]] }),
   /** Person by key or first name. */
   person: k => people[k] || Object.values(people).find(p => p.name === k),
   project: id => projects.find(p => p.id === id),
-  task: no => tasks.find(t => t.no === no),
+  /** Task by number, archived ones included. */
+  task: no => tasks.find(t => t.no === no) || archivedTasks.find(t => t.no === no),
   event: id => events.find(e => e.id === id),
 };

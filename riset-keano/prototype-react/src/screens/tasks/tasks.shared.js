@@ -30,9 +30,17 @@ export const reviewer = () => D.taskDetail[17].reviewer.split(' ')[0];
 export const atlas = () => D.project('atlas');
 export const atlasTasks = () => D.tasks.filter(t => t.project === atlas().name);
 
+/** First name of task t's reviewer; a task without one (moved to In review on the board) falls back to #17's. */
+const reviewerOf = t => info(t.no).reviewer?.split(' ')[0] || reviewer();
+/** True when name (a first name, or "Admin" for any Admin) is the signed-in person. */
+const isMe = name => name === D.me().name || (name === 'Admin' && D.me().role === 'Admin');
+
 /** Due note for the active role: an In review note names the reviewer unless that is me. */
-export const note = t => (t.status !== 'In review' ? t.when
-  : reviewer() === D.me().name ? 'Waiting for my review' : `Awaiting review by ${reviewer()}`);
+export const note = t => {
+  if (t.status !== 'In review') return t.when;
+  const r = reviewerOf(t);
+  return isMe(r) ? 'Waiting for my review' : `Awaiting review by ${r}`;
+};
 
 /** Detail screen per status; Done shares the In progress screen, which shows the real status. */
 export const detailOf = t => (t.status === 'In review' ? 'tasks.detail-review'

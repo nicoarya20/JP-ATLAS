@@ -3,8 +3,8 @@ import { Avatar, Media, Menu, Pill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, Sec, Tick } from './tasks.parts';
-import { assigned, assignees, days, info } from './tasks.shared';
-import { useTaskMoves } from './tasks.store';
+import { assigned, assignees, days, detailOf, info } from './tasks.shared';
+import { moveTask, useTaskMoves } from './tasks.store';
 
 const dueLabel = t => {
   const d = days(t.due);
@@ -64,16 +64,30 @@ export function baseFacts(no, review, extra = []) {
 }
 
 /**
+ * Status change for task no from its detail or a sheet: (status, toast, log, extras) moves it, logs it as the signed-in
+ * person ("Nico started working") and shows it on the detail screen for its new status, in place of the current one.
+ */
+export function useStatusAction(no) {
+  const { go, toast } = useApp();
+  return (status, msg, log, extras) => {
+    moveTask(no, status, { log: `${D.me().name} ${log}`, extras });
+    toast(msg);
+    go(detailOf(D.task(no)), { top: true, params: { task: no } });
+  };
+}
+
+/**
  * Detail page for task no. The ⋯ menu has Edit task and Cancel task. A Member edits and cancels only their own tasks
- * (in any status), so on someone else's task there is no ⋯ at all. banner, actions, facts, after and children fill the
- * slots. Re-renders when the task is edited or moved.
+ * (in any status), so on someone else's task there is no ⋯ at all; a canceled task has neither ⋯ nor actions.
+ * banner, actions, facts, after and children fill the slots. Re-renders when the task is edited or moved.
  */
 export function TaskDetail({ no, banner, actions, facts, after, children }) {
   useTaskMoves();
   const t = D.task(no), x = info(no);
   const mine = !useApp().is('member') || assigned(t, D.me().name);
+  const archived = D.archivedTasks.includes(t);
   const items = [{ label: 'Edit task', go: 'tasks.edit', task: no }, { label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }];
-  const right = mine ? <Menu items={items} label="Task actions" /> : undefined;
+  const right = mine && !archived ? <Menu items={items} label="Task actions" /> : undefined;
   const foot = <Foot><input className="tk-comment" placeholder="Write a comment… (@name to mention)" aria-label="Comment" /></Foot>;
   return (
     <FootScreen title="Task detail" right={right} foot={foot}>
@@ -86,7 +100,7 @@ export function TaskDetail({ no, banner, actions, facts, after, children }) {
         <span className="t-footnote bold">{dueLabel(t)}</span>
         <div><Pill>{t.status}</Pill></div>
       </div>
-      {actions}
+      {archived ? <p className="t-footnote muted">Canceled · this task is in Archive.</p> : actions}
       <dl className="tk-kv">
         {facts.map(([k, v]) => [<dt key={`${k}-k`}>{k}</dt>, <dd key={`${k}-v`}>{v}</dd>])}
       </dl>
