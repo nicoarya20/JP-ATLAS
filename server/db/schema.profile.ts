@@ -19,6 +19,8 @@ export const profile = pgTable(
       .unique('profile_user_id_unique')
       .references(() => user.id, { onDelete: 'cascade' }),
     displayName: text('display_name'),
+    // The short name the Beranda greeting uses ("Selamat pagi, Nico"); NULL falls back to the first word of the name.
+    nickname: text('nickname'),
     phone: text('phone'),
     jobTitle: text('job_title'),
     department: text('department'),

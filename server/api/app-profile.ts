@@ -7,6 +7,7 @@ import {
   PHONE_FORMAT_ERROR,
   PROFILE_DEPARTMENT_MAX,
   PROFILE_NAME_MAX,
+  PROFILE_NICKNAME_MAX,
   PROFILE_PHONE_MAX,
   PROFILE_TITLE_MAX,
 } from '../profile/profile.rules';
@@ -18,9 +19,10 @@ import { notificationPrefsApi } from './app-profile.notifications';
 
 const text = (maxLength: number) => t.Optional(t.Nullable(t.String({ maxLength })));
 
-// Unknown keys (`role`, `approvalStatus`, ...) are not rejected: the service only reads these five.
+// Unknown keys (`role`, `approvalStatus`, ...) are not rejected: the service only reads these columns.
 const ProfileBody = t.Object({
   displayName: text(PROFILE_NAME_MAX),
+  nickname: text(PROFILE_NICKNAME_MAX),
   phone: text(PROFILE_PHONE_MAX),
   jobTitle: text(PROFILE_TITLE_MAX),
   department: text(PROFILE_DEPARTMENT_MAX),

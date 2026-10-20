@@ -1,4 +1,4 @@
-import { Group, Stack, Text, Title } from '@mantine/core';
+import { Stack, Text, Title } from '@mantine/core';
 import { listLogins } from '@server/api/analytics-logins.query';
 import { hasGoogleAuth, isProd } from '@server/env';
 import { requireUser } from '@server/guard';
@@ -7,12 +7,19 @@ import { getNotificationPrefs } from '@server/profile/notification-prefs.service
 import { getProfile } from '@server/profile/profile.service';
 import { getSettings } from '@server/settings';
 import { resolveTextSize } from '@server/text-size.loader';
-import { data, useRevalidator } from 'react-router';
-import { AccountCard } from '~/components/account/AccountCard';
+import { data } from 'react-router';
+import { AccountSummaryCard } from '~/components/account/AccountSummaryCard';
 import { AdvancedSettings } from '~/components/account/AdvancedSettings';
 import { AppearanceCard } from '~/components/account/AppearanceCard';
-import { SETTINGS_INTRO, SETTINGS_TITLE } from '~/components/account/account.copy';
+import {
+  ACCOUNT_COPY,
+  APPEARANCE_COPY,
+  NOTIFICATIONS_COPY,
+  SETTINGS_INTRO,
+  SETTINGS_TITLE,
+} from '~/components/account/account.copy';
 import { NotificationsCard } from '~/components/account/NotificationsCard';
+import { SettingsSection } from '~/components/account/SettingsSection';
 import { SignOutButton } from '~/components/account/SignOutButton';
 import { useApp } from '~/lib/app-context';
 import { useSession } from '~/lib/auth-client';
@@ -58,27 +65,28 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Settings({ loaderData }: Route.ComponentProps) {
   const { user: ctxUser, role } = useApp();
-  const { data: session, refetch: refetchSession } = useSession();
-  const revalidator = useRevalidator();
+  const { data: session } = useSession();
   const user = session?.user ?? ctxUser;
   const currentToken = (session?.session as { token?: string } | undefined)?.token;
-  const refresh = () => {
-    refetchSession();
-    revalidator.revalidate();
-  };
 
   return (
-    <Stack gap="md" p={{ base: 'sm', md: 'md' }} maw={880} w="100%">
+    <Stack gap="lg" p={{ base: 'sm', md: 'md' }} maw={880} w="100%">
       <div>
         <Title order={2}>{SETTINGS_TITLE}</Title>
         <Text c="dimmed">{SETTINGS_INTRO}</Text>
       </div>
-      <AccountCard profile={loaderData.profile} image={user.image ?? null} onSaved={refresh} />
-      <AppearanceCard textSize={loaderData.textSize} />
-      <NotificationsCard initial={loaderData.notificationPrefs} />
-      <Group justify="flex-end" wrap="wrap">
+      <SettingsSection title={ACCOUNT_COPY.section}>
+        <AccountSummaryCard profile={loaderData.profile} image={user.image ?? null} />
+      </SettingsSection>
+      <SettingsSection title={APPEARANCE_COPY.title}>
+        <AppearanceCard textSize={loaderData.textSize} />
+      </SettingsSection>
+      <SettingsSection title={NOTIFICATIONS_COPY.title}>
+        <NotificationsCard initial={loaderData.notificationPrefs} />
+      </SettingsSection>
+      <div>
         <SignOutButton />
-      </Group>
+      </div>
       <AdvancedSettings
         email={loaderData.profile.email}
         role={role}

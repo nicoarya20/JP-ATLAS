@@ -8,6 +8,7 @@ import { DEFAULT_TEXT_SIZE, isTextSize } from '../text-size';
 export {
   PROFILE_DEPARTMENT_MAX,
   PROFILE_NAME_MAX,
+  PROFILE_NICKNAME_MAX,
   PROFILE_PHONE_MAX,
   PROFILE_TITLE_MAX,
 } from './profile.rules';
@@ -15,6 +16,7 @@ export {
 /** The fields a caller may change; anything else in the request body never reaches this module. */
 export type ProfilePatch = {
   displayName?: string | null;
+  nickname?: string | null;
   phone?: string | null;
   jobTitle?: string | null;
   department?: string | null;
@@ -30,13 +32,14 @@ export type ProfileView = {
   name: string;
   email: string;
   displayName: string | null;
+  nickname: string | null;
   phone: string | null;
   jobTitle: string | null;
   department: string | null;
   textSize: TextSize;
 };
 
-const TEXT_FIELDS = ['displayName', 'phone', 'jobTitle', 'department'] as const;
+const TEXT_FIELDS = ['displayName', 'nickname', 'phone', 'jobTitle', 'department'] as const;
 
 /** Trims a text field; blank means "clear it", so the column stays NULL instead of ''. */
 function cleanText(value: string | null): string | null {
@@ -62,6 +65,7 @@ function toView(account: { id: string; name: string; email: string }, row: Row):
     name: account.name,
     email: account.email,
     displayName: row?.displayName ?? null,
+    nickname: row?.nickname ?? null,
     phone: row?.phone ?? null,
     jobTitle: row?.jobTitle ?? null,
     department: row?.department ?? null,

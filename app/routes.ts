@@ -36,6 +36,7 @@ export default [
     route('app/team/:userId', 'routes/app/team-detail.tsx'),
     route('app/trash', 'routes/app/trash.tsx'),
     route('app/settings', 'routes/app/settings.tsx'),
+    route('app/settings/profile', 'routes/app/settings-profile.tsx'),
     route('profile', 'routes/app/profile.tsx'),
   ]),
   layout('routes/admin/layout.tsx', [

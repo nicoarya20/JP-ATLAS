@@ -2,28 +2,39 @@
 import type { TextSize } from '@server/pm/enums';
 
 export const SETTINGS_TITLE = 'Pengaturan';
-export const SETTINGS_INTRO = 'Atur profil, ukuran tulisan, dan akun Anda.';
+export const SETTINGS_INTRO = 'Atur akun, tampilan, dan pemberitahuan Anda.';
 
 export const ACCOUNT_COPY = {
-  title: 'Profil',
-  description: 'Nama dan keterangan ini tampil untuk rekan satu proyek.',
-  name: 'Nama',
+  section: 'Akun saya',
+  edit: 'Ubah profil',
+  noJobTitle: 'Jabatan dan divisi belum diisi',
+  phoneLabel: 'HP',
+} as const;
+
+export const PROFILE_FORM_COPY = {
+  title: 'Ubah profil',
+  back: 'Kembali ke Pengaturan',
+  changePhoto: 'Ganti foto',
+  name: 'Nama lengkap',
   nameHint: 'Kosongkan untuk memakai nama dari akun Anda.',
+  nickname: 'Nama panggilan (untuk sapaan)',
+  nicknameHint: 'Dipakai di sapaan Beranda, mis. "Selamat pagi, Nico".',
   jobTitle: 'Jabatan',
   department: 'Divisi',
   phone: 'Nomor HP (tidak wajib)',
   phoneHint: 'Hanya Anda dan Admin yang bisa melihat nomor ini.',
   email: 'Email',
   emailHint: 'Email adalah identitas akun Anda dan tidak bisa diubah di sini.',
-  save: 'Simpan profil',
-  reset: 'Batalkan perubahan',
+  cancel: 'Batal',
+  save: 'Simpan',
   saved: 'Profil disimpan.',
   saveFailed: 'Gagal menyimpan profil',
 } as const;
 
 export const APPEARANCE_COPY = {
   title: 'Tampilan',
-  description: 'Pilih ukuran tulisan yang paling nyaman dibaca. Berlaku di seluruh aplikasi.',
+  sizeTitle: 'Ukuran teks',
+  description: 'Pilih ukuran yang paling nyaman dibaca. Berlaku di semua layar.',
   sample: 'Contoh tulisan: Rapat persiapan pameran, Kamis pukul 09.00.',
   active: 'Dipakai sekarang',
   choose: 'Pilih ukuran ini',
@@ -41,6 +52,8 @@ export const TEXT_SIZE_LABELS: Record<TextSize, string> = {
 export const NOTIFICATIONS_COPY = {
   title: 'Pemberitahuan',
   description: 'Pilih kabar yang muncul di Kotak masuk. Perubahan tersimpan langsung.',
+  on: 'Hidup',
+  off: 'Mati',
   eventReminder: 'Ingatkan saya sebelum acara',
   eventReminderHint: 'Kartu pengingat satu hari dan setengah jam sebelum acara dimulai.',
   inboxNews: 'Tampilkan kabar terbaru di Kotak masuk',
@@ -53,7 +66,7 @@ export const NOTIFICATIONS_COPY = {
 export const SIGN_OUT_COPY = {
   title: 'Keluar dari akun ini?',
   body: 'Kamu akan keluar dari akun ini. Kamu bisa masuk lagi kapan saja.',
-  button: 'Keluar dari akun',
+  button: 'Keluar',
   confirm: 'Keluar',
   failed: 'Gagal keluar',
 } as const;
