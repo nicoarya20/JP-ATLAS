@@ -164,6 +164,8 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Halaman **Profil** (`/profile`) dilebur ke **Pengaturan** (`/app/settings`): tautan dan bookmark lama ke `/profile` langsung dialihkan ke Pengaturan (tamu tetap diminta masuk dulu). Tautan "Profile" di sidebar Dashboard dan Dev kini bernama **Pengaturan akun** dan membuka `/app/settings`, dan menautkan akun Google kembali ke Pengaturan. Kartu hapus akun hanya tampil untuk Super-admin di bagian **Lanjutan**; akun lain tidak melihatnya di mana pun.
 
 ### Fixed
+- Acara yang **sedang berlangsung** kini tetap tampil di tab **Akan datang** (dengan lencana **Berlangsung**) dan baru pindah ke **Sudah lewat** setelah jam selesainya lewat. Sebelumnya acara pindah ke **Sudah lewat** begitu jam mulainya lewat.
+- Di form **Proyek baru**, kolom **Cari orang** kini tampil tepat di bawah keterangan **Anggota**, di atas daftar anggota. Sebelumnya kolom itu ada di bawah daftar sehingga terdorong turun setiap kali menambah orang.
 - Di halaman **Tugas**, pilihan **Proyek** kini benar-benar menyaring daftar. Sebelumnya, di tab **Tugas saya** dan **Semua tugas** tugas dari proyek lain tetap tampil walau satu proyek sudah dipilih (hanya tab Tugas di dalam proyek yang benar). Orang tetap hanya melihat tugas dari proyek yang boleh ia lihat.
 - Memilih **Orang** di **Tugas saya** tidak lagi mengosongkan daftar; saringan itu kini hanya ada di **Semua tugas** dan tab Tugas proyek.
 - Halaman proyek kini punya tombol **Kembali ke daftar proyek** di atas judul, di semua tab (Ringkasan, Tugas, Anggota). Sebelumnya satu-satunya jalan kembali adalah menu **Proyek** di sidebar. Tombol ini selalu menuju daftar proyek, bukan ke tab yang dibuka sebelumnya.

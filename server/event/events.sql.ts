@@ -63,11 +63,16 @@ function titleMatches(q: string): SQL {
   return ilike(event.title, `%${q.replace(/[\\%_]/g, '\\$&')}%`);
 }
 
-/** The half of the timeline a tab shows; both cut on `starts_at` against the same `now`. */
+/**
+ * The half of the timeline a tab shows, cut on `ends_at` against the same `now`: Upcoming holds
+ * what has not ended (so a meeting in progress stays there) and Past what has. An event that ends
+ * exactly at `now` is already over. The keyset below still runs on `starts_at`, so rows keep the
+ * order the list shows them in.
+ */
 export function inTab(tab: EventTab, now: Date): SQL {
   return tab === 'upcoming'
-    ? sql`${event.startsAt} >= ${instant(now)}`
-    : sql`${event.startsAt} < ${instant(now)}`;
+    ? sql`${event.endsAt} > ${instant(now)}`
+    : sql`${event.endsAt} <= ${instant(now)}`;
 }
 
 /** Keyset step in the tab's own direction: upcoming runs forwards in time, past backwards. */

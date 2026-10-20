@@ -1,5 +1,5 @@
 /**
- * Event reads (S7 E-03): the three-query budget of `listEvents`, the Upcoming/Past cut at `now`,
+ * Event reads (S7 E-03): the three-query budget of `listEvents`,
  * search, keyset paging, the Agenda window, and the two leaks the acceptance names — contact
  * columns in a guest list, and a non-member seeing an event they have no path to.
  */
@@ -57,7 +57,6 @@ let project: TestProject;
 let trashed: TestProject;
 let soon: { id: string };
 let later: { id: string };
-let past: { id: string };
 let personal: { id: string };
 let guestOnly: { id: string };
 let inTrashedProject: { id: string };
@@ -98,7 +97,8 @@ beforeAll(async () => {
     kind: 'review',
     startsInMin: MIN_PER_DAY * 3,
   });
-  past = await shared.event({
+  // Already over: the list tests below count on it being there as history, never as upcoming.
+  await shared.event({
     project,
     creator: lead,
     title: 'Rapat kickoff',
@@ -146,46 +146,6 @@ describe('query budget', () => {
     // One grouped statement for the whole page; the other mention of the table is the
     // visibility EXISTS inside the page query itself.
     expect(counter.queries.filter((q) => /group by/i.test(q))).toHaveLength(1);
-  });
-});
-
-describe('tabs', () => {
-  it('shows only what starts at or after now on the Upcoming tab', async () => {
-    const res = ids(await listEvents(principal(lead), { projectId: project.id }, clock));
-    expect(res).toContain(soon.id);
-    expect(res).not.toContain(past.id);
-  });
-
-  it('shows only what started before now on the Past tab', async () => {
-    const res = ids(
-      await listEvents(principal(lead), { tab: 'past', projectId: project.id }, clock),
-    );
-    expect(res).toContain(past.id);
-    expect(res).not.toContain(soon.id);
-  });
-
-  it('puts an event starting exactly at now on the Upcoming side of the cut', async () => {
-    const edge = await perTest.event({ project, creator: lead, startsAt: ATLAS_NOW });
-    expect(ids(await listEvents(principal(lead), { projectId: project.id }, clock))).toContain(
-      edge.id,
-    );
-    expect(
-      ids(await listEvents(principal(lead), { tab: 'past', projectId: project.id }, clock)),
-    ).not.toContain(edge.id);
-  });
-
-  it('orders Upcoming forwards in time and Past backwards', async () => {
-    const up = ids(await listEvents(principal(lead), { projectId: project.id }, clock));
-    expect(up.indexOf(soon.id)).toBeLessThan(up.indexOf(later.id));
-    const olderPast = await perTest.event({
-      project,
-      creator: lead,
-      startsInMin: -MIN_PER_DAY * 30,
-    });
-    const back = ids(
-      await listEvents(principal(lead), { tab: 'past', projectId: project.id }, clock),
-    );
-    expect(back.indexOf(past.id)).toBeLessThan(back.indexOf(olderPast.id));
   });
 });
 

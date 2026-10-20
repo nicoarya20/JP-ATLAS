@@ -84,6 +84,16 @@ describe('ProjectForm markup', () => {
     }
   });
 
+  it('puts the people search right under the members hint, before the creator row', async () => {
+    const html = await renderForm();
+    const hint = html.indexOf(PICKER_COPY.hint);
+    const search = html.indexOf(PICKER_COPY.search);
+    const creator = html.indexOf(`${CREATOR.name} ${PICKER_COPY.you}`);
+    expect(hint).toBeGreaterThan(-1);
+    expect(search).toBeGreaterThan(hint);
+    expect(creator).toBeGreaterThan(search);
+  });
+
   it('marks only the project name as required', async () => {
     const html = await renderForm();
     expect(fieldBlock(html, FORM_COPY.name)).toContain('mantine-InputWrapper-required');
