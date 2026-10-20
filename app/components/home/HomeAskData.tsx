@@ -1,94 +1,69 @@
-import { ActionIcon, Button, Group, Progress, Stack, Text, TextInput } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Group, Progress, Stack, Text } from '@mantine/core';
+import type { AskAnswer, Widget } from '@server/home/home.dto';
 import { useState } from 'react';
-import { FiMic } from 'react-icons/fi';
-import { SectionCard } from '~/components/ui/SectionCard';
-import { ASK_ITEMS, type AskItem } from './home.dummy';
+import { HomeSection, type Retry } from './HomeSection';
+import { HOME_COPY } from './home.copy';
 
-const NOT_FOUND: AskItem = {
-  question: '',
-  answer: 'Pertanyaan ini belum bisa dijawab. Coba salah satu pertanyaan contoh di atas.',
-  bars: [],
-};
-
-/** "Ask Data": canned questions with canned answers until the real assistant exists. */
-export function HomeAskData() {
-  const [text, setText] = useState('');
-  const [answer, setAnswer] = useState<AskItem | null>(ASK_ITEMS[0] ?? null);
-
-  const ask = (question: string) => {
-    const q = question.trim();
-    if (!q) return;
-    setAnswer(ASK_ITEMS.find((i) => i.question.toLowerCase() === q.toLowerCase()) ?? NOT_FOUND);
-  };
-
+function Answer({ answer }: { answer: AskAnswer }) {
   return (
-    <SectionCard title="Ask Data" subtitle="Tanya apa saja tentang proyek">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          ask(text);
-        }}
-      >
-        <Group gap="xs" wrap="nowrap" align="flex-end">
-          <TextInput
-            style={{ flex: 1, minWidth: 0 }}
-            placeholder="Ketik atau ucapkan pertanyaan..."
-            aria-label="Pertanyaan tentang proyek"
-            value={text}
-            onChange={(e) => setText(e.currentTarget.value)}
-            rightSection={
-              <ActionIcon
-                variant="subtle"
-                aria-label="Ucapkan pertanyaan"
-                onClick={() =>
-                  notifications.show({
-                    message: 'Input suara belum tersedia. Ketik pertanyaannya dulu.',
-                  })
-                }
-              >
-                <FiMic size="1.25em" />
-              </ActionIcon>
-            }
+    <Stack gap="xs" aria-live="polite">
+      <Text size="sm">{answer.answer}</Text>
+      {answer.bars.map((b) => (
+        <Group key={b.label} gap="sm" wrap="nowrap">
+          <Text size="sm" truncate style={{ flex: '0 0 7.5rem', minWidth: 0 }}>
+            {b.label}
+          </Text>
+          <Progress
+            value={b.pct}
+            color="ok"
+            style={{ flex: 1 }}
+            aria-label={`${b.label} ${b.display}`}
           />
-          <Button type="submit" disabled={text.trim() === ''}>
-            Tanya
-          </Button>
+          <Text size="sm" fw={600} ta="right" style={{ flex: '0 0 4.5rem' }}>
+            {b.display}
+          </Text>
         </Group>
-      </form>
-      <Stack gap="xs">
-        {ASK_ITEMS.map((i) => (
-          <Button
-            key={i.question}
-            variant={answer?.question === i.question ? 'light' : 'default'}
-            onClick={() => {
-              setText(i.question);
-              ask(i.question);
-            }}
-          >
-            {i.question}
-          </Button>
-        ))}
-      </Stack>
-      {answer && (
-        <Stack gap="xs" aria-live="polite">
-          <Text size="sm">{answer.answer}</Text>
-          {answer.bars.map((b) => (
-            <Group key={b.label} gap="sm" wrap="nowrap">
-              <Text size="sm" w={130} style={{ flexShrink: 0 }}>
-                {b.label}
-              </Text>
-              <Progress
-                value={b.pct}
-                color="ok"
-                style={{ flex: 1 }}
-                aria-label={`${b.label} ${b.pct}%`}
-              />
-              <Text size="sm" fw={600} w={40} ta="right">{`${b.pct}%`}</Text>
-            </Group>
-          ))}
-        </Stack>
-      )}
-    </SectionCard>
+      ))}
+    </Stack>
+  );
+}
+
+/**
+ * "Ask Data": a few fixed questions, answered from the viewer's real project data. There is no
+ * free-text box on purpose: nothing behind it could answer an arbitrary question honestly.
+ */
+export function HomeAskData({ widget, retry }: { widget: Widget<AskAnswer[]>; retry: Retry }) {
+  const [picked, setPicked] = useState<string | null>(null);
+  return (
+    <HomeSection
+      title={HOME_COPY.ask.title}
+      subtitle={HOME_COPY.ask.subtitle}
+      widget={widget}
+      retry={retry}
+    >
+      {(answers) => {
+        const shown = answers.find((a) => a.key === picked) ?? answers[0];
+        return (
+          <>
+            <Stack gap="xs" role="group" aria-label={HOME_COPY.ask.list}>
+              {answers.map((a) => (
+                <Button
+                  key={a.key}
+                  variant={a.key === shown?.key ? 'light' : 'default'}
+                  aria-pressed={a.key === shown?.key}
+                  onClick={() => setPicked(a.key)}
+                >
+                  {a.question}
+                </Button>
+              ))}
+            </Stack>
+            {shown && <Answer answer={shown} />}
+            <Text size="xs" c="dimmed">
+              {HOME_COPY.ask.note}
+            </Text>
+          </>
+        );
+      }}
+    </HomeSection>
   );
 }

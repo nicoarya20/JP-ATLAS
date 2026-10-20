@@ -1,88 +1,128 @@
-import { Anchor, Badge, Button, Divider, Group, Stack, Text } from '@mantine/core';
-import { useState } from 'react';
-import { FiAlertTriangle, FiClock } from 'react-icons/fi';
+import { Anchor, Button, Divider, Group, Stack, Text } from '@mantine/core';
+import type {
+  HomeFocus as Focus,
+  HomeCounters,
+  HomeScheduleGroup,
+  Widget,
+} from '@server/home/home.dto';
+import { FiAlertTriangle, FiCheckCircle, FiClock, FiUsers } from 'react-icons/fi';
 import { Link } from 'react-router';
-import { notify } from '~/components/ui/notify';
-import { SectionCard } from '~/components/ui/SectionCard';
-import {
-  FOCUS_GROUP_LABELS,
-  FOCUS_HIDDEN_COUNT,
-  FOCUS_TASKS,
-  type FocusGroup,
-  type FocusTask,
-} from './home.dummy';
+import { SCHEDULE_GROUP_LABELS } from '~/components/tasks/tasks.copy';
+import { EmptyState } from '~/components/ui/EmptyState';
+import { HomeFocusRow } from './HomeFocusRow';
+import { HomeSection, type Retry } from './HomeSection';
+import { HOME_COPY, HOME_LINKS } from './home.copy';
 
-const GROUPS: FocusGroup[] = ['late', 'today', 'week'];
+/** Display order of the groups; the server already sorts the rows, so a group is a run of them. */
+const GROUP_ORDER: HomeScheduleGroup[] = ['overdue', 'today', 'tomorrow', 'week', 'later', 'none'];
 
-function FocusRow({ task, onDone }: { task: FocusTask; onDone: (t: FocusTask) => void }) {
+type Props = {
+  widget: Widget<Focus>;
+  counters: Widget<HomeCounters>;
+  today: string;
+  retry: Retry;
+};
+
+function GroupHeading({ group }: { group: HomeScheduleGroup }) {
   return (
-    <Group justify="space-between" wrap="nowrap" gap="sm" py={6}>
-      <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
-        <Text fw={600}>{task.title}</Text>
-        <Group gap="xs" wrap="wrap">
-          {task.chip && (
-            <Badge
-              color="danger"
-              variant="filled"
-              tt="none"
-              leftSection={<FiAlertTriangle size="1.25em" aria-hidden />}
-            >
-              {task.chip}
-            </Badge>
-          )}
-          <Text size="xs" c="dimmed">
-            {task.meta}
-          </Text>
-        </Group>
-      </Stack>
-      <Button variant="default" style={{ flexShrink: 0 }} onClick={() => onDone(task)}>
-        Selesai
-      </Button>
+    <Group gap={4} c="dimmed" mb={2}>
+      {group === 'overdue' && <FiAlertTriangle size="1.25em" aria-hidden />}
+      {group === 'today' && <FiClock size="1.25em" aria-hidden />}
+      <Text size="xs" fw={700} tt="uppercase">
+        {SCHEDULE_GROUP_LABELS[group]}
+      </Text>
     </Group>
   );
 }
 
-/** "My Focus": what to work on now, grouped by urgency; Selesai removes the row. */
-export function HomeFocus() {
-  const [tasks, setTasks] = useState(FOCUS_TASKS);
-  const total = tasks.length + FOCUS_HIDDEN_COUNT;
+function Empty({ noProject }: { noProject: boolean }) {
+  return noProject ? (
+    <EmptyState
+      icon={FiUsers}
+      title={HOME_COPY.focus.noProjectTitle}
+      description={HOME_COPY.focus.noProjectHint}
+    />
+  ) : (
+    <EmptyState
+      icon={FiCheckCircle}
+      title={HOME_COPY.focus.empty}
+      action={{ label: HOME_COPY.focus.emptyAction, to: HOME_LINKS.tasks }}
+    />
+  );
+}
 
-  const finish = (task: FocusTask) => {
-    setTasks((rows) => rows.filter((r) => r.id !== task.id));
-    notify.success(`"${task.title}" ditandai selesai.`);
-  };
-
+/** "My Focus": what to work on now by urgency, a button per task, and tasks waiting for my review. */
+export function HomeFocus({ widget, counters, today, retry }: Props) {
+  const noProject = counters.ok && counters.data.memberProjects === 0;
   return (
-    <SectionCard title="My Focus" subtitle="Apa yang harus saya kerjakan sekarang?">
-      {tasks.length === 0 && (
-        <Text c="dimmed" size="sm">
-          Semua tugas prioritas sudah selesai. Kerja bagus!
-        </Text>
-      )}
-      {GROUPS.map((g) => {
-        const rows = tasks.filter((t) => t.group === g);
-        if (rows.length === 0) return null;
+    <HomeSection
+      title={HOME_COPY.focus.title}
+      subtitle={HOME_COPY.focus.subtitle}
+      widget={widget}
+      retry={retry}
+    >
+      {(f) => {
+        if (f.items.length === 0 && f.awaitingReview.length === 0) {
+          return <Empty noProject={noProject} />;
+        }
         return (
-          <div key={g}>
-            <Group gap={4} c="dimmed" mb={2}>
-              {g === 'late' && <FiAlertTriangle size="1.25em" aria-hidden />}
-              {g === 'today' && <FiClock size="1.25em" aria-hidden />}
-              <Text size="xs" fw={700} tt="uppercase">
-                {FOCUS_GROUP_LABELS[g]}
-              </Text>
-            </Group>
-            {rows.map((t, i) => (
-              <div key={t.id}>
-                {i > 0 && <Divider />}
-                <FocusRow task={t} onDone={finish} />
+          <>
+            {GROUP_ORDER.map((group) => {
+              const rows = f.items.filter((t) => t.group === group);
+              if (rows.length === 0) return null;
+              return (
+                <div key={group}>
+                  <GroupHeading group={group} />
+                  {rows.map((t, i) => (
+                    <div key={t.id}>
+                      {i > 0 && <Divider />}
+                      <HomeFocusRow task={t} today={today} />
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+            {f.awaitingReview.length > 0 && (
+              <div>
+                <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={2}>
+                  {HOME_COPY.focus.waitingReview}
+                </Text>
+                <Stack gap={0}>
+                  {f.awaitingReview.map((t, i) => (
+                    <div key={t.id}>
+                      {i > 0 && <Divider />}
+                      <Group justify="space-between" wrap="wrap" gap="xs" py={6}>
+                        <Stack gap={2} style={{ minWidth: 0, flex: '1 1 14rem' }}>
+                          <Text fw={600}>{t.title}</Text>
+                          <Text size="xs" c="dimmed">
+                            {t.project.name}
+                          </Text>
+                        </Stack>
+                        <Button
+                          component={Link}
+                          to={`/app/tasks/${t.number}`}
+                          variant="light"
+                          style={{ flexShrink: 0 }}
+                        >
+                          {HOME_COPY.focus.review}
+                        </Button>
+                      </Group>
+                    </div>
+                  ))}
+                </Stack>
               </div>
-            ))}
-          </div>
+            )}
+            <Anchor component={Link} to={HOME_LINKS.tasks} fw={600} size="sm">
+              {[
+                HOME_COPY.focus.all(f.total),
+                f.awaitingReviewTotal > 0 ? HOME_COPY.focus.awaiting(f.awaitingReviewTotal) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </Anchor>
+          </>
         );
-      })}
-      <Anchor component={Link} to="/app/tasks" fw={600} size="sm">
-        {`Lihat semua tugas (${total})`}
-      </Anchor>
-    </SectionCard>
+      }}
+    </HomeSection>
   );
 }
