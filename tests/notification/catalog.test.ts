@@ -16,8 +16,8 @@ import {
 } from '../../server/notification/notification.catalog';
 import type { NotificationKind } from '../../server/notification/notification.types';
 
-// The kinds S3 really emits (P5 §5.2 "Katalog yang dikirim di S3"), user_pending among them since I14.
-const SHIPPED_IN_S3: NotificationKind[] = [
+// The kinds really emitted: S3's (P5 §5.2 "Katalog yang dikirim di S3", user_pending since I14) and S7's four event cards.
+const SHIPPED: NotificationKind[] = [
   'task_assigned',
   'task_unassigned',
   'task_done',
@@ -26,15 +26,17 @@ const SHIPPED_IN_S3: NotificationKind[] = [
   'project_member_added',
   'project_role_changed',
   'user_pending',
+  'event_reminder',
+  'event_invited',
+  'event_changed',
+  'event_canceled',
 ];
-// Reserved on purpose: the feature behind them lands in S4 (Periksa, mention) or S7 (Events).
+// Reserved on purpose: the feature behind them lands in S4 (Periksa, mention).
 const RESERVED: NotificationKind[] = [
   'task_review_requested',
   'task_review_fallback',
   'task_returned',
   'mention',
-  'event_reminder',
-  'event_invited',
 ];
 // Words the Inbox never shows a user: English jargon or role codes (R11 glossary, P5 §6 I02).
 const JARGON = /assignee|reviewer|assign|task\b|project\b|deadline|resolve|inbox|null/i;
@@ -53,9 +55,9 @@ const ALL_VARS = {
 
 describe('NOTIFICATION_KINDS', () => {
   it('lists every kind exactly once and splits them into shipped and reserved', () => {
-    expect([...NOTIFICATION_KIND_LIST].sort()).toEqual([...SHIPPED_IN_S3, ...RESERVED].sort());
+    expect([...NOTIFICATION_KIND_LIST].sort()).toEqual([...SHIPPED, ...RESERVED].sort());
     expect(new Set(NOTIFICATION_KIND_LIST).size).toBe(NOTIFICATION_KIND_LIST.length);
-    expect(shippedKinds().sort()).toEqual([...SHIPPED_IN_S3].sort());
+    expect(shippedKinds().sort()).toEqual([...SHIPPED].sort());
   });
 
   it.each(EVERY_KIND)('%s has a known lane and category', (kind) => {
@@ -89,6 +91,11 @@ describe('NOTIFICATION_KINDS', () => {
     expect(prefCategoryOf('task_commented')).toBe('news');
     expect(prefCategoryOf('project_member_added')).toBe('news');
     expect(prefCategoryOf('event_reminder')).toBe('event_reminder');
+    // Invitation, change and cancellation are news; the reminder has its own switch.
+    for (const kind of ['event_invited', 'event_changed', 'event_canceled'] as const) {
+      expect(prefCategoryOf(kind)).toBe('news');
+      expect(NOTIFICATION_KINDS[kind].lane).toBe('info');
+    }
   });
 
   it('recognises stored kind values and refuses anything else', () => {
@@ -160,6 +167,25 @@ describe('copy', () => {
     expect(cardSentence('task_done', { actor: 'Dodi', number: 7, count: 4 })).toBe(
       'Dodi menandai #7 selesai',
     );
+  });
+
+  test('event cards name the actor and the meeting, and fall back to the system wording', () => {
+    const title = 'Rapat kickoff'; // test-only
+    expect(cardSentence('event_invited', { actor: 'Dodi', title })).toBe(
+      'Dodi mengundang Anda ke acara Rapat kickoff',
+    );
+    expect(cardSentence('event_changed', { actor: 'Dodi', title })).toBe(
+      'Dodi mengubah acara Rapat kickoff',
+    );
+    expect(cardSentence('event_changed', { actor: 'Dodi', title, count: 3 })).toBe(
+      '3 perubahan pada acara Rapat kickoff',
+    );
+    expect(cardSentence('event_canceled', { actor: 'Dodi', title })).toBe(
+      'Dodi membatalkan acara Rapat kickoff',
+    );
+    expect(cardSentence('event_canceled', { title })).toBe('Acara Rapat kickoff dibatalkan');
+    expect(cardSentence('event_reminder', { title })).toBe('Pengingat acara Rapat kickoff');
+    expect(cardButton('event_canceled')).toBe('Lihat acara');
   });
 
   test('project and account cards name the project or the person, not an id', () => {

@@ -3,6 +3,8 @@
 Dicatat 18 Oktober 2026 (S7 E-01, pemegang baton migrasi 0018). Ini **Permintaan Perubahan Kontrak (PPK)** menurut protokol `0002-contract-v1.md` §2, baris "Berkas bersama" dan "Versi". Sumber: `tahapan-proyek/05-implementasi/rencana/P6-s7-events.md` §1/§5/§6 E-01, `JADWAL-S3-S8.md` §5 no. 2 (keputusan user), dan kode di `app/routes.ts`, `tests/contract-v1.test.ts`.
 
 > **Diperbarui 19 Okt 2026:** `/app/events` kini sudah didaftarkan oleh `0004-contract-v1-hybrid-menus.md`, jadi hitungan akhir setelah `/app/events/new` dan `/app/events/:id` menjadi **18**, bukan 16. Baca 0004 sebelum memakai angka di bawah.
+>
+> **Diperbarui 20 Okt 2026:** ketiga URL Event kini terdaftar (`/app/events` oleh 0004, `/app/events/new` oleh E-10, `/app/events/:id` oleh E-11) dan hitungan beku di `tests/contract-v1.test.ts` adalah **20**, bukan 18: tab Tahapan proyek (S5a UI-05) dan detail orang Tim (`/app/team/:userId`) ikut menambah dua URL. Angka 13 dan 16 di bawah dipertahankan sebagai catatan keputusan awal.
 
 **Status: disetujui user.** `JADWAL-S3-S8.md` §5 pertanyaan no. 2 dijawab **Ya**, jadi penambahan ketiga URL tidak perlu ditanyakan lagi. Catatan ini ada supaya keputusan itu punya jejak tertulis dan supaya kewajiban teknisnya (§3 di bawah) tidak hilang diam-diam.
 

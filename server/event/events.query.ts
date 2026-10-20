@@ -127,7 +127,9 @@ export async function listEvents(
 
 /**
  * One event with its guests, minutes and `can{}`. A hidden event and a missing one give the same
- * `NOT_FOUND`, so the answer never reveals that the id exists (D8).
+ * `NOT_FOUND`, so the answer never reveals that the id exists (D8). An event in the Trash, or whose
+ * project is, answers the same: the Trash page lists it from its own query, and a stale link or a
+ * back button must not open a deleted event as if it were live (E-07).
  */
 export async function getEvent(
   p: Principal,
@@ -135,7 +137,7 @@ export async function getEvent(
   exec: Executor = db,
 ): Promise<EventDetailResult> {
   const row = await loadEventRow(id, exec);
-  if (!row) return { ok: false, code: 'NOT_FOUND' };
+  if (!row || row.deletedAt || row.projectDeletedAt) return { ok: false, code: 'NOT_FOUND' };
   const [guests, m, participants, note] = await Promise.all([
     loadParticipantSummaries(p.id, [id], exec),
     membershipFor(p, row.projectId, exec),

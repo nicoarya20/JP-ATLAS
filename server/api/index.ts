@@ -4,6 +4,7 @@ import { apiKeyPlugin } from '../api-keys/plugin';
 import { startUsageRollupScheduler } from '../api-keys/rollup';
 import { auth } from '../auth';
 import { schedulePurgeLegacyDemoUsers } from '../demo/cleanup';
+import { startEventReminderScheduler } from '../event/events.reminders';
 import { mcpPlugin } from '../mcp';
 import { maintenancePlugin } from '../middleware/maintenance';
 import { rateLimitPlugin } from '../middleware/rate-limiter';
@@ -46,6 +47,7 @@ if (process.env.NODE_ENV !== 'test') {
   startUsageRollupScheduler();
   schedulePurgeLegacyDemoUsers();
   startNotificationPurgeScheduler();
+  startEventReminderScheduler();
 }
 
 /**

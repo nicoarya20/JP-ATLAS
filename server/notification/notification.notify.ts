@@ -8,7 +8,8 @@
  * 2. It is idempotent: one row per `(recipient_id, dedupe_key)`. An `action` card that already
  *    exists stays as it is; an `info` card is bundled (`bundle_count + 1`, unread again).
  * 3. It filters the recipients itself (never the caller): the actor, accounts that cannot sign in,
- *    people without access to the project and, for `info`, anyone who muted "Kabar terbaru".
+ *    people without access to the project and, for `info`, anyone who muted the kind's category
+ *    ("Kabar terbaru", or the event reminders).
  * 4. Two queries per call: one for the filter, one for the insert.
  */
 import { sql } from 'drizzle-orm';
@@ -17,7 +18,7 @@ import { logger } from '../logger';
 import type { Executor, Tx } from '../pm/tx';
 // Longest title the app accepts anywhere today; a snapshot is cut, never rejected.
 import { TASK_TITLE_MAX } from '../task/task.limits';
-import { NOTIFICATION_KINDS } from './notification.catalog';
+import { NOTIFICATION_KINDS, prefCategoryOf } from './notification.catalog';
 import { filterRecipients } from './notification.recipients';
 import {
   type AnyNotificationPayload,
@@ -122,6 +123,7 @@ export async function notify<K extends NotificationKind>(
         actorId,
         projectId: input.projectId ?? null,
         lane: meta.lane,
+        category: prefCategoryOf(input.kind),
       });
       if (recipients.length === 0) return NOTHING;
       const values = recipients.map((recipientId) => ({

@@ -50,12 +50,12 @@ describe('listTrash', () => {
       ['task', w.mine.id],
     ]);
     expect(r.total).toBe(2);
-    expect(r.counts).toEqual({ project: 1, task: 1 });
+    expect(r.counts).toEqual({ project: 1, task: 1, event: 0 });
     expect((await list(w.lead, 'task')).items.map((i) => i.kind)).toEqual(['task']);
     const onlyProjects = await list(w.lead, 'project');
     expect(onlyProjects.items.map((i) => i.kind)).toEqual(['project']);
     expect(onlyProjects.total).toBe(1);
-    expect(onlyProjects.counts).toEqual({ project: 1, task: 1 });
+    expect(onlyProjects.counts).toEqual({ project: 1, task: 1, event: 0 });
   });
 
   it('describes a task row: number, title, project, deleter, restore limit and can.restore', async () => {
@@ -80,7 +80,7 @@ describe('listTrash', () => {
     await trashProject(principal(w.lead), w.prj.id, at(1));
     const r = await list(w.lead);
     expect(r.items.map((i) => i.kind)).toEqual(['project']);
-    expect(r.counts).toEqual({ project: 1, task: 0 });
+    expect(r.counts).toEqual({ project: 1, task: 0, event: 0 });
   });
 
   it('keeps a task trashed before its project as its own row, blocked until the project is back', async () => {
@@ -111,7 +111,7 @@ describe('listTrash', () => {
     expect(await list(w.other)).toMatchObject({
       items: [],
       total: 0,
-      counts: { project: 0, task: 0 },
+      counts: { project: 0, task: 0, event: 0 },
     });
   });
 

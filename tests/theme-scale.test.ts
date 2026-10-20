@@ -1,6 +1,15 @@
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
-import { Badge, Button, DEFAULT_THEME, MantineProvider, Text, TextInput } from '@mantine/core';
+import {
+  Badge,
+  Button,
+  DEFAULT_THEME,
+  MantineProvider,
+  MultiSelect,
+  Text,
+  TextInput,
+} from '@mantine/core';
+import { TimeInput } from '@mantine/dates';
 import { type ElementType, createElement as h, type ReactNode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { buildTheme, theme } from '../app/lib/theme';
@@ -74,7 +83,18 @@ describe('buildTheme tokens (R11 §3.2)', () => {
 
   test('sets large control sizes and no manual scale hacks', () => {
     const components = built.components ?? {};
-    for (const name of ['Button', 'TextInput', 'Select', 'Checkbox', 'Radio', 'Switch']) {
+    const large = [
+      'Button',
+      'TextInput',
+      'Select',
+      'DateInput',
+      'TimeInput',
+      'MultiSelect',
+      'Checkbox',
+      'Radio',
+      'Switch',
+    ];
+    for (const name of large) {
       expect(components[name]?.defaultProps?.size).toBe('lg');
     }
     expect(components.ActionIcon?.defaultProps?.size).toBe('xl');
@@ -98,6 +118,17 @@ describe('SSR output', () => {
     const html = render(1, el(Text, null, 'halo'));
     expect(html).not.toContain('--mantine-scale');
     expect(html).not.toContain('--mantine-breakpoint');
+  });
+});
+
+describe('event form inputs follow the theme default', () => {
+  const size = (html: string) => /data-size="(\w+)"/.exec(html)?.[1];
+
+  test('TimeInput and MultiSelect render at the same size as TextInput without a `size` prop', () => {
+    const text = size(render(1, el(TextInput, { label: 'a' })));
+    expect(text).toBe('lg');
+    expect(size(render(1, el(TimeInput, { label: 'b' })))).toBe(text);
+    expect(size(render(1, el(MultiSelect, { label: 'c', data: ['x'] })))).toBe(text);
   });
 });
 

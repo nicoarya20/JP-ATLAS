@@ -38,7 +38,8 @@ export const PM_KEY_DENY: readonly Deny[] = [
     method: 'POST',
     path: /^\/api\/app\/events\/.*\/cancel(?:\/.*)?$/i,
   },
-  // Every delete under /events, so the Trash route of E-07 is covered the moment it exists.
+  // Every delete under /events: sending an event to the Trash (E-07) and removing a guest. Restore sits under
+  // `POST trash/*` above, so both halves of the Urungkan flow stay session only.
   { id: 'DELETE events/*', method: 'DELETE', path: /^\/api\/app\/events\/.+/i },
   // S5a-04. Deleting a phase or milestone and clearing the manual condition are already session only
   // through `DELETE projects/*`; the two writes below are not deletes, so they get their own rules.
@@ -72,7 +73,7 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'DELETE tasks/*/comments/*': 'app-tasks.detail.ts',
   '* events/*/participants*': 'app-events.write.ts',
   'POST events/*/cancel': 'app-events.write.ts',
-  'DELETE events/*': 'app-events.write.ts', // guest removal today; `DELETE /events/:id` lands here in E-07
+  'DELETE events/*': 'app-events.write.ts', // guest removal; `DELETE /events/:id` (E-07) is in app-events.trash.ts
   'POST projects/*/condition-override': 'app-projects.deadline.ts',
   'POST projects/*/extend-deadline': 'app-projects.deadline.ts',
 };
