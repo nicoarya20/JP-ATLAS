@@ -1,13 +1,14 @@
 // Tasks ⑧b Edit task (detail ⋯ › Edit task): every field the detail shows, saved into the sample through the task store.
 // Status moves through the detail actions or the Kanban board, and Created by is a record, so neither is edited here.
 import { useState } from 'react';
-import { Btn, Chips, Field, Select } from '../../kit';
+import { Btn, Chips, Empty, Field, Select } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen } from './tasks.parts';
 import { EvidenceEdit, StepsEdit, TagsEdit } from './tasks.edit.lists';
 import { AssigneeEdit, Labelled, ReviewEdit, reviewerName, reviewersOf } from './tasks.form.fields';
 import { PRIORITIES, TYPES, assignees, info, isoOf, labelOf } from './tasks.shared';
+import { useMayChange } from './tasks.detail';
 import { editTask } from './tasks.store';
 
 /** Form state from task #no and its extras. reviewer = first name of the current reviewer, when that is a person. */
@@ -21,8 +22,20 @@ function initial(t, x) {
 
 /** ⑧b Edit task — opens on params.task (else #17); Save writes every field and goes back to the detail. */
 export function TasksEdit({ params }) {
+  const t = D.task(+params?.task) || D.task(17);
+  if (!useMayChange(t)) {
+    return (
+      <FootScreen title="Edit task" foot={<Foot><Btn back>Back</Btn></Foot>}>
+        <Empty title="You can't edit this task" text={`Only ${t.who}, the project Manager or an Admin can edit #${t.no}.`} />
+      </FootScreen>
+    );
+  }
+  return <EditForm t={t} />;
+}
+
+function EditForm({ t }) {
   const { is, back, toast } = useApp(), member = is('member');
-  const t = D.task(+params?.task) || D.task(17), x = info(t.no);
+  const x = info(t.no);
   const project = D.projects.find(p => p.name === t.project);
   const [f, setF] = useState(() => initial(t, x));
   const set = k => v => setF(s => ({ ...s, [k]: v }));

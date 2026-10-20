@@ -1,5 +1,5 @@
 // Tasks ⑧–⑩ shared detail layout: header block, key/value facts, sections, history, and a pinned comment bar.
-import { Avatar, Media, Menu, Pill } from '../../kit';
+import { Avatar, Media, Menu, Pill, Section } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, Sec, Tick } from './tasks.parts';
@@ -63,6 +63,20 @@ export function baseFacts(no, review, extra = []) {
   ];
 }
 
+/** A Member changes (moves, edits, cancels) only tasks assigned to them; Managers and Admins change any task. */
+export function useMayChange(t) {
+  return !useApp().is('member') || assigned(t, D.me().name);
+}
+
+/** Who a Member asks instead, in place of the actions on someone else's task. */
+function NotYours({ t }) {
+  return (
+    <Section className="tk-soft">
+      <p className="t-footnote">Only {assignees(t).join(', ')}, the project Manager or an Admin can change this task.</p>
+    </Section>
+  );
+}
+
 /**
  * Status change for task no from its detail or a sheet: (status, toast, log, extras) moves it, logs it as the signed-in
  * person ("Nico started working") and shows it on the detail screen for its new status, in place of the current one.
@@ -77,14 +91,14 @@ export function useStatusAction(no) {
 }
 
 /**
- * Detail page for task no. The ⋯ menu has Edit task and Cancel task. A Member edits and cancels only their own tasks
- * (in any status), so on someone else's task there is no ⋯ at all; a canceled task has neither ⋯ nor actions.
+ * Detail page for task no. The ⋯ menu has Edit task and Cancel task. A Member edits, cancels and moves only their own
+ * tasks (in any status), so someone else's task has no ⋯ and a note in place of the actions; a canceled task has neither.
  * banner, actions, facts, after and children fill the slots. Re-renders when the task is edited or moved.
  */
 export function TaskDetail({ no, banner, actions, facts, after, children }) {
   useTaskMoves();
   const t = D.task(no), x = info(no);
-  const mine = !useApp().is('member') || assigned(t, D.me().name);
+  const mine = useMayChange(t);
   const archived = D.archivedTasks.includes(t);
   const items = [{ label: 'Edit task', go: 'tasks.edit', task: no }, { label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }];
   const right = mine && !archived ? <Menu items={items} label="Task actions" /> : undefined;
@@ -100,7 +114,7 @@ export function TaskDetail({ no, banner, actions, facts, after, children }) {
         <span className="t-footnote bold">{dueLabel(t)}</span>
         <div><Pill>{t.status}</Pill></div>
       </div>
-      {archived ? <p className="t-footnote muted">Canceled · this task is in Archive.</p> : actions}
+      {archived ? <p className="t-footnote muted">Canceled · this task is in Archive.</p> : mine ? actions : <NotYours t={t} />}
       <dl className="tk-kv">
         {facts.map(([k, v]) => [<dt key={`${k}-k`}>{k}</dt>, <dd key={`${k}-v`}>{v}</dd>])}
       </dl>
