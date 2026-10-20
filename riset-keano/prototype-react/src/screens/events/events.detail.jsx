@@ -1,11 +1,10 @@
 // Events ④ detail (one-off "Onboarding design review") and ④b detail (recurring "Atlas sprint review").
 // Edit/Cancel/Archive: Admin all events, PM own events or managed projects, Member only own events.
 // No sample event belongs to the Member, so a Member never gets the ⋯ menu or Edit.
-import { useState } from 'react';
-import { Camera, ChevronRight, Ellipsis, Mic, PenLine, Repeat } from 'lucide-react';
+import { Camera, ChevronRight, Mic, PenLine, Repeat } from 'lucide-react';
 import { useApp, useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Avatar, Btn, Pill, Screen } from '../../kit';
+import { Avatar, Btn, Menu, Pill, Screen } from '../../kit';
 import { Ai, Box, Bullets, EvHead, EvSec, Note } from './events.parts';
 import { EV, PROJECT } from './events.shared';
 
@@ -14,27 +13,11 @@ const UPDATED = { review: 'Oct 7', sprint: 'Sep 25' };
 /** Sprint review has no agenda in D. */
 const SPRINT_AGENDA = ["Demo of this sprint's work", 'What went well and what to fix', 'Plan for the next sprint'];
 
-function MenuItem({ sheet, danger, children }) {
-  return <button type="button" className={danger ? 'ev-danger' : undefined} onClick={useNav({ sheet })}>{children}</button>;
-}
-
 /** ⋯ menu: Cancel event (⑩) and Move to Archive (⑪); suffix '-recurring' opens ⑩b / ⑪b. */
-function Menu({ suffix }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="ev-menu-wrap">
-      <button type="button" className="ev-menu-btn" aria-label="More" aria-expanded={open} onClick={() => setOpen(!open)}>
-        <Ellipsis size={22} />
-      </button>
-      {open && (
-        <div className="ev-menu" role="menu" onClick={() => setOpen(false)}>
-          <MenuItem sheet={`events.cancel${suffix}`}>Cancel event</MenuItem>
-          <MenuItem sheet={`events.archive${suffix}`} danger>Move to Archive</MenuItem>
-        </div>
-      )}
-    </div>
-  );
-}
+const menuItems = suffix => [
+  { label: 'Cancel event', sheet: `events.cancel${suffix}` },
+  { label: 'Move to Archive', sheet: `events.archive${suffix}`, danger: true },
+];
 
 function Person({ name, role }) {
   return (
@@ -93,7 +76,7 @@ function Detail({ rec }) {
   const role = n => [n === e.creator && 'Creator', n === e.noteTaker && 'Note-taker'].filter(Boolean).join(' · ');
   const people = [e.creator, ...e.attendees.filter(n => n !== e.creator)];
   return (
-    <Screen back title="Event detail" right={editor ? <Menu suffix={rec ? '-recurring' : ''} /> : undefined}>
+    <Screen back title="Event detail" right={editor ? <Menu items={menuItems(rec ? '-recurring' : '')} label="Event actions" /> : undefined}>
       <EvHead title={e.title}>
         <Pill tone="accent">Upcoming</Pill>
         <Pill tone="outline">{e.type}</Pill>

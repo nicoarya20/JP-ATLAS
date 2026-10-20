@@ -51,15 +51,6 @@
 .ev-kv dd { margin: 0; font-size: var(--fs-subhead); }
 .ev-kv-link { background: none; border: 0; padding: 0; color: var(--accent); font-size: var(--fs-subhead); text-align: left; cursor: pointer; }
 .ev-who { display: flex; align-items: center; gap: var(--sp-3); }
-.ev-menu-wrap { position: relative; }
-.ev-menu-btn { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: none;
-  color: var(--accent); cursor: pointer; }
-.ev-menu { position: absolute; right: 0; top: 40px; z-index: 30; min-width: 200px; display: grid; padding: var(--sp-1) 0;
-  border-radius: var(--radius-card); background: var(--surface); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18); }
-.ev-menu button { padding: var(--sp-3) var(--sp-4); border: 0; background: none; text-align: left; font-size: var(--fs-body);
-  color: var(--label); cursor: pointer; }
-.ev-menu button + button { border-top: 1px solid var(--separator); }
-.ev-menu .ev-danger { color: var(--danger); }
 
 /* Recording. */
 .ev-rec { display: grid; justify-items: center; gap: var(--sp-3); padding: var(--sp-6) 0; }

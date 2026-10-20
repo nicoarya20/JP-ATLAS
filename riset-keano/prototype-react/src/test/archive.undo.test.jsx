@@ -15,8 +15,10 @@ describe('archive undo', () => {
 
   it('archives an event from its ⋯ menu', async () => {
     renderApp('events.detail-upcoming', 'pm');
-    await userEvent.click(dom.getByRole('button', { name: 'More' }));
-    await userEvent.click(dom.getByText('Move to Archive'));
+    const dots = dom.getByRole('button', { name: 'Event actions' });
+    expect(dots).toHaveClass('menu-btn');
+    await userEvent.click(dots);
+    await userEvent.click(dom.getByRole('menuitem', { name: 'Move to Archive' }));
     expect(await dom.findByText('Archive event?')).toBeInTheDocument();
     expect(dom.getByText(/can be restored anytime/)).toBeInTheDocument();
     await userEvent.click(dom.getByRole('button', { name: 'Move to Archive' }));
