@@ -15,7 +15,9 @@ export function InboxTabs({ lane, actionCount, onChange }: Props) {
         { value: 'action', label: INBOX_COPY.tabAction(actionCount) },
         { value: 'info', label: INBOX_COPY.tabInfo },
       ]}
-      style={{ alignSelf: 'flex-start', maxWidth: '100%' }}
+      // Phone: the two tabs share the width and the label may wrap (a larger text size must not push the row past 375 px).
+      w={{ base: '100%', sm: 'auto' }}
+      styles={{ label: { whiteSpace: 'normal', lineHeight: 1.25 } }}
     />
   );
 }

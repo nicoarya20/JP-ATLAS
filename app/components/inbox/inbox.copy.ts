@@ -12,7 +12,6 @@ export const INBOX_COPY = {
   loadMore: 'Muat lebih banyak',
   unread: 'Belum dibaca',
   unknownSentence: 'Ada kabar baru untuk Anda',
-  unknownButton: 'Buka Inbox',
   emptyActionTitle: 'Semua beres',
   emptyActionBody: 'Tidak ada yang perlu Anda tanggapi saat ini.',
   emptyActionButton: 'Lihat Kabar terbaru',
