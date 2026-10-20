@@ -1,15 +1,17 @@
-// Kanban moves: a task dropped on another column gets that status written into the sample task, so the board, the
-// lists and the detail all show it. Readers re-render through useTaskMoves(); a page reload brings the sample back.
+// Task changes: a Kanban drop writes the new status and the ⋯ › Edit task form writes its fields into the sample task
+// (and its D.taskDetail extras), so the board, the lists and the detail all show them. Readers re-render through
+// useTaskMoves(); a page reload brings the sample back.
 import { useSyncExternalStore } from 'react';
 import { D } from '../../data/sample';
-import { TODAY, days } from './tasks.shared';
+import { TODAY, days, info } from './tasks.shared';
 
 const CLOCK = '09:41';   // the phone's status-bar time, so a move counts as "recently updated" today
 const pad = n => String(n).padStart(2, '0');
 const NOW = `${TODAY.getFullYear()}-${pad(TODAY.getMonth() + 1)}-${pad(TODAY.getDate())}T${CLOCK}`;
 const TODAY_LABEL = D.today.short.slice(5);   // "Oct 7"
 
-const ORIGINAL = new Map(D.tasks.map(t => [t.no, { status: t.status, when: t.when, updated: t.updated }]));
+const ORIGINAL = new Map(D.tasks.map(t => [t.no, structuredClone(t)]));
+const ORIGINAL_DETAIL = structuredClone(D.taskDetail);
 let version = 0;
 const listeners = new Set();
 const subscribe = fn => { listeners.add(fn); return () => listeners.delete(fn); };
@@ -33,9 +35,33 @@ export function moveTask(no, status) {
   notify();
 }
 
-/** Every task back to its sample status. test-only */
+/** Due note after the due date changed: kept for Done tasks, else counted from the new date. */
+function whenOfDue(t) {
+  if (t.status === 'Done') return t.when;
+  const d = days(t.due);
+  return d < 0 ? `${-d} days overdue` : d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : `Due ${t.due}`;
+}
+
+/**
+ * Save the Edit task form for task #no. fields = D.tasks keys (title, who, due, priority, type, tags);
+ * extras = D.taskDetail keys (phase, desc, reviewer, steps, proof). The task's history logs who edited it.
+ */
+export function editTask(no, fields, extras, editor) {
+  const t = D.task(no);
+  if (!t) throw new Error(`Cannot edit task #${no}: no such task`);
+  const dueChanged = fields.due !== undefined && fields.due !== t.due;
+  Object.assign(t, fields, { updated: NOW });
+  if (dueChanged) t.when = whenOfDue(t);
+  const base = D.taskDetail[no] || info(no);
+  D.taskDetail[no] = { ...base, ...extras, history: [...base.history, [`${editor} edited this task`, TODAY_LABEL]] };
+  notify();
+}
+
+/** Every task and its extras back to the sample. test-only */
 export function resetTasks() {
-  D.tasks.forEach(t => Object.assign(t, ORIGINAL.get(t.no)));
+  D.tasks.forEach(t => Object.assign(t, structuredClone(ORIGINAL.get(t.no))));
+  Object.keys(D.taskDetail).forEach(no => delete D.taskDetail[no]);
+  Object.assign(D.taskDetail, structuredClone(ORIGINAL_DETAIL));
   notify();
 }
 

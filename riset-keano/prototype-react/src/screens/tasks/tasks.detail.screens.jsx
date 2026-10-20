@@ -6,19 +6,20 @@ import { Sec } from './tasks.parts';
 import { Evidence, Step, TaskDetail, baseFacts, stepsTitle } from './tasks.detail';
 import { info, pick, reviewer } from './tasks.shared';
 
-/** ⑧ To do — review off, so Mark done finishes directly. */
+/** ⑧ To do — review off, so Mark done finishes directly; with review turned on (Edit task) only Start working. */
 export function TasksDetailTodo({ params }) {
   const member = useApp().is('member');
   const no = pick(params, 'tasks.detail-todo', 14), x = info(no);
   const actions = (
     <div className="row-flex">
       <Btn kind="primary" go="tasks.detail-progress" toast="Task started">Start working</Btn>
-      <Btn toast="Marked as done">Mark done</Btn>
+      {!x.reviewer && <Btn toast="Marked as done">Mark done</Btn>}
     </div>
   );
-  const review = D.taskDetail[no] && (member ? 'Off · you may turn it on' : 'Off · Mark done directly');
+  const off = member ? 'Off · you may turn it on' : 'Off · Mark done directly';
+  const review = D.taskDetail[no] && (x.reviewer ? 'Yes · Request review before Done' : off);
   return (
-    <TaskDetail no={no} menu={!member} actions={actions} facts={baseFacts(no, review)}>
+    <TaskDetail no={no} cancel={!member} actions={actions} facts={baseFacts(no, review, x.reviewer ? [['Reviewer', x.reviewer]] : [])}>
       <Sec title={stepsTitle(x.steps)}>
         {x.steps.length ? x.steps.map(s => <Step key={s[0]} step={s} />) : <p className="t-footnote muted">No steps yet.</p>}
         <div><Link toast="Step added">+ Add step</Link></div>

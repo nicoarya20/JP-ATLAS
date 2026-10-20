@@ -3,10 +3,8 @@ import { Lock } from 'lucide-react';
 import { Btn, Empty, Link, Pill, Row, Rows, Screen, Section, Select, Switch } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { atlasTasks } from './tasks.shared';
+import { TYPES, atlasTasks } from './tasks.shared';
 
-// "Improvement" is a sample type with no tasks yet.
-const TYPES = [['Task', 'Task (task)'], ['Bug', 'Issue (issue)'], ['Improvement', 'Idea (idea)']];
 const count = n => `${n} task${n === 1 ? '' : 's'}`;
 const tagCounts = () => Object.entries(atlasTasks().flatMap(t => t.tags).reduce((m, x) => ({ ...m, [x]: (m[x] || 0) + 1 }), {}));
 

@@ -1,8 +1,9 @@
 // Tasks ⑧–⑩ shared detail layout: header block, key/value facts, sections, history, and a pinned comment bar.
-import { Avatar, Btn, Media, Pill } from '../../kit';
+import { Avatar, Media, Menu, Pill } from '../../kit';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, Sec, Tick } from './tasks.parts';
 import { days, info } from './tasks.shared';
+import { useTaskMoves } from './tasks.store';
 
 const dueLabel = t => {
   const d = days(t.due);
@@ -61,10 +62,16 @@ export function baseFacts(no, review, extra = []) {
   ];
 }
 
-/** Detail page for task no. menu = false hides ⋯ (Cancel sheet); banner, actions, facts, after and children fill the slots. */
-export function TaskDetail({ no, menu = true, banner, actions, facts, after, children }) {
+/**
+ * Detail page for task no. The ⋯ menu always has Edit task; cancel = false leaves out Cancel task. banner, actions,
+ * facts, after and children fill the slots. Re-renders when the task is edited or moved.
+ */
+export function TaskDetail({ no, cancel = true, banner, actions, facts, after, children }) {
+  useTaskMoves();
   const t = D.task(no), x = info(no);
-  const right = menu ? <Btn kind="ghost" sm sheet="tasks.cancel" task={no} aria-label="More">⋯</Btn> : null;
+  const items = [{ label: 'Edit task', go: 'tasks.edit', task: no },
+    ...(cancel ? [{ label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }] : [])];
+  const right = <Menu items={items} label="Task actions" />;
   const foot = <Foot><input className="tk-comment" placeholder="Write a comment… (@name to mention)" aria-label="Comment" /></Foot>;
   return (
     <FootScreen title="Task detail" right={right} foot={foot}>

@@ -8,6 +8,15 @@ const date = s => { const [m, d] = s.split(' '); return new Date(YEAR, MON.index
 export const TODAY = date(D.today.short.slice(5));
 /** Days from today to a short due label (negative = overdue). */
 export const days = s => Math.round((date(s) - TODAY) / 864e5);
+const pad = n => String(n).padStart(2, '0');
+/** "Oct 5" → "2026-10-05" (a date input's value). */
+export const isoOf = s => { const d = date(s); return `${YEAR}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+/** "2026-10-05" → "Oct 5". */
+export const labelOf = iso => { const [, m, d] = iso.split('-'); return `${MON[+m - 1]} ${+d}`; };
+
+export const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
+// "Improvement" is a sample type with no tasks yet.
+export const TYPES = [['Task', 'Task (task)'], ['Bug', 'Issue (issue)'], ['Improvement', 'Idea (idea)']];
 
 /** Reviewer of the sample review task #17; D.tasks notes are written from their side. */
 export const reviewer = () => D.taskDetail[17].reviewer.split(' ')[0];

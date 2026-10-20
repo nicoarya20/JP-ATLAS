@@ -4,7 +4,7 @@ import { Btn, Chips, Field, Link, Pill, Section, Seg, Switch } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, SelectField, Tick } from './tasks.parts';
-import { atlas, reviewer } from './tasks.shared';
+import { PRIORITIES, atlas, reviewer } from './tasks.shared';
 
 function DraftCard({ d }) {
   return (
@@ -58,8 +58,6 @@ export function TasksWrite() {
     </FootScreen>
   );
 }
-
-const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
 
 /** ⑥ New task · Fill form — sample = the first AI draft. Reviewer only Managers/Admins, never the assignee. */
 export function TasksForm() {

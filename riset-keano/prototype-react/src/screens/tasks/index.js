@@ -7,6 +7,7 @@ import { TasksDetailProgress, TasksDetailReview, TasksDetailTodo } from './tasks
 import { TasksCancel, TasksReturn } from './tasks.sheets';
 import { TasksFilter } from './tasks.filter';
 import { TasksSettings } from './tasks.settings';
+import { TasksEdit } from './tasks.edit';
 import './tasks.css';
 
 const G = 'Tasks';
@@ -22,6 +23,7 @@ screen('tasks.csv', { title: '⑦ Import CSV', group: G, Component: TasksCsv });
 screen('tasks.detail-todo', { title: '⑧ Detail · To do', group: G, Component: TasksDetailTodo });
 screen('tasks.detail-progress', { title: '⑨ Detail · In progress', group: G, Component: TasksDetailProgress });
 screen('tasks.detail-review', { title: '⑩ Detail · In review', group: G, Component: TasksDetailReview });
+screen('tasks.edit', { title: '⑩b Edit task (detail ⋯)', group: G, Component: TasksEdit });
 sheet('tasks.return', { title: '⑪ Sheet · Return', group: G, roles: ['pm', 'admin'], Component: TasksReturn });
 sheet('tasks.cancel', { title: '⑫ Sheet · Cancel', group: G, Component: TasksCancel });
 screen('tasks.settings', { title: '⑬ Project settings', group: G, Component: TasksSettings });

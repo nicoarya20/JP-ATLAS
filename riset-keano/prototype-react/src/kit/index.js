@@ -6,3 +6,4 @@ export { Select, Search, Switch, Label, Snack } from './form';
 export { Sheet } from './sheet';
 export { FullSheet } from './fullsheet';
 export { SearchFilter, FilterPanel } from './filter';
+export { Menu } from './menu';

@@ -50,14 +50,16 @@ export function Row({ lead, title, sub, right, chev, ...props }) {
   );
 }
 
-/** Form field. value = filled-in text; placeholder; area = multi-line; disabled; icon = trailing element. */
-export function Field({ label, value, placeholder, area, disabled, icon }) {
+/** Form field. value = filled-in text; placeholder; area = multi-line; disabled; icon = trailing element; type = input type.
+ *  With onChange(value) the field is controlled (value is the live text), else value is only where typing starts. */
+export function Field({ label, value, placeholder, area, disabled, icon, type, onChange }) {
   const id = useId();
+  const text = onChange ? { value, onChange: e => onChange(e.target.value) } : { defaultValue: value };
   if (area) {
     return (
       <label className="field">
         <span className="t-footnote muted">{label}</span>
-        <textarea className="field-area" defaultValue={value} placeholder={placeholder} disabled={disabled} rows={4} />
+        <textarea className="field-area" {...text} placeholder={placeholder} disabled={disabled} rows={4} />
       </label>
     );
   }
@@ -67,7 +69,7 @@ export function Field({ label, value, placeholder, area, disabled, icon }) {
   return (
     <div className="field">
       <label className="t-footnote muted" htmlFor={id}>{label}</label>
-      <TextField id={id} variant="filled" className="variant-filled" defaultValue={value} placeholder={placeholder} disabled={disabled}
+      <TextField id={id} variant="filled" className="variant-filled" type={type} {...text} placeholder={placeholder} disabled={disabled}
         rightIcon={icon} />
     </div>
   );
