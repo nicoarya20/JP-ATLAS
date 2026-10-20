@@ -37,10 +37,6 @@ export const inboxKeys = {
 export const INBOX_PATH = '/app/inbox';
 const INBOX_URL = '/api/app/inbox';
 
-/** The open Inbox on one lane, as a link target (`?tab=info` opens Kabar terbaru). */
-export const inboxLaneHref = (lane: InboxLane) =>
-  lane === 'info' ? `${INBOX_PATH}?tab=info` : INBOX_PATH;
-
 /** Reads `?tab=` leniently: anything but `info` is the work queue, the default tab. */
 export const laneFromTab = (tab: string | null): InboxLane => (tab === 'info' ? 'info' : 'action');
 

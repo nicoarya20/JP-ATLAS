@@ -34,9 +34,6 @@ export function sectionsFor(lane: InboxLane, items: readonly InboxItem[]): Inbox
   return items.length > 0 ? [{ key: 'open', heading: null, items: [...items] }] : [];
 }
 
-/** How many cards still carry the unread dot. */
-export const unreadCount = (items: readonly InboxItem[]) => items.filter((i) => !i.read).length;
-
 const shortDate = new Map<string, Intl.DateTimeFormat>();
 function shortDay(iso: string, timeZone: string): string {
   let f = shortDate.get(timeZone);

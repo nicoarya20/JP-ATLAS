@@ -9,7 +9,6 @@ import {
   leaveRangeOf,
   relativeTime,
   sectionsFor,
-  unreadCount,
 } from '../../app/lib/inbox-view';
 import { CLOCK, eventCard, leaveRequestCard, minutesAgo, taskCard } from './inbox-fixtures';
 
@@ -31,7 +30,7 @@ describe('groupInbox / sectionsFor', () => {
   });
 
   it('leaves out an empty day instead of printing a bare heading', () => {
-    expect(groupInbox([items[0]!]).map((s) => s.heading)).toEqual(['Hari ini']);
+    expect(groupInbox(items.slice(0, 1)).map((s) => s.heading)).toEqual(['Hari ini']);
     expect(groupInbox([])).toEqual([]);
   });
 
@@ -42,12 +41,6 @@ describe('groupInbox / sectionsFor', () => {
     expect(flat[0]?.heading).toBeNull();
     expect(flat[0]?.items.map((i) => i.id)).toEqual(['a', 'b', 'c', 'd']);
     expect(sectionsFor('action', [])).toEqual([]);
-  });
-});
-
-describe('unreadCount', () => {
-  it('counts the cards with a dot', () => {
-    expect(unreadCount([taskCard(), taskCard({ read: true }), taskCard()])).toBe(2);
   });
 });
 

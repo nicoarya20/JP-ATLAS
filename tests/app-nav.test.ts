@@ -3,9 +3,9 @@
  * sub-pages keep their section lit. A NAV item with no route would be a dead link in the menu.
  */
 import { describe, expect, it } from 'bun:test';
-import { isNavActive } from '../app/components/frame/nav';
+import { isNavActive, withBadges } from '../app/components/frame/nav';
 import routes from '../app/routes';
-import { NAV } from '../app/routes/app/layout';
+import { NAV, NAV_GROUPS } from '../app/routes/app/layout';
 
 type Entry = { path?: string; children?: Entry[] };
 
@@ -52,6 +52,21 @@ describe('/app NAV', () => {
 
   it('does not link to /profile (it stays a route, but Settings is the menu entry)', () => {
     expect(NAV.map((n) => n.to)).not.toContain('/profile');
+  });
+});
+
+describe('Inbox badge', () => {
+  const badgeOf = (groups: typeof NAV_GROUPS) =>
+    groups.flatMap((g) => g.items).find((n) => n.to === '/app/inbox')?.badge;
+
+  it('is not hard-coded in the NAV: the number comes from the live count', () => {
+    expect(NAV.filter((n) => n.badge)).toEqual([]);
+  });
+
+  it('shows the open-card count when there is one and disappears at zero', () => {
+    const live = (value: number) => ({ '/app/inbox': { value, tone: 'alert' as const } });
+    expect(badgeOf(withBadges(NAV_GROUPS, live(4)))).toMatchObject({ value: 4, tone: 'alert' });
+    expect(badgeOf(withBadges(NAV_GROUPS, live(0)))).toBeUndefined();
   });
 });
 
