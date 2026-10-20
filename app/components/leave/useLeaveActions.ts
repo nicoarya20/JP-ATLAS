@@ -1,21 +1,14 @@
-/** The one-click leave writes of the settings page (cancel, approve) with their dialog, toast and refresh. */
-import { useState } from 'react';
+/** The leave write of the settings page (cancel) with its dialog, toast and refresh. */
 import { useRevalidator } from 'react-router';
 import { confirmAction } from '~/components/ui/confirmAction';
-import {
-  approveLeave,
-  cancelLeave,
-  type LeavePendingDto,
-  type LeaveRequestDto,
-} from '~/lib/leave-api';
+import { cancelLeave, type LeaveRequestDto } from '~/lib/leave-api';
 import { formatLeaveRange } from '~/lib/leave-view';
 import { useApiMutation } from '~/lib/use-api-mutation';
-import { LEAVE_APPROVAL_COPY, LEAVE_CANCEL_COPY } from './leave.copy';
+import { LEAVE_CANCEL_COPY } from './leave.copy';
 
-/** Cancelling asks first (T2): the dialog says what changes for colleagues; approving is a direct click. */
+/** Cancelling asks first (T2): the dialog says what changes for colleagues. */
 export function useLeaveActions() {
   const { revalidate } = useRevalidator();
-  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const cancelMut = useApiMutation({
     mutationFn: (id: string) => cancelLeave(id),
@@ -26,18 +19,8 @@ export function useLeaveActions() {
     onError: () => void revalidate(),
   });
 
-  const approveMut = useApiMutation({
-    mutationFn: (item: LeavePendingDto) => approveLeave(item.id),
-    successMessage: (_d, item) => LEAVE_APPROVAL_COPY.approved(item.requester.name),
-    errorTitle: LEAVE_APPROVAL_COPY.approveFailed,
-    onSuccess: () => revalidate(),
-    // Someone else may have decided first; reload so the card leaves the list.
-    onError: () => void revalidate(),
-  });
-
   return {
     cancelling: cancelMut.loading,
-    approvingId,
     /** Asks for confirmation, then withdraws the request (pending) or the leave (approved). */
     askCancel(request: LeaveRequestDto) {
       const range = formatLeaveRange(request.startDate, request.endDate);
@@ -49,14 +32,6 @@ export function useLeaveActions() {
         danger: true,
         onConfirm: () => void cancelMut.run(request.id),
       });
-    },
-    async approve(item: LeavePendingDto) {
-      setApprovingId(item.id);
-      try {
-        await approveMut.run(item);
-      } finally {
-        setApprovingId(null);
-      }
     },
   };
 }

@@ -1,18 +1,15 @@
-/** Leave UI on /app/settings: the card in its four states, the request dialog, the approval list, the blocks per right. */
+/** Leave UI: the card in its four states on /app/settings, the request dialog, the rejection dialog and the blocks per right. */
 import { afterEach, describe, expect, it, spyOn } from 'bun:test';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LeaveApprovalList } from '../../app/components/leave/LeaveApprovalList';
 import { LeaveCard } from '../../app/components/leave/LeaveCard';
-import { LeaveRejectView } from '../../app/components/leave/LeaveRejectModal';
+import {
+  type LeaveRejectTarget,
+  LeaveRejectView,
+} from '../../app/components/leave/LeaveRejectModal';
 import { LeaveRequestView } from '../../app/components/leave/LeaveRequestModal';
 import { LeaveSections } from '../../app/components/leave/LeaveSections';
 import { ApiError, describeApiError } from '../../app/lib/http';
-import type {
-  LeaveMeDto,
-  LeavePageData,
-  LeavePendingDto,
-  LeaveRequestDto,
-} from '../../app/lib/leave-api';
+import type { LeaveMeDto, LeavePageData, LeaveRequestDto } from '../../app/lib/leave-api';
 import { submitLeave } from '../../app/lib/leave-api';
 import { render } from './project-fixtures';
 
@@ -213,68 +210,19 @@ describe('a refused request reaches the dialog as the server wrote it', () => {
   });
 });
 
-const pending = (over: Partial<LeavePendingDto> = {}): LeavePendingDto => ({
+const target = (over: Partial<LeaveRejectTarget> = {}): LeaveRejectTarget => ({
   id: 'l-9',
-  requester: { id: 'u-9', name: 'Dodi' },
+  name: 'Dodi',
   startDate: '2026-10-14',
   endDate: '2026-10-16',
-  days: 3,
-  note: 'Ke dokter',
-  createdAt: '2026-10-09T03:00:00.000Z',
-  dueTasks: 2,
   ...over,
-});
-
-const list = (items: LeavePendingDto[], total = items.length, approvingId: string | null = null) =>
-  render(
-    <LeaveApprovalList
-      page={{ items, total, page: 1, limit: 20 }}
-      approvingId={approvingId}
-      onApprove={() => {}}
-      onReject={() => {}}
-    />,
-  );
-
-describe('LeaveApprovalList', () => {
-  it('shows who asks, the range, the days, the due tasks, the note and both buttons', async () => {
-    const html = await list([pending()]);
-    expect(html).toContain('Dodi');
-    expect(html).toContain('14–16 Okt 2026 · 3 hari');
-    expect(html).toContain('2 tugas jatuh tempo selama cuti');
-    expect(html).toContain('Catatan: Ke dokter');
-    expect(html).toContain('Setujui');
-    expect(html).toContain('Tolak');
-  });
-
-  it('says there are no due tasks instead of "0 tugas"', async () => {
-    const html = await list([pending({ dueTasks: 0, note: null })]);
-    expect(html).toContain('Tidak ada tugas jatuh tempo');
-    expect(html).not.toContain('0 tugas');
-    expect(html).not.toContain('Catatan:');
-  });
-
-  it('shows an informative empty state', async () => {
-    const html = await list([]);
-    expect(html).toContain('Tidak ada pengajuan yang menunggu');
-    expect(html).not.toContain('Setujui');
-  });
-
-  it('says how many are shown when the list is cut', async () => {
-    expect(await list([pending()], 31)).toContain('Menampilkan 1 dari 31 pengajuan.');
-  });
-
-  it('spins the approve button of the request being approved and holds its Tolak button', async () => {
-    const html = await list([pending(), pending({ id: 'l-10' })], 2, 'l-9');
-    expect(html.match(/<button[^>]*data-loading="true"/g)).toHaveLength(1);
-    expect(html.match(/<button[^>]*data-disabled="true"/g)).toHaveLength(1);
-  });
 });
 
 describe('LeaveRejectView', () => {
   it('names the requester, explains the impact and has an optional reason', async () => {
     const html = await render(
       <LeaveRejectView
-        item={pending()}
+        item={target()}
         reason="Ada tenggat"
         error={null}
         loading={false}
@@ -294,7 +242,7 @@ describe('LeaveRejectView', () => {
   it('keeps a refusal such as ALREADY_DECIDED inside the dialog', async () => {
     const html = await render(
       <LeaveRejectView
-        item={pending()}
+        item={target()}
         reason=""
         error="Pengajuan ini sudah diputuskan."
         loading={false}
@@ -308,12 +256,10 @@ describe('LeaveRejectView', () => {
   });
 });
 
-const page = (flags: Partial<LeavePageData['flags']>, withPending = false): LeavePageData => ({
+const page = (flags: Partial<LeavePageData['flags']>): LeavePageData => ({
   me: me('none', null),
   today: TODAY,
-  pending: withPending ? { items: [pending()], total: 1, page: 1, limit: 20 } : null,
   flags: {
-    canDecide: false,
     canManageSwitch: false,
     autoApproves: false,
     approvers: 'manager_or_admin',
@@ -337,19 +283,18 @@ describe('LeaveSections follow the loader flags', () => {
     expect(html).not.toContain('Cuti perlu persetujuan');
   });
 
-  it('an approver also sees Persetujuan cuti with the waiting requests, but not the team switch', async () => {
-    const html = await sections(page({ canDecide: true, approvers: 'admin' }, true));
-    expect(html).toContain('Persetujuan cuti');
-    expect(html).toContain('Dodi');
+  it('an approver no longer sees a "Persetujuan cuti" block: requests are decided from the Inbox', async () => {
+    const html = await sections(page({ approvers: 'admin' }));
+    expect(html).not.toContain('Persetujuan cuti');
     expect(html).not.toContain('Pengaturan tim');
   });
 
-  it('an Admin sees all three, the switch with its explanation', async () => {
+  it('an Admin sees Ketersediaan and the team switch with its explanation', async () => {
     const html = await sections(
-      page({ canDecide: true, canManageSwitch: true, autoApproves: true, approvers: 'none' }, true),
+      page({ canManageSwitch: true, autoApproves: true, approvers: 'none' }),
     );
     expect(html).toContain('Ketersediaan');
-    expect(html).toContain('Persetujuan cuti');
+    expect(html).not.toContain('Persetujuan cuti');
     expect(html).toContain('Pengaturan tim');
     expect(html).toContain('Cuti perlu persetujuan');
     expect(html).toContain('Bila dimatikan, semua cuti langsung berlaku.');

@@ -1,57 +1,77 @@
-import { Avatar, Button, Group, Paper, Stack, Text } from '@mantine/core';
-import { FiInbox } from 'react-icons/fi';
-import { Link } from 'react-router';
-import { EmptyState } from '~/components/ui/EmptyState';
-import type { InboxItem } from './inbox.dummy';
+/** The cards of one lane: sections per day, "Muat lebih banyak", and the loading, error and empty states. */
+import { Button, Skeleton, Stack, Text } from '@mantine/core';
+import { describeApiError } from '~/lib/http';
+import type { InboxItem, InboxLane, InboxSeed } from '~/lib/inbox-api';
+import { uniqueInboxItems } from '~/lib/inbox-api';
+import { type InboxClock, sectionsFor } from '~/lib/inbox-view';
+import { useInboxPages } from '~/lib/use-inbox';
+import { InboxCard } from './InboxCard';
+import { InboxEmpty } from './InboxEmpty';
+import { InboxLoadError } from './InboxLoadError';
+import { INBOX_COPY } from './inbox.copy';
 
-/** Message rows with an unread dot, avatar, text and one action. */
-export function InboxList({ items, emptyTitle }: { items: InboxItem[]; emptyTitle: string }) {
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={FiInbox}
-        title={emptyTitle}
-        description="Kabar dan permintaan baru akan muncul di sini."
-      />
-    );
-  }
+type Props = {
+  lane: InboxLane;
+  seed: InboxSeed;
+  clock: InboxClock;
+  approvingId: string | null;
+  onOpen: (item: InboxItem) => void;
+  onApprove: (item: InboxItem) => void;
+  onReject: (item: InboxItem) => void;
+  onShowNews: () => void;
+};
+
+export function InboxList({ lane, seed, clock, onShowNews, ...cardActions }: Props) {
+  const pages = useInboxPages(lane, seed);
+  const items = uniqueInboxItems(pages.data?.pages ?? []);
   return (
-    <Stack gap="xs">
-      {items.map((i) => (
-        <Paper key={i.id} withBorder p="sm" radius="md">
-          <Group justify="space-between" wrap="wrap" gap="sm" align="center">
-            <Group
-              gap="sm"
-              wrap="nowrap"
-              align="flex-start"
-              style={{ minWidth: 0, flex: '1 1 280px' }}
-            >
-              <span
-                {...(i.unread
-                  ? { role: 'img', 'aria-label': 'Belum dibaca' }
-                  : { 'aria-hidden': true })}
-                style={{
-                  width: 8,
-                  height: 8,
-                  marginTop: 14,
-                  flexShrink: 0,
-                  borderRadius: '50%',
-                  background: i.unread ? 'var(--mantine-color-text)' : 'transparent',
-                }}
-              />
-              <Avatar radius="xl" color="initials" name={i.actor} />
-              <Stack gap={2} style={{ minWidth: 0 }}>
-                <Text fw={700}>{i.title}</Text>
-                <Text size="sm">{i.detail}</Text>
-                <Text size="xs" c="dimmed">{`${i.project} · ${i.when}`}</Text>
-              </Stack>
-            </Group>
-            <Button component={Link} to={i.to} variant={i.actionLabel ? 'filled' : 'default'}>
-              {i.actionLabel ?? 'Buka'}
-            </Button>
-          </Group>
-        </Paper>
+    <Stack gap="md">
+      {pages.isError && (
+        <InboxLoadError
+          message={describeApiError(pages.error)}
+          retrying={pages.isFetching}
+          onRetry={() => void pages.refetch()}
+        />
+      )}
+      {pages.isPending && <Skeleton height={88} radius="md" aria-label={INBOX_COPY.loading} />}
+      {pages.data && items.length === 0 && !pages.isError && (
+        <InboxEmpty lane={lane} onShowNews={onShowNews} />
+      )}
+      {sectionsFor(lane, items).map((section) => (
+        <Stack
+          key={section.key}
+          gap="xs"
+          component="section"
+          aria-label={section.heading ?? undefined}
+        >
+          {section.heading && (
+            <Text fw={700} size="sm">
+              {section.heading}
+            </Text>
+          )}
+          {section.items.map((item) => (
+            <InboxCard
+              key={item.id}
+              item={item}
+              clock={clock}
+              busy={cardActions.approvingId === item.id}
+              onOpen={cardActions.onOpen}
+              onApprove={cardActions.onApprove}
+              onReject={cardActions.onReject}
+            />
+          ))}
+        </Stack>
       ))}
+      {pages.hasNextPage && (
+        <Button
+          variant="default"
+          loading={pages.isFetchingNextPage}
+          onClick={() => void pages.fetchNextPage()}
+          style={{ alignSelf: 'center' }}
+        >
+          {INBOX_COPY.loadMore}
+        </Button>
+      )}
     </Stack>
   );
 }

@@ -60,6 +60,8 @@ type Props = {
   consoleLabel?: string;
   /** Live counters keyed by route path, resolved in the layout loader. */
   navBadges?: Record<string, NavBadge>;
+  /** Notification bell: shown beside the theme toggle and in the mobile header; areas without one omit it. */
+  bell?: ReactNode;
   env?: string;
   version?: string;
   /** App name/tagline from settings (defaults to Simple PM). */
@@ -91,6 +93,7 @@ export function AppFrame(props: Props) {
     version,
     branding,
     maintenance,
+    bell,
     initialCollapsed = false,
   } = props;
   const appName = branding?.appName ?? 'Simple PM';
@@ -152,6 +155,7 @@ export function AppFrame(props: Props) {
               )}
             </Group>
           </Link>
+          {bell && <div style={{ marginLeft: 'auto', flexShrink: 0 }}>{bell}</div>}
         </Group>
       </AppShell.Header>
 
@@ -164,7 +168,12 @@ export function AppFrame(props: Props) {
             consoleLabel={consoleLabel}
             env={env}
             version={version}
-            extra={<ThemeToggle collapsed />}
+            extra={
+              <>
+                {bell}
+                <ThemeToggle collapsed />
+              </>
+            }
             appName={appName}
           />
         </AppShell.Section>

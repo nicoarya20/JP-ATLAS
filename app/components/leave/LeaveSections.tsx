@@ -1,25 +1,22 @@
 /**
- * The three leave blocks of Pengaturan: Ketersediaan (everyone), Persetujuan cuti (approvers) and
- * Pengaturan tim (Admin). Which blocks show is decided by the loader flags, never by a role here.
+ * The leave blocks of Pengaturan: Ketersediaan (everyone) and Pengaturan tim (Admin). Approvers decide
+ * requests from the Inbox card, not here. Which blocks show is decided by the loader flags, never by a role here.
  */
 import { useState } from 'react';
 import { useRevalidator } from 'react-router';
 import { SettingsSection } from '~/components/account/SettingsSection';
-import type { LeavePageData, LeavePendingDto } from '~/lib/leave-api';
-import { LeaveApprovalList } from './LeaveApprovalList';
+import type { LeavePageData } from '~/lib/leave-api';
 import { LeaveCard } from './LeaveCard';
-import { LeaveRejectModal } from './LeaveRejectModal';
 import { LeaveRequestModal } from './LeaveRequestModal';
 import { LeaveTeamSwitch } from './LeaveTeamSwitch';
-import { LEAVE_APPROVAL_COPY, LEAVE_COPY, LEAVE_SWITCH_COPY } from './leave.copy';
+import { LEAVE_COPY, LEAVE_SWITCH_COPY } from './leave.copy';
 import { useLeaveActions } from './useLeaveActions';
 
 export function LeaveSections({ leave }: { leave: LeavePageData }) {
-  const { me, today, pending, flags } = leave;
+  const { me, today, flags } = leave;
   const { revalidate } = useRevalidator();
   const actions = useLeaveActions();
   const [requesting, setRequesting] = useState(false);
-  const [rejecting, setRejecting] = useState<LeavePendingDto | null>(null);
   const refresh = () => void revalidate();
 
   return (
@@ -42,17 +39,6 @@ export function LeaveSections({ leave }: { leave: LeavePageData }) {
           onSaved={refresh}
         />
       </SettingsSection>
-      {flags.canDecide && pending && (
-        <SettingsSection title={LEAVE_APPROVAL_COPY.title}>
-          <LeaveApprovalList
-            page={pending}
-            approvingId={actions.approvingId}
-            onApprove={(item) => void actions.approve(item)}
-            onReject={setRejecting}
-          />
-          <LeaveRejectModal item={rejecting} onClose={() => setRejecting(null)} onDone={refresh} />
-        </SettingsSection>
-      )}
       {flags.canManageSwitch && (
         <SettingsSection title={LEAVE_SWITCH_COPY.title}>
           <LeaveTeamSwitch initial={me.requiresApproval} />

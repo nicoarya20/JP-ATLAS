@@ -4,12 +4,15 @@ import { LEAVE_REJECT_REASON_MAX } from '@server/leave/leave.dto';
 import { useState } from 'react';
 import { notify } from '~/components/ui/notify';
 import { describeApiError } from '~/lib/http';
-import { type LeavePendingDto, rejectLeave } from '~/lib/leave-api';
+import { rejectLeave } from '~/lib/leave-api';
 import { formatLeaveRange } from '~/lib/leave-view';
 import { LEAVE_REJECT_COPY } from './leave.copy';
 
+/** The request being refused: its id, the requester's name and the range, as the Inbox card shows them. */
+export type LeaveRejectTarget = { id: string; name: string; startDate: string; endDate: string };
+
 type ViewProps = {
-  item: LeavePendingDto;
+  item: LeaveRejectTarget;
   reason: string;
   error: string | null;
   loading: boolean;
@@ -24,7 +27,7 @@ export function LeaveRejectView(p: ViewProps) {
   return (
     <Stack gap="sm">
       <Text size="sm">
-        {`${p.item.requester.name}, ${formatLeaveRange(p.item.startDate, p.item.endDate)}. `}
+        {`${p.item.name}, ${formatLeaveRange(p.item.startDate, p.item.endDate)}. `}
         {LEAVE_REJECT_COPY.impact}
       </Text>
       <Textarea
@@ -56,7 +59,7 @@ export function LeaveRejectView(p: ViewProps) {
   );
 }
 
-type FormProps = { item: LeavePendingDto; onClose: () => void; onDone: () => void };
+type FormProps = { item: LeaveRejectTarget; onClose: () => void; onDone: () => void };
 
 function LeaveRejectForm({ item, onClose, onDone }: FormProps) {
   const [reason, setReason] = useState('');
@@ -67,7 +70,7 @@ function LeaveRejectForm({ item, onClose, onDone }: FormProps) {
     setLoading(true);
     try {
       await rejectLeave(item.id, reason.trim() === '' ? null : reason.trim());
-      notify.success(LEAVE_REJECT_COPY.done(item.requester.name));
+      notify.success(LEAVE_REJECT_COPY.done(item.name));
       onDone();
       onClose();
     } catch (err) {
@@ -93,7 +96,7 @@ function LeaveRejectForm({ item, onClose, onDone }: FormProps) {
   );
 }
 
-type ModalProps = { item: LeavePendingDto | null; onClose: () => void; onDone: () => void };
+type ModalProps = { item: LeaveRejectTarget | null; onClose: () => void; onDone: () => void };
 
 /** Open while `item` is set; the form unmounts on close, so the next rejection starts with an empty reason. */
 export function LeaveRejectModal({ item, onClose, onDone }: ModalProps) {
@@ -101,7 +104,7 @@ export function LeaveRejectModal({ item, onClose, onDone }: ModalProps) {
     <Modal
       opened={item !== null}
       onClose={onClose}
-      title={item ? LEAVE_REJECT_COPY.title(item.requester.name) : ''}
+      title={item ? LEAVE_REJECT_COPY.title(item.name) : ''}
       centered
     >
       {item && <LeaveRejectForm item={item} onClose={onClose} onDone={onDone} />}

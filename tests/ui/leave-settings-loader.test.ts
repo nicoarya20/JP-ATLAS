@@ -74,62 +74,42 @@ describe("settings loader: the person's own leave", () => {
 });
 
 describe('settings loader: rights per person', () => {
-  it('Member: no approvals, no team switch, the request goes to a Pengelola or an Admin', async () => {
+  it('Member: no team switch, the request goes to a Pengelola or an Admin', async () => {
     const leave = await leaveOf(w.dodi);
     expect(leave.flags).toEqual({
-      canDecide: false,
       canManageSwitch: false,
       autoApproves: false,
       approvers: 'manager_or_admin',
     });
-    expect(leave.pending).toBeNull();
   });
 
-  it('Project Manager: sees the requests of their Members, not the team switch; asks Admin', async () => {
-    await seedLeave(w.dodi, day(3), day(5), 'pending');
-    await seedLeave(w.oki, day(3), day(5), 'pending'); // Oki is in a project Nico does not manage
+  it('Project Manager: no team switch; their own request goes to Admin', async () => {
     const leave = await leaveOf(w.nico);
     expect(leave.flags).toEqual({
-      canDecide: true,
       canManageSwitch: false,
       autoApproves: false,
       approvers: 'admin',
     });
-    expect(leave.pending?.total).toBe(1);
-    expect(leave.pending?.items[0]).toMatchObject({
-      requester: { id: w.dodi.id, name: 'Dodi' },
-      startDate: day(3),
-      days: 3,
-      dueTasks: 0,
-    });
   });
 
-  it('Admin: sees every request and the team switch; their own leave is saved at once', async () => {
-    await seedLeave(w.dodi, day(3), day(5), 'pending');
-    await seedLeave(w.oki, day(3), day(5), 'pending');
+  it('Admin: sees the team switch; their own leave is saved at once', async () => {
     const leave = await leaveOf(w.ayu);
     expect(leave.flags).toEqual({
-      canDecide: true,
       canManageSwitch: true,
       autoApproves: true,
       approvers: 'none',
     });
-    expect(leave.pending?.total).toBe(2);
   });
 
   it('Super-admin: the same as Admin', async () => {
     const boss = await f.user({ role: 'super-admin' });
-    const flags = (await leaveOf(boss)).flags;
-    expect(flags.canDecide).toBe(true);
-    expect(flags.canManageSwitch).toBe(true);
+    expect((await leaveOf(boss)).flags.canManageSwitch).toBe(true);
   });
 
-  it('a Super-admin acting as someone else decides nothing and cannot flip the switch', async () => {
+  it('a Super-admin acting as someone else cannot flip the switch', async () => {
     const boss = await f.user({ role: 'super-admin' });
     const leave = await leaveOf(boss, { impersonatedBy: 'someone-else' });
-    expect(leave.flags.canDecide).toBe(false);
     expect(leave.flags.canManageSwitch).toBe(false);
-    expect(leave.pending).toBeNull();
   });
 
   it('with the approval switch off, every request is saved at once and the state says so', async () => {
