@@ -155,7 +155,7 @@ describe('listTeam load sorts: limits', () => {
       expect(r.people).toHaveLength(size + 1);
       counts.push(queries.length);
     }
-    expect(counts[0]).toBeLessThanOrEqual(4);
+    expect(counts[0]).toBeLessThanOrEqual(5);
     expect(counts[1]).toBe(counts[0]);
   });
 

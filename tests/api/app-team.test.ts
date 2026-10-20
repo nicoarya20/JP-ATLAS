@@ -162,6 +162,7 @@ describe('list shape', () => {
     expect(body.summary).toMatchObject({ people: 5, projects: 1 });
     expect(body.total).toBe(5);
     expect(Object.keys(row(body, g.budi)).sort()).toEqual([
+      'availability',
       'id',
       'image',
       'isSelf',

@@ -2,8 +2,9 @@
  * Team reads (S6 M02, P7 §5): who shares projects with the caller, their role in each, and — only
  * where D10 allows it — how much open work they carry.
  *
- * Four statements at most per list, whatever the page size: the caller's project context, the page
- * of people with its total, the page's project roles, and the load of the people who have a scope.
+ * Five statements at most per list, whatever the page size: the caller's project context, the page
+ * of people with its total, the page's project roles, the load of the people who have a scope, and
+ * the leave status of the people on the page.
  * Visibility is decided in SQL and in `loadScopeFor`, so a response never carries a number the
  * caller may not see.
  */
@@ -12,6 +13,7 @@ import { canSortByLoad, type LoadScope, loadScopeFor, scopeCovers } from '../acc
 import type { Principal } from '../access/types';
 import { db } from '../db';
 import { profile, project, projectMember, user } from '../db/schema';
+import { leaveStatusFor } from '../leave/leave.status.query';
 import { isoDateIn } from '../metrics/dates';
 import type { IsoDate } from '../metrics/types';
 import { getMetrics } from '../pm/metrics-env';
@@ -84,7 +86,7 @@ function summarize(ctx: TeamContext, total: number, people: readonly TeamPerson[
  *
  * `sort=active|overdue` ranks the whole filtered team (`team.sort.ts`): up to
  * `TEAM_SORT_SCAN_LIMIT` people are read in name order, counted, ranked, and only then paged, with
- * the same four statements as a name page. A caller `canSortByLoad` rejects is refused
+ * the same five statements as a name page (leave is read for the page only, not the scan window). A caller `canSortByLoad` rejects is refused
  * `SORT_NOT_ALLOWED` rather than quietly given the name order; deciding it here costs no extra
  * statement, since the caller's project roles are already loaded (the route maps the code).
  */
@@ -143,7 +145,7 @@ export async function listTeam(
     ),
   }));
   const loads = await loadForPeople(scopes, today(now), exec);
-  const everyone: TeamPerson[] = rows.map((r) => {
+  const everyone = rows.map((r) => {
     const load = loads.get(r.id);
     return {
       id: r.id,
@@ -155,9 +157,16 @@ export async function listTeam(
       ...(load ? { load } : {}),
     };
   });
-  const people = isLoadSort(input.sort)
+  const paged = isLoadSort(input.sort)
     ? sortByLoad(everyone, input.sort).slice(offset, offset + limit)
     : everyone;
+  const leave = await leaveStatusFor(
+    paged.map((x) => x.id),
+    p,
+    today(now),
+    exec,
+  );
+  const people: TeamPerson[] = paged.map((x) => ({ ...x, availability: leave.get(x.id) ?? null }));
   const total = Number(rows[0]?.total ?? 0);
   return { summary: summarize(ctx, total, people), people, total };
 }

@@ -1,7 +1,7 @@
 /**
  * Person detail (`/app/team/:userId`): the account-role card appears only when the server sent
- * `accountRole`, nothing about availability or leave is drawn, and the work card says plainly why a
- * list is missing. Dates are plain `YYYY-MM-DD` text, as the API sends them.
+ * `accountRole`, the leave status shows only when the server sent one, and the work card says
+ * plainly why a list is missing. Dates are plain `YYYY-MM-DD` text, as the API sends them.
  */
 import { describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
@@ -45,6 +45,7 @@ const detail = (over: Partial<PersonDetail> = {}): PersonDetail => ({
   },
   projects: [{ id: 'p-atlas', name: 'Proyek Atlas', role: 'member' }],
   tasksVisible: true,
+  availability: null,
   tasks: [
     {
       number: 18,
@@ -107,9 +108,22 @@ describe('person detail: profile', () => {
     expect(html.match(/Belum diisi/g)).toHaveLength(2);
   });
 
-  it('draws nothing about availability or leave', async () => {
+  it('draws nothing about availability or leave when there is none', async () => {
     const html = await view(detail({ accountRole: 'admin' }));
     for (const word of ['Tersedia', 'Cuti', 'Ketersediaan']) expect(html).not.toContain(word);
+  });
+
+  it('says "Cuti sampai 16 Okt" under the name for a leave under way', async () => {
+    const html = await view(detail({ availability: { kind: 'on_leave', until: '2026-10-16' } }));
+    expect(html).toContain('Cuti sampai 16 Okt');
+  });
+
+  it('says "Pengajuan cuti 14–16 Okt" for a pending request', async () => {
+    const html = await view(
+      detail({ availability: { kind: 'pending', from: '2026-10-14', to: '2026-10-16' } }),
+    );
+    expect(html).toContain('Pengajuan cuti 14–16 Okt');
+    expect(html).not.toContain('Cuti sampai');
   });
 });
 

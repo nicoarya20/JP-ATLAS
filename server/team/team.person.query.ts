@@ -9,6 +9,7 @@ import { loadScopeFor } from '../access/team.policy';
 import type { Principal, ProjectRole } from '../access/types';
 import { db } from '../db';
 import { profile, project, projectMember, user } from '../db/schema';
+import { leaveStatusFor } from '../leave/leave.status.query';
 import { isoDateIn } from '../metrics/dates';
 import type { IsoDate } from '../metrics/types';
 import { isAdminRole, normalizeRole } from '../permissions';
@@ -24,7 +25,7 @@ const today = (now: Date): IsoDate => isoDateIn(now, getMetrics().TIME_ZONE);
 
 /**
  * One person's profile, the projects they share with the caller, and their open work when D10
- * allows it. Three statements at most. A person the caller shares no project with answers
+ * allows it. Four statements at most (the last one is the leave status). A person the caller shares no project with answers
  * `NOT_FOUND`, never 403: the caller may not learn that the account exists (D8).
  */
 export async function getPerson(
@@ -62,6 +63,7 @@ export async function getPerson(
   );
   const work = 'none' in scope ? null : await loadPersonWork(userId, scope, today(now), exec);
   const load: TeamLoad | undefined = work?.load;
+  const leave = await leaveStatusFor([userId], p, today(now), exec);
   return {
     // Stored role, read as the user directory reads it; only an Admin is told (absent, not null).
     ...(admin ? { accountRole: normalizeRole(person.role) } : {}),
@@ -75,6 +77,7 @@ export async function getPerson(
       ...(self || admin ? { phone: person.phone ?? undefined } : {}),
     },
     projects: shared.projects,
+    availability: leave.get(userId) ?? null,
     tasksVisible: work !== null,
     ...(work ? { tasks: work.tasks } : {}),
     ...(load ? { load } : {}),
