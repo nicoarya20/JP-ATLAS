@@ -140,6 +140,15 @@ describe('GET /leave/me', () => {
     expect(me.history.every((h: Json) => h.userId === w.dodi.id)).toBe(true);
   });
 
+  it('puts the leave under way ahead of a later request in `request`, and keeps both in history', async () => {
+    const later = await seedLeave(w.dodi, '2026-11-02', '2026-11-03', 'pending');
+    const now = await seedLeave(w.dodi, '2026-10-06', '2026-10-08', 'approved');
+    as(w.dodi);
+    const me = (await call('GET', '/app/leave/me')).body;
+    expect(me).toMatchObject({ state: 'approved', request: { id: now.id } });
+    expect(me.history.map((h: Json) => h.id).sort()).toEqual([later.id, now.id].sort());
+  });
+
   it('reports the approval switch', async () => {
     await upsertLeaveSettings({ requiresApproval: false });
     as(w.dodi);
