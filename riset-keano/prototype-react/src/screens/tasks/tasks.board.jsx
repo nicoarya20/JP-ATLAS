@@ -3,13 +3,13 @@
 // a PM or Admin moves any.
 import { useRef } from 'react';
 import { Calendar, Circle, CircleCheck, CircleDashed, CircleDot, Flag, ListChecks, Plus } from 'lucide-react';
-import { Avatar, Btn, Section } from '../../kit';
+import { Avatars, Btn, Section } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { useBoardDrag } from './tasks.drag';
 import { ListScreen } from './tasks.list';
 import { applyQuery, queryOf } from './tasks.query';
-import { days, detailOf } from './tasks.shared';
+import { assigned, assignees, days, detailOf } from './tasks.shared';
 import { moveTask, useTaskMoves } from './tasks.store';
 
 // Status badge per column: icon + tone class (colour comes from tasks.css).
@@ -36,7 +36,7 @@ function BoardCard({ t, mine }) {
         <span className="t-subhead bold">{t.title}</span>
         <span className="t-footnote muted">#{t.no} · {mine ? t.project : t.type}</span>
         <div className="tk-chips t-footnote">
-          <span className="tk-chip" title={D.person(t.who)?.full || t.who}><Avatar name={t.who} size="sm" /></span>
+          <span className="tk-chip" title={assignees(t).map(n => D.person(n)?.full || n).join(', ')}><Avatars names={assignees(t)} /></span>
           <span className={`tk-chip${late ? ' danger' : ''}`}><Calendar size={ICON} aria-hidden="true" />{t.due}</span>
           <span className={`tk-chip tk-prio-${t.priority.toLowerCase()}`}><Flag size={ICON} aria-hidden="true" />{t.priority}</span>
           {s && <span className="tk-chip"><ListChecks size={ICON} aria-hidden="true" />{s}</span>}
@@ -56,10 +56,10 @@ export function TasksBoard({ params }) {
   useTaskMoves();
   const drag = useBoardDrag(board, {
     onDrop: (no, status) => { moveTask(no, status); toast(`Moved to ${status}`); },
-    canLift: no => !is('member') || D.task(no).who === D.me().name,
-    onDenied: no => toast(`Only ${D.task(no).who} can change this task`),
+    canLift: no => !is('member') || assigned(D.task(no), D.me().name),
+    onDenied: no => toast(`Only ${assignees(D.task(no)).join(' or ')} can change this task`),
   });
-  const tasks = applyQuery(mine ? D.tasks.filter(t => t.who === D.me().name) : D.tasks, queryOf(params, mine), true);
+  const tasks = applyQuery(mine ? D.tasks.filter(t => assigned(t, D.me().name)) : D.tasks, queryOf(params, mine), true);
   return (
     <ListScreen mine={mine} board>
       <div className="tk-board" ref={board} {...drag}>

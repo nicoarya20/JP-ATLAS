@@ -1,5 +1,5 @@
-// Task changes: a Kanban drop writes the new status and the ⋯ › Edit task form writes its fields into the sample task
-// (and its D.taskDetail extras), so the board, the lists and the detail all show them. Readers re-render through
+// Task changes: a Kanban drop writes the new status, the ⋯ › Edit task form writes its fields into the sample task
+// (and its D.taskDetail extras) and New task · Fill form adds a task, so the board, the lists and the detail all show them. Readers re-render through
 // useTaskMoves(); a page reload brings the sample back.
 import { useSyncExternalStore } from 'react';
 import { D } from '../../data/sample';
@@ -43,7 +43,7 @@ function whenOfDue(t) {
 }
 
 /**
- * Save the Edit task form for task #no. fields = D.tasks keys (title, who, due, priority, type, tags);
+ * Save the Edit task form for task #no. fields = D.tasks keys (title, who, also, due, priority, type, tags);
  * extras = D.taskDetail keys (phase, desc, reviewer, steps, proof). The task's history logs who edited it.
  */
 export function editTask(no, fields, extras, editor) {
@@ -57,9 +57,28 @@ export function editTask(no, fields, extras, editor) {
   notify();
 }
 
-/** Every task and its extras back to the sample. test-only */
+/**
+ * Add a To do task from the Fill form. fields = D.tasks keys (title, project, who, also, due, priority, type, tags);
+ * extras = D.taskDetail keys (phase, desc, reviewer, start, hours). Returns the new task number.
+ */
+export function addTask(fields, extras, creator) {
+  const no = Math.max(...D.tasks.map(t => t.no)) + 1;
+  const t = { no, status: 'To do', next: 'Start', updated: NOW, ...fields };
+  t.when = whenOfDue(t);
+  D.tasks.push(t);
+  D.taskDetail[no] = { ...extras, by: `${creator} · ${TODAY_LABEL}`, steps: [], proof: [], history: [[`${creator} created this task`, TODAY_LABEL]] };
+  notify();
+  return no;
+}
+
+/** Every task and its extras back to the sample; added tasks are dropped. test-only */
 export function resetTasks() {
-  D.tasks.forEach(t => Object.assign(t, structuredClone(ORIGINAL.get(t.no))));
+  D.tasks.splice(0, D.tasks.length, ...D.tasks.filter(t => ORIGINAL.has(t.no)));
+  D.tasks.forEach(t => {
+    const o = structuredClone(ORIGINAL.get(t.no));
+    Object.keys(t).forEach(k => delete t[k]);
+    Object.assign(t, o);
+  });
   Object.keys(D.taskDetail).forEach(no => delete D.taskDetail[no]);
   Object.assign(D.taskDetail, structuredClone(ORIGINAL_DETAIL));
   notify();

@@ -2,7 +2,8 @@
 import { screen, sheet } from '../../core/registry';
 import { TasksAll, TasksEmpty, TasksMy } from './tasks.list';
 import { TasksBoard } from './tasks.board';
-import { TasksCsv, TasksForm, TasksWrite } from './tasks.new';
+import { TasksForm } from './tasks.form';
+import { TasksCsv, TasksWrite } from './tasks.new';
 import { TasksDetailProgress, TasksDetailReview, TasksDetailTodo } from './tasks.detail.screens';
 import { TasksCancel, TasksReturn } from './tasks.sheets';
 import { TasksFilter } from './tasks.filter';

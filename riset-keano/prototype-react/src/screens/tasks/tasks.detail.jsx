@@ -3,7 +3,7 @@ import { Avatar, Media, Menu, Pill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, Sec, Tick } from './tasks.parts';
-import { days, info } from './tasks.shared';
+import { assigned, assignees, days, info } from './tasks.shared';
 import { useTaskMoves } from './tasks.store';
 
 const dueLabel = t => {
@@ -52,7 +52,7 @@ function Person({ name }) {
 export function baseFacts(no, review, extra = []) {
   const t = D.task(no);
   return [
-    ['Assignee', <Person name={t.who} />],
+    ['Assignee', <span className="stack xs">{assignees(t).map(n => <Person key={n} name={n} />)}</span>],
     ['Due date', <span className="row-flex">{t.due}<span className="muted">{dueNote(t)}</span></span>],
     ['Priority', t.priority],
     ['Type', t.type],
@@ -71,7 +71,7 @@ export function baseFacts(no, review, extra = []) {
 export function TaskDetail({ no, cancel = true, banner, actions, facts, after, children }) {
   useTaskMoves();
   const t = D.task(no), x = info(no);
-  const mine = !useApp().is('member') || t.who === D.me().name;
+  const mine = !useApp().is('member') || assigned(t, D.me().name);
   const items = [{ label: 'Edit task', go: 'tasks.edit', task: no },
     ...(cancel ? [{ label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }] : [])];
   const right = mine ? <Menu items={items} label="Task actions" /> : undefined;

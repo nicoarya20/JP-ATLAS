@@ -18,6 +18,13 @@ export const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
 // "Improvement" is a sample type with no tasks yet.
 export const TYPES = [['Task', 'Task (task)'], ['Bug', 'Issue (issue)'], ['Improvement', 'Idea (idea)']];
 
+/** Everyone assigned to a task: who is the first, also holds the rest (tasks saved with more than one assignee). */
+export const assignees = t => [t.who, ...(t.also || [])];
+/** True when name is one of the task's assignees. */
+export const assigned = (t, name) => assignees(t).includes(name);
+/** First assignee's full name, plus "+N" for the others. */
+export const whoLabel = t => `${D.person(t.who).full}${t.also?.length ? ` +${t.also.length}` : ''}`;
+
 /** Reviewer of the sample review task #17; D.tasks notes are written from their side. */
 export const reviewer = () => D.taskDetail[17].reviewer.split(' ')[0];
 export const atlas = () => D.project('atlas');

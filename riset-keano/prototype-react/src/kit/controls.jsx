@@ -52,6 +52,20 @@ export function Chips({ items, on = 0, gos, onPick, bleed }) {
   );
 }
 
+/** Multi-select chip row. items = [{value, label}]; on = picked values; onChange(values) after each tap, in items
+ *  order; label names the group for screen readers. */
+export function MultiChips({ items, on, onChange, label }) {
+  const flip = v => onChange(items.map(o => o.value).filter(x => (x === v) !== on.includes(x)));
+  return (
+    <div className="hscroll chips" role="group" aria-label={label}>
+      {items.map(o => (
+        <SuggestionChip key={o.value} size="sm" variant="secondary" active={on.includes(o.value)} aria-pressed={on.includes(o.value)}
+          onClick={() => flip(o.value)}>{o.label}</SuggestionChip>
+      ))}
+    </div>
+  );
+}
+
 /** Segmented control. items = labels; on = active index; gos[i] optionally navigates; onPick(i) replaces gos when
  *  the target depends on other state. icons = optional lucide elements (same order): the segments show only the icon
  *  and keep the label for screen readers. */

@@ -7,7 +7,7 @@ import { D } from '../../data/sample';
 import { TasksSearch } from './tasks.filter';
 import { Tick } from './tasks.parts';
 import { SORTS, SORT_DUE, applyQuery, isFiltered, queryOf, queryParams, withoutQuery } from './tasks.query';
-import { TODAY, days, detailOf, note } from './tasks.shared';
+import { TODAY, assigned, days, detailOf, note, whoLabel } from './tasks.shared';
 
 /** List frame shared by ①–④: My/All switch with the List/Kanban view beside it, search with the Filter & sort icon
  *  (status, project, priority, sort live in its overlay). The two switches are independent: Kanban keeps My/All
@@ -81,7 +81,7 @@ export function TasksMy({ params }) {
   const { is } = useApp();
   const q = queryOf(params, true);
   const review = is('member') ? [] : applyQuery(D.tasks.filter(t => t.status === 'In review'), q);
-  const own = applyQuery(D.tasks.filter(t => t.who === D.me().name && !review.includes(t)), q);
+  const own = applyQuery(D.tasks.filter(t => assigned(t, D.me().name) && !review.includes(t)), q);
   const groups = q.sort === SORT_DUE
     ? GROUPS.map((g, i) => [g, own.filter(t => groupOf(t) === i)]).filter(([, list]) => list.length)
     : own.length ? [[SORTS[q.sort], own]] : [];
@@ -110,7 +110,7 @@ export function TasksAll({ params }) {
             <Tick />
             <div className="stack xs grow">
               <CardTitle>{t.title}</CardTitle>
-              <span className="t-footnote muted">#{t.no} · {t.type} · {D.person(t.who).full}</span>
+              <span className="t-footnote muted">#{t.no} · {t.type} · {whoLabel(t)}</span>
               <span className="t-footnote bold">{note(t)}</span>
               <div className="between tk-meta">
                 <Pill tone={t.status === 'Done' ? 'neutral' : 'outline'}>{t.status}</Pill>

@@ -66,7 +66,9 @@ describe('edit task', () => {
     openEdit();
     expect(dom.getByText('Edit task')).toBeInTheDocument();
     expect(dom.getByLabelText('Title *')).toHaveValue('Fix SSO login');
-    expect(dom.getByRole('combobox', { name: 'Assignee' })).toHaveValue('Nico');
+    const people = within(dom.getByRole('group', { name: 'Assignee' }));
+    expect(people.getByRole('button', { name: 'Nico Pratama' })).toHaveAttribute('aria-pressed', 'true');
+    expect(people.getByRole('button', { name: 'Rina Wulandari' })).toHaveAttribute('aria-pressed', 'false');
     expect(dom.getByLabelText('Due date')).toHaveValue('2026-10-05');
     expect(dom.getByRole('button', { name: 'High' })).toHaveAttribute('aria-pressed', 'true');
     expect(dom.getByRole('combobox', { name: 'Type' })).toHaveValue('Bug');
@@ -81,7 +83,8 @@ describe('edit task', () => {
     detail(14);
     openEdit();
     fireEvent.change(dom.getByLabelText('Title *'), { target: { value: 'Write the API spec v2' } });
-    fireEvent.change(dom.getByRole('combobox', { name: 'Assignee' }), { target: { value: 'Rina' } });
+    fireEvent.click(dom.getByRole('button', { name: 'Rina Wulandari' }));
+    fireEvent.click(dom.getByRole('button', { name: 'Nico Pratama' }));
     fireEvent.change(dom.getByLabelText('Due date'), { target: { value: '2026-10-12' } });
     fireEvent.click(dom.getByRole('button', { name: 'Critical' }));
     fireEvent.change(dom.getByRole('combobox', { name: 'Type' }), { target: { value: 'Improvement' } });
@@ -111,6 +114,38 @@ describe('edit task', () => {
     expect(dom.getByText(`${D.me().name} edited this task`)).toBeInTheDocument();
     expect(D.task(14)).toMatchObject({ who: 'Rina', due: 'Oct 12', when: 'Due Oct 12', priority: 'Critical', tags: ['docs'] });
     expect(D.taskDetail[14].proof).toEqual([['photo-1.jpg', 'Draft outline']]);
+  });
+
+  it('assigns more than one person; the lists and the board show them all', () => {
+    detail(14);
+    openEdit();
+    fireEvent.click(dom.getByRole('button', { name: 'Dodi Hartono' }));
+    save();
+    expect(D.task(14)).toMatchObject({ who: 'Nico', also: ['Dodi'] });
+    expect(fact('Assignee')).toHaveTextContent('Nico Pratama');
+    expect(fact('Assignee')).toHaveTextContent('Dodi Hartono');
+    cleanup();
+    renderApp('tasks.all', 'pm');
+    expect(dom.getByText('#14 · Task · Nico Pratama +1')).toBeInTheDocument();
+  });
+
+  it('lets a second assignee who is a Member edit the task', () => {
+    detail(14);
+    openEdit();
+    fireEvent.click(dom.getByRole('button', { name: 'Dodi Hartono' }));
+    save();
+    cleanup();
+    renderApp('tasks.my', 'member');
+    fireEvent.click(dom.getByText(D.task(14).title));
+    expect(dom.getByRole('button', { name: 'Task actions' })).toBeInTheDocument();
+  });
+
+  it('keeps Save off while nobody is assigned', () => {
+    detail(14);
+    openEdit();
+    fireEvent.click(dom.getByRole('button', { name: 'Nico Pratama' }));
+    expect(dom.getByText('Pick at least one person.')).toBeInTheDocument();
+    expect(dom.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
   it('turns review on with a reviewer; the To do detail then only offers Start working', () => {

@@ -1,10 +1,9 @@
-// Tasks ⑤–⑦: new task by writing (AI draft) or by form, and the CSV import preview.
+// Tasks ⑤ and ⑦: new task by writing (AI draft) and the CSV import preview; ⑥ Fill form lives in tasks.form.jsx.
 import { Sparkles } from 'lucide-react';
-import { Btn, Chips, Field, Link, Pill, Section, Seg, Switch } from '../../kit';
-import { useApp } from '../../core/app.context';
+import { Btn, Chips, Link, Pill, Section, Seg } from '../../kit';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, SelectField, Tick } from './tasks.parts';
-import { PRIORITIES, atlas, reviewer } from './tasks.shared';
+import { atlas } from './tasks.shared';
 
 function DraftCard({ d }) {
   return (
@@ -53,59 +52,6 @@ export function TasksWrite() {
         <div className="stack sm">
           <span className="t-headline row-flex"><Sparkles size={16} className="tint" /> Which {QW.ask[0].split(' ')[0]}?</span>
           <Chips items={QW.ask} on={-1} />
-        </div>
-      </Section>
-    </FootScreen>
-  );
-}
-
-/** ⑥ New task · Fill form — sample = the first AI draft. Reviewer only Managers/Admins, never the assignee. */
-export function TasksForm() {
-  const { is } = useApp(), F = D.quickWrite.drafts[0];
-  const foot = (
-    <Foot>
-      <Btn back>Cancel</Btn>
-      <Btn kind="primary" go="tasks.detail-todo" toast="Task created">Save</Btn>
-    </Foot>
-  );
-  return (
-    <FootScreen title="New task" foot={foot}>
-      <Seg items={['Just write ✦', 'Fill form']} on={1} gos={['tasks.write', '']} />
-      <SelectField label="Project *">{atlas().name}</SelectField>
-      <Field label="Title *" value={F.title} />
-      <SelectField label="Who works on it">{D.person(F.who).full}</SelectField>
-      <div className="field"><span className="t-footnote muted">Priority</span><Chips items={PRIORITIES} on={PRIORITIES.indexOf(F.priority)} /></div>
-      <Field label="Due date" value={F.due} />
-      <span className="t-subhead bold">Show less ▴</span>
-      <hr className="tk-divider" />
-      <Field label="Description" area value="The login page layout breaks on phones. Fix it before the staging release." />
-      <div className="tk-two">
-        <SelectField label="Type">{F.type}</SelectField>
-        <SelectField label="Phase">{D.atlas.phaseNow}</SelectField>
-      </div>
-      <div className="tk-two">
-        <Field label="Start date" value={D.today.short} />
-        <Field label="Estimated hours" value="4" />
-      </div>
-      <label className="field">
-        <span className="t-footnote muted">Tag</span>
-        <span className="tk-tagbox"><Pill tone="outline">login ✕</Pill><input placeholder="Type a tag…" /></span>
-      </label>
-      <Section className="tk-soft">
-        <div className="stack sm">
-          <div className="between">
-            <span className="t-headline">Needs review</span>
-            <span className="row-flex t-footnote"><b>Yes</b><Switch on label="Needs review" /></span>
-          </div>
-          <span className="t-footnote muted">Default follows the project setting ({atlas().name.split(' ')[0]}: off). Turned on by {D.me().name}.</span>
-          {is('member')
-            ? <span className="t-footnote muted">You can turn this on, but not off. A Manager or Admin of the project reviews it.</span>
-            : (
-              <>
-                <SelectField label="Reviewer">{D.person(reviewer()).full} · Manager</SelectField>
-                <span className="t-footnote muted">Reviewer shows only when this is on. Choices are Managers or Admins only, not the assignee.</span>
-              </>
-            )}
         </div>
       </Section>
     </FootScreen>
