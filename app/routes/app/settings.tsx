@@ -21,6 +21,7 @@ import {
 import { NotificationsCard } from '~/components/account/NotificationsCard';
 import { SettingsSection } from '~/components/account/SettingsSection';
 import { SignOutButton } from '~/components/account/SignOutButton';
+import { LeaveSections } from '~/components/leave/LeaveSections';
 import { useApp } from '~/lib/app-context';
 import { useSession } from '~/lib/auth-client';
 import { toJson } from '~/lib/loader-json';
@@ -28,6 +29,7 @@ import type { LoginRow } from '~/lib/login-logs-api';
 import { loginAuthMode } from '~/lib/login-mode';
 import type { MyProfile, NotificationPrefs } from '~/lib/profile-api';
 import type { Route } from './+types/settings';
+import { loadLeavePage } from './settings.leave.server';
 
 export function meta() {
   return [{ title: 'Pengaturan — Simple PM' }];
@@ -36,18 +38,19 @@ export function meta() {
 const HISTORY = 8;
 
 /**
- * Profile, text size, notification switches and the moved /profile cards. Every permission is
+ * Profile, text size, notification switches, leave and the moved /profile cards. Every permission is
  * decided here, so the page never compares a role: deleting an account is Super-admin only (Q4/N03) and never while
  * impersonating (Q9), and the password cards follow the effective email sign-in mode.
  */
 export async function loader({ request }: Route.LoaderArgs) {
   const auth = await requireUser(request);
-  const [profile, notificationPrefs, logins, settings, textSize] = await Promise.all([
+  const [profile, notificationPrefs, logins, settings, textSize, leave] = await Promise.all([
     getProfile(auth.user.id),
     getNotificationPrefs(auth.user.id),
     listLogins({ userId: auth.user.id, limit: String(HISTORY) }),
     getSettings(),
     resolveTextSize(request),
+    loadLeavePage(auth),
   ]);
   if (!profile) throw data('Profil tidak ditemukan', { status: 404 });
   return {
@@ -55,6 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     textSize,
     notificationPrefs: notificationPrefs satisfies NotificationPrefs,
     logins: toJson<{ rows: LoginRow[]; total: number }>(logins),
+    leave,
     flags: {
       emailAuthEnabled: loginAuthMode(isProd, settings).emailAuthEnabled,
       googleEnabled: hasGoogleAuth,
@@ -84,6 +88,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
       <SettingsSection title={NOTIFICATIONS_COPY.title}>
         <NotificationsCard initial={loaderData.notificationPrefs} />
       </SettingsSection>
+      <LeaveSections leave={loaderData.leave} />
       <div>
         <SignOutButton />
       </div>
