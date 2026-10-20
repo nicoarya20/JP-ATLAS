@@ -37,6 +37,7 @@ describe('GET /profile', () => {
       name: me.name,
       email: me.email,
       displayName: null,
+      nickname: null,
       phone: null,
       jobTitle: null,
       department: null,
