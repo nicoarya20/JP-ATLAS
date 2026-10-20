@@ -6,11 +6,12 @@ import { useNav } from '../core/app.context';
 import { splitNav } from './controls';
 import './menu.css';
 
-function MenuItem({ item }) {
+/** The item closes the menu itself: useNav stops the click from bubbling, so the menu never hears it. */
+function MenuItem({ item, onDone }) {
   const [nav] = splitNav(item);
-  return (
-    <button type="button" role="menuitem" className={item.danger ? 'danger' : undefined} onClick={useNav(nav)}>{item.label}</button>
-  );
+  const run = useNav(nav);
+  const click = e => { onDone(); run?.(e); };
+  return <button type="button" role="menuitem" className={item.danger ? 'danger' : undefined} onClick={click}>{item.label}</button>;
 }
 
 /** ⋯ button + dropdown. items = [{label, danger?, ...nav props (go, sheet, task, toast…)}]; label = the button's name. */
@@ -24,8 +25,8 @@ export function Menu({ items, label = 'More' }) {
       {open && (
         <>
           <button type="button" className="menu-dim" aria-label="Close menu" tabIndex={-1} onClick={() => setOpen(false)} />
-          <div className="menu" role="menu" aria-label={label} onClick={() => setOpen(false)}>
-            {items.map(item => <MenuItem key={item.label} item={item} />)}
+          <div className="menu" role="menu" aria-label={label}>
+            {items.map(item => <MenuItem key={item.label} item={item} onDone={() => setOpen(false)} />)}
           </div>
         </>
       )}
