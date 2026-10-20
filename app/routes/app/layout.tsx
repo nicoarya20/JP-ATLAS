@@ -1,6 +1,8 @@
 import { type AppCaps, appCaps } from '@server/access/capabilities';
 import { frameInfo } from '@server/app-info';
 import { requireUser } from '@server/guard';
+import { bellCounts } from '@server/notification/notification.bell';
+import { toPrincipal } from '@server/project/membership.query';
 import { getSidebarCollapsed } from '@server/sidebar';
 import {
   FiBell,
@@ -16,8 +18,11 @@ import {
 import { Outlet } from 'react-router';
 import { AppFrame, type NavGroup, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
-import { NEEDS_ACTION } from '~/components/inbox/inbox.dummy';
+import { BELL_COPY } from '~/components/inbox/inbox.copy';
+import { NotificationBell } from '~/components/inbox/NotificationBell';
 import type { AppContext } from '~/lib/app-context';
+import { INBOX_PATH } from '~/lib/inbox-api';
+import { useInboxCounts } from '~/lib/use-inbox';
 import type { Route } from './+types/layout';
 
 export function meta(_: Route.MetaArgs) {
@@ -40,12 +45,6 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Inbox',
         icon: FiBell,
         matchPrefix: true,
-        // DUMMY: jumlah dari data contoh Inbox; ganti dengan hitungan server saat modul notifikasi dibuat.
-        badge: {
-          value: NEEDS_ACTION.length,
-          tone: 'alert',
-          tooltip: 'Permintaan yang perlu Anda tanggapi.',
-        },
         description: 'Notifikasi dan permintaan untuk Anda.',
       },
       {
@@ -122,7 +121,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     appRole: auth.role,
     impersonating: Boolean(auth.impersonatedBy),
   });
-  return { ...auth, caps, collapsed: getSidebarCollapsed(request), ...(await frameInfo()) };
+  const loadedAt = Date.now();
+  const [counts, info] = await Promise.all([bellCounts(toPrincipal(auth)), frameInfo()]);
+  return {
+    ...auth,
+    caps,
+    collapsed: getSidebarCollapsed(request),
+    inbox: { counts, loadedAt },
+    ...info,
+  };
 }
 
 function Frame({
@@ -132,9 +139,20 @@ function Frame({
   data: Route.ComponentProps['loaderData'];
   children: React.ReactNode;
 }) {
+  // The loader's numbers are the first render; the hook then polls, so bell and badge never disagree.
+  const open = useInboxCounts(data.inbox).data?.action ?? 0;
   return (
     <AppFrame
       navItems={NAV_GROUPS}
+      navBadges={{
+        [INBOX_PATH]: {
+          value: open,
+          color: 'red',
+          tone: 'alert',
+          tooltip: BELL_COPY.badgeTooltip(open),
+        },
+      }}
+      bell={<NotificationBell count={open} />}
       secondaryNav={secondaryNav(data.caps)}
       role={data.role}
       user={data.user}

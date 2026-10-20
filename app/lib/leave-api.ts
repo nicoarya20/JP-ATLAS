@@ -3,15 +3,10 @@
  * settings loader; this file holds the writes the page sends and the loader data it receives.
  * A failed call throws `ApiError` (the server's own Indonesian sentence for a 4xx).
  */
-import type { LeaveMeDto, LeavePendingPage, LeaveRequestDto } from '@server/leave/leave.dto';
+import type { LeaveMeDto, LeaveRequestDto } from '@server/leave/leave.dto';
 import { apiRequest, jsonRequest } from './http';
 
-export type {
-  LeaveMeDto,
-  LeavePendingDto,
-  LeavePendingPage,
-  LeaveRequestDto,
-} from '@server/leave/leave.dto';
+export type { LeaveMeDto, LeaveRequestDto } from '@server/leave/leave.dto';
 
 /**
  * Who answers a request from this person: `none` (an Admin, whose leave is approved at once),
@@ -24,10 +19,7 @@ export type LeavePageData = {
   me: LeaveMeDto;
   /** Today in the team zone `YYYY-MM-DD`; the date fields never read the browser clock. */
   today: string;
-  /** Pending requests this person may decide, or null when they decide nothing. */
-  pending: LeavePendingPage | null;
   flags: {
-    canDecide: boolean;
     canManageSwitch: boolean;
     /** A new request is approved on the spot (Admin, or the approval switch is off). */
     autoApproves: boolean;

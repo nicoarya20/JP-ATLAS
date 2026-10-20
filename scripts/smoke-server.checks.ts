@@ -81,6 +81,15 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
       header: { name: 'location', includes: '/login' },
     }),
   ),
+  ...['/app/inbox'].map(
+    (path): SmokeCheck => ({
+      // The Inbox page reads the caller's own cards, so an anonymous visitor must never reach its loader.
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
   ...['/app/events', '/app/events/new', '/app/events/e1'].map(
     (path): SmokeCheck => ({
       // Same gate for the Events pages (S7): list, two-stage form, and the real shape of a detail URL.
@@ -97,7 +106,14 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     status: 302,
     header: { name: 'location', includes: '/login' },
   },
-  ...['/api/app/projects', '/api/app/trash', '/api/app/tasks', '/api/app/events'].map(
+  ...[
+    '/api/app/projects',
+    '/api/app/trash',
+    '/api/app/tasks',
+    '/api/app/events',
+    // The bell polls this every 60 s, so it has its own rate-limit exemption but must still answer 401 signed out.
+    '/api/app/inbox/count',
+  ].map(
     (path): SmokeCheck => ({
       name: `API ${path} anonim → 401`,
       path,

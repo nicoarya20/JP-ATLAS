@@ -1,10 +1,11 @@
-import { SegmentedControl } from '@mantine/core';
 import { requireUser } from '@server/guard';
-import { useState } from 'react';
-import { InboxList } from '~/components/inbox/InboxList';
-import { LATEST_NEWS, NEEDS_ACTION } from '~/components/inbox/inbox.dummy';
-import { PageContainer } from '~/components/ui/PageContainer';
-import { PageHeader } from '~/components/ui/PageHeader';
+import { METRICS } from '@server/metrics/config';
+import { bellCounts } from '@server/notification/notification.bell';
+import { listInbox } from '@server/notification/notification.query';
+import { toPrincipal } from '@server/project/membership.query';
+import { InboxView } from '~/components/inbox/InboxView';
+import type { InboxLane, InboxPage, InboxSeed } from '~/lib/inbox-api';
+import { toJson } from '~/lib/loader-json';
 import type { Route } from './+types/inbox';
 
 export function meta() {
@@ -12,33 +13,29 @@ export function meta() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  await requireUser(request);
-  return null;
+  const actor = await requireUser(request);
+  const principal = toPrincipal(actor);
+  const now = new Date();
+  const firstPage = async (lane: InboxLane) => {
+    const page = await listInbox(principal, { lane }, now);
+    // No cursor is sent, so BAD_CURSOR cannot happen; a failed read is left to the client fetch.
+    return page.ok ? toJson<InboxPage>({ items: page.items, nextCursor: page.nextCursor }) : null;
+  };
+  const [action, info, counts] = await Promise.all([
+    firstPage('action'),
+    firstPage('info'),
+    bellCounts(principal),
+  ]);
+  const seed: InboxSeed = { first: { action, info }, counts, loadedAt: now.getTime() };
+  return { seed, timeZone: METRICS.TIME_ZONE };
 }
 
-type Tab = 'action' | 'news';
+/** The tab lives in the query string and react-query fetches, so the loader need not run again. */
+export function shouldRevalidate({ currentUrl, nextUrl }: { currentUrl: URL; nextUrl: URL }) {
+  return currentUrl.pathname !== nextUrl.pathname;
+}
 
-/** Inbox with hardcoded dummy data (inbox.dummy.ts): requests to answer, then the latest news. */
-export default function InboxPage() {
-  const [tab, setTab] = useState<Tab>('action');
-  return (
-    <PageContainer>
-      <PageHeader title="Inbox" description="Semua kabar dan permintaan untuk Anda" />
-      <SegmentedControl
-        aria-label="Isi Inbox"
-        value={tab}
-        onChange={(v) => setTab(v as Tab)}
-        data={[
-          { value: 'action', label: `Perlu Anda tanggapi (${NEEDS_ACTION.length})` },
-          { value: 'news', label: 'Kabar terbaru' },
-        ]}
-        style={{ alignSelf: 'flex-start', maxWidth: '100%' }}
-      />
-      {tab === 'action' ? (
-        <InboxList items={NEEDS_ACTION} emptyTitle="Tidak ada yang perlu Anda tanggapi" />
-      ) : (
-        <InboxList items={LATEST_NEWS} emptyTitle="Belum ada kabar terbaru" />
-      )}
-    </PageContainer>
-  );
+/** Inbox: the requests waiting for an answer, then the latest news, read from the caller's own cards. */
+export default function InboxRoute({ loaderData }: Route.ComponentProps) {
+  return <InboxView {...loaderData} />;
 }

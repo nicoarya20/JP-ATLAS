@@ -1,4 +1,4 @@
-/** Indonesian copy for the leave UI on /app/settings (Ketersediaan, Persetujuan cuti, Pengaturan tim). */
+/** Indonesian copy for the leave UI: /app/settings (Ketersediaan, Pengaturan tim) and the Inbox rejection dialog. */
 import type { LeaveStatus } from '@server/leave/leave.dto';
 
 export const LEAVE_COPY = {
@@ -74,20 +74,6 @@ export const LEAVE_FORM_COPY = {
   endBeforeStart: 'Tanggal akhir tidak boleh sebelum tanggal mulai.',
   startInPast: 'Tanggal mulai tidak boleh sudah lewat.',
   noteTooLong: (max: number) => `Catatan paling banyak ${max} karakter.`,
-} as const;
-
-export const LEAVE_APPROVAL_COPY = {
-  // Sementara sampai kartu pengajuan Inbox tersambung (H-D2); bagian ini dihapus saat itu.
-  title: 'Persetujuan cuti',
-  intro: 'Pengajuan cuti yang menunggu keputusan Anda.',
-  empty: 'Tidak ada pengajuan yang menunggu',
-  emptyHint: 'Pengajuan baru muncul di sini dan Anda mendapat kabar di Inbox.',
-  approve: 'Setujui',
-  reject: 'Tolak',
-  approved: (name: string) => `Cuti ${name} disetujui.`,
-  approveFailed: 'Gagal menyetujui',
-  note: 'Catatan',
-  more: (shown: number, total: number) => `Menampilkan ${shown} dari ${total} pengajuan.`,
 } as const;
 
 export const LEAVE_REJECT_COPY = {

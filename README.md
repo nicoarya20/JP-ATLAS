@@ -441,6 +441,8 @@ Halaman Tim (semua butuh login): `/app/team` (daftar orang, urut Nama atau Tugas
 
 Halaman Event (semua butuh login): `/app/events` (daftar acara: tab Akan datang/Sudah lewat, cari, saring jenis dan proyek), `/app/events/new` (form dua tahap; tombolnya hanya untuk yang boleh membuat acara), dan `/app/events/:id` (detail acara dengan menu ⋯: Batalkan dengan alasan, Hapus ke Sampah dengan Urungkan). Kalender, notulensi di layar, dan acara berulang belum ada; notulensi di detail acara tampil sebagai teks "segera hadir".
 
+Halaman Inbox (butuh login): `/app/inbox` (tab Perlu Anda tanggapi dan Kabar terbaru, `?tab=info` membuka tab kedua). Kartu "Perlu Anda tanggapi" punya satu tombol ke tempat tujuannya; kartu pengajuan cuti punya dua (**Setujui** dengan konfirmasi dan **Tolak** dengan alasan opsional) yang memakai `POST /api/app/leave/:id/approve|reject`, sehingga Pengaturan tidak lagi punya daftar persetujuan cuti. Lonceng di sidebar dan header HP dan lencana menu membaca `GET /api/app/inbox/count` tiap 60 detik.
+
 ### Kontrak API Inbox (S3)
 
 Semua di `/api/app/inbox` (sesi atau API key ber-scope `app:read`/`app:write`). Inbox hanya milik penelepon: `userId` di query diabaikan, dan kartu orang lain dijawab `404` yang sama dengan kartu yang tidak ada. **Tidak ada rute untuk membuat atau menghapus kartu** — kartu muncul karena sebuah layanan memanggil `notify()` dan hilang karena layanan menutupnya, jadi klien tidak bisa memalsukannya. Kunci API memakai kartu pemilik kunci itu.
