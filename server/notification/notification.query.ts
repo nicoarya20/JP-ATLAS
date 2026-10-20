@@ -7,13 +7,14 @@
 import { and, desc, eq, getTableColumns, isNull, type SQL, sql } from 'drizzle-orm';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { notification, projectMember, user } from '../db/schema';
+import { notification, profile, projectMember, user } from '../db/schema';
 import { METRICS } from '../metrics/config';
 import { diffDays, isoDateIn } from '../metrics/dates';
 import { isAdminRole } from '../permissions';
 import { decodeCursor, encodeCursor } from '../pm/keyset';
 import { PAGE_LIMIT_DEFAULT, PAGE_LIMIT_MAX } from '../pm/limits';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import { refNotTrashed } from './notification.alive';
 import { cardButton, cardSentence, isNotificationKind } from './notification.catalog';
 import type { NotificationLane } from './notification.types';
@@ -136,13 +137,14 @@ export async function listInbox(
   const rows = await exec
     .select({
       card: getTableColumns(notification),
-      actor: { id: user.id, name: user.name, image: user.image },
+      actor: { id: user.id, name: displayNameSql, image: user.image },
       // `::text` keeps the microsecond precision a JS Date would round away in the cursor.
       sortKey: sql<string>`${column}::text`,
     })
     .from(notification)
     // LEFT JOIN: `actor_id` is NULL for a system card and for an actor whose account was removed.
     .leftJoin(user, eq(user.id, notification.actorId))
+    .leftJoin(profile, eq(profile.userId, user.id))
     .where(
       and(
         eq(notification.recipientId, p.id),

@@ -15,6 +15,7 @@ import { isAdminRole, normalizeRole } from '../permissions';
 import { getMetrics } from '../pm/metrics-env';
 import { isLive } from '../pm/soft-delete';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import { accountActive } from './account-active';
 import type { GetPersonResult, TeamLoad, TeamProjectRef } from './team.dto';
 import { loadPersonWork } from './team.load.query';
@@ -37,7 +38,7 @@ export async function getPerson(
   const [person] = await exec
     .select({
       id: user.id,
-      name: user.name,
+      name: displayNameSql,
       email: user.email,
       role: user.role,
       jobTitle: profile.jobTitle,

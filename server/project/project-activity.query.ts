@@ -5,9 +5,10 @@
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { projectActivity, user } from '../db/schema';
+import { profile, projectActivity, user } from '../db/schema';
 import { decodeCursor, encodeCursor } from '../pm/keyset';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import { type ActivityItemDto, mentionedUserIds, toActivityItem } from './project-activity.dto';
 import { canSeeProject } from './project-visible.query';
 
@@ -34,8 +35,9 @@ function isCursorTime(s: string): boolean {
 async function namesOf(exec: Executor, ids: string[]): Promise<Map<string, string>> {
   if (ids.length === 0) return new Map();
   const rows = await exec
-    .select({ id: user.id, name: user.name })
+    .select({ id: user.id, name: displayNameSql })
     .from(user)
+    .leftJoin(profile, eq(profile.userId, user.id))
     .where(inArray(user.id, ids));
   return new Map(rows.map((r) => [r.id, r.name]));
 }

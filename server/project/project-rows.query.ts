@@ -1,9 +1,10 @@
 /** Row loaders the project reads share: the selected columns, one live project, and the tasks of many (S1-02). */
 import { and, eq, inArray, ne } from 'drizzle-orm';
-import { project, task, user } from '../db/schema';
+import { profile, project, task, user } from '../db/schema';
 import type { ConditionTask } from '../metrics/condition';
 import { isLive } from '../pm/soft-delete';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import type { ProjectRow } from './project.dto';
 
 export const projectColumns = {
@@ -13,7 +14,7 @@ export const projectColumns = {
   status: project.status,
   priority: project.priority,
   leadId: project.leadId,
-  leadName: user.name,
+  leadName: displayNameSql,
   startDate: project.startDate,
   dueDate: project.dueDate,
   originalDueDate: project.originalDueDate,
@@ -57,6 +58,7 @@ export async function loadProject(exec: Executor, id: string): Promise<ProjectRo
     .select(projectColumns)
     .from(project)
     .leftJoin(user, eq(user.id, project.leadId))
+    .leftJoin(profile, eq(profile.userId, user.id))
     .where(and(eq(project.id, id), isLive(project)))
     .limit(1);
   return row;

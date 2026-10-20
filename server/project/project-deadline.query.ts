@@ -5,10 +5,11 @@
 import { and, count, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { projectConditionOverride, projectDeadlineExtension, user } from '../db/schema';
+import { profile, projectConditionOverride, projectDeadlineExtension, user } from '../db/schema';
 import { activeOverride } from '../metrics/condition';
 import type { ProjectStatus } from '../pm/enums';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import type { ProjectHistory } from './project.dto';
 import {
   type ConditionOverrideDto,
@@ -29,7 +30,7 @@ const extensionColumns = {
   reasonCategory: projectDeadlineExtension.reasonCategory,
   reason: projectDeadlineExtension.reason,
   extendedBy: projectDeadlineExtension.extendedBy,
-  extendedByName: user.name,
+  extendedByName: displayNameSql,
   createdAt: projectDeadlineExtension.createdAt,
 };
 
@@ -39,6 +40,7 @@ async function loadExtensions(exec: Executor, projectId: string, limit: number) 
     .select(extensionColumns)
     .from(projectDeadlineExtension)
     .leftJoin(user, eq(user.id, projectDeadlineExtension.extendedBy))
+    .leftJoin(profile, eq(profile.userId, user.id))
     .where(eq(projectDeadlineExtension.projectId, projectId))
     .orderBy(desc(projectDeadlineExtension.createdAt), desc(projectDeadlineExtension.id))
     .limit(limit);
@@ -66,13 +68,14 @@ export async function loadActiveOverride(
       condition: projectConditionOverride.condition,
       reason: projectConditionOverride.reason,
       setBy: projectConditionOverride.setBy,
-      setByName: user.name,
+      setByName: displayNameSql,
       expiresAt: projectConditionOverride.expiresAt,
       clearedAt: projectConditionOverride.clearedAt,
       createdAt: projectConditionOverride.createdAt,
     })
     .from(projectConditionOverride)
     .leftJoin(user, eq(user.id, projectConditionOverride.setBy))
+    .leftJoin(profile, eq(profile.userId, user.id))
     .where(
       and(
         eq(projectConditionOverride.projectId, projectId),
@@ -89,6 +92,7 @@ async function loadLatestExtension(exec: Executor, projectId: string) {
     .select({ ...extensionColumns, total: sql<number>`(count(*) over ())::int` })
     .from(projectDeadlineExtension)
     .leftJoin(user, eq(user.id, projectDeadlineExtension.extendedBy))
+    .leftJoin(profile, eq(profile.userId, user.id))
     .where(eq(projectDeadlineExtension.projectId, projectId))
     .orderBy(desc(projectDeadlineExtension.createdAt), desc(projectDeadlineExtension.id))
     .limit(1);

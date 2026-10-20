@@ -13,6 +13,7 @@ import type { MetricsConfig } from '../metrics/types';
 import { PROJECT_MEMBER_ROLES } from '../pm/enums';
 import { isLive } from '../pm/soft-delete';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import { loadMembership } from './membership.query';
 import { type ProjectDetail, type ProjectMemberItem, toDetail } from './project.dto';
 import { loadConditionInputs, planOf } from './project-condition.query';
@@ -80,7 +81,7 @@ export async function listProjectMembers(
   const rows = await exec
     .select({
       userId: user.id,
-      name: user.name,
+      name: displayNameSql,
       image: user.image,
       jobTitle: profile.jobTitle,
       role: projectMember.role,

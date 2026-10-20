@@ -13,6 +13,7 @@ import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { eventParticipant, profile, user } from '../db/schema';
 import type { Executor, Tx } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import type { PersonRef } from './events.dto';
 
 /** Aggregate of one event's guest list: how many, and whether the viewer is one of them. */
@@ -35,7 +36,7 @@ export async function loadEventPeople(
   const rows = await exec
     .select({
       id: user.id,
-      name: sql<string>`coalesce(nullif(btrim(${profile.displayName}), ''), ${user.name})`,
+      name: displayNameSql,
     })
     .from(user)
     .leftJoin(profile, eq(profile.userId, user.id))
@@ -78,7 +79,7 @@ export async function loadParticipants(eventId: string, exec: Executor = db): Pr
   const rows = await exec
     .select({
       id: user.id,
-      name: sql<string>`coalesce(nullif(btrim(${profile.displayName}), ''), ${user.name})`,
+      name: displayNameSql,
     })
     .from(eventParticipant)
     .innerJoin(user, eq(user.id, eventParticipant.userId))
