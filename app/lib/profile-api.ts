@@ -57,6 +57,33 @@ export async function putNotificationPrefs(
   return res.json();
 }
 
+/** GET /api/app/profile/delete-check: the active projects only the caller manages (they block the deletion). */
+export type DeleteCheck = {
+  canDelete: boolean;
+  projects: { id: string; name: string }[];
+  total: number;
+};
+
+export async function fetchDeleteCheck(): Promise<DeleteCheck> {
+  const res = await fetch(`${PROFILE_URL}/delete-check`);
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `Gagal memeriksa akun (${res.status}). Coba lagi.`);
+  }
+  return res.json();
+}
+
+/** True when the typed email matches (ignoring case and surrounding spaces) and a password is given if one is needed. */
+export function canConfirmDelete(input: {
+  typed: string;
+  email: string;
+  needsPassword: boolean;
+  password: string;
+}): boolean {
+  const matches = input.typed.trim().toLowerCase() === input.email.toLowerCase();
+  return matches && (!input.needsPassword || input.password.length > 0);
+}
+
 export type MyLogins = { rows: LoginRow[]; total: number };
 
 export async function fetchMyLogins(limit = 10): Promise<MyLogins> {

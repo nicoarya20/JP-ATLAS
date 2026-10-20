@@ -62,3 +62,26 @@ export const ADVANCED_COPY = {
   title: 'Keamanan dan perangkat',
   description: 'Kata sandi, perangkat yang sedang masuk, riwayat masuk, dan kunci API.',
 } as const;
+
+export const DELETE_ACCOUNT_COPY = {
+  cardTitle: 'Hapus akun',
+  cardDescription: 'Tindakan di sini tidak bisa dibatalkan.',
+  cardBody:
+    'Menghapus akun Anda, semua perangkat yang masuk, dan akun tertaut. Log aktivitas anonim tetap tersimpan untuk keperluan audit.',
+  open: 'Hapus akun saya…',
+  checkFailed: 'Gagal memeriksa akun',
+  modalTitle: 'Hapus akun permanen?',
+  impact:
+    'Anda tidak bisa masuk lagi. Tugas yang Anda kerjakan menjadi tanpa penanggung jawab, keanggotaan Anda di proyek dan acara dicabut, dan kartu Kotak masuk Anda dihapus. Komentar dan riwayat yang pernah Anda tulis tetap ada.',
+  typeEmail: 'Ketik email Anda untuk memastikan:',
+  password: 'Password',
+  cancel: 'Batal',
+  confirm: 'Hapus akun saya',
+  failed: 'Gagal menghapus akun',
+  failedFallback: 'Server menolak. Coba masuk ulang lalu ulangi.',
+  blockedTitle: 'Akun belum bisa dihapus',
+  blockedBody:
+    'Anda satu-satunya pengelola proyek berikut. Tunjuk pengelola lain dulu, lalu kembali ke sini.',
+  blockedMore: (n: number) => `Dan ${n} proyek lain.`,
+  understood: 'Mengerti',
+} as const;

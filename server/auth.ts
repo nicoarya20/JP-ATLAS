@@ -3,6 +3,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, multiSession } from 'better-auth/plugins';
 import { emailPasswordEnabled } from './account/auth-policy';
+import { guardSelfDelete } from './account/delete-guard';
 import { afterCreateUser, beforeCreateUser } from './account/signup-hooks';
 import { deleteAvatarObject } from './api/app-avatar';
 import { AUDIT_ACTIONS, audit } from './audit';
@@ -147,9 +148,10 @@ export const auth = betterAuth({
       approvalDecidedAt: { type: 'date', required: false, input: false },
       approvalReason: { type: 'string', required: false, input: false },
     },
-    // Self-service account deletion from /profile. Credential accounts must
+    // Self-service account deletion from Pengaturan. Credential accounts must
     // confirm with their password; the client asks for it before calling.
-    deleteUser: { enabled: true },
+    // Only a Super-admin who is not the sole manager of an active project may delete themselves (Q4/N03, P9 A7).
+    deleteUser: { enabled: true, beforeDelete: guardSelfDelete },
   },
   socialProviders: hasGoogleAuth
     ? {

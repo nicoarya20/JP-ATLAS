@@ -1,7 +1,6 @@
 import { Accordion, Stack, Text } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { ApiKeysCard } from '~/components/profile/ApiKeysCard';
-import { DangerZoneCard } from '~/components/profile/DangerZoneCard';
 import { LinkedAccountsCard } from '~/components/profile/LinkedAccountsCard';
 import { LoginHistoryCard } from '~/components/profile/LoginHistoryCard';
 import { PasswordCard } from '~/components/profile/PasswordCard';
@@ -10,6 +9,7 @@ import { authClient } from '~/lib/auth-client';
 import type { LoginRow } from '~/lib/login-logs-api';
 import { type DeviceSession, hasPasswordAccount, type LinkedAccount } from '~/lib/profile-api';
 import { ADVANCED_COPY } from './account.copy';
+import { DeleteAccountCard } from './DeleteAccountCard';
 
 export type AdvancedFlags = {
   /** Email sign-in is on, so the password and linked-account cards make sense. */
@@ -101,7 +101,13 @@ export function AdvancedCards({ email, role, logins, currentToken, flags }: Adva
       />
       <LoginHistoryCard rows={logins.rows} total={logins.total} />
       <ApiKeysCard role={role} />
-      {flags.canDeleteAccount && <DangerZoneCard email={email} hasPassword={hasPassword} />}
+      {flags.canDeleteAccount && (
+        <DeleteAccountCard
+          email={email}
+          hasPassword={hasPassword}
+          passwordKnown={!accounts.isPending}
+        />
+      )}
     </Stack>
   );
 }

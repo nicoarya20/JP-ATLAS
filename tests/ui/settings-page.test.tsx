@@ -27,7 +27,7 @@ afterAll(() => cleaner.flushAll());
 
 const SESSION = 'better-auth.session_token=test'; // test-only
 const MEMBER = 'member';
-const DANGER_TITLE = 'Zona berbahaya';
+const DANGER_TITLE = 'Hapus akun saya';
 
 async function runLoader(cookie = SESSION) {
   const request = new Request('http://localhost/app/settings', { headers: { cookie } });
