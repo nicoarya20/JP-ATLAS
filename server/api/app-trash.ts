@@ -1,8 +1,8 @@
 /**
  * Trash routes (`/api/app/trash`). The list merges trashed projects, tasks and events (`kind`
  * item field, `?kind=all|project|task|event`, `counts` per kind); restore is one route per kind. Restores
- * are session only (`PM_KEY_DENY`) and audited; the list is a read (`app:read`). Permanent delete and
- * the 30-day purge are the rest of S6 and are not here.
+ * are session only (`PM_KEY_DENY`) and audited; the list is a read (`app:read`). The 30-day purge is
+ * a scheduled job (`server/trash/trash.purge.ts`), not a route; a manual permanent delete does not exist.
  */
 import { Elysia, t } from 'elysia';
 import { maskEmail } from '../account/mask-email';

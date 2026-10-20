@@ -1,31 +1,29 @@
 /**
  * Read side of the project Trash (S1-18): one page of trashed projects the caller may see, with who
- * deleted each one (join, not a lookup per row) and its `can{}`. Three statements whatever the page
- * size: the total, the page, and the caller's memberships for that page.
+ * deleted each one (join, not a lookup per row), its `can{}` and how many tasks and events went with
+ * it. Six statements whatever the page size: the total, the page, the caller's memberships and the
+ * two cascade counts for that page.
  */
-import { and, count, desc, eq, inArray, isNotNull, or, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNotNull, or, type SQL, sql } from 'drizzle-orm';
 import { type TrashItemCaps, trashItemCaps, trashListScope } from '../access/trash.policy';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { project, projectMember, user } from '../db/schema';
+import { event, project, projectMember, task, user } from '../db/schema';
 import { METRICS } from '../metrics/config';
-import { isoDateIn } from '../metrics/dates';
-import { lastRestorableDate } from '../metrics/trash.metrics';
-import type { IsoDate, MetricsConfig } from '../metrics/types';
+import type { MetricsConfig } from '../metrics/types';
 import type { Executor } from '../pm/tx';
+import { type TrashTiming, trashTiming } from '../trash/trash.item';
 import { loadMembership } from './membership.query';
 
 /** One trashed project as the Trash page shows it; dates are decided by the server. */
-export type TrashProjectItem = {
+export type TrashProjectItem = TrashTiming & {
   kind: 'project';
   id: string;
   name: string;
-  /** ISO instant of the delete. */
-  deletedAt: string;
   /** Id and name only (Q8); null when the deleting account no longer exists. */
   deletedBy: { id: string; name: string } | null;
-  /** Last calendar day (team zone) the project may still be restored. */
-  restorableUntil: IsoDate;
+  /** What went to the Trash with the project and comes back with it. */
+  cascade: { tasks: number; events: number };
   can: TrashItemCaps;
 };
 
@@ -47,6 +45,32 @@ export function scopeWhere(p: Principal, exec: Executor): SQL | undefined {
     .from(projectMember)
     .where(and(eq(projectMember.userId, scope.userId), eq(projectMember.role, 'manager')));
   return or(eq(project.deletedBy, scope.userId), inArray(project.id, managed));
+}
+
+/** Tasks and events that went to the Trash with each project, one grouped query per kind. */
+async function cascadeCounts(
+  ids: readonly string[],
+  exec: Executor,
+): Promise<Map<string, { tasks: number; events: number }>> {
+  const out = new Map<string, { tasks: number; events: number }>();
+  if (ids.length === 0) return out;
+  const list = [...ids];
+  const [tasks, events] = await Promise.all([
+    exec
+      .select({ id: task.deletedWithProjectId, n: sql<number>`count(*)::int` })
+      .from(task)
+      .where(inArray(task.deletedWithProjectId, list))
+      .groupBy(task.deletedWithProjectId),
+    exec
+      .select({ id: event.deletedWithProjectId, n: sql<number>`count(*)::int` })
+      .from(event)
+      .where(inArray(event.deletedWithProjectId, list))
+      .groupBy(event.deletedWithProjectId),
+  ]);
+  for (const id of list) out.set(id, { tasks: 0, events: 0 });
+  for (const r of tasks) if (r.id) (out.get(r.id) as { tasks: number }).tasks = r.n;
+  for (const r of events) if (r.id) (out.get(r.id) as { events: number }).events = r.n;
+  return out;
 }
 
 /** Trashed projects the caller may see, newest delete first, one page plus the total. */
@@ -80,11 +104,11 @@ export async function listTrashProjects(
       .limit(input.limit)
       .offset(input.offset),
   ]);
-  const memberships = await loadMembership(
-    p.id,
-    rows.map((r) => r.id),
-    exec,
-  );
+  const pageIds = rows.map((r) => r.id);
+  const [memberships, cascade] = await Promise.all([
+    loadMembership(p.id, pageIds, exec),
+    cascadeCounts(pageIds, exec),
+  ]);
   const items = rows.flatMap((r): TrashProjectItem[] => {
     // `where` already excludes live rows; the guard only narrows the type.
     if (!r.deletedAt) return [];
@@ -94,10 +118,10 @@ export async function listTrashProjects(
         kind: 'project',
         id: r.id,
         name: r.name,
-        deletedAt: r.deletedAt.toISOString(),
+        ...trashTiming(r.deletedAt, input.now, cfg),
         deletedBy:
           r.deletedBy && r.deletedByName ? { id: r.deletedBy, name: r.deletedByName } : null,
-        restorableUntil: lastRestorableDate(isoDateIn(r.deletedAt, cfg.TIME_ZONE), cfg),
+        cascade: cascade.get(r.id) ?? { tasks: 0, events: 0 },
         can: trashItemCaps(p, r, m, input.now, undefined, cfg),
       },
     ];

@@ -1,5 +1,5 @@
-/** The "Pulihkan" button of a Trash row (projects and tasks): `loading` while it runs, greyed out with the reason when refused, absent when hidden. */
-import { Button, Tooltip } from '@mantine/core';
+/** The "Pulihkan" button of a Trash card (any kind): `loading` while it runs, greyed out with the reason when refused, absent when hidden. */
+import { Box, Button, Tooltip } from '@mantine/core';
 import type { CapValue } from '@server/access/capabilities';
 import { DENY_UI } from '@server/access/decision';
 import { FiRotateCcw } from 'react-icons/fi';
@@ -30,6 +30,8 @@ export function RestoreAction({ cap, ariaLabel, loading, busyElsewhere, onRestor
       variant="light"
       leftSection={<FiRotateCcw size="1.25em" aria-hidden />}
       aria-label={ariaLabel}
+      // Full width under the card on a phone, natural width beside the text from `sm` up.
+      w={{ base: '100%', sm: 'auto' }}
       loading={loading}
       disabled={reason !== null || busyElsewhere}
       onClick={onRestore}
@@ -40,8 +42,8 @@ export function RestoreAction({ cap, ariaLabel, loading, busyElsewhere, onRestor
   if (!reason) return button;
   return (
     <Tooltip label={reason} multiline maw={280}>
-      {/* A disabled button fires no pointer events; the span carries the tooltip. */}
-      <span>{button}</span>
+      {/* A disabled button fires no pointer events; the box carries the tooltip. */}
+      <Box w={{ base: '100%', sm: 'auto' }}>{button}</Box>
     </Tooltip>
   );
 }

@@ -1,43 +1,58 @@
 /**
- * Indonesian copy for the minimal project Trash (S1-18). Honest wording: nothing is deleted for
- * good or cleaned up automatically yet (both arrive in S6), so no text may promise or warn of that.
+ * Indonesian copy of the Trash page (wireframe "Sampah") and of "Hapus proyek". The retention
+ * length is never typed here: it is `METRICS.TRASH_RETENTION_DAYS`, the number the purge uses.
  */
+import { METRICS } from '@server/metrics/config';
+import type { TrashTab } from '~/lib/trash-api';
+
+const DAYS = METRICS.TRASH_RETENTION_DAYS;
 
 export const TRASH_PAGE_COPY = {
   title: 'Sampah',
-  description:
-    'Proyek dan tugas yang dihapus disimpan di sini. Proyek dipulihkan bersama tugas-tugasnya, tugas bisa dipulihkan sendiri, sampai tanggal yang tertera.',
-  tableLabel: 'Proyek di Sampah',
+  description: `Yang dihapus disimpan ${DAYS} hari, lalu hilang selamanya`,
+  tabsLabel: 'Jenis item di Sampah',
+  summary: (items: number) => `${items} item · dihapus otomatis setelah ${DAYS} hari`,
   loadFailed: 'Gagal memuat Sampah',
   more: 'Tampilkan lebih banyak',
-  shown: (shown: number, total: number) => `Menampilkan ${shown} dari ${total} proyek`,
 } as const;
 
-export const TRASH_EMPTY_COPY = {
-  title: 'Sampah kosong',
-  description: 'Proyek yang dihapus akan muncul di sini dan masih bisa dipulihkan.',
-} as const;
+/** Empty state per tab; an empty "Semua" says what the Trash is for. */
+export const TRASH_EMPTY_COPY: Record<TrashTab, { title: string; description: string }> = {
+  all: {
+    title: 'Sampah kosong',
+    description: `Proyek, tugas, dan event yang dihapus muncul di sini dan masih bisa dipulihkan selama ${DAYS} hari.`,
+  },
+  project: {
+    title: 'Tidak ada proyek di Sampah',
+    description: 'Proyek yang dihapus muncul di sini.',
+  },
+  task: {
+    title: 'Tidak ada tugas di Sampah',
+    description: 'Tugas yang dihapus muncul di sini dan masih bisa dipulihkan.',
+  },
+  event: {
+    title: 'Tidak ada event di Sampah',
+    description: 'Event yang dihapus muncul di sini dan masih bisa dipulihkan.',
+  },
+};
 
-export const TRASH_COLUMNS = {
-  name: 'Proyek',
-  deletedBy: 'Dihapus oleh',
-  deletedAt: 'Tanggal hapus',
-  until: 'Bisa dipulihkan sampai',
-  action: 'Aksi',
+/** A task or event whose project is in the Trash waits for it. */
+export const TRASH_BLOCKED_COPY = {
+  restoreFirst: 'Pulihkan proyeknya dulu.',
+  viewProject: 'Lihat proyeknya',
+  askManager: 'Proyeknya ada di Sampah. Minta pengelola proyek memulihkannya dulu.',
 } as const;
 
 export const TRASH_ROW_COPY = {
-  unknownDeleter: 'Akun sudah tidak ada',
   restore: 'Pulihkan',
-  restoreProject: (name: string) => `Pulihkan proyek ${name}`,
-  until: (date: string) => `Bisa dipulihkan sampai ${date}`,
-  deletedBy: (name: string, date: string) => `Dihapus oleh ${name}, ${date}`,
 } as const;
 
-/** Toasts for `useTrashActions`. */
+/** Toasts of "Pulihkan" and "Hapus proyek" (`useTrashActions`, `useTrashRestore`). */
 export const TRASH_ACTION_COPY = {
   restored: (name: string, tasks: number) => `Proyek "${name}" dipulihkan bersama ${tasks} tugas.`,
   restoreFailed: 'Gagal memulihkan proyek',
+  eventRestored: (title: string) => `Event "${title}" dipulihkan.`,
+  eventRestoreFailed: 'Gagal memulihkan event',
   trashed: (name: string) => `Proyek "${name}" dipindah ke Sampah.`,
   trashFailed: 'Gagal menghapus proyek',
 } as const;
@@ -49,28 +64,4 @@ export const TRASH_CONFIRM_COPY = {
   body: (tasks: number, until: string) =>
     `${tasks > 0 ? `${tasks} tugas di dalamnya ikut dipindah ke Sampah. ` : ''}Proyek ini bisa dipulihkan dari halaman Sampah sampai ${until}.`,
   confirmLabel: 'Hapus proyek',
-} as const;
-
-/**
- * The Tugas section of the Trash page (S6 D1). Same honesty as above: nothing here promises a
- * permanent delete or an automatic cleanup, because neither exists yet.
- */
-export const TRASH_COPY = {
-  projectsHeading: 'Proyek',
-  tasksHeading: 'Tugas',
-  tasksTableLabel: 'Tugas di Sampah',
-  noProjects: {
-    title: 'Tidak ada proyek di Sampah',
-    description: 'Proyek yang dihapus muncul di sini.',
-  },
-  noTasks: {
-    title: 'Tidak ada tugas di Sampah',
-    description: 'Tugas yang dihapus muncul di sini dan masih bisa dipulihkan.',
-  },
-  columnTask: 'Tugas',
-  shownTasks: (shown: number, total: number) => `Menampilkan ${shown} dari ${total} tugas`,
-  taskRef: (number: number, project: string) => `#${number} · ${project}`,
-  restoreTask: (number: number, title: string) => `Pulihkan tugas #${number} ${title}`,
-  blocked: 'Pulihkan proyeknya dulu',
-  loadFailed: 'Gagal memuat tugas di Sampah',
 } as const;
