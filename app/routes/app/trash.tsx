@@ -1,4 +1,4 @@
-import { Box, SegmentedControl } from '@mantine/core';
+import { Box, Group, SegmentedControl, Text, Title } from '@mantine/core';
 import { requireUser } from '@server/guard';
 import { toPrincipal } from '@server/project/membership.query';
 import { listTrash } from '@server/trash/trash.list.query';
@@ -7,7 +7,6 @@ import { TRASH_PAGE_COPY } from '~/components/trash/trash.copy';
 import { TRASH_QUERY, useTrashPage } from '~/components/trash/useTrashPage';
 import { useTrashRestore } from '~/components/trash/useTrashRestore';
 import { PageContainer } from '~/components/ui/PageContainer';
-import { PageHeader } from '~/components/ui/PageHeader';
 import { toJson } from '~/lib/loader-json';
 import { projectErrorMessage } from '~/lib/projects-api';
 import type { TrashPage, TrashTab } from '~/lib/trash-api';
@@ -41,10 +40,18 @@ export default function TrashPageRoute({ loaderData }: Route.ComponentProps) {
 
   return (
     <PageContainer>
-      <PageHeader title={TRASH_PAGE_COPY.title} description={TRASH_PAGE_COPY.description} />
+      {/* Title and subtitle share one baseline as in the wireframe; the subtitle wraps under it on a phone. */}
+      <Group align="baseline" gap="md" wrap="wrap">
+        <Title order={2}>{TRASH_PAGE_COPY.title}</Title>
+        <Text c="dimmed">{TRASH_PAGE_COPY.description}</Text>
+      </Group>
       {/* Scrolls sideways on a narrow phone instead of squeezing four labels together. */}
       <Box style={{ overflowX: 'auto' }}>
         <SegmentedControl
+          color="gray.7"
+          autoContrast
+          bd="1px solid var(--mantine-color-gray-7)"
+          styles={{ label: { fontWeight: 700 } }}
           aria-label={TRASH_PAGE_COPY.tabsLabel}
           value={page.tab}
           onChange={(value) => page.selectTab(value as TrashTab)}

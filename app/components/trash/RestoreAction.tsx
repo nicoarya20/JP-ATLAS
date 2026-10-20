@@ -2,7 +2,6 @@
 import { Box, Button, Tooltip } from '@mantine/core';
 import type { CapValue } from '@server/access/capabilities';
 import { DENY_UI } from '@server/access/decision';
-import { FiRotateCcw } from 'react-icons/fi';
 import { TRASH_ROW_COPY } from './trash.copy';
 
 /** Why "Pulihkan" is off (expired, impersonating, project in the Trash), or null when it is on or hidden. */
@@ -27,8 +26,10 @@ export function RestoreAction({ cap, ariaLabel, loading, busyElsewhere, onRestor
   const reason = restoreBlockedReason(cap);
   const button = (
     <Button
-      variant="light"
-      leftSection={<FiRotateCcw size="1.25em" aria-hidden />}
+      variant="default"
+      fw={700}
+      // Outlined in the text colour as the wireframe draws it; a refused button keeps the plain disabled look.
+      bd={reason !== null || busyElsewhere ? undefined : '2px solid var(--mantine-color-text)'}
       aria-label={ariaLabel}
       // Full width under the card on a phone, natural width beside the text from `sm` up.
       w={{ base: '100%', sm: 'auto' }}
