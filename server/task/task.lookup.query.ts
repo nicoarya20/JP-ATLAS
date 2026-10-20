@@ -8,6 +8,7 @@ import { db } from '../db';
 import { profile, projectMember, user } from '../db/schema';
 import { ROLES } from '../permissions';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 
 /** A person as a task shows them: id and name only, never email or phone (Q8). */
 export type PersonRef = { id: string; name: string };
@@ -23,7 +24,7 @@ export async function loadPeople(
   const rows = await exec
     .select({
       id: user.id,
-      name: sql<string>`coalesce(nullif(btrim(${profile.displayName}), ''), ${user.name})`,
+      name: displayNameSql,
     })
     .from(user)
     .leftJoin(profile, eq(profile.userId, user.id))

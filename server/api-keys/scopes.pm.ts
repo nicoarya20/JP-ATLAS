@@ -9,6 +9,18 @@ export const PM_KEY_DENY: readonly Deny[] = [
   // Handing over the Lead changes who runs the project: an escalation, so session only (S1-03).
   { id: 'PUT projects/*/lead', method: 'PUT', path: /^\/api\/app\/projects\/.*\/lead(?:\/.*)?$/i },
   { id: 'PATCH profile', method: 'PATCH', path: /^\/api\/app\/profile(?:\/.*)?$/i },
+  // Which cards reach the user is a personal choice, like the profile: a leaked key must not mute them.
+  {
+    id: 'PUT profile/notifications',
+    method: 'PUT',
+    path: /^\/api\/app\/profile\/notifications(?:\/.*)?$/i,
+  },
+  // What blocks deleting your own account is for the signed-in person only; a key has no reason to ask.
+  {
+    id: 'GET profile/delete-check',
+    method: 'GET',
+    path: /^\/api\/app\/profile\/delete-check(?:\/.*)?$/i,
+  },
   { id: '* avatar', method: '*', path: /^\/api\/app\/avatar(?:\/.*)?$/i },
   // Restoring undoes a delete and brings data back for everyone: as sensitive as the delete (S1-05).
   { id: 'POST trash/*', method: 'POST', path: /^\/api\/app\/trash\/.+/i },
@@ -65,6 +77,8 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   '* projects/*/members*': 'app-projects.members.ts',
   'PUT projects/*/lead': 'app-projects.write.ts',
   'PATCH profile': 'app-profile.ts',
+  'PUT profile/notifications': 'app-profile.notifications.ts',
+  'GET profile/delete-check': 'app-profile.delete-check.ts',
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts
   'POST trash/*': 'app-trash.ts',
   'DELETE trash/*': 'app-trash.ts',

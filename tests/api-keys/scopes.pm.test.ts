@@ -171,6 +171,24 @@ describe('Trash delete routes (S6, P8 Q2)', () => {
   });
 });
 
+describe('notification switches (SET)', () => {
+  test('a key may read its owner switches but never flip them', () => {
+    expect(requiredScope('GET', '/api/app/profile/notifications')).toBe('app:read');
+    expect(isPmKeyDenied('GET', '/api/app/profile/notifications')).toBe(false);
+    expect(isPmKeyDenied('PUT', '/api/app/profile/notifications')).toBe(true);
+    expect(requiredScope('PUT', '/api/app/profile/notifications')).toBeNull();
+    expect(requiredScope('put', '/api/app/profile/notifications/')).toBeNull();
+  });
+});
+
+describe('delete-account check (SET)', () => {
+  test('is session only: a key never learns what blocks its owner from deleting the account', () => {
+    expect(isPmKeyDenied('GET', '/api/app/profile/delete-check')).toBe(true);
+    expect(requiredScope('GET', '/api/app/profile/delete-check')).toBeNull();
+    expect(requiredScope('GET', '/api/app/profile/delete-check/')).toBeNull();
+  });
+});
+
 describe('PM_KEY_DENY patterns', () => {
   test('each pattern has an owner plugin that exists', () => {
     const files = new Set(readdirSync(API_DIR));

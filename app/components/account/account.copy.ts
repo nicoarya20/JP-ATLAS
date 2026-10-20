@@ -8,13 +8,13 @@ export const ACCOUNT_COPY = {
   title: 'Profil',
   description: 'Nama dan keterangan ini tampil untuk rekan satu proyek.',
   name: 'Nama',
-  nameHint: 'Kosongkan untuk memakai nama dari akun Google Anda.',
+  nameHint: 'Kosongkan untuk memakai nama dari akun Anda.',
   jobTitle: 'Jabatan',
   department: 'Divisi',
   phone: 'Nomor HP (tidak wajib)',
   phoneHint: 'Hanya Anda dan Admin yang bisa melihat nomor ini.',
   email: 'Email',
-  emailHint: 'Email mengikuti akun Google Anda dan tidak bisa diubah di sini.',
+  emailHint: 'Email adalah identitas akun Anda dan tidak bisa diubah di sini.',
   save: 'Simpan profil',
   reset: 'Batalkan perubahan',
   saved: 'Profil disimpan.',
@@ -38,6 +38,18 @@ export const TEXT_SIZE_LABELS: Record<TextSize, string> = {
   sangat_besar: 'Sangat besar',
 };
 
+export const NOTIFICATIONS_COPY = {
+  title: 'Pemberitahuan',
+  description: 'Pilih kabar yang muncul di Kotak masuk. Perubahan tersimpan langsung.',
+  eventReminder: 'Ingatkan saya sebelum acara',
+  eventReminderHint: 'Kartu pengingat satu hari dan setengah jam sebelum acara dimulai.',
+  inboxNews: 'Tampilkan kabar terbaru di Kotak masuk',
+  inboxNewsHint: 'Perubahan tugas, komentar, dan acara di proyek Anda.',
+  always: 'Tugas yang perlu Anda tanggapi selalu tampil dan tidak bisa dimatikan.',
+  saved: 'Pemberitahuan diperbarui.',
+  saveFailed: 'Gagal menyimpan pemberitahuan',
+} as const;
+
 export const SIGN_OUT_COPY = {
   title: 'Keluar dari akun ini?',
   body: 'Kamu akan keluar dari akun ini. Kamu bisa masuk lagi kapan saja.',
@@ -47,6 +59,29 @@ export const SIGN_OUT_COPY = {
 } as const;
 
 export const ADVANCED_COPY = {
-  title: 'Lanjutan',
-  description: 'Perangkat yang masuk, riwayat masuk, dan kunci API.',
+  title: 'Keamanan dan perangkat',
+  description: 'Kata sandi, perangkat yang sedang masuk, riwayat masuk, dan kunci API.',
+} as const;
+
+export const DELETE_ACCOUNT_COPY = {
+  cardTitle: 'Hapus akun',
+  cardDescription: 'Tindakan di sini tidak bisa dibatalkan.',
+  cardBody:
+    'Menghapus akun Anda, semua perangkat yang masuk, dan akun tertaut. Log aktivitas anonim tetap tersimpan untuk keperluan audit.',
+  open: 'Hapus akun saya…',
+  checkFailed: 'Gagal memeriksa akun',
+  modalTitle: 'Hapus akun permanen?',
+  impact:
+    'Anda tidak bisa masuk lagi. Tugas yang Anda kerjakan menjadi tanpa penanggung jawab, keanggotaan Anda di proyek dan acara dicabut, dan kartu Kotak masuk Anda dihapus. Komentar dan riwayat yang pernah Anda tulis tetap ada.',
+  typeEmail: 'Ketik email Anda untuk memastikan:',
+  password: 'Password',
+  cancel: 'Batal',
+  confirm: 'Hapus akun saya',
+  failed: 'Gagal menghapus akun',
+  failedFallback: 'Server menolak. Coba masuk ulang lalu ulangi.',
+  blockedTitle: 'Akun belum bisa dihapus',
+  blockedBody:
+    'Anda satu-satunya pengelola proyek berikut. Tunjuk pengelola lain dulu, lalu kembali ke sini.',
+  blockedMore: (n: number) => `Dan ${n} proyek lain.`,
+  understood: 'Mengerti',
 } as const;

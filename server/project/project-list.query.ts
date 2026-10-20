@@ -8,7 +8,7 @@ import type { RequestedListScope } from '../access/project.policy';
 import { clampListScope, projectListScope } from '../access/project.policy';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { project, projectMember, user } from '../db/schema';
+import { profile, project, projectMember, user } from '../db/schema';
 import { METRICS } from '../metrics/config';
 import type { MetricsConfig } from '../metrics/types';
 import type { ProjectCondition, ProjectStatus } from '../pm/enums';
@@ -132,6 +132,7 @@ export async function listProjects(
     .select(projectColumns)
     .from(project)
     .leftJoin(user, eq(user.id, project.leadId))
+    .leftJoin(profile, eq(profile.userId, user.id))
     .where(where)
     .orderBy(...ORDER[input.sort ?? 'due']);
 

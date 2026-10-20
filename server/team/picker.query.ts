@@ -12,6 +12,7 @@ import { profile, project, projectMember, user } from '../db/schema';
 import type { PmCode } from '../pm/errors';
 import { isLive } from '../pm/soft-delete';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import { loadMembership } from '../project/membership.query';
 import { accountActive, likeText } from './account-active';
 
@@ -76,7 +77,7 @@ export async function pickPeople(
   }
   const where: SQL[] = [accountActive];
   const q = input.q?.trim();
-  if (q) where.push(ilike(user.name, likeText(q)));
+  if (q) where.push(ilike(displayNameSql, likeText(q)));
   if (input.projectId !== undefined) {
     const already = exec
       .select({ one: sql`1` })
@@ -85,11 +86,11 @@ export async function pickPeople(
     where.push(notExists(already));
   }
   const items = await exec
-    .select({ id: user.id, name: user.name, jobTitle: profile.jobTitle, image: user.image })
+    .select({ id: user.id, name: displayNameSql, jobTitle: profile.jobTitle, image: user.image })
     .from(user)
     .leftJoin(profile, eq(profile.userId, user.id))
     .where(and(...where))
-    .orderBy(asc(user.name), asc(user.id))
+    .orderBy(asc(displayNameSql), asc(user.id))
     .limit(pickerLimit(input.limit));
   return { ok: true, items };
 }

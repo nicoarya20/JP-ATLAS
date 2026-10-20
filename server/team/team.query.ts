@@ -17,6 +17,7 @@ import type { IsoDate } from '../metrics/types';
 import { getMetrics } from '../pm/metrics-env';
 import { isLive } from '../pm/soft-delete';
 import type { Executor } from '../pm/tx';
+import { displayNameSql } from '../profile/profile.name';
 import { accountActive, likeText } from './account-active';
 import type {
   ListTeamInput,
@@ -105,7 +106,7 @@ export async function listTeam(
   const rows = await exec
     .select({
       id: user.id,
-      name: user.name,
+      name: displayNameSql,
       image: user.image,
       jobTitle: profile.jobTitle,
       total: sql<number>`count(*) OVER ()`,
@@ -116,11 +117,11 @@ export async function listTeam(
       and(
         accountActive,
         peopleVisibleTo(p, ctx, input.projectId),
-        q ? ilike(user.name, likeText(q)) : undefined,
+        q ? ilike(displayNameSql, likeText(q)) : undefined,
       ),
     )
     // Self first, then A-Z; the id breaks ties so paging is stable across requests.
-    .orderBy(desc(eq(user.id, p.id)), asc(user.name), asc(user.id))
+    .orderBy(desc(eq(user.id, p.id)), asc(displayNameSql), asc(user.id))
     .limit(byLoad ? TEAM_SORT_SCAN_LIMIT : limit)
     .offset(byLoad ? 0 : offset);
 

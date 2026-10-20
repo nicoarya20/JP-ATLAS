@@ -5,7 +5,7 @@
  * is reported to the owner instead of being closed here (the status gate is their decision).
  */
 import { afterAll, describe, expect, test } from 'bun:test';
-import { and, eq, inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { approveUser, rejectUser } from '../../server/account/approval.service';
 import { api } from '../../server/api';
 import { db } from '../../server/db';
@@ -143,17 +143,18 @@ describe.each(['pending', 'rejected'] as const)(
       await db.delete(apikey).where(eq(apikey.referenceId, acc.id));
     });
 
-    test('KNOWN GAP N04/N05: /delete-user lets it delete itself (fresh session, no password)', async () => {
+    test('N04/N05 closed: /delete-user is Super-admin only, so a held account cannot delete itself', async () => {
       const acc = await heldAccount(`${status}-del`, status);
       const res = await call('/api/auth/delete-user', json(acc.cookie, {}));
-      expect(res.status).toBe(200);
-      expect(await rowOf(acc.id)).toBeUndefined();
+      expect(res.status).toBe(403);
+      expect((await res.json()).code).toBe('DELETE_ACCOUNT_FORBIDDEN');
+      expect((await rowOf(acc.id))?.approvalStatus).toBe(status);
     });
   },
 );
 
-describe('N05: a rejected account deletes itself, then signs up again', () => {
-  test('KNOWN GAP N05: the new account is pending with no trace of the rejection on it', async () => {
+describe('N05: a rejected account cannot delete itself to sign up again', () => {
+  test('the rejection stays on the account and the same email cannot register a second one', async () => {
     const email = `${TAG}-again@example.test`;
     createdEmails.push(email);
     expect((await signUp(email)).status).toBe(200);
@@ -167,24 +168,20 @@ describe('N05: a rejected account deletes itself, then signs up again', () => {
       eq(auditLog.action, 'user.reject'),
     );
     for (const a of audits) cleaner.track('audit', a.id);
-    expect(audits).toHaveLength(1);
 
     const signIn = await call('/api/auth/sign-in/email', json('', { email, password: PASSWORD }));
     expect(signIn.status).toBe(200);
-    expect((await call('/api/auth/delete-user', json(cookieOf(signIn), {}))).status).toBe(200);
+    const del = await call('/api/auth/delete-user', json(cookieOf(signIn), {}));
+    expect(del.status).toBe(403);
 
-    expect((await signUp(email)).status).toBe(200);
-    const [again] = await db.select().from(user).where(eq(user.email, email));
-    expect(again.id).not.toBe(first.id);
-    expect(again.approvalStatus).toBe('pending');
-    expect(again.approvalReason).toBeNull();
-    expect(again.approvalDecidedBy).toBeNull();
-    // Only the audit log still remembers the rejection, under the deleted account's id.
-    const kept = await db
-      .select({ id: auditLog.id })
-      .from(auditLog)
-      .where(and(eq(auditLog.targetId, first.id), eq(auditLog.action, 'user.reject')));
-    expect(kept).toHaveLength(1);
+    expect((await signUp(email)).status).not.toBe(200);
+    const rows = await db.select().from(user).where(eq(user.email, email));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: first.id,
+      approvalStatus: 'rejected',
+      approvalReason: 'Bukan karyawan',
+    });
   });
 });
 

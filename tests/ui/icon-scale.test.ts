@@ -11,7 +11,7 @@ const SCOPE_FILES = [
   'app/components/ThemeToggle.tsx',
   'app/components/account/HoldShell.tsx',
 ];
-const SCOPE_DIRS = ['app/routes/app'];
+const SCOPE_DIRS = ['app/routes/app', 'app/components/account', 'app/components/profile'];
 
 /**
  * Kecualian eksplisit: berkas -> alasan. Kosong; ikon di berkas scope wajib `size="1.25em"`

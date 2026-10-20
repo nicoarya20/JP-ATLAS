@@ -1,5 +1,13 @@
 import { Button, Group, SimpleGrid, Stack, TextInput } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import {
+  isPhoneFormat,
+  PHONE_FORMAT_ERROR,
+  PROFILE_DEPARTMENT_MAX,
+  PROFILE_NAME_MAX,
+  PROFILE_PHONE_MAX,
+  PROFILE_TITLE_MAX,
+} from '@server/profile/profile.rules';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { notify } from '~/components/ui/notify';
@@ -11,8 +19,12 @@ import { ACCOUNT_COPY } from './account.copy';
 type Fields = Required<Pick<MyProfilePatch, 'displayName' | 'jobTitle' | 'department' | 'phone'>>;
 type FieldKey = keyof Fields;
 
-// Mirrors PROFILE_*_MAX in server/profile/profile.service.ts; the server rejects anything longer.
-const MAX: Record<FieldKey, number> = { displayName: 80, jobTitle: 80, department: 80, phone: 30 };
+const MAX: Record<FieldKey, number> = {
+  displayName: PROFILE_NAME_MAX,
+  jobTitle: PROFILE_TITLE_MAX,
+  department: PROFILE_DEPARTMENT_MAX,
+  phone: PROFILE_PHONE_MAX,
+};
 
 const toFields = (p: MyProfile): Record<FieldKey, string> => ({
   displayName: p.displayName ?? '',
@@ -48,6 +60,7 @@ export function AccountCard({
 
   const keys = Object.keys(initial) as FieldKey[];
   const dirty = keys.some((k) => form[k].trim() !== initial[k]);
+  const phoneError = isPhoneFormat(form.phone) ? null : PHONE_FORMAT_ERROR;
   const save = useMutation({
     // Blank fields are sent as '' and stored as NULL by the server (it trims and clears).
     mutationFn: () => patchMyProfile(form),
@@ -90,6 +103,7 @@ export function AccountCard({
           <TextInput
             label={ACCOUNT_COPY.phone}
             description={ACCOUNT_COPY.phoneHint}
+            error={phoneError}
             type="tel"
             inputMode="tel"
             autoComplete="tel"
@@ -110,7 +124,11 @@ export function AccountCard({
             {ACCOUNT_COPY.reset}
           </Button>
         )}
-        <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!dirty}>
+        <Button
+          onClick={() => save.mutate()}
+          loading={save.isPending}
+          disabled={!dirty || phoneError !== null}
+        >
           {ACCOUNT_COPY.save}
         </Button>
       </Group>

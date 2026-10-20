@@ -1,6 +1,6 @@
 /**
  * /app/settings (S1-14): the loader decides who may delete their account (Q4/N03: Super-admin only,
- * never while impersonating) and the "Lanjutan" section does not render the card for anyone else.
+ * never while impersonating) and the "Keamanan dan perangkat" section does not render the card for anyone else.
  */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
@@ -14,7 +14,7 @@ import {
 } from '../../app/components/account/AdvancedSettings';
 import { loader } from '../../app/routes/app/settings';
 import { db } from '../../server/db';
-import { profile } from '../../server/db/schema';
+import { notificationPref, profile } from '../../server/db/schema';
 import { installAuthSpies } from '../support/auth';
 import { createCleaner } from '../support/cleanup';
 import { createUserFactory } from '../support/factory.user';
@@ -27,14 +27,14 @@ afterAll(() => cleaner.flushAll());
 
 const SESSION = 'better-auth.session_token=test'; // test-only
 const MEMBER = 'member';
-const DANGER_TITLE = 'Zona berbahaya';
+const DANGER_TITLE = 'Hapus akun saya';
 
 async function runLoader(cookie = SESSION) {
   const request = new Request('http://localhost/app/settings', { headers: { cookie } });
   return loader({ request } as Parameters<typeof loader>[0]);
 }
 
-/** Renders the Lanjutan cards under a data router (the cards read the root clock) and React Query. */
+/** Renders the Keamanan dan perangkat cards under a data router (the cards read the root clock) and React Query. */
 async function renderAdvanced(flags: AdvancedFlags) {
   const node = (
     <QueryClientProvider client={new QueryClient()}>
@@ -79,6 +79,17 @@ describe('settings loader', () => {
     expect(data.flags.canDeleteAccount).toBe(false);
   });
 
+  it('hands the page both notification switches, on until the user opts out', async () => {
+    const me = await users.user({ role: 'member' });
+    auth.as(me);
+    expect((await runLoader()).notificationPrefs).toEqual({ eventReminder: true, inboxNews: true });
+    await db.insert(notificationPref).values({ userId: me.id, category: 'news', inApp: false });
+    expect((await runLoader()).notificationPrefs).toEqual({
+      eventReminder: true,
+      inboxNews: false,
+    });
+  });
+
   it('starts a new account at the Normal size (Q13)', async () => {
     const me = await users.user({ role: 'member' });
     auth.as(me);
@@ -108,7 +119,7 @@ describe('settings loader', () => {
   });
 });
 
-describe('Lanjutan section', () => {
+describe('Keamanan dan perangkat section', () => {
   it('starts closed: the accordion renders its title but none of the cards', () => {
     const html = renderToString(
       <MantineProvider>
@@ -121,14 +132,15 @@ describe('Lanjutan section', () => {
         />
       </MantineProvider>,
     );
-    expect(html).toContain('Lanjutan');
+    expect(html).toContain('Keamanan dan perangkat');
+    expect(html).not.toContain('Lanjutan');
     expect(html).toContain('aria-expanded="false"');
     expect(html).not.toContain(DANGER_TITLE);
   });
 
   it('does not render the delete-account card for a member', async () => {
     const html = await renderAdvanced(FLAGS);
-    expect(html).toContain('Perangkat yang masuk');
+    expect(html).toContain('Perangkat yang sedang masuk');
     expect(html).not.toContain(DANGER_TITLE);
   });
 
