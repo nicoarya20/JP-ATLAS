@@ -28,7 +28,7 @@ describe('app scale safety (S1-16)', () => {
   it('scans a non-trivial set of files', () => {
     expect(files.length).toBeGreaterThan(40);
     expect(files).toContain('app/routes/app/settings.tsx');
-    expect(files).toContain('app/components/trash/TrashProjectList.tsx');
+    expect(files).toContain('app/components/trash/TrashItemCard.tsx');
     expect(files).toContain('app/components/tasks/TaskRow.tsx');
     expect(files).toContain('app/routes/app/task-detail.tsx');
     expect(files).toContain('app/routes/app/task-edit.tsx');

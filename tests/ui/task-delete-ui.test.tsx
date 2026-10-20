@@ -1,4 +1,4 @@
-/** Hapus tugas (S6 D1, T1): no dialog, an "Urungkan" toast that restores, menu per can.trash, Trash page task section. */
+/** Hapus tugas (S6 D1, T1): no dialog, an "Urungkan" toast that restores, menu per can.trash. */
 import { afterEach, describe, expect, it, spyOn } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -16,10 +16,7 @@ import {
   restoreOptions,
   type TrashFlow,
 } from '../../app/components/tasks/useTaskDelete';
-import { TrashTaskCard, TrashTaskList } from '../../app/components/trash/TrashTaskList';
-import { TRASH_COPY } from '../../app/components/trash/trash.copy';
 import { notify, UNDO_LABEL } from '../../app/components/ui/notify';
-import type { TrashTaskItem } from '../../app/lib/trash-api';
 import { runMutation } from '../../app/lib/use-api-mutation';
 
 const CLOCK = { now: Date.parse('2026-10-07T03:00:00.000Z'), timeZone: 'UTC' }; // test-only
@@ -153,73 +150,4 @@ describe('no confirmation dialog on delete (T1)', () => {
       expect(src).not.toMatch(/openConfirmModal|confirmAction|window\.confirm|modals\./);
     },
   );
-});
-
-const row = (over: Partial<TrashTaskItem> = {}): TrashTaskItem => ({
-  kind: 'task',
-  id: 't-1',
-  number: 42,
-  title: 'Pasang keramik',
-  project: { id: 'p-1', name: 'Renovasi Dapur' },
-  blockedBy: null,
-  deletedAt: '2026-10-07T03:00:00.000Z', // test-only
-  deletedBy: { id: 'u-1', name: 'Dodi' },
-  restorableUntil: '2026-11-05',
-  can: { restore: true },
-  ...over,
-});
-const noop = { restoringId: null, onRestore: () => {} };
-const list = (items: TrashTaskItem[], restoringId: string | null = null) =>
-  render(
-    <TrashTaskList
-      items={items}
-      total={items.length}
-      hasMore={false}
-      loadingMore={false}
-      onMore={() => {}}
-      restoringId={restoringId}
-      onRestore={() => {}}
-    />,
-  );
-
-describe('Trash page task section', () => {
-  it('shows an informative empty state', async () => {
-    const out = await list([]);
-    expect(out).toContain(TRASH_COPY.noTasks.title);
-    expect(out).not.toContain('<table');
-  });
-
-  it('renders table and mobile cards with number, project, deleter and Pulihkan', async () => {
-    const out = await list([row()]);
-    expect(out).toContain('<table');
-    expect(out).toContain('role="list"');
-    expect(out).toContain('#42 · Renovasi Dapur');
-    expect(out).toContain('Dodi');
-    expect(out).toContain('5 Nov 2026');
-    expect(out).toContain('Pulihkan');
-  });
-
-  it('greys Pulihkan out with the reason while the project is in the Trash', async () => {
-    const out = await list([
-      row({
-        blockedBy: { projectId: 'p-1', name: 'Renovasi Dapur' },
-        can: { restore: 'PROJECT_IN_TRASH' },
-      }),
-    ]);
-    expect(out).toContain(TRASH_COPY.blocked);
-    expect(out).toMatch(/<button[^>]*disabled[^>]*>/);
-  });
-
-  it('shows loading on the running row only and no button without can.restore', async () => {
-    expect(await list([row()], 't-1')).toContain('data-loading');
-    expect(await render(<TrashTaskCard item={row({ can: {} })} {...noop} />)).not.toContain(
-      '<button',
-    );
-  });
-
-  it('never promises an automatic or permanent delete', async () => {
-    const out = (await list([row()])).toLowerCase();
-    expect(out).not.toContain('otomatis');
-    expect(out).not.toContain('permanen');
-  });
 });
