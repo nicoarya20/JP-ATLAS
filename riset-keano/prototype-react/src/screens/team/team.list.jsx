@@ -1,13 +1,17 @@
-// Team ① List and ③ Empty: who's on my team and what they're working on. Scope and visible counts differ per role.
+// Team ① List and ③ Empty: who's on my team and what they're working on. Scope and visible counts differ per role;
+// task counts come from the live task list. A row opens Team ② for that person.
 import { Users } from 'lucide-react';
 import { useApp, useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Avatar, Empty, Rows, Search, Section, Select, Screen } from '../../kit';
+import { useTaskMoves } from '../tasks/tasks.store';
+import { loadOf, totalOf } from './team.load';
 
-/** Person row. o: {key, you, role, status, extra, active, overdue, counts}. counts = false hides the task counts. */
+/** Person row. o: {key, you, role, status, extra, counts}. counts = false hides the task counts. */
 function Person({ o }) {
   const p = D.person(o.key), status = o.status || 'Available';
-  const onClick = useNav({ go: 'team.person' });
+  const load = loadOf(p.name);
+  const onClick = useNav({ go: 'team.person', params: { person: o.key } });
   return (
     <button type="button" className="tm-row" onClick={onClick}>
       <Avatar name={p.name} />
@@ -17,7 +21,7 @@ function Person({ o }) {
         <span className={`t-footnote tm-status${status === 'Available' ? ' on' : ''}`}>{status}</span>
         {o.extra && <span className="t-footnote muted">{o.extra}</span>}
         {o.counts !== false && (
-          <span className="row-flex t-caption bold"><span>{o.active} active</span><span className="danger">{o.overdue}</span></span>
+          <span className="row-flex t-caption bold"><span>{load.active} active</span>{load.overdue > 0 && <span className="danger">{load.overdue} overdue</span>}</span>
         )}
       </span>
       <span className="tm-view">View</span>
@@ -26,11 +30,15 @@ function Person({ o }) {
 }
 
 const [nico, rina, dodi] = D.team.list;
+const names = keys => keys.map(k => D.person(k).name);
 /** Summary line, people, closing note per role. */
 const VARIANTS = {
-  pm: () => ({ summary: D.team.summary, people: [{ ...nico, you: true }, rina, dodi] }),
+  pm: () => {
+    const people = [{ ...nico, you: true }, rina, dodi];
+    return { summary: `Projects you manage · ${people.length} people · ${totalOf(names(people.map(o => o.key)))}`, people };
+  },
   admin: () => ({
-    summary: 'All projects · 6 people · 18 active tasks · 4 overdue',
+    summary: `All projects · ${Object.keys(D.people).length} people · ${totalOf(names(Object.keys(D.people)))}`,
     people: [{ key: 'ayu', you: true, role: 'Admin · No project', counts: false }, { ...nico, role: 'Project Manager · Atlas Project, Internal Tools' },
       { ...rina, extra: '' }, dodi, { key: 'sri', role: 'Observer · Atlas Project', counts: false }],
     note: 'Approving new users and changing roles happens in More › Users.',
@@ -44,6 +52,7 @@ const VARIANTS = {
 
 export function TeamList() {
   const { role } = useApp();
+  useTaskMoves();
   const v = VARIANTS[role]();
   return (
     <Screen title="Team" back tab="more">
