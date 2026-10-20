@@ -1,7 +1,11 @@
 // Projects ①: project list. Member sees only joined projects (no My/All switch); Admin sees every project. New project is the tab bar "+".
-import { Avatars, Chips, Pill, Progress, Screen, Search, Section, Seg, Select } from '../../kit';
+// The list shows its screen params' Filter & sort query (projects.query), set from the icon next to the search field.
+import { SearchX } from 'lucide-react';
+import { Avatars, Btn, Empty, Pill, Progress, Screen, Section, Seg } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
+import { ProjectsSearch } from './projects.filter';
+import { applyQuery, queryOf, withoutQuery } from './projects.query';
 
 function ProjectCard({ p }) {
   return (
@@ -20,20 +24,25 @@ function ProjectCard({ p }) {
   );
 }
 
-export default function ProjectsList() {
+/** Shown when the query leaves the list empty: Reset filters re-opens the list with its default query. */
+function NoMatch() {
+  const { current, params, go } = useApp();
+  return (
+    <Empty icon={<SearchX size={28} />} title="No projects match these filters."
+      action={<Btn kind="primary" onClick={() => go(current, { params: withoutQuery(params) })}>Reset filters</Btn>} />
+  );
+}
+
+export default function ProjectsList({ params }) {
   const { is } = useApp();
   const member = is('member');
-  const list = member ? D.projects.filter(p => p.members.includes(D.me().name)) : D.projects;
+  const mine = member ? D.projects.filter(p => p.members.includes(D.me().name)) : D.projects;
+  const list = applyQuery([...mine], queryOf(params));
   return (
     <Screen title="Projects" tab="projects">
       {!member && <Seg items={['My projects', 'All projects']} on={1} />}
-      <Search placeholder="Search project name or description…" />
-      <Chips items={['All', 'Active', 'On hold', 'Done', 'Draft', '! Needs attention']} />
-      <div className="between">
-        <Select toast="Sort options">Sort: Nearest deadline</Select>
-        <span className="t-subhead muted">{list.length} projects</span>
-      </div>
-      {list.map(p => <ProjectCard key={p.id} p={p} />)}
+      <ProjectsSearch />
+      {list.length ? list.map(p => <ProjectCard key={p.id} p={p} />) : <NoMatch />}
     </Screen>
   );
 }

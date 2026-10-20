@@ -3,6 +3,7 @@ import { screen, sheet } from '../../core/registry';
 import { getRole } from '../../core/session';
 import './projects.css';
 import ProjectsList from './projects.list';
+import { ProjectsFilter } from './projects.filter';
 import { ProjectsForm, ProjectsNew, ProjectsStory } from './projects.create';
 import { ProjectsDraft, ProjectsTemplate } from './projects.draft';
 import { ProjectsOverview } from './projects.detail';
@@ -13,6 +14,7 @@ const G = 'Projects';
 const MANAGERS = ['pm', 'admin'];
 
 screen('projects.list', { title: () => (getRole() === 'admin' ? '① All projects (Admin)' : '① All projects'), group: G, Component: ProjectsList });
+sheet('projects.filter', { title: '①b Overlay · Filter & sort', group: G, full: true, Component: ProjectsFilter });
 screen('projects.new', { title: '③ New project · choose method', group: G, roles: MANAGERS, Component: ProjectsNew });
 screen('projects.form', { title: '④ Project form', group: G, roles: MANAGERS, Component: ProjectsForm });
 screen('projects.story', { title: '⑤ Tell us about the project', group: G, roles: MANAGERS, Component: ProjectsStory });
