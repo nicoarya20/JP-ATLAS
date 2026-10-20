@@ -53,7 +53,7 @@ export const ASK_COPY = {
   noBusiest: 'Belum ada tugas aktif yang punya penanggung jawab.',
   busiest: (name: string, n: number) => `${name} paling banyak tugas: ${n} tugas aktif.`,
   tasks: (n: number) => `${n} tugas`,
-  unnamed: 'Tanpa nama',
+  noTasks: 'Belum ada tugas',
 } as const;
 
 export const DONE_COPY = {
@@ -63,20 +63,28 @@ export const DONE_COPY = {
   yesterday: 'kemarin',
 } as const;
 
-export const ACTIVITY_COPY = {
+export const ACTIVITY_NAMES = {
   me: 'Anda',
   someone: 'Seseorang',
   former: 'Mantan anggota',
-  comment: (who: string, title: string) => `${who} menambah catatan di "${title}"`,
-  created: (who: string, title: string) => `${who} membuat tugas "${title}"`,
-  started: (who: string, title: string) => `${who} mulai mengerjakan "${title}"`,
-  unstarted: (who: string, title: string) => `${who} membatalkan mulai "${title}"`,
-  completed: (who: string, title: string) => `${who} menyelesaikan "${title}"`,
-  reopened: (who: string, title: string) => `${who} membuka lagi "${title}"`,
-  canceled: (who: string, title: string) => `${who} membatalkan tugas "${title}"`,
-  uncanceled: (who: string, title: string) => `${who} memulihkan tugas "${title}"`,
-  assignee_changed: (who: string, title: string) => `${who} mengganti penanggung jawab "${title}"`,
-  due_date_changed: (who: string, title: string) => `${who} mengubah tenggat "${title}"`,
-  priority_changed: (who: string, title: string) => `${who} mengubah prioritas "${title}"`,
-  fallback: (who: string, title: string) => `${who} mengubah "${title}"`,
 } as const;
+
+type Sentence = (who: string, title: string) => string;
+
+/** Sentence per `task_activity.action`; `comment` is a comment row, which is not an activity action. */
+export const ACTIVITY_SENTENCES: Readonly<Record<string, Sentence>> = {
+  comment: (who, title) => `${who} menambah catatan di "${title}"`,
+  created: (who, title) => `${who} membuat tugas "${title}"`,
+  started: (who, title) => `${who} mulai mengerjakan "${title}"`,
+  unstarted: (who, title) => `${who} membatalkan mulai "${title}"`,
+  completed: (who, title) => `${who} menyelesaikan "${title}"`,
+  reopened: (who, title) => `${who} membuka lagi "${title}"`,
+  canceled: (who, title) => `${who} membatalkan tugas "${title}"`,
+  uncanceled: (who, title) => `${who} memulihkan tugas "${title}"`,
+  assignee_changed: (who, title) => `${who} mengganti penanggung jawab "${title}"`,
+  due_date_changed: (who, title) => `${who} mengubah tenggat "${title}"`,
+  priority_changed: (who, title) => `${who} mengubah prioritas "${title}"`,
+};
+
+/** For an action this file does not know: history written by a newer version must still read. */
+export const ACTIVITY_FALLBACK: Sentence = (who, title) => `${who} mengubah "${title}"`;

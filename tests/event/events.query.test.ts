@@ -329,6 +329,20 @@ describe('agendaFor', () => {
     expect(seen).not.toContain(notMine.id);
   });
 
+  it('keeps a meeting in progress and drops one that already ended', async () => {
+    // Started 30 minutes ago and runs 60: still on. Ended 30 minutes ago: over, even though it is "today".
+    const running = await perTest.event({ creator: guest, project: null, startsInMin: -30 });
+    const over = await perTest.event({
+      creator: guest,
+      project: null,
+      startsInMin: -90,
+      durationMin: 60,
+    });
+    const seen = (await agendaFor(principal(guest), clock)).map((i) => i.id);
+    expect(seen).toContain(running.id);
+    expect(seen).not.toContain(over.id);
+  });
+
   it(`shows at most ${AGENDA_LIMIT} rows`, async () => {
     await Promise.all(
       Array.from({ length: AGENDA_LIMIT + 3 }, (_, i) =>
