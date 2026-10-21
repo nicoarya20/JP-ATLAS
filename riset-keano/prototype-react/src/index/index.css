@@ -1,18 +1,20 @@
 /* Index page (not part of the phone). */
 html, body, #root { height: 100%; margin: 0; }
-body { background: var(--index-bg); color: var(--label); font-family: var(--font); font-size: var(--fs-subhead); }
+body { background: var(--index-stage); color: var(--index-side-label); font-family: var(--font); font-size: var(--fs-subhead); }
 .ix { display: flex; height: 100%; }
-.ix-side { width: 280px; flex: none; overflow-y: auto; padding: var(--sp-5); border-right: 1px solid var(--separator); background: var(--surface); }
+.ix-side { width: 280px; flex: none; overflow-y: auto; padding: var(--sp-5); border-right: 1px solid var(--index-side-line);
+  background: var(--index-side-bg); color: var(--index-side-label); color-scheme: dark; }
 .ix-title { font-size: var(--fs-title3); margin: 0; }
-.ix-note { color: var(--label-2); margin: var(--sp-1) 0 var(--sp-4); }
-.ix-switch { display: flex; gap: var(--sp-1); margin-bottom: var(--sp-3); padding: 2px; border-radius: var(--radius-sm); background: var(--fill); }
+.ix-note { color: var(--index-side-label-2); margin: var(--sp-1) 0 var(--sp-4); }
+.ix-switch { display: flex; gap: var(--sp-1); margin-bottom: var(--sp-3); padding: 2px; border-radius: var(--radius-sm); background: var(--index-side-fill); }
 .ix-switch button { flex: 1; border: 0; background: none; padding: var(--sp-1) var(--sp-2); border-radius: 6px; cursor: pointer;
-  font: inherit; font-size: var(--fs-footnote); color: var(--label); }
-.ix-switch button[aria-pressed="true"] { background: var(--surface); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
-.ix-group { font-size: var(--fs-caption1); text-transform: uppercase; letter-spacing: .04em; color: var(--label-2); margin: var(--sp-4) 0 var(--sp-1); }
-.ix-side nav a { display: block; padding: var(--sp-1) var(--sp-2); border-radius: 6px; color: var(--label); text-decoration: none; }
-.ix-side nav a:hover { background: var(--fill); }
-.ix-side nav a[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
+  font: inherit; font-size: var(--fs-footnote); color: var(--index-side-label-2); }
+.ix-switch button[aria-pressed="true"] { background: var(--index-side-pick); color: var(--index-side-pick-label); font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.ix-group { font-size: var(--fs-caption1); text-transform: uppercase; letter-spacing: .04em; color: var(--index-side-label-2); margin: var(--sp-4) 0 var(--sp-1); }
+.ix-side nav a { display: block; padding: var(--sp-1) var(--sp-2); border-radius: 6px; color: var(--index-side-label); text-decoration: none; }
+.ix-side nav a:hover { background: var(--index-side-fill); }
+.ix-side nav a[aria-current="page"] { background: var(--index-side-current); color: var(--index-side-on-current); }
 .ix-stage { flex: 1; display: grid; place-items: center; overflow: auto; padding: var(--sp-6); background: var(--index-stage); }
 .ix-phone { width: 390px; height: 844px; border: 10px solid var(--phone-frame); border-radius: 48px; background: var(--bg); }
 @media (max-width: 760px) {

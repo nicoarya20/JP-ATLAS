@@ -122,10 +122,21 @@ describe('theme layer', () => {
     for (const r of own) expect(r.body).toMatch(/width 380ms/);
   });
 
-  it('keeps the stage behind the phone black in both themes', () => {
-    expect(read('index/index.css')).toMatch(/\.ix-stage \{[^}]*background: var\(--index-stage\)/);
-    expect(values(block(':root'))['--index-stage']).toBe('#000');
-    expect(defined(block('.dark'))).not.toContain('--index-stage');
+  it('keeps the index page dark in both themes: black stage, Atlas-dark sidebar', () => {
+    const index = read('index/index.css');
+    expect(index).toMatch(/\.ix-stage \{[^}]*background: var\(--index-stage\)/);
+    expect(index).toMatch(/\.ix-side \{[^}]*background: var\(--index-side-bg\)/);
+    const used = [...index.matchAll(/var\((--[\w-]+)/g)].map(m => m[1]);
+    // only fixed --index-* colours; the app roles (--surface, --label…) switch with the phone's mode
+    expect(used.filter(t => !t.startsWith('--index-') && !/^--(sp|fs|font|radius)/.test(t) && t !== '--phone-frame' && t !== '--bg'))
+      .toEqual([]);
+    const light = values(block(':root'));
+    const dark = defined(block('.dark'));
+    expect(light['--index-stage']).toBe('#000');
+    for (const t of new Set(used.filter(u => u.startsWith('--index-')))) {
+      expect(light[t], t).toBeDefined();
+      expect(dark.has(t), t).toBe(false);
+    }
   });
 
   it('stacks the bottom sheet over the tab bar and pinned rows, under the toast', () => {

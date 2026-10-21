@@ -87,8 +87,17 @@
   --separator: var(--atlas-line);        /* decorative only */
   --media: var(--atlas-raised);          /* image placeholder */
   --phone-frame: var(--atlas-identity-surface);
-  --index-bg: var(--atlas-surface);
   --index-stage: #000;                   /* behind the phone on the index page, both themes: no glare while reviewing light mode */
+  /* Index sidebar: Atlas dark values in both themes, so the page around the phone never glares */
+  --index-side-bg: #0e1a24;              /* Atlas dark surface */
+  --index-side-label: #f3f6fb;           /* Atlas dark text */
+  --index-side-label-2: #b7c4d3;         /* Atlas dark muted */
+  --index-side-line: #34465a;            /* Atlas dark line */
+  --index-side-fill: #162638;            /* Atlas dark raised: switch track, hover */
+  --index-side-pick: #252949;            /* Atlas dark selected: pressed switch option */
+  --index-side-pick-label: #e5e0ff;      /* Atlas dark selected text */
+  --index-side-current: #b6b4ff;         /* Atlas dark violet: current screen link */
+  --index-side-on-current: #071321;      /* Atlas dark canvas */
   --snack-bg: var(--atlas-identity-surface); /* snackbar and toast stay dark in both themes */
   --snack-label: #f3f6fb;                /* Atlas dark text */
   --snack-action: #b6b4ff;               /* Atlas dark violet */
