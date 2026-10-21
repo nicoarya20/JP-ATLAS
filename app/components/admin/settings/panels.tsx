@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { PeranIzinPanel } from './panels/peran-izin';
 
 /**
  * Real panels of /dashboard/settings, by tab value. A tab absent from here still renders the
@@ -6,7 +7,7 @@ import type { ComponentType } from 'react';
  * the page: a task adds its component file plus one line below, and nothing else.
  */
 export const SETTINGS_PANELS: Partial<Record<string, ComponentType>> = {
-  // 'peran-izin': PeranIzinPanel,   // AD-09
+  'peran-izin': PeranIzinPanel, // AD-09
   // 'ekspor-data': EksporDataPanel, // AD-10
 };
 
