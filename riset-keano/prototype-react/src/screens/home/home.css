@@ -26,7 +26,8 @@
 .hm-answer { padding: var(--sp-3); border-radius: var(--radius-sm); background: var(--fill); }
 .hm-bullet { display: grid; gap: 2px; padding-left: var(--sp-4); position: relative; }
 .hm-bullet::before { content: ""; position: absolute; left: 0; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-.hm-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: var(--on-accent); }
+/* white glyph in both themes, same as .mm-tile and .pf-tile */
+.hm-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: var(--color-white); }
 .hm-tile.blue { background: var(--color-blue); } .hm-tile.green { background: var(--color-green); }
 .hm-tile.orange { background: var(--color-orange); } .hm-tile.gray { background: var(--label-3); }
 
