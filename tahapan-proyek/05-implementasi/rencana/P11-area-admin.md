@@ -4,10 +4,10 @@
 
 ## 1. Ringkasan
 
-- Area `/dashboard` sekarang **2 menu** (Beranda satu kartu + Pengguna). Rencana ini membawanya ke **5 menu** — Beranda, Pengguna, Proyek, Pengaturan, Aktivitas — dan memindahkan kepemilikan setelan organisasi dari `/dev` ke `/dashboard`.
+- Area `/dashboard` sekarang **2 menu** (Beranda satu kartu + Pengguna). Rencana ini membawanya ke **7 menu** — Beranda, Pengguna, Proyek, Peran & izin, Ekspor data, Aktivitas, Pengaturan — dan memindahkan kepemilikan setelan organisasi dari `/dev` ke `/dashboard`. (**Dikoreksi 21 Okt 2026, AD-20:** semula 5 menu dengan Pengaturan 8 tab. Delapan tab tidak muat satu baris di laptop 1366px, dan dua di antaranya bukan setelan — Peran & izin adalah laporan, Ekspor data adalah alat — jadi keduanya naik jadi menu sendiri dan Pengaturan tinggal 6 tab.)
 - **Garis batas yang disepakati user (21 Okt 2026):** area super-admin = **teknis/developer** (infrastruktur, dikerjakan saat ada yang rusak); area Admin = **kebijakan kantor**. Konsekuensinya: apa pun yang mengubah tampilan/perilaku untuk semua role adalah milik Admin, bukan super-admin. Ini menutup pertanyaan "pindah vs duplikasi" — jawabannya **pindah**.
 - **Pengalih area jadi tiga entri setara**: `App · Admin · Super-admin`. Tautan dalam (`Antrean persetujuan`) dan `Pengaturan akun` keluar dari grup itu.
-- **19 tugas, AD-01..AD-19**, total ≈ **33 hari-orang AI** + reviewer ≈ 4, dibagi tiga tahap yang bisa dirilis sendiri-sendiri.
+- **20 tugas, AD-01..AD-20**, total ≈ **34,5 hari-orang AI** + reviewer ≈ 4, dibagi tiga tahap yang bisa dirilis sendiri-sendiri.
 - **Satu migrasi** (**`0022`** — dikoreksi 21 Okt 2026: `0021` sudah dipakai `0021_leave_request.sql`): kolom settings untuk Pengumuman dan Kebijakan kerja. Butuh baton, antre setelah `0017`-`0021`.
 - **Lajur ini hampir tidak menyentuh kode `/app`**, jadi bisa jalan paralel dengan S6/S7 alih-alih menunggu giliran. Lihat §10 Q1.
 - **Semua pertanyaan §10 (Q1-Q8) sudah dijawab user 21 Okt 2026.** Rencana ini siap dieksekusi begitu baton migrasi dan kuota worker memungkinkan.
@@ -70,8 +70,10 @@ AREA LAIN
 | Beranda | *"Ada yang perlu aku tangani hari ini?"* | 6 widget gagal-lunak, pola `getHome` |
 | Pengguna | *"Siapa yang boleh masuk, apa haknya?"* | 3 tab lama + nonaktif, cabut sesi, riwayat, pra-cek |
 | Proyek | *"Proyek apa jalan, siapa pengelolanya?"* | Tabel desktop + kartu mobile, aksi ganti Pengelola (T2) |
-| Pengaturan | *"Aturan main kantor ini apa?"* | 8 tab, lihat bawah |
+| **Peran & izin** | *"Peran ini sebenarnya boleh apa?"* | `/dashboard/permissions` — matriks baca-saja, diturunkan dari `server/permissions.ts` (AD-20) |
+| **Ekspor data** | *"Aku butuh datanya di luar aplikasi."* | `/dashboard/export` — CSV anggota/proyek/tugas, diaudit (AD-20) |
 | Aktivitas | *"Siapa yang melakukan ini?"* | Audit disaring ke aksi yang Admin pahami |
+| Pengaturan | *"Aturan main kantor ini apa?"* | 6 tab, lihat bawah |
 
 **Tab Pengaturan**
 
@@ -83,8 +85,8 @@ AREA LAIN
 | Kebijakan kerja | ubah | ubah | hari kerja, hari libur, pengingat acara, cuti wajib disetujui |
 | Pemberitahuan | ubah | ubah | **menunggu P9 G-02** |
 | Fitur | ubah | ubah | daftar terkurasi, bukan editor key/value |
-| **Peran & izin** | **baca saja** | ubah | kalau Admin boleh mengubah, dia bisa menaikkan kewenangannya sendiri — bentrok `canSetRole` (`server/permissions.ts`) |
-| Ekspor data | ubah | ubah | CSV anggota/proyek/tugas, diaudit |
+
+~~Peran & izin~~ dan ~~Ekspor data~~ **keluar dari tabel ini 21 Okt 2026 (AD-20)** — keduanya jadi menu tersendiri, lihat tabel Menu Admin di atas. Peran & izin tetap **baca saja** bagi Admin maupun Super-admin: kalau Admin boleh mengubahnya, dia bisa menaikkan kewenangannya sendiri, bentrok dengan `canSetRole` (`server/permissions.ts`).
 
 ## 5. Data & API
 
@@ -153,6 +155,9 @@ Matriks role × kemampuan dari `server/permissions.ts` (sumber tunggal, jangan d
 
 ### AD-10 · Tab Ekspor data · Dep: AD-02 · L (2) · PARALEL
 CSV anggota/proyek/tugas, streaming + paginasi (jangan muat seluruh tabel), diaudit, rate-limited.
+
+### AD-20 · Pecah Peran & izin dan Ekspor data jadi menu sendiri · Dep: AD-09, AD-10 · M (1,5) · **selesai 21 Okt 2026**
+Tugas baru dari pengamatan user atas layar nyata: delapan tab tidak muat satu baris di 1366px, dan dua di antaranya bukan setelan. Rute `/dashboard/permissions` dan `/dashboard/export`, panel dipindah dengan `git mv` tanpa mengubah perilaku, `SETTINGS_TABS` turun ke 6, registry `panels.tsx` dipertahankan untuk AD-04..AD-08. Endpoint tidak berubah.
 
 ### Tahap 2 — Proyek & Beranda (≈10)
 
