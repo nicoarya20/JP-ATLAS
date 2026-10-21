@@ -7,10 +7,10 @@
 .stk-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
   padding: var(--sp-4) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4));
   background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
-/* --stk-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search block away. The block fades out over
-   the first two thirds while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
+/* --stk-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search block away. The block fades out fast,
+   within the first third, while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
 .stk-find { padding: 0 var(--sp-4) var(--sp-4); }
-.stk-find > * { opacity: calc(1 - var(--stk-p, 0) * 1.5); scale: calc(1 - var(--stk-p, 0) * 0.4); transform-origin: top right; }
+.stk-find > * { opacity: calc(1 - var(--stk-p, 0) * 3); scale: calc(1 - var(--stk-p, 0) * 0.4); transform-origin: top right; }
 /* The filter icon's dot is ringed in the colour behind it: surface here, not the canvas. */
 .stk-find .filter-btn.is-on::after { box-shadow: 0 0 0 2px var(--surface); }
 /* Bare icon (no bubble); the 36px box is only the tap area */
