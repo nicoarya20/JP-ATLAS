@@ -58,7 +58,8 @@ export default function AppHome({ loaderData }: Route.ComponentProps) {
       )}
       <HomeBriefing widget={data.briefing} retry={retry} />
       <HomeCounters widget={data.counters} retry={retry} />
-      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md" style={{ alignItems: 'start' }}>
+      {/* Row 1: focus + done stacked on the left; Ask Data stretches to the height of that stack. */}
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
         <Stack gap="md">
           <HomeFocus
             widget={data.focus}
@@ -68,16 +69,17 @@ export default function AppHome({ loaderData }: Route.ComponentProps) {
           />
           <HomeDone widget={data.done} retry={retry} />
         </Stack>
-        <Stack gap="md">
-          <HomeAskData widget={data.ask} retry={retry} />
-          <HomeAgenda
-            agenda={data.agenda}
-            projects={data.projects}
-            timeZone={data.now.timeZone}
-            retry={retry}
-          />
-          <HomeActivity widget={data.activity} retry={retry} />
-        </Stack>
+        <HomeAskData widget={data.ask} retry={retry} />
+      </SimpleGrid>
+      {/* Row 2: agenda and activity side by side; the grid makes both cards the same height. */}
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+        <HomeAgenda
+          agenda={data.agenda}
+          projects={data.projects}
+          timeZone={data.now.timeZone}
+          retry={retry}
+        />
+        <HomeActivity widget={data.activity} retry={retry} />
       </SimpleGrid>
     </PageContainer>
   );

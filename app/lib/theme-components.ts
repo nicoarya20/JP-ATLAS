@@ -1,6 +1,26 @@
-import { type MantineThemeComponents, rem } from '@mantine/core';
+import { Button, type MantineThemeComponents, rem } from '@mantine/core';
+import { RADIUS } from './theme-tokens';
 
 const LARGE = { defaultProps: { size: 'lg' } } as const;
+
+/** Overlay behind modals and drawers: the identity navy at the handoff's veil strength. */
+const OVERLAY = { color: 'var(--jp-canvas)', backgroundOpacity: 0.73 } as const;
+
+/** Primary action = lime with navy text (never white on lime); a coloured `color` prop opts out. */
+const PrimaryButton = Button.extend({
+  defaultProps: { size: 'lg' },
+  vars: (_theme, props) =>
+    (props.variant ?? 'filled') === 'filled' && !props.color
+      ? {
+          root: {
+            '--button-bg': 'var(--jp-primary)',
+            '--button-hover': 'var(--jp-primary-hover)',
+            '--button-color': 'var(--jp-on-primary)',
+            '--button-bd': `${rem(1)} solid var(--jp-primary-border)`,
+          },
+        }
+      : { root: {} },
+});
 
 /** Badge status size in px (R11 §3.2.2): text 16, height 32, horizontal padding 12. */
 const BADGE_FONT_SIZE = 16;
@@ -13,7 +33,7 @@ const BADGE_PADDING_X = 12;
  * dimensions follow the text scale too.
  */
 export const themeComponents: MantineThemeComponents = {
-  Button: LARGE,
+  Button: PrimaryButton,
   TextInput: LARGE,
   PasswordInput: LARGE,
   Textarea: LARGE,
@@ -28,6 +48,11 @@ export const themeComponents: MantineThemeComponents = {
   Radio: LARGE,
   Switch: LARGE,
   ActionIcon: { defaultProps: { size: 'xl' } },
+  // Card 14 px and modal 16 px (RADIUS); anything else follows the 10 px control default.
+  Paper: { defaultProps: { radius: RADIUS.card } },
+  Card: { defaultProps: { radius: RADIUS.card } },
+  Modal: { defaultProps: { radius: RADIUS.modal, overlayProps: OVERLAY } },
+  Drawer: { defaultProps: { radius: RADIUS.modal, overlayProps: OVERLAY } },
   Badge: {
     defaultProps: { size: 'lg' },
     vars: () => ({

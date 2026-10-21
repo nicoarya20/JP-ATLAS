@@ -12,7 +12,7 @@ import {
 import { TimeInput } from '@mantine/dates';
 import { type ElementType, createElement as h, type ReactNode } from 'react';
 import { renderToString } from 'react-dom/server';
-import { buildTheme, theme } from '../app/lib/theme';
+import { buildTheme } from '../app/lib/theme';
 import { cssVariablesResolver } from '../app/lib/theme-vars';
 
 const ROOT = new URL('../', import.meta.url);
@@ -72,8 +72,8 @@ describe('buildTheme breakpoints and scale (X1 D2)', () => {
 describe('buildTheme tokens (R11 §3.2)', () => {
   const built = buildTheme(1);
 
-  test('uses blue shade 8, status palettes and reduced motion', () => {
-    expect(built.primaryColor).toBe('blue');
+  test('uses the violet atlas palette at shade 8, status palettes and reduced motion', () => {
+    expect(built.primaryColor).toBe('atlas');
     expect(built.primaryShade).toEqual({ light: 8, dark: 8 });
     expect(built.respectReducedMotion).toBe(true);
     for (const name of ['ok', 'warn', 'danger'] as const) {
@@ -98,12 +98,21 @@ describe('buildTheme tokens (R11 §3.2)', () => {
       expect(components[name]?.defaultProps?.size).toBe('lg');
     }
     expect(components.ActionIcon?.defaultProps?.size).toBe('xl');
-    expect(JSON.stringify(built)).not.toContain('--mantine-scale');
+    // rem() values legitimately read `var(--mantine-scale)`; only a manual declaration is a hack.
+    expect(JSON.stringify(built)).not.toMatch(/--mantine-scale"\s*:/);
   });
 
-  test('legacy `theme` export stays free of the new defaults until S0B-25', () => {
-    expect(theme.components).toBeUndefined();
-    expect(theme.scale).toBeUndefined();
+  test('sets JP Atlas typography, radius and spacing (handoff 2026-10-21)', () => {
+    expect(built.fontFamily).toBe('Manrope, Arial, sans-serif');
+    expect(built.headings?.fontFamily).toBe('Manrope, Arial, sans-serif');
+    expect(built.headings?.fontWeight).toBe('600');
+    expect(built.lineHeights?.md).toBe('1.5');
+    expect(built.defaultRadius).toBe(10);
+    expect(built.radius?.md).toContain('0.875rem'); // card 14
+    expect(built.radius?.lg).toContain('1rem'); // modal 16
+    expect(built.radius?.xl).toContain('1.25rem'); // identity 20
+    expect(built.spacing?.xs).toContain('0.5rem');
+    expect(built.spacing?.lg).toContain('1.5rem');
   });
 });
 
@@ -116,7 +125,7 @@ describe('SSR output', () => {
 
   test('buildTheme(1) adds no scale override (styles.css already defaults to 1)', () => {
     const html = render(1, el(Text, null, 'halo'));
-    expect(html).not.toContain('--mantine-scale');
+    expect(html).not.toMatch(/--mantine-scale\s*:/);
     expect(html).not.toContain('--mantine-breakpoint');
   });
 });
@@ -178,10 +187,18 @@ describe('R11 spike (§3.2.6, four unverified items)', () => {
     expect(input).toBe('m_8fb7ebe7');
 
     // Our override: same specificity (wins by source order), points at default-border.
-    const override = border(ours, /Input-wrapper\[data-variant='default'\]$/);
+    const override = border(ours, /light'\] \.mantine-Input-wrapper\[data-variant='default'\]$/);
     expect(override).toHaveLength(1);
     expect(override[0].body).toContain('--input-bd: var(--mantine-color-default-border)');
     expect(specificity(override[0].selector)).toEqual(specificity(baseline[0].selector));
+
+    // Dark: Mantine paints inputs with the decorative dark-4 line; JP Atlas uses the control colour.
+    const darkOverride = border(ours, /dark'\] \.mantine-Input-wrapper\[data-variant='default'\]$/);
+    expect(darkOverride).toHaveLength(1);
+    expect(darkOverride[0].body).toContain('--input-bd: var(--mantine-color-default-border)');
+    expect(
+      border(mantine, /color-scheme='dark'\] \.m_6c018570\[data-variant='default'\]$/)[0].body,
+    ).toContain('--input-bd: var(--mantine-color-dark-4)');
 
     // Error state keeps priority: strictly higher specificity than the override.
     const error = border(mantine, /\[data-error\]:not\(\[data-variant='unstyled'\]\)$/);
