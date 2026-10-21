@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import '../screens';
 import { renderApp } from './render';
 
-const shown = () => document.querySelector('.phone-app > .scr');
+const shown = () => document.querySelector('.scr-slot > .scr');
 const under = () => document.querySelector('.modal-under');
 const fab = () => document.querySelector('.glassbar-fab');
 
@@ -34,6 +34,18 @@ describe('modal create screens', () => {
     await waitFor(() => expect(window.location.hash).toBe('#tasks.my'));
     expect(under()).toBeNull();
     expect(shown()).not.toHaveClass('is-modal');
+  });
+
+  it('keeps the screen underneath mounted, so its scroll and state survive the round trip', async () => {
+    renderApp('tasks.my', 'pm');
+    const list = shown();
+    list.querySelector('.content').scrollTop = 240;
+    await userEvent.click(fab());
+    expect(under().querySelector('.scr')).toBe(list);                   // the same node, moved under the modal
+    fireEvent.click(dom.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(window.location.hash).toBe('#tasks.my'));
+    expect(shown()).toBe(list);
+    expect(list.querySelector('.content').scrollTop).toBe(240);
   });
 
   it('switches Just write / Fill form in place: no new slide, and Cancel still leaves the whole flow', async () => {

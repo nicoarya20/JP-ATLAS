@@ -71,13 +71,22 @@ function useArrivedByPush(key, depth) {
   return shown.current.push;
 }
 
-/** The screen a modal one opened from, drawn inert under it (with its own tab bar) so the modal slides over it and off it. */
-function Underlay({ entry, closing }) {
-  const Under = getScreen(entry.id).Component;
+/**
+ * One screen of the history. The shown one gets the tab bar host and the modal state; the one a modal screen opened from
+ * is drawn under it, inert and dimmed, with its own tab bar. Same element tree and key in both roles, so a screen that
+ * goes under a modal and comes back keeps its instance: no remount, no scroll reset, no jump as the slide starts or ends.
+ */
+function ScreenSlot({ entry, under = false, closing = false, setTab, modal = null }) {
+  const Comp = getScreen(entry.id).Component;
   return (
-    <div className={`modal-under${closing ? ' is-closing' : ''}`} inert="" aria-hidden="true">
+    <div className={under ? `modal-under${closing ? ' is-closing' : ''}` : 'scr-slot'} inert={under ? '' : undefined}
+      aria-hidden={under ? 'true' : undefined}>
       <AsCurrent entry={entry}>
-        <TabBarHost.Provider value={null}><Under params={entry.params} /></TabBarHost.Provider>
+        <TabBarHost.Provider value={under ? null : setTab}>
+          <ModalScreen.Provider value={modal}>
+            <Comp params={entry.params} />
+          </ModalScreen.Provider>
+        </TabBarHost.Provider>
       </AsCurrent>
     </div>
   );
@@ -88,7 +97,7 @@ export function PhoneApp() {
   useUrlSync(app.current, app.role);
   useIndexMessages(app.go);
   const def = getScreen(app.current);
-  const Screen = def.Component;
+  const top = useMemo(() => ({ id: app.current, params: app.params }), [app.current, app.params]);
   const [tab, setTab] = useState(null);   // the shown screen's tab (via <Screen tab>); the bar lives here to outlast it
   const pushed = useArrivedByPush(app.current, app.depth);
   const under = def.modal ? app.under : null;
@@ -97,12 +106,8 @@ export function PhoneApp() {
   return (
     <div className="phone-app">
       <div className="statusbar" aria-hidden="true"><span>9:41</span></div>
-      {under && <Underlay key={under.id} entry={under} closing={app.closing} />}
-      <TabBarHost.Provider value={setTab}>
-        <ModalScreen.Provider value={modal}>
-          <Screen key={app.current} params={app.params} />
-        </ModalScreen.Provider>
-      </TabBarHost.Provider>
+      {under && <ScreenSlot key={under.id} entry={under} under closing={app.closing} />}
+      <ScreenSlot key={top.id} entry={top} setTab={setTab} modal={modal} />
       {tab && <AppTabBar active={tab} />}
       <OpenSheet />
       {app.toastState && (

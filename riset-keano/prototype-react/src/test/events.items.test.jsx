@@ -13,7 +13,7 @@ afterEach(() => { resetEvents(); resetTasks(); });
 
 const btn = name => dom.getByRole('button', { name });
 // the shown screen's bar, not the one of a screen drawn inert under a modal form
-const title = () => document.querySelector('.phone-app > .scr .react-cupertino-ui-navigation-bar .title-compact').textContent;
+const title = () => document.querySelector('.scr-slot > .scr .react-cupertino-ui-navigation-bar .title-compact').textContent;
 const openCard = text => fireEvent.click(dom.getByText(text).closest('[role="button"]'));
 
 describe('events by item', () => {

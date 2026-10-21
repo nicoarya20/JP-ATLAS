@@ -111,12 +111,15 @@ h1, h2, h3 { margin: 0; }
 
 /* Modal screens (registry modal: true; create/edit flows): slide up over the screen they opened from, which stays drawn
    inert and dimmed underneath; back/Cancel slides them down (MODAL_CLOSE_MS in app.context) before the pop. */
+.scr-slot { display: contents; }   /* the shown screen's slot (PhoneApp ScreenSlot): no box of its own */
 .modal-under { position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; top: var(--statusbar-h); display: flex; flex-direction: column; }
-.modal-under::after { content: ''; position: absolute; inset: 0; z-index: 100; background: var(--overlay); animation: modal-fade-in 450ms ease; }
-.modal-under.is-closing::after { animation: modal-fade-out 300ms ease forwards; }
-.scr.is-modal { z-index: 1; background: var(--bg); }
-.scr.is-modal-enter { animation: modal-up 450ms cubic-bezier(0.32, 0.72, 0, 1); }
-.scr.is-modal-closing { animation: modal-down 300ms cubic-bezier(0.32, 0.72, 0, 1) forwards; pointer-events: none; }
+/* In: a long iOS-style decelerate. Out: ease-in-out, so it doesn't jump off the mark (MODAL_CLOSE_MS = 380). The dim follows the same curves. */
+.modal-under::after { content: ''; position: absolute; inset: 0; z-index: 100; background: var(--overlay);
+  animation: modal-fade-in 500ms cubic-bezier(0.32, 0.72, 0, 1); }
+.modal-under.is-closing::after { animation: modal-fade-out 380ms cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+.scr.is-modal { z-index: 1; background: var(--bg); box-shadow: var(--glass-shadow); }
+.scr.is-modal-enter { animation: modal-up 500ms cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; }
+.scr.is-modal-closing { animation: modal-down 380ms cubic-bezier(0.45, 0, 0.55, 1) forwards; will-change: transform; pointer-events: none; }
 @keyframes modal-up { from { transform: translateY(100%); } }
 @keyframes modal-down { to { transform: translateY(100%); } }
 @keyframes modal-fade-in { from { opacity: 0; } }

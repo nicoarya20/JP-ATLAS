@@ -7,7 +7,7 @@ import { allowed, exists, getScreen, getSheet } from './registry';
 export const MSG = { go: 'pm-proto:go', screen: 'pm-proto:screen' };
 export const TOAST_MS = 1800;
 /** How long a modal screen takes to slide down before it leaves the history (matches .scr.is-modal-closing). */
-export const MODAL_CLOSE_MS = 300;
+export const MODAL_CLOSE_MS = 380;
 
 const AppContext = createContext(null);
 
