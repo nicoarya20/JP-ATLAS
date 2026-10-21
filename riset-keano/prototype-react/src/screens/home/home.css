@@ -41,12 +41,14 @@
 .mm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-2); }
 .mm-item { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--label); cursor: pointer; }
 .mm-tile { position: relative; width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center;
-  color: var(--on-accent); transition: scale 180ms var(--tb-spring, ease); }
+  color: var(--color-white); transition: scale 180ms var(--tb-spring, ease); }
 .mm-item:active .mm-tile { scale: 0.9; transition-duration: 60ms; }
-/* solid tones like .hm-tile: a --fill tile sank into the glass panel, which lands at the same grey over the dim */
+/* solid tones, white glyph in both themes: a --fill tile sank into the glass panel (it lands at the same grey over
+   the dim), and the navy --on-accent glyph of dark mode made the tiles look dead */
 .mm-tile.blue { background: var(--color-blue); } .mm-tile.green { background: var(--color-green); }
-.mm-tile.orange { background: var(--color-orange); } .mm-tile.gray { background: var(--label-3); }
+.mm-tile.orange { background: var(--color-orange); } .mm-tile.teal { background: var(--color-teal); }
+.mm-tile.gray { background: var(--label-3); }
 .mm-badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box;
-  border-radius: 999px; display: grid; place-items: center; background: var(--danger); color: var(--on-accent);
+  border-radius: 999px; display: grid; place-items: center; background: var(--color-red); color: var(--color-white); /* iOS badge: Atlas dark --danger is a pale pink */
   font-size: var(--fs-caption2); font-weight: 650; box-shadow: 0 0 0 2px var(--surface); }
 .mm-label { font-size: var(--fs-footnote); }
