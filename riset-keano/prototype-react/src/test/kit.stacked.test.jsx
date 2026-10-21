@@ -42,10 +42,12 @@ describe('stacked tab screens', () => {
   it('sticks the pinned row with the sheet edge under the header without anchoring the scroll to it', () => {
     const css = readFileSync(join(__dirname, '../kit/stacked.css'), 'utf8');
     const rule = sel => css.slice(css.indexOf(`${sel} {`), css.indexOf('}', css.indexOf(`${sel} {`)));
-    // Sticks its shrink above the top, so scrolling hides its top as fast as the visible part folds
-    expect(rule('.stk-pin')).toMatch(/position: sticky; top: calc\(var\(--stk-pin-shrink, 0px\) \* -1\)/);
+    // Sticks at the top, so its top edge never waits on the main thread's --stk-q (that made it shake under the header)
+    expect(rule('.stk-pin')).toMatch(/position: sticky; top: 0;/);
     expect(rule('.stk-pin')).toMatch(/height: var\(--stk-pin-h, auto\)/);
-    expect(rule('.stk-pin')).toMatch(/justify-content: flex-end/);
+    // The folded-away part below the chips is see-through to taps; the chips themselves stay tappable
+    expect(rule('.stk-pin')).toMatch(/pointer-events: none/);
+    expect(rule('.stk-pin-in')).toMatch(/pointer-events: auto/);
     expect(rule('.stk-pin-in')).toMatch(/border-radius: 24px 24px 0 0/);
     expect(rule('.stk-pin-in')).toMatch(/border-top: 1px solid var\(--separator\)/);
     expect(rule('.stk-sheet.has-pin')).toMatch(/border-top: 0/);
@@ -58,7 +60,6 @@ describe('stacked tab screens', () => {
     const { scroller, block, screen } = parts(container);
     const pin = foldPin(container, block);
     expect(screen.style.getPropertyValue('--stk-pin-h')).toBe('100px');
-    expect(screen.style.getPropertyValue('--stk-pin-shrink')).toBe('40px');
     for (const [top, q] of [[30, '0.000'], [60, '0.000'], [70, '0.250'], [80, '0.500'], [100, '1.000'], [200, '1.000'], [90, '0.750'], [0, '0.000']]) {
       scroller.scrollTop = top;
       fireEvent.scroll(scroller);

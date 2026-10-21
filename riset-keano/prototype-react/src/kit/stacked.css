@@ -10,13 +10,15 @@
   padding: var(--sp-4) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4));
   background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
 /* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header.
-   --stk-q (0..1, set by useSearchCollapse) = how far it has compacted; --stk-pin-h / --stk-pin-shrink = its measured tall
-   height and how much it loses. The row keeps its tall height in the flow and sticks --stk-pin-shrink above the top, with
-   the visible part at its bottom: scrolling hides its top exactly as fast as the visible part shrinks, so the rounded
-   edge stays under the header while the content follows the finger. The surface backing fills the rounded corners. */
-.stk-pin { position: sticky; top: calc(var(--stk-pin-shrink, 0px) * -1); z-index: 2; height: var(--stk-pin-h, auto);
-  display: flex; flex-direction: column; justify-content: flex-end; background: var(--surface); }
-.stk-pin-in { flex: none; padding: calc(var(--sp-4) + (var(--sp-3) - var(--sp-4)) * var(--stk-q, 0)) var(--sp-4) var(--sp-2);
+   --stk-q (0..1, set by useSearchCollapse) = how far it has compacted; --stk-pin-h = its measured tall height. The row
+   keeps its tall height in the flow and sticks at the top with the visible part on top, so each pixel scrolled lifts the
+   content one pixel while the visible part's bottom folds up by one. The top edge must not depend on --stk-q: the
+   browser scrolls (and sticks) on the compositor a frame before the main thread writes --stk-q, so an edge placed by
+   both shook under the header. Only the bottom edge lags now, over the same canvas colour. The fold-away part below is
+   see-through and lets taps through to the content under it; the ::before fills the rounded corners with surface. */
+.stk-pin { position: sticky; top: 0; z-index: 2; height: var(--stk-pin-h, auto); pointer-events: none; }
+.stk-pin::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; z-index: -1; background: var(--surface); }
+.stk-pin-in { pointer-events: auto; padding: calc(var(--sp-4) + (var(--sp-3) - var(--sp-4)) * var(--stk-q, 0)) var(--sp-4) var(--sp-2);
   background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
 .stk-sheet.has-pin { padding-top: var(--sp-2); border-radius: 0; border-top: 0; }
 /* --stk-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search block away. The block fades out fast,

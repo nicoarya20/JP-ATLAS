@@ -7,7 +7,7 @@
    press transition on .hm-stat (press.css) stays its own. Tall: icon on top (absolute, the top padding makes its room),
    label, sub line. As the pinned row compacts (--stk-q 0..1, scrubbed by the scroll, see kit stacked.css) the icon slides
    to the middle of the left edge, the padding moves its room to the left and the sub line folds away. Every height here
-   moves linearly with --stk-q: the row's sticky offset is measured from its two ends only. */
+   moves linearly with --stk-q: the row's fold is measured from its two ends only. */
 .hm-stat { padding: 0; border: 0; border-radius: var(--radius-card); background: var(--surface); text-align: left; cursor: pointer; }
 .hm-stat:first-child { background: var(--accent-soft); }
 .hm-stat-in { --q: var(--stk-q, 0); --ico: 24px; --top: calc(var(--sp-3) + var(--ico) + var(--sp-1));

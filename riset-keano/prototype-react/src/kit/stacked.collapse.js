@@ -13,7 +13,7 @@ const clamp01 = n => Math.min(1, Math.max(0, n));
 
 /**
  * Measures the pinned row's tall and compact heights by setting --stk-q on it for one synchronous layout read each, and
- * writes them as --stk-pin-h (tall) and --stk-pin-shrink (tall - compact) on the screen. Returns the shrink in px.
+ * writes the tall one as --stk-pin-h on the screen. Returns the shrink (tall - compact) in px.
  */
 function measurePin(pin, screen) {
   const inner = pin.firstElementChild;
@@ -24,7 +24,6 @@ function measurePin(pin, screen) {
   pin.style.removeProperty('--stk-q');
   const shrink = Math.max(0, tall - compact);
   screen.style.setProperty('--stk-pin-h', `${tall}px`);
-  screen.style.setProperty('--stk-pin-shrink', `${shrink}px`);
   return shrink;
 }
 
@@ -33,8 +32,8 @@ function measurePin(pin, screen) {
  * frame without re-rendering:
  * - --stk-p: how far the content has scrolled over the search block (0 = shown, 1 = gone);
  * - --stk-q: how far past the block, over the pinned row's shrink (0 = tall, 1 = compact). The row keeps its tall height
- *   in the flow and sticks that much above the top, so each pixel scrolled hides one pixel of it while it shrinks by one:
- *   the row's edge stays under the header and the content moves with the finger, never jumping.
+ *   in the flow and sticks at the top, so each pixel scrolled lifts the content one pixel while the row's visible bottom
+ *   folds up by one: the row's top edge stays under the header and the content moves with the finger, never jumping.
  * When a touch scroll comes to rest part way through either stretch it snaps like an iOS large title: to the nearer end
  * (the search uses COLLAPSED_AT). Wheel and trackpad scrolling never snaps: their events pause mid-scroll with no release
  * to tell a pause from the end, so a slow scroll would be yanked away.
