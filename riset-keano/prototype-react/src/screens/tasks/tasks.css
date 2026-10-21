@@ -84,12 +84,13 @@
 .tk-radial.is-group .tk-radial-wheel { --r: 116px; }
 .tk-radial-ring { position: absolute; left: calc(var(--ring) / -2); top: calc(var(--ring) / -2); width: var(--ring);
   height: var(--ring); fill: none; stroke-width: 5; }
-.tk-radial-ring circle { stroke: var(--surface); }
+.tk-radial-ring circle { stroke: var(--pop-ring); }
 .tk-radial-ring .tk-radial-arc { stroke: var(--tone, var(--accent)); stroke-linecap: round; transform-box: fill-box; transform-origin: center; }
 .tk-radial-opt { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: var(--sp-1);
   min-height: 44px; padding: 0 var(--sp-3); border: 0; border-radius: 999px; white-space: nowrap; cursor: pointer;
-  font: inherit; font-size: var(--fs-subhead); font-weight: 600; color: var(--tone); background: var(--surface);
-  box-shadow: var(--glass-shadow); translate: calc(-50% + var(--dx)) calc(-50% + var(--dy));
+  font: inherit; font-size: var(--fs-subhead); font-weight: 600; color: var(--tone);
+  background: color-mix(in srgb, var(--tone-bg) var(--pop-tint), var(--pop-bg));
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px var(--pop-edge); translate: calc(-50% + var(--dx)) calc(-50% + var(--dy));
   transition: scale 120ms ease, color 120ms ease, background-color 120ms ease; animation: tk-radial-pop 200ms ease-out backwards; }
 .tk-radial-up { --dx: 0px; --dy: calc(var(--r) * -1); }
 .tk-radial-right { --dx: var(--r); --dy: 0px; animation-delay: 25ms; }
@@ -99,21 +100,22 @@
   border-radius: var(--radius-card); font-size: var(--fs-footnote); }
 .is-group .tk-radial-opt svg { margin-bottom: var(--sp-1); }
 .tk-radial-opt.is-aimed:not(:disabled) { scale: 1.12; color: var(--on-accent); background: var(--tone); }
+.tk-radial-opt.tk-tone-todo { --tone-bg: var(--pop-bg); }   /* its board -bg is surface, which sinks into the dim */
 .tk-radial-opt.tk-tone-todo.is-aimed { color: var(--surface); background: var(--label); }   /* grey tone is too faint to fill */
 .tk-radial-opt:disabled { opacity: 0.6; box-shadow: none; cursor: default; }
 .is-closing .tk-radial-opt { animation: tk-radial-fold 160ms ease-in forwards; }
 .is-closing .tk-radial-opt.is-aimed { animation: tk-radial-swell 180ms ease-out forwards; }
 .tk-radial-now { font-weight: 400; color: var(--label-2); }
 .tk-radial-hint { position: absolute; left: var(--sp-4); right: var(--sp-4); bottom: var(--sp-8); margin: 0; display: grid;
-  gap: 2px; padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-card); text-align: center; background: var(--surface);
-  box-shadow: var(--glass-shadow); pointer-events: none; }
+  gap: 2px; padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-card); text-align: center; background: var(--pop-bg);
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px var(--pop-edge); pointer-events: none; }
 /* Group stack: each card starts at its board place (--fx, --fy) and lands tilted on the pile, one after another. The
    cards are mini copies with tiny type so the whole title shows; they share one grid cell, so the pile is as tall as
    its tallest card and stays centred on the finger, with the count on its corner. */
 .tk-stack { position: absolute; left: 0; top: 0; display: grid; transform: translate(-50%, -50%); }
 .tk-stack-card { grid-area: 1 / 1; align-self: center; box-sizing: border-box; width: 88px; display: grid; align-content: start;
-  gap: 1px; padding: 5px 6px; border-radius: var(--radius-sm); background: var(--surface-raised);
-  box-shadow: var(--glass-shadow); translate: 0 var(--lift); rotate: var(--tilt);
+  gap: 1px; padding: 5px 6px; border-radius: var(--radius-sm); background: var(--pop-bg);
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px var(--pop-edge); translate: 0 var(--lift); rotate: var(--tilt);
   animation: tk-stack-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--i) * 35ms); }
 .tk-stack-no { font-size: 8px; line-height: 1.2; color: var(--label-2); }
 .tk-stack-title { font-size: 9px; line-height: 1.2; overflow-wrap: anywhere; }

@@ -22,7 +22,7 @@ const THEMED = ['--bg', '--surface', '--surface-raised', '--fill', '--label', '-
   '--success', '--success-bg', '--warning', '--warning-bg', '--danger', '--danger-bg', '--info', '--info-bg',
   '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb',
   '--glass-bar', '--glass-bar-edge', '--glass-bar-shine', '--glass-bar-active', '--glass-bar-shadow',
-  '--glass-bar-open'];
+  '--glass-bar-open', '--pop-bg', '--pop-edge', '--pop-ring', '--pop-tint'];
 // A role switches with the theme if .dark redefines it or its :root value reads a --atlas-* token (which atlas.css switches).
 const switches = (role, light, dark) => dark.has(role) || /var\(--atlas-(?!identity-surface|font)/.test(light[role] ?? '');
 
