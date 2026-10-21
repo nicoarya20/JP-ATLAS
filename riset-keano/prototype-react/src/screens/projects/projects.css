@@ -37,3 +37,13 @@
 .pj-num.done { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
 .pj-roles { display: grid; grid-template-columns: 84px 1fr; gap: var(--sp-2) var(--sp-3); }
+
+/* People row (list): avatar over first name, sized like the My projects chip; the pick gets an accent ring.
+   Padding keeps the ring inside .hscroll, whose overflow-x clips the y axis too. */
+.pj-people { align-items: flex-start; gap: var(--sp-3); padding: 4px; margin: -4px; }
+.pj-person { display: grid; justify-items: center; gap: 2px; min-width: 44px; padding: 0; border: 0; border-radius: var(--radius-sm);
+  font-family: inherit; color: var(--label-2); background: none; cursor: pointer; }
+.pj-person > [aria-hidden] { display: flex; }
+.pj-person[aria-pressed='true'] { color: var(--accent); font-weight: 600; }
+.pj-person[aria-pressed='true'] .react-cupertino-ui-avatar { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.pj-person:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }

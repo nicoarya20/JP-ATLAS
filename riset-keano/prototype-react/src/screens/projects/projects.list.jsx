@@ -1,11 +1,13 @@
-// Projects ①: project list. Member sees only joined projects (no My/All switch); Admin sees every project. New project is the tab bar "+".
+// Projects ①: project list, every project by default. Member sees only joined projects; Admin sees every project. New project is the tab bar "+".
+// Under the search a people row narrows it to My projects (not for a Member: theirs are all of them) or one teammate's (projects.people).
 // The list shows its screen params' Filter & sort query (projects.query), set from the icon next to the search field.
-import { SearchX } from 'lucide-react';
-import { Avatars, Btn, Empty, Progress, Screen, Section, Seg, StatusPill } from '../../kit';
+import { FolderOpen, SearchX } from 'lucide-react';
+import { Avatars, Btn, Empty, Link, Progress, Screen, Section, StatusPill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { ProjectsSearch } from './projects.filter';
-import { applyQuery, queryOf, withoutQuery } from './projects.query';
+import { PeopleRow, ofWho } from './projects.people';
+import { applyQuery, isFiltered, queryOf, withoutQuery } from './projects.query';
 
 function ProjectCard({ p }) {
   return (
@@ -33,16 +35,30 @@ function NoMatch() {
   );
 }
 
+/** What the people row picked, with how many projects show: "Rina's projects · 3" (a Member sees only shared ones). */
+function whoLabel(who, member) {
+  if (who === 'me') return 'My projects';
+  return member ? `Projects with ${who}` : `${who}'s projects`;
+}
+
 export default function ProjectsList({ params }) {
-  const { is } = useApp();
-  const member = is('member');
-  const mine = member ? D.projects.filter(p => p.members.includes(D.me().name)) : D.projects;
-  const list = applyQuery([...mine], queryOf(params));
+  const { is, go } = useApp();
+  const member = is('member'), who = params?.who, q = queryOf(params);
+  const visible = member ? D.projects.filter(p => p.members.includes(D.me().name)) : D.projects;
+  const list = applyQuery(ofWho(visible, who), q);
+  const pick = w => go('projects.list', { params: { ...params, who: w } });
   return (
     <Screen title="Projects" tab="projects">
-      {!member && <Seg items={['My projects', 'All projects']} on={1} />}
       <ProjectsSearch />
-      {list.length ? list.map(p => <ProjectCard key={p.id} p={p} />) : <NoMatch />}
+      <PeopleRow list={visible} who={who} mine={!member} onPick={pick} />
+      {who && (
+        <div className="between">
+          <span className="t-subhead bold">{whoLabel(who, member)} · {list.length}</span>
+          <Link onClick={() => pick(undefined)}>Clear</Link>
+        </div>
+      )}
+      {list.length ? list.map(p => <ProjectCard key={p.id} p={p} />)
+        : isFiltered(q) ? <NoMatch /> : <Empty icon={<FolderOpen size={28} />} title="You're not in any project yet." />}
     </Screen>
   );
 }
