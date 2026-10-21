@@ -8,6 +8,8 @@ import { renderApp } from './render';
 
 const row = () => within(dom.getByRole('group', { name: 'Show projects of' }));
 const pick = name => fireEvent.click(row().getByRole('button', { name }));
+/** Visible label of a chip (its avatar initial is hidden from the name). */
+const label = b => b.querySelector('.react-cupertino-ui-suggestion-chip__label').textContent;
 const pressed = name => row().getByRole('button', { name }).getAttribute('aria-pressed');
 /** Project names the cards show, in D order (order is covered by projects.filter.test). */
 const shown = () => D.projects.map(p => p.name).filter(n => dom.queryByText(n));
@@ -25,7 +27,7 @@ describe('projects people row', () => {
 
   it('lists My projects, then every teammate in a project but not me, by first name', () => {
     renderApp('projects.list', 'pm');   // Nico; Ayu (Admin) is in no project
-    expect(row().getAllByRole('button').map(b => b.querySelector('.t-caption')?.textContent ?? b.textContent))
+    expect(row().getAllByRole('button').map(label))
       .toEqual(['My projects', 'Rina', 'Dodi', 'Sri', 'Lea']);
   });
 
@@ -80,7 +82,7 @@ describe('projects people row', () => {
     renderApp('projects.list', 'member');   // Dodi
     const mine = D.projects.filter(p => p.members.includes('Dodi'));
     expect(row().queryByRole('button', { name: 'My projects' })).not.toBeInTheDocument();
-    expect(row().getAllByRole('button').map(b => b.querySelector('.t-caption').textContent)).toEqual(['Nico', 'Rina', 'Sri']);
+    expect(row().getAllByRole('button').map(label)).toEqual(['Nico', 'Rina', 'Sri']);
     pick('Sri');
     expect(shown()).toEqual(withPerson('Sri', mine));
     expect(dom.getByText(`Projects with Sri · ${withPerson('Sri', mine).length}`)).toBeInTheDocument();
