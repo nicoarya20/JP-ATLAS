@@ -9,10 +9,12 @@ import './stacked.css';
  * Tab screen with the stacked header. title = left of the header; aside = after the search icon on the right (Home's
  * avatar); find = the search block's content; onFind = what the header icon does once the block is collapsed (default:
  * scroll back and focus the block's field). Only one of the block and the icon is reachable at a time.
- * props: {title, aside, find, onFind, tab, children}.
+ * pinned = an optional first row of the sheet that sticks under the header together with the sheet's rounded top edge;
+ * scrolled past the search block it gets .is-stuck on .stk-pin, so the row can style a compact form.
+ * props: {title, aside, find, onFind, pinned, tab, children}.
  */
-export function StackedScreen({ title, aside, find, onFind, tab, children }) {
-  const [blockRef, collapsed, reveal] = useSearchCollapse();
+export function StackedScreen({ title, aside, find, onFind, pinned, tab, children }) {
+  const [blockRef, collapsed, reveal, stuck] = useSearchCollapse();
   const header = (
     <header className="stk-head between">
       <h1 className="t-title2">{title}</h1>
@@ -28,7 +30,8 @@ export function StackedScreen({ title, aside, find, onFind, tab, children }) {
   return (
     <Screen header={header} tab={tab} className="stk-scroll">
       <div ref={blockRef} className="stk-find" aria-hidden={collapsed} inert={collapsed ? '' : undefined}>{find}</div>
-      <div className="stk-sheet">{children}</div>
+      {pinned && <div className={`stk-pin${stuck ? ' is-stuck' : ''}`}><div className="stk-pin-in">{pinned}</div></div>}
+      <div className={`stk-sheet${pinned ? ' has-pin' : ''}`}>{children}</div>
     </Screen>
   );
 }

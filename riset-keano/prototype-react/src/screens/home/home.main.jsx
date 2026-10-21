@@ -19,12 +19,16 @@ function HomeSearch({ openSearch }) {
   );
 }
 
+/** Stat chip: icon over label + count over the sub line; once the row is stuck under the header it compacts to one line
+ *  (icon beside label + count, sub line folded away), see .stk-pin.is-stuck in home.css. */
 function StatChip({ s }) {
   return (
     <button type="button" className="hm-stat" onClick={useNav({ go: s.go })}>
-      <span className="hm-ico" aria-hidden="true">{s.icon}</span>
-      <span className="t-subhead bold">{s.label}{s.count != null && <> <span className="hm-count">{s.count}</span></>}</span>
-      <span className={`t-subhead ${s.alert ? 'danger' : 'muted'}`}>{s.sub}</span>
+      <span className="hm-stat-in">
+        <span className="hm-ico" aria-hidden="true">{s.icon}</span>
+        <span className="t-subhead bold">{s.label}{s.count != null && <> <span className="hm-count">{s.count}</span></>}</span>
+        <span className={`hm-sub t-subhead ${s.alert ? 'danger' : 'muted'}`}>{s.sub}</span>
+      </span>
     </button>
   );
 }
@@ -59,8 +63,8 @@ function HomeMain() {
   const openSearch = useNav({ go: 'home.search' });
   return (
     <StackedScreen title={`${D.today.greeting}, ${me.name}`} aside={<Avatar name={me.name} />}
-      find={<HomeSearch openSearch={openSearch} />} onFind={openSearch} tab="home">
-      <div className="hscroll bleed hm-stats">{R.stats.map(s => <StatChip key={s.label} s={s} />)}</div>
+      find={<HomeSearch openSearch={openSearch} />} onFind={openSearch} tab="home"
+      pinned={<div className="hscroll bleed hm-stats">{R.stats.map(s => <StatChip key={s.label} s={s} />)}</div>}>
 
       <Section title={<span className="row-flex"><Sparkles size={17} className="tint" /> Daily Briefing</span>} sub="What do I need to know today?">
         <div className="stack sm">{H.briefing.map(t => <p key={t}>{t}</p>)}</div>

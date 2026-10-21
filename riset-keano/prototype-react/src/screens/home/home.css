@@ -3,13 +3,23 @@
 .hm-search { display: flex; align-items: center; gap: var(--sp-2); width: 100%; padding: var(--sp-2) var(--sp-3); border: 0;
   border-radius: 10px; background: var(--fill); color: var(--label-2); font-size: var(--fs-body); text-align: left; cursor: pointer; }
 .hm-input { padding: var(--sp-2) var(--sp-3); border-radius: 10px; background: var(--fill); font-size: var(--fs-subhead); }
-/* Stat chips: each chip as wide as its text (never wraps), first chip highlighted. */
-.hm-stat { display: grid; gap: 2px; justify-items: start; white-space: nowrap; padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3);
-  border: 0; border-radius: var(--radius-card); background: var(--surface); text-align: left; cursor: pointer; }
+/* Stat chips: each chip as wide as its text (never wraps), first chip highlighted. The layout lives on .hm-stat-in so the
+   press transition on .hm-stat (press.css) stays its own. Tall: icon on top (absolute, the top padding makes its room),
+   label, sub line. Stuck under the header (.stk-pin.is-stuck): the icon slides to the left edge's middle, the padding
+   makes room on the left instead, and the sub line folds away, all over --stk-morph. */
+.hm-stat { padding: 0; border: 0; border-radius: var(--radius-card); background: var(--surface); text-align: left; cursor: pointer; }
 .hm-stat:first-child { background: var(--accent-soft); }
-.hm-ico { width: 24px; height: 24px; margin-bottom: var(--sp-1); border-radius: 6px; display: grid; place-items: center;
-  background: var(--fill); color: var(--label); }
+.hm-stat-in { --ico: 24px; position: relative; display: grid; gap: 2px; justify-items: start; white-space: nowrap;
+  padding: calc(var(--sp-3) + var(--ico) + var(--sp-1)) var(--sp-5) var(--sp-3) var(--sp-3);
+  transition: padding var(--stk-morph), gap var(--stk-morph); }
+.hm-ico { position: absolute; left: var(--sp-3); top: var(--sp-3); width: var(--ico); height: var(--ico); border-radius: 6px;
+  display: grid; place-items: center; background: var(--fill); color: var(--label);
+  transition: top var(--stk-morph), translate var(--stk-morph); }
 .hm-stat:first-child .hm-ico { background: var(--accent); color: var(--on-accent); }
+.hm-sub { max-height: 1.5em; overflow: hidden; transition: max-height var(--stk-morph), opacity var(--stk-morph); }
+.stk-pin.is-stuck .hm-stat-in { gap: 0; padding: var(--sp-2) var(--sp-4) var(--sp-2) calc(var(--sp-3) + var(--ico) + var(--sp-2)); }
+.stk-pin.is-stuck .hm-ico { top: 50%; translate: 0 -50%; }
+.stk-pin.is-stuck .hm-sub { max-height: 0; opacity: 0; }
 .hm-count { font-weight: 400; }
 .hm-label { text-transform: uppercase; letter-spacing: .02em; margin-top: var(--sp-2); }
 .hm-time { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--fill); display: grid; place-items: center;

@@ -7,6 +7,16 @@
 .stk-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
   padding: var(--sp-4) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4));
   background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
+/* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header. Its
+   surface backing fills the rounded corners, so stuck it reads as the sheet's edge, not as cards showing through. */
+.stk-pin { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+.stk-pin-in { padding: var(--sp-4) var(--sp-4) var(--sp-2); background: var(--bg); border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--separator); transition: padding-top var(--stk-morph); }
+.stk-pin.is-stuck .stk-pin-in { padding-top: var(--sp-3); }
+.stk-sheet.has-pin { padding-top: var(--sp-2); border-radius: 0; border-top: 0; }
+/* How long the pinned row takes to turn compact or back; screens use it for their own row's morph too. */
+.stk-scroll { --stk-morph: 260ms cubic-bezier(0.32, 0.72, 0, 1); }
+@media (prefers-reduced-motion: reduce) { .stk-scroll { --stk-morph: 0ms linear; } }
 /* --stk-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search block away. The block fades out fast,
    within the first third, while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
 .stk-find { padding: 0 var(--sp-4) var(--sp-4); }

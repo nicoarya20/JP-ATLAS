@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 /** Collapse at or past this share of the search block's height: from here the icon, not the bar, can be tapped and focused. */
 const COLLAPSED_AT = 0.5;
+/** Scrolled this far past the search block, the pinned row turns stuck (compact); it turns back once the block peeks again. */
+const STUCK_PAST = 24;
 /** Quiet time after the last scroll event (finger lifted, momentum spent) before a half-collapsed bar snaps open or shut. */
 const SNAP_IDLE_MS = 120;
 
@@ -16,13 +18,15 @@ const behavior = () => (window.matchMedia('(prefers-reduced-motion: reduce)').ma
  * block it snaps like an iOS large title: back open before COLLAPSED_AT, fully shut from there. Wheel and trackpad
  * scrolling never snaps: their events pause mid-scroll with no release to tell a pause from the end, so a slow scroll
  * would be yanked back open.
- * Returns [ref for the search block, collapsed, reveal]; reveal scrolls back to the top and focuses the block's field
- * once it is reachable again.
+ * Returns [ref for the search block, collapsed, reveal, stuck]; reveal scrolls back to the top and focuses the block's
+ * field once it is reachable again; stuck = the sheet has scrolled STUCK_PAST beyond the block (the pinned row compacts).
+ * stuck has a gap between turning on and off, so a pinned row that shrinks can't flip it back on its own.
  */
 export function useSearchCollapse() {
   const ref = useRef(null);
   const focusOnOpen = useRef(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [stuck, setStuck] = useState(false);
   useEffect(() => {
     const block = ref.current;
     const scroller = block.closest('.content');
@@ -33,9 +37,11 @@ export function useSearchCollapse() {
     let released = false;   // a touch gesture has ended and its scroll has not come to rest yet
     const update = () => {
       frame = 0;
-      const p = Math.min(1, Math.max(0, scroller.scrollTop / (block.offsetHeight || 1)));
+      const h = block.offsetHeight, top = scroller.scrollTop;
+      const p = Math.min(1, Math.max(0, top / (h || 1)));
       screen.style.setProperty('--stk-p', p.toFixed(3));
       setCollapsed(p >= COLLAPSED_AT);
+      setStuck(was => (was ? top > h : top > h + STUCK_PAST));
     };
     const snap = () => {
       timer = 0;
@@ -76,5 +82,5 @@ export function useSearchCollapse() {
     focusOnOpen.current = true;
     ref.current.closest('.content').scrollTo({ top: 0, behavior: behavior() });
   }, []);
-  return [ref, collapsed, reveal];
+  return [ref, collapsed, reveal, stuck];
 }

@@ -2,6 +2,8 @@
 // scrolling it pushes the search block away and swaps it for the search icon in the header.
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, waitFor, within } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import '../screens';
 import { renderApp } from './render';
 
@@ -13,13 +15,47 @@ const parts = container => ({
 });
 
 describe('stacked tab screens', () => {
-  it('scrolls the search block and the stacked sheet together under the greeting', () => {
+  it('scrolls the search block, the pinned stat row and the stacked sheet together under the greeting', () => {
     const { container } = renderApp('home.main', 'member');
     const { scroller, block } = parts(container);
     expect(scroller).toHaveClass('stk-scroll');
     expect(block.parentElement).toBe(scroller);
-    expect(block.nextElementSibling).toHaveClass('stk-sheet');
+    const pin = block.nextElementSibling;
+    expect(pin).toHaveClass('stk-pin');
+    expect(pin.querySelector('.stk-pin-in > .hm-stats').querySelectorAll('.hm-stat').length).toBeGreaterThan(0);
+    expect(pin.nextElementSibling).toHaveClass('stk-sheet', 'has-pin');
+    expect(pin.nextElementSibling.querySelector('.hm-stat')).toBeNull();
     expect(container.querySelector('.stk-head')).toHaveTextContent(/Nico|,/);
+  });
+
+  it('sticks the pinned row with the sheet edge under the header', () => {
+    const css = readFileSync(join(__dirname, '../kit/stacked.css'), 'utf8');
+    const rule = sel => css.slice(css.indexOf(`${sel} {`), css.indexOf('}', css.indexOf(`${sel} {`)));
+    expect(rule('.stk-pin')).toMatch(/position: sticky; top: 0/);
+    expect(rule('.stk-pin-in')).toMatch(/border-radius: 24px 24px 0 0/);
+    expect(rule('.stk-pin-in')).toMatch(/border-top: 1px solid var\(--separator\)/);
+    expect(rule('.stk-sheet.has-pin')).toMatch(/border-top: 0/);
+  });
+
+  it('compacts the pinned stat row once scrolled past the search, and opens it again when the search peeks', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    const pin = container.querySelector('.stk-pin');
+    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
+    const scrollTo = async (top, stuck) => {
+      scroller.scrollTop = top;
+      fireEvent.scroll(scroller);
+      await waitFor(() => {
+        expect(container.querySelector('.scr').style.getPropertyValue('--stk-p')).toBe(Math.min(1, top / 60).toFixed(3));
+        expect(pin.classList.contains('is-stuck')).toBe(stuck);
+      });
+    };
+    await scrollTo(60, false);   // search just folded: still tall
+    await scrollTo(90, true);    // past it: compact
+    await scrollTo(70, true);    // the gap: a shrinking row can't flip it back
+    await scrollTo(55, false);   // search peeks again: tall
+    // The chips keep label, count and sub line in the DOM; the compact form is CSS only
+    expect(pin.querySelector('.hm-stat .hm-sub')).toBeInTheDocument();
   });
 
   it('starts with the search bar reachable and the header icon hidden', () => {
@@ -135,6 +171,7 @@ describe('stacked tab screens', () => {
     expect(within(block).getByPlaceholderText(placeholder)).toBeInTheDocument();
     expect(within(block).getByRole('button', { name: 'Filter and sort' })).toBeInTheDocument();
     expect(block.nextElementSibling).toHaveClass('stk-sheet');
+    expect(block.nextElementSibling).not.toHaveClass('has-pin');
   });
 
   it('opens the sheet on the view switches (Tasks, Events) or the people row (Projects)', () => {
