@@ -8,6 +8,7 @@ import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
+import { isPlaceholderTab, SETTINGS_PANELS } from '../../app/components/admin/settings/panels';
 import { SETTINGS_TABS } from '../../app/components/admin/settings/settings.tabs';
 import AdminSettingsPage, { loader } from '../../app/routes/admin/settings';
 import { installAuthSpies } from '../support/auth';
@@ -101,11 +102,23 @@ describe('/dashboard/settings shell', () => {
   });
 
   it('opens the tab named by ?tab=, so every tab is linkable', async () => {
-    const target = SETTINGS_TABS.find((t) => t.value === 'ekspor-data');
-    const html = await renderAt('?tab=ekspor-data');
-    expect(shows(html, target?.title ?? 'missing tab')).toBe(true);
-    expect(shows(html, target?.description ?? 'missing description')).toBe(true);
+    // Any tab but the first that still shows its placeholder: a tab whose panel has landed renders
+    // the panel instead, so naming one here would break the moment that task ships.
+    const target = SETTINGS_TABS.find((t, i) => i > 0 && isPlaceholderTab(t.value));
+    if (!target) throw new Error('every tab is filled: assert a filled tab instead');
+    const html = await renderAt(`?tab=${target.value}`);
+    expect(shows(html, target.title)).toBe(true);
+    expect(shows(html, target.description)).toBe(true);
     expect(shows(html, SETTINGS_TABS[0].title)).toBe(false);
+  });
+
+  it('renders the registered panel of a filled tab, not its placeholder', async () => {
+    for (const value of Object.keys(SETTINGS_PANELS)) {
+      const tab = SETTINGS_TABS.find((t) => t.value === value);
+      if (!tab) throw new Error(`panel registered for unknown tab ${value}`);
+      const html = await renderAt(`?tab=${value}`);
+      expect(shows(html, tab.description)).toBe(false);
+    }
   });
 
   it('keeps the tab list on one scrollable line instead of wrapping', async () => {

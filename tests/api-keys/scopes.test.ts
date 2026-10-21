@@ -69,6 +69,18 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/demo')).toBeNull();
     expect(requiredScope('POST', '/api/auth/sign-in/anonymous')).toBeNull();
   });
+
+  it('never lets an API key bulk-export the data (P11 AD-10)', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      for (const kind of ['members', 'projects', 'tasks', 'anything']) {
+        expect(requiredScope(method, `/api/admin/export/${kind}`)).toBeNull();
+      }
+      expect(requiredScope(method, '/api/admin/export')).toBeNull();
+      expect(isPublicRead(method, '/api/admin/export/members')).toBe(false);
+    }
+    // The neighbouring directory routes keep their scope: only the export prefix is cut off.
+    expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
+  });
 });
 
 describe('role ceiling', () => {

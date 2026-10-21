@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { EksporDataPanel } from './panels/ekspor-data';
 
 /**
  * Real panels of /dashboard/settings, by tab value. A tab absent from here still renders the
@@ -7,7 +8,7 @@ import type { ComponentType } from 'react';
  */
 export const SETTINGS_PANELS: Partial<Record<string, ComponentType>> = {
   // 'peran-izin': PeranIzinPanel,   // AD-09
-  // 'ekspor-data': EksporDataPanel, // AD-10
+  'ekspor-data': EksporDataPanel,
 };
 
 /** True while the tab still shows its placeholder — the shell and its test share this answer. */
