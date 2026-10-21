@@ -3,7 +3,11 @@
    search block scrolls with the sheet, so scrolling down pushes it up under the title. */
 .stk-head { flex: none; padding: var(--sp-2) var(--sp-4) var(--sp-3); background: var(--surface); }
 .phone-app:has(.stk-sheet) > .statusbar { background: var(--surface); }
-.content.with-tabbar.stk-scroll { display: block; padding: 0; background: var(--surface); }
+.content.with-tabbar.stk-scroll { display: block; padding: 0; background: var(--surface); overflow-anchor: none; }
+/* overflow-anchor: none — the pinned row shrinks when it turns stuck. With scroll anchoring on (Chrome's default) the browser
+   pulls scrollTop back by that height to hold the content in view, which drops the scroll into the search block again:
+   the row unsticks, grows, gets pushed back, and a touch release snaps the search open. Off, the morph never moves the
+   scroll; the content under the row slides up with it instead. */
 .stk-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
   padding: var(--sp-4) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4));
   background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }

@@ -28,13 +28,15 @@ describe('stacked tab screens', () => {
     expect(container.querySelector('.stk-head')).toHaveTextContent(/Nico|,/);
   });
 
-  it('sticks the pinned row with the sheet edge under the header', () => {
+  it('sticks the pinned row with the sheet edge under the header without anchoring the scroll to it', () => {
     const css = readFileSync(join(__dirname, '../kit/stacked.css'), 'utf8');
     const rule = sel => css.slice(css.indexOf(`${sel} {`), css.indexOf('}', css.indexOf(`${sel} {`)));
     expect(rule('.stk-pin')).toMatch(/position: sticky; top: 0/);
     expect(rule('.stk-pin-in')).toMatch(/border-radius: 24px 24px 0 0/);
     expect(rule('.stk-pin-in')).toMatch(/border-top: 1px solid var\(--separator\)/);
     expect(rule('.stk-sheet.has-pin')).toMatch(/border-top: 0/);
+    // The row's morph must not move the scroll (scroll anchoring would pull it back into the search and loop)
+    expect(rule('.content.with-tabbar.stk-scroll')).toMatch(/overflow-anchor: none/);
   });
 
   it('compacts the pinned stat row once scrolled past the search, and opens it again when the search peeks', async () => {
