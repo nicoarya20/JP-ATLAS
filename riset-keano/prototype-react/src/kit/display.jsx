@@ -8,6 +8,7 @@ import { ProgressBar } from '@react-cupertino-ui/progress-bar';
 import { TextField } from '@react-cupertino-ui/text-field';
 import { useNav } from '../core/app.context';
 import { splitNav } from './controls';
+import { statusTone } from './status';
 
 /** Card section header: title + optional one-line meta, optional right element (a Link). */
 export function Head({ title, sub, right }) {
@@ -87,11 +88,19 @@ export function Avatars({ names }) {
   return <span className="avatars">{names.map(n => <Avatar key={n} name={n} size="sm" />)}</span>;
 }
 
-const PILL_VARIANT = { neutral: 'glass', accent: 'solid', success: 'success', warning: 'warning', danger: 'error', outline: 'outline' };
+// info has no upstream variant: it reuses solid and library.css recolours it via the tone class.
+const PILL_VARIANT = { neutral: 'glass', accent: 'solid', info: 'solid', success: 'success', warning: 'warning', danger: 'error',
+  outline: 'outline' };
 
-/** Small status label. tone: 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'outline'. */
+/** Small label. tone: 'neutral' | 'accent' | 'info' | 'success' | 'warning' | 'danger' | 'outline'. */
 export function Pill({ children, tone = 'neutral' }) {
-  return <Badge variant={PILL_VARIANT[tone]} size="sm">{children}</Badge>;
+  if (!PILL_VARIANT[tone]) throw new Error(`Pill tone "${tone}" unknown`);
+  return <Badge variant={PILL_VARIANT[tone]} size="sm" className={`tone-${tone}`}>{children}</Badge>;
+}
+
+/** Status label coloured by its word (see kit/status.js), so "On hold" looks the same on every screen. */
+export function StatusPill({ status, children }) {
+  return <Pill tone={statusTone(status)}>{children ?? status}</Pill>;
 }
 
 /** Progress bar, value 0..100. label shows above the bar; showValue prints the percentage. */

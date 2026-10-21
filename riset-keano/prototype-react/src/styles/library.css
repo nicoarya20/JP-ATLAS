@@ -87,6 +87,7 @@
 .react-cupertino-ui-badge.variant-success { background: var(--success-bg); color: var(--success); }
 .react-cupertino-ui-badge.variant-warning { background: var(--warning-bg); color: var(--warning); }
 .react-cupertino-ui-badge.variant-error { background: var(--danger-bg); color: var(--danger); }
+.react-cupertino-ui-badge.tone-info { background: var(--info-bg); color: var(--info); }
 
 /* ---- Button (kit Btn): primary = Atlas lime with the navy label and its edge; outline = violet tint (the upstream
    border is a white glass edge) ---- */
