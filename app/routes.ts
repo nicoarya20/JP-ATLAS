@@ -42,6 +42,7 @@ export default [
   layout('routes/admin/layout.tsx', [
     route('dashboard', 'routes/admin/dashboard.tsx'),
     route('dashboard/users', 'routes/admin/users.tsx'),
+    route('dashboard/settings', 'routes/admin/settings.tsx'),
   ]),
   layout('routes/super/layout.tsx', [
     route('dev', 'routes/super/overview.tsx'),
