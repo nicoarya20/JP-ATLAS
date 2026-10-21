@@ -11,10 +11,10 @@ import { downloadExport } from './ekspor-data.download';
 const fallbackName = (kind: ExportKind) => `${EXPORT_META[kind].slug}.csv`;
 
 /**
- * Ekspor data tab of /dashboard/settings (P11 AD-10): one card per CSV download. Exports read
- * nothing from the page loader — the tab shell keeps that loader empty on purpose — so each card
- * fetches on press, shows `loading` while the file streams, and reports the outcome in a toast.
- * Nothing is destroyed here, so there is no confirmation dialog.
+ * Body of /dashboard/export (P11 AD-10, split out of Pengaturan by AD-20): one card per CSV
+ * download. Exports read nothing from the page loader — the file is produced on demand — so each
+ * card fetches on press, shows `loading` while the file streams, and reports the outcome in a
+ * toast. Nothing is destroyed here, so there is no confirmation dialog.
  */
 export function EksporDataPanel() {
   const [busy, setBusy] = useState<ExportKind | null>(null);

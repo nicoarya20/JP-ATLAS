@@ -16,9 +16,11 @@ export function meta() {
 }
 
 /**
- * Shell of Setelan organisasi: the eight tabs of P11 §4, each one rendering its registered
- * panel (`panels.tsx`) or, while none is registered, the placeholder from `settings.tabs.ts`. The guard is repeated here on purpose — React Router runs the
- * layout and page loaders in parallel, so the layout guard does not cover this page's data.
+ * Shell of Setelan organisasi: the six tabs of P11 §4 that really are settings — AD-20 moved the
+ * report (Peran & izin) and the tool (Ekspor data) out to menus of their own — each one rendering
+ * its registered panel (`panels.tsx`) or, while none is registered, the placeholder from
+ * `settings.tabs.ts`. The guard is repeated here on purpose — React Router runs the layout and
+ * page loaders in parallel, so the layout guard does not cover this page's data.
  */
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAnyRole(request, [ROLES.ADMIN, ROLES.SUPER_ADMIN]);
@@ -58,7 +60,7 @@ export default function AdminSettingsPage() {
         }
         keepMounted={false}
       >
-        {/* Eight tabs never fit 375px, so the list scrolls sideways instead of overflowing the page. */}
+        {/* Six tabs fit a laptop but never 375px, so the list scrolls sideways instead of overflowing. */}
         <ScrollArea type="hover" scrollbarSize={6} offsetScrollbars={false}>
           <Tabs.List style={{ flexWrap: 'nowrap' }} aria-label={SETTINGS_PAGE_COPY.tabsLabel}>
             {SETTINGS_TABS.map(({ value, label, icon: Icon }) => (

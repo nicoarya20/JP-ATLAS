@@ -1,6 +1,6 @@
 /**
- * Copy of the Ekspor data panel (P11 AD-10). Kept apart from the component so the wording and the
- * list of downloads can be asserted without rendering, and so the panel stays a layout file.
+ * Copy of the Ekspor data page (P11 AD-10). Kept apart from the component so the wording and the
+ * list of downloads can be asserted without rendering, and so the component stays a layout file.
  * The kinds come from `@server/api/admin-export.kinds` — a pure module — so the three cards can
  * never drift from the three the endpoint serves.
  */

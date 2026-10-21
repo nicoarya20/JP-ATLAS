@@ -1,7 +1,9 @@
 /**
- * Contract of the /dashboard/settings shell: the eight tabs of P11 §4 in that exact order, each one
- * linkable through `?tab=` and each tab still unfilled naming the task that will fill it. The route itself
- * (meta + Admin guard + descending from the admin layout) is covered by tests/admin-routes.test.ts.
+ * Contract of the /dashboard/settings shell: the six tabs of P11 §4 that really are settings, in
+ * that exact order, each one linkable through `?tab=` and each tab still unfilled naming the task
+ * that will fill it. AD-20 moved Peran & izin and Ekspor data out to menus of their own, so
+ * neither may come back as a tab. The route itself (meta + Admin guard + descending from the admin
+ * layout) is covered by tests/admin-routes.test.ts.
  */
 import { describe, expect, test } from 'bun:test';
 import { isPlaceholderTab, SETTINGS_PANELS } from '../app/components/admin/settings/panels';
@@ -17,7 +19,7 @@ describe('/dashboard/settings tabs', () => {
     expect(child?.file).toBe('routes/admin/settings.tsx');
   });
 
-  test('the eight tabs keep the order of the plan', () => {
+  test('the six tabs keep the order of the plan', () => {
     expect(SETTINGS_TABS.map((t) => t.label)).toEqual([
       'Identitas',
       'Pengumuman',
@@ -25,9 +27,13 @@ describe('/dashboard/settings tabs', () => {
       'Kebijakan kerja',
       'Pemberitahuan',
       'Fitur',
-      'Peran & izin',
-      'Ekspor data',
     ]);
+  });
+
+  test('the report and the tool are menus of their own, not tabs (AD-20)', () => {
+    const values = SETTINGS_TABS.map((t) => t.value);
+    expect(values).not.toContain('peran-izin');
+    expect(values).not.toContain('ekspor-data');
   });
 
   test('every tab has a distinct url-safe value, so each tab can be linked', () => {
@@ -43,8 +49,14 @@ describe('/dashboard/settings tabs', () => {
     expect(unlabelled).toEqual([]);
   });
 
-  test('a tab with a registered panel is no longer a placeholder', () => {
-    for (const value of Object.keys(SETTINGS_PANELS)) {
+  test('every registered panel belongs to a tab and ends that tab placeholder', () => {
+    // Empty since AD-20 took both filled panels out: then every tab is a placeholder, and the
+    // loop below guards the registry again as AD-04..AD-08 refill it.
+    const registered = Object.keys(SETTINGS_PANELS);
+    if (registered.length === 0) {
+      expect(SETTINGS_TABS.filter((t) => !isPlaceholderTab(t.value))).toEqual([]);
+    }
+    for (const value of registered) {
       expect(SETTINGS_TABS.some((t) => t.value === value)).toBe(true);
       expect(isPlaceholderTab(value)).toBe(false);
     }
@@ -58,8 +70,6 @@ describe('/dashboard/settings tabs', () => {
       'AD-07',
       'P9 G-02',
       'AD-08',
-      'AD-09',
-      'AD-10',
     ]);
   });
 

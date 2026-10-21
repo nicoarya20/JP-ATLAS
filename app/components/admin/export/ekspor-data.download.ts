@@ -1,6 +1,6 @@
 /**
- * Download side of the Ekspor data panel (P11 AD-10). A plain `<a download>` would be simpler, but
- * it reports neither progress nor failure: the panel needs a `loading` button and an actionable
+ * Download side of the Ekspor data page (P11 AD-10). A plain `<a download>` would be simpler, but
+ * it reports neither progress nor failure: the page needs a `loading` button and an actionable
  * toast, so the CSV is fetched, checked, and only then handed to the browser as a file.
  */
 import type { ExportKind } from '@server/api/admin-export.kinds';

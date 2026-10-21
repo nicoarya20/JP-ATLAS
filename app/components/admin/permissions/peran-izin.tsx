@@ -1,9 +1,11 @@
 /**
- * "Peran & izin" tab of /dashboard/settings (P11 AD-09): the role × capability matrix, read only
- * for everyone — roles are changed from the Pengguna menu, and the matrix itself follows the code.
+ * Body of /dashboard/permissions (P11 AD-09, split out of Pengaturan by AD-20): the role ×
+ * capability matrix, read only for everyone — roles are changed from the Pengguna menu, and the
+ * matrix itself follows the code.
  *
- * The data is fetched here, not in the page loader: the page keeps `?tab=` switching free of
- * revalidation, so a loader fetch would pull every tab's data on every visit.
+ * The data is fetched here, not in the page loader: the matrix is derived from code and never
+ * changes between visits, so react-query caches it for the whole session instead of the loader
+ * re-deriving it on every navigation.
  */
 import { Alert, Anchor, Button, Group, Skeleton, Stack, Text } from '@mantine/core';
 import type { PermissionsMatrix } from '@server/api/admin-permissions.matrix';

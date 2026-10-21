@@ -40,8 +40,11 @@ export default [
     route('profile', 'routes/app/profile.tsx'),
   ]),
   layout('routes/admin/layout.tsx', [
+    // Listed in sidebar order (NAV in routes/admin/layout.tsx).
     route('dashboard', 'routes/admin/dashboard.tsx'),
     route('dashboard/users', 'routes/admin/users.tsx'),
+    route('dashboard/permissions', 'routes/admin/permissions.tsx'),
+    route('dashboard/export', 'routes/admin/export.tsx'),
     route('dashboard/settings', 'routes/admin/settings.tsx'),
   ]),
   layout('routes/super/layout.tsx', [

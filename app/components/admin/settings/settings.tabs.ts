@@ -1,21 +1,14 @@
 /**
- * The eight Setelan organisasi tabs of /dashboard/settings, in the order of P11 §4 ("Tab
- * Pengaturan"). This file is the shell only: every panel is a placeholder, and `owner` names the
- * task that replaces it — Identitas AD-04, Pengumuman AD-05, Akses masuk AD-06, Kebijakan kerja
- * AD-07, Pemberitahuan P9 G-02, Fitur AD-08, Peran & izin AD-09, Ekspor data AD-10. Nothing here
+ * The six Setelan organisasi tabs of /dashboard/settings, in the order of P11 §4 ("Tab
+ * Pengaturan") minus the two AD-20 moved out: Peran & izin is a report (/dashboard/permissions)
+ * and Ekspor data is a tool (/dashboard/export), so neither is a setting, and six tabs fit one
+ * row on a 1366px laptop where eight did not. This file is the shell only: every panel is a
+ * placeholder, and `owner` names the task that replaces it — Identitas AD-04, Pengumuman AD-05,
+ * Akses masuk AD-06, Kebijakan kerja AD-07, Pemberitahuan P9 G-02, Fitur AD-08. Nothing here
  * reads or writes settings yet, so no guard decision depends on it.
  */
 import type { IconType } from 'react-icons';
-import {
-  FiBell,
-  FiCalendar,
-  FiDownload,
-  FiLogIn,
-  FiShield,
-  FiTag,
-  FiToggleLeft,
-  FiVolume2,
-} from 'react-icons/fi';
+import { FiBell, FiCalendar, FiLogIn, FiTag, FiToggleLeft, FiVolume2 } from 'react-icons/fi';
 
 export type SettingsTab = {
   /** Also the `?tab=` value, so every tab is linkable. */
@@ -32,7 +25,7 @@ export type SettingsTab = {
 
 export const SETTINGS_PAGE_COPY = {
   title: 'Pengaturan',
-  description: 'Setelan organisasi: identitas aplikasi, akses masuk, kebijakan kerja, dan ekspor.',
+  description: 'Setelan organisasi: identitas aplikasi, akses masuk, dan kebijakan kerja.',
   tabsLabel: 'Kelompok pengaturan',
 } as const;
 
@@ -90,23 +83,6 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
     description:
       'Daftar fitur terkurasi beserta penjelasannya — bukan editor key/value. Menyusul (AD-08).',
     owner: 'AD-08',
-  },
-  {
-    value: 'peran-izin',
-    label: 'Peran & izin',
-    icon: FiShield,
-    title: 'Peran dan izin',
-    description:
-      'Matriks peran dan kemampuannya. Admin hanya membaca, Super-admin yang mengubah. Menyusul (AD-09).',
-    owner: 'AD-09',
-  },
-  {
-    value: 'ekspor-data',
-    label: 'Ekspor data',
-    icon: FiDownload,
-    title: 'Ekspor data ke CSV',
-    description: 'Unduhan CSV anggota, proyek, dan tugas; setiap ekspor diaudit. Menyusul (AD-10).',
-    owner: 'AD-10',
   },
 ];
 
