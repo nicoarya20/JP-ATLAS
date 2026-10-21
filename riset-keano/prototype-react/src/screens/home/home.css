@@ -1,9 +1,21 @@
 /* Home module (hm-). */
-.hm-bar { flex: none; display: grid; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4) var(--sp-4); background: var(--surface); }
-/* ClickUp-style stacked sheet: the header (and the status bar above it) sit on surface; the content is a canvas sheet with
-   rounded top corners and a hairline edge laid over it, so the cards inside lift off the sheet again. */
-.phone-app:has(.hm-sheet) > .statusbar, .scr:has(> .hm-sheet) { background: var(--surface); }
-.content.hm-sheet { background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
+.hm-bar { flex: none; display: grid; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4) var(--sp-3); background: var(--bg); }
+.hm-head { flex: none; padding: var(--sp-2) var(--sp-4) var(--sp-3); background: var(--surface); }
+/* ClickUp-style stacked sheet: header, status bar and the search block sit on surface; the content is a canvas sheet with
+   rounded top corners and a hairline edge laid over it, so the cards inside lift off the sheet again. The search block
+   scrolls with the sheet, so scrolling down pushes it up under the greeting. */
+.phone-app:has(.hm-sheet) > .statusbar { background: var(--surface); }
+.content.with-tabbar.hm-scroll { display: block; padding: 0; background: var(--surface); }
+.hm-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
+  padding: var(--sp-4) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4));
+  background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
+/* --hm-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search bar away. The bar fades out over the
+   first two thirds while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
+.hm-find { padding: 0 var(--sp-4) var(--sp-4); }
+.hm-find .hm-search { opacity: calc(1 - var(--hm-p, 0) * 1.5); scale: calc(1 - var(--hm-p, 0) * 0.4); transform-origin: top right; }
+.hm-find-ico { width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center;
+  background: var(--fill); color: var(--label); cursor: pointer;
+  opacity: calc(var(--hm-p, 0) * 2 - 1); scale: calc(0.6 + var(--hm-p, 0) * 0.4); }
 .hm-search { display: flex; align-items: center; gap: var(--sp-2); width: 100%; padding: var(--sp-2) var(--sp-3); border: 0;
   border-radius: 10px; background: var(--fill); color: var(--label-2); font-size: var(--fs-body); text-align: left; cursor: pointer; }
 .hm-input { padding: var(--sp-2) var(--sp-3); border-radius: 10px; background: var(--fill); font-size: var(--fs-subhead); }
