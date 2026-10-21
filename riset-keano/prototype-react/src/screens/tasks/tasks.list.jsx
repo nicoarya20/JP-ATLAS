@@ -1,7 +1,7 @@
 // Tasks ①, ②, ④: My tasks (grouped by urgency), All tasks (Atlas, bulk select) and the empty state; Kanban ③ is in tasks.board.
 // ① and ② show their screen params' Filter & sort query (tasks.query).
 import { ChevronRight, List, ListChecks, Plus, SearchX, SquareKanban } from 'lucide-react';
-import { Btn, Empty, Screen, Section, Seg, StatusPill } from '../../kit';
+import { Btn, Empty, Section, Seg, StackedScreen, StatusPill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { TasksSearch } from './tasks.filter';
@@ -9,8 +9,9 @@ import { Tick } from './tasks.parts';
 import { SORTS, SORT_DUE, applyQuery, isFiltered, queryOf, queryParams, withoutQuery } from './tasks.query';
 import { TODAY, assigned, days, detailOf, note, whoLabel } from './tasks.shared';
 
-/** List frame shared by ①–④: My/All switch with the List/Kanban view beside it, search with the Filter & sort icon
- *  (status, project, priority, sort live in its overlay). The two switches are independent: Kanban keeps My/All
+/** List frame shared by ①–④ (kit StackedScreen): the search with the Filter & sort icon (status, project, priority,
+ *  sort live in its overlay) folds into the header as the sheet scrolls; the sheet opens on the My/All switch with the
+ *  List/Kanban view beside it. The two switches are independent: Kanban keeps My/All
  *  (tasks.board with params.mine) and My/All keeps the Kanban view. List/Kanban keeps the query; My/All starts the
  *  other list's own default (they scope projects differently).
  *  New task lives on the tab bar's round "+" button, so the nav bar stays a plain title. */
@@ -22,17 +23,14 @@ export function ListScreen({ mine, board, children }) {
     else go(my ? 'tasks.my' : 'tasks.all', { params: q });
   };
   return (
-    <Screen title="Tasks" tab="tasks">
-      <div className="tk-filters">
-        <div className="tk-switch">
-          <div className="grow"><Seg items={['My tasks', 'All tasks']} on={mine ? 0 : 1} onPick={i => open(i === 0, board)} /></div>
-          <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]}
-            on={board ? 1 : 0} onPick={i => open(mine, i === 1)} /></div>
-        </div>
-        <TasksSearch mine={mine} />
+    <StackedScreen title="Tasks" find={<TasksSearch mine={mine} />} tab="tasks">
+      <div className="tk-switch">
+        <div className="grow"><Seg items={['My tasks', 'All tasks']} on={mine ? 0 : 1} onPick={i => open(i === 0, board)} /></div>
+        <div className="tk-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]}
+          on={board ? 1 : 0} onPick={i => open(mine, i === 1)} /></div>
       </div>
       {children}
-    </Screen>
+    </StackedScreen>
   );
 }
 

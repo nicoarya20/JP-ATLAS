@@ -20,12 +20,13 @@ const heads = () => dom.getAllByRole('heading', { level: 2 }).map(h => h.textCon
 const dot = n => document.querySelectorAll('.ev-date')[n - 1].querySelector('.ev-dot').className.replace('ev-dot', '').trim();
 
 describe('events filter & sort', () => {
-  it('puts the filter icon on the search field like Tasks, under the List / Calendar switch', () => {
+  it('puts the filter icon on the search field like Tasks, above the List / Calendar switch at the top of the sheet', () => {
     renderApp('events.list', 'pm');
     expect(dom.queryByRole('button', { name: /^Filter$/ })).not.toBeInTheDocument();
     expect(icon().closest('.search-filter').querySelector('input')).toHaveAttribute('placeholder', 'Search title or location…');
     expect(icon()).not.toHaveClass('is-on');
-    const tools = icon().closest('.ev-tools');
+    expect(icon().closest('.stk-find')).toBeInTheDocument();
+    const tools = document.querySelector('.stk-sheet').firstElementChild;
     expect(within(tools).getByRole('tab', { name: 'List' })).toBeInTheDocument();
     expect(within(tools).getByRole('tab', { name: 'Calendar' })).toBeInTheDocument();
     expect(dom.queryByRole('tab', { name: 'Upcoming' })).not.toBeInTheDocument();

@@ -1,0 +1,145 @@
+// Stacked tab screens (kit StackedScreen: Home, Tasks, Projects, Events): the content is a sheet stacked under the header;
+// scrolling it pushes the search block away and swaps it for the search icon in the header.
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, waitFor, within } from '@testing-library/react';
+import '../screens';
+import { renderApp } from './render';
+
+const parts = container => ({
+  scroller: container.querySelector('main.content'),
+  block: container.querySelector('.stk-find'),
+  icon: container.querySelector('.stk-find-ico'),
+  screen: container.querySelector('.scr'),
+});
+
+describe('stacked tab screens', () => {
+  it('scrolls the search block and the stacked sheet together under the greeting', () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    expect(scroller).toHaveClass('stk-scroll');
+    expect(block.parentElement).toBe(scroller);
+    expect(block.nextElementSibling).toHaveClass('stk-sheet');
+    expect(container.querySelector('.stk-head')).toHaveTextContent(/Nico|,/);
+  });
+
+  it('starts with the search bar reachable and the header icon hidden', () => {
+    const { container } = renderApp('home.main', 'member');
+    const { block, icon, screen } = parts(container);
+    expect(block).not.toHaveAttribute('inert');
+    expect(icon).toHaveAttribute('inert');
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.style.getPropertyValue('--stk-p')).toBe('0.000');
+  });
+
+  it('collapses the search bar into the header icon once the sheet is scrolled over it', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block, icon, screen } = parts(container);
+    // jsdom has no layout: the block's height is 0, so progress is scrollTop over 1 px and any scroll past 1 collapses it
+    scroller.scrollTop = 0.3;
+    fireEvent.scroll(scroller);
+    await waitFor(() => expect(screen.style.getPropertyValue('--stk-p')).toBe('0.300'));
+    expect(icon).toHaveAttribute('inert');
+    scroller.scrollTop = 40;
+    fireEvent.scroll(scroller);
+    await waitFor(() => expect(icon).not.toHaveAttribute('inert'));
+    expect(block).toHaveAttribute('inert');
+    expect(screen.style.getPropertyValue('--stk-p')).toBe('1.000');
+  });
+
+  it('opens Search from the header icon', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, icon } = parts(container);
+    scroller.scrollTop = 40;
+    fireEvent.scroll(scroller);
+    await waitFor(() => expect(icon).not.toHaveAttribute('inert'));
+    fireEvent.click(icon);
+    expect(window.location.hash).toBe('#home.search');
+    expect(container.querySelector('.stk-find')).toBeNull();
+  });
+
+  it('snaps a half-collapsed search bar open or shut once scrolling stops, but not while a finger is down', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
+    scroller.scrollTo = vi.fn();
+    const stopAt = top => { scroller.scrollTop = top; fireEvent.scroll(scroller); };
+
+    stopAt(20);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' }));
+    scroller.scrollTo.mockClear();
+    stopAt(40);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 60, behavior: 'smooth' }));
+
+    scroller.scrollTo.mockClear();
+    fireEvent.touchStart(scroller);
+    stopAt(25);
+    await new Promise(r => setTimeout(r, 200));
+    expect(scroller.scrollTo).not.toHaveBeenCalled();
+    fireEvent.touchEnd(scroller);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' }));
+  });
+
+  it('leaves the scroll alone outside the search block', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
+    scroller.scrollTo = vi.fn();
+    scroller.scrollTop = 300;
+    fireEvent.scroll(scroller);
+    await new Promise(r => setTimeout(r, 200));
+    expect(scroller.scrollTo).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['tasks.my', 'Tasks', 'Search title, #number, or tag…'],
+    ['tasks.board', 'Tasks', 'Search title, #number, or tag…'],
+    ['projects.list', 'Projects', 'Search project name or description…'],
+    ['events.list', 'Events', 'Search title or location…'],
+    ['events.calendar', 'Events', 'Search title or location…'],
+  ])('stacks %s under a "%s" header with its search and filter in the folding block', (id, title, placeholder) => {
+    const { container } = renderApp(id, 'pm');
+    const { scroller, block } = parts(container);
+    expect(scroller).toHaveClass('stk-scroll');
+    expect(within(container.querySelector('.stk-head')).getByRole('heading', { level: 1 })).toHaveTextContent(title);
+    expect(within(block).getByPlaceholderText(placeholder)).toBeInTheDocument();
+    expect(within(block).getByRole('button', { name: 'Filter and sort' })).toBeInTheDocument();
+    expect(block.nextElementSibling).toHaveClass('stk-sheet');
+  });
+
+  it('opens the sheet on the view switches (Tasks, Events) or the people row (Projects)', () => {
+    const first = id => {
+      const { container, unmount } = renderApp(id, 'pm');
+      return [container.querySelector('.stk-sheet').firstElementChild, unmount];
+    };
+    let [el, unmount] = first('tasks.all');
+    expect(within(el).getByRole('tab', { name: 'All tasks' })).toHaveAttribute('aria-selected', 'true');
+    expect(within(el).getByRole('tab', { name: 'List' })).toBeInTheDocument();
+    unmount();
+    [el, unmount] = first('events.calendar');
+    expect(within(el).getByRole('tab', { name: 'Calendar' })).toHaveAttribute('aria-selected', 'true');
+    unmount();
+    [el] = first('projects.list');
+    expect(el).toHaveAttribute('aria-label', 'Show projects of');
+  });
+
+  it('brings the search of a tab back from the header icon and focuses its field', async () => {
+    const { container } = renderApp('tasks.my', 'member');
+    const { scroller, block, icon } = parts(container);
+    // test-only: jsdom has no smooth scroll; land at once like reduced motion
+    scroller.scrollTo = vi.fn(({ top }) => { scroller.scrollTop = top; fireEvent.scroll(scroller); });
+    scroller.scrollTop = 40;
+    fireEvent.scroll(scroller);
+    await waitFor(() => expect(icon).not.toHaveAttribute('inert'));
+    fireEvent.click(icon);
+    expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+    await waitFor(() => expect(block).not.toHaveAttribute('inert'));
+    expect(document.activeElement).toBe(block.querySelector('input'));
+    expect(window.location.hash).toBe('#tasks.my');
+  });
+
+  it('keeps other screens on the plain content frame', () => {
+    const { container } = renderApp('tasks.detail-todo', 'member');
+    expect(container.querySelector('main.content')).not.toHaveClass('stk-scroll');
+    expect(container.querySelector('.react-cupertino-ui-navigation-bar')).toBeInTheDocument();
+  });
+});

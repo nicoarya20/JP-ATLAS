@@ -3,27 +3,24 @@
 import { CalendarDays, List, Plus, Repeat, SearchX } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Btn, Empty, Pill, Screen, Section, Seg, StatusPill } from '../../kit';
+import { Btn, Empty, Pill, Section, Seg, StackedScreen, StatusPill } from '../../kit';
 import { EventsSearch } from './events.filter';
 import { applyQuery, groupEvents, queryOf, queryParams, withoutQuery } from './events.query';
 import { EV } from './events.shared';
 import { useEvents } from './events.store';
 
-/** Screen frame of the Events tab: title and the tab bar (its "+" creates the event); no sub line, same bar height as Tasks and Projects. */
+/** Screen frame of the Events tab, stacked like Tasks and Projects (kit StackedScreen): the search with the Filter & sort
+ *  icon folds into the header as the sheet scrolls, and the tab bar's "+" creates the event. */
 export function EventsScreen({ children }) {
-  return <Screen title="Events" tab="events">{children}</Screen>;
+  return <StackedScreen title="Events" find={<EventsSearch />} tab="events">{children}</StackedScreen>;
 }
 
-/** List / Calendar switch, then search with the Filter & sort icon (laid out like Tasks); on = 0 list, 1 calendar.
- *  Switching keeps the query. */
+/** List / Calendar switch at the top of the sheet; on = 0 list, 1 calendar. Switching keeps the query. */
 export function EventsTools({ on }) {
   const { go, params } = useApp();
   return (
-    <div className="ev-tools">
-      <Seg items={['List', 'Calendar']} icons={[<List size={18} aria-hidden="true" />, <CalendarDays size={18} aria-hidden="true" />]}
-        on={on} onPick={i => go(i ? 'events.calendar' : 'events.list', { params: queryParams(params) })} />
-      <EventsSearch />
-    </div>
+    <Seg items={['List', 'Calendar']} icons={[<List size={18} aria-hidden="true" />, <CalendarDays size={18} aria-hidden="true" />]}
+      on={on} onPick={i => go(i ? 'events.calendar' : 'events.list', { params: queryParams(params) })} />
   );
 }
 

@@ -12,9 +12,6 @@
   display: grid; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4) var(--sp-4); background: var(--bg);
   border-top: 1px solid var(--separator); }
 
-/* Toolbar: List/Calendar, then search with the filter icon (kit SearchFilter). */
-.ev-tools { display: grid; gap: var(--sp-3); }
-
 /* Event card: time column + body. */
 .ev-card { cursor: pointer; }
 .ev-card-grid { display: grid; grid-template-columns: 52px 1fr; gap: var(--sp-3); align-items: start; }

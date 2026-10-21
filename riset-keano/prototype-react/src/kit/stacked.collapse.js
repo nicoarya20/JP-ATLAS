@@ -1,19 +1,25 @@
-// Home header collapse: as the content sheet scrolls up it pushes the search bar away; the bar fades and shrinks while the
-// search icon beside the avatar fades in (see .hm-find and .hm-find-ico in home.css). Left halfway, it snaps open or shut.
-import { useEffect, useRef, useState } from 'react';
+// Stacked screen collapse: as the content sheet scrolls up it pushes the search block away; the block fades and shrinks
+// while the search icon in the header fades in (see .stk-find and .stk-find-ico in stacked.css). Left halfway, it snaps
+// open or shut.
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /** Collapse at or past this share of the search block's height: from here the icon, not the bar, can be tapped and focused. */
 const COLLAPSED_AT = 0.5;
 /** Quiet time after the last scroll event (and with no finger down) before a half-collapsed bar snaps open or shut. */
 const SNAP_IDLE_MS = 120;
 
+const behavior = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+
 /**
- * Tracks how far the Home content has scrolled over the search block (0 = shown, 1 = gone) and writes it to --hm-p on the
+ * Tracks how far the content has scrolled over the search block (0 = shown, 1 = gone) and writes it to --stk-p on the
  * screen so CSS drives the fade and shrink without re-rendering. When scrolling stops part way over the block it snaps
- * like an iOS large title: back open before COLLAPSED_AT, fully shut from there. Returns [ref for the search block, collapsed].
+ * like an iOS large title: back open before COLLAPSED_AT, fully shut from there.
+ * Returns [ref for the search block, collapsed, reveal]; reveal scrolls back to the top and focuses the block's field
+ * once it is reachable again.
  */
 export function useSearchCollapse() {
   const ref = useRef(null);
+  const focusOnOpen = useRef(false);
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
     const block = ref.current;
@@ -25,7 +31,7 @@ export function useSearchCollapse() {
     const update = () => {
       frame = 0;
       const p = Math.min(1, Math.max(0, scroller.scrollTop / (block.offsetHeight || 1)));
-      screen.style.setProperty('--hm-p', p.toFixed(3));
+      screen.style.setProperty('--stk-p', p.toFixed(3));
       setCollapsed(p >= COLLAPSED_AT);
     };
     const snap = () => {
@@ -33,8 +39,7 @@ export function useSearchCollapse() {
       const h = block.offsetHeight, top = scroller.scrollTop;
       // 1 px slack: offsetHeight is rounded, scrollTop may not be
       if (held || top < 1 || top > h - 1) return;
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      scroller.scrollTo({ top: top / h < COLLAPSED_AT ? 0 : h, behavior: reduce ? 'auto' : 'smooth' });
+      scroller.scrollTo({ top: top / h < COLLAPSED_AT ? 0 : h, behavior: behavior() });
     };
     const later = () => { clearTimeout(timer); timer = setTimeout(snap, SNAP_IDLE_MS); };
     // One update per frame: scroll fires faster than the screen paints
@@ -56,5 +61,15 @@ export function useSearchCollapse() {
       clearTimeout(timer);
     };
   }, []);
-  return [ref, collapsed];
+  // The block is inert while collapsed, so its field can take focus only after the scroll back has re-opened it
+  useEffect(() => {
+    if (collapsed || !focusOnOpen.current) return;
+    focusOnOpen.current = false;
+    ref.current.querySelector('input')?.focus({ preventScroll: true });
+  }, [collapsed]);
+  const reveal = useCallback(() => {
+    focusOnOpen.current = true;
+    ref.current.closest('.content').scrollTo({ top: 0, behavior: behavior() });
+  }, []);
+  return [ref, collapsed, reveal];
 }

@@ -20,11 +20,12 @@ describe('glass tab bar', () => {
     expect(dom.getByRole('tab', { name: 'Tasks' })).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('gives Tasks, Projects and Events the same title-only nav bar', () => {
-    for (const id of ['tasks.my', 'projects.list', 'events.list']) {
+  it('gives Tasks, Projects and Events the same stacked title-only header', () => {
+    for (const [id, title] of [['tasks.my', 'Tasks'], ['projects.list', 'Projects'], ['events.list', 'Events']]) {
       const { unmount } = renderApp(id, 'pm');
-      const bar = document.querySelector('.react-cupertino-ui-navigation-bar');
-      expect(bar.querySelector('.subtitle')).toBeNull();
+      const head = document.querySelector('.stk-head');
+      expect(head.querySelector('h1')).toHaveTextContent(title);
+      expect(head).toHaveTextContent(new RegExp(`^${title}$`));
       unmount();
     }
   });

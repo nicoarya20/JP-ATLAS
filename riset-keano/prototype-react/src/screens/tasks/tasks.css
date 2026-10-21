@@ -12,7 +12,6 @@
 .tk-strong.card.react-cupertino-ui-card { box-shadow: inset 0 0 0 1.5px var(--accent); }
 
 /* Lists */
-.tk-filters { display: grid; gap: var(--sp-3); }
 .tk-switch { display: flex; align-items: center; gap: var(--sp-2); }
 .tk-switch > .grow { min-width: 0; }
 .tk-seg { width: 96px; flex: none; }

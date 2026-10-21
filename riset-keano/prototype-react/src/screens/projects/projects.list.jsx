@@ -1,8 +1,9 @@
 // Projects ①: project list, every project by default. Member sees only joined projects; Admin sees every project. New project is the tab bar "+".
-// Under the search a people row narrows it to My projects (not for a Member: theirs are all of them) or one teammate's (projects.people).
+// The search folds into the header as the sheet scrolls (kit StackedScreen); the sheet opens on a people row that narrows
+// the list to My projects (not for a Member: theirs are all of them) or one teammate's (projects.people).
 // The list shows its screen params' Filter & sort query (projects.query), set from the icon next to the search field.
 import { FolderOpen, SearchX } from 'lucide-react';
-import { Avatars, Btn, Empty, Link, Progress, Screen, Section, StatusPill } from '../../kit';
+import { Avatars, Btn, Empty, Link, Progress, Section, StackedScreen, StatusPill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { ProjectsSearch } from './projects.filter';
@@ -48,8 +49,7 @@ export default function ProjectsList({ params }) {
   const list = applyQuery(ofWho(visible, who), q);
   const pick = w => go('projects.list', { params: { ...params, who: w } });
   return (
-    <Screen title="Projects" tab="projects">
-      <ProjectsSearch />
+    <StackedScreen title="Projects" find={<ProjectsSearch />} tab="projects">
       <PeopleRow list={visible} who={who} mine={!member} onPick={pick} />
       {who && (
         <div className="between">
@@ -59,6 +59,6 @@ export default function ProjectsList({ params }) {
       )}
       {list.length ? list.map(p => <ProjectCard key={p.id} p={p} />)
         : isFiltered(q) ? <NoMatch /> : <Empty icon={<FolderOpen size={28} />} title="You're not in any project yet." />}
-    </Screen>
+    </StackedScreen>
   );
 }
