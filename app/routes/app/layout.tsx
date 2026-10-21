@@ -98,11 +98,16 @@ export const NAV_GROUPS: NavGroup[] = [
 /** Flat view of NAV_GROUPS, for tests and anything that only needs the links. */
 export const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
-/** Links to the other areas the signed-in account may open; Dev first for the super-admin. */
-function secondaryNav(caps: AppCaps): NavItem[] {
+/**
+ * "Area lain": the three areas minus the one open here (App), always in the order App, Admin,
+ * Super-admin. Which entries appear comes from the server's capability map, never from a role
+ * comparison in the UI (X3 M29). Account settings belong to the person, not an area, so they sit
+ * in the avatar menu (UserMenu).
+ */
+export function secondaryNav(caps: AppCaps): NavItem[] {
   return [
-    ...(caps.dev ? [{ to: '/dev', label: 'Dev Console', icon: FiGrid }] : []),
-    ...(caps.dashboard ? [{ to: '/dashboard', label: 'Dashboard', icon: FiHome }] : []),
+    ...(caps.dashboard ? [{ to: '/dashboard', label: 'Admin', icon: FiHome }] : []),
+    ...(caps.dev ? [{ to: '/dev', label: 'Super-admin', icon: FiGrid }] : []),
   ];
 }
 

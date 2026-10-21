@@ -173,6 +173,11 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   // An API key may never approve, reject, re-role or invite accounts (K-7): that would let a leaked
   // key mint access. Matched before the generic users rule below, whatever the method.
   if (isAccountGrantRoute(p)) return null;
+  // The role matrix is a view of the settings, not of the user directory, and it is read-only:
+  // a key may read it with `settings:read`, and no method may ever write it.
+  if (p.startsWith('/api/admin/permissions-matrix')) return read ? 'settings:read' : null;
+  // Bulk CSV export of the whole directory (P11 §5): no scope may reach it, whatever the method.
+  if (p.startsWith('/api/admin/export')) return null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;

@@ -44,6 +44,16 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/admin/users/stats')).toBe('users:read');
     expect(requiredScope('GET', '/api/admin/invitationsx')).toBeNull();
   });
+  it('lets a key read the role matrix with settings:read, and never write it (AD-09)', () => {
+    expect(requiredScope('GET', '/api/admin/permissions-matrix')).toBe('settings:read');
+    expect(requiredScope('HEAD', '/api/admin/permissions-matrix')).toBe('settings:read');
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/permissions-matrix')).toBeNull();
+    }
+    // Reading the matrix is a settings read, so only a super-admin's key can carry it.
+    expect(roleAllowsScope(ROLES.ADMIN, 'settings:read')).toBe(false);
+    expect(roleAllowsScope(ROLES.SUPER_ADMIN, 'settings:read')).toBe(true);
+  });
   it('blocks auth, key management (admin and personal), resets and unknown routes', () => {
     expect(requiredScope('POST', '/api/auth/sign-in/email')).toBeNull();
     expect(requiredScope('GET', '/api/api-keys')).toBeNull();
@@ -68,6 +78,18 @@ describe('requiredScope', () => {
     expect(isPublicRead('GET', '/api/demo')).toBe(false);
     expect(requiredScope('GET', '/api/demo')).toBeNull();
     expect(requiredScope('POST', '/api/auth/sign-in/anonymous')).toBeNull();
+  });
+
+  it('never lets an API key bulk-export the data (P11 AD-10)', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      for (const kind of ['members', 'projects', 'tasks', 'anything']) {
+        expect(requiredScope(method, `/api/admin/export/${kind}`)).toBeNull();
+      }
+      expect(requiredScope(method, '/api/admin/export')).toBeNull();
+      expect(isPublicRead(method, '/api/admin/export/members')).toBe(false);
+    }
+    // The neighbouring directory routes keep their scope: only the export prefix is cut off.
+    expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
   });
 });
 

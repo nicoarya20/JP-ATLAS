@@ -129,6 +129,7 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'leave.reject': { label: 'Tolak cuti', color: 'red' },
   'leave.cancel': { label: 'Batalkan cuti', color: 'orange' },
   'settings.leave.update': { label: 'Settings cuti', color: 'indigo' },
+  'data.export': { label: 'Ekspor data ke CSV', color: 'orange' },
 };
 
 export function actionMeta(action: string): { label: string; color: string } {

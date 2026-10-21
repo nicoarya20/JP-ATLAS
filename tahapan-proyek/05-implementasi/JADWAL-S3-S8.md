@@ -1,6 +1,6 @@
-# Jadwal S3-S8 — Ringkasan 7 rencana menu
+# Jadwal S3-S8 — Ringkasan 8 rencana menu
 
-> Dibuat 18 Oktober 2026 dari tujuh rencana menu (P4-P10). **Status: RENCANA, belum dieksekusi.** S3 tidak boleh dimulai sebelum gerbang S2 (S2-17) lulus, kecuali pengecualian S3a di bawah yang menunggu persetujuan user. Bila bentrok: `KEPUTUSAN-MVP-INTI.md` > dokumen ini > P4-P10.
+> Dibuat 18 Oktober 2026 dari tujuh rencana menu (P4-P10); **P11 (area Admin) ditambahkan 21 Oktober 2026 sebagai lajur paralel.** **Status: RENCANA, belum dieksekusi.** S3 tidak boleh dimulai sebelum gerbang S2 (S2-17) lulus, kecuali pengecualian S3a di bawah yang menunggu persetujuan user. Bila bentrok: `KEPUTUSAN-MVP-INTI.md` > dokumen ini > P4-P11.
 
 ## 1. Peta menu → rencana → irisan
 | Menu | Rencana | Irisan | Tugas | Estimasi (hari-orang AI) | Migrasi usulan |
@@ -12,7 +12,9 @@
 | Tim | [P7](rencana/P7-s6-tim.md) | S6 | M01-M10 | ≈13,75 | – |
 | Pengaturan lanjutan | [P9](rencana/P9-pengaturan-lanjutan.md) | S6 (+ G2/A8 setelah Inbox/Event) | G-01..G-09 | ≈9,75 | memakai baton 0017 |
 | Event | [P6](rencana/P6-s7-events.md) | S7 | E-01..E-16 (13 Should, 3 Could) | ≈13,5 (+7 Could) | 0018 |
-| **Total** | | | **≈103 tugas** | **≈138-153** (+ Could) | 0017-0020 |
+| Subtotal lajur produk | | S3-S7 | **≈103 tugas** | **≈138-153** (+ Could) | 0017-0020 |
+| **Area Admin** | [P11](rencana/P11-area-admin.md) | **lajur paralel** | AD-01..AD-19 | ≈33 (+4 reviewer) | 0021 |
+| **Total** | | | **≈122 tugas** | **≈171-186** (+ Could) | 0017-0021 |
 
 ## 2. Urutan yang disarankan
 1. **Gerbang S2** (S2-16 penguji nyata → S2-17). Tidak berubah.
@@ -25,10 +27,12 @@
 
 Lajur paralel yang aman: Tim (S6) tidak bergantung pada Inbox; Pengaturan G-01/G-02 hanya bergantung gerbang S2; Sampah Z (Proyek+Tugas) tidak butuh migrasi.
 
+**Lajur admin ([P11](rencana/P11-area-admin.md)), jalan bersamaan dengan urutan 1-7 di atas** (keputusan user 21 Okt 2026). Urutannya sendiri: Tahap 1 Pengaturan (AD-01..AD-10) → Tahap 2 Proyek + Beranda (AD-11..AD-15) → Tahap 3 Pengguna, Aktivitas, gerbang (AD-16..AD-19). Aman diparalelkan karena berkas yang disentuh tidak beririsan dengan lajur produk. Dua hal yang tetap mengikat: migrasi `0021` (AD-05) ikut antrean baton di §3, dan AD-03 (melonggarkan guard setelan ke Admin) butuh persetujuan user satu per satu, di luar merge per gelombang.
+
 ## 3. Titik bersama yang harus diatur koordinator
 | Hal | Rincian | Keputusan |
 |---|---|---|
-| Baton migrasi | 0017 (Inbox) → 0018 (Event) → 0019 (**S5a: Tahapan/milestone**, sudah dipakai) → 0020+ (S4 Tugas lanjutan, lalu Bukti). Satu pemegang baton, dua `db:generate` bersamaan dilarang | tetap aturan README §3 |
+| Baton migrasi | 0017 (Inbox) → 0018 (Event) → 0019 (**S5a: Tahapan/milestone**, sudah dipakai) → 0020+ (S4 Tugas lanjutan, lalu Bukti) → **0021 (P11 AD-05: kolom `announcement` + `working_days` di `settings`)**. Satu pemegang baton, dua `db:generate` bersamaan dilarang — berlaku lintas lajur, termasuk lajur admin | tetap aturan README §3 |
 | Perubahan kontrak | Menu Event menambah 3 URL `/app/events*` → Permintaan Perubahan Kontrak (13 → 16 URL, ADR baru). Beranda menambah `GET /api/app/home` (tambahan kompatibel). P10 semula tanpa URL baru (Tahapan = seksi di Ringkasan, Papan = `?tampilan=papan`); **Tahapan kini tab sendiri `/app/projects/:id/phases` (keputusan user 19 Okt 2026, S5a): URL `/app` 16 → 17, dicatat di `docs/decisions/0002 §6`** | butuh persetujuan user (Q-E2) |
 | `PM_KEY_DENY` | Tambah: `DELETE trash/*`, `DELETE tasks/:id`, hapus acara, Approve/Return | per rencana |
 | Berkas sempit | `task.service.ts` 290/300 baris → kait Inbox ≤ 10 baris atau pecah dulu | P5 |

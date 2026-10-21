@@ -56,6 +56,8 @@ export const AUDIT_ACTIONS = {
   LEAVE_REJECT: 'leave.reject',
   LEAVE_CANCEL: 'leave.cancel',
   SETTINGS_LEAVE_UPDATE: 'settings.leave.update',
+  // CSV export from Pengaturan (P11 AD-10); the entry records the kind and the row count, never a row.
+  DATA_EXPORT: 'data.export',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

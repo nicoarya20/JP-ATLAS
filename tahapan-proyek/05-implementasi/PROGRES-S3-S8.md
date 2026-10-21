@@ -14,7 +14,8 @@
 | S6 | Tim | [P7](rencana/P7-s6-tim.md) | 10 | 4 | **4 selesai (merged)** (M01-M04); **3 review** (M06, M07, M10 sebagian) di `feature/pm-team-menu`; sisa M05, M08, M09 |
 | S6 | Pengaturan | [P9](rencana/P9-pengaturan-lanjutan.md) | 9 | 0 | rencana selesai, belum dikerjakan |
 | S7 | Event | [P6](rencana/P6-s7-events.md) | 16 | 13 | **13 selesai** (E-01..E-12, E-15): E-01..E-03, E-05, E-06 merged; E-04, E-07..E-12, E-15 di `feature/pm-events-menu` / `nicoarya20/events-c-integrasi` (belum di-merge ke `feature/project-management`); E-13, E-14, E-16 ditunda (HUTANG H-D3b/c/d). Lingkup dipangkas 20 Okt: buat, batalkan, hapus ke Sampah |
-| | **Total** | | **98** | **27** | |
+| Lajur Admin | Area `/dashboard` (paralel, bukan bagian S3-S8) | [P11](rencana/P11-area-admin.md) | 20 | 5 | **5 selesai (merged)** (AD-01, AD-02, AD-09, AD-10, AD-20); gelombang berikutnya: **AD-03 gerbangnya** (menunggu persetujuan user), AD-11/AD-14/AD-16/AD-18 bebas |
+| | **Total** | | **118** | **32** | |
 
 **Syarat sebelum tugas pertama dimulai:**
 1. Gerbang S2 lulus (S2-16 uji pengguna nyata, lalu S2-17), kecuali S3a Inbox (I01-I04) bila user menyetujuinya.
@@ -42,6 +43,7 @@
 | Tahapan, milestone, perpanjangan, override kondisi, `task.phase_id` | **0019** (`0019_project_plan`) | S5a-01 | selesai (merged) |
 | Periksa, dependensi, tag | **0020** (bergeser dari 0019 karena S5a dikerjakan lebih dulu; L4-01 wajib memakai nomor berikutnya yang bebas) | L4-01 | belum |
 | Bukti (lampiran tugas, S5b) | nomor bebas berikutnya setelah L4-01 | L5-01 (sisa) | belum |
+| Pengumuman + Kebijakan kerja (kolom `settings`) | **0022** (rencana P11 menulis `0021`; **dikoreksi 21 Okt** — `0021_leave_request.sql` sudah ada) | AD-05 | belum — pemegang baton saat dijalankan |
 | Indeks `project_member (project_id, role)` | menurut baton (0019) | M05 | **masih terbuka** — sengaja dipisah dari M02; M02 terbukti tanpa indeks ini |
 | `contract-v1` + 3 URL Event (13 → 16) | PCC `docs/decisions/0003-contract-v1-event-urls.md` | **ADR: E-01 (selesai). Kenaikan hitungan: E-09..E-11 (selesai)** | disetujui user (§5 no. 2); ketiga rute terdaftar, hitungan beku kini **20** (tab Tahapan dan detail orang Tim ikut menambah) |
 | `GET /api/app/home` | tambahan kompatibel | B-06 | belum |
@@ -181,10 +183,40 @@ Aturan pengisian sama dengan `README.md` §5: `berjalan` + cabang saat mulai, `r
 | E-16 | Acara berulang (E6, Could) | ditunda | – | – | HUTANG H-D3d (keputusan user 20 Okt 2026) |
 
 
+### Lajur Admin · Area `/dashboard` (P11, paralel dengan S3-S8)
+Cabang induk lajur ini **`plan/p11-area-admin`** (= `feature/project-management` + dokumen rencana), bukan `feature/project-management` langsung.
+
+| ID | Tugas | Status | Cabang | Hash | Catatan |
+|---|---|---|---|---|---|
+| AD-01 | Pengalih area tiga entri + Pengaturan akun ke menu avatar | selesai | `nicoarya20/sp-ad01-nav` | `0d61177` merge `b4c8e03` | 29 tes baru (`tests/area-switcher.test.ts`); `Antrean persetujuan` dicabut dari `/dev`, badge tetap di menu Pengguna; `/app` tetap memakai `appCaps` |
+| AD-02 | Kerangka `/dashboard/settings` | selesai | `nicoarya20/sp-ad02-settings-shell` | `1559131`, `87a13fc` merge `97a578b` | 15 tes baru; 8 tab, `?tab=` bisa ditautkan, `Tabs.List` dalam `ScrollArea`. **Isi tiap tab masih placeholder** yang menyebut pemiliknya (AD-04..AD-10, P9 G-02) |
+| AD-03 | Longgarkan guard setelan organisasi ke Admin | belum | – | – | **Gerbang Tahap 1** — menyentuh kewenangan, wajib persetujuan user satu per satu (di luar merge per gelombang). AD-04, AD-06, AD-08 menunggu di belakangnya |
+| AD-04 | Tab Identitas | belum | – | – | dep AD-03; pakai ulang `BrandingCard.tsx` |
+| AD-05 | Pengumuman: migrasi **0022** + API + banner semua area | belum | – | – | dep AD-02; **pemegang baton migrasi**; menyentuh `AppFrame` → wajib `smoke:prod` + `smoke:binary` |
+| AD-06 | Tab Akses masuk | belum | – | – | dep AD-03 |
+| AD-07 | Tab Kebijakan kerja | belum | – | – | dep AD-05 (baton); fase 1 simpan + tampilkan saja, tidak mengubah perhitungan tenggat |
+| AD-08 | Tab Fitur terkurasi | belum | – | – | dep AD-03 |
+| AD-09 | **Menu** Peran & izin (baca saja) | selesai | `nicoarya20/sp-ad09-peran-izin` | `98c91af`, `096608e` merge `ce4e40e` | `GET /api/admin/permissions-matrix`; matriks dihitung dengan memanggil fungsi `permissions.ts` tiap request, dibuktikan `spyOn`. Pindah dari tab ke `/dashboard/permissions` di AD-20 |
+| AD-10 | **Menu** Ekspor data | selesai | `nicoarya20/sp-ad10-ekspor` | `6657aa7` merge `7b82973` | `GET /api/admin/export/:kind`; CSV keyset 500/halaman + LEFT JOIN (tanpa N+1), BOM UTF-8 + RFC 4180, audit `data.export`, 10 unduhan/5 menit, kunci API ditolak. `smoke:prod` 47/47. Pindah ke `/dashboard/export` di AD-20 |
+| AD-11 | API daftar proyek lintas organisasi | belum | – | – | – |
+| AD-12 | Halaman Proyek | belum | – | – | dep AD-11 |
+| AD-13 | Ganti Pengelola | belum | – | – | dep AD-11; dialog T2, audit `PROJECT_MANAGER_SET` |
+| AD-14 | `GET /api/admin/overview` | belum | – | – | pola `server/home/*`, tiap bagian gagal-lunak |
+| AD-15 | Beranda admin (6 widget) | belum | – | – | dep AD-14 |
+| AD-16 | Pengguna: nonaktifkan, cabut sesi, riwayat per-orang | belum | – | – | – |
+| AD-17 | Pra-cek Pengelola tunggal | belum | – | – | dep AD-11; menutup HUTANG H-D4/M08 |
+| AD-18 | Halaman Aktivitas | belum | – | – | – |
+| AD-19 | Gerbang: uji lintas, dokumen, demo | belum | – | – | dep semua; menyunting `CLAUDE.md` root (definisi `/dashboard` berubah), README, ADR baru, `HUTANG.md` |
+| **AD-20** | Pecah Peran & izin + Ekspor data jadi menu sendiri | selesai | `nicoarya20/sp-ad20-split-menu` | `8e3e0d5`, `d1d221d` merge `658c37a` | **Tugas baru 21 Okt 2026** dari pengamatan user atas layar nyata: 8 tab tidak muat di 1366px dan dua di antaranya bukan setelan. Sidebar Admin jadi 5 entri, Pengaturan turun ke 6 tab, panel dipindah `git mv` tanpa ubah perilaku, endpoint tidak disentuh |
+
+
 ## 5. Log merge per gelombang
 | Gelombang | Tugas | Hash | Tanggal |
 |---|---|---|---|
 | G21 (Inbox I01-I07/I11/I14, Event E-01/E-02/E-03/E-05/E-06, Tim M01-M04, Sampah Z-01) | 18 tugas, empat cabang | `ee74adb`, `7cec339`, `f47bbfb`, `3a66626`; kepala `5b7cfc3` | 19 Okt 2026 |
+| G22 · Lajur Admin gelombang 1 (AD-01, AD-02) | 2 tugas, dua cabang | `b4c8e03`, `97a578b`; kepala `97a578b` di `plan/p11-area-admin`, sudah di-push ke `origin` | 21 Okt 2026 |
+| G23 · Lajur Admin gelombang 2 (AD-09, AD-10) | 2 tugas, dua cabang | `ce4e40e`, `7b82973`; kepala `0eceb16`, sudah di-push | 21 Okt 2026 |
+| G24 · Lajur Admin AD-20 (pecah menu) | 1 tugas, satu cabang | `658c37a`; kepala `0c895c0` | 21 Okt 2026 |
 
 ## 6b. TITIK LANJUT — baca ini dulu saat melanjutkan
 
@@ -238,6 +270,8 @@ Rencana sudah dibetulkan; baris ini menjaga jejaknya.
 | K-5 | P6 §6 E-06 | `PROJECT_IN_TRASH` dijawab **422** | Katalog `server/pm/errors.ts` memetakannya ke **409**, dan kode itu sudah dipakai jalur S1/S2 — mengubahnya berarti mengubah perilaku beku | E-03 |
 | K-6 | P5 §6 I14 | Daftar Target kurang tiga berkas | `notification.catalog.ts` (`user_pending` harus `shipped:true` — komentar katalog sendiri menulis "shipped by I14"), `tests/notification/catalog.test.ts`, dan `server/api/admin-moderation.ts` (satu-satunya titik ban ada di controller, bukan service) | I14 |
 | K-7 | P5 §6 I09 vs P6 §6 E-08 | Keduanya mengklaim "pemilik tunggal" `app/routes.ts` + NAV | Berkas bingkai dikerjakan **satu tugas integrator setelah merge**, bukan oleh lajur menu mana pun | koordinator |
+| K-8 | P11 §1/§5/§6/§8 | Migrasi AD-05 bernomor `0021` | `0021_leave_request.sql` **sudah ada**; nomor bebas berikutnya **`0022`**. Rencana sudah dibetulkan | koordinator |
+| K-9 | P11 §2/§8 R8 | ASUMSI: `CONSOLE_PAGE_COUNT` mungkin ikut menghitung halaman `/dashboard` | **Tidak.** Angkanya diturunkan dari `countDevPages(routes)` — hanya `/dev`. Halaman Admin baru tidak menambah tempat sunting | koordinator |
 
 ## 8. Hutang teknis terbuka
 | Hutang | Pemilik penghapusan | Catatan |
@@ -249,6 +283,8 @@ Rencana sudah dibetulkan; baris ini menjaga jejaknya.
 | M05 (indeks `project_member (project_id, role)`) belum dikerjakan | M05 sendiri, setelah baton 0019 bebas | M02 terbukti benar tanpanya (yang diuji jumlah kueri) |
 
 ## 6. Log perubahan
+- **21 Okt 2026** — **Lajur Admin gelombang 2 (AD-09, AD-10) dan AD-20.** AD-09 menyajikan matriks peran × kemampuan baca-saja yang dihitung dari `server/permissions.ts` tiap request (bukan tabel salinan; `spyOn` membuktikan ia ikut berubah), AD-10 menyajikan ekspor CSV ter-stream yang diaudit dan ditolak kunci API. **AD-20 adalah tugas baru dari user**, lahir dari melihat layar aslinya: delapan tab tidak muat satu baris di laptop 1366px sehingga dua tab terakhir tersembunyi tanpa tanda, dan dua di antaranya memang bukan setelan — Peran & izin laporan, Ekspor data alat. Keduanya naik jadi menu, Pengaturan turun ke 6 tab. **Dua kegagalan hanya muncul setelah merge**, tidak terlihat oleh worker mana pun karena tiap worker hanya menjalankan berkas tesnya sendiri: (1) AD-09 menaruh berkas baru di `server/access/` yang daftar berkasnya dibekukan `tests/contract-v1.test.ts` — diselesaikan dengan memindahkan berkas itu ke `server/api/admin-permissions.matrix.ts` (ia tidak memutuskan akses apa pun, hanya melaporkan jawaban `permissions.ts`), bukan dengan mengubah snapshot beku; (2) harness `tests/ui/admin-settings-shell.test.tsx` kekurangan `QueryClientProvider` begitu panel pertama yang mengambil data terdaftar. Koordinator juga menambahkan registry panel (`panels.tsx`) sebelum gelombang 2 diluncurkan supaya dua worker tidak menulis ulang loop render yang sama. Suite penuh di kepala `0c895c0`: 6853 lulus / 1 gagal (H-D3n, hijau sendirian), typecheck 0, `smoke:prod` 47/47, `smoke:binary` tidak bisa dijalankan (Bun 1.3.14 tanpa `--asset`).
+- **21 Okt 2026** — **Lajur Admin (P11) gelombang 1** selesai: AD-01 (pengalih area tiga entri, `Pengaturan akun` ke menu avatar) dan AD-02 (kerangka `/dashboard/settings` 8 tab) di run `run_2cc2b834449e`, dua worker worktree dari induk **`plan/p11-area-admin`**. Hasil di commit merge `97a578b`: typecheck 0, **6777 lulus / 1 gagal** — kegagalan itu `tests/db/pm-indexes.test.ts` "tasks by assignee" (HUTANG H-D3n), gagal juga di baseline tanpa perubahan P11 dan hijau saat dijalankan sendiri. Sudah di-push ke `origin`; kedua worktree worker dihapus. Dua koreksi rencana: K-8 (migrasi `0022`) dan K-9 (ASUMSI R8 ditutup). **Dua hutang lingkungan yang muncul:** (1) `bun run lint` repo-wide merah sejak baseline — 163 errors + 35 warnings, mayoritas biome memformat `tahapan-proyek/**`, butuh `chore(lint)` tersendiri (tambahkan folder itu ke ignore biome + bereskan `drizzle.config.ts` dan `server/project/project-milestone.service.ts`); (2) dua worker yang menjalankan `bun run test` penuh **bersamaan** di satu mesin menghasilkan kegagalan acak yang berbeda tiap run walau port `LOCAL_PG_*`/`LOCAL_S3_*` sudah diisolasi — sejak gelombang ini suite penuh dijalankan koordinator secara bergantian, worker cukup menjalankan test berkasnya sendiri.
 - **20 Okt 2026** — **S7 Event dipangkas** (buat, batalkan, hapus ke Sampah + Urungkan) selesai di `feature/pm-events-menu`: server E-04/E-07, klien + daftar E-08/E-09, form E-10, detail E-11, integrasi E-12 dan gerbang E-15 di `nicoarya20/events-c-integrasi`. Tanpa notulensi UI, kalender, berulang, Agenda Beranda (HUTANG H-D3a..e). Hutang baru dari para pekerja: H-D3g..H-D3n.
 - **19 Okt 2026** — **S5a** dikerjakan lebih dulu atas permintaan user (Gantt, tab Tahapan, Perpanjang tenggat, Perlu perhatian, tampilan List/Grid/Gantt, klik penuh baris). Run `run_16a50a64efba` + `run_cba6e636b9fb`, tujuh pekerja, semua digabung di `feature/pm-s5a-project-plan` (dari `fix/pm-project-back-link`). Hasil: 5506 tes lulus/0 gagal, typecheck nol, `smoke:prod` 39/39. **Belum** di-push dan belum di-merge. Migrasi S5a = 0019, jadi L4-01 (S4) bergeser ke 0020. Hutang: KB-3 (form Ubah proyek masih bisa mengubah tenggat langsung), pemilih Tahapan di form tugas, status tahapan diubah manual, batas pindai 1000 proyek untuk filter Perlu perhatian, `smoke:binary` belum dijalankan.
 - **18 Okt 2026** — Gelombang **G21** (run `run_8c394266a4d2`) dikerjakan: 10 tugas berstatus `review` di empat cabang, nol gagal di tiap cabang. Urutan menu mengikuti permintaan user: Inbox, Event, Tim, Sampah; Beranda (P4) ditunda. Sepuluh keputusan §5 dipakai apa adanya dan gerbang S2 diterobos atas keputusan user. Dua gangguan: batas pemakaian akun memutus tiga pekerja (kerja diselamatkan karena belum ter-commit), lalu restart aplikasi Orca mematikan tiga terminal (dipulihkan di worktree yang sama). Cacat setup yang ditemukan dan diperbaiki: semua worktree memakai **socket dan port Postgres yang sama** (`socketDir()` = path tetap, port default 54329), sehingga tes satu pekerja berjalan di database pekerja lain; sejak itu tiap pekerja diberi `LOCAL_PG_PORT`/`LOCAL_PG_SOCKET_DIR`/`LOCAL_PG_DB` sendiri.

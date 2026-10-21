@@ -3,7 +3,15 @@ import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { getSidebarCollapsed } from '@server/sidebar';
 import { adminSidebarBadges } from '@server/sidebar-badges';
-import { FiGrid, FiHome, FiLayers, FiUser, FiUsers } from 'react-icons/fi';
+import {
+  FiDownload,
+  FiGrid,
+  FiHome,
+  FiLayers,
+  FiSettings,
+  FiShield,
+  FiUsers,
+} from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
@@ -14,18 +22,27 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: 'Admin — Simple PM' }];
 }
 
-const NAV: NavItem[] = [
+/**
+ * Admin menu, in reading order. Peran & izin and Ekspor data stand on their own since AD-20 (user
+ * decision 21 Oct 2026): a report and a tool are not settings, and eight tabs did not fit a
+ * 1366px laptop. Proyek and Aktivitas join later (AD-12, AD-18).
+ */
+export const NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: FiHome },
   { to: '/dashboard/users', label: 'Pengguna', icon: FiUsers },
-];
-const APP: NavItem[] = [
-  { to: '/app', label: 'App', icon: FiLayers },
-  { to: '/app/settings', label: 'Pengaturan akun', icon: FiUser },
+  { to: '/dashboard/permissions', label: 'Peran & izin', icon: FiShield },
+  { to: '/dashboard/export', label: 'Ekspor data', icon: FiDownload },
+  { to: '/dashboard/settings', label: 'Pengaturan', icon: FiSettings },
 ];
 
-const SECONDARY: Record<string, NavItem[]> = {
+// "Area lain" lists the three areas minus the one open here (Admin), always in the same order:
+// App, Admin, Super-admin. Account settings belong to the person, not an area, so they sit in the
+// avatar menu (UserMenu) instead.
+const APP: NavItem[] = [{ to: '/app', label: 'App', icon: FiLayers }];
+
+export const SECONDARY: Record<string, NavItem[]> = {
   admin: APP,
-  'super-admin': [{ to: '/dev', label: 'Dev Console', icon: FiGrid }, ...APP],
+  'super-admin': [...APP, { to: '/dev', label: 'Super-admin', icon: FiGrid }],
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
