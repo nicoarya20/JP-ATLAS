@@ -107,6 +107,7 @@
   --glass-bar-active: color-mix(in srgb, var(--atlas-control) 16%, transparent); /* pill behind the active tab */
   --glass-bar-shadow: var(--atlas-shadow);
   --glass-bar-open: color-mix(in srgb, var(--atlas-surface) 88%, transparent);  /* bar + panel over the dim */
+  --glass-card: var(--atlas-surface);    /* a card inside the open panel (More profile): white lifts off the greyed glass */
   --sheet-bg: var(--atlas-canvas);       /* bottom sheet background */
   --sheet-surface: var(--atlas-surface); /* cards and lists inside a sheet */
   --overlay: var(--atlas-veil);          /* dimming behind a sheet */
@@ -170,6 +171,7 @@
   --glass-bar-edge: rgba(255, 255, 255, 0.12);
   --glass-bar-shine: rgba(255, 255, 255, 0.1);
   --glass-bar-open: color-mix(in srgb, var(--atlas-surface) 60%, transparent);  /* same as closed: dark glass reads right over the dim */
+  --glass-card: var(--atlas-raised);     /* surface would sink into the dark glass */
   --seg-thumb: var(--atlas-line);        /* surface would sink into the raised track */
   --pop-bg: var(--atlas-raised);
   --pop-edge: var(--atlas-line);
