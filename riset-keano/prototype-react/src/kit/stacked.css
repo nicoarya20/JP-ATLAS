@@ -1,14 +1,22 @@
 /* Stacked tab screen (kit StackedScreen). Header, status bar and the search block sit on surface; the content is a canvas
    sheet with rounded top corners and a hairline edge laid over it, so the cards inside lift off the sheet again. The
-   search block scrolls with the sheet, so scrolling down pushes it up under the title. */
+   search block scrolls with the sheet, so scrolling down pushes it up under the title. The rounded edge is its own
+   sticky element (the pinned row on Home, .stk-edge elsewhere), so it stays under the header while the sheet scrolls. */
 .stk-head { flex: none; padding: var(--sp-2) var(--sp-4) var(--sp-3); background: var(--surface); }
 .phone-app:has(.stk-sheet) > .statusbar { background: var(--surface); }
 .content.with-tabbar.stk-scroll { display: block; padding: 0; background: var(--surface); overflow-anchor: none; }
 /* overflow-anchor: none — keep the browser from moving the scroll when something above the visible content changes
    height (Chrome's scroll anchoring); the fold is driven by scrollTop, so a moved scroll would feed back into it. */
 .stk-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
-  padding: var(--sp-4) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4));
-  background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
+  padding: 0 var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4)); background: var(--bg); }
+/* Sticky sheet edge for screens without a pinned row: the sheet's 16 px top padding, sticking under the header with the
+   rounded corners and hairline over it. The corners' curve runs 24 px deep, past the opaque 16 px: the ::before draws
+   it 24 px tall and see-through below 16 px so the content shows there, its shadow fills the outer corners with
+   surface and the clip-path keeps that shadow inside its own box. Not tappable: taps reach the content under it. */
+.stk-edge { position: sticky; top: 0; z-index: 2; height: var(--sp-4); pointer-events: none; }
+.stk-edge::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--separator); background: linear-gradient(var(--bg) var(--sp-4), transparent 0);
+  box-shadow: 0 0 0 24px var(--surface); clip-path: inset(0); }
 /* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header.
    --stk-q (0..1, set by useSearchCollapse) = how far it has compacted; --stk-pin-h = its measured tall height. The row
    keeps its tall height in the flow and sticks at the top with the visible part on top, so each pixel scrolled lifts the
@@ -20,7 +28,7 @@
 .stk-pin::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; z-index: -1; background: var(--surface); }
 .stk-pin-in { pointer-events: auto; padding: calc(var(--sp-4) + (var(--sp-3) - var(--sp-4)) * var(--stk-q, 0)) var(--sp-4) var(--sp-2);
   background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
-.stk-sheet.has-pin { padding-top: var(--sp-2); border-radius: 0; border-top: 0; }
+.stk-sheet.has-pin { padding-top: var(--sp-2); }
 /* --stk-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search block away. The block fades out fast,
    within the first third, while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
 .stk-find { padding: 0 var(--sp-4) var(--sp-4); }

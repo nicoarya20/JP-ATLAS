@@ -50,9 +50,20 @@ describe('stacked tab screens', () => {
     expect(rule('.stk-pin-in')).toMatch(/pointer-events: auto/);
     expect(rule('.stk-pin-in')).toMatch(/border-radius: 24px 24px 0 0/);
     expect(rule('.stk-pin-in')).toMatch(/border-top: 1px solid var\(--separator\)/);
-    expect(rule('.stk-sheet.has-pin')).toMatch(/border-top: 0/);
+    // The sheet itself has no edge any more: the sticky pin (or .stk-edge) carries it
+    expect(rule('.stk-sheet')).not.toMatch(/border-top|border-radius/);
     // The fold is driven by scrollTop: the browser must not move the scroll when heights above the content change
     expect(rule('.content.with-tabbar.stk-scroll')).toMatch(/overflow-anchor: none/);
+  });
+
+  it('sticks the bare sheet edge of Tasks, Projects and Events under the header, see-through to taps', () => {
+    const css = readFileSync(join(__dirname, '../kit/stacked.css'), 'utf8');
+    const rule = sel => css.slice(css.indexOf(`${sel} {`), css.indexOf('}', css.indexOf(`${sel} {`)));
+    expect(rule('.stk-edge')).toMatch(/position: sticky; top: 0;/);
+    expect(rule('.stk-edge')).toMatch(/height: var\(--sp-4\)/);
+    expect(rule('.stk-edge')).toMatch(/pointer-events: none/);
+    expect(rule('.stk-edge::before')).toMatch(/border-radius: 24px 24px 0 0/);
+    expect(rule('.stk-edge::before')).toMatch(/border-top: 1px solid var\(--separator\)/);
   });
 
   it('compacts the pinned stat row step by step with the scroll past the search, and back', async () => {
@@ -199,8 +210,13 @@ describe('stacked tab screens', () => {
     expect(within(container.querySelector('.stk-head')).getByRole('heading', { level: 1 })).toHaveTextContent(title);
     expect(within(block).getByPlaceholderText(placeholder)).toBeInTheDocument();
     expect(within(block).getByRole('button', { name: 'Filter and sort' })).toBeInTheDocument();
-    expect(block.nextElementSibling).toHaveClass('stk-sheet');
-    expect(block.nextElementSibling).not.toHaveClass('has-pin');
+    // No pinned row: a bare edge sticks under the header in its place, ahead of the sheet
+    const edge = block.nextElementSibling;
+    expect(edge).toHaveClass('stk-edge');
+    expect(edge).toHaveAttribute('aria-hidden', 'true');
+    expect(edge).toBeEmptyDOMElement();
+    expect(edge.nextElementSibling).toHaveClass('stk-sheet');
+    expect(edge.nextElementSibling).not.toHaveClass('has-pin');
   });
 
   it('opens the sheet on the view switches (Tasks, Events) or the people row (Projects)', () => {
