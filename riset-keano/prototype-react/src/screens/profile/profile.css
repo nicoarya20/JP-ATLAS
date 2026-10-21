@@ -20,7 +20,7 @@
   text-align: left; overflow-wrap: anywhere; box-shadow: 0 1px 2px var(--separator); cursor: pointer; }
 .pf-bubble.is-empty { color: var(--label-2); }
 .pf-bubble:active { scale: 0.97; }
-.pf-input { width: 100%; outline: 2px solid var(--accent); cursor: text; }
+.pf-input { width: 100%; outline: 2px solid var(--focus); cursor: text; }
 .pf-input::placeholder { color: var(--label-3); }
 .pf-tail { position: absolute; left: 0; bottom: 0; width: 20px; height: 20px; pointer-events: none; }
 .pf-tail i { position: absolute; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px var(--separator); }

@@ -1,6 +1,6 @@
 /* Users module (us-). */
 .us-box.card.react-cupertino-ui-card { background: var(--fill); gap: var(--sp-2); }
-.us-bul { margin: 0; padding-left: var(--sp-5); display: grid; gap: var(--sp-1); }
+.us-bul { margin: 0; padding-left: var(--sp-6); display: grid; gap: var(--sp-1); }
 .us-who { align-items: flex-start; }
 .us-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
 .us-side { justify-items: end; }

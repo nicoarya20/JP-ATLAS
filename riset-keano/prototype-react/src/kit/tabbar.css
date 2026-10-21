@@ -10,7 +10,7 @@
 .tb-item { position: relative; z-index: 1; display: grid; place-items: center; padding: 0; border: 0; border-radius: 999px;
   background: none; color: var(--label); cursor: pointer; transition: color 200ms ease; }
 .tb-item.on { color: var(--accent); }
-.tb-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tb-item:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .tb-ico { display: grid; transition: transform 260ms var(--tb-spring); }
 
 /* The bubble: one tab wide, moved with `translate` so `scale` stays free for the squash and stretch. */

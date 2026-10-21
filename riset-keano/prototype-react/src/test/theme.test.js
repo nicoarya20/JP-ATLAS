@@ -1,4 +1,5 @@
-// Theme layer guards: library.css and press.css load last, use only defined tokens, and every themed token must switch under .dark.
+// Theme layer guards: atlas.css matches the JP Atlas tokens.json and loads first; library.css and press.css load last and
+// use only defined tokens; every themed token must switch under .dark.
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -8,14 +9,52 @@ const read = f => readFileSync(join(src, f), 'utf8');
 const tokens = read('styles/tokens.css');
 const library = read('styles/library.css');
 const press = read('styles/press.css');
-const block = sel => tokens.slice(tokens.indexOf(`${sel} {`), tokens.indexOf('}', tokens.indexOf(`${sel} {`)));
+const atlas = read('styles/atlas.css');
+const atlasJson = JSON.parse(read('assets/atlas/tokens.json'));
+const block = (sel, css = tokens) => css.slice(css.indexOf(`${sel} {`), css.indexOf('}', css.indexOf(`${sel} {`)));
 const defined = text => new Set([...text.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+const values = text => Object.fromEntries([...text.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(m => [m[1], m[2].trim()]));
+// Same in both themes (the logo field and the font), so atlas.css sets them in :root only.
+const ATLAS_FIXED = ['--atlas-identity-surface', '--atlas-font'];
 
-// --accent is absent on purpose: it follows --color-blue, which .dark redefines.
-const THEMED = ['--bg', '--surface', '--surface-raised', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent-soft',
+const THEMED = ['--bg', '--surface', '--surface-raised', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent',
+  '--accent-soft', '--selected-text', '--primary-fill', '--on-primary', '--primary-border', '--focus', '--control',
+  '--success', '--success-bg', '--warning', '--warning-bg', '--danger', '--danger-bg', '--info', '--info-bg',
   '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb',
   '--glass-bar', '--glass-bar-edge', '--glass-bar-shine', '--glass-bar-active', '--glass-bar-shadow',
   '--glass-bar-open'];
+// A role switches with the theme if .dark redefines it or its :root value reads a --atlas-* token (which atlas.css switches).
+const switches = (role, light, dark) => dark.has(role) || /var\(--atlas-(?!identity-surface|font)/.test(light[role] ?? '');
+
+describe('JP Atlas palette', () => {
+  it('copies every atlas.css value verbatim from tokens.json', () => {
+    for (const [theme, sel] of [['light', ':root'], ['dark', '.dark']]) {
+      const own = values(block(sel, atlas));
+      const wrong = Object.entries(own).filter(([k]) => !ATLAS_FIXED.includes(k))
+        .filter(([k, v]) => v !== atlasJson.themes[theme][k.replace('--atlas-', '')]);
+      expect(wrong).toEqual([]);
+    }
+    const root = values(block(':root', atlas));
+    expect(root['--atlas-identity-surface']).toBe(atlasJson.brand.identity_surface);
+    expect(root['--atlas-font'].split(',')[0]).toBe(atlasJson.typography.family);
+  });
+
+  it('defines every themed atlas token in both :root and .dark', () => {
+    const light = [...defined(block(':root', atlas))].filter(t => !ATLAS_FIXED.includes(t));
+    const dark = defined(block('.dark', atlas));
+    expect(light.filter(t => !dark.has(t))).toEqual([]);
+    expect([...dark].filter(t => !light.includes(t))).toEqual([]);
+  });
+
+  it('is imported before tokens.css in both entries, so the app roles can read it', () => {
+    for (const [f, prefix] of [['main.jsx', './styles/'], ['index/main.jsx', '../styles/']]) {
+      const main = read(f);
+      const at = main.indexOf(`import '${prefix}atlas.css'`);
+      expect(at).toBeGreaterThan(-1);
+      expect(main.indexOf(`import '${prefix}tokens.css'`)).toBeGreaterThan(at);
+    }
+  });
+});
 
 describe('theme layer', () => {
   it('is imported after the screens so it wins over the library scss', () => {
@@ -26,20 +65,20 @@ describe('theme layer', () => {
     expect(main.indexOf("import './styles/press.css'")).toBeGreaterThan(main.indexOf("import './styles/library.css'"));
   });
 
-  it('only uses tokens that tokens.css or library.css define', () => {
-    const known = new Set([...defined(tokens), ...defined(library), ...defined(press)]);
+  it('only uses tokens that atlas.css, tokens.css or library.css define', () => {
+    const known = new Set([...defined(atlas), ...defined(tokens), ...defined(library), ...defined(press)]);
     const used = [...`${library}${press}`.matchAll(/var\((--[\w-]+)/g)].map(m => m[1]);
     expect(used.filter(t => !known.has(t))).toEqual([]);
   });
 
   it('defines every themed token for both light and dark', () => {
-    const light = defined(block(':root'));
+    const light = values(block(':root'));
     const dark = defined(block('.dark'));
-    expect(THEMED.filter(t => !light.has(t))).toEqual([]);
-    expect(THEMED.filter(t => !dark.has(t))).toEqual([]);
+    expect(THEMED.filter(t => !(t in light))).toEqual([]);
+    expect(THEMED.filter(t => !switches(t, light, dark))).toEqual([]);
   });
 
-  it('keeps raw colors in tokens.css only', () => {
+  it('keeps raw colors in tokens.css and atlas.css only', () => {
     expect(`${library}${press}`.match(/#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(/gi)).toBeNull();
   });
 

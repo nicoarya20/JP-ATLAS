@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Clickable mobile prototype of the PM Dashboard (React 18 + react-cupertino-ui, iOS Cupertino theme).",
+  "description": "Clickable mobile prototype of the PM Dashboard (React 18 + react-cupertino-ui, iOS Cupertino components, JP Atlas theme).",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

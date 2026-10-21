@@ -2,7 +2,7 @@
 .content.tk-page { display: flex; flex-direction: column; }
 .content.tk-page > * { flex: none; }
 .tk-foot { position: sticky; bottom: calc(var(--sp-4) * -1); z-index: 2; margin: auto calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);
-  display: flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-5); background: var(--bg); border-top: 1px solid var(--separator); }
+  display: flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-6); background: var(--bg); border-top: 1px solid var(--separator); }
 .tk-foot > * { flex: 1; }
 .tk-foot > :last-child:not(:first-child) { flex: 1.7; }
 .tk-comment { font: inherit; font-size: var(--fs-subhead); padding: var(--sp-3); border: 0; border-radius: var(--radius-sm);
@@ -52,11 +52,11 @@
   transition: translate 220ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease, scale 220ms ease, visibility 0s; }
 .tk-col-all[aria-pressed='true'] { color: var(--accent); }
 .tk-col-all:disabled { cursor: default; color: var(--label-3); }
-.tk-col-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tk-col-all:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* Sized like the status badge beside it; font-family only, so the t-caption size class still applies. */
 .tk-col-sel-btn { padding: 2px var(--sp-2); border: 0; border-radius: var(--radius-sm); font-family: inherit;
   position: relative; z-index: 1; font-weight: 600; color: var(--label-2); background: var(--fill); cursor: pointer; }
-.tk-col-sel-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tk-col-sel-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .tk-kcheck { position: absolute; top: var(--sp-2); right: var(--sp-2); display: inline-flex; color: var(--label-3); }
 .tk-kcard.is-selected { box-shadow: inset 0 0 0 2px var(--accent); }
 .tk-kcard.is-selected .tk-kcheck { color: var(--accent); }
@@ -117,7 +117,7 @@
 .tk-stack-no { font-size: 8px; line-height: 1.2; color: var(--label-2); }
 .tk-stack-title { font-size: 9px; line-height: 1.2; overflow-wrap: anywhere; }
 .tk-stack-count { position: absolute; z-index: 99; right: -11px; top: -13px; min-width: 22px; height: 22px; display: grid;
-  place-items: center; padding: 0 6px; border-radius: 999px; font-weight: 700; color: var(--on-accent); background: var(--accent);
+  place-items: center; padding: 0 6px; border-radius: 999px; font-weight: 650; color: var(--on-accent); background: var(--accent);
   animation: tk-radial-fade 200ms ease-out backwards; animation-delay: 150ms; }
 .tk-stack.is-back .tk-stack-card { animation: tk-stack-back 240ms ease-in forwards; animation-delay: 0ms; }
 .tk-stack.is-back .tk-stack-count { animation: tk-radial-out 120ms ease-in forwards; }

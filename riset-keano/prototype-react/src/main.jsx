@@ -1,6 +1,7 @@
 // Phone entry (phone.html, loaded in the index iframe): read ?role=&mode=#screen, register screens, mount the app.
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import './styles/atlas.css';     // JP Atlas palette + Manrope, before the roles that map onto it
 import './styles/tokens.css';
 import './styles/app.css';
 import './screens';

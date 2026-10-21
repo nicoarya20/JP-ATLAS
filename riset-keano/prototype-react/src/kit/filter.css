@@ -9,6 +9,6 @@
 .filter-btn.is-on::after { content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
   background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
 /* Overlay body (kit FullSheet): fields from the top, Reset / Apply pushed to the bottom edge; chip rows wrap. */
-.filter-panel { min-height: 100%; display: flex; flex-direction: column; gap: var(--sp-5); }
+.filter-panel { min-height: 100%; display: flex; flex-direction: column; gap: var(--sp-6); }
 .filter-panel .hscroll { flex-wrap: wrap; }
 .filter-foot { margin-top: auto; padding-top: var(--sp-3); display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }

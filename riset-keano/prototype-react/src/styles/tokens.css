@@ -1,26 +1,30 @@
 /* Design tokens. Part 1: the react-cupertino-ui globals (MIT, (c) Anderson Lima, github.com/andersonlimahw/react-cupertino-ui,
-   app/globals.css) that the library CSS reads. Part 2: app tokens (iOS system colors, text styles, 4px spacing).
-   Colors live only here; screen modules use the tokens. Dark mode = class "dark" on <html> (?mode=dark). */
+   app/globals.css) that the library CSS reads, with the HSL triplets set to JP Atlas per the handoff's source_mapping
+   (--background = canvas, --card = surface, --popover = raised, --border = line, --input = control, --ring = focus).
+   Part 2: app roles, mapped onto the JP Atlas palette in atlas.css. Colors live only here and in atlas.css; screen
+   modules use the roles. Dark mode = class "dark" on <html> (?mode=dark). */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 20 14.3% 4.1%;
+  --background: 220 37% 97%;
+  --foreground: 213 50% 14%;
   --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
-  --primary: 24 9.8% 10%;
-  --primary-foreground: 60 9.1% 97.8%;
-  --secondary: 12 6.5% 15.1%;
-  --secondary-foreground: 24 9.8% 10%;
-  --muted: 60 4.8% 95.9%;
-  --muted-foreground: 25 5.3% 44.7%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 60 9.1% 97.8%;
-  --border: 20 5.9% 90%;
-  --input: 20 5.9% 90%;
-  --ring: 20 14.3% 4.1%;
+  --card-foreground: 213 50% 14%;
+  --popover: 210 40% 94%;
+  --popover-foreground: 213 50% 14%;
+  --primary: 72 97% 50%;
+  --primary-foreground: 212 65% 8%;
+  --secondary: 210 40% 94%;
+  --secondary-foreground: 213 50% 14%;
+  --muted: 210 40% 94%;
+  --muted-foreground: 211 21% 38%;
+  --destructive: 346 72% 38%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 212 27% 83%;
+  --input: 211 16% 49%;
+  --ring: 245 55% 53%;
   --radius: 0.5rem;
 
+  /* iOS hues: not part of JP Atlas. Only the category tiles (home/profile More and Create grids) and calendar event
+     categories use them; Atlas has no category palette yet, so they stay until one is chosen. */
   --color-red: #ff3b30;
   --color-orange: #ff9500;
   --color-yellow: #ffcc00;
@@ -46,7 +50,7 @@
   --glass-border: rgba(255, 255, 255, 0.18);
   --glass-border-strong: rgba(255, 255, 255, 0.3);
   --glass-border-dark: rgba(255, 255, 255, 0.12);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --glass-shadow: var(--atlas-shadow);
   --glass-refraction: 1.5;
   --glass-highlight: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, transparent 55%);
   --glass-highlight-opacity: 0.95;
@@ -55,74 +59,88 @@
   --glass-press-bounce: 1.02;
   --spring-duration: 500ms;
 
-  /* ---- App tokens (iOS system palette) ---- */
-  --accent: var(--color-blue);           /* tint: primary buttons, links, selected, active */
-  --accent-soft: rgba(0, 122, 255, 0.12);
-  --on-accent: #ffffff;
-  --success: var(--color-green);
-  --warning: var(--color-orange);
-  --danger: var(--color-red);
-  --bg: #f2f2f7;                         /* systemGroupedBackground */
-  --surface: #ffffff;                    /* secondarySystemGroupedBackground: cards, lists */
-  --surface-raised: #ffffff;             /* a card inside a card (Kanban task on its column) */
-  --fill: rgba(118, 118, 128, 0.12);     /* tertiarySystemFill: chips, inputs, icon squares */
-  --label: #000000;
-  --label-2: rgba(60, 60, 67, 0.6);      /* secondaryLabel */
-  --label-3: rgba(60, 60, 67, 0.3);      /* tertiaryLabel: chevrons, placeholders */
-  --separator: rgba(60, 60, 67, 0.29);
-  --media: #e5e5ea;                      /* image placeholder (systemGray5) */
-  --phone-frame: #1c1c1e;
-  --index-bg: #ffffff;
-  --snack-bg: #323236;                   /* inverted surface for snackbars */
-  --snack-label: #ffffff;
-  --snack-action: #64d2ff;
-  --glass-bar: rgba(255, 255, 255, 0.6);        /* liquid glass tab bar + create button */
+  /* ---- App roles (JP Atlas). One alias each: the --atlas-* value switches under .dark, so most roles need no dark line. ---- */
+  --accent: var(--atlas-violet);         /* interaction: links, tint, selected, active, progress (Atlas violet) */
+  --accent-soft: var(--atlas-selected);  /* selected background; text on it = --selected-text */
+  --selected-text: var(--atlas-selected-text);
+  --on-accent: var(--atlas-surface);     /* text/icon on a filled accent, danger or tile: the surface knocked out */
+  --primary-fill: var(--atlas-primary);  /* lime: the one main action per view, never text or a status colour */
+  --on-primary: var(--atlas-on-primary); /* label on lime: never white */
+  --primary-border: var(--atlas-primary-border);
+  --focus: var(--atlas-focus);           /* focus ring: violet in light, lime in dark */
+  --control: var(--atlas-control);       /* required control boundary (fields, secondary buttons, switch track) */
+  --success: var(--atlas-success);
+  --success-bg: var(--atlas-success-bg);
+  --warning: var(--atlas-warning);
+  --warning-bg: var(--atlas-warning-bg);
+  --danger: var(--atlas-danger);
+  --danger-bg: var(--atlas-danger-bg);
+  --info: var(--atlas-info);
+  --info-bg: var(--atlas-info-bg);
+  --bg: var(--atlas-canvas);
+  --surface: var(--atlas-surface);       /* cards, lists */
+  --surface-raised: var(--atlas-surface); /* a card on a --fill column (Kanban) or a floating menu: surface again, set
+                                             apart by its line edge or shadow; Atlas raised is the column itself */
+  --fill: var(--atlas-raised);           /* chips, inputs, icon squares, Kanban columns */
+  --label: var(--atlas-text);
+  --label-2: var(--atlas-muted);         /* metadata */
+  --label-3: var(--atlas-control);       /* chevrons, placeholders, empty checkbox rings */
+  --separator: var(--atlas-line);        /* decorative only; control edges use --control */
+  --media: var(--atlas-raised);          /* image placeholder */
+  --phone-frame: var(--atlas-identity-surface);
+  --index-bg: var(--atlas-surface);
+  --snack-bg: var(--atlas-identity-surface); /* snackbar and toast stay dark in both themes */
+  --snack-label: #f3f6fb;                /* Atlas dark text */
+  --snack-action: #b6b4ff;               /* Atlas dark violet */
+  --glass-bar: color-mix(in srgb, var(--atlas-surface) 60%, transparent);  /* liquid glass tab bar + create button */
   --glass-bar-edge: rgba(255, 255, 255, 0.7);
   --glass-bar-shine: rgba(255, 255, 255, 0.8);  /* top inner highlight */
-  --glass-bar-active: rgba(118, 118, 128, 0.16); /* pill behind the active tab */
-  --glass-bar-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --glass-bar-open: rgba(255, 255, 255, 0.88);  /* bar + panel over the dim: 0.6 white over the dark scrim reads grey */
-  --sheet-bg: #f2f2f7;                   /* bottom sheet background */
-  --sheet-surface: #ffffff;              /* cards and lists inside a sheet */
-  --overlay: rgba(0, 0, 0, 0.4);         /* dimming behind a sheet */
-  --avatar-bg: linear-gradient(180deg, #a5abb8, #858994);  /* contact monogram grey */
-  --switch-off: rgba(120, 120, 128, 0.16);
-  --seg-thumb: #ffffff;                  /* segmented control selected thumb */
+  --glass-bar-active: color-mix(in srgb, var(--atlas-control) 16%, transparent); /* pill behind the active tab */
+  --glass-bar-shadow: var(--atlas-shadow);
+  --glass-bar-open: color-mix(in srgb, var(--atlas-surface) 88%, transparent);  /* bar + panel over the dim */
+  --sheet-bg: var(--atlas-canvas);       /* bottom sheet background */
+  --sheet-surface: var(--atlas-surface); /* cards and lists inside a sheet */
+  --overlay: var(--atlas-veil);          /* dimming behind a sheet */
+  --avatar-bg: var(--atlas-control);     /* monogram */
+  --switch-off: var(--atlas-control);
+  --seg-thumb: var(--atlas-surface);     /* segmented control selected thumb */
   --switch-thumb: #ffffff;
 
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-  /* iOS text styles (default Dynamic Type size) */
-  --fs-large: 34px; --fs-title1: 28px; --fs-title2: 22px; --fs-title3: 20px; --fs-headline: 17px; --fs-body: 17px;
-  --fs-callout: 16px; --fs-subhead: 15px; --fs-footnote: 13px; --fs-caption1: 12px; --fs-caption2: 11px;
-  --lh-tight: 1.2; --lh-snug: 1.3; --lh-body: 1.45;
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
-  --radius-card: 12px; --radius-sm: 8px;
+  --font: var(--atlas-font);
+  /* Atlas type scale (page 26 mobile, section 20, body 16, table 14, metadata 12) under the iOS text-style names the
+     screens already use; Atlas has no step below 12, so footnote and both captions share 12. */
+  --fs-large: 26px; --fs-title1: 26px; --fs-title2: 20px; --fs-title3: 20px; --fs-headline: 16px; --fs-body: 16px;
+  --fs-callout: 16px; --fs-subhead: 14px; --fs-footnote: 12px; --fs-caption1: 12px; --fs-caption2: 12px;
+  --lh-tight: 1.2; --lh-snug: 1.3; --lh-body: 1.5;   /* body 1.5 for running text; snug for one-line UI labels */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-8: 32px;  /* Atlas 4-step scale, no 20 */
+  --radius-card: 14px; --radius-sm: 10px; --radius-modal: 16px;   /* Atlas card / control / modal */
   --statusbar-h: 44px;   /* the fake iOS status bar on top of the phone */
 }
 
 .dark {
-  --background: 20 14.3% 4.1%;
-  --foreground: 60 9.1% 97.8%;
-  --card: 20 14.3% 4.1%;
-  --card-foreground: 60 9.1% 97.8%;
-  --popover: 20 14.3% 4.1%;
-  --popover-foreground: 60 9.1% 97.8%;
-  --primary: 60 9.1% 97.8%;
-  --primary-foreground: 24 9.8% 10%;
-  --secondary-foreground: 60 9.1% 97.8%;
-  --muted: 12 6.5% 15.1%;
-  --muted-foreground: 24 5.4% 63.9%;
-  --destructive: 0 62.8% 30.6%;
-  --border: 12 6.5% 15.1%;
-  --input: 12 6.5% 15.1%;
-  --ring: 24 5.7% 82.9%;
+  --background: 212 65% 8%;
+  --foreground: 217 50% 97%;
+  --card: 207 44% 10%;
+  --card-foreground: 217 50% 97%;
+  --popover: 212 44% 15%;
+  --popover-foreground: 217 50% 97%;
+  --primary: 72 97% 50%;
+  --primary-foreground: 212 65% 8%;
+  --secondary: 212 44% 15%;
+  --secondary-foreground: 217 50% 97%;
+  --muted: 212 44% 15%;
+  --muted-foreground: 212 24% 77%;
+  --destructive: 352 100% 81%;
+  --destructive-foreground: 212 65% 8%;
+  --border: 212 27% 28%;
+  --input: 211 18% 53%;
+  --ring: 72 97% 50%;
 
   --glass-surface: rgba(16, 16, 16, 0.6);
   --glass-surface-hover: rgba(16, 16, 16, 0.72);
   --glass-surface-strong: rgba(28, 28, 28, 0.9);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-strong: rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   --glass-refraction: 1.35;
   --glass-highlight: linear-gradient(160deg, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
   --glass-highlight-opacity: 0.8;
@@ -131,27 +149,9 @@
   --color-green: #30d158;
   --color-red: #ff453a;
   --color-orange: #ff9f0a;
-  --accent-soft: rgba(10, 132, 255, 0.2);
-  --bg: #000000;
-  --surface: #1c1c1e;
-  --surface-raised: #2c2c2e;             /* one step above --surface, which the column fill matches in dark */
-  --fill: rgba(118, 118, 128, 0.24);
-  --label: #ffffff;
-  --label-2: rgba(235, 235, 245, 0.6);
-  --label-3: rgba(235, 235, 245, 0.3);
-  --separator: rgba(84, 84, 88, 0.65);
-  --media: #2c2c2e;
-  --index-bg: #1c1c1e;
-  --glass-bar: rgba(40, 40, 42, 0.55);
+  --snack-bg: var(--atlas-raised);       /* identity navy would vanish on the dark canvas */
   --glass-bar-edge: rgba(255, 255, 255, 0.12);
   --glass-bar-shine: rgba(255, 255, 255, 0.1);
-  --glass-bar-active: rgba(255, 255, 255, 0.1);
-  --glass-bar-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  --glass-bar-open: rgba(40, 40, 42, 0.55);     /* same as closed: dark glass already reads right over the dim */
-  --sheet-bg: #1c1c1e;
-  --sheet-surface: #2c2c2e;
-  --overlay: rgba(0, 0, 0, 0.6);
-  --avatar-bg: linear-gradient(180deg, #6d7079, #4f5158);
-  --switch-off: rgba(120, 120, 128, 0.32);
-  --seg-thumb: #636366;
+  --glass-bar-open: color-mix(in srgb, var(--atlas-surface) 60%, transparent);  /* same as closed: dark glass reads right over the dim */
+  --seg-thumb: var(--atlas-line);        /* surface would sink into the raised track */
 }

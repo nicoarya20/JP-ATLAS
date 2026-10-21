@@ -5,7 +5,8 @@ Orchestrator: session `pm-dashboard-7b`. Report to it with SendMessage when you 
 ## Goal
 Port your modules from the vanilla prototype (`riset-keano/wireframe-mobile/screens.<module>*.js`) to React 18 + react-cupertino-ui in this folder.
 Use the same screen ids, titles, index groups, roles, flows and sample data. Do not invent features.
-The iOS Cupertino look comes from the library and the kit. The ClickUp theme is gone.
+The iOS Cupertino components come from the library and the kit; colours, font, type scale, spacing and radii come from the
+JP Atlas design system (`src/styles/atlas.css`, copied from `JP-Atlas-Design-System-2026-10-21/`). The ClickUp theme is gone.
 
 ## Ownership
 | Owner | Files |
@@ -79,7 +80,13 @@ Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, s
 - No inline `style` for typography or colour. Use the classes in `src/styles/app.css`:
   - `t-title2`, `t-headline`, `t-subhead`, `t-footnote`, `t-caption`, `muted`, `tint`, `danger`, `success`, `bold`.
   - Layout: `stack`, `row-flex`, `between`, `wrap`, `hscroll`.
-- Colours come from CSS variables (`var(--color-blue)`, `var(--app-…)`) in module CSS. No raw hex in JSX.
+- Colours come from the app roles in `tokens.css` (`--accent`, `--label`, `--surface`, `--success`/`--success-bg` …) in module CSS.
+  No raw hex in JSX. Screens never read `--atlas-*` directly.
+  - Lime (`--primary-fill`) is the one main action per view, with `--on-primary` as its label. Never text, never a status.
+  - Violet (`--accent`) is interaction: links, selected, active, progress.
+  - A status is a pair plus its text: `--success` on `--success-bg`, never a tint of the text colour.
+  - `--separator` is decorative; control edges (fields, secondary buttons) use `--control`. Focus rings use `--focus`.
+  - `--color-*` (iOS hues) only for category tiles and calendar categories, until Atlas has a category palette.
 - Library parts are themed in `src/styles/library.css` (loaded last), so light and dark both work. Restyle a kit part there, mapped to tokens from `tokens.css`; never a raw colour.
 - Files stay under 300 lines. Split a module into `<module>.<part>.jsx` files.
 
