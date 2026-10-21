@@ -63,7 +63,7 @@ describe('smoke checks', () => {
       bodyIncludes: '"code":"UNAUTHORIZED"',
       header: { name: 'x-request-id' },
     });
-    expect(SMOKE_CHECKS).toHaveLength(45);
+    expect(SMOKE_CHECKS).toHaveLength(46);
   });
   test('the Inbox page and the bell count refuse an anonymous visitor', () => {
     const byPath = (path: string) => SMOKE_CHECKS.find((c) => c.path === path);

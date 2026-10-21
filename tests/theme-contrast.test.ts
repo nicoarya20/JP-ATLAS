@@ -2,17 +2,18 @@ import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { DEFAULT_THEME } from '@mantine/core';
 import { buildTheme } from '../app/lib/theme';
+import { DARK, LIGHT } from '../app/lib/theme-tokens';
 import { cssVariablesResolver } from '../app/lib/theme-vars';
 
-// R11 §3.2.3: text pairs need 4.5:1 (SC 1.4.3), non-text pairs need 3:1 (SC 1.4.11).
+// JP Atlas handoff (2026-10-21): text pairs need 4.5:1 (SC 1.4.3), non-text pairs need 3:1 (SC 1.4.11).
 const TEXT_MIN = 4.5;
 const NON_TEXT_MIN = 3;
-// R11 prints ratios with 2 decimals; allow rounding noise only.
-const R11_TOLERANCE = 0.011;
 
 const theme = buildTheme(1);
 const palette = { ...DEFAULT_THEME.colors, ...theme.colors } as Record<string, readonly string[]>;
 const resolved = cssVariablesResolver(DEFAULT_THEME);
+const light = (key: string) => (resolved.light as Record<string, string>)[key];
+const night = (key: string) => (resolved.dark as Record<string, string>)[key];
 
 /** Resolves a hex colour or a `var(--mantine-color-<name>-<shade>)` token to a hex colour. */
 function toHex(value: string): string {
@@ -30,7 +31,7 @@ function channel(hex: string, offset: number): number {
 }
 
 function luminance(color: string): number {
-  const hex = toHex(color).replace(/^#(\w)(\w)(\w)$/, '#$1$1$2$2$3$3');
+  const hex = toHex(color);
   return 0.2126 * channel(hex, 1) + 0.7152 * channel(hex, 3) + 0.0722 * channel(hex, 5);
 }
 
@@ -40,113 +41,125 @@ function ratio(fg: string, bg: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-/** Reads `--mk-focus-ring` from the `:root` rule of theme.css that matches `selector`. */
-function focusRing(selector: ':root' | ":root[data-mantine-color-scheme='dark']"): string {
-  const css = readFileSync(new URL('../app/lib/theme.css', import.meta.url), 'utf8').replaceAll(
-    '"',
-    "'",
-  ); // biome writes double quotes
-  const start = css.indexOf(`${selector} {`);
-  const value = /--mk-focus-ring:\s*([^;]+);/.exec(css.slice(start))?.[1];
-  if (start < 0 || !value) throw new Error(`--mk-focus-ring not found for ${selector}`);
-  return value.trim();
-}
-
-const gray = (i: number) => `var(--mantine-color-gray-${i})`;
-const blue = (i: number) => `var(--mantine-color-blue-${i})`;
-const dark = (i: number) => `var(--mantine-color-dark-${i})`;
 const shade = (name: string, i: number) => `var(--mantine-color-${name}-${i})`;
 const FILLED = theme.primaryShade as { light: number; dark: number };
-const light = (key: string) => (resolved.light as Record<string, string>)[key];
-const night = (key: string) => (resolved.dark as Record<string, string>)[key];
+const WHITE = '#ffffff';
 
-type Pair = { name: string; fg: string; bg: string; min: number; r11: number };
-const text = (name: string, fg: string, bg: string, r11: number): Pair => ({
+type Pair = { name: string; fg: string; bg: string; min: number };
+const text = (name: string, fg: string, bg: string): Pair => ({ name, fg, bg, min: TEXT_MIN });
+const nonText = (name: string, fg: string, bg: string): Pair => ({
   name,
   fg,
   bg,
-  r11,
-  min: TEXT_MIN,
-});
-const nonText = (name: string, fg: string, bg: string, r11: number): Pair => ({
-  name,
-  fg,
-  bg,
-  r11,
   min: NON_TEXT_MIN,
 });
 
-// biome-ignore format: one pair per line mirrors the R11 §3.2.3 table row by row
+// biome-ignore format: one pair per line keeps the table scannable
 const LIGHT_PAIRS: Pair[] = [
-  text('body text on white', gray(9), '#fff', 15.43),
-  text('body text on gray-0', gray(9), gray(0), 14.63),
-  text('secondary text (dimmed) on white', light('--mantine-color-dimmed'), '#fff', 8.18),
-  text('secondary text (dimmed) on gray-1', light('--mantine-color-dimmed'), gray(1), 7.35),
-  text('placeholder on white', light('--mantine-color-placeholder'), '#fff', 4.83),
-  nonText('input/default border on white', light('--mantine-color-default-border'), '#fff', 3.32),
-  nonText('input/default border on gray-0', light('--mantine-color-default-border'), gray(0), 3.15),
-  text('primary filled (white text)', '#fff', blue(FILLED.light), 5.02),
-  text('primary hover (white text)', '#fff', blue(FILLED.light + 1), 6.09),
-  text('link on white', blue(FILLED.light), '#fff', 5.02),
-  text('link on gray-0', blue(FILLED.light), gray(0), 4.76),
-  text('info light badge', blue(9), blue(1), 4.93),
-  text('danger filled (white text)', '#fff', shade('danger', FILLED.light), 5.46),
-  text('danger hover (white text)', '#fff', shade('danger', FILLED.light + 1), 7.43),
-  text('error text on white', light('--mantine-color-error'), '#fff', 5.46),
-  text('error text on gray-0', light('--mantine-color-error'), gray(0), 5.18),
-  text('danger light badge', shade('danger', 9), shade('danger', 1), 6.14),
-  text('ok filled (white text)', '#fff', shade('ok', FILLED.light), 6.33),
-  text('ok hover (white text)', '#fff', shade('ok', FILLED.light + 1), 9.11),
-  text('ok light badge', shade('ok', 9), shade('ok', 1), 7.94),
-  text('warn filled (white text)', '#fff', shade('warn', FILLED.light), 6.8),
-  text('warn light badge', shade('warn', 9), shade('warn', 1), 8.44),
-  text('neutral light badge', gray(8), gray(2), 9.7),
-  nonText('focus ring on white', focusRing(':root'), '#fff', 5.02),
-  nonText('focus ring on gray-0', focusRing(':root'), gray(0), 4.76),
+  text('body text on canvas', LIGHT.text, LIGHT.canvas),
+  text('body text on surface', light('--mantine-color-text'), LIGHT.surface),
+  text('secondary text (dimmed) on canvas', light('--mantine-color-dimmed'), LIGHT.canvas),
+  text('secondary text (dimmed) on surface', light('--mantine-color-dimmed'), LIGHT.surface),
+  text('secondary text (dimmed) on raised', light('--mantine-color-dimmed'), LIGHT.raised),
+  text('placeholder on surface', light('--mantine-color-placeholder'), LIGHT.surface),
+  nonText('input/default border on surface', light('--mantine-color-default-border'), LIGHT.surface),
+  nonText('input/default border on canvas', light('--mantine-color-default-border'), LIGHT.canvas),
+  text('primary action label (navy on lime)', LIGHT.onPrimary, LIGHT.primary),
+  nonText('primary action border on surface', LIGHT.primaryBorder, LIGHT.surface),
+  text('primary action label on hover', LIGHT.onPrimary, LIGHT.primaryHover),
+  text('default filled (white text)', WHITE, shade('atlas', FILLED.light)),
+  text('default filled hover (white text)', WHITE, shade('atlas', FILLED.light + 1)),
+  text('link on surface', shade('atlas', FILLED.light), LIGHT.surface),
+  text('link on canvas', shade('atlas', FILLED.light), LIGHT.canvas),
+  text('selected text on selected', LIGHT.selectedText, LIGHT.selected),
+  text('info light badge', shade('atlas', 9), shade('atlas', 1)),
+  text('danger filled (white text)', WHITE, shade('danger', FILLED.light)),
+  text('danger hover (white text)', WHITE, shade('danger', FILLED.light + 1)),
+  text('error text on surface', light('--mantine-color-error'), LIGHT.surface),
+  text('error text on canvas', light('--mantine-color-error'), LIGHT.canvas),
+  text('danger light badge', shade('danger', 9), shade('danger', 1)),
+  text('danger on danger-bg', LIGHT.danger, LIGHT.dangerBg),
+  text('ok filled (white text)', WHITE, shade('ok', FILLED.light)),
+  text('ok hover (white text)', WHITE, shade('ok', FILLED.light + 1)),
+  text('ok light badge', shade('ok', 9), shade('ok', 1)),
+  text('success on success-bg', LIGHT.success, LIGHT.successBg),
+  text('warn filled (white text)', WHITE, shade('warn', FILLED.light)),
+  text('warn light badge', shade('warn', 9), shade('warn', 1)),
+  text('warning on warning-bg', LIGHT.warning, LIGHT.warningBg),
+  text('neutral light badge', shade('gray', 9), shade('gray', 1)),
+  nonText('focus ring on surface', LIGHT.focus, LIGHT.surface),
+  nonText('focus ring on canvas', LIGHT.focus, LIGHT.canvas),
 ];
 
-// biome-ignore format: one pair per line mirrors the R11 §3.2.3 dark-mode paragraph
+// biome-ignore format: one pair per line keeps the table scannable
 const DARK_PAIRS: Pair[] = [
-  text('body text on dark body', dark(0), dark(7), 9.37),
-  text('secondary text (dimmed) on dark body', night('--mantine-color-dimmed'), dark(7), 7.83),
-  text('error text on dark body', night('--mantine-color-error'), dark(7), 6.7),
-  nonText('focus ring on dark body', focusRing(":root[data-mantine-color-scheme='dark']"), dark(7), 6.27),
+  text('body text on canvas', DARK.text, DARK.canvas),
+  text('body text on surface', night('--mantine-color-text'), DARK.surface),
+  text('secondary text (dimmed) on canvas', night('--mantine-color-dimmed'), DARK.canvas),
+  text('secondary text (dimmed) on surface', night('--mantine-color-dimmed'), DARK.surface),
+  text('secondary text (dimmed) on raised', night('--mantine-color-dimmed'), DARK.raised),
+  text('placeholder on surface', night('--mantine-color-placeholder'), DARK.surface),
+  nonText('input/default border on surface', night('--mantine-color-default-border'), DARK.surface),
+  nonText('input/default border on canvas', night('--mantine-color-default-border'), DARK.canvas),
+  text('primary action label (navy on lime)', DARK.onPrimary, DARK.primary),
+  text('primary action label on hover', DARK.onPrimary, DARK.primaryHover),
+  nonText('primary action on surface', DARK.primary, DARK.surface),
+  text('default filled (white text)', WHITE, night('--mantine-color-atlas-filled')),
+  text('default filled hover (white text)', WHITE, night('--mantine-color-atlas-filled-hover')),
+  nonText('default filled on surface', night('--mantine-color-atlas-filled'), DARK.surface),
+  text('link on surface', night('--mantine-color-anchor'), DARK.surface),
+  text('link on canvas', night('--mantine-color-anchor'), DARK.canvas),
+  text('selected text on selected', DARK.selectedText, DARK.selected),
+  text('info text on info-bg', night('--mantine-color-blue-text'), night('--mantine-color-blue-light')),
+  text('error text on surface', night('--mantine-color-error'), DARK.surface),
+  text('danger on danger-bg', night('--mantine-color-red-light-color'), night('--mantine-color-red-light')),
+  text('success on success-bg', night('--mantine-color-teal-light-color'), night('--mantine-color-teal-light')),
+  text('warning on warning-bg', night('--mantine-color-orange-light-color'), night('--mantine-color-orange-light')),
+  nonText('focus ring on surface', DARK.focus, DARK.surface),
+  nonText('focus ring on canvas', DARK.focus, DARK.canvas),
 ];
 
-describe('R11 §3.2.3 contrast pairs (light)', () => {
+describe('JP Atlas contrast pairs (light)', () => {
   for (const pair of LIGHT_PAIRS) {
-    test(`${pair.name} reaches ${pair.min}:1 and matches the R11 table`, () => {
-      const actual = ratio(pair.fg, pair.bg);
-      expect(actual).toBeGreaterThanOrEqual(pair.min);
-      expect(Math.abs(actual - pair.r11)).toBeLessThan(R11_TOLERANCE);
+    test(`${pair.name} reaches ${pair.min}:1`, () => {
+      expect(ratio(pair.fg, pair.bg)).toBeGreaterThanOrEqual(pair.min);
     });
   }
 });
 
-describe('R11 §3.2.3 contrast pairs (dark)', () => {
+describe('JP Atlas contrast pairs (dark)', () => {
   for (const pair of DARK_PAIRS) {
-    test(`${pair.name} reaches ${pair.min}:1 and matches the R11 text`, () => {
-      const actual = ratio(pair.fg, pair.bg);
-      expect(actual).toBeGreaterThanOrEqual(pair.min);
-      expect(Math.abs(actual - pair.r11)).toBeLessThan(R11_TOLERANCE);
+    test(`${pair.name} reaches ${pair.min}:1`, () => {
+      expect(ratio(pair.fg, pair.bg)).toBeGreaterThanOrEqual(pair.min);
     });
   }
+});
+
+describe('focus ring', () => {
+  test('theme.css reads the per-scheme --jp-focus token', () => {
+    const css = readFileSync(new URL('../app/lib/theme.css', import.meta.url), 'utf8');
+    expect(css).toMatch(/--mk-focus-ring:\s*var\(--jp-focus\)/);
+    expect(light('--jp-focus')).toBe(LIGHT.focus);
+    expect(night('--jp-focus')).toBe(DARK.focus);
+  });
 });
 
 describe('Mantine defaults that the resolver replaces', () => {
-  test('default dimmed, placeholder, border and error colours fail their thresholds', () => {
-    expect(ratio(gray(6), '#fff')).toBeLessThan(TEXT_MIN); // dimmed 3.32
-    expect(ratio(gray(5), '#fff')).toBeLessThan(TEXT_MIN); // placeholder 2.07
-    expect(ratio(gray(4), '#fff')).toBeLessThan(NON_TEXT_MIN); // border 1.49
-    expect(ratio(shade('red', 6), '#fff')).toBeLessThan(TEXT_MIN); // error text
-    expect(ratio(dark(2), dark(7))).toBeLessThan(TEXT_MIN); // dark dimmed 4.04
-    expect(ratio(shade('red', 8), dark(7))).toBeLessThan(TEXT_MIN); // dark error 3.44
-    // Blue-8 on the dark body is 3.09:1: passes by a hair, which is why theme.css uses blue-4.
-    expect(ratio(blue(8), dark(7))).toBeLessThan(ratio(blue(4), dark(7)) / 2);
+  test('default dimmed, placeholder and border colours fail their thresholds', () => {
+    const g = (i: number) => DEFAULT_THEME.colors.gray[i];
+    expect(ratio(g(6), WHITE)).toBeLessThan(TEXT_MIN); // dimmed 3.32
+    expect(ratio(g(5), WHITE)).toBeLessThan(TEXT_MIN); // placeholder 2.07
+    expect(ratio(g(4), WHITE)).toBeLessThan(NON_TEXT_MIN); // border 1.49
+    expect(ratio(DEFAULT_THEME.colors.red[6], WHITE)).toBeLessThan(TEXT_MIN); // error text
   });
 
-  test('the shade 8 palettes are what primaryShade resolves to', () => {
+  test('primaryShade resolves to shade 8 and the colour aliases land on the role palettes', () => {
     expect(FILLED).toEqual({ light: 8, dark: 8 });
-    expect(Object.keys(theme.colors ?? {}).sort()).toEqual(['danger', 'ok', 'warn']);
+    expect(theme.primaryColor).toBe('atlas');
+    const colors = theme.colors ?? {};
+    for (const name of ['blue', 'indigo', 'violet']) expect(colors[name]).toEqual(colors.atlas);
+    for (const name of ['teal', 'green']) expect(colors[name]).toEqual(colors.ok);
+    for (const name of ['orange', 'yellow']) expect(colors[name]).toEqual(colors.warn);
+    expect(colors.red).toEqual(colors.danger);
   });
 });

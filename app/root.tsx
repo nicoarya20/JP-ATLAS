@@ -22,6 +22,7 @@ import { DATES_LOCALE, FIRST_DAY_OF_WEEK } from './lib/date-config';
 import { describeError, ERROR_TITLE_SUFFIX } from './lib/error-page';
 import { QueryProvider } from './lib/query';
 import { buildTheme } from './lib/theme';
+import { DARK, LIGHT } from './lib/theme-tokens';
 import { cssVariablesResolver } from './lib/theme-vars';
 import { rememberTimeZone, requestClock } from './lib/time-format';
 
@@ -61,7 +62,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#4c6ef5" />
+        <meta name="theme-color" content={DARK.canvas} />
         <Meta />
         <Links />
         {/*
@@ -80,9 +81,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           // biome-ignore lint/security/noDangerouslySetInnerHtml: static anti-FOUC CSS
           dangerouslySetInnerHTML={{
             __html: `
-:root { color-scheme: light; background-color: #fff; }
-:root[data-mantine-color-scheme='dark'] { color-scheme: dark; background-color: #242424; }
-:root[data-mantine-color-scheme='light'] { color-scheme: light; background-color: #fff; }
+:root { color-scheme: light; background-color: ${LIGHT.canvas}; }
+:root[data-mantine-color-scheme='dark'] { color-scheme: dark; background-color: ${DARK.canvas}; }
+:root[data-mantine-color-scheme='light'] { color-scheme: light; background-color: ${LIGHT.canvas}; }
 html, body { background-color: inherit; }
 
 /* ThemeToggle: two variants always in DOM; CSS picks the visible one.

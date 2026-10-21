@@ -1,16 +1,29 @@
 /*
+ * JP Atlas design system: Manrope (variable 200-800, OFL; licence in public/fonts/OFL.txt), the
+ * page canvas, and the focus ring. Colours come from the `--jp-*` variables that theme-vars.ts
+ * emits per colour scheme.
+ *
  * Focus ring and input border overrides for the accessible theme (R11 §3.2.3-3.2.4).
  * Must be imported AFTER '@mantine/core/styles.css': several rules below tie Mantine's selector
  * specificity and rely on source order. Wired by S0B-25 together with buildTheme (app/root.tsx).
  */
 
-:root {
-  --mk-focus-ring: var(--mantine-color-blue-8); /* 5.02:1 on white */
+@font-face {
+  font-family: Manrope;
+  src: url("/fonts/Manrope-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
 }
 
-/* Blue-8 is only 3.09:1 on the dark body; blue-4 is 6.27:1. */
-:root[data-mantine-color-scheme="dark"] {
-  --mk-focus-ring: var(--mantine-color-blue-4);
+/* Cards sit on the surface (`--mantine-color-body`); the page behind them is the canvas. */
+body {
+  background-color: var(--jp-canvas);
+}
+
+/* Violet on light, lime on dark: both clear 3:1 against their canvas (see tests/theme-contrast). */
+:root {
+  --mk-focus-ring: var(--jp-focus);
 }
 
 /* 3 px ring, 2 px offset, keyboard focus only; never `outline: none`. Scales with the text size. */
@@ -33,5 +46,10 @@
  * and the focus rule sets the variable on the input element itself, so both states are preserved.
  */
 [data-mantine-color-scheme="light"] .mantine-Input-wrapper[data-variant="default"] {
+  --input-bd: var(--mantine-color-default-border);
+}
+
+/* Dark inputs: Mantine's own `--input-bd` is dark-4, the decorative line; controls use `control`. */
+[data-mantine-color-scheme="dark"] .mantine-Input-wrapper[data-variant="default"] {
   --input-bd: var(--mantine-color-default-border);
 }

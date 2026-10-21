@@ -124,6 +124,13 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     }),
   ),
   { name: 'favicon svg', path: '/favicon.svg', status: 200, contentType: 'image/svg+xml' },
+  // The design-system font ships from public/; theme.css points its @font-face here.
+  {
+    name: 'font Manrope',
+    path: '/fonts/Manrope-Variable.ttf',
+    status: 200,
+    contentType: 'font/ttf',
+  },
   {
     name: 'favicon.ico → svg',
     path: '/favicon.ico',

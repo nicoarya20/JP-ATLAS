@@ -31,6 +31,16 @@ Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantin
 
 **Blocker:** memakai `window.confirm`/`window.alert`/native HTML element yang sudah di-cover Mantine → STOP sebelum commit; ganti dengan komponen Mantine.
 
+## Design System — JP Atlas
+
+Tema mengikuti paket handoff **JP Atlas** (21 Okt 2026; sumber: `~/Documents/JP-Atlas-Design-System-2026-10-21`, token kandidat v0.1). Yang dipakai hanya **design system-nya** (warna, tipografi, radius, jarak) — nama produk, logo, dan favicon tetap Simple PM.
+
+- **Satu sumber token:** `app/lib/theme-tokens.ts` (hex, skala radius/jarak/tipe). Jangan menulis hex di komponen; `theme-palette.ts` (palet Mantine), `theme-vars.ts` (variabel CSS per skema), dan `theme-components.ts` (default komponen) diturunkan darinya. Variabel `--jp-*` (kanvas, primary, fokus) tersedia di CSS.
+- **Peran warna:** lime `#C8F904` = aksi utama (`Button` terisi tanpa `color`; teks navy, **bukan putih**; lime bukan warna teks kecil dan bukan penanda sukses). Violet = interaksi (primaryColor `atlas`: tautan, item aktif, fokus). Nama `blue/indigo/violet`, `teal/green`, `orange/yellow`, `red` di-alias ke palet peran (`atlas`, `ok`, `warn`, `danger`) — kode lama `color="red"` tetap benar. Status memakai teks + warna, tidak hanya warna.
+- **Kanvas vs permukaan:** halaman dicat `--jp-canvas`; `--mantine-color-body` = permukaan (kartu, menu, modal). Dua-duanya di-set di `theme-vars.ts`, bukan per halaman.
+- **Skala:** radius kontrol 10 / kartu 14 (`md`) / modal 16 (`lg`) / identitas 20 (`xl`); jarak 8/12/16/24/32 (`xs`..`xl`); judul halaman `Title order={1}` 32 px (26 px ponsel), judul bagian `order={3}` 20 px; Manrope dari `public/fonts/` (lisensi OFL di folder yang sama).
+- **Kontras:** `tests/theme-contrast.test.ts` menjaga pasangan teks ≥ 4,5:1 dan non-teks ≥ 3:1 untuk kedua skema; ubah token → jalankan tes itu. Hover lime (`primaryHover`) diturunkan sendiri karena handoff tidak mendefinisikannya.
+
 ## UX Production-Ready — Wajib Dipatuhi Agent
 
 Ini adalah standar kualitas UX yang membuat app terasa selesai dan layak produksi. Agent wajib menerapkan ini secara **proaktif** tanpa menunggu user mengingatkan.

@@ -92,7 +92,8 @@ describe('root text size (SSR)', () => {
     for (const cookie of ['mk-text-size=normal', 'mk-text-size=huge', undefined]) {
       const html = await renderRoot(cookie);
       expect(html).toContain('lang="id"');
-      expect(html).not.toContain('--mantine-scale');
+      // rem() values read var(--mantine-scale); only a declaration would be an override.
+      expect(html).not.toMatch(/--mantine-scale:/);
     }
   });
 
