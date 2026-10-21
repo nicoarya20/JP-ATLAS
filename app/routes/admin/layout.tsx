@@ -3,7 +3,7 @@ import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { getSidebarCollapsed } from '@server/sidebar';
 import { adminSidebarBadges } from '@server/sidebar-badges';
-import { FiGrid, FiHome, FiLayers, FiUsers } from 'react-icons/fi';
+import { FiGrid, FiHome, FiLayers, FiSettings, FiUsers } from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
@@ -17,6 +17,7 @@ export function meta(_: Route.MetaArgs) {
 const NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: FiHome },
   { to: '/dashboard/users', label: 'Pengguna', icon: FiUsers },
+  { to: '/dashboard/settings', label: 'Pengaturan', icon: FiSettings },
 ];
 
 // "Area lain" lists the three areas minus the one open here (Admin), always in the same order:
