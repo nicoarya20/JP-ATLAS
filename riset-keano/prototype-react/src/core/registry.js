@@ -1,6 +1,6 @@
 // Screen/sheet registry. Screen modules call screen()/sheet() at import time; the router and the index read from here.
 const screens = new Map(); // id -> {title, group, roles?, Component}
-const sheets = new Map();  // id -> {title, group, roles?, snap?, full?, Component}
+const sheets = new Map();  // id -> {title, group, roles?, snap?, full?, fit?, Component}
 
 function register(map, kind, id, def) {
   if (screens.has(id) || sheets.has(id)) throw new Error(`Duplicate ${kind} id "${id}"`);
@@ -11,7 +11,8 @@ function register(map, kind, id, def) {
 /** Register a full screen. def: {title (string | () => string), group, roles?: ['pm', ...], Component}. */
 export const screen = (id, def) => register(screens, 'screen', id, def);
 /** Register a bottom sheet. def: same as a screen, plus snap?: 0..1 (sheet height as a share of the phone, default 0.6),
- *  or full?: true for a full-height overlay (kit FullSheet: X top-left, swipe down to close; snap is ignored). */
+ *  or full?: true for a full-height overlay (kit FullSheet: X top-left, swipe down to close; snap is ignored),
+ *  plus fit?: true to size that overlay to its content instead of the full height. */
 export const sheet = (id, def) => register(sheets, 'sheet', id, def);
 
 const panels = new Map();  // tab id -> {Component({close})}

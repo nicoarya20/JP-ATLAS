@@ -59,6 +59,7 @@ Kit (`import { ... } from '../../kit'`):
   - `Head`: a section heading.
 - `Sheet`: props `title`, `sub`, `actions`. Use it as the root of every sheet component.
 - `FullSheet`: the full-height overlay PhoneApp draws for sheets registered with `full: true`; you do not render it yourself.
+  Add `fit: true` to size it to its content instead (still capped at full height), as `home.create` does.
   - It slides up below the status bar and closes with the X in its top-left corner, Escape, a tap on the dim, or a swipe down
     (past a quarter of its height, or a quick flick).
   - The swipe starts on the grabber bar and on any element the content marks with `data-sheet-drag`.

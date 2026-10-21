@@ -10,6 +10,8 @@
   border-radius: var(--radius-card) var(--radius-card) 0 0; box-shadow: var(--glass-shadow); outline: none;
   transform: translateY(var(--fs-drag, 0px)); transition: transform 420ms cubic-bezier(0.32, 0.72, 0, 1);
   animation: fs-up 450ms cubic-bezier(0.32, 0.72, 0, 1); }
+/* fit: as tall as the content, capped at the full-height top; same motion, dim and gestures */
+.fs.is-fit { top: auto; max-height: calc(100% - 52px); }
 .fs.is-dragging { transition: none; }
 .fs[data-state="closed"] { animation: fs-down 300ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
 
@@ -24,6 +26,7 @@
 .fs-x:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .fs [data-sheet-drag] { touch-action: none; }
 .fs-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--sp-5) var(--sp-8); }
+.fs-body > .sheet { padding: 0; }   /* a kit <Sheet> inside: the body already gives the side inset */
 
 @keyframes fs-up { from { transform: translateY(100%); } }
 @keyframes fs-down { from { transform: translateY(var(--fs-drag, 0px)); } to { transform: translateY(100%); } }

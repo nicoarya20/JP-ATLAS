@@ -56,7 +56,7 @@ function OpenSheet() {
         )}
       </BottomSheet>
       {full && (
-        <FullSheet open={!!def?.full} onClose={closeSheet} title={titleOf(full.def)}>
+        <FullSheet open={!!def?.full} onClose={closeSheet} title={titleOf(full.def)} fit={!!full.def.fit}>
           <full.def.Component key={full.id} params={full.params} />
         </FullSheet>
       )}

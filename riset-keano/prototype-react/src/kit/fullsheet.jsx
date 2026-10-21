@@ -83,8 +83,9 @@ const keepOwnEscape = e => {
   if (e.target?.closest?.('[data-own-escape]')) e.preventDefault();
 };
 
-/** Full-height sheet. open; onClose(); title = accessible dialog name (visually hidden); children = scrolling body. */
-export function FullSheet({ open, onClose, title, children }) {
+/** Full-height sheet. open; onClose(); title = accessible dialog name (visually hidden); fit = as tall as its content
+ *  (up to full height) instead of full height; children = scrolling body. */
+export function FullSheet({ open, onClose, title, fit = false, children }) {
   const sheetRef = useRef(null);
   const dimRef = useRef(null);
   const swipe = useSwipeDown(sheetRef, dimRef, onClose);
@@ -92,7 +93,7 @@ export function FullSheet({ open, onClose, title, children }) {
     <Dialog.Root open={open} onOpenChange={o => { if (!o) onClose(); }}>
       <Dialog.Portal>
         <Dialog.Overlay ref={dimRef} className="fs-dim" />
-        <Dialog.Content ref={sheetRef} className="fs" aria-describedby={undefined} onEscapeKeyDown={keepOwnEscape} {...swipe}>
+        <Dialog.Content ref={sheetRef} className={fit ? 'fs is-fit' : 'fs'} aria-describedby={undefined} onEscapeKeyDown={keepOwnEscape} {...swipe}>
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
           <div className="fs-bar" data-sheet-drag="">
             <span className="fs-grab" aria-hidden="true" />
