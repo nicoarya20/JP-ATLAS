@@ -1,6 +1,6 @@
 # P11 — Rencana eksekusi: Area Admin (`/dashboard`)
 
-> 21 Okt 2026 · tahap 2 · **RENCANA, belum ada kode.** Cabang rencana `plan/p11-area-admin`. Mengikat: `../KEPUTUSAN-MVP-INTI.md` > `../JADWAL-S3-S8.md` > dokumen ini. Lahir dari diskusi user 21 Okt 2026 (pertanyaan: "menu apa saja di area Admin, dan kenapa"). Fondasi kode menang atas desain; kutipan `path:baris` adalah yang dibaca di worktree `feature/project-management` pada tanggal itu. Tanda **ASUMSI** = belum diverifikasi.
+> 21 Okt 2026 · tahap 2 · **Gelombang 1 sudah dikerjakan** (AD-01 dan AD-02 selesai dan ter-merge ke `plan/p11-area-admin` @ `97a578b`, 21 Okt 2026); AD-03..AD-19 masih rencana. Cabang induk lajur ini `plan/p11-area-admin`. Mengikat: `../KEPUTUSAN-MVP-INTI.md` > `../JADWAL-S3-S8.md` > dokumen ini. Lahir dari diskusi user 21 Okt 2026 (pertanyaan: "menu apa saja di area Admin, dan kenapa"). Fondasi kode menang atas desain; kutipan `path:baris` adalah yang dibaca di worktree `feature/project-management` pada tanggal itu. Tanda **ASUMSI** = belum diverifikasi.
 
 ## 1. Ringkasan
 
@@ -8,7 +8,7 @@
 - **Garis batas yang disepakati user (21 Okt 2026):** area super-admin = **teknis/developer** (infrastruktur, dikerjakan saat ada yang rusak); area Admin = **kebijakan kantor**. Konsekuensinya: apa pun yang mengubah tampilan/perilaku untuk semua role adalah milik Admin, bukan super-admin. Ini menutup pertanyaan "pindah vs duplikasi" — jawabannya **pindah**.
 - **Pengalih area jadi tiga entri setara**: `App · Admin · Super-admin`. Tautan dalam (`Antrean persetujuan`) dan `Pengaturan akun` keluar dari grup itu.
 - **19 tugas, AD-01..AD-19**, total ≈ **33 hari-orang AI** + reviewer ≈ 4, dibagi tiga tahap yang bisa dirilis sendiri-sendiri.
-- **Satu migrasi** (usulan `0021`): kolom settings untuk Pengumuman dan Kebijakan kerja. Butuh baton, antre setelah `0017`-`0020` (P5/P6/P10).
+- **Satu migrasi** (**`0022`** — dikoreksi 21 Okt 2026: `0021` sudah dipakai `0021_leave_request.sql`): kolom settings untuk Pengumuman dan Kebijakan kerja. Butuh baton, antre setelah `0017`-`0021`.
 - **Lajur ini hampir tidak menyentuh kode `/app`**, jadi bisa jalan paralel dengan S6/S7 alih-alih menunggu giliran. Lihat §10 Q1.
 - **Semua pertanyaan §10 (Q1-Q8) sudah dijawab user 21 Okt 2026.** Rencana ini siap dieksekusi begitu baton migrasi dan kuota worker memungkinkan.
 
@@ -34,7 +34,7 @@
 | Scope kunci API | `settings:read`/`settings:write` sudah ada dan terpetakan | `server/api-keys/scopes.ts:74,80,168-176` |
 | Daftar proyek | `listProjects(...)` sudah ada — **titik sambung menu Proyek**, tinggal cakupan Admin | `server/project/project-list.query.ts:108` |
 | Tes penjaga | `tests/admin-routes.test.ts` memaksa **tiap** berkas `routes/admin/**` yang merender punya `meta()` **dan** guard ber-`ROLES.ADMIN`. Halaman baru otomatis dijaga — tidak perlu tes rute baru | `tests/admin-routes.test.ts:14-37` |
-| **ASUMSI** | `CONSOLE_PAGES`/`CONSOLE_PAGE_COUNT` hanya menghitung halaman `/dev`, bukan `/dashboard` — belum dicek. Bila ternyata ikut, tiap halaman Admin baru = satu tempat tambahan | `app/components/landing/landing.content.ts`; `server/landing-stats.ts` |
+| ~~ASUMSI~~ **ditutup 21 Okt 2026** | `CONSOLE_PAGE_COUNT` hanya menghitung halaman `/dev` — tesnya menurunkan angka itu dari `countDevPages(routes)`. Halaman `/dashboard` baru **tidak** menambah tempat sunting | `server/landing-stats.ts:7`; `tests/landing-stats.test.ts:21` |
 
 ## 3. Lingkup & non-lingkup
 
@@ -88,7 +88,7 @@ AREA LAIN
 
 ## 5. Data & API
 
-**Migrasi `0021`** (butuh baton, antre setelah `0017`-`0020`)
+**Migrasi `0022`** (butuh baton, antre setelah `0017`-`0021`; **bukan `0021`** — nomor itu sudah dipakai `0021_leave_request.sql`)
 
 | Kolom | Tabel | Untuk |
 |---|---|---|
@@ -136,7 +136,7 @@ Rute + tab shell + `meta()` + guard. `tests/admin-routes.test.ts` otomatis menja
 ### AD-04 · Tab Identitas · Dep: AD-03 · S (1)
 Pakai ulang `BrandingCard.tsx`.
 
-### AD-05 · Pengumuman: migrasi 0021 + API + banner semua area · Dep: AD-02 · L (2,5) · **baton migrasi**
+### AD-05 · Pengumuman: migrasi 0022 + API + banner semua area · Dep: AD-02 · L (2,5) · **baton migrasi**
 Banner ikut `frameInfo()` seperti maintenance. Menyentuh `AppFrame` → wajib `smoke:prod` + `smoke:binary`.
 
 ### AD-06 · Tab Akses masuk · Dep: AD-03 · M (1,5) · PARALEL dgn AD-04
@@ -199,14 +199,14 @@ Definisi selesai per tugas mengikuti `README.md` §3 tanpa pengecualian. Tugas y
 
 | # | Risiko | Mitigasi |
 |---|---|---|
-| R1 | **Baton migrasi** `0021` bertabrakan dengan `0017`-`0020` (P5/P6/P10) | AD-05 pemegang baton tunggal; jangan luncurkan bersamaan dengan tugas bermigrasi lain |
+| R1 | **Baton migrasi** `0022` bertabrakan dengan migrasi lajur produk | AD-05 pemegang baton tunggal; jangan luncurkan bersamaan dengan tugas bermigrasi lain. `0021` sudah terpakai (`leave_request`), jadi nomor bebas berikutnya `0022` — periksa ulang `server/db/migrations/` sebelum `db:generate` |
 | R2 | **AD-03 melonggarkan guard** — salah tulis = eskalasi hak | Persetujuan user satu per satu, tes negatif member/PM/admin wajib, diff ditinjau manual |
 | R3 | Pengumuman menyentuh `AppFrame` → semua area ikut terpengaruh | Smoke prod + binary; banner gagal-lunak (gagal baca = tidak tampil, bukan layar putih) |
 | R4 | Kebijakan kerja diam-diam mengubah perhitungan tenggat S1/S2 | Fase 1 simpan + tampilkan saja (Q5). Perubahan perhitungan = rencana terpisah |
 | R5 | Ekspor data memuat seluruh tabel ke memori | Streaming + paginasi wajib; rate limit; diaudit |
 | R6 | Daftar proyek N+1 saat mengambil Pengelola | Join/batch, bukan loop; paginasi wajib |
 | R7 | Super-admin bingung setelan "hilang" dari `/dev` | Baris penunjuk di `/dev/settings` + entri Admin di pengalih area (AD-01) |
-| R8 | **ASUMSI** `CONSOLE_PAGE_COUNT` ikut menghitung halaman `/dashboard` | Dicek di AD-02; bila ya, tiap halaman baru = satu tempat tambahan + tes sinkron |
+| ~~R8~~ | ~~**ASUMSI** `CONSOLE_PAGE_COUNT` ikut menghitung halaman `/dashboard`~~ | **Ditutup 21 Okt 2026 (koordinator):** hanya menghitung halaman `/dev` lewat `countDevPages(routes)`. Tidak ada tempat sunting tambahan; dibuktikan ulang oleh suite hijau di AD-02 |
 
 ## 9. Kontradiksi baru & dampak ke dokumen lain
 
