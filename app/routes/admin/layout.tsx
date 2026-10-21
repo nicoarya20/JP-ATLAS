@@ -3,7 +3,15 @@ import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { getSidebarCollapsed } from '@server/sidebar';
 import { adminSidebarBadges } from '@server/sidebar-badges';
-import { FiGrid, FiHome, FiLayers, FiSettings, FiUsers } from 'react-icons/fi';
+import {
+  FiDownload,
+  FiGrid,
+  FiHome,
+  FiLayers,
+  FiSettings,
+  FiShield,
+  FiUsers,
+} from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
@@ -14,9 +22,16 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: 'Admin — Simple PM' }];
 }
 
-const NAV: NavItem[] = [
+/**
+ * Admin menu, in reading order. Peran & izin and Ekspor data stand on their own since AD-20 (user
+ * decision 21 Oct 2026): a report and a tool are not settings, and eight tabs did not fit a
+ * 1366px laptop. Proyek and Aktivitas join later (AD-12, AD-18).
+ */
+export const NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: FiHome },
   { to: '/dashboard/users', label: 'Pengguna', icon: FiUsers },
+  { to: '/dashboard/permissions', label: 'Peran & izin', icon: FiShield },
+  { to: '/dashboard/export', label: 'Ekspor data', icon: FiDownload },
   { to: '/dashboard/settings', label: 'Pengaturan', icon: FiSettings },
 ];
 
