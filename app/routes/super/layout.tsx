@@ -21,14 +21,11 @@ import {
   FiTag,
   FiTerminal,
   FiTool,
-  FiUser,
-  FiUserCheck,
   FiUsers,
 } from 'react-icons/fi';
 import { Outlet } from 'react-router';
 import { AppFrame, type NavGroup, type NavItem } from '~/components/AppFrame';
 import { AreaErrorBoundary } from '~/components/errors/AreaErrorBoundary';
-import { withBadges } from '~/components/frame/nav';
 import { ProxySetupBanner } from '~/components/frame/ProxySetupBanner';
 import type { AppContext } from '~/lib/app-context';
 import type { Route } from './+types/layout';
@@ -148,16 +145,12 @@ const NAV: NavGroup[] = [
     ],
   },
 ];
-const OTHER: NavItem[] = [
+// "Area lain" lists the three areas minus the one open here (Super-admin), always in the same
+// order: App, Admin, Super-admin. The approval queue is no longer a deep link from here — its
+// badge stays on the Admin area's Pengguna menu — and account settings sit in the avatar menu.
+export const OTHER: NavItem[] = [
   { to: '/app', label: 'App', icon: FiLayers },
-  { to: '/dashboard', label: 'Dashboard', icon: FiHome },
-  {
-    to: '/dashboard/users',
-    label: 'Antrean persetujuan',
-    icon: FiUserCheck,
-    description: 'Akun baru yang menunggu persetujuan',
-  },
-  { to: '/app/settings', label: 'Pengaturan akun', icon: FiUser },
+  { to: '/dashboard', label: 'Admin', icon: FiHome },
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -183,7 +176,7 @@ function Frame({
   return (
     <AppFrame
       navItems={NAV}
-      secondaryNav={withBadges([{ items: OTHER }], data.navBadges)[0].items}
+      secondaryNav={OTHER}
       navBadges={data.navBadges}
       consoleLabel="Dev Console"
       env={data.env}
