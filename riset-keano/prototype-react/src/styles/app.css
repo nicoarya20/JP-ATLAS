@@ -92,11 +92,11 @@ h1, h2, h3 { margin: 0; }
 .empty { padding: var(--sp-8) var(--sp-4); justify-items: center; }
 .empty-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
 .field { display: grid; gap: var(--sp-1); }
-.field-area { font: inherit; font-size: var(--fs-body); padding: var(--sp-3); border-radius: var(--radius-sm); border: 0;
+.field-area { font: inherit; font-size: var(--fs-body); padding: var(--sp-3); border-radius: var(--radius-sm); border: 1px solid var(--control);
   background: var(--fill); color: var(--label); resize: vertical; }
 .sheet { padding: 0 var(--sp-4) var(--sp-6); }
 .select { display: inline-flex; align-items: center; gap: var(--sp-1); max-width: 100%; padding: 6px var(--sp-3);
-  border: 0; border-radius: 999px; background: var(--fill); color: var(--label); font-size: var(--fs-subhead); cursor: pointer; }
+  border: 1px solid var(--control); border-radius: 999px; background: var(--fill); color: var(--label); font-size: var(--fs-subhead); cursor: pointer; }
 .select.block { display: flex; width: 100%; justify-content: space-between; border-radius: var(--radius-sm); padding: var(--sp-3); font-size: var(--fs-body); }
 .select-native { position: relative; }
 .select-native:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }

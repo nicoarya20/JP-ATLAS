@@ -21,7 +21,8 @@
 .tk-chev { flex: none; margin-top: 2px; }
 .tk-meta { margin-top: var(--sp-1); }
 .tk-tick { display: inline-flex; }
-/* Kanban (tasks.board): columns hug their cards; status badge tinted by --tone; compact cards with chip row. */
+/* Kanban (tasks.board): columns hug their cards; status badge = Atlas status pair (--tone on --tone-bg, plus the
+   status text); compact cards with chip row. */
 /* Free horizontal scroll, no scroll-snap: mandatory snap pulled any drag under half a column back to To do. */
 .tk-board { display: flex; align-items: flex-start; gap: var(--sp-3); overflow-x: auto;
   margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
@@ -29,13 +30,13 @@
   padding: var(--sp-2); border-radius: var(--radius-card); background: var(--fill); }
 .tk-col-head { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1); margin: 0; }
 .tk-badge { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 2px var(--sp-2); border-radius: var(--radius-sm);
-  font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; color: var(--tone);
-  background: color-mix(in srgb, var(--tone) 18%, transparent); }
-.tk-tone-todo { --tone: var(--label-2); }
-.tk-tone-progress { --tone: var(--accent); }
-.tk-tone-review { --tone: var(--warning); }
-.tk-tone-done { --tone: var(--success); }
-/* Task cards sit as cards inside the column card: raised surface, so they stay apart in dark too. */
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; color: var(--tone); background: var(--tone-bg); }
+/* To do has no Atlas status: muted text on surface, so it still reads as a chip on the raised column. */
+.tk-tone-todo { --tone: var(--label-2); --tone-bg: var(--surface); }
+.tk-tone-progress { --tone: var(--info); --tone-bg: var(--info-bg); }
+.tk-tone-review { --tone: var(--warning); --tone-bg: var(--warning-bg); }
+.tk-tone-done { --tone: var(--success); --tone-bg: var(--success-bg); }
+/* Task cards on the raised column: surface with the card's line edge (library.css), so they stay apart in dark too. */
 .tk-kcard.card.react-cupertino-ui-card { --card-padding-block: var(--sp-3); --card-padding-inline: var(--sp-3);
   position: relative; background: var(--surface-raised); transition: opacity 200ms ease, box-shadow 120ms ease; }
 /* Select (tasks.board): a tick in the card's corner; picked cards get an accent ring; cards in the move stack leave
