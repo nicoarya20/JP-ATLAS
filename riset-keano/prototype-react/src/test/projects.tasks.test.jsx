@@ -1,5 +1,6 @@
 // Project detail ⑨ Tasks: List / Kanban swaps the view inside the project (header and tabs stay) instead of opening
-// the global ③ Kanban, and the Kanban view survives opening a task and coming back.
+// the global ③ Kanban, and the Kanban view survives opening a task and coming back. Search and Filter & sort are the
+// Tasks menu's, with Assignee in place of the (fixed) Project field.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
@@ -10,6 +11,11 @@ import { renderApp } from './render';
 const tab = name => dom.getByRole('tab', { name });
 const col = status => dom.getByRole('region', { name: new RegExp(`^${status}, `) });
 const atlasTasks = () => D.tasks.filter(t => t.project === D.project('atlas').name);
+const atlasActive = () => atlasTasks().filter(t => t.status !== 'Done');
+const icon = () => dom.getByRole('button', { name: 'Filter and sort' });
+const openFilter = () => { fireEvent.click(icon()); return within(dom.getByRole('dialog')); };
+const apply = sheet => fireEvent.click(sheet.getByRole('button', { name: 'Apply' }));
+const shown = t => !!dom.queryByText(t.title);
 const press = (el, type, dx = 0) =>
   fireEvent[type](el, { pointerId: 1, button: 0, isPrimary: true, pointerType: 'touch', clientX: 150 + dx, clientY: 300 });
 
@@ -37,7 +43,7 @@ describe('project detail Tasks · List / Kanban', () => {
     fireEvent.click(tab('List'));
     expect(document.querySelector('.tk-board')).toBeNull();
     expect(dom.getByRole('button', { name: 'Request review' })).toBeInTheDocument();
-    expect(dom.getByText(`${atlasTasks().length} tasks`)).toBeInTheDocument();
+    expect(dom.getByText(`${atlasActive().length} tasks`)).toBeInTheDocument();
   });
 
   it('keeps the Kanban view after opening a task and going back', () => {
@@ -63,5 +69,63 @@ describe('project detail Tasks · List / Kanban', () => {
     fireEvent.click(card);
     expect(D.task(14).status).toBe('In progress');
     expect(within(col('In progress')).getByRole('button', { name: /^#14 / })).toBeInTheDocument();
+  });
+});
+
+describe('project detail Tasks · Filter & sort', () => {
+  it('has the search field and filter icon instead of the quick chips', () => {
+    renderApp('projects.tasks', 'pm');
+    expect(dom.getByPlaceholderText('Search title, #number, or tag…')).toBeInTheDocument();
+    expect(icon()).not.toHaveClass('is-on');
+    for (const c of ['My tasks', 'Overdue', 'Awaiting review']) expect(dom.queryByRole('button', { name: c })).not.toBeInTheDocument();
+  });
+
+  it('opens the Tasks overlay with Assignee in place of Project, and hides Done like the Tasks lists', () => {
+    renderApp('projects.tasks', 'pm');
+    expect(atlasActive().every(shown)).toBe(true);
+    expect(atlasTasks().filter(t => t.status === 'Done').some(shown)).toBe(false);
+    const sheet = openFilter();
+    expect(sheet.queryByRole('combobox', { name: 'Project' })).not.toBeInTheDocument();
+    expect(sheet.getByRole('button', { name: 'Anyone' })).toHaveAttribute('aria-pressed', 'true');
+    expect(sheet.getByRole('button', { name: 'Me' })).toBeInTheDocument();
+    expect(sheet.getByRole('button', { name: 'In review' })).toBeInTheDocument();
+  });
+
+  it('narrows to my tasks with Assignee · Me and shows the dot', () => {
+    renderApp('projects.tasks', 'member');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'Me' }));
+    apply(sheet);
+    const mine = atlasActive().filter(t => t.who === D.me().name);
+    expect(mine.length).toBeGreaterThan(0);
+    expect(mine.every(shown)).toBe(true);
+    expect(atlasActive().filter(t => t.who !== D.me().name).some(shown)).toBe(false);
+    expect(icon()).toHaveClass('is-on');
+    expect(window.location.hash).toBe('#projects.tasks');
+  });
+
+  it('keeps the query across List / Kanban', () => {
+    renderApp('projects.tasks', 'pm');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'In review' }));
+    apply(sheet);
+    expect(dom.getByText('1 task')).toBeInTheDocument();
+    fireEvent.click(tab('Kanban'));
+    expect(document.querySelectorAll('.tk-col .tk-kcard')).toHaveLength(1);
+    expect(icon()).toHaveClass('is-on');
+    fireEvent.click(tab('List'));
+    expect(dom.getByText('1 task')).toBeInTheDocument();
+  });
+
+  it('offers Reset filters when nothing matches', () => {
+    renderApp('projects.tasks', 'pm');
+    const sheet = openFilter();
+    fireEvent.click(sheet.getByRole('button', { name: 'In review' }));
+    fireEvent.click(sheet.getByRole('button', { name: 'Low' }));
+    apply(sheet);
+    expect(dom.getByText('No tasks match these filters.')).toBeInTheDocument();
+    fireEvent.click(dom.getByRole('button', { name: 'Reset filters' }));
+    expect(atlasActive().every(shown)).toBe(true);
+    expect(icon()).not.toHaveClass('is-on');
   });
 });

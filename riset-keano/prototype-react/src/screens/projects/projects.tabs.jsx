@@ -1,9 +1,12 @@
 // Projects ⑨–⑪: detail tabs Tasks, Phases and Members (header and tabs come from DetailScreen).
 import { List, SquareKanban } from 'lucide-react';
-import { Avatar, Btn, Chips, Link, Pill, Progress, Section, Seg, Select, StatusPill } from '../../kit';
+import { Avatar, Btn, Link, Pill, Progress, Section, Seg, Select, StatusPill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Board } from '../tasks/tasks.board';
+import { TasksSearch } from '../tasks/tasks.filter';
+import { NoMatch } from '../tasks/tasks.list';
+import { applyQuery, queryOf, queryParams } from '../tasks/tasks.query';
 import { useTaskMoves } from '../tasks/tasks.store';
 import { DetailScreen, atlas, atlasTasks, useCanEdit, useNote } from './projects.detail';
 
@@ -31,23 +34,25 @@ function TaskCard({ t, canEdit, note }) {
 }
 
 /** ⑨ Detail · Tasks. params.board = Kanban view; List / Kanban swaps the view in place, so the project header and
- *  tabs stay (the global ③ Kanban would leave the project). */
+ *  tabs stay (the global ③ Kanban would leave the project). Search and Filter & sort are the Tasks menu's (status,
+ *  assignee, priority, sort in the screen params); List / Kanban keeps that query, as it does there. */
 export function ProjectsTasks({ params }) {
   const { go } = useApp(), board = !!params?.board;
   useTaskMoves();
-  const canEdit = useCanEdit(), note = useNote(), list = atlasTasks();
+  const canEdit = useCanEdit(), note = useNote(), list = applyQuery(atlasTasks(), queryOf(params, false, true), board);
+  const view = i => go('projects.tasks', { params: { ...queryParams(params), ...(i ? { board: true } : {}) } });
   return (
     <DetailScreen on={1}>
-      <Chips items={['All', 'My tasks', 'Overdue', 'Awaiting review']} />
+      <TasksSearch inProject />
       <div className="between">
         <div className="pj-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]} on={board ? 1 : 0}
-          onPick={i => go('projects.tasks', { params: i ? { board: true } : {} })} /></div>
+          onPick={view} /></div>
         <Btn kind="primary" sm go="tasks.form">+ New task</Btn>
       </div>
-      {board ? <Board tasks={list} /> : <>
+      {board ? <Board tasks={list} /> : list.length ? <>
         {list.map(t => <TaskCard key={t.no} t={t} canEdit={canEdit} note={note} />)}
-        <span className="t-subhead muted">{list.length} tasks</span>
-      </>}
+        <span className="t-subhead muted">{list.length} {list.length === 1 ? 'task' : 'tasks'}</span>
+      </> : <NoMatch />}
     </DetailScreen>
   );
 }

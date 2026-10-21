@@ -66,7 +66,7 @@ const weekLeft = (7 - TODAY.getDay()) % 7;
 const groupOf = t => { const d = days(t.due); return t.status === 'Done' ? 5 : d < 0 ? 0 : d <= 1 ? d + 1 : d <= weekLeft ? 3 : 4; };
 
 /** Shown when the query leaves a list empty: Reset filters re-opens the list with its default query. */
-function NoMatch() {
+export function NoMatch() {
   const { current, params, go } = useApp();
   return (
     <Empty icon={<SearchX size={28} role="img" aria-label="No matches" />} title="No tasks match these filters."

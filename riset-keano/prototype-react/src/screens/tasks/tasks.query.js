@@ -1,19 +1,22 @@
 // Tasks ①b: the Filter & sort query — its options, the default per list, and applying it to a task list.
-// A query lives in the list screen's params ({status, project, priority, sort}), so Apply is a go() to the same screen.
+// A query lives in the list screen's params ({status, project, priority, sort, who}), so Apply is a go() to the same screen.
 import { D } from '../../data/sample';
-import { atlas, days } from './tasks.shared';
+import { assigned, atlas, days } from './tasks.shared';
 
 /** Overlay options; index 0 is the default. Kept out of the .jsx so the overlay file stays Fast Refresh friendly. */
 export const STATUSES = ['All active', 'To do', 'In progress', 'In review', 'Done'];
 export const PRIORITIES = ['All', 'High', 'Medium', 'Low'];
 export const SORTS = ['Due date', 'Priority', 'Recently updated', 'Title (A–Z)'];
 export const SORT_DUE = 0;
+/** Assignee filter, only offered on a project's Tasks tab (the Tasks menu has its own My / All switch). */
+export const ASSIGNEES = ['Anyone', 'Me'];
 
-const KEYS = ['status', 'project', 'priority', 'sort'];
+const KEYS = ['status', 'project', 'priority', 'sort', 'who'];
 const RANK = { High: 0, Medium: 1, Low: 2 };
 
-/** Query a list starts with: My tasks spans every project (project ''), All tasks is scoped to Atlas. */
-export const baseQuery = mine => ({ status: 0, project: mine ? '' : atlas().id, priority: 0, sort: SORT_DUE });
+/** Query a list starts with: My tasks spans every project (project ''), All tasks is scoped to Atlas.
+ *  inProject = a project's Tasks tab, whose list is that project already, so it starts with no project filter either. */
+export const baseQuery = (mine, inProject) => ({ status: 0, project: mine || inProject ? '' : atlas().id, priority: 0, sort: SORT_DUE, who: 0 });
 
 /** Only the query keys of a params object (screen params also carry e.g. the board's `mine`). */
 export const queryParams = params => Object.fromEntries(KEYS.filter(k => params?.[k] != null).map(k => [k, params[k]]));
@@ -22,10 +25,10 @@ export const queryParams = params => Object.fromEntries(KEYS.filter(k => params?
 export const withoutQuery = params => Object.fromEntries(Object.entries(params || {}).filter(([k]) => !KEYS.includes(k)));
 
 /** Query from screen params, defaults filled in. */
-export const queryOf = (params, mine) => ({ ...baseQuery(mine), ...queryParams(params) });
+export const queryOf = (params, mine, inProject) => ({ ...baseQuery(mine, inProject), ...queryParams(params) });
 
 /** True when the query narrows the list (the dot on the filter icon); the sort order alone does not count. */
-export const isFiltered = q => !!(q.status || q.project || q.priority);
+export const isFiltered = q => !!(q.status || q.project || q.priority || q.who);
 
 const byDue = (a, b) => days(a.due) - days(b.due);
 const COMPARE = [
@@ -42,5 +45,6 @@ export function applyQuery(tasks, q, board = false) {
     .filter(t => (q.status ? t.status === STATUSES[q.status] : board || t.status !== 'Done'))
     .filter(t => !name || t.project === name)
     .filter(t => !q.priority || t.priority === PRIORITIES[q.priority])
+    .filter(t => !q.who || assigned(t, D.me().name))
     .sort(COMPARE[q.sort]);
 }
