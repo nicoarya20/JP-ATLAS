@@ -105,8 +105,8 @@
   --seg-thumb: var(--atlas-surface);     /* segmented control selected thumb */
   --switch-thumb: #ffffff;
   /* Pop-ups over a dim (Kanban move menu: status options, hint, card stack). Light: white lifts off the dim by its
-     shadow. Dark: a shadow can't show on navy and surface matches the dimmed board, so they take raised + a line edge,
-     and each status option is filled with its own status -bg (--pop-tint). */
+     shadow. Dark: a shadow can't show on navy and surface matches the dimmed board, so the hint and card stack take
+     raised + a line edge, and each status option is filled with its own status -bg (--pop-tint), no edge. */
   --pop-bg: var(--atlas-surface);
   --pop-edge: transparent;
   --pop-ring: var(--atlas-surface);      /* the move menu's ring track */

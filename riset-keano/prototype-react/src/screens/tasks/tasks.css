@@ -90,7 +90,7 @@
   min-height: 44px; padding: 0 var(--sp-3); border: 0; border-radius: 999px; white-space: nowrap; cursor: pointer;
   font: inherit; font-size: var(--fs-subhead); font-weight: 600; color: var(--tone);
   background: color-mix(in srgb, var(--tone-bg) var(--pop-tint), var(--pop-bg));
-  box-shadow: var(--glass-shadow), inset 0 0 0 1px var(--pop-edge); translate: calc(-50% + var(--dx)) calc(-50% + var(--dy));
+  box-shadow: var(--glass-shadow); translate: calc(-50% + var(--dx)) calc(-50% + var(--dy));
   transition: scale 120ms ease, color 120ms ease, background-color 120ms ease; animation: tk-radial-pop 200ms ease-out backwards; }
 .tk-radial-up { --dx: 0px; --dy: calc(var(--r) * -1); }
 .tk-radial-right { --dx: var(--r); --dy: 0px; animation-delay: 25ms; }
