@@ -76,15 +76,18 @@ export function AppTabBar({ active }) {
 
 /**
  * Top bar. back = true shows an iOS chevron (pops history); the library's own back button is an arrow plus a
- * "Back" label, so we draw ours in leftItems. left/right = extra items.
+ * "Back" label, so we draw ours in leftItems. On a modal screen the back is a "Cancel" text button instead (it slides
+ * the screen down). left/right = extra items.
  */
-export function NavBar({ title = '', sub, back, left, right, large }) {
+export function NavBar({ title = '', sub, back, left, right, large, modal = false }) {
   const { back: pop } = useApp();
-  const chevron = back && (
+  const chevron = back && (modal ? (
+    <button type="button" className="nav-cancel" onClick={() => pop()}>Cancel</button>
+  ) : (
     <button type="button" className="back-button nav-back" aria-label="Back" onClick={() => pop()}>
       <ChevronLeft size={30} strokeWidth={2.2} aria-hidden="true" />
     </button>
-  );
+  ));
   return (
     <NavigationBar title={title} subtitle={sub} large={large} leftItems={<>{chevron}{left}</>} rightItems={right} />
   );
@@ -96,12 +99,16 @@ export function NavBar({ title = '', sub, back, left, right, large }) {
  */
 export const TabBarHost = createContext(null);
 
+/** Set by PhoneApp around a modal screen (registry modal: true): {enter, closing}. Screen turns it into the slide classes. */
+export const ModalScreen = createContext(null);
+
 /**
  * One phone screen: nav bar (or a custom `header`), scrolling content, optional tab bar.
  * props: {title, sub, back, left, right, large, header, tab, className (extra content classes), children}.
  */
 export function Screen({ title, sub, back, left, right, large, header, tab, className = '', children }) {
   const host = useContext(TabBarHost);
+  const modal = useContext(ModalScreen);
   // Layout effect: the host bar switches tabs in the same frame the screen appears. A leaving screen clears it, and the
   // next screen's set lands in the same commit, so the bar never unmounts between two tab screens.
   useLayoutEffect(() => {
@@ -110,8 +117,8 @@ export function Screen({ title, sub, back, left, right, large, header, tab, clas
     return () => host(null);
   }, [host, tab]);
   return (
-    <div className="scr">
-      {header ?? <NavBar title={title} sub={sub} back={back} left={left} right={right} large={large} />}
+    <div className={modal ? `scr is-modal${modal.enter ? ' is-modal-enter' : ''}${modal.closing ? ' is-modal-closing' : ''}` : 'scr'}>
+      {header ?? <NavBar title={title} sub={sub} back={back} left={left} right={right} large={large} modal={!!modal} />}
       <main className={`content stack ${tab ? 'with-tabbar' : ''} ${className}`.trim()}>{children}</main>
       {tab && !host && <AppTabBar active={tab} />}
     </div>

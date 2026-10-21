@@ -1,7 +1,7 @@
 // Events screens follow the event in their params: cards open their own detail, Edit fills the form with it, Cancel
 // marks it, recording needs consent, and Step 3 creates the outcome tasks before showing the confirmed results.
 import { afterEach, describe, expect, it } from 'vitest';
-import { fireEvent, screen as dom } from '@testing-library/react';
+import { fireEvent, screen as dom, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '../screens';
 import { D } from '../data/sample';
@@ -12,7 +12,8 @@ import { renderApp } from './render';
 afterEach(() => { resetEvents(); resetTasks(); });
 
 const btn = name => dom.getByRole('button', { name });
-const title = () => document.querySelector('.react-cupertino-ui-navigation-bar').textContent;
+// the shown screen's bar, not the one of a screen drawn inert under a modal form
+const title = () => document.querySelector('.phone-app > .scr .react-cupertino-ui-navigation-bar .title-compact').textContent;
 const openCard = text => fireEvent.click(dom.getByText(text).closest('[role="button"]'));
 
 describe('events by item', () => {
@@ -24,7 +25,7 @@ describe('events by item', () => {
     expect(dom.getByText('Online')).toBeInTheDocument();
   });
 
-  it('Edit fills the form with the event; Save updates it and goes back to the detail', () => {
+  it('Edit fills the form with the event; Save updates it and goes back to the detail', async () => {
     renderApp('events.detail-upcoming', 'pm');
     fireEvent.click(btn('Edit'));
     expect(title()).toBe('Edit event');
@@ -32,7 +33,7 @@ describe('events by item', () => {
     fireEvent.change(field, { target: { value: 'Onboarding review v2' } });
     fireEvent.click(btn('Save'));
     expect(dom.getByText('Event updated')).toBeInTheDocument();
-    expect(title()).toBe('Event detail');
+    await waitFor(() => expect(title()).toBe('Event detail'));   // the modal form slides down first
     expect(dom.getByText('Onboarding review v2')).toBeInTheDocument();
     expect(D.event('review').editor).toBe('Nico');
   });

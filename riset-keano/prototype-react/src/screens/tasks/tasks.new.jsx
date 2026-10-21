@@ -1,6 +1,7 @@
 // Tasks ⑤ and ⑦: new task by writing (AI draft) and the CSV import preview; ⑥ Fill form lives in tasks.form.jsx.
 import { Sparkles } from 'lucide-react';
 import { Btn, Chips, Link, Pill, Section, Seg } from '../../kit';
+import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, SelectField, Tick } from './tasks.parts';
 import { atlas } from './tasks.shared';
@@ -24,6 +25,7 @@ function DraftCard({ d }) {
 
 /** ⑤ New task · Just write — AI drafts tasks from a story; nothing is saved before Save. */
 export function TasksWrite() {
+  const { go } = useApp();
   const QW = D.quickWrite, n = QW.drafts.length;
   const foot = (
     <Foot>
@@ -33,7 +35,7 @@ export function TasksWrite() {
   );
   return (
     <FootScreen title="New task" foot={foot}>
-      <Seg items={['Just write ✦', 'Fill form']} on={0} gos={['', 'tasks.form']} />
+      <Seg items={['Just write ✦', 'Fill form']} on={0} onPick={i => i === 1 && go('tasks.form', { top: true })} />
       <SelectField label="Project">{atlas().name}</SelectField>
       <textarea className="field-area" defaultValue={QW.text} rows={4} aria-label="What needs to be done" />
       <div className="between">

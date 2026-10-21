@@ -18,10 +18,11 @@ html { -webkit-tap-highlight-color: transparent; }
 .hm-stat:active, .ev-date:active, .ev-arrow:active, .react-cupertino-ui-suggestion-chip:active:not(:disabled) { transform: scale(var(--press-scale)); transition-duration: var(--press-in); }
 .react-cupertino-ui-card[data-interactive="true"]:active { transform: scale(0.98); transition-duration: var(--press-in); }
 
-.link, .react-cupertino-ui-navigation-bar .back-button, .react-cupertino-ui-tabs__trigger,
+.link, .react-cupertino-ui-navigation-bar .back-button, .react-cupertino-ui-navigation-bar .nav-cancel, .react-cupertino-ui-tabs__trigger,
 .react-cupertino-ui-segmented-control__option {
   transition: opacity var(--press-out) ease; }
-.link:active, .react-cupertino-ui-navigation-bar .back-button:active, .react-cupertino-ui-tabs__trigger:active,
+.link:active, .react-cupertino-ui-navigation-bar .back-button:active, .react-cupertino-ui-navigation-bar .nav-cancel:active,
+.react-cupertino-ui-tabs__trigger:active,
 .react-cupertino-ui-segmented-control__option:active {
   opacity: var(--press-dim); transition-duration: var(--press-in); }
 

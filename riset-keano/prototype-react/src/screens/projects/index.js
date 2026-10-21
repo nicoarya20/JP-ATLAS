@@ -15,7 +15,7 @@ const MANAGERS = ['pm', 'admin'];
 
 screen('projects.list', { title: () => (getRole() === 'admin' ? '① All projects (Admin)' : '① All projects'), group: G, Component: ProjectsList });
 sheet('projects.filter', { title: '①b Overlay · Filter & sort', group: G, full: true, Component: ProjectsFilter });
-screen('projects.new', { title: '③ New project · choose method', group: G, roles: MANAGERS, Component: ProjectsNew });
+screen('projects.new', { title: '③ New project · choose method', group: G, roles: MANAGERS, modal: true, Component: ProjectsNew });
 screen('projects.form', { title: '④ Project form', group: G, roles: MANAGERS, Component: ProjectsForm });
 screen('projects.story', { title: '⑤ Tell us about the project', group: G, roles: MANAGERS, Component: ProjectsStory });
 screen('projects.draft', { title: '⑥ Review AI draft', group: G, roles: MANAGERS, Component: ProjectsDraft });

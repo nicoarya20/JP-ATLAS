@@ -1,5 +1,5 @@
 // Screen/sheet registry. Screen modules call screen()/sheet() at import time; the router and the index read from here.
-const screens = new Map(); // id -> {title, group, roles?, Component}
+const screens = new Map(); // id -> {title, group, roles?, modal?, Component}
 const sheets = new Map();  // id -> {title, group, roles?, snap?, full?, fit?, Component}
 
 function register(map, kind, id, def) {
@@ -8,7 +8,8 @@ function register(map, kind, id, def) {
   map.set(id, def);
 }
 
-/** Register a full screen. def: {title (string | () => string), group, roles?: ['pm', ...], Component}. */
+/** Register a full screen. def: {title (string | () => string), group, roles?: ['pm', ...], modal?: true, Component}.
+ *  modal = a create/edit flow: slides up over the screen it opened from, Cancel instead of the back chevron, slides down on back. */
 export const screen = (id, def) => register(screens, 'screen', id, def);
 /** Register a bottom sheet. def: same as a screen, plus snap?: 0..1 (sheet height as a share of the phone, default 0.6),
  *  or full?: true for a full-height overlay (kit FullSheet: X top-left, swipe down to close; snap is ignored),

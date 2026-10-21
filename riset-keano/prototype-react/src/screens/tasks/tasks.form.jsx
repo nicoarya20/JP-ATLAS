@@ -60,7 +60,7 @@ export function TasksForm() {
   const Chevron = more ? ChevronUp : ChevronDown;
   return (
     <FootScreen title="New task" foot={foot}>
-      <Seg items={['Just write ✦', 'Fill form']} on={1} gos={['tasks.write', '']} />
+      <Seg items={['Just write ✦', 'Fill form']} on={1} onPick={i => i === 0 && go('tasks.write', { top: true })} />
       <Labelled label="Project *">
         <Select block label="Project" options={projects.map(p => ({ value: p.id, label: p.name }))} value={f.project} onChange={pickProject} />
       </Labelled>

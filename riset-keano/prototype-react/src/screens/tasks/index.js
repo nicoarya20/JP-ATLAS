@@ -18,8 +18,8 @@ sheet('tasks.filter', { title: '①b Overlay · Filter & sort', group: G, full: 
 screen('tasks.all', { title: '② All tasks (List)', group: G, Component: TasksAll });
 screen('tasks.board', { title: '③ Kanban', group: G, Component: TasksBoard });
 screen('tasks.empty', { title: '④ My tasks empty', group: G, Component: TasksEmpty });
-screen('tasks.write', { title: '⑤ New task · Just write ✦', group: G, Component: TasksWrite });
-screen('tasks.form', { title: '⑥ New task · Fill form', group: G, Component: TasksForm });
+screen('tasks.write', { title: '⑤ New task · Just write ✦', group: G, modal: true, Component: TasksWrite });
+screen('tasks.form', { title: '⑥ New task · Fill form', group: G, modal: true, Component: TasksForm });
 screen('tasks.csv', { title: '⑦ Import CSV', group: G, Component: TasksCsv });
 screen('tasks.detail-todo', { title: '⑧ Detail · To do', group: G, Component: TasksDetailTodo });
 screen('tasks.detail-progress', { title: '⑨ Detail · In progress', group: G, Component: TasksDetailProgress });

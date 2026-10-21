@@ -1,11 +1,11 @@
 // Phone shell: renders the current screen, its tab bar, the open sheet (bottom or full-height) and the toast; keeps the URL and the index in sync.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { BottomSheet, BottomSheetContent, BottomSheetTitle } from '@react-cupertino-ui/bottom-sheet';
 import { Toast } from '@react-cupertino-ui/toast';
-import { MSG, TOAST_MS, useApp } from './app.context';
+import { AsCurrent, MSG, TOAST_MS, useApp } from './app.context';
 import { getScreen, getSheet } from './registry';
 import { FullSheet } from '../kit/fullsheet';
-import { AppTabBar, TabBarHost } from '../kit/layout';
+import { AppTabBar, ModalScreen, TabBarHost } from '../kit/layout';
 
 export const DEFAULT_SHEET_SNAP = 0.6;
 
@@ -64,17 +64,44 @@ function OpenSheet() {
   );
 }
 
+/** True when the screen `key` arrived deeper than the one shown before it (a push, not a back or a swap). Decided once per screen. */
+function useArrivedByPush(key, depth) {
+  const shown = useRef({ key: null, depth: 0, push: false });
+  if (shown.current.key !== key) shown.current = { key, depth, push: depth > shown.current.depth };
+  return shown.current.push;
+}
+
+/** The screen a modal one opened from, drawn inert under it (with its own tab bar) so the modal slides over it and off it. */
+function Underlay({ entry, closing }) {
+  const Under = getScreen(entry.id).Component;
+  return (
+    <div className={`modal-under${closing ? ' is-closing' : ''}`} inert="" aria-hidden="true">
+      <AsCurrent entry={entry}>
+        <TabBarHost.Provider value={null}><Under params={entry.params} /></TabBarHost.Provider>
+      </AsCurrent>
+    </div>
+  );
+}
+
 export function PhoneApp() {
   const app = useApp();
   useUrlSync(app.current, app.role);
   useIndexMessages(app.go);
-  const Screen = getScreen(app.current).Component;
+  const def = getScreen(app.current);
+  const Screen = def.Component;
   const [tab, setTab] = useState(null);   // the shown screen's tab (via <Screen tab>); the bar lives here to outlast it
+  const pushed = useArrivedByPush(app.current, app.depth);
+  const under = def.modal ? app.under : null;
+  const modal = useMemo(() => (def.modal ? { enter: pushed && !!under, closing: app.closing } : null),
+    [def.modal, pushed, under, app.closing]);
   return (
     <div className="phone-app">
       <div className="statusbar" aria-hidden="true"><span>9:41</span></div>
+      {under && <Underlay key={under.id} entry={under} closing={app.closing} />}
       <TabBarHost.Provider value={setTab}>
-        <Screen key={app.current} params={app.params} />
+        <ModalScreen.Provider value={modal}>
+          <Screen key={app.current} params={app.params} />
+        </ModalScreen.Provider>
       </TabBarHost.Provider>
       {tab && <AppTabBar active={tab} />}
       <OpenSheet />
