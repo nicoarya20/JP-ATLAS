@@ -1,6 +1,6 @@
 // Projects ⑨–⑪: detail tabs Tasks, Phases and Members (header and tabs come from DetailScreen).
 import { List, SquareKanban } from 'lucide-react';
-import { Avatar, Btn, Chips, Link, Pill, Progress, Section, Seg, Select } from '../../kit';
+import { Avatar, Btn, Chips, Link, Pill, Progress, Section, Seg, Select, StatusPill } from '../../kit';
 import { D } from '../../data/sample';
 import { DetailScreen, atlas, atlasTasks, useCanEdit, useNote } from './projects.detail';
 
@@ -19,7 +19,7 @@ function TaskCard({ t, canEdit, note }) {
     <Section go={DETAIL[t.status]} task={t.no}>
       <div className="stack sm">
         <div className="row-flex"><span className="t-subhead muted">#{t.no}</span><span className="t-headline">{t.title}</span></div>
-        <div><Pill tone={t.status === 'Done' ? 'neutral' : 'outline'}>{t.status}</Pill></div>
+        <div><StatusPill status={t.status} /></div>
         <span className="t-subhead">{t.type} · {t.priority} · {t.who} · {t.due}</span>
         <div className="between pj-end"><span className="t-subhead bold">{note(t)}</span><Btn sm {...a}>{label}</Btn></div>
       </div>
@@ -59,7 +59,7 @@ function PhaseCard({ ph, i, canEdit }) {
         <div className="row-flex pj-top">
           <span className={`pj-num${done ? ' done' : ''}`}>{done ? '✓' : i + 1}</span>
           <span className="stack xs grow"><span className="t-headline">{ph.name}</span><span className="t-subhead muted">{ph.range}</span></span>
-          <Pill tone={now ? 'neutral' : 'outline'}>{ph.state}</Pill>
+          <StatusPill status={ph.state} />
         </div>
         {p ? (
           <div className="row-flex"><div className="grow"><Progress value={p} /></div><span className="t-subhead bold">{p}%</span></div>

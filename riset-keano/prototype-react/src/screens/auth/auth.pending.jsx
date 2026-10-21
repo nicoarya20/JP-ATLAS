@@ -1,11 +1,11 @@
 // Auth ③ Profile while awaiting admin approval: status card + profile form. No other menus until approved.
-import { Btn, Field, Media, Pill, Screen, Section } from '../../kit';
+import { Btn, Field, Media, Screen, Section, StatusPill } from '../../kit';
 
 function AuthPending() {
   return (
     <Screen title="[App Name]" right={<Btn sm go="auth.login" replace>Sign out</Btn>}>
       <Section>
-        <div className="between"><span className="bold">Your account is awaiting admin approval</span><Pill tone="warning">Pending</Pill></div>
+        <div className="between"><span className="bold">Your account is awaiting admin approval</span><StatusPill status="Pending" /></div>
         <p className="t-subhead">You can open Home once an admin approves you. Meanwhile, complete your profile below.</p>
       </Section>
       <h2 className="t-title3">My Profile</h2>

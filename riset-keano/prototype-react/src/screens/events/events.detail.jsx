@@ -4,9 +4,9 @@
 import { Camera, ChevronRight, Mic, PenLine, Repeat } from 'lucide-react';
 import { useApp, useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Avatar, Btn, Menu, Pill, Screen } from '../../kit';
+import { Avatar, Btn, Menu, Pill, Screen, StatusPill } from '../../kit';
 import { Ai, Box, Bullets, EvHead, EvSec, Note } from './events.parts';
-import { EV, REPEATS, STATUS_TONE, eventOf } from './events.shared';
+import { EV, REPEATS, eventOf } from './events.shared';
 import { useEvents } from './events.store';
 
 /** ⋯ menu: Cancel event (⑩) and Move to Archive (⑪); a recurring event opens ⑩b / ⑪b; a canceled one can only be archived. */
@@ -90,7 +90,7 @@ function Detail({ rec }) {
   return (
     <Screen back title="Event detail" right={editor ? <Menu items={menuItems(e)} label="Event actions" /> : undefined}>
       <EvHead title={e.title}>
-        <Pill tone={STATUS_TONE[status]}>{status}</Pill>
+        <StatusPill status={status} />
         <Pill tone="outline">{e.type}</Pill>
         {e.repeat && <Pill><span className="row-flex ev-gap-1"><Repeat size={12} aria-hidden="true" />Repeats</span></Pill>}
       </EvHead>

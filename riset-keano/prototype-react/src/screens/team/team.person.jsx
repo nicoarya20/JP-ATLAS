@@ -2,18 +2,16 @@
 // them and (for PM/Admin, or a Member looking at themself) their active tasks from the live task list.
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Avatar, Head, Pill, Row, Rows, Screen, Section } from '../../kit';
+import { Avatar, Head, Row, Rows, Screen, Section, StatusPill } from '../../kit';
 import { taskScreen } from '../events/events.shared';
 import { useTaskMoves } from '../tasks/tasks.store';
 import { activeOf, isOverdue, loadOf } from './team.load';
-
-const PILL_TONE = { Overdue: 'danger', 'In progress': 'accent', 'In review': 'warning', 'To do': 'neutral' };
 
 /** Task row → the detail screen for its status; an overdue task shows Overdue instead of its status. */
 function TaskRow({ t }) {
   const pill = isOverdue(t) ? 'Overdue' : t.status;
   return (
-    <Row title={`#${t.no} ${t.title}`} sub={`${t.project} · ${t.when}`} right={<Pill tone={PILL_TONE[pill]}>{pill}</Pill>}
+    <Row title={`#${t.no} ${t.title}`} sub={`${t.project} · ${t.when}`} right={<StatusPill status={pill} />}
       go={taskScreen(t)} task={t.no} />
   );
 }

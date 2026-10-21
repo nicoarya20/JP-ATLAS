@@ -1,6 +1,6 @@
 // Users ② Roles: give or remove the Project Manager role, or deactivate a user. The signed-in Admin sees their own row read-only.
 import { D } from '../../data/sample';
-import { Avatar, Btn, Chips, Pill, Row, Rows, Search, Select } from '../../kit';
+import { Avatar, Btn, Chips, Row, Rows, Search, Select, StatusPill } from '../../kit';
 import { InfoBox, UsersScreen } from './users.parts';
 
 const C = D.users.counts;
@@ -8,7 +8,7 @@ const C = D.users.counts;
 function Person({ k }) {
   const p = D.person(k), you = k === D.me().key;
   const side = you
-    ? <span className="stack xs us-side"><Pill tone="success">Active</Pill><span className="t-footnote bold">{p.role}</span></span>
+    ? <span className="stack xs us-side"><StatusPill status="Active" /><span className="t-footnote bold">{p.role}</span></span>
     : (
       <span className="stack xs us-side">
         <Select toast="Member · Project Manager">{p.role}</Select>

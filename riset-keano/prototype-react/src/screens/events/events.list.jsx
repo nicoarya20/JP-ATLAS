@@ -3,10 +3,10 @@
 import { CalendarDays, List, Plus, Repeat, SearchX } from 'lucide-react';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Btn, Empty, Pill, Screen, Section, Seg } from '../../kit';
+import { Btn, Empty, Pill, Screen, Section, Seg, StatusPill } from '../../kit';
 import { EventsSearch } from './events.filter';
 import { applyQuery, groupEvents, queryOf, queryParams, withoutQuery } from './events.query';
-import { EV, STATUS_TONE } from './events.shared';
+import { EV } from './events.shared';
 import { useEvents } from './events.store';
 
 /** Screen frame of the Events tab: title and the tab bar (its "+" creates the event); no sub line, same bar height as Tasks and Projects. */
@@ -49,7 +49,7 @@ function EventCard({ e }) {
             <p className="t-footnote muted">{e.range} · {e.place}</p>
           </div>
           <div className="ev-card-foot">
-            <span className="ev-pills"><Pill tone="outline">{e.type}</Pill><Pill tone={STATUS_TONE[status]}>{status}</Pill></span>
+            <span className="ev-pills"><Pill tone="outline">{e.type}</Pill><StatusPill status={status} /></span>
             {btn}
           </div>
         </div>

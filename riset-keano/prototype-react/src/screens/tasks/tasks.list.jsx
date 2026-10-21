@@ -1,7 +1,7 @@
 // Tasks ①, ②, ④: My tasks (grouped by urgency), All tasks (Atlas, bulk select) and the empty state; Kanban ③ is in tasks.board.
 // ① and ② show their screen params' Filter & sort query (tasks.query).
 import { ChevronRight, List, ListChecks, Plus, SearchX, SquareKanban } from 'lucide-react';
-import { Btn, Empty, Pill, Screen, Section, Seg } from '../../kit';
+import { Btn, Empty, Screen, Section, Seg, StatusPill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { TasksSearch } from './tasks.filter';
@@ -113,7 +113,7 @@ export function TasksAll({ params }) {
               <span className="t-footnote muted">#{t.no} · {t.type} · {whoLabel(t)}</span>
               <span className="t-footnote bold">{note(t)}</span>
               <div className="between tk-meta">
-                <Pill tone={t.status === 'Done' ? 'neutral' : 'outline'}>{t.status}</Pill>
+                <StatusPill status={t.status} />
                 <span className="t-footnote muted">Due {t.due}</span>
               </div>
             </div>

@@ -3,7 +3,7 @@
 // Tasks go to the project, decisions to its history, open questions to the next meeting's agenda. No ⋯ menu.
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Btn, Pill, Screen, Section } from '../../kit';
+import { Btn, Pill, Screen, Section, StatusPill } from '../../kit';
 import { useTaskMoves } from '../tasks/tasks.store';
 import { Box, Bullets, EvHead, EvSec, Note } from './events.parts';
 import { EV, eventOf, taskScreen } from './events.shared';
@@ -49,7 +49,7 @@ function Made({ no, title, status }) {
           <p className="t-headline">{`#${no} ${title}`}</p>
           {t && <p className="t-footnote muted">{t.who} · {t.due ? `Due ${t.due}` : 'No due date'}</p>}
         </div>
-        <Pill tone={now === 'Done' ? 'success' : 'neutral'}>{now}</Pill>
+        <StatusPill status={now} />
       </div>
     </Section>
   );
@@ -68,9 +68,9 @@ export default function DetailConfirmed() {
   return (
     <Screen back title="Event detail">
       <EvHead title={e.title}>
-        <Pill tone="success">Done</Pill>
+        <StatusPill status="Done" />
         <Pill tone="outline">{e.type}</Pill>
-        <Pill>{`Confirmed · ${count} (${done} done)`}</Pill>
+        <StatusPill status={`Confirmed · ${count} (${done} done)`} />
       </EvHead>
       <div className="ev-info t-subhead">
         <span>{EV.date(e)} · {e.range}</span>
@@ -91,7 +91,7 @@ export default function DetailConfirmed() {
         <Box><p className="bold">{r.question.text}</p><p className="t-footnote muted">{r.question.meta}</p></Box>
       </EvSec>
       <div className="ev-sep" />
-      <EvSec title="Minutes" tag={<Pill tone="success">Confirmed</Pill>}>
+      <EvSec title="Minutes" tag={<StatusPill status="Confirmed" />}>
         <div className="ev-plain stack sm">
           <div className="stack xs">{r.source.map(line => <Note key={line}>{line}</Note>)}</div>
           <p className="t-subhead">{r.minutes}</p>

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Camera, ChevronRight, PenLine, Play, Upload } from 'lucide-react';
 import { useApp, useNav } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Avatar, Btn, Field, Link, Pill, Progress, Screen, Select } from '../../kit';
+import { Avatar, Btn, Field, Link, Progress, Screen, Select, StatusPill } from '../../kit';
 import { Ai, Box, EvFoot, EvSec, Note, Two } from './events.parts';
 import { TODAY } from './events.query';
 import { EV, eventOf } from './events.shared';
@@ -144,7 +144,7 @@ export function Step3() {
     return (
       <Outcomes>
         <StepHead n={3} label="Tasks from this meeting" />
-        <div className="ev-pills"><Pill tone="accent">{`Waiting for ${e.creator} to review`}</Pill></div>
+        <div className="ev-pills"><StatusPill status="Waiting">{`Waiting for ${e.creator} to review`}</StatusPill></div>
         <Box><p className="bold">Waiting for {e.creator} to confirm</p><p className="muted">You can only read these meeting outcomes.</p></Box>
         <Drafts drafts={drafts} />
       </Outcomes>

@@ -2,7 +2,7 @@
 // rest of this week), tasks awaiting their review (PM), their next event and their projects. Rows open those items.
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
-import { Btn, Link, Pill, Progress, Row, Rows } from '../../kit';
+import { Btn, Link, Progress, Row, Rows, StatusPill } from '../../kit';
 import { EV, taskScreen } from '../events/events.shared';
 import { useEvents } from '../events/events.store';
 import { TODAY, days } from '../tasks/tasks.shared';
@@ -24,7 +24,7 @@ function FocusRow({ t, btn }) {
   const direct = t.status !== 'In review' && !D.taskDetail[t.no]?.reviewer;
   return (
     <Row title={`#${t.no} ${t.title}`} sub={`${t.project} · ${t.when}`} chev={false} go={taskScreen(t)} task={t.no}
-      right={btn ?? (direct ? <Btn sm onClick={done}>Done</Btn> : <Pill>{t.status}</Pill>)} />
+      right={btn ?? (direct ? <Btn sm onClick={done}>Done</Btn> : <StatusPill status={t.status} />)} />
   );
 }
 
@@ -94,7 +94,7 @@ export function AgendaProjects({ role }) {
       </div>
       <Rows plain>
         {projects.map(p => (
-          <Row key={p.id} title={p.name} go="projects.overview" params={{ project: p.id }} right={<Pill>{p.status}</Pill>} chev={false}
+          <Row key={p.id} title={p.name} go="projects.overview" params={{ project: p.id }} right={<StatusPill status={p.status} />} chev={false}
             sub={<span className="stack xs"><span>{`Lead ${p.lead} · Due ${p.due}`}</span><Progress value={p.progress} /></span>} />
         ))}
       </Rows>

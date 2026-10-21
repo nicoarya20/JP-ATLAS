@@ -1,5 +1,5 @@
 // Tasks ⑧–⑩ shared detail layout: header block, key/value facts, sections, history, and a pinned comment bar.
-import { Avatar, Media, Menu, Pill, Section } from '../../kit';
+import { Avatar, Media, Menu, Pill, Section, StatusPill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, Sec, Tick } from './tasks.parts';
@@ -112,7 +112,7 @@ export function TaskDetail({ no, banner, actions, facts, after, children }) {
           <span className="t-footnote muted">#{no} · {t.project} · {t.type}{x.phase ? ` · ${x.phase}` : ''}</span>
         </div>
         <span className="t-footnote bold">{dueLabel(t)}</span>
-        <div><Pill>{t.status}</Pill></div>
+        <div><StatusPill status={t.status} /></div>
       </div>
       {archived ? <p className="t-footnote muted">Canceled · this task is in Archive.</p> : mine ? actions : <NotYours t={t} />}
       <dl className="tk-kv">

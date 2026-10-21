@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Checkbox } from '@react-cupertino-ui/checkbox';
 import { Camera, Check, ChevronRight, Circle, Mic, PenLine } from 'lucide-react';
 import { useApp } from '../../core/app.context';
-import { Btn, Link, Pill, Screen } from '../../kit';
+import { Btn, Link, Pill, Screen, StatusPill } from '../../kit';
 import { Ai, EvFoot, EvHead, EvSec, Note, Two } from './events.parts';
 import { EV, eventOf } from './events.shared';
 
@@ -18,7 +18,7 @@ function useRecorded() {
 function Head({ e }) {
   return (
     <EvHead title={e.title}>
-      <Pill tone="accent">Ongoing</Pill>
+      <StatusPill status="Ongoing" />
       <Pill tone="outline">{e.type}</Pill>
     </EvHead>
   );
@@ -60,7 +60,7 @@ export function Recording() {
       <Head e={e} />
       <div className="ev-rec">
         <span className="ev-rec-dot live"><Mic size={36} aria-hidden="true" /></span>
-        <Pill tone="danger">Recording</Pill>
+        <StatusPill status="Recording" />
         <span className="ev-timer">00:14:52</span>
         <span className="t-footnote muted row-flex ev-gap-1"><Check size={14} aria-hidden="true" /> Attendees told about the recording</span>
       </div>

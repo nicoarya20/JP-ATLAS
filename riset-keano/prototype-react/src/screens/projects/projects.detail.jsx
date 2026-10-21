@@ -1,6 +1,6 @@
 // Projects ⑧: project detail frame (header + tabs) and the Overview tab. Every project card opens Atlas (the only project with full data).
 import { CalendarClock, CircleAlert, Clock } from 'lucide-react';
-import { Btn, Link, Pill, Progress, Row, Rows, Screen, Section, Tabs } from '../../kit';
+import { Btn, Link, Progress, Row, Rows, Screen, Section, StatusPill, Tabs } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 
@@ -29,11 +29,11 @@ export function DetailScreen({ on, children }) {
   return (
     <Screen title={P.name} back right={more || undefined} tab="projects">
       <div className="stack sm">
-        <div className="row-flex"><Pill tone="outline">{P.status}</Pill><Pill>{P.health}</Pill></div>
+        <div className="row-flex"><StatusPill status={P.status} /><StatusPill status={P.health} /></div>
         <span className="t-subhead">Why: {P.why}</span>
         <span className="t-subhead bold mt-1">Lead: {P.lead} · Due: {P.dueLong}</span>
         <div className="between">
-          <Pill tone="outline">{P.extended}</Pill>
+          <StatusPill status={P.extended} />
           {canEdit && <Btn sm sheet="projects.extend">Extend deadline</Btn>}
         </div>
       </div>

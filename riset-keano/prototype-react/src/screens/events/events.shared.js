@@ -42,6 +42,3 @@ export const eventOf = (params, fallback) => D.event(params?.event) || D.event(f
 /** Task detail screen for a D.tasks item, picked by status (same rule as the Tasks module). */
 export const taskScreen = t => (t.status === 'In review' ? 'tasks.detail-review'
   : t.status === 'In progress' || t.status === 'Done' ? 'tasks.detail-progress' : 'tasks.detail-todo');
-
-/** Pill tone per event status. */
-export const STATUS_TONE = { Canceled: 'danger', Done: 'success', Today: 'accent', Upcoming: 'neutral' };
