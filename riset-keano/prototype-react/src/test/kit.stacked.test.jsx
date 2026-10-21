@@ -57,17 +57,18 @@ describe('stacked tab screens', () => {
     expect(container.querySelector('.stk-find')).toBeNull();
   });
 
-  it('snaps a half-collapsed search bar open or shut once scrolling stops, but not while a finger is down', async () => {
+  it('snaps a half-collapsed search bar open or shut once a touch scroll comes to rest, but not while a finger is down', async () => {
     const { container } = renderApp('home.main', 'member');
     const { scroller, block } = parts(container);
     Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
     scroller.scrollTo = vi.fn();
     const stopAt = top => { scroller.scrollTop = top; fireEvent.scroll(scroller); };
+    const swipeTo = top => { fireEvent.touchStart(scroller); stopAt(top); fireEvent.touchEnd(scroller); };
 
-    stopAt(20);
+    swipeTo(20);
     await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' }));
     scroller.scrollTo.mockClear();
-    stopAt(40);
+    swipeTo(40);
     await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 60, behavior: 'smooth' }));
 
     scroller.scrollTo.mockClear();
@@ -79,13 +80,43 @@ describe('stacked tab screens', () => {
     await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' }));
   });
 
+  it('never snaps a wheel or trackpad scroll, however long it pauses part way', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block, screen } = parts(container);
+    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
+    scroller.scrollTo = vi.fn();
+    for (const top of [10, 20, 40]) {
+      scroller.scrollTop = top;
+      fireEvent.scroll(scroller);
+      await new Promise(r => setTimeout(r, 200));   // a slow scroll: longer than the snap's quiet time between steps
+      expect(scroller.scrollTo).not.toHaveBeenCalled();
+    }
+    expect(screen.style.getPropertyValue('--stk-p')).toBe((40 / 60).toFixed(3));
+  });
+
+  it('snaps only the touch scroll that just ended, not a later wheel scroll', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
+    scroller.scrollTo = vi.fn();
+    fireEvent.touchStart(scroller);
+    fireEvent.touchEnd(scroller);   // a tap at the top: nothing to snap
+    await new Promise(r => setTimeout(r, 200));
+    scroller.scrollTop = 20;
+    fireEvent.scroll(scroller);
+    await new Promise(r => setTimeout(r, 200));
+    expect(scroller.scrollTo).not.toHaveBeenCalled();
+  });
+
   it('leaves the scroll alone outside the search block', async () => {
     const { container } = renderApp('home.main', 'member');
     const { scroller, block } = parts(container);
     Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
     scroller.scrollTo = vi.fn();
+    fireEvent.touchStart(scroller);
     scroller.scrollTop = 300;
     fireEvent.scroll(scroller);
+    fireEvent.touchEnd(scroller);
     await new Promise(r => setTimeout(r, 200));
     expect(scroller.scrollTo).not.toHaveBeenCalled();
   });
