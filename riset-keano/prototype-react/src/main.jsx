@@ -5,10 +5,12 @@ import './styles/atlas.css';     // JP Atlas palette + Manrope, before the roles
 import './styles/tokens.css';
 import './styles/app.css';
 import './screens';
-import './styles/library.css';   // after the screens: overrides the library scss they pull in
-import './styles/press.css';     // after library.css: no hover, press animations on tap
+// The shell pulls in the bottom-sheet and toast scss, so it must come before library.css too, or that scss loads last
+// and wins over the theme layer at equal specificity.
 import { AppProvider } from './core/app.context';
 import { PhoneApp } from './core/PhoneApp';
+import './styles/library.css';   // after the screens and the shell: overrides the library scss they pull in
+import './styles/press.css';     // after library.css: no hover, press animations on tap
 import { START_SCREEN, readUrl, setRole } from './core/session';
 import { allowed } from './core/registry';
 

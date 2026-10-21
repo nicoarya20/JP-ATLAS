@@ -57,11 +57,13 @@ describe('JP Atlas palette', () => {
 });
 
 describe('theme layer', () => {
-  it('is imported after the screens so it wins over the library scss', () => {
+  it('is imported after the screens and the shell so it wins over the library scss', () => {
     const main = read('main.jsx');
     const screens = main.indexOf("import './screens'");
+    const shell = main.indexOf("from './core/PhoneApp'");   // pulls in the bottom-sheet and toast scss
     expect(screens).toBeGreaterThan(-1);
-    expect(main.indexOf("import './styles/library.css'")).toBeGreaterThan(screens);
+    expect(shell).toBeGreaterThan(-1);
+    expect(main.indexOf("import './styles/library.css'")).toBeGreaterThan(Math.max(screens, shell));
     expect(main.indexOf("import './styles/press.css'")).toBeGreaterThan(main.indexOf("import './styles/library.css'"));
   });
 
@@ -118,6 +120,17 @@ describe('theme layer', () => {
     const own = fabTransitions(app).filter(r => !/reduce/.test(r.sel));
     expect(own.map(r => r.sel)).toEqual(['.glassbar-fab', '.glassbar-fab.is-hidden']);
     for (const r of own) expect(r.body).toMatch(/width 380ms/);
+  });
+
+  it('stacks the bottom sheet over the tab bar and pinned rows, under the toast', () => {
+    const z = sel => Number(library.match(new RegExp(`${sel.replaceAll('.', '\\.')} \\{[^}]*z-index: (\\d+)`))[1]);
+    const appCss = read('styles/app.css');
+    const tabBar = Number(appCss.match(/\.glassbar \{[^}]*z-index: (\d+)/)[1]);
+    const overlay = z('.react-cupertino-ui-bottom-sheet__overlay');
+    const content = z('.react-cupertino-ui-bottom-sheet__content');
+    expect(overlay).toBeGreaterThan(tabBar);
+    expect(content).toBeGreaterThan(overlay);
+    expect(z('.app-toast.react-cupertino-ui-toast')).toBeGreaterThan(content);
   });
 
   it('places the toast under the status bar, centred, in the snackbar colours (upstream has no position rules)', () => {

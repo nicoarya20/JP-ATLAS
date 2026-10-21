@@ -47,7 +47,8 @@ function OpenSheet() {
     <>
       <BottomSheet open={!!bottom} onOpenChange={open => { if (!open) closeSheet(); }}>
         {bottom && (
-          <BottomSheetContent key={sheet.id} snapPoints={[snap]} initialSnap={snap} aria-describedby={undefined}>
+          <BottomSheetContent key={sheet.id} snapPoints={[snap]} initialSnap={snap} glass={false} aria-describedby={undefined}>
+            {/* glass off: its upstream .glass rule sets position: relative, which drops the fixed panel below the phone */}
             {/* Radix needs a dialog title; sheets render their own visible heading through <Sheet title>. */}
             <BottomSheetTitle className="sr-only">{titleOf(bottom)}</BottomSheetTitle>
             <bottom.Component params={sheet.params} />

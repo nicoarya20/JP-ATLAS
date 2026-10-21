@@ -70,6 +70,8 @@ describe('router', () => {
     renderApp('t.a');
     await userEvent.click(dom.getByRole('button', { name: 'Open sheet' }));
     expect(await dom.findByText('Sheet body')).toBeInTheDocument();
+    // upstream .glass sets position: relative over the panel's position: fixed, which drops it below the phone
+    expect(document.querySelector('.react-cupertino-ui-bottom-sheet__content')).not.toHaveClass('glass');
     await userEvent.click(dom.getByRole('button', { name: 'Close and go' }));
     expect(dom.getByRole('heading', { name: /Screen B/ })).toBeInTheDocument();
     await act(async () => {});
