@@ -162,6 +162,8 @@
 .react-cupertino-ui-progressbar__track { background: var(--fill); border: 0; box-shadow: none;
   backdrop-filter: none; -webkit-backdrop-filter: none; }
 .react-cupertino-ui-progressbar__fill { background: var(--accent); }
+/* The percentage chip: the Atlas selected pair, like the violet fill it labels (upstream tints it iOS blue) */
+.react-cupertino-ui-progressbar__value { background: var(--accent-soft); color: var(--selected-text); }
 .react-cupertino-ui-progressbar.variant-success .react-cupertino-ui-progressbar__fill { background: var(--success); }
 .react-cupertino-ui-progressbar.variant-warning .react-cupertino-ui-progressbar__fill { background: var(--warning); }
 .react-cupertino-ui-progressbar.variant-error .react-cupertino-ui-progressbar__fill { background: var(--danger); }
