@@ -63,7 +63,7 @@
 .react-cupertino-ui-bottom-sheet__overlay { z-index: 200; background: var(--overlay); }
 .react-cupertino-ui-bottom-sheet__content { z-index: 201;
   --surface: var(--sheet-surface); background: var(--sheet-bg); color: var(--label); border: 0;
-  backdrop-filter: none; -webkit-backdrop-filter: none; }
+  box-shadow: inset 0 1px 0 var(--sheet-edge), var(--glass-shadow); backdrop-filter: none; -webkit-backdrop-filter: none; }
 .react-cupertino-ui-bottom-sheet__handle { background: var(--label-3); }
 
 /* ---- Toast: inverted card like the snackbar, centred under the status bar ----

@@ -111,6 +111,7 @@
   --sheet-bg: var(--atlas-canvas);       /* bottom sheet background */
   --sheet-surface: var(--atlas-surface); /* cards and lists inside a sheet */
   --overlay: var(--atlas-veil);          /* dimming behind a sheet */
+  --sheet-edge: transparent;             /* hairline on a sheet's top edge; light lifts off the dim by its shadow */
   --avatar-bg: var(--atlas-control);     /* monogram */
   --switch-off: var(--atlas-control);
   --seg-thumb: var(--atlas-surface);     /* segmented control selected thumb */
@@ -177,4 +178,10 @@
   --pop-edge: var(--atlas-line);
   --pop-ring: var(--atlas-line);
   --pop-tint: 100%;
+  /* Sheets over the dim: the Atlas veil is the canvas colour and the sheet was canvas too, so the dimmed screen and the
+     sheet came out the same navy. Dim toward black, lift the sheet one step (cards one more) and light its top edge. */
+  --overlay: rgba(0, 0, 0, 0.6);
+  --sheet-bg: var(--atlas-surface);
+  --sheet-surface: var(--atlas-raised);
+  --sheet-edge: rgba(255, 255, 255, 0.1);
 }
