@@ -50,6 +50,8 @@ describe('stacked tab screens', () => {
     expect(rule('.stk-pin-in')).toMatch(/pointer-events: auto/);
     expect(rule('.stk-pin-in')).toMatch(/border-radius: 24px 24px 0 0/);
     expect(rule('.stk-pin-in')).toMatch(/border-top: 1px solid var\(--separator\)/);
+    // The sheet's canvas runs up under the row's see-through fold, so the seam between them never shows the surface
+    expect(rule('.stk-sheet.has-pin')).toMatch(/margin-top: calc\(-1 \* var\(--sp-6\)\); padding-top: calc\(var\(--sp-6\) \+ var\(--sp-2\)\)/);
     // The sheet itself has no edge any more: the sticky pin (or .stk-edge) carries it
     expect(rule('.stk-sheet')).not.toMatch(/border-top|border-radius/);
     // The fold is driven by scrollTop: the browser must not move the scroll when heights above the content change
