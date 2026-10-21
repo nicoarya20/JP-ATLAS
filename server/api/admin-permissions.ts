@@ -4,8 +4,8 @@
  * `server/permissions.ts` on every call, and roles are changed from the Pengguna menu instead.
  */
 import { Elysia } from 'elysia';
-import { buildPermissionsMatrix } from '../access/permissions-matrix';
 import { adminContext } from './admin-context';
+import { buildPermissionsMatrix } from './admin-permissions.matrix';
 
 export const adminPermissionsApi = new Elysia()
   .use(adminContext)

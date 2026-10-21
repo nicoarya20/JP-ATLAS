@@ -11,7 +11,7 @@ import {
   MATRIX_COPY,
   PermissionsMatrixView,
 } from '../../app/components/admin/settings/panels/peran-izin.view';
-import { buildPermissionsMatrix } from '../../server/access/permissions-matrix';
+import { buildPermissionsMatrix } from '../../server/api/admin-permissions.matrix';
 import { renderUi } from '../support/render-ui';
 
 const matrix = buildPermissionsMatrix();

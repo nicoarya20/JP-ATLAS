@@ -6,7 +6,7 @@
  * revalidation, so a loader fetch would pull every tab's data on every visit.
  */
 import { Alert, Anchor, Button, Group, Skeleton, Stack, Text } from '@mantine/core';
-import type { PermissionsMatrix } from '@server/access/permissions-matrix';
+import type { PermissionsMatrix } from '@server/api/admin-permissions.matrix';
 import { useQuery } from '@tanstack/react-query';
 import { FiAlertCircle, FiShield } from 'react-icons/fi';
 import { Link } from 'react-router';

@@ -4,7 +4,7 @@
  * card per capability — every answer stays readable without a horizontal swipe.
  */
 import { Badge, Box, Code, Group, Paper, Stack, Table, Text } from '@mantine/core';
-import type { MatrixCell, PermissionsMatrix } from '@server/access/permissions-matrix';
+import type { MatrixCell, PermissionsMatrix } from '@server/api/admin-permissions.matrix';
 import { FiCheck, FiMinus } from 'react-icons/fi';
 
 export const MATRIX_COPY = {

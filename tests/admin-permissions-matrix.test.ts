@@ -9,7 +9,7 @@ import {
   buildPermissionsMatrix,
   MATRIX_CAPABILITIES,
   MATRIX_ROLE_ORDER,
-} from '../server/access/permissions-matrix';
+} from '../server/api/admin-permissions.matrix';
 import * as permissions from '../server/permissions';
 
 const { ROLES } = permissions;

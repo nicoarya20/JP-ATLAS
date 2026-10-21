@@ -6,6 +6,7 @@
  */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
 import { isPlaceholderTab, SETTINGS_PANELS } from '../../app/components/admin/settings/panels';
@@ -46,10 +47,14 @@ async function renderAt(search: string): Promise<string> {
   const context = await handler.query(new Request(`http://localhost${PATH}${search}`));
   if (context instanceof Response) throw new Error(`Unexpected redirect ${context.status}`);
   const router = createStaticRouter(handler.dataRoutes, context);
+  // A registered panel fetches its own data, so the shell needs the same providers root.tsx gives
+  // it; without the query client the first filled tab throws instead of rendering.
   return renderToStaticMarkup(
-    <MantineProvider>
-      <StaticRouterProvider router={router} context={context} hydrate={false} />
-    </MantineProvider>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MantineProvider>
+        <StaticRouterProvider router={router} context={context} hydrate={false} />
+      </MantineProvider>
+    </QueryClientProvider>,
   );
 }
 

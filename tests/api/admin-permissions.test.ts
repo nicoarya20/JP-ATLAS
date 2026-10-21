@@ -5,9 +5,9 @@
  */
 import { afterAll, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import Elysia from 'elysia';
-import { buildPermissionsMatrix } from '../../server/access/permissions-matrix';
 import { adminApi } from '../../server/api/admin';
 import { adminPermissionsApi } from '../../server/api/admin-permissions';
+import { buildPermissionsMatrix } from '../../server/api/admin-permissions.matrix';
 import { apiErrorPlugin } from '../../server/api-error';
 import { auth } from '../../server/auth';
 import * as rolesMod from '../../server/roles';
