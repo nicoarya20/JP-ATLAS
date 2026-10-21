@@ -33,7 +33,7 @@ export function InboxView({ seed, timeZone }: InboxViewProps) {
   };
 
   return (
-    <PageContainer size="narrow">
+    <PageContainer>
       <PageHeader title={INBOX_COPY.title} description={INBOX_COPY.description} />
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
         <InboxTabs lane={lane} actionCount={counts.action} onChange={show} />
