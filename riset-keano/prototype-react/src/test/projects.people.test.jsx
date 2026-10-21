@@ -8,8 +8,8 @@ import { renderApp } from './render';
 
 const row = () => within(dom.getByRole('group', { name: 'Show projects of' }));
 const pick = name => fireEvent.click(row().getByRole('button', { name }));
-/** Visible label of a chip (its avatar initial is hidden from the name). */
-const label = b => b.querySelector('.react-cupertino-ui-suggestion-chip__label').textContent;
+/** Accessible name of a row item: the chip's text, or the photo's label. */
+const label = b => b.getAttribute('aria-label') || b.textContent;
 const pressed = name => row().getByRole('button', { name }).getAttribute('aria-pressed');
 /** Project names the cards show, in D order (order is covered by projects.filter.test). */
 const shown = () => D.projects.map(p => p.name).filter(n => dom.queryByText(n));
@@ -25,8 +25,11 @@ describe('projects people row', () => {
     expect(search.compareDocumentPosition(group) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('lists My projects, then every teammate in a project but not me, by first name', () => {
+  it('lists My projects as a chip, then a photo of every teammate in a project but not me', () => {
     renderApp('projects.list', 'pm');   // Nico; Ayu (Admin) is in no project
+    expect(row().getByRole('button', { name: 'My projects' }).querySelector('.react-cupertino-ui-avatar')).toBeNull();
+    expect(row().getByRole('button', { name: 'Rina' }).querySelector('.react-cupertino-ui-avatar')).not.toBeNull();
+    expect(row().getByRole('button', { name: 'Rina' })).toHaveAttribute('title', 'Rina Wulandari');
     expect(row().getAllByRole('button').map(label))
       .toEqual(['My projects', 'Rina', 'Dodi', 'Sri', 'Lea']);
   });

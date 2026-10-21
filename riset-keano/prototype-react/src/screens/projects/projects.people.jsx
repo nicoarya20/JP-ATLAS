@@ -1,4 +1,4 @@
-// Projects ①: whose projects the list shows — My projects, or one teammate's (avatar + first name in a chip). One pick at a
+// Projects ①: whose projects the list shows — My projects, or one teammate's (their profile photo). One pick at a
 // time; tapping the picked one again shows every project. The pick lives in the list's params.who ('me' or a first
 // name), so Back from a project keeps it.
 import { SuggestionChip } from '@react-cupertino-ui/suggestion-chip';
@@ -15,22 +15,21 @@ export function ofWho(list, who) {
 export const teammates = list => Object.values(D.people).map(p => p.name)
   .filter(n => n !== D.me().name && list.some(p => p.members.includes(n)));
 
-/** One pill: a small avatar (decorative, the label names it) and the label; active = the current pick. */
-function PersonChip({ name, label, active, onClick }) {
-  return (
-    <SuggestionChip size="sm" variant="secondary" className="pj-who" active={active} aria-pressed={active} onClick={onClick}
-      icon={<span aria-hidden="true"><Avatar name={name} size="sm" /></span>}>{label}</SuggestionChip>
-  );
-}
-
-/** Row under the search: the My projects chip (mine = show it, with my own avatar), then one chip per teammate of list,
- *  all the same pill. onPick(who) gets the new pick, or undefined when the picked one is tapped again. */
+/** Row under the search: the My projects chip (mine = show it), then one profile photo per teammate of list, the same
+ *  height as the chip; the name is the photo's label (the line under the row names the pick). onPick(who) gets the
+ *  new pick, or undefined when the picked one is tapped again. */
 export function PeopleRow({ list, who, mine, onPick }) {
   const toggle = w => onPick(who === w ? undefined : w);
   return (
-    <div className="hscroll chips" role="group" aria-label="Show projects of">
-      {mine && <PersonChip name={D.me().name} label="My projects" active={who === 'me'} onClick={() => toggle('me')} />}
-      {teammates(list).map(n => <PersonChip key={n} name={n} label={n} active={who === n} onClick={() => toggle(n)} />)}
+    <div className="hscroll pj-people" role="group" aria-label="Show projects of">
+      {mine && <SuggestionChip size="sm" variant="secondary" active={who === 'me'} aria-pressed={who === 'me'}
+        onClick={() => toggle('me')}>My projects</SuggestionChip>}
+      {teammates(list).map(n => (
+        <button key={n} type="button" className="pj-person" aria-label={n} title={D.person(n)?.full || n}
+          aria-pressed={who === n} onClick={() => toggle(n)}>
+          <Avatar name={n} size="sm" />
+        </button>
+      ))}
     </div>
   );
 }

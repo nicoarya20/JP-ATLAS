@@ -38,10 +38,10 @@
 
 .pj-roles { display: grid; grid-template-columns: 84px 1fr; gap: var(--sp-2) var(--sp-3); }
 
-/* People row (list): every pick is the same small chip, avatar flush at the start; the label keeps the chip weight
-   (upstream bolds labels next to an icon), so My projects and the names read alike. */
-.pj-who.react-cupertino-ui-suggestion-chip { padding-inline-start: 4px; }
-.pj-who .react-cupertino-ui-suggestion-chip__icon { width: auto; height: auto; }
-.pj-who .react-cupertino-ui-suggestion-chip__icon > span { display: flex; }
-.pj-who .react-cupertino-ui-avatar.size-sm { width: 24px; height: 24px; font-size: 0.7rem; }
-.pj-who.has-icon .react-cupertino-ui-suggestion-chip__label { font-weight: inherit; }
+/* People row (list): the My projects chip, then teammates' photos at the chip's height, one line; the pick gets an
+   accent ring. Padding keeps the ring inside .hscroll, whose overflow-x clips the y axis too. */
+.pj-people { align-items: center; gap: var(--sp-2); padding: 4px; margin: -4px; }
+.pj-people > .react-cupertino-ui-suggestion-chip { margin-inline-end: var(--sp-1); }
+.pj-person { display: flex; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.pj-person[aria-pressed='true'] .react-cupertino-ui-avatar { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.pj-person:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
