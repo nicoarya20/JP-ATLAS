@@ -44,6 +44,16 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/admin/users/stats')).toBe('users:read');
     expect(requiredScope('GET', '/api/admin/invitationsx')).toBeNull();
   });
+  it('lets a key read the role matrix with settings:read, and never write it (AD-09)', () => {
+    expect(requiredScope('GET', '/api/admin/permissions-matrix')).toBe('settings:read');
+    expect(requiredScope('HEAD', '/api/admin/permissions-matrix')).toBe('settings:read');
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/permissions-matrix')).toBeNull();
+    }
+    // Reading the matrix is a settings read, so only a super-admin's key can carry it.
+    expect(roleAllowsScope(ROLES.ADMIN, 'settings:read')).toBe(false);
+    expect(roleAllowsScope(ROLES.SUPER_ADMIN, 'settings:read')).toBe(true);
+  });
   it('blocks auth, key management (admin and personal), resets and unknown routes', () => {
     expect(requiredScope('POST', '/api/auth/sign-in/email')).toBeNull();
     expect(requiredScope('GET', '/api/api-keys')).toBeNull();

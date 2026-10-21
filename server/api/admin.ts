@@ -15,6 +15,7 @@ import { fail } from '../pm/respond';
 import { adminContext, callerOf } from './admin-context';
 import { adminInvitationsApi } from './admin-invitations';
 import { adminModerationApi } from './admin-moderation';
+import { adminPermissionsApi } from './admin-permissions';
 import { adminUserStats, findUserTarget, listAdminUsers, UserListQuery } from './admin-users.query';
 
 const Params = t.Object({ id: t.String() });
@@ -25,6 +26,7 @@ export const adminApi = new Elysia({ prefix: '/admin' })
   .use(adminContext)
   .use(adminModerationApi)
   .use(adminInvitationsApi)
+  .use(adminPermissionsApi)
   .get('/users', ({ query }) => listAdminUsers(query), { query: UserListQuery })
   .get('/users/stats', () => adminUserStats())
   .post(
