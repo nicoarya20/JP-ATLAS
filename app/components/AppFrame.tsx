@@ -37,7 +37,8 @@ export type { NavBadge, NavGroup, NavItem } from './frame/nav';
 
 // Written to cookie so the server can read it on next request (no SSR flash).
 const COOKIE = 'mk-sidebar-collapsed';
-const WIDTH_EXPANDED = 248;
+// Wide enough for the brand name beside three 44 px header icons (bell, theme, collapse) in /app.
+const WIDTH_EXPANDED = 296;
 const WIDTH_COLLAPSED = 72;
 /** Footer badge must never eat the name — short labels, full role in the tooltip. */
 const ROLE_SHORT: Record<string, string> = {
