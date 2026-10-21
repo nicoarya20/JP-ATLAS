@@ -18,7 +18,7 @@ const values = text => Object.fromEntries([...text.matchAll(/(--[\w-]+)\s*:\s*([
 const ATLAS_FIXED = ['--atlas-identity-surface', '--atlas-font'];
 
 const THEMED = ['--bg', '--surface', '--surface-raised', '--fill', '--label', '--label-2', '--label-3', '--separator', '--accent',
-  '--accent-soft', '--selected-text', '--primary-fill', '--on-primary', '--primary-border', '--focus', '--control',
+  '--accent-soft', '--selected-text', '--primary-fill', '--on-primary', '--primary-border', '--focus',
   '--success', '--success-bg', '--warning', '--warning-bg', '--danger', '--danger-bg', '--info', '--info-bg',
   '--sheet-bg', '--sheet-surface', '--overlay', '--avatar-bg', '--switch-off', '--seg-thumb',
   '--glass-bar', '--glass-bar-edge', '--glass-bar-shine', '--glass-bar-active', '--glass-bar-shadow',

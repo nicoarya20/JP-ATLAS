@@ -68,7 +68,6 @@
   --on-primary: var(--atlas-on-primary); /* label on lime: never white */
   --primary-border: var(--atlas-primary-border);
   --focus: var(--atlas-focus);           /* focus ring: violet in light, lime in dark */
-  --control: var(--atlas-control);       /* required control boundary (fields, secondary buttons, switch track) */
   --success: var(--atlas-success);
   --success-bg: var(--atlas-success-bg);
   --warning: var(--atlas-warning);
@@ -85,7 +84,7 @@
   --label: var(--atlas-text);
   --label-2: var(--atlas-muted);         /* metadata */
   --label-3: var(--atlas-control);       /* chevrons, placeholders, empty checkbox rings */
-  --separator: var(--atlas-line);        /* decorative only; control edges use --control */
+  --separator: var(--atlas-line);        /* decorative only */
   --media: var(--atlas-raised);          /* image placeholder */
   --phone-frame: var(--atlas-identity-surface);
   --index-bg: var(--atlas-surface);
@@ -112,8 +111,9 @@
   --fs-large: 26px; --fs-title1: 26px; --fs-title2: 20px; --fs-title3: 20px; --fs-headline: 16px; --fs-body: 16px;
   --fs-callout: 16px; --fs-subhead: 14px; --fs-footnote: 12px; --fs-caption1: 12px; --fs-caption2: 12px;
   --lh-tight: 1.2; --lh-snug: 1.3; --lh-body: 1.5;   /* body 1.5 for running text; snug for one-line UI labels */
-  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-6: 24px; --sp-8: 32px;  /* Atlas 4-step scale, no 20 */
-  --radius-card: 14px; --radius-sm: 10px; --radius-modal: 16px;   /* Atlas card / control / modal */
+  /* Spacing and radii stay Cupertino: only Atlas colour and type are adopted, component shapes keep the iOS look. */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+  --radius-card: 12px; --radius-sm: 8px;
   --statusbar-h: 44px;   /* the fake iOS status bar on top of the phone */
 }
 

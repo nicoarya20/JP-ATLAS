@@ -1,6 +1,6 @@
 /* Events module (ev-). */
 .ev-pills { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); }
-.ev-bul { margin: 0; padding-left: var(--sp-6); display: grid; gap: var(--sp-1); }
+.ev-bul { margin: 0; padding-left: var(--sp-5); display: grid; gap: var(--sp-1); }
 .ev-box { padding: var(--sp-3); border-radius: var(--radius-sm); background: var(--fill); }
 .ev-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
 .ev-two.wide { grid-template-columns: 1fr 1.6fr; }

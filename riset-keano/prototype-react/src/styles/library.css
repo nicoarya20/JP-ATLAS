@@ -20,14 +20,13 @@
 .react-cupertino-ui-navigation-bar .nav-back { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -14px;
   padding: 0; border: 0; background: none; color: var(--label); cursor: pointer; }
 
-/* ---- Card (kit Section): Atlas card = surface, 1px line edge, radius 14. The edge carries it: surface on canvas is
-   too close in both themes to read as a card on its own. ---- */
+/* ---- Card (kit Section) ---- */
 .card.react-cupertino-ui-card { --card-padding-block: var(--sp-4); --card-padding-inline: var(--sp-4);
   gap: var(--sp-3); border-radius: var(--radius-card); background: var(--surface); color: var(--label);
-  box-shadow: none; border: 1px solid var(--separator); text-align: left; }
+  box-shadow: none; border: 0; text-align: left; }
 
 /* ---- List (kit Rows/Row): iOS inset group = one surface, hairline separators between rows ---- */
-.rows.react-cupertino-ui-list { margin: 0; border: 1px solid var(--separator); border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+.rows.react-cupertino-ui-list { margin: 0; border: 0; border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
 .rows.react-cupertino-ui-list .react-cupertino-ui-list-item,
 .rows.react-cupertino-ui-list .react-cupertino-ui-list-item:first-child,
 .rows.react-cupertino-ui-list .react-cupertino-ui-list-item:last-child {
@@ -64,7 +63,6 @@
 .react-cupertino-ui-bottom-sheet__content, .react-cupertino-ui-bottom-sheet__content.glass {
   --surface: var(--sheet-surface); background: var(--sheet-bg); color: var(--label); border: 0;
   backdrop-filter: none; -webkit-backdrop-filter: none; }
-.react-cupertino-ui-bottom-sheet__content { border-radius: var(--radius-modal) var(--radius-modal) 0 0; }
 .react-cupertino-ui-bottom-sheet__handle { background: var(--label-3); }
 
 /* ---- Toast: inverted card like the snackbar, centred under the status bar ----
@@ -90,12 +88,12 @@
 .react-cupertino-ui-badge.variant-warning { background: var(--warning-bg); color: var(--warning); }
 .react-cupertino-ui-badge.variant-error { background: var(--danger-bg); color: var(--danger); }
 
-/* ---- Button (kit Btn): primary = Atlas lime with the navy label and its edge; outline = Atlas secondary action
-   (surface, control edge, text colour); ghost/plain = violet text ---- */
+/* ---- Button (kit Btn): primary = Atlas lime with the navy label and its edge; outline = violet tint (the upstream
+   border is a white glass edge) ---- */
 .react-cupertino-ui-button.variant-solid, .react-cupertino-ui-button.variant-solid:hover {
   background: var(--primary-fill); color: var(--on-primary); border: 1px solid var(--primary-border); box-shadow: none; }
 .react-cupertino-ui-button.variant-outline, .react-cupertino-ui-button.variant-outline:hover {
-  background: var(--surface); color: var(--label); border: 1px solid var(--control); box-shadow: none; }
+  background: var(--accent-soft); color: var(--accent); border: 0; box-shadow: none; }
 .react-cupertino-ui-button.variant-ghost, .react-cupertino-ui-button.variant-link { color: var(--accent); }
 .react-cupertino-ui-button.variant-destructive { background: var(--danger); color: var(--on-accent); box-shadow: none; }
 /* Upstream outline sets border-radius: inherit, which turned Filter / View / Today into square boxes; keep every button a pill. */
@@ -103,7 +101,7 @@
 
 /* ---- Text field (kit Field, filled) ---- */
 /* Plain iOS fill: no glass blur, inset highlight or border, and the same corner as the multi-line field. */
-.react-cupertino-ui-textfield.variant-filled { background: var(--fill); color: var(--label); border: 1px solid var(--control); box-shadow: none;
+.react-cupertino-ui-textfield.variant-filled { background: var(--fill); color: var(--label); border: 0; box-shadow: none;
   backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: var(--radius-sm); }
 .react-cupertino-ui-textfield__label, .react-cupertino-ui-textfield__icon { color: var(--label-2); }
 .react-cupertino-ui-textfield__input::placeholder { color: var(--label-3); }
@@ -111,8 +109,7 @@
 /* ---- Search bar ---- */
 /* The library pads the bar 8px 16px on top of width:100%, which indents it and pushes its right edge past the content. */
 .react-cupertino-ui-search-bar { padding: 0; box-sizing: border-box; }
-.react-cupertino-ui-search-bar__input-wrapper, .react-cupertino-ui-search-bar__input-wrapper:focus-within { background: var(--fill);
-  border: 1px solid var(--control); }
+.react-cupertino-ui-search-bar__input-wrapper, .react-cupertino-ui-search-bar__input-wrapper:focus-within { background: var(--fill); }
 .react-cupertino-ui-search-bar__input { color: var(--label); }
 .react-cupertino-ui-search-bar__input::placeholder,
 .react-cupertino-ui-search-bar__input-wrapper .search-icon { color: var(--label-2); }
@@ -143,7 +140,7 @@
 .react-cupertino-ui-suggestion-chip.variant-secondary:hover:not(:disabled) { background: var(--fill); color: var(--label); }
 .react-cupertino-ui-suggestion-chip.variant-secondary[data-active="true"],
 .react-cupertino-ui-suggestion-chip.variant-secondary[data-active="true"]:hover:not(:disabled) {
-  background: var(--accent-soft); color: var(--selected-text); }   /* Atlas selected pair */
+  background: var(--accent); color: var(--on-accent); }
 /* Upstream lifts the active chip 1px; .hscroll's overflow-x clips the y axis too, so the pill's top got cut off.
    :not(:active) keeps the press scale (press.css). */
 .react-cupertino-ui-suggestion-chip[data-active="true"]:not(:active) { transform: none; }

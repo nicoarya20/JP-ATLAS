@@ -2,7 +2,7 @@
 html, body, #root { height: 100%; margin: 0; }
 body { background: var(--index-bg); color: var(--label); font-family: var(--font); font-size: var(--fs-subhead); }
 .ix { display: flex; height: 100%; }
-.ix-side { width: 280px; flex: none; overflow-y: auto; padding: var(--sp-6); border-right: 1px solid var(--separator); background: var(--surface); }
+.ix-side { width: 280px; flex: none; overflow-y: auto; padding: var(--sp-5); border-right: 1px solid var(--separator); background: var(--surface); }
 .ix-title { font-size: var(--fs-title3); margin: 0; }
 .ix-note { color: var(--label-2); margin: var(--sp-1) 0 var(--sp-4); }
 .ix-switch { display: flex; gap: var(--sp-1); margin-bottom: var(--sp-3); padding: 2px; border-radius: var(--radius-sm); background: var(--fill); }

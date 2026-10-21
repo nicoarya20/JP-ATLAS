@@ -5,8 +5,10 @@ Orchestrator: session `pm-dashboard-7b`. Report to it with SendMessage when you 
 ## Goal
 Port your modules from the vanilla prototype (`riset-keano/wireframe-mobile/screens.<module>*.js`) to React 18 + react-cupertino-ui in this folder.
 Use the same screen ids, titles, index groups, roles, flows and sample data. Do not invent features.
-The iOS Cupertino components come from the library and the kit; colours, font, type scale, spacing and radii come from the
-JP Atlas design system (`src/styles/atlas.css`, copied from `JP-Atlas-Design-System-2026-10-21/`). The ClickUp theme is gone.
+The iOS Cupertino look (components, card and field shapes, spacing, radii) comes from the library and the kit. Only the
+colours and the typography (Manrope, type scale, weights) come from the JP Atlas design system (`src/styles/atlas.css`,
+copied from `JP-Atlas-Design-System-2026-10-21/`), because the PM Dashboard joins the JP Atlas ERP as one product.
+The ClickUp theme is gone.
 
 ## Ownership
 | Owner | Files |
@@ -85,7 +87,7 @@ Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, s
   - Lime (`--primary-fill`) is the one main action per view, with `--on-primary` as its label. Never text, never a status.
   - Violet (`--accent`) is interaction: links, selected, active, progress.
   - A status is a pair plus its text: `--success` on `--success-bg`, never a tint of the text colour.
-  - `--separator` is decorative; control edges (fields, secondary buttons) use `--control`. Focus rings use `--focus`.
+  - `--separator` is decorative. Focus rings use `--focus`.
   - `--color-*` (iOS hues) only for category tiles and calendar categories, until Atlas has a category palette.
 - Library parts are themed in `src/styles/library.css` (loaded last), so light and dark both work. Restyle a kit part there, mapped to tokens from `tokens.css`; never a raw colour.
 - Files stay under 300 lines. Split a module into `<module>.<part>.jsx` files.

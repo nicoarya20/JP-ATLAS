@@ -4,7 +4,7 @@
   border-radius: 10px; background: var(--fill); color: var(--label-2); font-size: var(--fs-body); text-align: left; cursor: pointer; }
 .hm-input { padding: var(--sp-2) var(--sp-3); border-radius: 10px; background: var(--fill); font-size: var(--fs-subhead); }
 /* Stat chips: each chip as wide as its text (never wraps), first chip highlighted. */
-.hm-stat { display: grid; gap: 2px; justify-items: start; white-space: nowrap; padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-3);
+.hm-stat { display: grid; gap: 2px; justify-items: start; white-space: nowrap; padding: var(--sp-3) var(--sp-5) var(--sp-3) var(--sp-3);
   border: 0; border-radius: var(--radius-card); background: var(--surface); text-align: left; cursor: pointer; }
 .hm-stat:first-child { background: var(--accent-soft); }
 .hm-ico { width: 24px; height: 24px; margin-bottom: var(--sp-1); border-radius: 6px; display: grid; place-items: center;
