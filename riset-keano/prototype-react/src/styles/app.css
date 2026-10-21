@@ -117,7 +117,11 @@ h1, h2, h3 { margin: 0; }
 .modal-under::after { content: ''; position: absolute; inset: 0; z-index: 100; background: var(--overlay);
   animation: modal-fade-in 500ms cubic-bezier(0.32, 0.72, 0, 1); }
 .modal-under.is-closing::after { animation: modal-fade-out 380ms cubic-bezier(0.45, 0, 0.55, 1) forwards; }
-.scr.is-modal { z-index: 1; background: var(--bg); box-shadow: var(--glass-shadow); }
+/* Sheet colours like the FullSheet: --bg/--surface are re-pointed so the nav bar, sticky footers and cards inside follow
+   (dark: one step up off the dim, with the top-edge hairline; light: unchanged, sheet-bg = canvas). The hairline is a
+   border, not an inset shadow: the nav bar's own background would paint over an inset shadow. */
+.scr.is-modal { z-index: 1; --bg: var(--sheet-bg); --surface: var(--sheet-surface); background: var(--bg);
+  border-top: 1px solid var(--sheet-edge); box-shadow: var(--glass-shadow); }
 .scr.is-modal-enter { animation: modal-up 500ms cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; }
 .scr.is-modal-closing { animation: modal-down 380ms cubic-bezier(0.45, 0, 0.55, 1) forwards; will-change: transform; pointer-events: none; }
 @keyframes modal-up { from { transform: translateY(100%); } }
