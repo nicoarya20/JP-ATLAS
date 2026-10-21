@@ -88,6 +88,7 @@
   --media: var(--atlas-raised);          /* image placeholder */
   --phone-frame: var(--atlas-identity-surface);
   --index-bg: var(--atlas-surface);
+  --index-stage: #000;                   /* behind the phone on the index page, both themes: no glare while reviewing light mode */
   --snack-bg: var(--atlas-identity-surface); /* snackbar and toast stay dark in both themes */
   --snack-label: #f3f6fb;                /* Atlas dark text */
   --snack-action: #b6b4ff;               /* Atlas dark violet */

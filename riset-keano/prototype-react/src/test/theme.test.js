@@ -122,6 +122,12 @@ describe('theme layer', () => {
     for (const r of own) expect(r.body).toMatch(/width 380ms/);
   });
 
+  it('keeps the stage behind the phone black in both themes', () => {
+    expect(read('index/index.css')).toMatch(/\.ix-stage \{[^}]*background: var\(--index-stage\)/);
+    expect(values(block(':root'))['--index-stage']).toBe('#000');
+    expect(defined(block('.dark'))).not.toContain('--index-stage');
+  });
+
   it('stacks the bottom sheet over the tab bar and pinned rows, under the toast', () => {
     const z = sel => Number(library.match(new RegExp(`${sel.replaceAll('.', '\\.')} \\{[^}]*z-index: (\\d+)`))[1]);
     const appCss = read('styles/app.css');

@@ -13,7 +13,7 @@ body { background: var(--index-bg); color: var(--label); font-family: var(--font
 .ix-side nav a { display: block; padding: var(--sp-1) var(--sp-2); border-radius: 6px; color: var(--label); text-decoration: none; }
 .ix-side nav a:hover { background: var(--fill); }
 .ix-side nav a[aria-current="page"] { background: var(--accent); color: var(--on-accent); }
-.ix-stage { flex: 1; display: grid; place-items: center; overflow: auto; padding: var(--sp-6); }
+.ix-stage { flex: 1; display: grid; place-items: center; overflow: auto; padding: var(--sp-6); background: var(--index-stage); }
 .ix-phone { width: 390px; height: 844px; border: 10px solid var(--phone-frame); border-radius: 48px; background: var(--bg); }
 @media (max-width: 760px) {
   .ix { flex-direction: column; height: auto; }
