@@ -129,7 +129,7 @@ describe('tasks list', () => {
     expect(rule).toMatch(/border-radius: 10px/);
     expect(rule).toMatch(/color: var\(--label-2\)/);
     const lib = readFileSync(join(__dirname, '../styles/library.css'), 'utf8');
-    expect(lib).toMatch(/search-bar:not\(\.is-focused\) \.react-cupertino-ui-search-bar__cancel \{ display: none; \}/);
+    expect(lib).toMatch(/^\.react-cupertino-ui-search-bar__cancel \{ display: none; \}/m);   // out of the row, so it cannot push the field
   });
 
   it('draws Kanban tasks as raised cards inside the column card', () => {

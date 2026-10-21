@@ -1,9 +1,8 @@
-// Home ② Search / ask: search field with sample query "Atlas", an Ask card and grouped results.
+// Home ② Search / ask: back chevron, search field with sample query "Atlas", an Ask card and grouped results.
 import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
-import { SearchBar } from '@react-cupertino-ui/search-bar';
 import { useApp } from '../../core/app.context';
-import { Row, Rows, Screen, Section } from '../../kit';
+import { NavBar, Row, Rows, Screen, Search, Section } from '../../kit';
 
 const SAMPLE_QUERY = 'Atlas';
 
@@ -18,13 +17,16 @@ function Group({ title, children }) {
 }
 
 function HomeSearch() {
-  const { back, toast } = useApp();
+  const { toast } = useApp();
   const [q, setQ] = useState(SAMPLE_QUERY);
+  // The search bar has no Cancel any more, so the way back is the nav bar chevron; a press outside keeps the query.
   const header = (
-    <div className="hm-bar">
-      <SearchBar value={q} onChangeValue={setQ} onCancel={() => back()} placeholder="Search…" glass={false}
-        onVoicePress={() => toast('Listening…')} />
-    </div>
+    <>
+      <NavBar back title="Search" />
+      <div className="hm-bar">
+        <Search value={q} onChangeValue={setQ} keep placeholder="Search…" showVoice onVoicePress={() => toast('Listening…')} />
+      </div>
+    </>
   );
   return (
     <Screen header={header}>

@@ -10,7 +10,6 @@ html { -webkit-tap-highlight-color: transparent; }
 .react-cupertino-ui-card[data-interactive="true"]:hover { transform: none; box-shadow: none; }
 .react-cupertino-ui-list-item.clickable:hover:not(.disabled),
 .react-cupertino-ui-list.variant-inset .react-cupertino-ui-list-item:hover:not(.disabled) { background-color: transparent; }
-.react-cupertino-ui-search-bar__cancel:hover { opacity: 1; }
 
 /* ---- Press: blocks shrink, text-only targets dim (the tab bar has its own bubble, kit/tabbar.css) ---- */
 .hm-stat, .ev-date, .ev-arrow, .react-cupertino-ui-suggestion-chip,
@@ -20,10 +19,10 @@ html { -webkit-tap-highlight-color: transparent; }
 .react-cupertino-ui-card[data-interactive="true"]:active { transform: scale(0.98); transition-duration: var(--press-in); }
 
 .link, .react-cupertino-ui-navigation-bar .back-button, .react-cupertino-ui-tabs__trigger,
-.react-cupertino-ui-segmented-control__option, .react-cupertino-ui-search-bar__cancel {
+.react-cupertino-ui-segmented-control__option {
   transition: opacity var(--press-out) ease; }
 .link:active, .react-cupertino-ui-navigation-bar .back-button:active, .react-cupertino-ui-tabs__trigger:active,
-.react-cupertino-ui-segmented-control__option:active, .react-cupertino-ui-search-bar__cancel:active {
+.react-cupertino-ui-segmented-control__option:active {
   opacity: var(--press-dim); transition-duration: var(--press-in); }
 
 /* Rows keep the library press (fill + slight shrink); they only get the same timing. */

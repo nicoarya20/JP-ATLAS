@@ -1,5 +1,5 @@
 // Form-ish parts: dropdown pill (Select), search field, on/off switch, small section label, snackbar with an action.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SearchBar } from '@react-cupertino-ui/search-bar';
 import { Switcher } from '@react-cupertino-ui/switcher';
 import { ChevronDown } from 'lucide-react';
@@ -32,10 +32,33 @@ export function Select({ children, block, options, value, onChange, label, ...pr
   );
 }
 
-/** iOS search field (local text only; the prototype does not filter). */
-export function Search({ placeholder }) {
-  const [text, setText] = useState('');
-  return <SearchBar value={text} onChangeValue={setText} onCancel={() => setText('')} placeholder={placeholder} showVoice={false} glass={false} />;
+/**
+ * iOS search field without a Cancel button: a press anywhere outside it lets go of the field and clears the text
+ * (keep = only let go, for a screen whose results come from the text). Local text unless value + onChangeValue are
+ * given (the prototype does not filter); other props go to the library SearchBar (e.g. showVoice, onVoicePress).
+ */
+export function Search({ placeholder, value, onChangeValue, keep = false, ...bar }) {
+  const [own, setOwn] = useState('');
+  const text = value ?? own, setText = onChangeValue ?? setOwn;
+  const wrap = useRef(null);
+  const [focused, setFocused] = useState(false);
+  // iOS Safari keeps an input focused after a tap on plain content, so any press outside the field blurs it here.
+  useEffect(() => {
+    if (!focused) return undefined;
+    const onDown = e => { if (!wrap.current.contains(e.target)) wrap.current.querySelector('input').blur(); };
+    document.addEventListener('pointerdown', onDown, true);
+    return () => document.removeEventListener('pointerdown', onDown, true);
+  }, [focused]);
+  const onBlur = e => {
+    if (wrap.current.contains(e.relatedTarget)) return;   // focus moved to the clear button inside the field
+    setFocused(false);
+    if (!keep) setText('');
+  };
+  return (
+    <div ref={wrap} className="search" onFocus={() => setFocused(true)} onBlur={onBlur}>
+      <SearchBar value={text} onChangeValue={setText} placeholder={placeholder} showVoice={false} glass={false} {...bar} />
+    </div>
+  );
 }
 
 /** On/off switch. on = initial state; label is read by screen readers when no visible label sits next to it;
