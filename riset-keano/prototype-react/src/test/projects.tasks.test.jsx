@@ -1,6 +1,8 @@
 // Project detail ⑨ Tasks: List / Kanban swaps the view inside the project (header and tabs stay) instead of opening
 // the global ③ Kanban, and the Kanban view survives opening a task and coming back. Search and Filter & sort are the
 // Tasks menu's, with Assignee in place of the (fixed) Project field.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
@@ -127,5 +129,20 @@ describe('project detail Tasks · Filter & sort', () => {
     fireEvent.click(dom.getByRole('button', { name: 'Reset filters' }));
     expect(atlasActive().every(shown)).toBe(true);
     expect(icon()).not.toHaveClass('is-on');
+  });
+});
+
+describe('project detail Tasks · sticky tools', () => {
+  it('keeps search, List / Kanban and New task in one bar that sticks while the list scrolls', () => {
+    renderApp('projects.tasks', 'pm');
+    const tools = document.querySelector('.pj-tools');
+    expect(within(tools).getByPlaceholderText('Search title, #number, or tag…')).toBeInTheDocument();
+    expect(within(tools).getByRole('tab', { name: 'Kanban' })).toBeInTheDocument();
+    expect(within(tools).getByRole('button', { name: '+ New task' })).toBeInTheDocument();
+    expect(tools.querySelector('.react-cupertino-ui-card, .card')).toBeNull();   // the task cards scroll under it
+    const css = readFileSync(join(__dirname, '../screens/projects/projects.css'), 'utf8');
+    const rule = css.match(/\.pj-tools \{[^}]*\}/)[0];
+    expect(rule).toMatch(/position: sticky/);
+    expect(rule).toMatch(/background: var\(--bg\)/);
   });
 });

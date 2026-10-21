@@ -20,6 +20,10 @@
 .pj-indent { padding-left: var(--sp-6); }
 .pj-divider { width: 100%; margin: 0; border: 0; border-top: 1px solid var(--separator); }
 .pj-seg { width: 96px; }
+/* Tasks tab tools (search, List / Kanban, New task): stick to the top of the scroll area; the full-bleed background
+   hides the cards passing underneath, and the negative top margin keeps the resting gap to the tabs unchanged. */
+.pj-tools { position: sticky; top: calc(var(--sp-4) * -1); z-index: 3; display: grid; gap: var(--sp-3);
+  margin: calc(var(--sp-3) * -1) calc(var(--sp-4) * -1) 0; padding: var(--sp-3) var(--sp-4) var(--sp-2); background: var(--bg); }
 
 /* Phase step indicator (Overview). */
 .pj-steps { display: grid; grid-template-columns: repeat(4, 1fr); }

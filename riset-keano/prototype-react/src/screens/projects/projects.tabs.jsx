@@ -35,7 +35,8 @@ function TaskCard({ t, canEdit, note }) {
 
 /** ⑨ Detail · Tasks. params.board = Kanban view; List / Kanban swaps the view in place, so the project header and
  *  tabs stay (the global ③ Kanban would leave the project). Search and Filter & sort are the Tasks menu's (status,
- *  assignee, priority, sort in the screen params); List / Kanban keeps that query, as it does there. */
+ *  assignee, priority, sort in the screen params); List / Kanban keeps that query, as it does there. Search, view and
+ *  New task stick under the nav bar (pj-tools), so a long list never needs scrolling back up to reach them. */
 export function ProjectsTasks({ params }) {
   const { go } = useApp(), board = !!params?.board;
   useTaskMoves();
@@ -43,11 +44,13 @@ export function ProjectsTasks({ params }) {
   const view = i => go('projects.tasks', { params: { ...queryParams(params), ...(i ? { board: true } : {}) } });
   return (
     <DetailScreen on={1}>
-      <TasksSearch inProject />
-      <div className="between">
-        <div className="pj-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]} on={board ? 1 : 0}
-          onPick={view} /></div>
-        <Btn kind="primary" sm go="tasks.form">+ New task</Btn>
+      <div className="pj-tools">
+        <TasksSearch inProject />
+        <div className="between">
+          <div className="pj-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]} on={board ? 1 : 0}
+            onPick={view} /></div>
+          <Btn kind="primary" sm go="tasks.form">+ New task</Btn>
+        </div>
       </div>
       {board ? <Board tasks={list} /> : list.length ? <>
         {list.map(t => <TaskCard key={t.no} t={t} canEdit={canEdit} note={note} />)}
