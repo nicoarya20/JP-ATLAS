@@ -9,7 +9,7 @@ function register(map, kind, id, def) {
 }
 
 /** Register a full screen. def: {title (string | () => string), group, roles?: ['pm', ...], modal?: true, Component}.
- *  modal = a create/edit flow: slides up over the screen it opened from, Cancel instead of the back chevron, slides down on back. */
+ *  modal = a create/edit flow: slides up over the screen it opened from, a down chevron (named Cancel) instead of the left one, slides down on back. */
 export const screen = (id, def) => register(screens, 'screen', id, def);
 /** Register a bottom sheet. def: same as a screen, plus snap?: 0..1 (sheet height as a share of the phone, default 0.6),
  *  or full?: true for a full-height overlay (kit FullSheet: X top-left, swipe down to close; snap is ignored),

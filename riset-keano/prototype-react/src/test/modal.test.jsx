@@ -18,7 +18,9 @@ describe('modal create screens', () => {
     expect(shown()).toHaveClass('is-modal', 'is-modal-enter');
     expect(under()).toHaveAttribute('inert');
     expect(under()).toHaveAttribute('aria-hidden', 'true');
-    expect(dom.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+    const cancel = dom.getByRole('button', { name: 'Cancel' });
+    expect(cancel).toHaveTextContent('');                                          // a down chevron, no text
+    expect(cancel.querySelector('svg.lucide-chevron-down')).toBeInTheDocument();
     expect(dom.queryByRole('button', { name: 'Back' })).not.toBeInTheDocument();   // the list's own bar is hidden
   });
 

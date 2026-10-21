@@ -19,9 +19,6 @@
    up with the content edge */
 .react-cupertino-ui-navigation-bar .nav-back { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -14px;
   padding: 0; border: 0; background: none; color: var(--label); cursor: pointer; }
-/* kit NavBar on a modal screen: "Cancel" text in the accent (iOS modal), same 44px tap height, text on the content edge */
-.react-cupertino-ui-navigation-bar .nav-cancel { height: 44px; padding: 0; border: 0; background: none; color: var(--accent);
-  font: inherit; font-size: var(--fs-body); cursor: pointer; }
 
 /* ---- Card (kit Section) ---- */
 .card.react-cupertino-ui-card { --card-padding-block: var(--sp-4); --card-padding-inline: var(--sp-4);

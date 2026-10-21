@@ -1,7 +1,7 @@
 // Screen frame: navigation bar, scrolling content and the bottom tab bar. Every screen renders through <Screen>.
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { NavigationBar } from '@react-cupertino-ui/navigation-bar';
-import { CalendarDays, ChevronLeft, CircleCheck, Ellipsis, FolderKanban, House, Plus } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, CircleCheck, Ellipsis, FolderKanban, House, Plus } from 'lucide-react';
 import { useApp } from '../core/app.context';
 import { allowed, getPanel } from '../core/registry';
 import { GlassTabs } from './tabbar';
@@ -76,18 +76,17 @@ export function AppTabBar({ active }) {
 
 /**
  * Top bar. back = true shows an iOS chevron (pops history); the library's own back button is an arrow plus a
- * "Back" label, so we draw ours in leftItems. On a modal screen the back is a "Cancel" text button instead (it slides
- * the screen down). left/right = extra items.
+ * "Back" label, so we draw ours in leftItems. On a modal screen it is a down chevron named "Cancel" instead (the screen
+ * slides down when it leaves). left/right = extra items.
  */
 export function NavBar({ title = '', sub, back, left, right, large, modal = false }) {
   const { back: pop } = useApp();
-  const chevron = back && (modal ? (
-    <button type="button" className="nav-cancel" onClick={() => pop()}>Cancel</button>
-  ) : (
-    <button type="button" className="back-button nav-back" aria-label="Back" onClick={() => pop()}>
-      <ChevronLeft size={30} strokeWidth={2.2} aria-hidden="true" />
+  const Icon = modal ? ChevronDown : ChevronLeft;
+  const chevron = back && (
+    <button type="button" className="back-button nav-back" aria-label={modal ? 'Cancel' : 'Back'} onClick={() => pop()}>
+      <Icon size={30} strokeWidth={2.2} aria-hidden="true" />
     </button>
-  ));
+  );
   return (
     <NavigationBar title={title} subtitle={sub} large={large} leftItems={<>{chevron}{left}</>} rightItems={right} />
   );
