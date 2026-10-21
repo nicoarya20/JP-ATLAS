@@ -1,9 +1,17 @@
-import { Button, Group, Paper, Stack, Text, ThemeIcon, Title } from '@mantine/core';
+import { SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { adminUserStats } from '@server/api/admin-users.query';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
-import { FiClock } from 'react-icons/fi';
-import { Link } from 'react-router';
+import { AntreanWidget } from '~/components/admin/home/antrean';
+import { BERANDA_COPY } from '~/components/admin/home/beranda.content';
+import {
+  AgendaWidget,
+  LateTasksWidget,
+  MembersWidget,
+  ProjectsWidget,
+  RoleChangesWidget,
+} from '~/components/admin/home/beranda.widgets';
+import { PratinjauAlert } from '~/components/admin/pratinjau/pratinjau';
 import { useApp } from '~/lib/app-context';
 import { useSession } from '~/lib/auth-client';
 import type { Route } from './+types/dashboard';
@@ -19,53 +27,40 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { pending };
 }
 
-const nf = new Intl.NumberFormat('id-ID');
-
+/**
+ * Admin Beranda: the approval queue on real data, plus the five cards P11 AD-15 will fill from
+ * `GET /api/admin/overview`. They are shown as previews rather than withheld because an empty
+ * screen teaches an Admin that this page is useless (plan §3 ①) — the strip at the top and the
+ * badge on each card say which numbers are samples.
+ */
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
   const { user: ctxUser } = useApp();
   const { data } = useSession();
   const user = data?.user ?? ctxUser;
-  const { pending } = loaderData;
 
   return (
-    <Stack p={{ base: 'sm', md: 'md' }}>
-      <Title order={2}>Dashboard</Title>
-      <Text>
-        Masuk sebagai <b>{user.email}</b>
-      </Text>
-      <Paper withBorder radius="md" p="md" maw={520}>
-        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-          <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-            <ThemeIcon
-              variant="light"
-              color={pending > 0 ? 'yellow' : 'gray'}
-              size="xl"
-              radius="md"
-            >
-              <FiClock size={20} />
-            </ThemeIcon>
-            <div>
-              <Text fw={600}>
-                {pending > 0
-                  ? `${nf.format(pending)} menunggu persetujuan`
-                  : 'Tidak ada yang menunggu persetujuan'}
-              </Text>
-              <Text size="sm" c="dimmed">
-                {pending > 0
-                  ? 'Orang yang baru mendaftar belum bisa memakai aplikasi sampai kamu menyetujuinya.'
-                  : 'Pendaftar baru akan muncul di sini.'}
-              </Text>
-            </div>
-          </Group>
-          <Button
-            component={Link}
-            to="/dashboard/users?tab=pending"
-            variant={pending > 0 ? 'filled' : 'light'}
-          >
-            {pending > 0 ? 'Tinjau sekarang' : 'Buka halaman Pengguna'}
-          </Button>
-        </Group>
-      </Paper>
+    <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
+      <div>
+        <Title order={1}>{BERANDA_COPY.title}</Title>
+        <Text size="sm" c="dimmed">
+          {BERANDA_COPY.description} Masuk sebagai <b>{user.email}</b>.
+        </Text>
+      </div>
+
+      <PratinjauAlert owner="AD-14/AD-15">
+        Hanya kartu <b>Antrean persetujuan</b> yang berisi data sungguhan. Lima kartu lain bertanda{' '}
+        <b>Pratinjau</b> memakai angka contoh supaya bentuk akhir layar ini bisa dinilai lebih dulu;
+        isinya datang dari tugas AD-14 dan AD-15.
+      </PratinjauAlert>
+
+      <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="md">
+        <AntreanWidget pending={loaderData.pending} />
+        <MembersWidget />
+        <ProjectsWidget />
+        <LateTasksWidget />
+        <AgendaWidget />
+        <RoleChangesWidget />
+      </SimpleGrid>
     </Stack>
   );
 }
