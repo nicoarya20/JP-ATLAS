@@ -1,5 +1,5 @@
 /**
- * The role × capability matrix shown read-only in /dashboard/settings → "Peran & izin".
+ * The role × capability matrix shown read-only on /dashboard/permissions ("Peran & izin").
  *
  * Every cell is *computed* by calling the function in `server/permissions.ts` that decides it at
  * request time — nothing here restates its answers. That is the whole point: the moment a rule
