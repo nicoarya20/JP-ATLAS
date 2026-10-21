@@ -2,6 +2,7 @@ import { Group, ScrollArea, Stack, Tabs, Text, Title } from '@mantine/core';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { useSearchParams } from 'react-router';
+import { SETTINGS_PANELS } from '~/components/admin/settings/panels';
 import {
   parseSettingsTab,
   SETTINGS_PAGE_COPY,
@@ -15,8 +16,8 @@ export function meta() {
 }
 
 /**
- * Shell of Setelan organisasi: the eight tabs of P11 §4, each one still a placeholder (owners are
- * listed in `settings.tabs.ts`). The guard is repeated here on purpose — React Router runs the
+ * Shell of Setelan organisasi: the eight tabs of P11 §4, each one rendering its registered
+ * panel (`panels.tsx`) or, while none is registered, the placeholder from `settings.tabs.ts`. The guard is repeated here on purpose — React Router runs the
  * layout and page loaders in parallel, so the layout guard does not cover this page's data.
  */
 export async function loader({ request }: Route.LoaderArgs) {
@@ -73,11 +74,18 @@ export default function AdminSettingsPage() {
           </Tabs.List>
         </ScrollArea>
 
-        {SETTINGS_TABS.map(({ value, icon: Icon, title, description }) => (
-          <Tabs.Panel key={value} value={value} pt="md">
-            <EmptyState icon={Icon} title={title} description={description} />
-          </Tabs.Panel>
-        ))}
+        {SETTINGS_TABS.map(({ value, icon: Icon, title, description }) => {
+          const Panel = SETTINGS_PANELS[value];
+          return (
+            <Tabs.Panel key={value} value={value} pt="md">
+              {Panel ? (
+                <Panel />
+              ) : (
+                <EmptyState icon={Icon} title={title} description={description} />
+              )}
+            </Tabs.Panel>
+          );
+        })}
       </Tabs>
     </Stack>
   );

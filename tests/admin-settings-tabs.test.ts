@@ -1,9 +1,10 @@
 /**
  * Contract of the /dashboard/settings shell: the eight tabs of P11 §4 in that exact order, each one
- * linkable through `?tab=` and each placeholder naming the task that will fill it. The route itself
+ * linkable through `?tab=` and each tab still unfilled naming the task that will fill it. The route itself
  * (meta + Admin guard + descending from the admin layout) is covered by tests/admin-routes.test.ts.
  */
 import { describe, expect, test } from 'bun:test';
+import { isPlaceholderTab, SETTINGS_PANELS } from '../app/components/admin/settings/panels';
 import { parseSettingsTab, SETTINGS_TABS } from '../app/components/admin/settings/settings.tabs';
 import routes from '../app/routes';
 
@@ -35,11 +36,18 @@ describe('/dashboard/settings tabs', () => {
     expect(values.filter((v) => v !== encodeURIComponent(v))).toEqual([]);
   });
 
-  test('every placeholder names the task that will fill it', () => {
+  test('every tab still showing a placeholder names the task that will fill it', () => {
     const unlabelled = SETTINGS_TABS.filter(
-      (t) => !t.owner || !t.description.includes(t.owner),
+      (t) => isPlaceholderTab(t.value) && (!t.owner || !t.description.includes(t.owner)),
     ).map((t) => t.value);
     expect(unlabelled).toEqual([]);
+  });
+
+  test('a tab with a registered panel is no longer a placeholder', () => {
+    for (const value of Object.keys(SETTINGS_PANELS)) {
+      expect(SETTINGS_TABS.some((t) => t.value === value)).toBe(true);
+      expect(isPlaceholderTab(value)).toBe(false);
+    }
   });
 
   test('the owners are the tasks assigned by the plan', () => {
