@@ -6,11 +6,17 @@ import {
   toAccountOptions,
 } from '@server/session-accounts';
 import { useState } from 'react';
-import { FiCheck, FiLogOut, FiMoreVertical, FiPlus } from 'react-icons/fi';
+import { FiCheck, FiLogOut, FiMoreVertical, FiPlus, FiSettings } from 'react-icons/fi';
 import { useNavigate } from 'react-router';
 import type { AppUser } from '~/lib/app-context';
 import { authClient, signOut, useSession } from '~/lib/auth-client';
 import { TruncatedText } from './logs/TruncatedText';
+
+/**
+ * Personal account settings. They belong to the person rather than to an area, so this menu
+ * carries them in every area instead of the sidebar's "Area lain" group (P11 AD-01).
+ */
+export const ACCOUNT_SETTINGS = { to: '/app/settings', label: 'Pengaturan akun' } as const;
 
 /**
  * Avatar + account switcher shared by every area layout. Switching lands on /go
@@ -104,6 +110,13 @@ export function UserMenu({
             {roleBadge}
           </Group>
         </Menu.Label>
+        <Menu.Divider />
+        <Menu.Item
+          leftSection={<FiSettings size="1.25em" />}
+          onClick={() => navigate(ACCOUNT_SETTINGS.to)}
+        >
+          {ACCOUNT_SETTINGS.label}
+        </Menu.Item>
         <Menu.Divider />
         <Menu.Label>Akun</Menu.Label>
         {loading ? (
