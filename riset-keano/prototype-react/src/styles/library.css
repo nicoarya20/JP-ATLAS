@@ -97,7 +97,8 @@
 .react-cupertino-ui-button.variant-outline, .react-cupertino-ui-button.variant-outline:hover {
   background: var(--accent-soft); color: var(--accent); border: 0; box-shadow: none; }
 .react-cupertino-ui-button.variant-ghost, .react-cupertino-ui-button.variant-link { color: var(--accent); }
-.react-cupertino-ui-button.variant-destructive { background: var(--danger); color: var(--on-accent); box-shadow: none; }
+/* iOS red + white like the .mm-badge: Atlas dark --danger is a pale pink that made Sign out look washed out */
+.react-cupertino-ui-button.variant-destructive { background: var(--color-red); color: var(--color-white); box-shadow: none; }
 /* Upstream outline sets border-radius: inherit, which turned Filter / View / Today into square boxes; keep every button a pill. */
 .react-cupertino-ui-button.variant-outline { border-radius: 999px; }
 
