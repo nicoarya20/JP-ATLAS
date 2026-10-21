@@ -8,6 +8,7 @@ import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import routes from '../app/routes';
+import { NAV } from '../app/routes/admin/layout';
 
 type Entry = { file: string; path?: string; children?: Entry[] };
 const APP_DIR = path.join(import.meta.dir, '../app');
@@ -40,10 +41,35 @@ describe('/dashboard area', () => {
   const all = flatten(routes as Entry[]);
   const layout = (routes as Entry[]).find((e) => e.file === ADMIN_LAYOUT);
 
-  test('the admin layout exists and serves /dashboard and /dashboard/users', () => {
+  test('the admin layout exists and serves every Admin menu page', () => {
     const paths = layout?.children?.map((c) => c.path);
     expect(paths).toContain('dashboard');
     expect(paths).toContain('dashboard/users');
+    // Split out of Pengaturan by AD-20: a report and a tool, not settings.
+    expect(paths).toContain('dashboard/permissions');
+    expect(paths).toContain('dashboard/export');
+    expect(paths).toContain('dashboard/settings');
+  });
+
+  test('the two pages AD-20 split out are children of the admin layout', () => {
+    const fileOf = (path: string) => layout?.children?.find((c) => c.path === path)?.file;
+    expect(fileOf('dashboard/permissions')).toBe('routes/admin/permissions.tsx');
+    expect(fileOf('dashboard/export')).toBe('routes/admin/export.tsx');
+  });
+
+  test('the Admin sidebar has the five AD-20 entries in reading order', () => {
+    expect(NAV.map((n) => [n.label, n.to])).toEqual([
+      ['Dashboard', '/dashboard'],
+      ['Pengguna', '/dashboard/users'],
+      ['Peran & izin', '/dashboard/permissions'],
+      ['Ekspor data', '/dashboard/export'],
+      ['Pengaturan', '/dashboard/settings'],
+    ]);
+  });
+
+  test('every Admin sidebar entry points at a registered route, never a dead link', () => {
+    const registered = new Set(all.filter((e) => e.path).map((e) => `/${e.path}`));
+    expect(NAV.filter((n) => !registered.has(n.to)).map((n) => n.to)).toEqual([]);
   });
 
   test('every routes/admin file is a descendant of the admin layout', () => {

@@ -1,5 +1,5 @@
 /**
- * The role matrix behind /dashboard/settings → "Peran & izin" (P11 AD-09). The point of these
+ * The role matrix behind /dashboard/permissions (P11 AD-09, AD-20). The point of these
  * tests is that the matrix is *derived*: every cell is compared against a live call into
  * `server/permissions.ts`, and the last test stubs one of those functions to prove the table
  * follows it. A hand-copied table would pass the spot-checks and fail that one.

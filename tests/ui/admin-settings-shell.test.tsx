@@ -1,8 +1,9 @@
 /**
  * /dashboard/settings (P11 AD-02): the page guards itself — React Router runs the layout and page
  * loaders in parallel, so a Member must be turned away here, not only by the layout — and the tab
- * shell renders the eight tabs of P11 §4 with the panel of `?tab=` and a list that scrolls
- * sideways instead of wrapping (eight tabs never fit 375px).
+ * shell renders the six tabs of P11 §4 that really are settings (AD-20 moved the report and the
+ * tool out) with the panel of `?tab=` and a list that scrolls sideways instead of wrapping (six
+ * tabs fit a laptop but never 375px).
  */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
@@ -47,8 +48,8 @@ async function renderAt(search: string): Promise<string> {
   const context = await handler.query(new Request(`http://localhost${PATH}${search}`));
   if (context instanceof Response) throw new Error(`Unexpected redirect ${context.status}`);
   const router = createStaticRouter(handler.dataRoutes, context);
-  // A registered panel fetches its own data, so the shell needs the same providers root.tsx gives
-  // it; without the query client the first filled tab throws instead of rendering.
+  // A panel may fetch its own data, so the shell gets the same providers root.tsx gives it;
+  // without the query client such a tab would throw instead of rendering.
   return renderToStaticMarkup(
     <QueryClientProvider client={new QueryClient()}>
       <MantineProvider>
@@ -108,7 +109,8 @@ describe('/dashboard/settings shell', () => {
 
   it('opens the tab named by ?tab=, so every tab is linkable', async () => {
     // Any tab but the first that still shows its placeholder: a tab whose panel has landed renders
-    // the panel instead, so naming one here would break the moment that task ships.
+    // the panel instead, so naming one here would break the moment that task ships. Every tab is a
+    // placeholder today — AD-20 emptied the registry — so this picks the second tab.
     const target = SETTINGS_TABS.find((t, i) => i > 0 && isPlaceholderTab(t.value));
     if (!target) throw new Error('every tab is filled: assert a filled tab instead');
     const html = await renderAt(`?tab=${target.value}`);
@@ -118,7 +120,15 @@ describe('/dashboard/settings shell', () => {
   });
 
   it('renders the registered panel of a filled tab, not its placeholder', async () => {
-    for (const value of Object.keys(SETTINGS_PANELS)) {
+    const registered = Object.keys(SETTINGS_PANELS);
+    // The registry is empty since AD-20 took both filled panels out to menus of their own, so
+    // every tab must show its placeholder; the loop below takes over as AD-04..AD-08 refill it.
+    if (registered.length === 0) {
+      const html = await renderAt(`?tab=${SETTINGS_TABS[0].value}`);
+      expect(shows(html, SETTINGS_TABS[0].description)).toBe(true);
+      return;
+    }
+    for (const value of registered) {
       const tab = SETTINGS_TABS.find((t) => t.value === value);
       if (!tab) throw new Error(`panel registered for unknown tab ${value}`);
       const html = await renderAt(`?tab=${value}`);
