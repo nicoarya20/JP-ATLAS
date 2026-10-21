@@ -1,6 +1,6 @@
 // Home layout: the content is a sheet stacked under the header; scrolling it pushes the search bar away and swaps it for
 // the search icon beside the avatar.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, waitFor } from '@testing-library/react';
 import '../screens';
 import { renderApp } from './render';
@@ -55,6 +55,39 @@ describe('home layout', () => {
     fireEvent.click(icon);
     expect(window.location.hash).toBe('#home.search');
     expect(container.querySelector('.hm-find')).toBeNull();
+  });
+
+  it('snaps a half-collapsed search bar open or shut once scrolling stops, but not while a finger is down', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
+    scroller.scrollTo = vi.fn();
+    const stopAt = top => { scroller.scrollTop = top; fireEvent.scroll(scroller); };
+
+    stopAt(20);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' }));
+    scroller.scrollTo.mockClear();
+    stopAt(40);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 60, behavior: 'smooth' }));
+
+    scroller.scrollTo.mockClear();
+    fireEvent.touchStart(scroller);
+    stopAt(25);
+    await new Promise(r => setTimeout(r, 200));
+    expect(scroller.scrollTo).not.toHaveBeenCalled();
+    fireEvent.touchEnd(scroller);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' }));
+  });
+
+  it('leaves the scroll alone outside the search block', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
+    scroller.scrollTo = vi.fn();
+    scroller.scrollTop = 300;
+    fireEvent.scroll(scroller);
+    await new Promise(r => setTimeout(r, 200));
+    expect(scroller.scrollTo).not.toHaveBeenCalled();
   });
 
   it('keeps other tab screens on the plain content frame', () => {

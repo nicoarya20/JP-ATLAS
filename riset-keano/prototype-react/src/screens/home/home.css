@@ -13,8 +13,9 @@
    first two thirds while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
 .hm-find { padding: 0 var(--sp-4) var(--sp-4); }
 .hm-find .hm-search { opacity: calc(1 - var(--hm-p, 0) * 1.5); scale: calc(1 - var(--hm-p, 0) * 0.4); transform-origin: top right; }
-.hm-find-ico { width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center;
-  background: var(--fill); color: var(--label); cursor: pointer;
+/* Bare icon (no bubble); the 36px box is only the tap area */
+.hm-find-ico { width: 36px; height: 36px; padding: 0; border: 0; display: grid; place-items: center;
+  background: none; color: var(--label); cursor: pointer;
   opacity: calc(var(--hm-p, 0) * 2 - 1); scale: calc(0.6 + var(--hm-p, 0) * 0.4); }
 .hm-search { display: flex; align-items: center; gap: var(--sp-2); width: 100%; padding: var(--sp-2) var(--sp-3); border: 0;
   border-radius: 10px; background: var(--fill); color: var(--label-2); font-size: var(--fs-body); text-align: left; cursor: pointer; }
