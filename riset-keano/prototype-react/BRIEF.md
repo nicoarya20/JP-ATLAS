@@ -50,7 +50,8 @@ Kit (`import { ... } from '../../kit'`):
 - `Field`: props `label`, `value`, `placeholder`, `area`, `disabled`, `icon`.
 - Small display parts:
   - `Avatar` (props `name`, `size`) and `Avatars` (prop `names`).
-  - `Pill`: `tone` is `neutral`, `accent`, `success`, `warning`, `danger` or `outline`.
+  - `Pill`: `tone` is `neutral`, `accent`, `info`, `success`, `warning`, `danger` or `outline`. For a status word use
+    `StatusPill status={x}` instead: its tone comes from the one map in `kit/status.js`, so a status looks the same everywhere.
   - `Progress`: props `value`, `label`, `showValue`.
   - `Media`: props `label`, `size`.
   - `Empty`: props `icon`, `title`, `text`, `action`.
@@ -85,6 +86,8 @@ Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, s
 - Colours come from the app roles in `tokens.css` (`--accent`, `--label`, `--surface`, `--success`/`--success-bg` …) in module CSS.
   No raw hex in JSX. Screens never read `--atlas-*` directly.
   - Lime (`--primary-fill`) is the one main action per view, with `--on-primary` as its label. Never text, never a status.
+    A view with several equal actions (a list of cards) has no lime: they are all `outline`. `test/atlas.rules.test.jsx`
+    fails when a rendered screen or sheet shows more than one lime button or a status pill outside its pair.
   - Violet (`--accent`) is interaction: links, selected, active, progress.
   - A status is a pair plus its text: `--success` on `--success-bg`, never a tint of the text colour.
   - `--separator` is decorative. Focus rings use `--focus`.
