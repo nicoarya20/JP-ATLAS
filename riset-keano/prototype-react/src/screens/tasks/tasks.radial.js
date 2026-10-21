@@ -95,12 +95,24 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
   }, [isOpen]);   // close only touches refs and state setters
 
   // While the finger aims, keep the board and page from panning under it (needs a non-passive listener).
+  // The rest of the press is heard on the window, not the board: a release that lands outside it (on the search bar
+  // above, when the pointer capture did not take) would otherwise leave the menu in its holding state, where it lets
+  // every tap through to the screen and its own statuses take none.
+  const track = useRef(null);
   useEffect(() => {
     const el = boardRef.current;
     const block = e => { if (hold.current?.open) e.preventDefault(); };
+    const move = e => track.current.onPointerMove(e), up = e => track.current.onPointerUp(e);
+    const cancel = e => track.current.onPointerCancel(e);
     el.addEventListener('touchmove', block, { passive: false });
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', cancel);
     return () => {
       el.removeEventListener('touchmove', block);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', cancel);
       clearTimeout(hold.current?.timer);
     };
   }, [boardRef]);
@@ -139,7 +151,8 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
     else { hold.current = null; show({ ...live.current, sticky: true }); }   // never slid: stay open for a tap
   };
 
-  const onPointerCancel = () => { if (!live.current?.sticky) close(); };
+  const onPointerCancel = e => { if (e.pointerId === hold.current?.id) close(); };   // a sticky menu has no hold
+  track.current = { onPointerMove, onPointerUp, onPointerCancel };
 
   // Android opens a context menu on a long press; the hold is ours.
   const onContextMenu = e => { if (hold.current || live.current) e.preventDefault(); };
@@ -151,5 +164,5 @@ export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied =
     e.stopPropagation();
   };
 
-  return { handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onContextMenu, onClickCapture }, menu, picked, pick, close };
+  return { handlers: { onPointerDown, onContextMenu, onClickCapture }, menu, picked, pick, close };
 }

@@ -137,6 +137,26 @@ describe('tasks kanban move menu', () => {
     expect(D.task(16).status).toBe('To do');
   });
 
+  it('hears a release that lands off the board, so sliding up onto the search bar still moves to To do', () => {
+    renderApp('tasks.board', 'pm');
+    hold(12);                                  // In progress
+    const search = document.querySelector('.react-cupertino-ui-search-bar__input');
+    press(search, 'pointerMove', 0, -FAR);     // no pointer capture here: the events go to what is under the finger
+    expect(option('To do')).toHaveClass('is-aimed');
+    press(search, 'pointerUp', 0, -FAR);
+    expect(menu()).toBeNull();
+    expect(D.task(12).status).toBe('To do');
+  });
+
+  it('turns tappable when let go off the board without sliding, so its dim covers the search bar', () => {
+    renderApp('tasks.board', 'pm');
+    hold(12);
+    press(document.querySelector('.react-cupertino-ui-search-bar__input'), 'pointerUp');
+    expect(menu()).toHaveClass('is-sticky');
+    fireEvent.click(option('To do'));
+    expect(D.task(12).status).toBe('To do');
+  });
+
   it('does not open when the finger moves before the hold ends, so a swipe on a card scrolls the board', () => {
     renderApp('tasks.board', 'pm');
     const el = card(14), board = el.closest('.tk-board');
