@@ -115,6 +115,9 @@
   --avatar-bg: var(--atlas-control);     /* monogram */
   --switch-off: var(--atlas-control);
   --seg-thumb: var(--atlas-surface);     /* segmented control selected thumb */
+  /* Its lift: iOS's soft shadow plus a hairline ring, both in the Atlas shadow navy. Kept within the track's 0.2rem
+     padding (the track clips): the old 0 2px 6px in the 60% sheet veil spilled past it and was cut into a dark edge. */
+  --seg-thumb-shadow: 0 1px 3px #16263824, 0 0 0 0.5px #1626380f;
   --switch-thumb: #ffffff;
   /* Pop-ups over a dim (Kanban move menu: status options, hint, card stack). Light: white lifts off the dim by its
      shadow. Dark: a shadow can't show on navy and surface matches the dimmed board, so the hint and card stack take
@@ -174,6 +177,7 @@
   --glass-bar-open: color-mix(in srgb, var(--atlas-surface) 60%, transparent);  /* same as closed: dark glass reads right over the dim */
   --glass-card: var(--atlas-raised);     /* surface would sink into the dark glass */
   --seg-thumb: var(--atlas-line);        /* surface would sink into the raised track */
+  --seg-thumb-shadow: none;              /* a shadow can't show on navy; the lighter thumb lifts by its fill */
   --pop-bg: var(--atlas-raised);
   --pop-edge: var(--atlas-line);
   --pop-ring: var(--atlas-line);
