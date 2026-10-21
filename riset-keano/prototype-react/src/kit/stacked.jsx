@@ -1,5 +1,6 @@
 // ClickUp-style stacked tab screen (Home, Tasks, Projects, Events): a header on surface, the search block under it, and
 // the content as a rounded sheet laid over both. Scrolling the sheet up pushes the search block away into a header icon.
+import { useRef } from 'react';
 import { Search } from 'lucide-react';
 import { Screen } from './layout';
 import { useSearchCollapse } from './stacked.collapse';
@@ -10,11 +11,13 @@ import './stacked.css';
  * avatar); find = the search block's content; onFind = what the header icon does once the block is collapsed (default:
  * scroll back and focus the block's field). Only one of the block and the icon is reachable at a time.
  * pinned = an optional first row of the sheet that sticks under the header together with the sheet's rounded top edge;
- * scrolled past the search block it gets .is-stuck on .stk-pin, so the row can style a compact form.
+ * scrolled past the search block it compacts with the scroll: style its compact form from --stk-q (0 tall .. 1 compact),
+ * keeping every height it changes linear in --stk-q (the hook measures only the two ends).
  * props: {title, aside, find, onFind, pinned, tab, children}.
  */
 export function StackedScreen({ title, aside, find, onFind, pinned, tab, children }) {
-  const [blockRef, collapsed, reveal, stuck] = useSearchCollapse();
+  const pinRef = useRef(null);
+  const [blockRef, collapsed, reveal] = useSearchCollapse(pinRef);
   const header = (
     <header className="stk-head between">
       <h1 className="t-title2">{title}</h1>
@@ -30,7 +33,7 @@ export function StackedScreen({ title, aside, find, onFind, pinned, tab, childre
   return (
     <Screen header={header} tab={tab} className="stk-scroll">
       <div ref={blockRef} className="stk-find" aria-hidden={collapsed} inert={collapsed ? '' : undefined}>{find}</div>
-      {pinned && <div className={`stk-pin${stuck ? ' is-stuck' : ''}`}><div className="stk-pin-in">{pinned}</div></div>}
+      {pinned && <div ref={pinRef} className="stk-pin"><div className="stk-pin-in">{pinned}</div></div>}
       <div className={`stk-sheet${pinned ? ' has-pin' : ''}`}>{children}</div>
     </Screen>
   );

@@ -19,8 +19,8 @@ function HomeSearch({ openSearch }) {
   );
 }
 
-/** Stat chip: icon over label + count over the sub line; once the row is stuck under the header it compacts to one line
- *  (icon beside label + count, sub line folded away), see .stk-pin.is-stuck in home.css. */
+/** Stat chip: icon over label + count over the sub line; as the row sticks under the header it compacts with the scroll
+ *  to one line (icon beside label + count, sub line folded away), see .hm-stat-in in home.css. */
 function StatChip({ s }) {
   return (
     <button type="button" className="hm-stat" onClick={useNav({ go: s.go })}>

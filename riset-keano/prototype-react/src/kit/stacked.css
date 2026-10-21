@@ -4,23 +4,21 @@
 .stk-head { flex: none; padding: var(--sp-2) var(--sp-4) var(--sp-3); background: var(--surface); }
 .phone-app:has(.stk-sheet) > .statusbar { background: var(--surface); }
 .content.with-tabbar.stk-scroll { display: block; padding: 0; background: var(--surface); overflow-anchor: none; }
-/* overflow-anchor: none — the pinned row shrinks when it turns stuck. With scroll anchoring on (Chrome's default) the browser
-   pulls scrollTop back by that height to hold the content in view, which drops the scroll into the search block again:
-   the row unsticks, grows, gets pushed back, and a touch release snaps the search open. Off, the morph never moves the
-   scroll; the content under the row slides up with it instead. */
+/* overflow-anchor: none — keep the browser from moving the scroll when something above the visible content changes
+   height (Chrome's scroll anchoring); the fold is driven by scrollTop, so a moved scroll would feed back into it. */
 .stk-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
   padding: var(--sp-4) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4));
   background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
-/* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header. Its
-   surface backing fills the rounded corners, so stuck it reads as the sheet's edge, not as cards showing through. */
-.stk-pin { position: sticky; top: 0; z-index: 2; background: var(--surface); }
-.stk-pin-in { padding: var(--sp-4) var(--sp-4) var(--sp-2); background: var(--bg); border-radius: 24px 24px 0 0;
-  border-top: 1px solid var(--separator); transition: padding-top var(--stk-morph); }
-.stk-pin.is-stuck .stk-pin-in { padding-top: var(--sp-3); }
+/* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header.
+   --stk-q (0..1, set by useSearchCollapse) = how far it has compacted; --stk-pin-h / --stk-pin-shrink = its measured tall
+   height and how much it loses. The row keeps its tall height in the flow and sticks --stk-pin-shrink above the top, with
+   the visible part at its bottom: scrolling hides its top exactly as fast as the visible part shrinks, so the rounded
+   edge stays under the header while the content follows the finger. The surface backing fills the rounded corners. */
+.stk-pin { position: sticky; top: calc(var(--stk-pin-shrink, 0px) * -1); z-index: 2; height: var(--stk-pin-h, auto);
+  display: flex; flex-direction: column; justify-content: flex-end; background: var(--surface); }
+.stk-pin-in { flex: none; padding: calc(var(--sp-4) + (var(--sp-3) - var(--sp-4)) * var(--stk-q, 0)) var(--sp-4) var(--sp-2);
+  background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
 .stk-sheet.has-pin { padding-top: var(--sp-2); border-radius: 0; border-top: 0; }
-/* How long the pinned row takes to turn compact or back; screens use it for their own row's morph too. */
-.stk-scroll { --stk-morph: 260ms cubic-bezier(0.32, 0.72, 0, 1); }
-@media (prefers-reduced-motion: reduce) { .stk-scroll { --stk-morph: 0ms linear; } }
 /* --stk-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search block away. The block fades out fast,
    within the first third, while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
 .stk-find { padding: 0 var(--sp-4) var(--sp-4); }

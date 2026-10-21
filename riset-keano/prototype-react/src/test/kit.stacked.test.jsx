@@ -14,6 +14,17 @@ const parts = container => ({
   screen: container.querySelector('.scr'),
 });
 
+/** Gives the search block 60 px and the pinned row 100 px tall / 60 px compact (jsdom has no layout), then re-measures. */
+function foldPin(container, block) {
+  const pin = container.querySelector('.stk-pin');
+  Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only
+  Object.defineProperty(pin.firstElementChild, 'offsetHeight', { // test-only
+    get: () => (pin.style.getPropertyValue('--stk-q') === '1' ? 60 : 100),
+  });
+  fireEvent(window, new Event('resize'));
+  return pin;
+}
+
 describe('stacked tab screens', () => {
   it('scrolls the search block, the pinned stat row and the stacked sheet together under the greeting', () => {
     const { container } = renderApp('home.main', 'member');
@@ -31,33 +42,48 @@ describe('stacked tab screens', () => {
   it('sticks the pinned row with the sheet edge under the header without anchoring the scroll to it', () => {
     const css = readFileSync(join(__dirname, '../kit/stacked.css'), 'utf8');
     const rule = sel => css.slice(css.indexOf(`${sel} {`), css.indexOf('}', css.indexOf(`${sel} {`)));
-    expect(rule('.stk-pin')).toMatch(/position: sticky; top: 0/);
+    // Sticks its shrink above the top, so scrolling hides its top as fast as the visible part folds
+    expect(rule('.stk-pin')).toMatch(/position: sticky; top: calc\(var\(--stk-pin-shrink, 0px\) \* -1\)/);
+    expect(rule('.stk-pin')).toMatch(/height: var\(--stk-pin-h, auto\)/);
+    expect(rule('.stk-pin')).toMatch(/justify-content: flex-end/);
     expect(rule('.stk-pin-in')).toMatch(/border-radius: 24px 24px 0 0/);
     expect(rule('.stk-pin-in')).toMatch(/border-top: 1px solid var\(--separator\)/);
     expect(rule('.stk-sheet.has-pin')).toMatch(/border-top: 0/);
-    // The row's morph must not move the scroll (scroll anchoring would pull it back into the search and loop)
+    // The fold is driven by scrollTop: the browser must not move the scroll when heights above the content change
     expect(rule('.content.with-tabbar.stk-scroll')).toMatch(/overflow-anchor: none/);
   });
 
-  it('compacts the pinned stat row once scrolled past the search, and opens it again when the search peeks', async () => {
+  it('compacts the pinned stat row step by step with the scroll past the search, and back', async () => {
     const { container } = renderApp('home.main', 'member');
-    const { scroller, block } = parts(container);
-    const pin = container.querySelector('.stk-pin');
-    Object.defineProperty(block, 'offsetHeight', { value: 60 }); // test-only: jsdom has no layout
-    const scrollTo = async (top, stuck) => {
+    const { scroller, block, screen } = parts(container);
+    const pin = foldPin(container, block);
+    expect(screen.style.getPropertyValue('--stk-pin-h')).toBe('100px');
+    expect(screen.style.getPropertyValue('--stk-pin-shrink')).toBe('40px');
+    for (const [top, q] of [[30, '0.000'], [60, '0.000'], [70, '0.250'], [80, '0.500'], [100, '1.000'], [200, '1.000'], [90, '0.750'], [0, '0.000']]) {
       scroller.scrollTop = top;
       fireEvent.scroll(scroller);
-      await waitFor(() => {
-        expect(container.querySelector('.scr').style.getPropertyValue('--stk-p')).toBe(Math.min(1, top / 60).toFixed(3));
-        expect(pin.classList.contains('is-stuck')).toBe(stuck);
-      });
-    };
-    await scrollTo(60, false);   // search just folded: still tall
-    await scrollTo(90, true);    // past it: compact
-    await scrollTo(70, true);    // the gap: a shrinking row can't flip it back
-    await scrollTo(55, false);   // search peeks again: tall
+      await waitFor(() => expect(screen.style.getPropertyValue('--stk-q')).toBe(q));
+    }
     // The chips keep label, count and sub line in the DOM; the compact form is CSS only
     expect(pin.querySelector('.hm-stat .hm-sub')).toBeInTheDocument();
+  });
+
+  it('snaps a touch scroll left part way through the row fold to the nearer end, but never a wheel scroll', async () => {
+    const { container } = renderApp('home.main', 'member');
+    const { scroller, block } = parts(container);
+    foldPin(container, block);
+    scroller.scrollTo = vi.fn();
+    const swipeTo = top => { fireEvent.touchStart(scroller); scroller.scrollTop = top; fireEvent.scroll(scroller); fireEvent.touchEnd(scroller); };
+    swipeTo(75);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 60, behavior: 'smooth' }));
+    scroller.scrollTo.mockClear();
+    swipeTo(85);
+    await waitFor(() => expect(scroller.scrollTo).toHaveBeenCalledWith({ top: 100, behavior: 'smooth' }));
+    scroller.scrollTo.mockClear();
+    scroller.scrollTop = 75;
+    fireEvent.scroll(scroller);
+    await new Promise(r => setTimeout(r, 200));
+    expect(scroller.scrollTo).not.toHaveBeenCalled();
   });
 
   it('starts with the search bar reachable and the header icon hidden', () => {
