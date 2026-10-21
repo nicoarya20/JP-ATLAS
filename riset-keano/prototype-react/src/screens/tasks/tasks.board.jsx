@@ -65,17 +65,14 @@ function SelectControl({ on, status, all, canAll, onToggle, onAll }) {
   );
 }
 
-/** ③ Kanban — one status column per screen width, the next column peeks; swipe to move, hold a card to move it.
- *  params.mine = my tasks across projects (card shows the project), otherwise every Atlas task; both narrowed and
- *  ordered by the Filter & sort query in params (All active keeps the Done column). */
-export function TasksBoard({ params }) {
-  const mine = !!params?.mine;
+/** Kanban columns for tasks (the caller re-reads them on useTaskMoves()): one status column per screen width, the
+ *  next column peeks; swipe to scroll, hold a card to move it. mine = cards show their project instead of their type.
+ *  Shared by ③ and the project detail's Tasks tab, so each keeps its own header around it. */
+export function Board({ tasks, mine }) {
   const { toast, is } = useApp();
   const board = useRef(null);
   const [selecting, setSelecting] = useState(false);
   const [picked, setPicked] = useState(() => new Set());
-  useTaskMoves();
-  const tasks = applyQuery(mine ? D.tasks.filter(t => assigned(t, D.me().name)) : D.tasks, queryOf(params, mine), true);
   const chosen = tasks.filter(t => picked.has(t.no)).map(t => t.no);   // picked and still on the board
 
   const mayChange = no => !is('member') || assigned(D.task(no), D.me().name);
@@ -105,7 +102,7 @@ export function TasksBoard({ params }) {
   });
   const lifted = move.menu?.stack ? new Set(move.menu.nos) : null;
   return (
-    <ListScreen mine={mine} board>
+    <>
       <span className="sr-only" aria-live="polite">
         {!selecting ? '' : chosen.length ? `${chosen.length} selected, hold one to move them` : 'Tap tasks to select them'}
       </span>
@@ -133,6 +130,15 @@ export function TasksBoard({ params }) {
         })}
       </div>
       <MoveMenu menu={move.menu} picked={move.picked} onPick={move.pick} onClose={move.close} />
-    </ListScreen>
+    </>
   );
+}
+
+/** ③ Kanban. params.mine = my tasks across projects (card shows the project), otherwise every Atlas task; both
+ *  narrowed and ordered by the Filter & sort query in params (All active keeps the Done column). */
+export function TasksBoard({ params }) {
+  const mine = !!params?.mine;
+  useTaskMoves();
+  const tasks = applyQuery(mine ? D.tasks.filter(t => assigned(t, D.me().name)) : D.tasks, queryOf(params, mine), true);
+  return <ListScreen mine={mine} board><Board tasks={tasks} mine={mine} /></ListScreen>;
 }

@@ -1,7 +1,10 @@
 // Projects ⑨–⑪: detail tabs Tasks, Phases and Members (header and tabs come from DetailScreen).
 import { List, SquareKanban } from 'lucide-react';
 import { Avatar, Btn, Chips, Link, Pill, Progress, Section, Seg, Select, StatusPill } from '../../kit';
+import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
+import { Board } from '../tasks/tasks.board';
+import { useTaskMoves } from '../tasks/tasks.store';
 import { DetailScreen, atlas, atlasTasks, useCanEdit, useNote } from './projects.detail';
 
 const DETAIL = { 'To do': 'tasks.detail-todo', 'In progress': 'tasks.detail-progress', 'In review': 'tasks.detail-review', Done: 'tasks.detail-progress' };
@@ -27,18 +30,24 @@ function TaskCard({ t, canEdit, note }) {
   );
 }
 
-/** ⑨ Detail · Tasks. */
-export function ProjectsTasks() {
+/** ⑨ Detail · Tasks. params.board = Kanban view; List / Kanban swaps the view in place, so the project header and
+ *  tabs stay (the global ③ Kanban would leave the project). */
+export function ProjectsTasks({ params }) {
+  const { go } = useApp(), board = !!params?.board;
+  useTaskMoves();
   const canEdit = useCanEdit(), note = useNote(), list = atlasTasks();
   return (
     <DetailScreen on={1}>
       <Chips items={['All', 'My tasks', 'Overdue', 'Awaiting review']} />
       <div className="between">
-        <div className="pj-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]} on={0} gos={['', 'tasks.board']} /></div>
+        <div className="pj-seg"><Seg items={['List', 'Kanban']} icons={[<List size={18} aria-hidden="true" />, <SquareKanban size={18} aria-hidden="true" />]} on={board ? 1 : 0}
+          onPick={i => go('projects.tasks', { params: i ? { board: true } : {} })} /></div>
         <Btn kind="primary" sm go="tasks.form">+ New task</Btn>
       </div>
-      {list.map(t => <TaskCard key={t.no} t={t} canEdit={canEdit} note={note} />)}
-      <span className="t-subhead muted">{list.length} tasks</span>
+      {board ? <Board tasks={list} /> : <>
+        {list.map(t => <TaskCard key={t.no} t={t} canEdit={canEdit} note={note} />)}
+        <span className="t-subhead muted">{list.length} tasks</span>
+      </>}
     </DetailScreen>
   );
 }
