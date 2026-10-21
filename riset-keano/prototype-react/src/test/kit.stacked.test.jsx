@@ -60,7 +60,9 @@ describe('stacked tab screens', () => {
     const css = readFileSync(join(__dirname, '../kit/stacked.css'), 'utf8');
     const rule = sel => css.slice(css.indexOf(`${sel} {`), css.indexOf('}', css.indexOf(`${sel} {`)));
     expect(rule('.stk-edge')).toMatch(/position: sticky; top: 0;/);
-    expect(rule('.stk-edge')).toMatch(/height: var\(--sp-4\)/);
+    // 12 px of the 16 px gap: the last 4 px stay clear for a first row reaching up into it (Projects people row)
+    expect(rule('.stk-edge')).toMatch(/height: var\(--sp-3\)/);
+    expect(rule('.stk-sheet')).toMatch(/padding: var\(--sp-1\) var\(--sp-4\)/);
     expect(rule('.stk-edge')).toMatch(/pointer-events: none/);
     expect(rule('.stk-edge::before')).toMatch(/border-radius: 24px 24px 0 0/);
     expect(rule('.stk-edge::before')).toMatch(/border-top: 1px solid var\(--separator\)/);

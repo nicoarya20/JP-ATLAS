@@ -8,14 +8,16 @@
 /* overflow-anchor: none — keep the browser from moving the scroll when something above the visible content changes
    height (Chrome's scroll anchoring); the fold is driven by scrollTop, so a moved scroll would feed back into it. */
 .stk-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
-  padding: 0 var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4)); background: var(--bg); }
-/* Sticky sheet edge for screens without a pinned row: the sheet's 16 px top padding, sticking under the header with the
-   rounded corners and hairline over it. The corners' curve runs 24 px deep, past the opaque 16 px: the ::before draws
-   it 24 px tall and see-through below 16 px so the content shows there, its shadow fills the outer corners with
-   surface and the clip-path keeps that shadow inside its own box. Not tappable: taps reach the content under it. */
-.stk-edge { position: sticky; top: 0; z-index: 2; height: var(--sp-4); pointer-events: none; }
+  padding: var(--sp-1) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4)); background: var(--bg); }
+/* Sticky sheet edge for screens without a pinned row: the first 12 px of the sheet's 16 px top gap, sticking under the
+   header with the rounded corners and hairline over it. The last 4 px stay the sheet's own padding, out from under the
+   edge: a first row that reaches up into the gap (the Projects people row's -4 px margin, room for the picked avatar's
+   ring) was cut off by the opaque edge. The corners' curve runs 24 px deep, past the opaque 12 px: the ::before draws it
+   24 px tall and see-through below 12 px so the content shows there, its shadow fills the outer corners with surface
+   and the clip-path keeps that shadow inside its own box. Not tappable: taps reach the content under it. */
+.stk-edge { position: sticky; top: 0; z-index: 2; height: var(--sp-3); pointer-events: none; }
 .stk-edge::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; border-radius: 24px 24px 0 0;
-  border-top: 1px solid var(--separator); background: linear-gradient(var(--bg) var(--sp-4), transparent 0);
+  border-top: 1px solid var(--separator); background: linear-gradient(var(--bg) var(--sp-3), transparent 0);
   box-shadow: 0 0 0 24px var(--surface); clip-path: inset(0); }
 /* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header.
    --stk-q (0..1, set by useSearchCollapse) = how far it has compacted; --stk-pin-h = its measured tall height. The row
