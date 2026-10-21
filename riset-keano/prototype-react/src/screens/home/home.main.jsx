@@ -64,7 +64,7 @@ function HomeMain() {
   const H = D.home;
   const R = roleHome(role);
   return (
-    <Screen header={<HomeHeader />} tab="home">
+    <Screen header={<HomeHeader />} tab="home" className="hm-sheet">
       <div className="hscroll bleed hm-stats">{R.stats.map(s => <StatChip key={s.label} s={s} />)}</div>
 
       <Section title={<span className="row-flex"><Sparkles size={17} className="tint" /> Daily Briefing</span>} sub="What do I need to know today?">
