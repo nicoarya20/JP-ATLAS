@@ -38,7 +38,8 @@ function Group({ label, tasks }) {
   );
 }
 
-/** "My Focus" card body: Admin first gets the users awaiting approval; a PM also gets the tasks awaiting their review. */
+/** "My Focus" card body: Admin first gets the users awaiting approval; a PM also gets the tasks awaiting their review. Only the first
+ *  Review is lime (one lime per view). */
 export function Focus({ role }) {
   useTaskMoves();
   const me = D.me().name;
@@ -64,7 +65,7 @@ export function Focus({ role }) {
         <>
           <Label>Awaiting your review</Label>
           <Rows plain>
-            {review.map(t => <FocusRow key={t.no} t={t} btn={<Btn sm kind="primary" go={taskScreen(t)} task={t.no}>Review</Btn>} />)}
+            {review.map((t, i) => <FocusRow key={t.no} t={t} btn={<Btn sm kind={i ? 'outline' : 'primary'} go={taskScreen(t)} task={t.no}>Review</Btn>} />)}
           </Rows>
         </>
       )}

@@ -13,12 +13,12 @@ import { archiveEvent, cancelEvent } from './events.store';
 
 const ONLY_THIS = 0;
 
-/** Back/Cancel (closes) + primary action, disabled until ok. */
+/** Back/Cancel (closes) + the confirm, disabled until ok. Every confirm here cancels or archives, so it is danger, not lime. */
 function Pair({ back, primary, ok = true, onClick }) {
   return (
     <Two>
       <Btn block close>{back}</Btn>
-      <Btn kind="primary" block disabled={!ok} onClick={onClick}>{primary}</Btn>
+      <Btn kind="danger" block disabled={!ok} onClick={onClick}>{primary}</Btn>
     </Two>
   );
 }

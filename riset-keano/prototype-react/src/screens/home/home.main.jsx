@@ -44,7 +44,7 @@ function AskData({ count }) {
     <Section title={<span className="row-flex"><Sparkles size={17} className="tint" /> Ask Data</span>} sub="Ask anything about your projects">
       <div className="row-flex">
         <span className="hm-input grow muted">Type or say a question…</span>
-        <Btn kind="primary" toast="Answer generated">Ask</Btn>
+        <Btn kind="outline" toast="Answer generated">Ask</Btn>
       </div>
       <div className="row-flex wrap">
         {H.ask.questions.slice(0, count).map((text, i) => (

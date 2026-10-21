@@ -9,10 +9,11 @@ import { info, pick } from './tasks.shared';
 import { cancelTask } from './tasks.store';
 
 const sub = no => `#${no} ${D.task(no).title}`;
-const pair = (cancel, primary, ok, onClick) => (
+// kind: 'primary' (lime) for the sheet's main action, 'danger' when that action cancels the task.
+const pair = (cancel, primary, ok, onClick, kind = 'primary') => (
   <div className="tk-two">
     <Btn close>{cancel}</Btn>
-    <Btn kind="primary" block disabled={!ok} onClick={onClick}>{primary}</Btn>
+    <Btn kind={kind} block disabled={!ok} onClick={onClick}>{primary}</Btn>
   </div>
 );
 
@@ -55,7 +56,7 @@ export function TasksCancel({ params }) {
     back({ skipSheet: true });
   };
   return (
-    <Sheet title="Cancel task" sub={sub(no)} actions={pair('Back', 'Cancel task', ok, send)}>
+    <Sheet title="Cancel task" sub={sub(no)} actions={pair('Back', 'Cancel task', ok, send, 'danger')}>
       <div className="field">
         <Label>Why cancel? *</Label>
         <div className="stack sm" role="radiogroup" aria-label="Why cancel?">

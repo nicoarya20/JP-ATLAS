@@ -32,7 +32,7 @@ function Rejecting() {
       </div>
       <div className="us-two">
         <Btn toast="Rejection canceled">Cancel</Btn>
-        <Btn kind="primary" toast="User rejected">Reject user</Btn>
+        <Btn kind="danger" toast="User rejected">Reject user</Btn>
       </div>
     </Section>
   );

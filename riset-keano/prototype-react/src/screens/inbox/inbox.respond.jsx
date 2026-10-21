@@ -13,7 +13,7 @@ function Review({ why }) {
   const { is } = useApp();
   const rv = items(is).respond[0];
   return (
-    <Card action={<Btn kind="primary" sm {...link(rv.meta)}>{rv.action}</Btn>}>
+    <Card action={<Btn sm {...link(rv.meta)}>{rv.action}</Btn>}>
       <Who text={rv.title} meta={rv.meta} />
       <div className="stack xs">
         <p className="bold">{rv.sub}</p>
@@ -29,14 +29,14 @@ function Second() {
   const it = items(is).respond[1];
   if (is('member')) {
     return (
-      <Card action={<Btn kind="primary" sm {...link(it.sub)}>{it.action}</Btn>}>
+      <Card action={<Btn sm {...link(it.sub)}>{it.action}</Btn>}>
         <Who text={it.title} meta={it.meta} />
         <p className="bold">{it.sub}</p>
       </Card>
     );
   }
   return (
-    <Card action={<Btn kind="primary" sm {...EV.open(D.event('daily'))}>{it.action}</Btn>}>
+    <Card action={<Btn sm {...EV.open(D.event('daily'))}>{it.action}</Btn>}>
       <Who text={it.title} meta={it.meta} lead={<span className="ib-ai" aria-label="AI-assisted"><Sparkles size={18} /></span>} />
       <p className="t-footnote muted">{it.sub}</p>
     </Card>
@@ -59,7 +59,7 @@ function Mention() {
 function Approvals() {
   const names = D.users.pending.map(u => u.full);
   return (
-    <Card action={<Btn kind="primary" sm go="users.approve">Open Users</Btn>}>
+    <Card action={<Btn sm go="users.approve">Open Users</Btn>}>
       <Who text={`${D.users.counts.pending} new users awaiting approval`} meta={names.join(', ')} lead={<Avatars names={names} />} />
       <p className="t-footnote muted">Approval cards are for Admins only. Once one Admin decides, the card disappears for all Admins.</p>
     </Card>

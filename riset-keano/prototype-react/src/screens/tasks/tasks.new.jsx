@@ -38,7 +38,7 @@ export function TasksWrite() {
       <textarea className="field-area" defaultValue={QW.text} rows={4} aria-label="What needs to be done" />
       <div className="between">
         <span className="t-footnote muted">Speak · coming soon</span>
-        <Btn kind="primary" toast="AI drafted the tasks"><span className="row-flex">Compose <Sparkles size={16} /></span></Btn>
+        <Btn toast="AI drafted the tasks"><span className="row-flex">Compose <Sparkles size={16} /></span></Btn>
       </div>
       <Section className="tk-soft">
         <div className="between t-footnote">

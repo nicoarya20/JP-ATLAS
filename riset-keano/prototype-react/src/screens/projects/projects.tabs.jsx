@@ -5,16 +5,16 @@ import { D } from '../../data/sample';
 import { DetailScreen, atlas, atlasTasks, useCanEdit, useNote } from './projects.detail';
 
 const DETAIL = { 'To do': 'tasks.detail-todo', 'In progress': 'tasks.detail-progress', 'In review': 'tasks.detail-review', Done: 'tasks.detail-progress' };
-// Main action per task (Manager/Admin view). A Member only gets View, since none of these actions are theirs to take.
+// Action per task (Manager/Admin view), outline so "+ New task" stays the one lime button. A Member only gets View.
 const ACTIONS = {
-  12: { label: 'Request review', kind: 'primary', toast: 'Sent for review' },
-  17: { label: 'Review', kind: 'primary', go: 'tasks.detail-review', task: 17 },
-  14: { label: 'Start working', kind: 'primary', toast: 'Task started' },
-  15: { label: 'Start working', kind: 'outline', toast: 'Task started' },
+  12: { label: 'Request review', toast: 'Sent for review' },
+  17: { label: 'Review', go: 'tasks.detail-review', task: 17 },
+  14: { label: 'Start working', toast: 'Task started' },
+  15: { label: 'Start working', toast: 'Task started' },
 };
 
 function TaskCard({ t, canEdit, note }) {
-  const { label, ...a } = (canEdit && ACTIONS[t.no]) || { label: 'View', kind: 'outline', go: DETAIL[t.status], task: t.no };
+  const { label, ...a } = (canEdit && ACTIONS[t.no]) || { label: 'View', go: DETAIL[t.status], task: t.no };
   return (
     <Section go={DETAIL[t.status]} task={t.no}>
       <div className="stack sm">

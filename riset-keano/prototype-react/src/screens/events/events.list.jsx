@@ -35,7 +35,7 @@ function EventCard({ e }) {
   const status = EV.status(e);
   const btn = !done ? null
     : EV.confirmed(e) || is('member') ? <Btn sm {...open}>View results</Btn>
-      : <Btn kind="primary" sm {...open}>Check results</Btn>;
+      : <Btn sm {...open}>Check results</Btn>;
   return (
     <Section {...open} className="ev-card">
       <div className="ev-card-grid">
