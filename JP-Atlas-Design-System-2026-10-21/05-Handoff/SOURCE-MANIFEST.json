@@ -1,0 +1,49 @@
+{
+  "package": "JP Atlas Design System - Internal Handoff v1.0",
+  "date": "2026-10-21",
+  "baseline_candidate": "JPDS-0.1-e58210bb5e95",
+  "source_files": [
+    {
+      "path": "references/design/logo.png",
+      "sha256": "5ea2cd1362369c576e29fa60fd3fe8a972832b76b552f1dfad71e646a892a8d1"
+    },
+    {
+      "path": "design/system/v0.1/manifest.json",
+      "sha256": "1af4a388216397886e4e58a3fe37d5fd00bd1d6a7468e265c523fa4ea092b353"
+    },
+    {
+      "path": "design/system/v0.1/tokens.json",
+      "sha256": "3e94764c19a6ce351832369e9820ebef8f712edc6676d90405b1b90f5bda4c11"
+    },
+    {
+      "path": "design/system/v0.1/design-guide.md",
+      "sha256": "688fa6f3e389d0ee35d7d79681d5e38e709c40c77ca7516635a7d44a80f8574d"
+    },
+    {
+      "path": "design/system/v0.1/contrast.json",
+      "sha256": "65b3e5fd3e7f53b8cae53db2eb7710e49c0365bf4cd6bfb06a75251fb291fcef"
+    },
+    {
+      "path": "design/system/v0.1/prototype/assets/Manrope.ttf",
+      "sha256": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40"
+    },
+    {
+      "path": "design/system/v0.1/prototype/assets/OFL.txt",
+      "sha256": "e01b637272e0cbdfb240184dd98ea5cc671556d9894dae2668d92ab2c906787c"
+    },
+    {
+      "path": "design/system/v0.1/prototype/assets/favicon.svg",
+      "sha256": "da32394ba82667e9fc1c06df032167e50e1eefee5fb5ec10e2d893879082b496"
+    },
+    {
+      "path": "docs/39-erp-brand-subtitle.md",
+      "sha256": "b5e7a90813c06ca69d640d4748db3bf3bfd77c3ddb30d977803a0b85333aa1ad"
+    }
+  ],
+  "logo": "EXACT_ORIGINAL_PNG; no official vector master found",
+  "font": "EXACT_ORIGINAL_VARIABLE_FONT_AND_LICENSE",
+  "token_export": "30 light/dark semantic roles from exact source tokens.json; CSS adds guide typography/spacing helpers",
+  "editable_boards": "Native SVG shapes/text, embedded unmodified PNG, install included font",
+  "status": "INTERNAL_WORKING_HANDOFF; not application integration or final token lock",
+  "validation": "PDF rendered visual review and package integrity recorded separately; no product/runtime acceptance"
+}

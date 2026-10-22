@@ -1,0 +1,114 @@
+{
+  "status": "VERIFIED_HANDOFF_DELIVERABLES",
+  "date": "2026-10-21",
+  "pdf": {
+    "pages": 6,
+    "page_text": [
+      {
+        "page": 1,
+        "characters": 408
+      },
+      {
+        "page": 2,
+        "characters": 692
+      },
+      {
+        "page": 3,
+        "characters": 599
+      },
+      {
+        "page": 4,
+        "characters": 682
+      },
+      {
+        "page": 5,
+        "characters": 584
+      },
+      {
+        "page": 6,
+        "characters": 778
+      }
+    ],
+    "embedded_font_faces": [
+      "/AAAAAA+ManropeKit-W400",
+      "/AAAAAA+ManropeKit-W500",
+      "/AAAAAA+ManropeKit-W550",
+      "/AAAAAA+ManropeKit-W600",
+      "/AAAAAA+ManropeKit-W650"
+    ],
+    "rendered_with": "Poppler pdftoppm",
+    "visual_review": "All6 final pages inspected; logo/type/color/status/spacing and page2/page5 details checked; no clipping or overlap observed."
+  },
+  "source_preservation": {
+    "official_png": "EXACT",
+    "manrope_variable": "EXACT",
+    "OFL_license": "EXACT",
+    "source_tokens_json": "EXACT",
+    "frozen_candidate22": "ALL_MATCH"
+  },
+  "editable_svg_boards": [
+    {
+      "file": "01-Overview.svg",
+      "native_text_objects": 21,
+      "embedded_original_pngs": 1,
+      "vector_shapes": 6
+    },
+    {
+      "file": "02-Logo.svg",
+      "native_text_objects": 22,
+      "embedded_original_pngs": 1,
+      "vector_shapes": 6
+    },
+    {
+      "file": "03-Typography.svg",
+      "native_text_objects": 33,
+      "embedded_original_pngs": 0,
+      "vector_shapes": 9
+    },
+    {
+      "file": "04-Colors.svg",
+      "native_text_objects": 58,
+      "embedded_original_pngs": 0,
+      "vector_shapes": 47
+    },
+    {
+      "file": "05-Status-and-UI.svg",
+      "native_text_objects": 36,
+      "embedded_original_pngs": 0,
+      "vector_shapes": 18
+    },
+    {
+      "file": "06-Team-Handoff.svg",
+      "native_text_objects": 39,
+      "embedded_original_pngs": 0,
+      "vector_shapes": 16
+    }
+  ],
+  "html": {
+    "relative_asset_links": 19,
+    "all_exist": true,
+    "remote_assets": 0,
+    "browser_interaction": "NOT_RUN"
+  },
+  "semantic_tokens": {
+    "roles_per_theme": 30,
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "CSS_JSON_mapping": "MATCH",
+    "palette_csv_rows": 50
+  },
+  "contrast": {
+    "recalculated_solid_pairs": 40,
+    "required_pairs_pass": 39,
+    "nonrequired_same_fill_pair": "N/A",
+    "full_WCAG_or_rendered_app": "NOT_CERTIFIED"
+  },
+  "limitations": [
+    "Logo master is original transparent PNG; editable SVG boards embed original raster rather than a vectorized logo.",
+    "Minimum logo width/clear space and token adoption remain working design guidance.",
+    "PDF/SVG/package checks do not establish application migration, live UI behavior or full accessibility."
+  ],
+  "no_operations": "No app, canonical design, runtime, browser, provider, accounts, DB, grants, Git, cloud or external sharing changes."
+}
