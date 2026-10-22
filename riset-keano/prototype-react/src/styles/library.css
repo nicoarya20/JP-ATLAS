@@ -178,6 +178,8 @@
 .react-cupertino-ui-switcher__thumb-core { background: var(--switch-thumb); }
 
 /* ---- Checkbox and radio: empty ring when off, filled tint when on (upstream solid boxes are blue even when off) ---- */
+/* Upstream pads the control around a glass halo; with the box drawn as a plain ring that padding squeezed it to 7-8px. */
+.react-cupertino-ui-checkbox__control { padding: 0; }
 .react-cupertino-ui-checkbox.variant-solid .react-cupertino-ui-checkbox__box,
 .react-cupertino-ui-radio.variant-solid .react-cupertino-ui-radio__ring {
   background: transparent; border: 1.5px solid var(--label-3); box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
