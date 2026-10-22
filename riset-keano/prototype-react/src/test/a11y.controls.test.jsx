@@ -47,6 +47,12 @@ describe('radios and checkboxes', () => {
 });
 
 describe('readable text', () => {
+  it('sizes a bottom sheet to its content, capped under the top gap, so its buttons are never below the fold', () => {
+    const body = rule(library, '.react-cupertino-ui-bottom-sheet__content');
+    expect(body).toMatch(/height:\s*auto/);
+    expect(body).toMatch(/max-height:\s*calc\(100% - 52px\)/);
+  });
+
   it('does not fade the top of a bottom sheet, where its title sits', () => {
     expect(rule(library, '.react-cupertino-ui-bottom-sheet__body')).toMatch(/mask-image:\s*none/);
   });

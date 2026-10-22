@@ -63,7 +63,11 @@
 .react-cupertino-ui-bottom-sheet__overlay { z-index: 200; background: var(--overlay); }
 .react-cupertino-ui-bottom-sheet__content { z-index: 201;
   --surface: var(--sheet-surface); background: var(--sheet-bg); color: var(--label); border: 0;
-  box-shadow: inset 0 1px 0 var(--sheet-edge), var(--glass-shadow); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  box-shadow: inset 0 1px 0 var(--sheet-edge), var(--glass-shadow); backdrop-filter: none; -webkit-backdrop-filter: none;
+  /* Size to the content, capped at the FullSheet top gap (fullsheet.css .fs.is-fit). Upstream fixes the height at
+     snap x 100vh (506px on the phone), so longer sheets hid their buttons below the fold and short ones ended in
+     empty space. The snap still sets the drag-to-close distance. */
+  height: auto; max-height: calc(100% - 52px); }
 .react-cupertino-ui-bottom-sheet__handle { background: var(--label-3); }
 /* Upstream fades the top 10% of the body into the handle; a snap sheet's title sits right there and came out half grey. */
 .react-cupertino-ui-bottom-sheet__body { mask-image: none; -webkit-mask-image: none; }
