@@ -10,6 +10,8 @@ body {
 *::-webkit-scrollbar { display: none; }
 button { font: inherit; color: inherit; }
 input, textarea { font-family: inherit; }
+/* Native fields (comment bar, tag box, .field-area) otherwise get the browser's #757575, off-palette and under AA */
+input::placeholder, textarea::placeholder { color: var(--label-2); opacity: 1; }
 p { margin: 0; line-height: var(--lh-body); }
 h1, h2, h3 { margin: 0; }
 

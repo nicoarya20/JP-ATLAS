@@ -83,7 +83,7 @@
   --fill: var(--atlas-raised);           /* chips, inputs, icon squares, Kanban columns */
   --label: var(--atlas-text);
   --label-2: var(--atlas-muted);         /* metadata */
-  --label-3: var(--atlas-control);       /* chevrons, placeholders, empty checkbox rings */
+  --label-3: var(--atlas-control);       /* chevrons, empty checkbox rings (3:1 boundary, not text) */
   --separator: var(--atlas-line);        /* decorative only */
   --media: var(--atlas-raised);          /* image placeholder */
   --phone-frame: var(--atlas-identity-surface);
