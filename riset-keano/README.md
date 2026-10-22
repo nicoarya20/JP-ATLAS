@@ -1,7 +1,7 @@
 # Riset Project Manager — Keano
 
 **Status:** berjalan (dimulai 2 Oktober 2026)
-**Tujuan:** riset independen tentang fitur project manager. Hasilnya nanti **dibandingkan lalu digabung** dengan riset rekan (`core-menu-kompetitor/` dan `rangkuman-kompetitor/`).
+**Tujuan:** riset independen tentang fitur project manager. Hasilnya nanti **dibandingkan lalu digabung** dengan riset rekan (`tahapan-proyek/01-riset/core-menu-kompetitor/` dan `tahapan-proyek/01-riset/rangkuman-kompetitor/`).
 
 Riset rekan **tidak diubah** dari folder ini. Semua temuan, termasuk yang bertentangan dengan riset rekan, dicatat di sini dan dibahas saat penggabungan.
 
@@ -16,7 +16,7 @@ Riset rekan **tidak diubah** dari folder ini. Semua temuan, termasuk yang berten
 
 ## Format File Kompetitor
 
-Mengikuti format `rangkuman-kompetitor/rangkuman-*.md` milik rekan agar bisa disandingkan per bagian:
+Mengikuti format `tahapan-proyek/01-riset/rangkuman-kompetitor/rangkuman-*.md` milik rekan agar bisa disandingkan per bagian:
 
 1. Header: tanggal riset, **metode**, sumber, URL
 2. Gambaran Umum
@@ -48,4 +48,4 @@ Selalu tulis **metode** di header. Riset rekan memakai eksplorasi langsung (akun
 
 ## Catatan untuk Penggabungan
 
-- Kanna **tidak ada** di 10 kompetitor riset rekan. Kanna menyasar pekerja senior yang tidak melek teknologi dan sudah tersedia dalam Bahasa Indonesia, sehingga klaim "10/10 kompetitor tidak ramah lansia" di `rangkuman-kompetitor/rangkuman-gabungan-usp.md` perlu ditinjau ulang. Detail: `kompetitor/rangkuman-kanna.md` bagian "Relevansi terhadap Riset Rekan".
+- Kanna **tidak ada** di 10 kompetitor riset rekan. Kanna menyasar pekerja senior yang tidak melek teknologi dan sudah tersedia dalam Bahasa Indonesia, sehingga klaim "10/10 kompetitor tidak ramah lansia" di `tahapan-proyek/01-riset/rangkuman-kompetitor/rangkuman-gabungan-usp.md` perlu ditinjau ulang. Detail: `kompetitor/rangkuman-kanna.md` bagian "Relevansi terhadap Riset Rekan".

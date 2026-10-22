@@ -1,7 +1,7 @@
 # Penyederhanaan Fitur ClickUp: Lengkap, tapi Mudah Dipakai
 
 **Tanggal:** 5 Oktober 2026
-**Metode:** (1) Membaca workspace ClickUp Keano lewat ClickUp MCP. (2) Daftar fitur dilengkapi dari riset rekan, yang dieksplorasi langsung pada 26–28 September 2026: `core-menu-kompetitor/clickup-research.md`, `rangkuman-kompetitor/rangkuman-clickup.md`, dan screenshot `ss-kompetitor/clickup-*`.
+**Metode:** (1) Membaca workspace ClickUp Keano lewat ClickUp MCP. (2) Daftar fitur dilengkapi dari riset rekan, yang dieksplorasi langsung pada 26–28 September 2026: `tahapan-proyek/01-riset/core-menu-kompetitor/clickup-research.md`, `tahapan-proyek/01-riset/rangkuman-kompetitor/rangkuman-clickup.md`, dan screenshot `tahapan-proyek/01-riset/ss-kompetitor/clickup-*`.
 **Catatan data:** versi awal disusun dari workspace template. Pada 5 Oktober 2026 pemetaan diulang dengan proyek riset ini (39 tugas, 20 urutan). Temuannya (sudah diterapkan ke bagian 2, 3, 7): `pemetaan-ulang-data-nyata.md`.
 **Status:** draf untuk direview. Kalau sudah disetujui, dokumen ini menjadi acuan scope worktree.
 
