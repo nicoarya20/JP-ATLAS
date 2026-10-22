@@ -38,6 +38,12 @@ describe('radios and checkboxes', () => {
   it('keeps the checkbox ring the full control size (no upstream padding squeezing it to 7px)', () => {
     expect(rule(library, '.react-cupertino-ui-checkbox__control')).toMatch(/padding:\s*0/);
   });
+
+  it('keeps both rings round beside a two-line label', () => {
+    const body = rule(library, '.react-cupertino-ui-checkbox__control, .react-cupertino-ui-radio__control');
+    expect(body).toMatch(/flex:\s*none/);
+    expect(body).toMatch(/align-self:\s*center/);
+  });
 });
 
 describe('readable text', () => {
