@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-theme="light" data-accent="purple">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile Wireframe Prototype</title>
+<link rel="stylesheet" href="theme.tokens.css">
+<link rel="stylesheet" href="mobile.base.css">
+<link rel="stylesheet" href="theme.switcher.css">
+<!-- Sets <html data-theme/data-accent> before first paint; must run before the kit -->
+<script src="theme.switcher.js"></script>
+<script src="ui.kit.js"></script>
+<script src="app.router.js"></script>
+<script src="data.sample.js"></script>
+<script src="data.sample.inbox.js"></script>
+<!-- Screen modules: each registers its screens with App.screen / App.sheet -->
+<script src="screens.auth.js"></script>
+<script src="screens.home.js"></script>
+<script src="screens.projects.js"></script>
+<script src="screens.projects.detail.js"></script>
+<script src="screens.tasks.js"></script>
+<script src="screens.tasks.detail.js"></script>
+<script src="screens.events.js"></script>
+<script src="screens.events.detail.js"></script>
+<script src="screens.events.outcomes.js"></script>
+<script src="screens.inbox.js"></script>
+<script src="screens.team.js"></script>
+<script src="screens.users.js"></script>
+<script src="screens.trash.js"></script>
+<script src="screens.settings.js"></script>
+</head>
+<body>
+  <aside class="index">
+    <h1>Mobile Wireframe</h1>
+    <p class="role-note"></p>
+    <div class="role-switch" aria-label="Role"></div>
+    <div class="theme-switch" aria-label="Theme"></div>
+    <nav></nav>
+  </aside>
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span class="batt"><i></i><i></i></span></div>
+    <div class="screen"></div>
+    <div class="scrim"></div>
+    <div class="sheet"></div>
+    <div class="toast"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,168 @@
+// Kanban move menu gesture: hold a card to open a radial menu of the four statuses, then either slide toward one and
+// let go (quick), or let go without sliding and tap one (the menu stays open). Sliding out and back to the middle
+// before letting go cancels; Escape or a tap on the dim closes it. A swipe that starts on a card still scrolls the
+// board, because the menu only opens after the finger holds still. A card the viewer may not move never opens it.
+// Holding one card of a selected group opens the menu for the whole group: the cards fly from where they sit to the
+// finger and stack there (tasks.radial.stack).
+import { useEffect, useRef, useState } from 'react';
+import { COLUMNS } from './tasks.columns';
+
+const HOLD_MS = 350;      // hold this long before the menu opens (touch and mouse)
+const SLOP_PX = 8;        // ...a pointer that travels this far first is a scroll, not a hold
+const PICK_PX = 28;       // slide at least this far from where the hold started to aim at a status
+const HAPTIC_MS = 10;     // short buzz on open and on each new aim, where the browser supports it
+// Keep the menu's centre this far from the phone's sides, top and bottom so every option and the hint stay on screen.
+const EDGE = { x: 164, top: 140, bottom: 200 };
+const GROUP_EDGE = { x: 172, top: 164, bottom: 250 };   // ...wider for a group, whose statuses sit further out
+
+const SIDE = Object.fromEntries(COLUMNS.map(([status, , , side]) => [side, status]));
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(v, hi));
+
+/** Where card el's centre sits from the menu centre (x, y in host px), pulled inside the host rect r so a card in a
+ *  column scrolled off screen flies in from that edge. */
+function offsetOf(el, r, x, y) {
+  const c = el.getBoundingClientRect();
+  return { dx: clamp(c.left + c.width / 2 - r.left, 0, r.width) - x, dy: clamp(c.top + c.height / 2 - r.top, 0, r.height) - y };
+}
+
+/** Status a slide of (dx, dy) px from the hold point aims at: the side of its longer axis, or null while still short. */
+export function aimOf(dx, dy) {
+  if (Math.hypot(dx, dy) < PICK_PX) return null;
+  return Math.abs(dx) > Math.abs(dy) ? SIDE[dx > 0 ? 'right' : 'left'] : SIDE[dy > 0 ? 'down' : 'up'];
+}
+
+/**
+ * Move-menu handlers for the board around boardRef (cards are `.tk-kcard[data-no]` in `.tk-col[data-status]`).
+ * Returns { handlers, menu, picked, pick, close }: spread handlers on the board and render <MoveMenu> from menu, which
+ * is { no, nos, from, host, x, y, aim, angle, sticky, stack } while open, else null; picked is the status the last
+ * menu moved its tasks to (null if it closed without a move). groupOf(no) = the task numbers a hold on card #no moves,
+ * held one first (default just [no]); for more than one, stack lists each card's { no, dx, dy } offset to fly in from.
+ * from = the status they share, or null. onPick(nos, status) runs for a status other than from; canOpen(no) = false
+ * keeps the menu shut and runs onDenied(no) instead.
+ */
+export function useMoveMenu(boardRef, { onPick, canOpen = () => true, onDenied = () => {}, groupOf = no => [no] }) {
+  const [menu, setMenu] = useState(null);
+  const [picked, setPicked] = useState(null);
+  const live = useRef(null);          // the menu as of the last event (handlers can run twice between renders)
+  const hold = useRef(null);          // the press in progress
+  const swallowClick = useRef(false);
+  const cb = useRef(null);
+  cb.current = { onPick, canOpen, onDenied, groupOf };
+  const show = m => { live.current = m; setMenu(m); };
+
+  const close = () => {
+    if (hold.current?.open) swallowClick.current = true;   // closed mid-hold (Escape): letting go is still not a tap
+    clearTimeout(hold.current?.timer);
+    hold.current = null;
+    show(null);
+    setPicked(null);
+  };
+
+  /** Move the menu's tasks to status and close; the status they share (or none) only closes. */
+  const pick = status => {
+    const m = live.current;
+    close();
+    if (!m || !status || status === m.from) return;
+    setPicked(status);
+    cb.current.onPick(m.nos, status);
+  };
+
+  const open = h => {
+    if (!cb.current.canOpen(h.no)) {
+      hold.current = null;
+      swallowClick.current = true;   // the hold is not a tap that opens the task
+      cb.current.onDenied(h.no);
+      return;
+    }
+    const board = boardRef.current, host = board.closest('.phone-app') || document.body, r = host.getBoundingClientRect();
+    const nos = cb.current.groupOf(h.no), group = nos.length > 1, edge = group ? GROUP_EDGE : EDGE;
+    const cards = nos.map(no => board.querySelector(`.tk-kcard[data-no="${no}"]`));
+    const froms = new Set(cards.map(el => el.closest('.tk-col').dataset.status));
+    const x = clamp(h.x0 - r.left, edge.x, r.width - edge.x), y = clamp(h.y0 - r.top, edge.top, r.height - edge.bottom);
+    h.open = true;
+    board.setPointerCapture?.(h.id);
+    navigator.vibrate?.(HAPTIC_MS);
+    show({ no: h.no, nos, from: froms.size === 1 ? [...froms][0] : null, host, x, y, aim: null, angle: null, sticky: false,
+      stack: group ? cards.map((el, i) => ({ no: nos[i], ...offsetOf(el, r, x, y) })) : null });
+  };
+
+  const isOpen = !!menu;
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen]);   // close only touches refs and state setters
+
+  // While the finger aims, keep the board and page from panning under it (needs a non-passive listener).
+  // The rest of the press is heard on the window, not the board: a release that lands outside it (on the search bar
+  // above, when the pointer capture did not take) would otherwise leave the menu in its holding state, where it lets
+  // every tap through to the screen and its own statuses take none.
+  const track = useRef(null);
+  useEffect(() => {
+    const el = boardRef.current;
+    const block = e => { if (hold.current?.open) e.preventDefault(); };
+    const move = e => track.current.onPointerMove(e), up = e => track.current.onPointerUp(e);
+    const cancel = e => track.current.onPointerCancel(e);
+    el.addEventListener('touchmove', block, { passive: false });
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', cancel);
+    return () => {
+      el.removeEventListener('touchmove', block);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', cancel);
+      clearTimeout(hold.current?.timer);
+    };
+  }, [boardRef]);
+
+  const onPointerDown = e => {
+    swallowClick.current = false;
+    const card = e.button === 0 && e.isPrimary !== false && e.target.closest('.tk-kcard[data-no]');
+    if (!card || hold.current || live.current) return;
+    const h = { id: e.pointerId, no: +card.dataset.no, x0: e.clientX, y0: e.clientY, open: false, left: false };
+    h.timer = setTimeout(() => open(h), HOLD_MS);
+    hold.current = h;
+  };
+
+  const onPointerMove = e => {
+    const h = hold.current;
+    if (!h || e.pointerId !== h.id) return;
+    const dx = e.clientX - h.x0, dy = e.clientY - h.y0;
+    if (!h.open) {
+      if (Math.hypot(dx, dy) > SLOP_PX) close();   // a swipe: let the board scroll
+      return;
+    }
+    const aim = aimOf(dx, dy), m = live.current;
+    if (aim) h.left = true;
+    if (aim && aim !== m.aim) navigator.vibrate?.(HAPTIC_MS);
+    show({ ...m, aim, angle: aim ? Math.atan2(dy, dx) * 180 / Math.PI : null });
+  };
+
+  const onPointerUp = e => {
+    const h = hold.current;
+    if (!h || e.pointerId !== h.id) return;
+    if (!h.open) { close(); return; }   // a tap: its click opens the task
+    swallowClick.current = true;        // letting go after the hold is not a tap that opens the task
+    const { aim } = live.current;
+    if (aim) pick(aim);
+    else if (h.left) close();           // slid out and came back to the middle: cancel
+    else { hold.current = null; show({ ...live.current, sticky: true }); }   // never slid: stay open for a tap
+  };
+
+  const onPointerCancel = e => { if (e.pointerId === hold.current?.id) close(); };   // a sticky menu has no hold
+  track.current = { onPointerMove, onPointerUp, onPointerCancel };
+
+  // Android opens a context menu on a long press; the hold is ours.
+  const onContextMenu = e => { if (hold.current || live.current) e.preventDefault(); };
+
+  const onClickCapture = e => {
+    if (!swallowClick.current) return;
+    swallowClick.current = false;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  return { handlers: { onPointerDown, onContextMenu, onClickCapture }, menu, picked, pick, close };
+}

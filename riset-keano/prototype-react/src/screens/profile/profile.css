@@ -1,0 +1,41 @@
+/* Profile module (pf-). Lives in the kit FullSheet, so --surface is the sheet's card colour. */
+.pf { padding-top: var(--sp-1); }
+
+/* ---- Hero: photo + presence dot, the note bubble to its right, then name and role ---- */
+.pf-hero { display: grid; gap: var(--sp-3); touch-action: none; }
+.pf-top { display: flex; align-items: flex-start; gap: var(--sp-2); }
+.pf-photo { position: relative; flex: none; display: inline-grid; }
+/* presence: green when online; a hollow grey ring when offline (Discord). The ring cuts into the photo edge. */
+.pf-dot { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--sheet-bg); border: 4px solid var(--sheet-bg); box-shadow: inset 0 0 0 4px var(--label-2); }
+.pf-dot.is-on { background: var(--presence); box-shadow: none; }
+.pf-dot.pf-dot-sm { position: static; width: 14px; height: 14px; border-width: 0; margin: 0 9px;
+  box-shadow: inset 0 0 0 3px var(--label-2); background: transparent; }
+.pf-dot.pf-dot-sm.is-on { background: var(--presence); box-shadow: none; }
+
+/* Thought bubble: rounded pill with two small circles trailing down-left toward the photo */
+.pf-note { position: relative; min-width: 0; flex: 1; display: flex; padding: var(--sp-1) 0 var(--sp-4) var(--sp-2); }
+.pf-bubble { max-width: 100%; min-height: 36px; padding: var(--sp-2) var(--sp-3); border: 0; border-radius: 18px;
+  background: var(--surface); color: var(--label); font: inherit; font-size: var(--fs-subhead); line-height: var(--lh-snug);
+  text-align: left; overflow-wrap: anywhere; box-shadow: 0 1px 2px var(--separator); cursor: pointer; }
+.pf-bubble.is-empty { color: var(--label-2); }
+.pf-bubble:active { scale: 0.97; }
+.pf-input { width: 100%; outline: 2px solid var(--focus); cursor: text; }
+.pf-input::placeholder { color: var(--label-2); }
+.pf-tail { position: absolute; left: 0; bottom: 0; width: 20px; height: 20px; pointer-events: none; }
+.pf-tail i { position: absolute; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px var(--separator); }
+.pf-tail i:first-child { width: 10px; height: 10px; right: 0; top: 0; }
+.pf-tail i:last-child { width: 6px; height: 6px; left: 0; bottom: 2px; }
+
+.pf-status { margin-top: 2px; }
+
+/* ---- Menu rows ---- */
+/* same tile and badge colours as the More panel (.mm-tile / .mm-badge): white glyph in both themes, danger-fill count */
+.pf-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: var(--color-white); }
+.pf-tile.blue { background: var(--color-blue); } .pf-tile.red { background: var(--color-red); }
+.pf-tile.indigo { background: var(--color-indigo); } .pf-tile.gray { background: var(--label-3); }
+.pf-count { min-width: 22px; padding: 0 var(--sp-2); border-radius: 99px; background: var(--danger-fill); color: var(--on-accent);
+  font-size: var(--fs-footnote); font-weight: 600; line-height: 22px; text-align: center; }
+.pf-copy { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%;
+  background: var(--fill); color: var(--accent); cursor: pointer; }
+.pf-copy:active { scale: 0.92; }

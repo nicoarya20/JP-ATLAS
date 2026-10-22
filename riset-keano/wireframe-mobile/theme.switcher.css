@@ -1,0 +1,50 @@
+/* Theme switcher in the desktop index — mirrors ClickUp "Customize › Themes". Colors only via theme.tokens.css. */
+.theme-switch {
+  margin-bottom: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
+  /* Preview tones: show true light/dark surfaces whatever the current appearance is. */
+  --ts-light-bg: var(--paper); --ts-light-fg: var(--ink);
+  --ts-dark-bg: var(--inverse); --ts-dark-fg: var(--on-inverse);
+}
+:root[data-theme="dark"] .theme-switch {
+  --ts-light-bg: var(--inverse); --ts-light-fg: var(--on-inverse);
+  --ts-dark-bg: var(--paper); --ts-dark-fg: var(--ink);
+}
+.theme-switch:empty { display: none; }
+
+/* Collapsible header: shows the current choice so the panel can stay hidden */
+.ts-head { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; font-size: 12px; font-weight: 700; color: var(--ink); }
+.ts-head small { flex: 1; font-weight: 400; color: var(--muted); }
+.ts-head em { font-style: normal; color: var(--muted); transition: transform .15s; }
+.ts-head[aria-expanded="false"] em { transform: rotate(-90deg); }
+.ts-body { margin-top: 10px; }
+.ts-body[hidden] { display: none; }
+.ts-label { font-size: 12px; font-weight: 700; margin: 0 0 6px; }
+.ts-label ~ .ts-label { margin-top: 12px; }
+
+/* Appearance: three mini preview tiles */
+.ts-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ts-mode { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+.ts-tile { display: flex; width: 100%; height: 44px; overflow: hidden; border: 1.5px solid var(--line-strong); border-radius: 8px; }
+.ts-pane { flex: 1; display: flex; gap: 3px; padding: 4px; background: var(--bg); }
+.ts-pane[data-tone="light"] { --bg: var(--ts-light-bg); --fg: var(--ts-light-fg); }
+.ts-pane[data-tone="dark"] { --bg: var(--ts-dark-bg); --fg: var(--ts-dark-fg); }
+.ts-pane b { width: 22%; min-width: 6px; border-radius: 3px; background: color-mix(in oklab, var(--fg) 10%, var(--bg)); }
+.ts-pane > span { flex: 1; display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
+.ts-pane i { display: block; height: 4px; border-radius: 2px; background: color-mix(in oklab, var(--fg) 24%, var(--bg)); }
+.ts-pane i:first-child { width: 70%; background: var(--accent); }
+.ts-pane i:last-child { width: 50%; }
+.ts-mode[aria-pressed="true"] { color: var(--accent-ink); font-weight: 700; }
+.ts-mode[aria-pressed="true"] .ts-tile { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+/* Theme: 2-column grid of swatch + name */
+.ts-accents { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.ts-accent {
+  display: flex; align-items: center; gap: 8px; padding: 5px 6px; font-size: 12px; text-align: left;
+  border: 1.5px solid var(--paper); border-radius: 8px;
+}
+.ts-accent:hover { background: var(--soft); border-color: var(--soft); }
+.ts-accent i {
+  flex: none; width: 18px; height: 18px; border-radius: 5px; background: var(--accent);
+  display: grid; place-items: center; color: var(--on-accent); font-size: 11px; font-style: normal; font-weight: 700;
+}
+.ts-accent[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }

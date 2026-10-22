@@ -1,0 +1,13 @@
+/* kit Menu: ⋯ in the label colour with a 44px tap target, nudged right to line up with the content edge like the back
+   chevron; the dropdown floats over the screen, and a clear layer behind it catches the tap that closes it. */
+.menu-wrap { position: relative; }
+.menu-btn { display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; padding: 0; border: 0;
+  background: none; color: var(--label); cursor: pointer; transition: opacity var(--press-out) ease; }
+.menu-btn:active { opacity: var(--press-dim); transition-duration: var(--press-in); }
+.menu-dim { position: fixed; inset: 0; z-index: 29; border: 0; padding: 0; background: none; cursor: default; }
+.menu { position: absolute; right: 0; top: 44px; z-index: 30; min-width: 200px; display: grid; padding: var(--sp-1) 0;
+  border-radius: var(--radius-card); background: var(--surface-raised); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18); }
+.menu button { padding: var(--sp-3) var(--sp-4); border: 0; background: none; text-align: left; font-size: var(--fs-body);
+  color: var(--label); cursor: pointer; }
+.menu button + button { border-top: 1px solid var(--separator); }
+.menu .danger { color: var(--danger); }

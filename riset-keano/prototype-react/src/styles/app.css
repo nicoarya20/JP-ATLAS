@@ -1,0 +1,136 @@
+/* Phone app layout + shared utility classes. Screen modules use these classes instead of inline spacing/typography. */
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--label); font-family: var(--font);
+  font-size: var(--fs-body); line-height: var(--lh-snug); -webkit-font-smoothing: antialiased;
+}
+*, *::before, *::after { box-sizing: border-box; }
+/* Phone scrolls without a visible scrollbar (iOS shows none while idle); covers .content, sheets and side-scrolling rows. */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+button { font: inherit; color: inherit; }
+input, textarea { font-family: inherit; }
+/* Native fields (comment bar, tag box, .field-area) otherwise get the browser's #757575, off-palette and under AA */
+input::placeholder, textarea::placeholder { color: var(--label-2); opacity: 1; }
+p { margin: 0; line-height: var(--lh-body); }
+h1, h2, h3 { margin: 0; }
+
+/* ---- Shell: status bar, then one screen = nav bar + scrolling content (+ fixed tab bar) ---- */
+.phone-app { position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.statusbar { flex: none; height: var(--statusbar-h); padding: 0 var(--sp-6); display: flex; align-items: center; justify-content: space-between;
+  font-size: var(--fs-subhead); font-weight: 600; background: var(--bg); }
+.scr { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.content { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-4); }
+.content.with-tabbar { padding-bottom: calc(var(--tab-bar-space) + var(--sp-4)); }
+:root { --tab-bar-space: 76px; }   /* floating glass bar: 60px pill + 16px gap under it */
+/* Floating tab bar: glass pill + round create button, over the content so it scrolls under the glass */
+.glassbar { position: absolute; left: var(--sp-4); right: var(--sp-4); bottom: var(--sp-4); z-index: 90;
+  display: flex; align-items: flex-end; gap: 10px; }   /* bottom-aligned: the pill grows upward into the More panel */
+/* Dims the screen while the More panel is open; a tap on it folds the panel away */
+.glassbar-scrim { position: absolute; inset: 0; z-index: 89; background: var(--overlay); opacity: 0; pointer-events: none;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); transition: opacity 280ms ease; }
+.glassbar-scrim.is-open { opacity: 1; pointer-events: auto; }
+.glassbar-fab { --fab-ease: cubic-bezier(0.32, 0.72, 0, 1); flex: none; width: 60px; height: 60px; border-radius: 50%;
+  display: grid; place-items: center; overflow: hidden; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform 220ms ease, width 380ms var(--fab-ease), margin-left 380ms var(--fab-ease),
+    opacity 220ms ease 120ms, scale 380ms var(--fab-ease), background-color 280ms ease; }
+.glassbar-fab:active { transform: scale(0.94); }
+/* No "+" on this tab for the role: shrink to nothing and cancel the 10px gap, so the pill slides out to the full width */
+.glassbar-fab.is-hidden { width: 0; margin-left: -10px; opacity: 0; scale: 0.6; pointer-events: none;
+  transition: transform 220ms ease, width 380ms var(--fab-ease), margin-left 380ms var(--fab-ease),
+    opacity 160ms ease, scale 260ms var(--fab-ease), background-color 280ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .glassbar-fab, .glassbar-fab.is-hidden { transition: opacity 120ms ease; scale: 1; }
+}
+
+/* ---- Rhythm ---- */
+.stack { display: grid; gap: var(--sp-3); grid-auto-rows: max-content; align-content: start; }
+.content.stack { gap: var(--sp-4); }
+.stack.xs { gap: var(--sp-1); }
+.stack.sm { gap: var(--sp-2); }
+.stack.lg { gap: var(--sp-5); }
+.mt-0 { margin-top: 0; } .mt-1 { margin-top: var(--sp-1); } .mt-2 { margin-top: var(--sp-2); }
+.mt-3 { margin-top: var(--sp-3); } .mt-4 { margin-top: var(--sp-4); } .mt-6 { margin-top: var(--sp-6); }
+.row-flex { display: flex; align-items: center; gap: var(--sp-3); }
+.between { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.spacer { flex: 1; }
+.grow { flex: 1; min-width: 0; }
+.wrap { flex-wrap: wrap; }
+.bleed { margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
+
+/* ---- Text styles (iOS) ---- */
+.t-large { font-size: var(--fs-large); font-weight: 600; line-height: var(--lh-tight); }
+.t-title1 { font-size: var(--fs-title1); font-weight: 600; line-height: var(--lh-tight); }
+.t-title2 { font-size: var(--fs-title2); font-weight: 600; line-height: var(--lh-tight); }
+.t-title3 { font-size: var(--fs-title3); font-weight: 600; line-height: var(--lh-tight); }
+.t-headline { font-size: var(--fs-headline); font-weight: 600; }
+.t-body { font-size: var(--fs-body); }
+.t-callout { font-size: var(--fs-callout); }
+.t-subhead { font-size: var(--fs-subhead); }
+.t-footnote { font-size: var(--fs-footnote); }
+.t-caption { font-size: var(--fs-caption1); }
+.small { font-size: var(--fs-subhead); }
+.muted { color: var(--label-2); }
+.tint { color: var(--accent); }
+.danger { color: var(--danger); }
+.success { color: var(--success); }
+.center { text-align: center; }
+.bold { font-weight: 600; }
+.nowrap { white-space: nowrap; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- Horizontal scrollers (chips, stat cards): never let a scroll row collapse its children ---- */
+.hscroll { display: flex; gap: var(--sp-2); overflow-x: auto; min-height: min-content; }
+.hscroll > * { flex: none; }
+
+/* ---- Kit parts ---- */
+.sec-head { display: flex; align-items: flex-start; gap: var(--sp-3); }
+.link { background: none; border: 0; padding: 0; color: var(--accent); font-size: var(--fs-subhead); cursor: pointer; white-space: nowrap; }
+.avatars { display: inline-flex; }
+.media { display: grid; place-items: center; border-radius: var(--radius-card); background: var(--media); color: var(--label-2);
+  font-size: var(--fs-footnote); }
+.media-sm { height: 120px; } .media-md { height: 200px; } .media-lg { height: 280px; }
+.empty { padding: var(--sp-8) var(--sp-4); justify-items: center; }
+.empty-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.field { display: grid; gap: var(--sp-1); }
+.field-area { font: inherit; font-size: var(--fs-body); padding: var(--sp-3); border-radius: var(--radius-sm); border: 0;
+  background: var(--fill); color: var(--label); resize: vertical; }
+.sheet { padding: 0 var(--sp-4) var(--sp-6); }
+.select { display: inline-flex; align-items: center; gap: var(--sp-1); max-width: 100%; padding: 6px var(--sp-3);
+  border: 0; border-radius: 999px; background: var(--fill); color: var(--label); font-size: var(--fs-subhead); cursor: pointer; }
+.select.block { display: flex; width: 100%; justify-content: space-between; border-radius: var(--radius-sm); padding: var(--sp-3); font-size: var(--fs-body); }
+.select-native { position: relative; }
+.select-native:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* 16px keeps iOS Safari from zooming in when the native picker takes focus. */
+.select-pick { position: absolute; inset: 0; width: 100%; opacity: 0; font-size: 16px; cursor: pointer; }
+.label-head { margin: 0; padding-inline: var(--sp-4); text-transform: uppercase; font-weight: 400; }
+.scr { position: relative; }
+.snack { position: absolute; left: var(--sp-4); right: var(--sp-4); bottom: calc(var(--tab-bar-space) + var(--sp-2)); z-index: 20;
+  display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-card);
+  background: var(--snack-bg); color: var(--snack-label); font-size: var(--fs-subhead); }
+.snack-action { background: none; border: 0; padding: 0; color: var(--snack-action); font-weight: 600; cursor: pointer; }
+
+/* Modal screens (registry modal: true; create/edit flows): slide up over the screen they opened from, which stays drawn
+   inert and dimmed underneath; back/Cancel slides them down (MODAL_CLOSE_MS in app.context) before the pop. */
+.scr-slot { display: contents; }   /* the shown screen's slot (PhoneApp ScreenSlot): no box of its own */
+.modal-under { position: absolute; z-index: 0; left: 0; right: 0; bottom: 0; top: var(--statusbar-h); display: flex; flex-direction: column; }
+/* In: a long iOS-style decelerate. Out: ease-in-out, so it doesn't jump off the mark (MODAL_CLOSE_MS = 380). The dim follows the same curves. */
+.modal-under::after { content: ''; position: absolute; inset: 0; z-index: 100; background: var(--overlay);
+  animation: modal-fade-in 500ms cubic-bezier(0.32, 0.72, 0, 1); }
+.modal-under.is-closing::after { animation: modal-fade-out 380ms cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+/* Sheet colours like the FullSheet: --bg/--surface are re-pointed so the nav bar, sticky footers and cards inside follow
+   (dark: one step up off the dim, with the top-edge hairline; light: unchanged, sheet-bg = canvas). The hairline is a
+   border, not an inset shadow: the nav bar's own background would paint over an inset shadow. */
+.scr.is-modal { z-index: 1; --bg: var(--sheet-bg); --surface: var(--sheet-surface); background: var(--bg);
+  border-top: 1px solid var(--sheet-edge); box-shadow: var(--glass-shadow); }
+.scr.is-modal-enter { animation: modal-up 500ms cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; }
+.scr.is-modal-closing { animation: modal-down 380ms cubic-bezier(0.45, 0, 0.55, 1) forwards; will-change: transform; pointer-events: none; }
+@keyframes modal-up { from { transform: translateY(100%); } }
+@keyframes modal-down { to { transform: translateY(100%); } }
+@keyframes modal-fade-in { from { opacity: 0; } }
+@keyframes modal-fade-out { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .scr.is-modal-enter { animation: modal-fade-in 150ms ease; }
+  .scr.is-modal-closing { animation: modal-fade-out 150ms ease forwards; }
+}

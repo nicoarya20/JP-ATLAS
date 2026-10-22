@@ -1,0 +1,13 @@
+/* Team module (tm-). */
+.tm-row { display: flex; align-items: flex-start; gap: var(--sp-3); width: 100%; padding: var(--sp-3) var(--sp-4); border: 0;
+  border-bottom: 1px solid var(--separator); background: none; text-align: left; cursor: pointer; }
+.tm-row:last-child { border-bottom: 0; }
+/* Availability dot: filled green when Available, hollow otherwise. */
+.tm-status { display: inline-flex; align-items: center; gap: var(--sp-1); }
+.tm-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--label-2); }
+.tm-status.on::before { background: var(--success); border-color: var(--success); }
+.tm-kv { display: grid; grid-template-columns: 110px 1fr; gap: var(--sp-3) var(--sp-2); margin: 0; font-size: var(--fs-subhead); }
+.tm-kv dt { color: var(--label-2); }
+.tm-kv dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.tm-view { align-self: center; padding: 4px var(--sp-3); border-radius: 999px; background: var(--fill); color: var(--accent);
+  font-size: var(--fs-footnote); font-weight: 600; }

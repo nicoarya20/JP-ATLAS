@@ -1,0 +1,62 @@
+/* JP Atlas Design System (Internal Handoff v1.0, 2026-10-21, token candidate v0.1): the brand palette and font, copied
+   verbatim from ../assets/atlas/tokens.json (theme.test.js checks every value against it). tokens.css maps the app
+   roles screens use (--bg, --accent, --label …) onto these; screens never read --atlas-* directly.
+   Atlas makes dark the default; this prototype keeps light as the default and switches with class "dark" (?mode=dark). */
+@font-face { font-family: Manrope; src: url('../assets/atlas/Manrope-Variable.ttf') format('truetype');
+  font-style: normal; font-weight: 200 800; font-display: swap; }
+
+:root {
+  --atlas-canvas: #f4f6fa;
+  --atlas-surface: #fff;
+  --atlas-raised: #eaf0f6;
+  --atlas-text: #122236;
+  --atlas-muted: #4c6075;
+  --atlas-line: #c7d2df;
+  --atlas-control: #697d92;
+  --atlas-primary: #c8f904;
+  --atlas-on-primary: #071321;
+  --atlas-primary-border: #647d00;
+  --atlas-violet: #5146c9;
+  --atlas-selected: #ebe9ff;
+  --atlas-selected-text: #3b3294;
+  --atlas-focus: #5146c9;
+  --atlas-success: #0c6847;
+  --atlas-success-bg: #e5f6ec;
+  --atlas-warning: #805400;
+  --atlas-warning-bg: #fff3d6;
+  --atlas-danger: #a51b3c;
+  --atlas-danger-bg: #ffedf0;
+  --atlas-info: #5146c9;
+  --atlas-info-bg: #ebe9ff;
+  --atlas-shadow: 0 14px 48px #16263818;
+  --atlas-veil: #07132199;
+  --atlas-identity-surface: #0b1522;   /* the field behind the white logo wordmark; same in both themes */
+  --atlas-font: Manrope, Arial, sans-serif;
+}
+
+.dark {
+  --atlas-canvas: #071321;
+  --atlas-surface: #0e1a24;
+  --atlas-raised: #162638;
+  --atlas-text: #f3f6fb;
+  --atlas-muted: #b7c4d3;
+  --atlas-line: #34465a;
+  --atlas-control: #72869c;
+  --atlas-primary: #c8f904;
+  --atlas-on-primary: #071321;
+  --atlas-primary-border: #c8f904;
+  --atlas-violet: #b6b4ff;
+  --atlas-selected: #252949;
+  --atlas-selected-text: #e5e0ff;
+  --atlas-focus: #c8f904;
+  --atlas-success: #74deae;
+  --atlas-success-bg: #14382e;
+  --atlas-warning: #ffd17a;
+  --atlas-warning-bg: #382d15;
+  --atlas-danger: #ffa0ac;
+  --atlas-danger-bg: #381e29;
+  --atlas-info: #b6b4ff;
+  --atlas-info-bg: #252949;
+  --atlas-shadow: 0 14px 48px #0005;
+  --atlas-veil: #071321bb;
+}

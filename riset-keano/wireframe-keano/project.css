@@ -1,0 +1,75 @@
+/* Menu Projects: tab tampilan, toolbar bersama, List, Kanban, Overview. Hitam-putih, status pakai pola arsir (.st-0..3). */
+.project { min-height: 0; display: flex; flex-direction: column; padding: 0 24px; }
+.project[hidden] { display: none; }
+.pv-body { flex: 1; min-height: 0; overflow: auto; padding-bottom: 24px; }
+.pv-body[data-view="channel"], .pv-body[data-view="gantt"], .pv-body[data-view="calendar"] { overflow: hidden; padding-bottom: 16px; }
+
+/* ---------- Tab tampilan ---------- */
+.pv-tabs { flex: none; display: flex; gap: 2px; border-bottom: 1.5px solid var(--soft); overflow-x: auto; }
+.pv-tabs a { display: flex; align-items: center; gap: 6px; padding: 10px 12px; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2.5px solid transparent; }
+.pv-tabs a:hover { background: var(--hover); }
+.pv-tabs a[aria-current] { color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+.pv-tabs .ph-icon { width: 14px; height: 14px; }
+
+/* ---------- Toolbar & potongan bersama ---------- */
+.pv-bar { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 12px 0; }
+.pv-bar .spacer, .kb-head .spacer, .ch-head .spacer { flex: 1; }
+.pv-bar .chip[aria-pressed="true"], .btn-sm[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.st-tag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border: 1.5px solid var(--line); border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.st-tag .st-dot { width: 10px; height: 10px; }
+.sub-count { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+/* ---------- List ---------- */
+.pl-groups { display: grid; gap: 12px; font-size: 13px; }
+.pl-group { border: 1.5px solid var(--soft); border-radius: 10px; padding: 4px 10px 6px; }
+.pl-group summary { cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 0; list-style: none; }
+.pl-group summary::before { content: "▾"; color: var(--muted); }
+.pl-group:not([open]) summary::before { content: "▸"; }
+.pl-group .dt-row[data-task] { cursor: pointer; }
+.pl-group .dt-row[data-task]:hover { background: var(--hover); }
+.pl-group .dt-head { position: static; }
+
+/* ---------- Kanban ---------- */
+.pv-kanban { display: flex; flex-direction: column; height: 100%; }
+.kb-board { flex: 1; min-height: 360px; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+.kb-col { display: flex; flex-direction: column; min-height: 0; padding: 8px; border: 1.5px solid var(--soft); border-radius: 10px; background: var(--hover); }
+.kb-col.drop { border: 1.5px dashed var(--line); }
+.kb-head { display: flex; align-items: center; gap: 8px; padding: 2px 2px 8px; }
+.kb-cards { display: grid; gap: 8px; align-content: start; flex: 1; overflow-y: auto; min-height: 40px; }
+.kb-card { display: grid; gap: 10px; padding: 10px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 8px; cursor: grab; }
+.kb-card:hover { box-shadow: 3px 3px 0 var(--line); }
+.kb-title { display: grid; gap: 6px; }
+.kb-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; flex-wrap: wrap; }
+.kb-meta .ph-avatar { width: 20px; height: 20px; }
+.kb-date { color: var(--muted); }
+.kb-add { margin-top: 8px; padding: 6px; text-align: left; color: var(--muted); font-size: 12px; border-radius: 6px; }
+.kb-add:hover { background: var(--paper); }
+.kb-hint { margin: 6px 0 0; }
+
+/* ---------- Overview (memakai .dash-grid dan .card dari beranda.css) ---------- */
+.pv-overview .dash-grid { margin-top: 0; }
+.ov-team, .ov-files { list-style: none; margin: 0; padding: 0; display: grid; }
+.ov-team li, .ov-files li { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1.5px solid var(--soft); font-size: 13px; }
+.ov-team li[data-drill] { cursor: pointer; }
+.ov-team li[data-drill]:hover { background: var(--hover); }
+.ov-person { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.ov-role { padding: 1px 8px; border: 1.5px dashed var(--line); border-radius: 999px; font-size: 11px; }
+.ov-sub { margin: 12px 4px 2px; }
+.ov-table { font-size: 13px; overflow-x: auto; }
+.ov-row { width: 100%; min-width: 560px; display: grid; grid-template-columns: minmax(140px, 1.4fr) 1.4fr 80px 80px 90px 40px; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1.5px solid var(--soft); text-align: left; }
+button.ov-row:hover { background: var(--hover); }
+.ov-head { color: var(--muted); font-size: 12px; }
+.ov-name { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.ov-progress { display: flex; align-items: center; gap: 8px; }
+.ov-track { flex: 1; height: 10px; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+.ov-track span { display: block; height: 100%; background: var(--muted); }
+.ov-drop { padding: 14px; margin-bottom: 8px; border: 1.5px dashed var(--line); border-radius: 8px; text-align: center; color: var(--muted); font-size: 13px; }
+@media (max-width: 1100px) {
+  .card[data-type="team"], .card[data-type="lists"], .card[data-type="status-bar"], .card[data-type="ai-summary"] { grid-column: 1 / -1; }
+  .card[data-type="count"] { grid-column: span 3; }
+}
+@media (max-width: 720px) {
+  .project { padding: 0 16px; }
+  .card[data-type="count"] { grid-column: 1 / -1; }
+  .card[data-type="team"] { min-height: 420px; }
+}

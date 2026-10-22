@@ -1,0 +1,110 @@
+{
+  "package": "JP Atlas Design System - Internal Handoff v1.0",
+  "date": "2026-10-21",
+  "status": "READY_FOR_INTERNAL_HANDOFF",
+  "basis": "JPDS-0.1-e58210bb5e95",
+  "file_count_excluding_manifest": 20,
+  "files": [
+    {
+      "path": "01-Logo/JP-Atlas-Logo-Master.png",
+      "sha256": "5ea2cd1362369c576e29fa60fd3fe8a972832b76b552f1dfad71e646a892a8d1",
+      "bytes": 41734
+    },
+    {
+      "path": "01-Logo/README.txt",
+      "sha256": "0d9bbe4badd2e4475cf1bf61bd0729decf2fb802c1ac49a904b08614e2154ac8",
+      "bytes": 219
+    },
+    {
+      "path": "01-Logo/favicon.svg",
+      "sha256": "da32394ba82667e9fc1c06df032167e50e1eefee5fb5ec10e2d893879082b496",
+      "bytes": 55983
+    },
+    {
+      "path": "02-Typography/Manrope-Variable.ttf",
+      "sha256": "d0639be45d0af36e798172419d7bd173c4bd4f29e2b76cbb69db1d11bf8b0a40",
+      "bytes": 165420
+    },
+    {
+      "path": "02-Typography/OFL.txt",
+      "sha256": "e01b637272e0cbdfb240184dd98ea5cc671556d9894dae2668d92ab2c906787c",
+      "bytes": 4384
+    },
+    {
+      "path": "03-Tokens/contrast-checks.json",
+      "sha256": "19a1ab10d8a7eb219795c4aefbfc40775b83cf7474ff30222953313e17155065",
+      "bytes": 15215
+    },
+    {
+      "path": "03-Tokens/palette.csv",
+      "sha256": "9af30070497b2ee113fe873ca1c8820864390c0f53fba408224faed957f475d4",
+      "bytes": 1689
+    },
+    {
+      "path": "03-Tokens/tokens.css",
+      "sha256": "fab6e87ba900564d7fdc397b91c066086f71fcdf6a32e0979843ffbf3bc74f42",
+      "bytes": 2145
+    },
+    {
+      "path": "03-Tokens/tokens.json",
+      "sha256": "3e94764c19a6ce351832369e9820ebef8f712edc6676d90405b1b90f5bda4c11",
+      "bytes": 7732
+    },
+    {
+      "path": "04-Editable-Boards/01-Overview.svg",
+      "sha256": "ff1c492fc8286384613bf0a9e559c91357850ee52f20d22536e2da8a47918e17",
+      "bytes": 59419
+    },
+    {
+      "path": "04-Editable-Boards/02-Logo.svg",
+      "sha256": "88557ef25c727923cf294d0738ce447b805d1169a0e1b93273fa02e517d3adc0",
+      "bytes": 59810
+    },
+    {
+      "path": "04-Editable-Boards/03-Typography.svg",
+      "sha256": "f8637c89c7c5b4a5a7d74d27ef68f1a1ba73d448ce07b67af603ec3c06db480b",
+      "bytes": 5575
+    },
+    {
+      "path": "04-Editable-Boards/04-Colors.svg",
+      "sha256": "ad4ffdc296e1b50b8acb38eac6a1756212f4ac856765620cc067e60c5cfe5e3a",
+      "bytes": 12161
+    },
+    {
+      "path": "04-Editable-Boards/05-Status-and-UI.svg",
+      "sha256": "98399996d554ce21ae034a63c5687cd57020bc81535c3bacd4daf12989f49807",
+      "bytes": 6852
+    },
+    {
+      "path": "04-Editable-Boards/06-Team-Handoff.svg",
+      "sha256": "1d446560336a5500ec2730e682ddaa5a1f79297657a6ee0f7b499c25cf3c003a",
+      "bytes": 7174
+    },
+    {
+      "path": "05-Handoff/HANDOFF.md",
+      "sha256": "aa2182cbd00e3fc9707ba8d17a2b6f0d699682ae07284e7fcf6620cf3cb4b3f6",
+      "bytes": 3612
+    },
+    {
+      "path": "05-Handoff/SOURCE-MANIFEST.json",
+      "sha256": "daf47eb93c0431994dfabf7e89a11e252e962405df8814e72da6b1ebf0b88999",
+      "bytes": 2054
+    },
+    {
+      "path": "05-Handoff/VALIDATION.json",
+      "sha256": "a814746646c5cd441c978214287c95dcca8e6b9d4914c6e9775219b5b94514a3",
+      "bytes": 2916
+    },
+    {
+      "path": "JP-Atlas-Design-System.pdf",
+      "sha256": "516791b9b976affcbc51fb4982ba1b1dca93ba09cccf31ad91ebfdff366ef544",
+      "bytes": 127822
+    },
+    {
+      "path": "START-HERE.html",
+      "sha256": "8a73c9db56caf7fdc0be05daa6aa386ee306259aacee90e7ae67af97b3bb40ae",
+      "bytes": 9081
+    }
+  ],
+  "manifest_excludes_itself": true
+}

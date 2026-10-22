@@ -21,3 +21,22 @@ makuro.exe
 *.service
 # local Orca CLI binary dropped in the repo root; never commit
 /orca-office
+
+# Secrets & credentials
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account.json
+.aws/
+.gcp/
+
+# Claude Code — local per-user settings
+.claude/settings.local.json
+
+# OS / editor
+Thumbs.db
+.vscode/
+.idea/
+*.swp

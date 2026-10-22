@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alur Kerja PM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="deck.css">
+<link rel="stylesheet" href="workflow.css">
+</head>
+<body>
+<main class="wf">
+  <header class="wf-head">
+    <a class="back" href="index.html">← Kembali ke deck worktree</a>
+    <p class="eyebrow">Alur kerja · draf 5 Oktober 2026</p>
+    <h1>Dari struktur sampai isi <span class="hl">setiap menu</span></h1>
+    <p class="lede">Urutan baca: struktur data, masuk pertama kali, isi menu Proyek, membuat tugas, siklus status, lalu menu Hari Ini, Tugas, Orang, Pengaturan, dan aturan otomatis.</p>
+    <div class="legend" aria-label="Arti bentuk">
+      <span><i class="sw term"></i>Awal / akhir</span>
+      <span><i class="sw main"></i>Langkah utama</span>
+      <span><i class="sw plain"></i>Langkah</span>
+      <span><i class="sw sys"></i>Dikerjakan sistem</span>
+      <span><i class="sw dec"></i>Keputusan</span>
+      <span><i class="sw tool"></i>Alat tambahan</span>
+    </div>
+    <ol class="jump" id="jump"></ol>
+  </header>
+  <div id="charts"></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js"></script>
+<script src="workflow.diagrams-1.js"></script>
+<script src="workflow.diagrams-2.js"></script>
+<script src="workflow.js"></script>
+</body>
+</html>

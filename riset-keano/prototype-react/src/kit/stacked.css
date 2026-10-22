@@ -1,0 +1,49 @@
+/* Stacked tab screen (kit StackedScreen). Header, status bar and the search block sit on surface; the content is a canvas
+   sheet with rounded top corners and a hairline edge laid over it, so the cards inside lift off the sheet again. The
+   search block scrolls with the sheet, so scrolling down pushes it up under the title. The rounded edge is its own
+   sticky element (the pinned row on Home, .stk-edge elsewhere), so it stays under the header while the sheet scrolls. */
+.stk-head { flex: none; padding: var(--sp-2) var(--sp-4) var(--sp-3); background: var(--surface); }
+.phone-app:has(.stk-sheet) > .statusbar { background: var(--surface); }
+.content.with-tabbar.stk-scroll { display: block; padding: 0; background: var(--surface); overflow-anchor: none; }
+/* overflow-anchor: none — keep the browser from moving the scroll when something above the visible content changes
+   height (Chrome's scroll anchoring); the fold is driven by scrollTop, so a moved scroll would feed back into it. */
+.stk-sheet { display: grid; gap: var(--sp-4); grid-auto-rows: max-content; min-height: 100%;
+  padding: var(--sp-1) var(--sp-4) calc(var(--tab-bar-space) + var(--sp-4)); background: var(--bg); }
+/* Sticky sheet edge for screens without a pinned row: the first 12 px of the sheet's 16 px top gap, sticking under the
+   header with the rounded corners and hairline over it. The last 4 px stay the sheet's own padding, out from under the
+   edge: a first row that reaches up into the gap (the Projects people row's -4 px margin, room for the picked avatar's
+   ring) was cut off by the opaque edge. The corners' curve runs 24 px deep, past the opaque 12 px: the ::before draws it
+   24 px tall and see-through below 12 px so the content shows there, its shadow fills the outer corners with surface
+   and the clip-path keeps that shadow inside its own box. The gradient runs from the border box: from the padding box
+   (default) it started under the 1 px hairline, so the opaque part ran 1 px past the edge and cut the ring's top again.
+   Not tappable: taps reach the content under it. */
+.stk-edge { position: sticky; top: 0; z-index: 2; height: var(--sp-3); pointer-events: none; }
+.stk-edge::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--separator); background: linear-gradient(var(--bg) var(--sp-3), transparent 0) border-box;
+  box-shadow: 0 0 0 24px var(--surface); clip-path: inset(0); }
+/* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header.
+   --stk-q (0..1, set by useSearchCollapse) = how far it has compacted; --stk-pin-h = its measured tall height. The row
+   keeps its tall height in the flow and sticks at the top with the visible part on top, so each pixel scrolled lifts the
+   content one pixel while the visible part's bottom folds up by one. The top edge must not depend on --stk-q: the
+   browser scrolls (and sticks) on the compositor a frame before the main thread writes --stk-q, so an edge placed by
+   both shook under the header. Only the bottom edge lags now, over the same canvas colour. The fold-away part below is
+   see-through and lets taps through to the content under it; the ::before fills the rounded corners with surface. */
+.stk-pin { position: sticky; top: 0; z-index: 2; height: var(--stk-pin-h, auto); pointer-events: none; }
+.stk-pin::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; z-index: -1; background: var(--surface); }
+.stk-pin-in { pointer-events: auto; padding: calc(var(--sp-4) + (var(--sp-3) - var(--sp-4)) * var(--stk-q, 0)) var(--sp-4) var(--sp-2);
+  background: var(--bg); border-radius: 24px 24px 0 0; border-top: 1px solid var(--separator); }
+/* The sheet's canvas reaches 24 px up under the pinned row (the padding gives it back, so the content stays put). The
+   row's fold-away part is see-through, and its bottom only meets the sheet's top on paper: the heights are measured in
+   whole px and --stk-q lands a frame after the scroll, so the seam opened by a fraction of a px (or a frame's scroll)
+   and showed the screen's surface behind it as a white line under the chips. Now the canvas sits behind that seam. */
+.stk-sheet.has-pin { margin-top: calc(-1 * var(--sp-6)); padding-top: calc(var(--sp-6) + var(--sp-2)); }
+/* --stk-p (0..1, set by useSearchCollapse) = how far the sheet has pushed the search block away. The block fades out fast,
+   within the first third, while shrinking toward the icon's corner; the icon fades and grows in over the second half. */
+.stk-find { padding: 0 var(--sp-4) var(--sp-4); }
+.stk-find > * { opacity: calc(1 - var(--stk-p, 0) * 3); scale: calc(1 - var(--stk-p, 0) * 0.4); transform-origin: top right; }
+/* The filter icon's dot is ringed in the colour behind it: surface here, not the canvas. */
+.stk-find .filter-btn.is-on::after { box-shadow: 0 0 0 2px var(--surface); }
+/* Bare icon (no bubble); the 36px box is only the tap area */
+.stk-find-ico { width: 36px; height: 36px; padding: 0; border: 0; display: grid; place-items: center;
+  background: none; color: var(--label); cursor: pointer;
+  opacity: calc(var(--stk-p, 0) * 2 - 1); scale: calc(0.6 + var(--stk-p, 0) * 0.4); }

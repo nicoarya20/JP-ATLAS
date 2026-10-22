@@ -1,0 +1,45 @@
+/* Halaman alur kerja. Memakai token dan font dari deck.css; di sini hanya warna diagram dan tata letak halaman. */
+:root {
+  --wf-deep: #123E85; --wf-blue: #2F6FD6; --wf-soft: #DCE8FB; --wf-soft-ink: #14305F;
+  --wf-tool: #FFF1BF; --wf-tool-ink: #4A3B00; --wf-edge: #5B6E92;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --wf-deep: #2B5DB8; --wf-blue: #3F7BE0; --wf-soft: #22324F; --wf-soft-ink: #D6E3FA;
+  --wf-tool: #4A3D12; --wf-tool-ink: #FBE7A6; --wf-edge: #8C9DBE; } }
+:root[data-theme="dark"] {
+  --wf-deep: #2B5DB8; --wf-blue: #3F7BE0; --wf-soft: #22324F; --wf-soft-ink: #D6E3FA;
+  --wf-tool: #4A3D12; --wf-tool-ink: #FBE7A6; --wf-edge: #8C9DBE; }
+
+html { scroll-snap-type: none; }
+.wf { padding-block: 3rem 5rem; padding-inline: max(16px, 6vw); display: grid; gap: 2.5rem; max-width: 1240px; }
+.wf-head { display: grid; gap: 1rem; }
+.wf-head .back { color: var(--accent); font: 500 var(--s-1)/1 var(--f-mono); text-decoration: none; }
+.wf-head .back:hover { text-decoration: underline; }
+.lede { font-size: var(--s1); color: var(--muted); }
+
+.legend { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; align-items: center; font-size: var(--s-1); color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: .5rem; }
+.sw { display: inline-block; width: 1.9rem; height: 1.05rem; border: 1.5px solid var(--wf-blue); }
+.sw.term { background: var(--wf-deep); border-color: var(--wf-deep); border-radius: 99px; }
+.sw.main { background: var(--wf-blue); }
+.sw.plain { background: var(--wf-soft); }
+.sw.sys { background: var(--wf-soft); border-style: dashed; }
+.sw.dec { width: .95rem; height: .95rem; background: var(--surface); transform: rotate(45deg); margin-inline: .3rem; }
+.sw.tool { background: var(--wf-tool); border-color: var(--mark); }
+
+.jump { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.jump a { display: inline-flex; gap: .45rem; align-items: baseline; padding: .4rem .75rem; border: 1px solid var(--line);
+  border-radius: 99px; background: var(--surface); color: var(--ink); text-decoration: none; font-size: var(--s-1); }
+.jump a:hover, .jump a:focus-visible { border-color: var(--accent); color: var(--accent); }
+.jump .mono { color: var(--muted); }
+
+.chart { display: grid; gap: .9rem; scroll-margin-top: 1.5rem; padding-top: 2rem; border-top: 1px solid var(--line); }
+.chart-head { display: flex; flex-wrap: wrap; gap: .4rem 1rem; align-items: baseline; }
+.chart-head h2 { font-size: var(--s2); }
+.chart > p { color: var(--muted); }
+.canvas { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; }
+.canvas svg { display: block; margin-inline: auto; height: auto; }
+.canvas .loading { color: var(--muted); font-size: var(--s-1); }
+.canvas .error { color: var(--ink); font-family: var(--f-mono); font-size: var(--s-1); white-space: pre-wrap; }
+#charts { display: grid; gap: 2.5rem; }
+.chart { min-width: 0; }

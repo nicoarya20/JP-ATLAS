@@ -1,0 +1,73 @@
+/* Tab Calendar & Gantt: task yang sama digambar di kalender dan di garis waktu. */
+.pv-calendar, .pv-gantt { height: 100%; min-height: 420px; display: flex; flex-direction: column; }
+.cal-title { margin: 0 6px; }
+
+/* ---------- Calendar ---------- */
+.cal-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 260px; gap: 12px; }
+.no-side .cal-wrap { grid-template-columns: 1fr; }
+.no-side .cal-side { display: none; }
+.cal { min-height: 0; display: flex; flex-direction: column; border: 1.5px solid var(--line); border-radius: 10px; overflow: auto; }
+.cal-head { flex: none; display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1.5px solid var(--line); font-size: 12px; color: var(--muted); }
+.cal-head span { padding: 6px 8px; }
+.cal-week { position: relative; flex: 1; min-height: 110px; }
+.cal-week + .cal-week { border-top: 1.5px solid var(--soft); }
+.cal.week .cal-week { min-height: 360px; }
+.cal-days { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); }
+.cal-day { display: flex; justify-content: space-between; align-items: flex-start; padding: 4px 6px; font-size: 12px; }
+.cal-day + .cal-day { border-left: 1.5px solid var(--soft); }
+.cal-day.today { background: var(--hover); }
+.cal-day.today .cal-num { padding: 0 6px; border-radius: 999px; background: var(--ink); color: var(--paper); font-weight: 700; }
+.cal-plus { width: 20px; height: 20px; border: 1.5px solid var(--line); border-radius: 5px; opacity: 0; }
+.cal-day:hover .cal-plus, .cal-plus:focus-visible { opacity: 1; }
+/* Lapisan batang tidak menangkap klik supaya tombol + di sel hari tetap bisa dipakai */
+.cal-bars { position: relative; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 24px; grid-auto-flow: dense; row-gap: 3px; padding: 30px 0 8px; pointer-events: none; }
+.cal-bar { pointer-events: auto; min-width: 0; margin: 0 4px; display: flex; align-items: center; gap: 6px; padding: 0 6px; border: 1.5px solid var(--line); border-radius: 5px; background: var(--paper); cursor: grab; overflow: hidden; }
+.cal-bar:hover { box-shadow: 2px 2px 0 var(--line); }
+.cal-bar .st-dot { width: 10px; height: 10px; }
+.cal-bar.cut-l { margin-left: 0; border-left-style: dashed; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.cal-bar.cut-r { margin-right: 0; border-right-style: dashed; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.cal-side { min-height: 0; display: flex; flex-direction: column; padding: 10px; border: 1.5px solid var(--line); border-radius: 10px; overflow-y: auto; }
+.cal-side-tabs { display: flex; gap: 4px; margin-bottom: 8px; border-bottom: 1.5px solid var(--soft); }
+.cal-side-tabs button { padding: 6px 8px; border-bottom: 2.5px solid transparent; font-size: 13px; }
+.cal-side-tabs button[aria-current] { border-bottom-color: var(--ink); font-weight: 600; }
+.cal-side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cal-item { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1.5px solid var(--line); border-radius: 6px; cursor: grab; }
+.cal-item .ph-line { flex: 1; }
+.cal-item .ph-avatar { width: 20px; height: 20px; }
+.cal-empty { padding: 8px; }
+
+/* ---------- Gantt: --name = lebar kolom nama, --col = lebar satu hari ---------- */
+.pv-gantt { --name: 320px; }
+.pv-gantt.no-pane { --name: 0px; }
+.gt-scroll { flex: 1; min-height: 0; overflow: auto; border: 1.5px solid var(--line); border-radius: 10px; }
+.gt-inner { position: relative; width: max-content; min-width: 100%; }
+.gt-row { display: grid; grid-template-columns: var(--name) calc(var(--col) * var(--days)); min-height: 36px; border-bottom: 1.5px solid var(--soft); font-size: 13px; }
+.gt-name { position: sticky; left: 0; z-index: 2; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: var(--paper); border-right: 1.5px solid var(--line); overflow: hidden; }
+.no-pane .gt-name { padding: 0; border: 0; }
+.gt-name .ph-line { flex: 1; }
+.gt-name .ph-avatar { width: 20px; height: 20px; }
+.gt-list .gt-name { padding-left: 20px; }
+.gt-task .gt-name { padding-left: 52px; }
+.gt-toggle { width: 18px; color: var(--muted); }
+/* Sabtu & Minggu diarsir tipis supaya batas minggu terbaca */
+.gt-time { position: relative; background: linear-gradient(90deg, var(--hover) 0 var(--col), transparent var(--col) calc(var(--col) * 6), var(--hover) calc(var(--col) * 6)) 0 0 / calc(var(--col) * 7) 100%; }
+.gt-header { position: sticky; top: 0; z-index: 3; min-height: 0; border-bottom: 1.5px solid var(--line); }
+.gt-header .gt-name { z-index: 4; }
+.gt-header .gt-time { background: var(--paper); }
+.gt-weeks, .gt-days { display: flex; font-size: 11px; color: var(--muted); }
+.gt-weeks span { padding: 5px 6px; border-left: 1.5px solid var(--soft); white-space: nowrap; overflow: hidden; }
+.gt-days span { padding: 3px 0; text-align: center; }
+.gt-days span.today { background: var(--ink); color: var(--paper); font-weight: 700; border-radius: 4px; }
+.gt-bar { position: absolute; top: 8px; height: 20px; margin-left: 2px; border: 1.5px solid var(--line); border-radius: 5px; }
+.gt-bar:hover { box-shadow: 2px 2px 0 var(--line); }
+.gt-bar.gt-sum { top: 14px; height: 8px; border-radius: 2px; background: var(--ink); cursor: default; }
+.gt-nodate { position: absolute; top: 9px; left: 8px; }
+.gt-today { position: absolute; top: 0; bottom: 0; z-index: 1; left: calc(var(--name) + var(--col) * var(--today) + var(--col) / 2); border-left: 2px solid var(--ink); pointer-events: none; }
+
+@media (max-width: 720px) {
+  .cal-wrap { grid-template-columns: 1fr; }
+  .cal-side { max-height: 260px; }
+  .cal-week { min-height: 90px; }
+  .cal-bar .ph-line { display: none; }
+  .pv-gantt { --name: 170px; }
+}

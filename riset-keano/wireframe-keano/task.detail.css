@@ -1,0 +1,70 @@
+/* Detail task (overlay modal): kolom kiri isian task, kanan Activity + komentar. Hitam-putih seperti .picker. */
+.td { width: min(1180px, 94vw); height: min(820px, 92vh); max-width: none; max-height: none; padding: 0; border: 1.5px solid var(--line); border-radius: 12px; box-shadow: 4px 4px 0 var(--line); background: var(--paper); color: var(--ink); overflow: hidden; }
+.td[open] { display: flex; flex-direction: column; }
+.td::backdrop { background: rgba(0, 0, 0, .25); }
+
+.td-top { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1.5px solid var(--line); flex: none; }
+.td-top .btn-sm[disabled] { opacity: .35; cursor: default; }
+.td-crumb { display: inline-flex; align-items: center; gap: 6px; margin-left: 6px; font-weight: 600; font-size: 13px; min-width: 0; }
+.td-created { margin-right: 6px; }
+
+.td-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; }
+.td-body.no-activity { grid-template-columns: minmax(0, 1fr); }
+.td-body.no-activity .td-activity { display: none; }
+
+/* ---------- Kolom kiri ---------- */
+.td-main { overflow-y: auto; padding: 20px 28px 32px; display: grid; gap: 18px; align-content: start; }
+.td-type { display: flex; align-items: center; gap: 8px; }
+.td-title { margin: 0; }
+.td-title .ph-line { height: 18px; }
+.td-ai { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1.5px dashed var(--soft); border-radius: 8px; color: var(--muted); font-size: 13px; }
+.ai-tag { padding: 1px 6px; border: 1.5px solid var(--line); border-radius: 5px; font-size: 11px; font-weight: 700; color: var(--ink); }
+
+.td-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; }
+.td-field { display: grid; grid-template-columns: 130px minmax(0, 1fr); align-items: center; gap: 8px; min-height: 32px; font-size: 13px; }
+.td-field > span { display: inline-flex; align-items: center; gap: 6px; }
+.td-field > div { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.td-status { display: inline-flex; align-items: center; gap: 4px; }
+.td-status select { border: 0; background: none; font: inherit; font-weight: 600; color: inherit; padding: 0; cursor: pointer; }
+
+.td-sec { display: grid; gap: 10px; padding-top: 14px; border-top: 1.5px solid var(--soft); }
+.td-sec > header { display: flex; align-items: center; gap: 10px; }
+
+.td-text { display: grid; gap: 10px; padding: 12px 14px; border: 1.5px solid var(--soft); border-radius: 8px; }
+
+.td-browse { cursor: pointer; }
+.td-drop { display: block; padding: 18px; border: 1.5px dashed var(--line); border-radius: 10px; text-align: center; color: var(--muted); font-size: 13px; cursor: pointer; }
+.td-drop:hover, .td-drop.over { background: var(--hover); color: var(--ink); }
+.td-files, .td-subs { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.td-files li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 1.5px solid var(--soft); border-radius: 8px; }
+.td-thumb { width: 36px; height: 36px; border-radius: 6px; flex: none; }
+.td-file-name { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.td-subs li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-bottom: 1.5px solid var(--soft); }
+.td-subs .ph-line { flex: 1; }
+
+/* ---------- Kolom kanan: Activity ---------- */
+.td-activity { display: flex; flex-direction: column; min-height: 0; border-left: 1.5px solid var(--line); background: var(--paper); }
+.td-act-head { display: flex; align-items: center; gap: 4px; padding: 12px 14px; border-bottom: 1.5px solid var(--soft); flex: none; }
+.td-feed { flex: 1; overflow-y: auto; list-style: none; margin: 0; padding: 12px 14px; display: grid; gap: 10px; align-content: start; }
+.td-log { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--muted); }
+.td-comment { display: flex; gap: 10px; padding: 10px; border: 1.5px solid var(--soft); border-radius: 8px; }
+.td-comment > div { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.td-comment p { margin: 0; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.td-who { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
+.td-c-tools { display: flex; gap: 4px; }
+.td-compose { margin: 10px 14px 14px; border: 1.5px solid var(--line); border-radius: 10px; flex: none; }
+.td-compose textarea { display: block; width: 100%; border: 0; resize: none; padding: 10px 12px; font: inherit; font-size: 13px; background: none; color: var(--ink); border-radius: 10px 10px 0 0; }
+.td-compose textarea:focus { outline: none; }
+.td-compose:focus-within { box-shadow: 2px 2px 0 var(--line); }
+.td-compose-bar { display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-top: 1.5px solid var(--soft); }
+
+/* Layar kecil: overlay penuh, Activity turun ke bawah isian */
+@media (max-width: 860px) {
+  .td { width: 100vw; height: 100vh; border-radius: 0; }
+  .td-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; overflow-y: auto; }
+  .td-main { overflow: visible; padding: 16px; }
+  .td-activity { border-left: 0; border-top: 1.5px solid var(--line); }
+  .td-feed { max-height: 50vh; }
+  .td-fields { grid-template-columns: 1fr; }
+  .td-created, .td-crumb { display: none; }
+}

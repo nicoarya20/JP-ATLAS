@@ -1,0 +1,173 @@
+/* Tasks module (tk-). Page frame with a pinned foot, list/board layout, detail facts and sections. */
+.content.tk-page { display: flex; flex-direction: column; }
+.content.tk-page > * { flex: none; }
+.tk-foot { position: sticky; bottom: calc(var(--sp-4) * -1); z-index: 2; margin: auto calc(var(--sp-4) * -1) calc(var(--sp-4) * -1);
+  display: flex; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-5); background: var(--bg); border-top: 1px solid var(--separator); }
+.tk-foot > * { flex: 1; }
+.tk-foot > :last-child:not(:first-child) { flex: 1.7; }
+.tk-comment { font: inherit; font-size: var(--fs-subhead); padding: var(--sp-3); border: 0; border-radius: var(--radius-sm);
+  background: var(--fill); color: var(--label); min-width: 0; }
+
+.tk-soft.card.react-cupertino-ui-card { background: var(--fill); }
+/* Controls inside that also use --fill (progress track, chips) step up to the surface instead of vanishing into it */
+.tk-soft.card.react-cupertino-ui-card > * { --fill: var(--surface-raised); }
+.tk-strong.card.react-cupertino-ui-card { box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+/* Lists */
+.tk-switch { display: flex; align-items: center; gap: var(--sp-2); }
+.tk-switch > .grow { min-width: 0; }
+.tk-seg { width: 96px; flex: none; }
+.tk-group { display: flex; align-items: baseline; gap: var(--sp-2); margin: var(--sp-2) 0 calc(var(--sp-2) * -1); }
+.tk-top { align-items: flex-start; }
+.tk-chev { flex: none; margin-top: 2px; }
+.tk-meta { margin-top: var(--sp-1); }
+.tk-tick { display: inline-flex; }
+/* Kanban (tasks.board): columns hug their cards; status badge = Atlas status pair (--tone on --tone-bg, plus the
+   status text); compact cards with chip row. */
+/* Free horizontal scroll, no scroll-snap: mandatory snap pulled any drag under half a column back to To do. */
+.tk-board { display: flex; align-items: flex-start; gap: var(--sp-3); overflow-x: auto;
+  margin-inline: calc(var(--sp-4) * -1); padding-inline: var(--sp-4); }
+.tk-col { flex: 0 0 272px; display: grid; gap: var(--sp-2); align-content: start;
+  padding: var(--sp-2); border-radius: var(--radius-card); background: var(--fill); }
+.tk-col-head { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1); margin: 0; }
+.tk-badge { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 2px var(--sp-2); border-radius: var(--radius-sm);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; color: var(--tone); background: var(--tone-bg); }
+/* To do has no Atlas status: muted text on surface, so it still reads as a chip on the raised column. */
+.tk-tone-todo { --tone: var(--label-2); --tone-bg: var(--surface); }
+.tk-tone-progress { --tone: var(--info); --tone-bg: var(--info-bg); }
+.tk-tone-review { --tone: var(--warning); --tone-bg: var(--warning-bg); }
+.tk-tone-done { --tone: var(--success); --tone-bg: var(--success-bg); }
+/* Task cards on the raised column: surface, so they stay apart in dark too. */
+.tk-kcard.card.react-cupertino-ui-card { --card-padding-block: var(--sp-3); --card-padding-inline: var(--sp-3);
+  position: relative; background: var(--surface-raised); transition: opacity 200ms ease, box-shadow 120ms ease; }
+/* Select (tasks.board): a tick in the card's corner; picked cards get an accent ring; cards in the move stack leave
+   their place empty at once (they are in the stack now) and fade back in if the move is cancelled. */
+.tk-col-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.tk-col-sel { --all-gap: var(--sp-2); display: inline-flex; align-items: center; gap: var(--all-gap);
+  padding-inline-end: var(--sp-1); }
+/* Select all hides behind Select (shifted onto it, under it, faded) and slides out to its left while Select is on. */
+.tk-col-all { position: relative; display: inline-flex; padding: 3px; border: 0; border-radius: var(--radius-sm);
+  color: var(--label-2); background: var(--fill); cursor: pointer; opacity: 0; scale: 0.6;
+  translate: calc(100% + var(--all-gap)) 0; visibility: hidden;
+  transition: translate 220ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease, scale 220ms ease, visibility 0s 220ms; }
+.tk-col-sel.is-on .tk-col-all { opacity: 1; scale: 1; translate: 0 0; visibility: visible;
+  transition: translate 220ms cubic-bezier(0.32, 0.72, 0, 1), opacity 160ms ease, scale 220ms ease, visibility 0s; }
+.tk-col-all[aria-pressed='true'] { color: var(--accent); }
+.tk-col-all:disabled { cursor: default; color: var(--label-3); }
+.tk-col-all:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Sized like the status badge beside it; font-family only, so the t-caption size class still applies. */
+.tk-col-sel-btn { padding: 2px var(--sp-2); border: 0; border-radius: var(--radius-sm); font-family: inherit;
+  position: relative; z-index: 1; font-weight: 600; color: var(--label-2); background: var(--fill); cursor: pointer; }
+.tk-col-sel-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.tk-kcheck { position: absolute; top: var(--sp-2); right: var(--sp-2); display: inline-flex; color: var(--label-3); }
+.tk-kcard.is-selected { box-shadow: inset 0 0 0 2px var(--accent); }
+.tk-kcard.is-selected .tk-kcheck { color: var(--accent); }
+.tk-kcard.card.react-cupertino-ui-card.is-lifted { opacity: 0; transition: none; }
+.tk-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); margin-top: var(--sp-1); }
+.tk-chip { display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 24px; padding: 0 var(--sp-2);
+  border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--separator); color: var(--label-2); }
+.tk-chip:first-child { padding: 0; box-shadow: none; }
+.tk-chip.danger { color: var(--danger); }
+.tk-prio-high svg { color: var(--danger); }
+.tk-prio-medium svg { color: var(--warning); }
+.tk-prio-low svg { color: var(--label-3); }
+/* Move menu (tasks.radial): the statuses sit around a ring over a dim and fly out from it. Until it stays open for a tap
+   (is-sticky) it lets every pointer through, so the slide keeps reaching the board. Closing (is-closing), the statuses
+   fold back into the ring while the dim fades; the one the task moved to swells away instead. No text selection or
+   iOS callout on the long press. */
+.tk-board .tk-kcard { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.tk-radial { position: absolute; inset: 0; z-index: 150; pointer-events: none; animation: tk-radial-fade 150ms ease-out; }
+.tk-radial.is-sticky { pointer-events: auto; }
+.tk-radial.is-closing { pointer-events: none; }
+.is-closing :is(.tk-radial-dim, .tk-radial-ring, .tk-radial-hint) { animation: tk-radial-out 180ms ease-in forwards; }
+.tk-radial-dim { position: absolute; inset: 0; width: 100%; padding: 0; border: 0; background: var(--overlay); cursor: default; }
+.tk-radial-wheel { --r: 92px; position: absolute; width: 0; height: 0; }
+.tk-radial.is-group .tk-radial-wheel { --r: 116px; }
+.tk-radial-ring { position: absolute; left: calc(var(--ring) / -2); top: calc(var(--ring) / -2); width: var(--ring);
+  height: var(--ring); fill: none; stroke-width: 5; }
+.tk-radial-ring circle { stroke: var(--pop-ring); }
+.tk-radial-ring .tk-radial-arc { stroke: var(--tone, var(--accent)); stroke-linecap: round; transform-box: fill-box; transform-origin: center; }
+.tk-radial-opt { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: var(--sp-1);
+  min-height: 44px; padding: 0 var(--sp-3); border: 0; border-radius: 999px; white-space: nowrap; cursor: pointer;
+  font: inherit; font-size: var(--fs-subhead); font-weight: 600; color: var(--tone);
+  background: color-mix(in srgb, var(--tone-bg) var(--pop-tint), var(--pop-bg));
+  box-shadow: var(--glass-shadow); translate: calc(-50% + var(--dx)) calc(-50% + var(--dy));
+  transition: scale 120ms ease, color 120ms ease, background-color 120ms ease; animation: tk-radial-pop 200ms ease-out backwards; }
+.tk-radial-up { --dx: 0px; --dy: calc(var(--r) * -1); }
+.tk-radial-right { --dx: var(--r); --dy: 0px; animation-delay: 25ms; }
+.tk-radial-down { --dx: 0px; --dy: var(--r); animation-delay: 50ms; }
+.tk-radial-left { --dx: calc(var(--r) * -1); --dy: 0px; animation-delay: 75ms; }
+.is-group .tk-radial-opt { flex-direction: column; justify-content: center; gap: 0; min-height: 52px; padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-card); font-size: var(--fs-footnote); }
+.is-group .tk-radial-opt svg { margin-bottom: var(--sp-1); }
+.tk-radial-opt.is-aimed:not(:disabled) { scale: 1.12; color: var(--on-accent); background: var(--tone); }
+.tk-radial-opt.tk-tone-todo { --tone-bg: var(--pop-bg); }   /* its board -bg is surface, which sinks into the dim */
+.tk-radial-opt.tk-tone-todo.is-aimed { color: var(--surface); background: var(--label); }   /* grey tone is too faint to fill */
+.tk-radial-opt:disabled { opacity: 0.6; box-shadow: none; cursor: default; }
+.is-closing .tk-radial-opt { animation: tk-radial-fold 160ms ease-in forwards; }
+.is-closing .tk-radial-opt.is-aimed { animation: tk-radial-swell 180ms ease-out forwards; }
+.tk-radial-now { font-weight: 400; color: var(--label-2); }
+.tk-radial-hint { position: absolute; left: var(--sp-4); right: var(--sp-4); bottom: var(--sp-8); margin: 0; display: grid;
+  gap: 2px; padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-card); text-align: center; background: var(--pop-bg);
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px var(--pop-edge); pointer-events: none; }
+/* Group stack: each card starts at its board place (--fx, --fy) and lands tilted on the pile, one after another. The
+   cards are mini copies with tiny type so the whole title shows; they share one grid cell, so the pile is as tall as
+   its tallest card and stays centred on the finger, with the count on its corner. */
+.tk-stack { position: absolute; left: 0; top: 0; display: grid; transform: translate(-50%, -50%); }
+.tk-stack-card { grid-area: 1 / 1; align-self: center; box-sizing: border-box; width: 88px; display: grid; align-content: start;
+  gap: 1px; padding: 5px 6px; border-radius: var(--radius-sm); background: var(--pop-bg);
+  box-shadow: var(--glass-shadow), inset 0 0 0 1px var(--pop-edge); translate: 0 var(--lift); rotate: var(--tilt);
+  animation: tk-stack-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--i) * 35ms); }
+.tk-stack-no { font-size: 8px; line-height: 1.2; color: var(--label-2); }
+.tk-stack-title { font-size: 9px; line-height: 1.2; overflow-wrap: anywhere; }
+.tk-stack-count { position: absolute; z-index: 99; right: -11px; top: -13px; min-width: 22px; height: 22px; display: grid;
+  place-items: center; padding: 0 6px; border-radius: 999px; font-weight: 650; color: var(--on-accent); background: var(--accent);
+  animation: tk-radial-fade 200ms ease-out backwards; animation-delay: 150ms; }
+.tk-stack.is-back .tk-stack-card { animation: tk-stack-back 240ms ease-in forwards; animation-delay: 0ms; }
+.tk-stack.is-back .tk-stack-count { animation: tk-radial-out 120ms ease-in forwards; }
+.tk-stack[class*='is-to-'] { animation: tk-stack-away 220ms ease-in forwards; }
+.tk-stack.is-to-up { --tx: 0px; --ty: -240px; }
+.tk-stack.is-to-right { --tx: 240px; --ty: 0px; }
+.tk-stack.is-to-down { --tx: 0px; --ty: 240px; }
+.tk-stack.is-to-left { --tx: -240px; --ty: 0px; }
+@keyframes tk-radial-fade { from { opacity: 0; } }
+@keyframes tk-stack-in { from { translate: var(--fx) var(--fy); rotate: 0deg; scale: 1.6; opacity: 0.6; } }
+@keyframes tk-stack-back { to { translate: var(--fx) var(--fy); rotate: 0deg; scale: 1.6; opacity: 0; } }
+@keyframes tk-stack-away { to { translate: var(--tx) var(--ty); scale: 0.5; opacity: 0; } }
+@keyframes tk-radial-pop { from { opacity: 0; scale: 0.6; translate: -50% -50%; } }
+@keyframes tk-radial-out { to { opacity: 0; } }
+@keyframes tk-radial-fold { to { opacity: 0; scale: 0.6; translate: -50% -50%; } }
+@keyframes tk-radial-swell { to { opacity: 0; scale: 1.3; } }
+@media (prefers-reduced-motion: reduce) {
+  .tk-radial, .tk-radial-opt, .is-closing .tk-radial-opt, .tk-stack-card, .tk-stack-count, .tk-stack[class*='is-to-'],
+  .tk-stack.is-back .tk-stack-card { animation: none; }
+  .tk-kcard.card.react-cupertino-ui-card { transition: none; }
+  .tk-radial.is-closing { visibility: hidden; }
+  .tk-radial-opt, .tk-col-all, .tk-col-sel.is-on .tk-col-all { transition: none; }
+}
+
+/* Forms */
+.tk-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.tk-divider { border: 0; border-top: 1px solid var(--separator); margin: var(--sp-2) 0; }
+.tk-tagbox { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm); background: var(--fill); }
+.tk-tagbox input { flex: 1; min-width: 80px; font: inherit; font-size: var(--fs-subhead); border: 0; background: none; color: var(--label); outline: none; }
+.tk-tag { display: inline-flex; align-items: center; gap: var(--sp-1); padding-left: var(--sp-2); border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px var(--separator); }
+/* Edit task (tasks.edit.lists): a step or evidence row = control, text box, remove ✕ with a 32px tap target. */
+.tk-x { display: grid; place-items: center; width: 32px; height: 32px; flex: none; padding: 0; border: 0; background: none;
+  color: var(--label-2); cursor: pointer; }
+.tk-tag .tk-x { width: 24px; height: 24px; }
+.tk-edit-row { display: flex; align-items: center; gap: var(--sp-2); }
+.tk-edit-input { flex: 1; min-width: 0; font: inherit; font-size: var(--fs-subhead); padding: var(--sp-2) var(--sp-3); border: 0;
+  border-radius: var(--radius-sm); background: var(--fill); color: var(--label); }
+
+/* Detail */
+.tk-kv { display: grid; grid-template-columns: 130px 1fr; gap: var(--sp-2) var(--sp-3); margin: 0; font-size: var(--fs-subhead); }
+.tk-kv dt { color: var(--label-2); }
+.tk-kv dd { margin: 0; font-weight: 600; }
+.tk-kv dd .muted { font-weight: 400; }
+.tk-sec { display: grid; gap: var(--sp-3); padding-top: var(--sp-2); }
+.tk-log { display: flex; align-items: center; gap: var(--sp-3); }
+.tk-ev { display: grid; gap: var(--sp-1); }
+.tk-links { display: inline-flex; gap: var(--sp-4); }

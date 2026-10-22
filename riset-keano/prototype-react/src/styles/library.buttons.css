@@ -1,0 +1,21 @@
+/* Theme layer, loaded through library.css. Buttons (kit Btn). Colours only via tokens (tokens.css). */
+
+/* ---- Button (kit Btn): primary = Atlas lime with the navy label and its edge; outline = violet tint (the upstream
+   border is a white glass edge) ---- */
+.react-cupertino-ui-button.variant-solid, .react-cupertino-ui-button.variant-solid:hover {
+  background: var(--primary-fill); color: var(--on-primary); border: 1px solid var(--primary-border); box-shadow: none; }
+.react-cupertino-ui-button.variant-outline, .react-cupertino-ui-button.variant-outline:hover {
+  background: var(--accent-soft); color: var(--accent); border: 0; box-shadow: none; }
+.react-cupertino-ui-button.variant-ghost, .react-cupertino-ui-button.variant-link { color: var(--accent); }
+/* kit Btn kind="danger-ghost": a destructive action in a row of equal items (Delete forever, Deactivate), not violet */
+.react-cupertino-ui-button.variant-ghost.btn-danger { color: var(--danger); }
+/* A violet .tint glyph (the AI sparkle) on lime fell to 1.55:1; on lime it takes the navy label like the text */
+.react-cupertino-ui-button.variant-solid .tint { color: inherit; }
+/* Disabled primary: lime at half opacity read as a muddy olive main action; grey it out on --fill instead */
+.react-cupertino-ui-button.variant-solid:disabled { background: var(--fill); color: var(--label-3); border-color: transparent;
+  opacity: 1; }
+/* Danger fill (tokens.css --danger-fill): iOS red + white failed AA (3.55 light / 3.41 dark). The label is the
+   surface knocked out: white on high-contrast red in light (5.38), navy on Atlas pink in dark (9.67). */
+.react-cupertino-ui-button.variant-destructive { background: var(--danger-fill); color: var(--on-accent); box-shadow: none; }
+/* Upstream outline sets border-radius: inherit, which turned Filter / View / Today into square boxes; keep every button a pill. */
+.react-cupertino-ui-button.variant-outline { border-radius: 999px; }

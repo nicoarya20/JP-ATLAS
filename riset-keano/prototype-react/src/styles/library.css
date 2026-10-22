@@ -1,0 +1,10 @@
+/* Theme layer for the react-cupertino-ui parts the kit uses. Upstream styles are light-only (white glass panels, no .dark
+   rules) and some read the HSL-triplet tokens as colors, so in dark mode cards, bars and sheets stay white. Every rule
+   here maps a part onto the app tokens in tokens.css, which switch under .dark. Imported after ./screens in main.jsx so
+   it wins over the library scss at equal specificity. Colors only via tokens.
+   The rules live in library.*.css, one file per group of parts; this file only fixes their load order. */
+@import './library.shell.css';
+@import './library.surfaces.css';
+@import './library.buttons.css';
+@import './library.fields.css';
+@import './library.controls.css';
