@@ -4,11 +4,10 @@ import { describe, expect, it } from 'vitest';
 import { useState } from 'react';
 import { fireEvent, render, screen as dom } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import '../screens';
 import { Search } from '../kit';
 import { renderApp } from './render';
+import { readLibrary } from './library.source';
 
 const field = () => dom.getByPlaceholderText('Find');
 
@@ -28,7 +27,7 @@ describe('kit Search', () => {
     render(<Page />);
     await userEvent.click(field());
     expect(document.activeElement).toBe(field());
-    const lib = readFileSync(join(__dirname, '../styles/library.css'), 'utf8');
+    const lib = readLibrary();
     expect(lib).toMatch(/^\.react-cupertino-ui-search-bar__cancel \{ display: none; \}/m);
   });
 

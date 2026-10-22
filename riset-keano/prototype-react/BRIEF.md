@@ -98,7 +98,7 @@ Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, s
   - `Radio` and `Checkbox` always take `variant="solid"`; only that variant is themed. `test/a11y.controls.test.jsx` checks it.
   - Icon tiles (More panel, Create, profile menu) take a `tile-info|success|warning|danger|neutral` class: an Atlas status pair.
   - `--color-*` (iOS hues) only for calendar event categories, until Atlas has a category palette.
-- Library parts are themed in `src/styles/library.css` (loaded last), so light and dark both work. Restyle a kit part there, mapped to tokens from `tokens.css`; never a raw colour.
+- Library parts are themed in `src/styles/library.css` (loaded last), so light and dark both work. It only `@import`s the part files `library.shell|surfaces|buttons|fields|controls.css`; restyle a kit part in the file for its group, mapped to tokens from `tokens.css`; never a raw colour.
 - Files stay under 300 lines. Split a module into `<module>.<part>.jsx` files.
 
 ## Done means

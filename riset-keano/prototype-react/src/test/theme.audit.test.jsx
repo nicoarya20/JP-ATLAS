@@ -7,10 +7,11 @@ import { fireEvent, render, screen as dom } from '@testing-library/react';
 import '../screens';
 import { Btn } from '../kit';
 import { AppProvider } from '../core/app.context';
+import { readLibrary } from './library.source';
 import { renderApp } from './render';
 
 const read = f => readFileSync(join(__dirname, '..', f), 'utf8');
-const library = read('styles/library.css');
+const library = readLibrary();
 const rule = (css, sel) => css.match(new RegExp(`${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
 
 describe('destructive text buttons', () => {

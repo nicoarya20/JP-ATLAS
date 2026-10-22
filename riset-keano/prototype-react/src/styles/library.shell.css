@@ -1,0 +1,50 @@
+/* Theme layer, loaded through library.css. Bars and overlays: navigation bar, tab bar glass, bottom sheet, toast.
+   Colours only via tokens (tokens.css). */
+
+/* ---- Navigation bar ---- */
+.react-cupertino-ui-navigation-bar { background: var(--bg); border-bottom: 1px solid var(--separator); flex: none;
+  z-index: 10; }  /* upstream 100 put the bar above the More panel's dim (89); 10 still keeps its ⋯ menus over the content */
+.react-cupertino-ui-navigation-bar .title-compact { color: var(--label); font-size: var(--fs-headline); }
+/* Atlas page title (26px mobile, weight 600) instead of the iOS 34px bold large title */
+.react-cupertino-ui-navigation-bar__large-title .title-large { font-size: var(--fs-large); font-weight: 600; }
+/* kit NavBar back: chevron only in the label colour (not the accent), 44px tap target, nudged left so the chevron lines
+   up with the content edge */
+.react-cupertino-ui-navigation-bar .nav-back { display: grid; place-items: center; width: 44px; height: 44px; margin-left: -14px;
+  padding: 0; border: 0; background: none; color: var(--label); cursor: pointer; }
+
+/* ---- Tab bar (kit AppTabBar): liquid glass pill (also the More panel it unfolds) + round create button; motion lives in kit/tabbar.css ---- */
+.glassbar-tabs, .glassbar-fab {
+  background: var(--glass-bar); color: var(--label); border: 0.5px solid var(--glass-bar-edge);
+  box-shadow: inset 0 1px 0 var(--glass-bar-shine), var(--glass-bar-shadow);
+  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); }
+/* Only the pill here: a transition on the "+" would replace its fold/unfold transition list in app.css (this file loads last) */
+.glassbar-tabs { transition: background-color 280ms ease; }
+/* More panel open: the glass sits on the dimmed screen, so it takes the denser open tint */
+.glassbar-scrim.is-open + .glassbar :is(.glassbar-tabs, .glassbar-fab) { background: var(--glass-bar-open); }
+
+/* ---- Bottom sheet: its own background, and cards inside it one step lighter ---- */
+/* Same layer as the FullSheet (fullsheet.css): over the tab bar (90) and Home's pinned chips, under the toast (300) */
+.react-cupertino-ui-bottom-sheet__overlay { z-index: 200; background: var(--overlay); }
+.react-cupertino-ui-bottom-sheet__content { z-index: 201;
+  --surface: var(--sheet-surface); background: var(--sheet-bg); color: var(--label); border: 0;
+  box-shadow: inset 0 1px 0 var(--sheet-edge), var(--glass-shadow); backdrop-filter: none; -webkit-backdrop-filter: none;
+  /* Size to the content, capped at the FullSheet top gap (fullsheet.css .fs.is-fit). Upstream fixes the height at
+     snap x 100vh (506px on the phone), so longer sheets hid their buttons below the fold and short ones ended in
+     empty space. The snap still sets the drag-to-close distance. */
+  height: auto; max-height: calc(100% - 52px); }
+.react-cupertino-ui-bottom-sheet__handle { background: var(--label-3); }
+/* Upstream fades the top 10% of the body into the handle; a snap sheet's title sits right there and came out half grey. */
+.react-cupertino-ui-bottom-sheet__body { mask-image: none; -webkit-mask-image: none; }
+
+/* ---- Toast: inverted card like the snackbar, centred under the status bar ----
+   Upstream has no rules for its position-* classes (it fell to the bottom of the phone), its JS class names (-close,
+   -title) differ from its own CSS (__close, __title). The .app-toast prefix outranks its scss whatever the load order.
+   PhoneApp turns glass off. */
+.app-toast.react-cupertino-ui-toast { position: absolute; z-index: 300; top: calc(var(--statusbar-h) + var(--sp-2));
+  left: var(--sp-4); right: var(--sp-4); width: fit-content; min-width: 0; max-width: none; margin-inline: auto;
+  align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border: 0; border-radius: var(--radius-card);
+  background: var(--snack-bg); color: var(--snack-label); box-shadow: var(--glass-bar-shadow); font-size: var(--fs-subhead); }
+.app-toast .react-cupertino-ui-toast-title { font-weight: 600; }
+.app-toast .react-cupertino-ui-toast-close { display: grid; place-items: center; padding: 0; border: 0; background: none;
+  color: inherit; opacity: 0.6; cursor: pointer; }
+.app-toast .react-cupertino-ui-toast-close svg { width: 16px; height: 16px; }

@@ -8,10 +8,11 @@ import '../screens';
 import { allowed, getSheet, ids } from '../core/registry';
 import { AppProvider } from '../core/app.context';
 import { setRole } from '../core/session';
+import { readLibrary } from './library.source';
 import { renderApp } from './render';
 
 const read = f => readFileSync(join(__dirname, '..', f), 'utf8');
-const library = read('styles/library.css');
+const library = readLibrary();
 const app = read('styles/app.css');
 const focus = read('styles/focus.css');
 const allCss = readdirSync(join(__dirname, '..'), { recursive: true })
@@ -107,7 +108,7 @@ describe('keyboard focus ring', () => {
 describe('destructive colour', () => {
   // Atlas danger fill instead of iOS red + white, which failed AA in both themes
   it.each([
-    ['styles/library.css', '.react-cupertino-ui-button.variant-destructive'],
+    ['styles/library.buttons.css', '.react-cupertino-ui-button.variant-destructive'],
     ['screens/home/home.css', '.mm-badge'],
     ['screens/profile/profile.css', '.pf-count'],
   ])('%s %s fills with --danger and labels with --on-accent', (file, sel) => {

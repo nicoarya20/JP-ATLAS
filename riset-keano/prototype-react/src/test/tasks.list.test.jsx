@@ -7,6 +7,7 @@ import { fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
 import { D } from '../data/sample';
 import { renderApp } from './render';
+import { readLibrary } from './library.source';
 
 const count = name => dom.queryAllByRole('button', { name }).length;
 
@@ -128,7 +129,7 @@ describe('tasks list', () => {
     const rule = css.match(/\.filter-btn \{[^}]*\}/)[0];
     expect(rule).toMatch(/border-radius: 10px/);
     expect(rule).toMatch(/color: var\(--label-2\)/);
-    const lib = readFileSync(join(__dirname, '../styles/library.css'), 'utf8');
+    const lib = readLibrary();
     expect(lib).toMatch(/^\.react-cupertino-ui-search-bar__cancel \{ display: none; \}/m);   // out of the row, so it cannot push the field
   });
 

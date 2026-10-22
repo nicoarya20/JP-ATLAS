@@ -3,11 +3,12 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { libraryParts, readLibrary } from './library.source';
 
 const src = join(__dirname, '..');
 const read = f => readFileSync(join(src, f), 'utf8');
 const tokens = read('styles/tokens.css');
-const library = read('styles/library.css');
+const library = readLibrary();
 const press = read('styles/press.css');
 const atlas = read('styles/atlas.css');
 const atlasJson = JSON.parse(read('assets/atlas/tokens.json'));
@@ -65,6 +66,13 @@ describe('theme layer', () => {
     expect(shell).toBeGreaterThan(-1);
     expect(main.indexOf("import './styles/library.css'")).toBeGreaterThan(Math.max(screens, shell));
     expect(main.indexOf("import './styles/press.css'")).toBeGreaterThan(main.indexOf("import './styles/library.css'"));
+  });
+
+  it('keeps library.css to @imports of its part files, each one existing and under 300 lines', () => {
+    const own = read('styles/library.css').replace(/\/\*[\s\S]*?\*\//g, '').trim().split('\n');
+    expect(own.filter(l => !/^@import '\.\/library\.[\w-]+\.css';$/.test(l))).toEqual([]);
+    expect(libraryParts().length).toBe(own.length);
+    for (const f of libraryParts()) expect(read(`styles/${f}`).split('\n').length, f).toBeLessThan(300);
   });
 
   it('only uses tokens that atlas.css, tokens.css or library.css define', () => {
