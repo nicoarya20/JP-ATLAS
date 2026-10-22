@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe Beranda Gabungan</title>
+<!-- Gabungan Beranda 4 zona (A-D) + dashboard referensi, disederhanakan untuk awam/lansia. Lo-fi, data dummy, file mandiri (tanpa wf.css/wf.js). -->
+<link rel="stylesheet" href="01-beranda-gabungan.css">
+</head>
+<body data-mode="tim">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5.5 5h13l2.5 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-task" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5a5 5 0 0 1 5.5 5.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 4.7 4.7 1.8-4.7 1.8L12 16l-1.8-4.7-4.7-1.8 4.7-1.8z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></symbol>
+</svg>
+
+<div class="wf-bar">
+  <b>Wireframe · Beranda gabungan</b>
+  <span>Kerangka 4 zona (A-D) + isi dashboard referensi yang disederhanakan. Data dummy; teks miring = catatan, bukan UI.</span>
+  <span class="grow"></span>
+  <span>Pratinjau:</span>
+  <div class="seg" id="mode"><button type="button" aria-pressed="true" data-mode="tim">Bersama tim</button><button type="button" aria-pressed="false" data-mode="solo">Sendirian</button></div>
+</div>
+
+<div class="app">
+  <header class="top">
+    <div class="who"><span class="avatar" aria-hidden="true">N</span>Nico</div>
+    <form class="search" role="search" onsubmit="return false">
+      <svg class="ico"><use href="#i-search"/></svg>
+      <input type="text" aria-label="Cari atau tanya" placeholder="Cari atau tanya apa saja…">
+      <button class="icon-btn" type="button" aria-label="Bicara untuk mencari"><svg class="ico"><use href="#i-mic"/></svg></button>
+    </form>
+    <div class="size" id="size" role="group" aria-label="Ukuran huruf">Huruf
+      <button type="button" aria-pressed="true" data-size="m" aria-label="Huruf normal" style="font-size:.8rem">A</button>
+      <button type="button" aria-pressed="false" data-size="l" aria-label="Huruf besar" style="font-size:1rem">A</button>
+      <button type="button" aria-pressed="false" data-size="xl" aria-label="Huruf sangat besar" style="font-size:1.25rem">A</button>
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="Menu utama">
+    <a class="nav" href="#" aria-current="page"><svg class="ico"><use href="#i-home"/></svg>Beranda</a>
+    <a class="nav" href="#"><svg class="ico"><use href="#i-inbox"/></svg>Inbox</a>
+    <a class="nav" href="#"><svg class="ico"><use href="#i-folder"/></svg>Proyek</a>
+    <a class="nav" href="#"><svg class="ico"><use href="#i-task"/></svg>Tugas</a>
+    <a class="nav" href="#"><svg class="ico"><use href="#i-cal"/></svg>Events</a>
+    <a class="nav team-only" href="#"><svg class="ico"><use href="#i-team"/></svg>Tim</a>
+    <span class="sp"></span><hr>
+    <a class="nav" href="#"><svg class="ico"><use href="#i-trash"/></svg>Sampah</a>
+    <a class="nav" href="#"><svg class="ico"><use href="#i-gear"/></svg>Pengaturan</a>
+  </nav>
+
+  <main class="page">
+    <div class="page-head">
+      <div><h1>Beranda</h1><span class="today">Kamis, 8 Oktober 2026 · Selamat pagi, Nico</span></div>
+      <div class="cta">
+        <button class="btn" type="button"><svg class="ico"><use href="#i-mic"/></svg>Ucapkan tugas</button>
+        <button class="btn dark" type="button"><svg class="ico"><use href="#i-plus"/></svg>Tugas baru</button>
+      </div>
+    </div>
+
+    <!-- A. Briefing harian: pengganti AI Executive Summary, dibuat kalimat utuh + bisa dibacakan -->
+    <section class="card" aria-labelledby="ha">
+      <div class="brief-top">
+        <div class="grow">
+          <h2 id="ha"><span class="tag">A</span><svg class="ico"><use href="#i-spark"/></svg>Daily Briefing</h2>
+          <p class="q">Apa yang perlu saya tahu hari ini?</p>
+          <div id="brief">
+            <p>Ada <b>1 hal yang terlambat</b>: bayar DP tukang keramik sudah lewat 2 hari.</p>
+            <p>Hari ini ada <b>2 tugas</b> dan <b>1 rapat</b>. Proyek Hajatan Keluarga perlu perhatian karena katering belum dipesan.</p>
+          </div>
+        </div>
+        <button class="btn" id="bacakan" type="button"><svg class="ico"><use href="#i-sound"/></svg>Bacakan</button>
+      </div>
+      <div class="foot"><svg class="ico" style="width:1rem;height:1rem"><use href="#i-spark"/></svg>Disusun otomatis dari data proyek · diperbarui 07.30</div>
+      <p class="note">Maksimal 3 kalimat. Tidak ada daftar bullet panjang. Tombol "Bacakan" membaca keras (coba klik).</p>
+    </section>
+
+    <!-- Sekilas: acuan kartu Unassigned / In Progress / Completed dari dashboard referensi (judul kartu tetap Inggris, isi Indonesia) -->
+    <div class="stats" aria-label="Sekilas">
+      <button class="kpi" type="button"><span class="k-t">Unassigned</span><span class="k-n"><span id="n-unassigned">3</span><small>tugas</small></span><span class="k-d">tugas terbuka tanpa penanggung jawab</span></button>
+      <button class="kpi" type="button"><span class="k-t">In Progress</span><span class="k-n"><span id="n-progress">8</span><small>tugas</small></span><span class="k-d">tugas dengan status aktif</span></button>
+      <button class="kpi" type="button"><span class="k-t">Completed</span><span class="k-n"><span id="n-done">12</span><small>tugas</small></span><span class="k-d">tugas berstatus selesai</span></button>
+    </div>
+    <p class="note">Tiap kartu bisa disentuh untuk membuka daftarnya. Coba klik "Selesai" di zona B: In Progress turun, Completed naik.</p>
+
+    <div class="zones">
+      <!-- B. Fokus saya: pengganti tabel "Tasks Due This Week or Overdue" -->
+      <section class="card focus z-b" aria-labelledby="hb">
+        <h2 id="hb"><span class="tag">B</span>My Focus</h2>
+        <p class="q">Apa yang harus saya kerjakan sekarang?</p>
+
+        <div class="group-t"><svg class="ico" style="width:1rem;height:1rem"><use href="#i-alert"/></svg>TERLAMBAT</div>
+        <ul>
+          <li class="task" data-group="late"><div class="tt"><b>Bayar DP tukang keramik</b><span class="meta"><span class="pill solid"><svg class="ico"><use href="#i-alert"/></svg>Terlambat 2 hari</span>Renovasi Dapur</span></div><button class="btn sm" type="button" aria-pressed="false">Selesai</button></li>
+        </ul>
+        <div class="group-t"><svg class="ico" style="width:1rem;height:1rem"><use href="#i-clock"/></svg>HARI INI</div>
+        <ul>
+          <li class="task" data-group="today"><div class="tt"><b>Pesan katering untuk 80 orang</b><span class="meta">Hajatan Keluarga · paling penting hari ini</span></div><button class="btn sm" type="button" aria-pressed="false">Selesai</button></li>
+          <li class="task" data-group="today"><div class="tt"><b>Konfirmasi tenda ke Pak Budi</b><span class="meta">Hajatan Keluarga</span></div><button class="btn sm" type="button" aria-pressed="false">Selesai</button></li>
+        </ul>
+        <div class="group-t">MINGGU INI</div>
+        <ul>
+          <li class="task" data-group="week"><div class="tt"><b>Beli cat dinding</b><span class="meta">Renovasi Dapur · Sabtu</span></div><button class="btn sm" type="button" aria-pressed="false">Selesai</button></li>
+          <li class="task" data-group="week"><div class="tt"><b>Kirim undangan ke saudara</b><span class="meta">Hajatan Keluarga · Jumat</span></div><button class="btn sm" type="button" aria-pressed="false">Selesai</button></li>
+        </ul>
+        <button class="link" type="button">Lihat semua tugas (9)</button>
+        <p class="note">Tampil maksimal 5 tugas, tanpa kolom tabel. Satu tombol besar per tugas. Coba klik "Selesai": angka Sekilas ikut berubah.</p>
+      </section>
+
+      <!-- C. Tanya data: pengganti pie/bar chart permanen; grafik hanya muncul sebagai jawaban -->
+      <section class="card z-c" aria-labelledby="hc">
+        <h2 id="hc"><span class="tag">C</span><svg class="ico"><use href="#i-spark"/></svg>Ask Data</h2>
+        <p class="q">Tanya apa saja tentang proyek</p>
+        <form class="ask" id="ask" onsubmit="return false">
+          <input type="text" id="ask-in" aria-label="Pertanyaan" placeholder="Ketik atau ucapkan pertanyaan…">
+          <button class="icon-btn" type="button" aria-label="Bicara"><svg class="ico"><use href="#i-mic"/></svg></button>
+          <button class="btn dark sm" type="submit">Tanya</button>
+        </form>
+        <div class="chips" id="chips">
+          <button class="chip" type="button" data-q="tertinggal" aria-pressed="false">Proyek mana yang tertinggal?</button>
+          <button class="chip" type="button" data-q="lama" aria-pressed="false">Tugas apa yang paling lama tertunda?</button>
+          <button class="chip team-only" type="button" data-q="sibuk" aria-pressed="false">Siapa paling banyak tugas?</button>
+        </div>
+        <div id="answer" aria-live="polite"></div>
+        <p class="note">Contoh pertanyaan mengisi ruang kosong. Pertanyaan "per orang" hanya ada saat anggota 2 orang atau lebih.</p>
+      </section>
+
+      <!-- D. Agenda & proyek: pengganti Workload by Status (progres per proyek) -->
+      <section class="card z-d" aria-labelledby="hd">
+        <h2 id="hd"><span class="tag">D</span>Agenda &amp; Projects</h2>
+        <p class="q">Ada rapat apa? Proyek saya bagaimana?</p>
+        <div class="sub-h" style="margin-top:0">Hari ini</div>
+        <div class="ev"><time>10.00</time><div class="body"><b>Rapat panitia hajatan</b><small><svg class="ico" style="width:.9rem;height:.9rem;vertical-align:-2px"><use href="#i-alert"/></svg> Belum siap: katering belum dipesan</small></div></div>
+
+        <div class="sub-h">Proyek saya <span class="grow"></span><button class="link" type="button" style="font-weight:400">Lihat semua</button></div>
+        <ul class="proj">
+          <li><div class="row"><b>Hajatan Keluarga</b><span class="pill solid"><svg class="ico"><use href="#i-alert"/></svg>Perlu perhatian</span></div><div class="prog"><span class="bar"><i style="width:40%"></i></span></div><small>4 dari 10 tugas selesai · acara 24 Okt</small></li>
+          <li><div class="row"><b>Renovasi Dapur</b><span class="pill"><svg class="ico"><use href="#i-check"/></svg>Aman</span></div><div class="prog"><span class="bar"><i style="width:70%"></i></span></div><small>7 dari 10 tugas selesai</small></li>
+          <li><div class="row"><b>Arisan RT</b><span class="pill"><svg class="ico"><use href="#i-check"/></svg>Aman</span></div><div class="prog"><span class="bar"><i style="width:90%"></i></span></div><small>9 dari 10 tugas selesai</small></li>
+        </ul>
+
+      </section>
+
+      <!-- Acuan kartu Tasks Completed This Week -->
+      <section class="card ref z-e" aria-labelledby="he">
+        <h2 id="he">Tasks Completed This Week</h2>
+        <ul class="done-list" id="done-list">
+          <li><span>Survei harga keramik</span><small>Anda · hari ini</small></li>
+          <li class="team-only"><span>Cari lokasi tenda</span><small>Dodi · Rabu</small></li>
+          <li><span>Hubungi Pak RT soal izin</span><small>Anda · Selasa</small></li>
+          <li class="team-only"><span>Cetak daftar tamu</span><small>Rina · Selasa</small></li>
+        </ul>
+        <button class="link" type="button">Lihat semua</button>
+      </section>
+
+      <!-- Acuan kartu Latest Activity: ditulis sebagai kalimat -->
+      <section class="card ref z-f" aria-labelledby="hf">
+        <h2 id="hf">Latest Activity</h2>
+        <ul class="act">
+          <li><i class="dot d1" aria-hidden="true"></i><div><span><b>Anda</b> menyelesaikan "Survei harga keramik"</span><small>Renovasi Dapur · 1 jam lalu</small></div></li>
+          <li class="team-only"><i class="dot d2" aria-hidden="true"></i><div><span><b>Rina</b> menambah catatan di "Pesan katering"</span><small>Hajatan Keluarga · 3 jam lalu</small></div></li>
+          <li class="team-only"><i class="dot d3" aria-hidden="true"></i><div><span><b>Dodi</b> menyelesaikan "Cari lokasi tenda"</span><small>Hajatan Keluarga · kemarin</small></div></li>
+        </ul>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="01-beranda-gabungan.js"></script>
+</body>
+</html>

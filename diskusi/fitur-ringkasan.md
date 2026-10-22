@@ -1,6 +1,6 @@
 # Diskusi: Menu Ringkasan (Dashboard)
 
-> Bahan yang dibedah: `hasil-orchestrasi/analysis/A1-dashboard-tim-events.md`, §1 Ringkasan eksekutif poin 1 dan 2.
+> Bahan yang dibedah: `tahapan-proyek/02-analisis/hasil-orchestrasi/analysis/A1-dashboard-tim-events.md`, §1 Ringkasan eksekutif poin 1 dan 2.
 > Tanggal diskusi: 5 Oktober 2026.
 
 ---
@@ -142,7 +142,7 @@ Prinsip penggantinya:
 
 ## 3. Catatan kritis: dicocokkan dengan segmen target (awam/lansia)
 
-> Bagian ini **bukan isi dokumen A1**. Ini kritik dari diskusi, karena A1 tidak menyebut segmen target yang sudah ditetapkan (orang awam/lansia, lihat `rangkuman-kompetitor/`).
+> Bagian ini **bukan isi dokumen A1**. Ini kritik dari diskusi, karena A1 tidak menyebut segmen target yang sudah ditetapkan (orang awam/lansia, lihat `tahapan-proyek/01-riset/rangkuman-kompetitor/`).
 
 | Bagian usulan | Cocok untuk awam/lansia? | Catatan |
 |---|---|---|

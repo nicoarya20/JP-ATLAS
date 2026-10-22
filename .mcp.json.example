@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "simple-pm-debug-staging": {
+      "type": "http",
+      "url": "https://staging.your-app.example.com/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SIMPLE_PM_MCP_KEY}"
+      }
+    },
+    "simple-pm-debug-prod": {
+      "type": "http",
+      "url": "https://your-app.example.com/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SIMPLE_PM_MCP_KEY}"
+      }
+    }
+  }
+}

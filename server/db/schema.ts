@@ -1,0 +1,18 @@
+/**
+ * Drizzle schema entry point. Tables are grouped by concern in sibling files;
+ * this module re-exports them so `import * as schema from './schema'` keeps
+ * working for the Better Auth adapter, introspection and every query module.
+ */
+export * from './schema.app';
+export * from './schema.auth';
+export * from './schema.events';
+export * from './schema.keys';
+export * from './schema.leave';
+export * from './schema.logs';
+export * from './schema.notification';
+export * from './schema.profile';
+export * from './schema.project';
+export * from './schema.project-history';
+export * from './schema.project-plan';
+export * from './schema.task';
+export * from './schema.task-detail';

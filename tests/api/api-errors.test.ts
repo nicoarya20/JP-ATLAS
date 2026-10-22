@@ -1,0 +1,124 @@
+/** Uniform JSON errors for /api: 404, 422 issues, 500 with request id, pass-through of Responses and status-bearing errors. */
+import { describe, expect, test } from 'bun:test';
+import { Elysia, t } from 'elysia';
+import { api } from '../../server/api';
+import { apiErrorPlugin, unauthorizedResponse } from '../../server/api-error';
+
+class ApiLikeError extends Error {
+  statusCode = 409;
+}
+const app = new Elysia({ prefix: '/api' })
+  .use(apiErrorPlugin({ exposeDetails: false }))
+  .get('/ok', () => ({ ok: true }))
+  .post('/v', ({ body }) => body, {
+    body: t.Object({ n: t.Integer(), name: t.String({ minLength: 2 }) }),
+  })
+  .get('/boom', () => {
+    throw new Error('internal secret detail');
+  })
+  .get('/conflict', () => {
+    throw new ApiLikeError('Sudah ada');
+  })
+  .get('/redirect', () => {
+    throw new Response(null, { status: 302, headers: { location: '/login' } });
+  })
+  .get('/forbidden', ({ status }) => status(403, { error: 'Tidak boleh', hint: 'x' }))
+  .get('/coded', ({ status }) => status(400, { error: 'Salah', code: 'BAD_INPUT' }))
+  .group('/denied', (g) =>
+    g
+      .derive(({ request }) => {
+        throw unauthorizedResponse(request);
+      })
+      .post('/v', ({ body }) => body, { body: t.Object({ n: t.Integer() }) }),
+  )
+  .group('/guarded', (g) =>
+    g.onBeforeHandle(({ status }) => status(401, { error: 'Masuk dulu' })).get('/x', () => 'never'),
+  );
+
+async function call(path: string, init?: RequestInit) {
+  const res = await app.handle(new Request(`http://localhost${path}`, init));
+  const text = await res.text();
+  return { res, body: text ? (JSON.parse(text) as Record<string, unknown>) : null };
+}
+
+describe('apiErrorPlugin', () => {
+  test('unknown route → 404 JSON with method, path and request id', async () => {
+    const { res, body } = await call('/api/nope');
+    expect(res.status).toBe(404);
+    expect(res.headers.get('content-type')).toContain('application/json');
+    expect(body?.code).toBe('NOT_FOUND');
+    expect(body?.path).toBe('/api/nope');
+    expect(body?.method).toBe('GET');
+    expect(res.headers.get('x-request-id')).toBe(body?.requestId as string);
+  });
+  test('validation → 422 with readable issues, no schema dump', async () => {
+    const { res, body } = await call('/api/v', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ n: 'x', name: 'a' }),
+    });
+    expect(res.status).toBe(422);
+    expect(body?.code).toBe('VALIDATION');
+    const issues = body?.issues as Array<{ path: string; message: string }>;
+    expect(issues.length).toBeGreaterThan(0);
+    expect(issues.some((i) => i.path.includes('n'))).toBe(true);
+    expect(JSON.stringify(body)).not.toContain('"type":"object"');
+  });
+  test('unhandled error → 500 with request id and a generic message when details are hidden', async () => {
+    const { res, body } = await call('/api/boom');
+    expect(res.status).toBe(500);
+    expect(body?.code).toBe('INTERNAL');
+    expect(String(body?.error)).not.toContain('secret');
+    expect(String(body?.requestId).length).toBeGreaterThan(6);
+  });
+  test('errors carrying a status and thrown Responses keep their status', async () => {
+    const conflict = await call('/api/conflict');
+    expect(conflict.res.status).toBe(409);
+    expect(conflict.body?.error).toBe('Sudah ada');
+    const redirect = await app.handle(new Request('http://localhost/api/redirect'));
+    expect(redirect.status).toBe(302);
+    expect(redirect.headers.get('location')).toBe('/login');
+    expect((await call('/api/ok')).res.status).toBe(200);
+  });
+  test('handler status(4xx) returns get the uniform shape with a request id header', async () => {
+    const { res, body } = await call('/api/forbidden');
+    expect(res.status).toBe(403);
+    expect(body).toMatchObject({ error: 'Tidak boleh', code: 'FORBIDDEN', status: 403, hint: 'x' });
+    expect(typeof body?.requestId).toBe('string');
+    expect(res.headers.get('x-request-id')).toBe(body?.requestId as string);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+  });
+  test('an explicit code is kept; beforeHandle status() is wrapped too', async () => {
+    const coded = await call('/api/coded');
+    expect(coded.res.status).toBe(400);
+    expect(coded.body?.code).toBe('BAD_INPUT');
+    const guarded = await call('/api/guarded/x');
+    expect(guarded.res.status).toBe(401);
+    expect(guarded.body).toMatchObject({ error: 'Masuk dulu', code: 'UNAUTHORIZED', status: 401 });
+    expect((await call('/api/ok')).body).toEqual({ ok: true });
+  });
+  test('the real API app answers unknown routes with the same JSON shape', async () => {
+    const res = await api.handle(new Request('http://localhost/api/does-not-exist'));
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { code: string; requestId: string };
+    expect(body.code).toBe('NOT_FOUND');
+    expect(body.requestId).toBeTruthy();
+  });
+  test('a Response thrown from derive answers 401 before body validation can answer 422', async () => {
+    const { res, body } = await call('/api/denied/v', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ n: 'not-a-number' }),
+    });
+    expect<number>(res.status).toBe(401);
+    expect(body).toMatchObject({
+      error: 'Silakan masuk terlebih dahulu.',
+      code: 'UNAUTHORIZED',
+      status: 401,
+      method: 'POST',
+      path: '/api/denied/v',
+    });
+    expect(res.headers.get('x-request-id')).toBe(body?.requestId as string);
+    expect(res.headers.get('cache-control')).toBe('no-store');
+  });
+});

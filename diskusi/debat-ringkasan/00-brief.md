@@ -9,8 +9,8 @@
 
 ## Bahan wajib dibaca (read-only, jangan diubah)
 - `diskusi/fitur-ringkasan.md` — usulan + kritik awal (sumber utama).
-- `hasil-orchestrasi/analysis/A1-dashboard-tim-events.md` — analisis asal usulan.
-- `rangkuman-kompetitor/rangkuman-gabungan-usp.md` dan `rangkuman-kompetitor/gabungan-core-menu-dan-usp-langkah-lanjut.md` — riset kompetitor & segmen.
+- `tahapan-proyek/02-analisis/hasil-orchestrasi/analysis/A1-dashboard-tim-events.md` — analisis asal usulan.
+- `tahapan-proyek/01-riset/rangkuman-kompetitor/rangkuman-gabungan-usp.md` dan `tahapan-proyek/01-riset/rangkuman-kompetitor/gabungan-core-menu-dan-usp-langkah-lanjut.md` — riset kompetitor & segmen.
 - Segmen target produk: **orang awam / lansia**. Tidak ada kompetitor yang ramah lansia; istilah asing & font kecil ada di 10/10 kompetitor.
 - Board Penpot "Perbandingan Menu Ringkasan" isinya sama dengan fitur-ringkasan.md (Sebelum: 14 card 4 kelompok; Sesudah: Zona A Briefing AI, B Fokus Saya, C Tanya Data, D Agenda & Proyek, KPI strip PM).
 

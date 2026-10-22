@@ -1,0 +1,122 @@
+import { Elysia } from 'elysia';
+import { apiErrorPlugin } from '../api-error';
+import { apiKeyPlugin } from '../api-keys/plugin';
+import { startUsageRollupScheduler } from '../api-keys/rollup';
+import { auth } from '../auth';
+import { schedulePurgeLegacyDemoUsers } from '../demo/cleanup';
+import { startEventReminderScheduler } from '../event/events.reminders';
+import { mcpPlugin } from '../mcp';
+import { maintenancePlugin } from '../middleware/maintenance';
+import { rateLimitPlugin } from '../middleware/rate-limiter';
+import { startNotificationPurgeScheduler } from '../notification/notification.scheduler';
+import { applyRateLimitSettings } from '../settings';
+import { startRetentionScheduler } from '../settings-retention';
+import { startTrashPurgeScheduler } from '../trash/trash.scheduler';
+import { adminApi } from './admin';
+import { analyticsApi } from './analytics';
+import { apiKeysApi } from './api-keys';
+import { apiKeysUsageApi } from './api-keys-usage';
+import { appApi } from './app';
+import { auditApi } from './audit';
+import { authMount } from './auth-gate';
+import { fileHealthApi } from './file-health';
+import { logsApi } from './logs';
+import { meApi } from './me';
+import { meApiKeysApi } from './me-api-keys';
+import { openapiApi } from './openapi';
+import { opsApi } from './ops';
+import { postsApi } from './posts';
+import { sessionsApi } from './sessions';
+import { settingsApi } from './settings';
+import { settingsOpsApi } from './settings-ops';
+import { storageFilesApi } from './storage-files';
+import { versionApi } from './version';
+
+/**
+ * Resolve the current Better Auth session from request headers.
+ * Returns null when unauthenticated.
+ */
+async function getSession(headers: Headers) {
+  return auth.api.getSession({ headers });
+}
+
+// Load stored rate-limit overrides once per process (env defaults until then),
+// and start the daily log-retention job.
+void applyRateLimitSettings();
+if (process.env.NODE_ENV !== 'test') {
+  startRetentionScheduler();
+  startUsageRollupScheduler();
+  schedulePurgeLegacyDemoUsers();
+  startNotificationPurgeScheduler();
+  startEventReminderScheduler();
+  startTrashPurgeScheduler();
+}
+
+/**
+ * Main Elysia API. Everything here is served under `/api` (see mount in
+ * server/app.ts). Better Auth owns `/api/auth/*`.
+ */
+export const api = new Elysia({ prefix: '/api' })
+  // Uniform JSON errors (404/422/500 + request id) must be registered before any route.
+  .use(apiErrorPlugin())
+  // Rate limiting: an onRequest hook, and onRequest hooks run in registration order —
+  // so this order is a contract: the limiter rejects floods before apiKeyPlugin verifies
+  // keys (auth + mcp are excluded inside the plugin).
+  .use(rateLimitPlugin())
+  // Maintenance mode: 503 for everyone but the allowed roles (auth routes exempt).
+  .use(maintenancePlugin())
+  // API keys: identity + scope enforcement + usage tracking (X-API-Key / Bearer sp_live_…).
+  .use(apiKeyPlugin())
+  // Better Auth handler for /api/auth/*, behind the path gate (auth-gate.ts: admin + email
+  // endpoints closed). A mount is a catch-all fallback for every unmatched /api path, so
+  // anything else gets the uniform JSON 404 there instead of Better Auth's empty one.
+  .mount(authMount)
+  // Admin console endpoints (self-guarded by role).
+  .use(adminApi)
+  // MCP debug server at /api/mcp — API key with `mcp` scope, or legacy MCP_ADMIN_TOKEN.
+  .use(mcpPlugin)
+  // Analytics read endpoints (super-admin only).
+  .use(analyticsApi)
+  // Audit trail of privileged actions (super-admin only).
+  .use(auditApi)
+  // API key usage log across keys (static /api-keys/usage before /api-keys/:id).
+  .use(apiKeysUsageApi)
+  // API key management (super-admin only).
+  .use(apiKeysApi)
+  // Cross-user session management (super-admin only).
+  .use(sessionsApi)
+  // File health report (super-admin only).
+  .use(fileHealthApi)
+  // Server log ring buffer (super-admin only).
+  .use(logsApi)
+  // App settings (GET public, PUT super-admin only).
+  .use(settingsApi)
+  .use(settingsOpsApi)
+  // Operational tools (status, MCP catalog, cache resets) — super-admin only.
+  .use(opsApi)
+  // Current-user endpoints (profile page) + personal API keys.
+  .use(meApiKeysApi)
+  .use(meApi)
+  // Product endpoints (/api/app/*, any signed-in role) — new app features go here.
+  .use(appApi)
+  // Public reads of stored files (avatars), before the session derive so images skip the lookup.
+  .use(storageFilesApi)
+  // Derive the session for downstream handlers.
+  .derive(async ({ request }) => {
+    const s = await getSession(request.headers);
+    return { user: s?.user ?? null, session: s?.session ?? null };
+  })
+  // Build identity (name/version from package.json) — public, also for uptime probes.
+  .use(versionApi)
+  .get('/hello', () => ({
+    message: 'Hello from Elysia + Bun \u26a1',
+    time: new Date().toISOString(),
+  }))
+  .get('/me', ({ user }) => ({ user }))
+  // Posts (public reads, session writes, admin moderation) live in posts.ts.
+  .use(postsApi);
+
+// Registered after the chain so the spec route can describe `api` without a self-referential type.
+api.use(openapiApi(() => api));
+
+export type Api = typeof api;

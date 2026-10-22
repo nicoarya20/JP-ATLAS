@@ -1,0 +1,75 @@
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { eq } from 'drizzle-orm';
+import Elysia from 'elysia';
+import { opsApi, RESET_TARGETS } from '../../server/api/ops';
+import { db } from '../../server/db';
+import { auditLog } from '../../server/db/schema';
+import { env } from '../../server/env';
+import { logBuffer } from '../../server/mcp/log-buffer';
+import { rateLimiter } from '../../server/middleware/rate-limiter';
+import { installAuthSpies } from '../support/auth';
+
+const app = new Elysia().use(opsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', email: 'u-test@test.local', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
+
+async function call(path: string, init?: RequestInit) {
+  const res = await app.handle(new Request(`http://localhost${path}`, init));
+  return { status: res.status, body: (await res.json()) as Record<string, unknown> };
+}
+
+afterAll(async () => {
+  await db
+    .delete(auditLog)
+    .where(eq(auditLog.action, 'ops.reset'))
+    .catch(() => {});
+});
+
+describe('ops API', () => {
+  test('status reports process, db latency, limiter and log buffer', async () => {
+    const { status, body } = await call('/ops/status');
+    expect(status).toBe(200);
+    expect(typeof body.uptimeSeconds).toBe('number');
+    expect((body.dbLatencyMs as number) >= 0).toBe(true);
+    expect((body.logBuffer as { capacity: number }).capacity).toBe(logBuffer.maxSize);
+    expect(typeof body.bun).toBe('string');
+  });
+  test('status reports trusted-proxy config and the IP the server sees', async () => {
+    const { body } = await call('/ops/status', {
+      headers: { 'x-simple-pm-client-ip': '172.68.1.1', 'x-forwarded-for': '198.51.100.7' },
+    });
+    expect(body.proxy).toMatchObject({
+      trustedEntries: env.TRUSTED_PROXIES.length,
+      clientIp: '172.68.1.1',
+      forwardedIgnored: true,
+    });
+  });
+  test('mcp catalog never leaks the token', async () => {
+    const { body } = await call('/ops/mcp');
+    expect(Array.isArray(body.tools)).toBe(true);
+    expect(JSON.stringify(body)).not.toContain(process.env.MCP_ADMIN_TOKEN ?? '___none___');
+    expect((body.endpoint as string).endsWith('/api/mcp')).toBe(true);
+  });
+  test('reset targets clear state and audit; unknown target → 404', async () => {
+    rateLimiter.check('ops-test-ip');
+    expect(rateLimiter.size).toBeGreaterThanOrEqual(1);
+    const { status } = await call('/ops/reset/limiter', { method: 'POST' });
+    expect(status).toBe(200);
+    expect(rateLimiter.size).toBe(0);
+    logBuffer.push({ level: 30, time: Date.now(), msg: 'ops-test' });
+    await call('/ops/reset/logs', { method: 'POST' });
+    expect(logBuffer.size()).toBe(0);
+    expect((await call('/ops/reset/nope', { method: 'POST' })).status).toBe(404);
+    expect(Object.keys(RESET_TARGETS).sort()).toEqual([
+      'file-health',
+      'limiter',
+      'logs',
+      'settings',
+    ]);
+    const targets = await call('/ops/reset-targets');
+    expect((targets.body as unknown as Array<{ key: string }>).length).toBe(4);
+  });
+});

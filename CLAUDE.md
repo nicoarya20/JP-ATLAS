@@ -1,0 +1,369 @@
+# CLAUDE.md — simple-pm
+
+Aturan project ini menambah/override global `~/.claude/CLAUDE.md`.
+
+## Membangun Fitur Produk — Default di `/app`
+
+Simple PM adalah turunan template ini; fitur produk **default dibangun di area `/app`** (minimal role `member` / sudah login), kecuali user eksplisit meminta area lain.
+
+- **Halaman:** `app/routes/app/<nama>.tsx` → daftarkan sebagai child `layout('routes/app/layout.tsx', [...])` di `app/routes.ts` → tambahkan ke `NAV` di `app/routes/app/layout.tsx`. Wajib `meta()` (`'Nama — Simple PM'`).
+- **Guard per halaman wajib:** loader memanggil `await requireUser(request)` dari `@server/guard` — atau `requireAnyRole(request, [...])` bila fitur khusus role. Loader layout & halaman berjalan **paralel** di React Router, jadi guard layout saja tidak melindungi data halaman. `tests/app-routes.test.ts` menjaga ini.
+- **Endpoint:** tambahkan ke berkas modul `server/api/app-<modul>[.<bagian>].ts` yang dirakit `server/api/app.ts` (prefix `/api/app`, otomatis `401` tanpa sesi; `actor` tersedia di handler). Batasan role per fitur → cek `actor.role` di handler, `status(403, { error, code })`. Scope API key sudah dipetakan (`app:read`/`app:write`); file endpoint baru di luar `/api/app` tetap wajib dipetakan di `scopes.ts`. Client: Eden `client.api.app.<route>` dari `~/lib/eden`.
+- `app/routes/app/home.tsx` adalah Beranda produk: loader memanggil `getHome` (`server/home/*`, satu panggilan untuk seluruh layar; sama dengan `GET /api/app/home`) dan menyemai react-query kunci `['home']`; widget-nya di `app/components/home/*`. Tiap bagian `Widget { ok }` gagal-lunak dengan tombol "Coba lagi". Briefing dan Ask Data disusun dengan aturan dari data nyata, **tanpa LLM**.
+- **Jangan** taruh fitur produk di `/dev` (ops super-admin) atau `/dashboard` (admin). `/dashboard` khusus manajemen akun dan tim untuk Admin/super-admin (saat ini `/dashboard/users`: persetujuan, peran, undangan; pengaturan tim menyusul). Empat role (`member`, `project_manager`, `admin`, `super-admin`) didefinisikan di `server/permissions.ts`; home ada di `homeFor`: `member` dan `project_manager` → `/app`, `admin` → `/dashboard`, `super-admin` → `/dev`. Admin dan super-admin tetap boleh membuka `/app`. Nilai `'user'` lama hanya dibaca (`normalizeRole` → `member`), tidak pernah ditulis.
+
+## UI Framework — Mantine Wajib Dipakai
+
+Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantine/modals`, `@mantine/dates`) sebagai UI framework utama.
+
+**Wajib pakai Mantine untuk semua UI element:**
+- Konfirmasi/dialog → `modals.openConfirmModal()` dari `@mantine/modals` — **bukan** `window.confirm()`
+- Alert/notifikasi → Mantine `notifications.show()` — **bukan** `window.alert()`
+- Semua input, button, badge, tooltip, loader, modal, dll → pakai komponen Mantine
+- Input tanggal → `DateInput` dari `@mantine/dates` (bisa diketik + kalender pop-up), **bukan** `<input type="date">`; `valueFormat="D MMMM YYYY"`, nilai `string | null` berformat `YYYY-MM-DD`. Locale `id` dan hari pertama pekan (`FIRST_DAY_OF_WEEK`) dari `app/lib/date-config.ts` lewat `DatesProvider` di `app/root.tsx`. "Hari ini" ditentukan server, jangan `dayjs()` di klien. Grid kalender bulan tetap dibuat sendiri (`DateInput` hanya untuk isian)
+
+**Satu versi untuk semua `@mantine/*`:** semua paket `@mantine/*` di `package.json` wajib versi persis yang sama, tanpa `^`/`~` (saat ini `9.6.3`), karena `modals`/`notifications`/`dates` meminta peer `core` dan `hooks` tepat di versi itu. Naik versi = ubah semua paket sekaligus lewat `bun install` di satu PR `chore(deps)`; `tests/mantine-version-sync.test.ts` menjaganya. `dayjs` juga dipatok persis.
+
+**Setup yang sudah ada di project:**
+- `ModalsProvider` sudah wrap app di `app/root.tsx`
+- Style modals sudah tercakup dalam `@mantine/core/styles.css` — **jangan** import `@mantine/modals/styles.css` (tidak ada di package ini)
+- Gunakan `import { modals } from '@mantine/modals'` untuk confirm dialog
+
+**Blocker:** memakai `window.confirm`/`window.alert`/native HTML element yang sudah di-cover Mantine → STOP sebelum commit; ganti dengan komponen Mantine.
+
+## Design System — JP Atlas
+
+Tema mengikuti paket handoff **JP Atlas** (21 Okt 2026; sumber: `~/Documents/JP-Atlas-Design-System-2026-10-21`, token kandidat v0.1). Yang dipakai hanya **design system-nya** (warna, tipografi, radius, jarak) — nama produk, logo, dan favicon tetap Simple PM.
+
+- **Satu sumber token:** `app/lib/theme-tokens.ts` (hex, skala radius/jarak/tipe). Jangan menulis hex di komponen; `theme-palette.ts` (palet Mantine), `theme-vars.ts` (variabel CSS per skema), dan `theme-components.ts` (default komponen) diturunkan darinya. Variabel `--jp-*` (kanvas, primary, fokus) tersedia di CSS.
+- **Peran warna:** lime `#C8F904` = aksi utama (`Button` terisi tanpa `color`; teks navy, **bukan putih**; lime bukan warna teks kecil dan bukan penanda sukses). Violet = interaksi (primaryColor `atlas`: tautan, item aktif, fokus). Nama `blue/indigo/violet`, `teal/green`, `orange/yellow`, `red` di-alias ke palet peran (`atlas`, `ok`, `warn`, `danger`) — kode lama `color="red"` tetap benar. Status memakai teks + warna, tidak hanya warna.
+- **Kanvas vs permukaan:** halaman dicat `--jp-canvas`; `--mantine-color-body` = permukaan (kartu, menu, modal). Dua-duanya di-set di `theme-vars.ts`, bukan per halaman.
+- **Skala:** radius kontrol 10 / kartu 14 (`md`) / modal 16 (`lg`) / identitas 20 (`xl`); jarak 8/12/16/24/32 (`xs`..`xl`); judul halaman `Title order={1}` 32 px (26 px ponsel), judul bagian `order={3}` 20 px; Manrope dari `public/fonts/` (lisensi OFL di folder yang sama).
+- **Kontras:** `tests/theme-contrast.test.ts` menjaga pasangan teks ≥ 4,5:1 dan non-teks ≥ 3:1 untuk kedua skema; ubah token → jalankan tes itu. Hover lime (`primaryHover`) diturunkan sendiri karena handoff tidak mendefinisikannya.
+
+## UX Production-Ready — Wajib Dipatuhi Agent
+
+Ini adalah standar kualitas UX yang membuat app terasa selesai dan layak produksi. Agent wajib menerapkan ini secara **proaktif** tanpa menunggu user mengingatkan.
+
+### 1. Konfirmasi untuk Aksi Destruktif / Irreversible
+Setiap aksi yang menghapus data, mengakhiri sesi, atau susah dibatalkan **wajib** punya pengaman sesuai salah satu dari tiga tingkat di bawah. Tingkat ditentukan oleh bisa-tidaknya aksi diurungkan (X1-Q1, R11 K6), bukan satu dialog untuk semua.
+
+- **T1 — Urungkan, tanpa dialog:** hapus tugas/event/lampiran **ke Sampah** (bisa dipulihkan 30 hari). Eksekusi langsung, lalu `notifications.show()` dengan tombol "Urungkan" (±10 detik). Hanya untuk aksi yang benar-benar masuk Sampah; Sampah baru lengkap di S6 (S1 hanya Sampah proyek), jadi **S2 tidak memasang hapus tugas**.
+- **T2 — Dialog `modals.openConfirmModal()`:** sign out ("Kamu akan keluar dari akun ini"); hapus proyek (sebut dampak, mis. jumlah tugas dan event; hanya Super-admin, Admin, dan PM-Pengelola — Member-Pengelola tidak boleh); keluarkan anggota; ubah role akun/proyek (escalate/demote); setujui/tolak akun; ban/unban/nonaktifkan user; purge/bulk delete; hapus item lain yang tidak masuk Sampah (row, post) — "Data ini akan dihapus permanen".
+- **T3 — Dialog + ketik nama/email:** hapus permanen dan hapus akun.
+
+**Blocker:** aksi destruktif tanpa pengaman T1/T2/T3 yang sesuai → STOP sebelum commit. T1 tanpa tombol Urungkan atau tanpa Sampah di belakangnya juga dilarang.
+
+### 2. Loading State pada Setiap Aksi Async
+Button yang memicu request async **wajib** punya `loading` prop / spinner selama request berlangsung. User tidak boleh dibiarkan tanpa feedback.
+
+### 3. Feedback Sukses / Gagal
+Setelah aksi async selesai:
+- Sukses → tampilkan notifikasi singkat atau update UI secara visible (refresh data, badge berubah, dll)
+- Gagal → tampilkan pesan error yang jelas (bukan diam-diam gagal)
+- Gunakan Mantine `notifications.show()` jika feedback perlu muncul di luar konteks form/button
+
+### 4. Empty State yang Informatif
+Tabel / list kosong → jangan biarkan blank. Tampilkan pesan bermakna seperti "Belum ada data" dengan ikon atau deskripsi singkat.
+
+### 5. Disabled State yang Kontekstual
+Button yang tidak bisa dipakai (misal: "Purge" saat tidak ada data) → `disabled` dengan alasan yang jelas dari konteks UI (tooltip atau label).
+
+### 6. Konsistensi Bahasa UI
+- Label tombol: imperatif dan spesifik — "Hapus Visit Log", bukan "OK" atau "Submit"
+- Pesan confirm: jelaskan dampak nyata — "Semua log lebih dari 30 hari akan dihapus permanen"
+- Pesan error: actionable — "Gagal menyimpan. Coba lagi." bukan "Error"
+
+**Cara agent menerapkan:** Setiap kali menulis fitur baru yang mengandung aksi async, delete, atau state change penting → langsung terapkan standar di atas tanpa menunggu instruksi. Ini bukan optional — ini adalah definisi "fitur selesai" di project ini.
+
+## SEO & Meta Tags — Wajib di Setiap Route
+
+Setiap route yang dirender (bukan redirect-only) **wajib** punya `export function meta()`. Ini berlaku untuk route halaman maupun layout route. Tanpa ini, browser tab kosong dan search engine tidak mendapat sinyal apapun.
+
+### Format Wajib
+
+```ts
+// Halaman publik (landing, login, dll)
+export function meta(_: Route.MetaArgs) {
+  return [
+    { title: 'Judul Halaman — Simple PM' },
+    { name: 'description', content: 'Deskripsi singkat halaman ini, 120–160 karakter.' },
+  ];
+}
+
+// Halaman app/admin (tidak diindex search engine, tapi title tetap wajib)
+export function meta() {
+  return [{ title: 'Nama Halaman — Simple PM' }];
+}
+```
+
+### Konvensi Title
+
+- Format: `"Nama Halaman — Brand"` — nama halaman di depan, brand di belakang.
+- Halaman publik: sertakan `description` (120–160 karakter, deskriptif, tidak duplikat).
+- Halaman admin/app: cukup `title`, tidak perlu `description` (tidak diindex).
+- Root (`root.tsx`) wajib punya `meta()` sebagai **fallback global** — halaman yang tidak define meta sendiri akan fallback ke sini.
+
+### Favicon
+
+- Favicon didefinisikan secara hardcoded di `root.tsx` `<head>` sebagai `<link rel="icon" href="/favicon.svg" type="image/svg+xml" />`.
+- File favicon ada di `public/favicon.svg` — jangan ganti tanpa alasan, ini brand identity.
+- Jangan duplikasi favicon lewat `meta()` — sudah cukup di hardcoded.
+
+### Halaman Publik — OG Tags (Open Graph)
+
+Untuk halaman yang bisa dishare (home, landing page):
+
+```ts
+export function meta(_: Route.MetaArgs) {
+  return [
+    { title: 'Simple PM — Fullstack Template' },
+    { name: 'description', content: '...' },
+    { property: 'og:title', content: 'Simple PM — Fullstack Template' },
+    { property: 'og:description', content: '...' },
+    { property: 'og:type', content: 'website' },
+  ];
+}
+```
+
+**Blocker:** route yang dirender tanpa `export function meta()` → STOP sebelum commit. Redirect-only routes (tidak punya `default export` komponen) dikecualikan.
+
+## Mobile-Friendly — Standar Ketat Wajib Dipatuhi Agent
+
+App ini harus bisa diakses dengan baik di mobile. Admin console tetap primary desktop, namun **tidak boleh rusak di mobile**. Agent wajib menerapkan semua aturan di bawah ini secara proaktif — bukan menunggu diminta. Standar ini berlaku untuk setiap halaman baru maupun yang dimodifikasi.
+
+### 1. Navigasi — AppShell dengan Mobile Header Wajib
+
+Jangan pernah menempatkan `<Burger>` sebagai elemen `pos="fixed"` floating tanpa `AppShell.Header`. Pola yang wajib dipakai:
+
+```tsx
+<AppShell
+  header={{ height: { base: 52, sm: 0 } }}  // header hanya muncul di mobile
+  navbar={{ width: 240, breakpoint: 'sm', collapsed: { mobile: !mobileOpened } }}
+>
+  <AppShell.Header withBorder={false} hiddenFrom="sm">
+    <Group h="100%" px="md" gap="sm">
+      <Burger opened={mobileOpened} onClick={toggleMobile} size="sm" aria-label="Toggle navigation" />
+      <Text fw={700}>Nama App</Text>
+    </Group>
+  </AppShell.Header>
+  <AppShell.Navbar>...</AppShell.Navbar>
+  <AppShell.Main>...</AppShell.Main>
+</AppShell>
+```
+
+**Blocker:** Burger floating fixed tanpa AppShell.Header → STOP.
+
+### 2. Tabel — Kolom Wajib Responsif
+
+Semua tabel harus scrollable horizontal DAN menyembunyikan kolom tidak esensial di mobile:
+
+```tsx
+// Wrapper scroll — wajib ada
+<Box style={{ overflowX: 'auto' }}>
+  <Table>
+    <Table.Thead>
+      <Table.Tr>
+        <Table.Th>Kolom Penting</Table.Th>
+        <Table.Th visibleFrom="sm">Kolom Sekunder</Table.Th>  {/* hidden di mobile */}
+      </Table.Tr>
+    </Table.Thead>
+    <Table.Tbody>
+      <Table.Tr>
+        <Table.Td>...</Table.Td>
+        <Table.Td visibleFrom="sm">...</Table.Td>  {/* hidden di mobile */}
+      </Table.Tr>
+    </Table.Tbody>
+  </Table>
+</Box>
+```
+
+Alternatif: `<Table.ScrollContainer minWidth={640}>` bila semua kolom harus tampil.
+
+**Untuk tabel dengan 4+ kolom data kaya — wajib gunakan card/list view di mobile:**
+
+```tsx
+{/* Desktop: tabel biasa */}
+<Box style={{ overflowX: 'auto' }} visibleFrom="sm">
+  <Table>...</Table>
+</Box>
+
+{/* Mobile: card list — semua data terlihat tanpa scroll horizontal */}
+<Stack gap="xs" hiddenFrom="sm">
+  {rows.map((r) => (
+    <Paper key={r.id} withBorder p="sm" radius="md">
+      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
+        <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+          {/* Data primer: path/nama/judul — truncate dengan minWidth: 0 */}
+          <Text truncate style={{ minWidth: 0 }}>{r.path}</Text>
+          {/* Data sekunder: timestamp, IP, ID — dimmed, kecil */}
+          <Text size="xs" c="dimmed">{fmt(r.createdAt)}</Text>
+        </Stack>
+        {/* Aksi: delete, edit — flexShrink: 0 agar tidak ikut dipersempit */}
+        <ActionIcon style={{ flexShrink: 0 }}>...</ActionIcon>
+      </Group>
+    </Paper>
+  ))}
+</Stack>
+```
+
+Pola ini berlaku untuk semua halaman log, tabel user, dan tabel data apapun dengan ≥4 kolom.
+
+**Prioritas kolom yang wajib tampil di mobile:** kolom identitas utama (nama/path) + status + aksi.
+**Kolom yang boleh disembunyikan di mobile dengan `visibleFrom="sm"`:** IP, User Agent, User ID, timestamp sekunder, kolom detail.
+
+**Blocker:** Tabel ≥4 kolom tanpa card view mobile DAN tanpa `overflowX: 'auto'` → STOP.
+
+### 3. Page Header — Tombol Action Wajib Wrap
+
+Header halaman yang berisi judul + tombol-tombol wajib menggunakan `wrap="wrap"`:
+
+```tsx
+// ✅ Benar — buttons wrap ke bawah bila tidak muat
+<Group justify="space-between" align="flex-start" wrap="wrap">
+  <Title order={3}>Judul Halaman</Title>
+  <Group gap="xs" wrap="wrap" justify="flex-end">
+    <Button>Clear All</Button>
+    <Button>Purge 30d+</Button>
+    <Button>Refresh</Button>
+  </Group>
+</Group>
+
+// ❌ Salah — buttons overflow layar di mobile
+<Group justify="space-between" wrap="nowrap">
+```
+
+**Blocker:** Header dengan `wrap="nowrap"` yang berisi tombol-tombol → STOP.
+
+### 4. Layout & Spacing
+
+- Gunakan Mantine `Grid`, `SimpleGrid`, `Stack` dengan breakpoints — **bukan** fixed-width pixel.
+- `width: 800px`, `minWidth: 600px` pada container utama → gunakan `maw` + `w="100%"` sebagai gantinya.
+- Padding halaman: minimal `p="sm"` di mobile — gunakan `p={{ base: 'sm', md: 'md' }}` bila perlu.
+- Kolom grid yang tidak muat di mobile → `cols={{ base: 1, sm: 2, md: 3 }}`.
+
+### 5. Touch Targets
+
+- Area `/app`: `Button`/input `size="lg"` (50 px) dan `ActionIcon` `size="xl"` (44 px) — sudah menjadi default lewat `defaultProps` tema (`app/lib/theme-components.ts`), jadi jangan menulis ulang `size`. `size="sm"` (36 px) **bukan** 44 px; pakai hanya di tabel padat `/dev` dan `/dashboard`.
+- `ActionIcon` kecil di dalam tabel: boleh `size="xs"` karena tabel sudah scrollable.
+- Jarak antar touch target: minimal `gap="xs"`.
+- Hindari link/button berdekatan tanpa jarak yang cukup.
+
+### 6. Form & Input
+
+- Set `inputMode` yang sesuai: `inputMode="email"`, `inputMode="numeric"`, `inputMode="url"`.
+- Jangan set `font-size` di bawah 16px pada input — browser mobile akan auto-zoom.
+- Mantine input component sudah handle ini secara default, jangan override ke ukuran lebih kecil.
+
+### 7. Ikon & Skala Teks
+
+- Ikon baru `size="1.25em"` agar ikut ukuran teks; jangan `size={16}` atau angka piksel lain.
+- Skala teks pengguna (cookie `mk-text-size`: 1 / 1,25 / 1,5) memakai satu `theme.scale` lewat `buildTheme` (`app/lib/theme.ts`), dan breakpoint ikut diskala. Pakai `visibleFrom`/`hiddenFrom`/prop responsif Mantine yang membaca `theme.breakpoints`; jangan hardcode lebar piksel atau `@media (min-width: …)` sendiri.
+
+**Cara agent menerapkan:** Bayangkan layar 375px lebar (iPhone SE). Apakah semua elemen visible dan bisa di-tap? Apakah ada overflow horizontal tanpa scroll? Apakah burger tidak menimpa konten? Jika ada masalah → perbaiki sebelum commit.
+
+**Blocker (semua harus dipenuhi sebelum commit):**
+- ❌ Burger floating tanpa AppShell.Header
+- ❌ Tabel tanpa scroll wrapper
+- ❌ Page header `wrap="nowrap"` dengan banyak tombol
+- ❌ Container fixed-width melampaui 375px tanpa overflow handling
+
+## Binary Build — Catatan Penting untuk Agent
+
+Saat bekerja dengan `bun build --compile --asset`:
+
+- `Bun.isStandaloneExecutable` — API resmi untuk deteksi binary mode (boolean). **Jangan** gunakan regex pada `Bun.main`.
+- `--asset ./build/client` meng-embed files sebagai `client/` di VFS (**strip satu level direktori induk** — `build/` dihapus).
+- `import.meta.dir` dalam compiled binary = `/$bunfs/root` (bukan path disk tempat binary berada).
+- `Bun.file(path).exists()` bekerja normal untuk embedded VFS files.
+- Path CLIENT_DIR yang benar:
+  ```ts
+  const CLIENT_DIR = Bun.isStandaloneExecutable
+    ? path.join(import.meta.dir, 'client') + '/'          // binary: /$bunfs/root/client/
+    : path.join(import.meta.dir, '../build/client') + '/'; // script: ../build/client/
+  ```
+- SSR bundle di-embed via **static import** (`import * as ssrBuild from '../build/server/index.js'`) — Bun mengikuti static import dan mem-bundle seluruh deps ke binary.
+- `Bun.embeddedFiles` berguna untuk debug: menampilkan path dan ukuran semua file yang di-embed.
+- Build binary lewat `bun scripts/build-binary.ts` (nama output = `name` package.json; `--all` → `dist/` 4 target + `checksums.txt`). Script `build:binary:linux*` sudah dihapus.
+
+## CLI & Postgres Lokal — Catatan Agent
+
+- `server/local-pg/*` dan `server/cli/*` **tidak boleh** mengimpor `server/env.ts` / `server/db` di top-level — CLI (`version`, `init`, `doctor`) jalan sebelum `.env` valid. Pakai `server/pkg.ts` untuk nama/versi; impor env/db secara dinamis setelah PG lokal siap.
+- Subcommand = `server/cli/<cmd>.ts` dengan kontrak `run(argv: string[]): Promise<number>` (exit code), lalu daftarkan di `server/cli/index.ts`.
+- Versi PostgreSQL dan hash sha512 tarball di-pin di `server/local-pg/runtime.ts` — saat menaikkan versi, update **keempat** platform bersamaan (ambil `dist.integrity` dari registry npm).
+- Migrasi ter-embed di binary pada `/$bunfs/root/migrations`; di mode skrip dibaca dari `server/db/migrations`.
+- Menyentuh `local-pg/` atau `cli/` → jalankan `bun run smoke:coldboot` selain `smoke:prod`/`smoke:binary`.
+- PG lokal app memakai port `54329`. **Jangan** pkill/stop Postgres milik user (port 5432) — hentikan hanya PID yang kamu jalankan.
+- **Toggle mode = `DATABASE_URL`:** kosong → embedded, terisi → database itu. `.env.example` mengirim `DATABASE_URL` terisi ke `localhost:5432`, jadi clone baru **wajib** mengosongkannya (atau jalankan `bun run cli init --db=local` yang menulis `.env` benar) sebelum `bun run dev` — kalau tidak, dev gagal konek ke Postgres yang tak ada.
+- `drizzle.config.ts` mencerminkan `isLocalMode()`: `db:studio`/`db:migrate`/`db:push` otomatis menunjuk socket embedded saat `DATABASE_URL` kosong (dev harus jalan agar socket ada). Jangan kembalikan fallback URL `localhost:5432` yang hardcoded.
+
+## Storage (S3 / RustFS lokal) — Catatan Agent
+
+- Semua file/gambar/dokumen lewat `storage()` / `storageEnabled()` dari `server/storage` (`Bun.S3Client`, tanpa AWS SDK). Config dibaca dari `process.env` saat dipanggil (boot lokal mengisi `S3_*` setelah `env.ts` dimuat) — jangan pindahkan ke skema `env.ts`.
+- Endpoint yang butuh storage wajib cek `storageEnabled()` → `503 STORAGE_DISABLED`; storage gagal lunak, app tetap boot tanpa storage.
+- `Bun.S3Client` tidak punya API bucket — pembuatan bucket lewat `ensureBucket()` (`server/storage/bucket.ts`, SigV4 manual).
+- RustFS lokal (`server/local-s3/*`) env-free seperti `local-pg`; versi + sha256 zip di-pin di `runtime.ts` (update semua platform bersamaan). Wajib `RUSTFS_CONSOLE_ENABLE=false` (console default bind `:9001`). Port `54330`; **jangan** stop RustFS/MinIO milik user di `9000`/`9001`.
+- Upload dari user: validasi tipe dari magic bytes, bukan `Content-Type` klien; **jangan** izinkan SVG/HTML di bucket yang dilayani publik (XSS). Key objek per user diberi prefix `<area>/<userId>/` dan nama acak.
+
+## Stack
+
+- **Runtime:** Bun
+- **Server:** Elysia
+- **Frontend:** React Router v8 SSR, Mantine v9
+- **DB:** PostgreSQL + Drizzle ORM
+- **Auth:** Better Auth
+- **Test runner:** `bun run test` (bun:test)
+
+## Test
+
+- Jalankan: `bun run test` (atau `bun test <file>` — preload di `bunfig.toml` tetap memaksa `NODE_ENV=test`).
+- Lokasi test: semua di root `tests/**/*.test.ts`, mirror struktur `server/` (`tests/api/`, `tests/db/`, `tests/mcp/`, `tests/middleware/`, sisanya di `tests/`). Import ke source relatif ke `server/` (mis. `../../server/api/admin` dari `tests/api/`, `../server/roles` dari `tests/`).
+- **Test database:** preload `tests/preload.ts` (via `bunfig.toml`) memaksa `NODE_ENV=test` dan mengarahkan `DATABASE_URL` ke `DATABASE_URL_TEST`. Mode PG lokal → `server/local-pg/test-db.ts` membuat + memigrasi `<db>_test` otomatis (`<db>` = `localPgDb()`: `LOCAL_PG_DB` atau nama package) (memakai cluster `bun dev` bila jalan). PG eksternal → set `DATABASE_URL_TEST` di `.env`; tanpa itu `server/db` **melempar error** di mode test (tidak ada lagi fallback ke DB dev).
+- Nilai env kosong (`KEY=`) diperlakukan sebagai tidak di-set oleh `server/env.ts`.
+- `smoke:prod` (`server/prod.ts`) tidak menyalakan PG lokal — di mode lokal arahkan `DATABASE_URL` ke DB test; `smoke:binary` saat `bun dev` jalan butuh `LOCAL_PG_DIR`/`LOCAL_PG_PORT` terpisah (data dir dikunci dev server).
+- Migrasi test DB: `DATABASE_URL=<url_test> bun run db:migrate`
+- Migrasi baru wajib dijalankan ke **dua** DB sebelum test: `bun run db:migrate` (dev) dan `DATABASE_URL=$DATABASE_URL_TEST bun run db:migrate` (test).
+- **Autentikasi di integration test — pakai `spyOn`, bukan `mock.module`:** stub `spyOn(auth.api, 'getSession')` + `spyOn(rolesMod, 'resolveUserRole')` lalu biarkan guard asli bekerja (pola: `tests/api/posts.test.ts`, `tests/api/me-api-keys.test.ts`). `mock.module('../../server/guard', …)` hanya boleh untuk route yang semata memakai `requireRole` (pola: `tests/api/api-keys-api.test.ts`); mock yang mengganti `resolveActor` **bocor ke file test lain** dalam satu run dan membuat test tak terkait gagal. Faktor pada `mock.module` juga tidak boleh merujuk variabel modul (hoisting) — pakai literal atau `globalThis`.
+- User test ber-role `super-admin` akan **diturunkan otomatis** oleh `resolveUserRole` (sumber kebenarannya `SUPER_ADMIN_EMAILS`); seed `admin` untuk skenario admin, atau stub `resolveUserRole`.
+- Identitas API key disimulasikan dengan `setApiKeyIdentity(request, {...})` dari `server/api-keys/identity.ts`; hook `onAfterResponse` berjalan setelah `app.handle()` resolve — `await Bun.sleep(20)` sebelum `flushUsage()`.
+- Cleanup: gunakan `beforeEach`/`afterEach` untuk insert/delete row test spesifik (bukan `DELETE FROM table` global)
+- Smoke test runtime: **jangan** `pkill` dev server user. Jalankan instance sendiri `PORT=3077 bun run server/dev.ts`, simpan PID, kill PID itu saja. Skrip probe sementara di root project (untuk resolusi modul) wajib dihapus setelah dipakai.
+
+## Konvensi Server (Elysia, API, error)
+
+- **Urutan hook:** `derive` di route berjalan pada fase transform, **sebelum** `onBeforeHandle` global. Plugin yang harus menyuntik identitas untuk route ber-`derive` (contoh: `server/api-keys/plugin.ts`) memakai `onRequest`. Hook lain hanya berlaku untuk route yang didaftarkan **setelahnya** — urutan di `server/api/index.ts` adalah kontrak: `apiErrorPlugin → rateLimitPlugin → maintenancePlugin → apiKeyPlugin → mount auth → router`.
+- **Bentuk error API wajib seragam:** `{ error, code, status, requestId }`. Handler mengembalikan `status(4xx, { error, code? })`; jangan `throw` string atau kirim stack. Error tak tertangkap otomatis jadi 500 JSON ber-`requestId` lewat `server/api-error.ts` (pesan disembunyikan di produksi). Untuk pesan ke user pakai bahasa Indonesia yang actionable.
+- **`.mount(auth.handler)` adalah catch-all** untuk semua `/api/*` yang tidak cocok — mount tetap dibungkus agar hanya `/api/auth/*` yang diteruskan (lihat `index.ts`). Jangan menambah mount lain tanpa pembungkus serupa.
+- **Route API baru wajib dipetakan ke scope** di `server/api-keys/scopes.ts` (`requiredScope`), atau eksplisit `null` bila tidak boleh diakses API key, atau `isPublicRead` bila publik — lalu tambahkan assertion di `tests/api-keys/scopes.test.ts`. Tanpa pemetaan, pemanggil API key mendapat 403.
+- **Gerbang 401 `/api/app/**`** ada di `derive` `appContext` (`server/api/app-context.ts`) dan menjawab lewat `unauthorizedResponse` sebagai `throw Response`; **dilarang `throw status()` di `derive`** (menjadi 500, bukan 4xx). Router `/api/app` baru wajib `.use(appContext)`.
+- **Berkas API per modul:** `server/api/app-<modul>[.<bagian>].ts` (mis. `app-projects.ts`, `app-projects.members.ts`); `app.ts` tetap tipis dan hanya merakit.
+- **`PM_KEY_DENY`** (`server/api-keys/scopes.pm.ts`): rute destruktif/eskalasi (hapus proyek, anggota, profil, foto) ditolak untuk API key apa pun scope-nya. Rute destruktif baru ditambahkan ke `PM_KEY_DENY` dan `PM_DENY_OWNER`; tiap rute `/api/app/` baru wajib tes pemetaan scope-nya (`tests/api-keys/scopes.test.ts`, `scopes.pm.test.ts`).
+- **Better Auth apiKey:** `auth.api.createApiKey/updateApiKey` dipanggil **tanpa** `headers`; scope dicek sendiri (plugin melaporkan scope kurang sebagai `KEY_NOT_FOUND`); total pemakaian dari `api_key_usage`, bukan `requestCount`.
+- **Tanggal di fragmen `sql` mentah:** kirim string ISO, bukan objek `Date` (fragmen raw tidak mendapat pemetaan kolom): `${d.toISOString()}::timestamp` untuk tabel lama, `${d.toISOString()}::timestamptz` untuk tabel baru. Tabel baru wajib kolom `timestamptz` (`server/db/schema.columns.ts`); sesi DB dipaksa UTC (`TimeZone: 'UTC'` di `server/db/index.ts`) — jangan diubah.
+- **Request non-halaman sebelum SSR:** probe browser (`/favicon.ico`, `/.well-known/`, `apple-touch-icon`) ditangani `server/http-probes.ts`; dokumentasi agent (`/README.md`, `/llms*.txt`) oleh `server/readme.ts`. Keduanya harus tetap masuk daftar pengecualian `visitor.ts` dan `settings-maintenance.ts`. Tambahkan di sana bila ada path statis baru, jangan biarkan jatuh ke React Router (menghasilkan stack trace 404).
+- **Dev server `--hot`** tidak selalu memuat ulang plugin Elysia baru — minta user restart `bun run dev` setelah menambah plugin/hook.
+- **Versi** hanya dari `package.json` (`server/app-info.ts`); jangan hardcode di tempat lain.
+
+## CHANGELOG.md — Ditulis Agent
+
+- Setiap merge/push fitur: tambahkan poin ke `## [Unreleased]` di `CHANGELOG.md` (section `Added`/`Changed`/`Fixed`/`Removed`, bahasa Indonesia, sudut pandang user) di commit yang sama.
+- Saat deploy: ganti `## [Unreleased]` menjadi `## [x.y.z] - YYYY-MM-DD` sesuai versi `package.json`. Badge `/dev/changelog` kuning = versi berjalan belum punya entry.
+- Urutan rilis: bump `version` + entry CHANGELOG di satu commit → tag `v<version>`. Workflow `release` menolak tag yang tidak cocok atau versi tanpa entry (`scripts/release-notes.ts`; cek lokal `bun scripts/release-notes.ts v<version>`) dan memakai section itu sebagai catatan rilis.
+- Halaman `/dev/changelog` mem-parse file ini (`server/changelog.ts`); baris yang tidak dikenali tetap tampil di section "Lainnya", jadi jaga formatnya.
+- Vite tidak bisa mengimpor `.md`: dev membaca file dari disk, `server/prod.ts` meng-embed dan mendaftarkannya ke `globalThis`. Perubahan CHANGELOG baru terlihat di prod setelah rebuild.
+
+## Konvensi Halaman `/dev` & Error
+
+- **Menambah halaman `/dev` baru = lima tempat:** `app/routes.ts`, `NAV` di `app/routes/super/layout.tsx`, `QuickLinks` overview, `CONSOLE_PAGES` di `app/components/landing/landing.content.ts` + `CONSOLE_PAGE_COUNT` di `server/landing-stats.ts` (test menjaga ketiganya sinkron), dan badge di `server/sidebar-badges.ts` (nada `alert` untuk hal yang butuh tindakan, `info` untuk skala; satu query agregat murah, gagal lunak).
+- **Pola halaman konsol:** loader SSR + `toJson` + react-query `initialData`; komponen bersama di `app/components/logs/*` (StatTile, BreakdownPanel, LogCells, DetailParts, TruncatedText); tabel desktop + kartu mobile; drawer detail; aksi lewat hook `use*Actions` dengan `modals.openConfirmModal` dan `notifications`; aksi berhak istimewa dipanggil `audit()` di server dan labelnya ditambahkan ke `ACTION_META` di `app/lib/audit-api.ts`.
+- **Tooltip di dalam `Menu.Target` mematikan klik** — jangan bungkus target menu dengan Tooltip.
+- **Error boundary:** setiap layout area (`super/admin/user`) merender `AppFrame` lewat helper `Frame` yang dipakai ulang oleh `ErrorBoundary` bersama `AreaErrorBoundary`, sehingga halaman yang gagal tetap punya sidebar. Halaman baru tidak perlu boundary sendiri; jangan hapus `ErrorBoundary` di layout. Kode status/pesan error halaman berasal dari katalog `app/lib/error-page.ts`.
+- **README.md dilayani publik** di `/README.md` dan `/llms*.txt` (satu sumber, juga ter-embed ke binary). Jangan tulis rahasia, hostname internal, atau kredensial contoh yang valid di README; test `tests/readme-endpoint.test.ts` memindainya. Fitur baru yang mengubah kontrak publik wajib menambah/menyunting bagian README yang relevan di commit yang sama.
+
+## Build & Deploy — Verifikasi Wajib
+
+- `bun run typecheck` harus **nol** error tanpa filter apa pun (deklarasi untuk modul tanpa tipe ada di `server/types/*.d.ts`; `build/server/index.js` dideklarasikan di `ssr-build.d.ts` agar typecheck tidak bergantung pada hasil build).
+- Perubahan yang menyentuh `server/`, `app/entry.server.tsx`, `app/root.tsx`, logger, atau skrip build → jalankan `bun run smoke:prod` **dan** `bun run smoke:binary` sebelum lapor selesai. Keduanya build, boot server di port acak dengan `NODE_ENV=production`, menjalankan pemeriksaan black-box dari daftar `SMOKE_CHECKS` di `scripts/smoke-server.checks.ts` (jumlahnya tidak ditulis di sini agar tidak basi), dan exit ≠ 0 bila gagal. Skrip mengabaikan `PORT`/`NODE_ENV` dari `.env` — jangan pernah mengarahkan pemeriksaan ke port dev server user.
+- **Bundle SSR ≠ proses Bun:** modul `@server/*` yang diimpor dari `app/` dibundel Vite menjadi salinan kedua di `build/server/index.js`. Singleton proses (`logger`, `logBuffer`) disimpan di `globalThis` agar kedua salinan memakai satu instance; ikuti pola itu untuk singleton baru (scheduler, cache, koneksi). `app/entry.server.tsx` melapor lewat `processLog` dari `@server/ssr-log`, bukan mengimpor logger.
+- **pino-roll v4** memakai satu objek opsi (`{ file, frequency: 'daily', size, limit, mkdir }`); `frequency: '1d'` atau bentuk `build(path, opts)` membuat `bun run start` gagal boot.
+- Binary men-default `NODE_ENV=production` tetapi menghormati `.env` di direktori kerja (Bun auto-load) dan memperingatkan bila bukan production. Menambah pemeriksaan smoke = tambah entri di `SMOKE_CHECKS` (nama unik, path absolut) — `tests/smoke-server.test.ts` menjaganya.

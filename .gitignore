@@ -1,7 +1,28 @@
-# Environment & secrets
+node_modules
+build
+.react-router
 .env
 .env.*
 !.env.example
+*.log
+.DS_Store
+.vite
+/logs/
+# compiled binaries (scripts/build-binary.ts)
+/makuro-template
+/dist/
+makuro.exe
+# legacy binary names (before the name came from package.json)
+/makuro
+/makuro-linux-*
+# local Postgres data, backups, generated systemd units (`init`)
+/data/
+/backups/
+*.service
+# local Orca CLI binary dropped in the repo root; never commit
+/orca-office
+
+# Secrets & credentials
 *.pem
 *.key
 *.p12
@@ -15,7 +36,6 @@ service-account.json
 .claude/settings.local.json
 
 # OS / editor
-.DS_Store
 Thumbs.db
 .vscode/
 .idea/
