@@ -67,6 +67,7 @@ describe('keyboard focus ring', () => {
 
   it.each([
     '.react-cupertino-ui-button:focus-visible', '.react-cupertino-ui-suggestion-chip:focus-visible',
+    '.react-cupertino-ui-segmented-control__option:focus-visible', '.react-cupertino-ui-navigation-bar .nav-back:focus-visible',
     '.react-cupertino-ui-bottom-sheet__handle:focus-visible', '.react-cupertino-ui-card:focus-visible',
     '.react-cupertino-ui-switcher__control:focus-visible', '.react-cupertino-ui-tabs__trigger:focus-visible',
     '.react-cupertino-ui-list-item.clickable:focus-visible',
@@ -74,6 +75,14 @@ describe('keyboard focus ring', () => {
     const body = focus.match(new RegExp(`${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^{]*\\{([^}]*)\\}`))?.[1] ?? '';
     expect(body).toMatch(RING);
     expect(body).toMatch(/box-shadow:\s*none/);
+  });
+
+  it.each([
+    '.react-cupertino-ui-suggestion-chip:focus-visible', '.react-cupertino-ui-segmented-control__option:focus-visible',
+    '.react-cupertino-ui-search-bar__input-wrapper:focus-within', '.react-cupertino-ui-tabs__trigger:focus-visible',
+  ])('draws the ring inside %s, whose strip clips anything outside', sel => {
+    const body = focus.slice(focus.indexOf(sel)).match(/\{([^}]*)\}/)[1];
+    expect(body).toMatch(/outline-offset:\s*-2px/);
   });
 
   it.each(['.react-cupertino-ui-textfield:focus-within', '.react-cupertino-ui-search-bar__input-wrapper:focus-within',

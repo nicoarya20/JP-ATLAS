@@ -6,22 +6,26 @@
 
 /* Library parts that drop the outline at (0,2,0) and paint an iOS-blue box-shadow halo instead */
 .react-cupertino-ui-button:focus-visible,
-.react-cupertino-ui-suggestion-chip:focus-visible,
 .react-cupertino-ui-bottom-sheet__handle:focus-visible,
 .react-cupertino-ui-card:focus-visible,
 .react-cupertino-ui-switcher__control:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; box-shadow: none; }
 .react-cupertino-ui-button:focus-visible::after { border-color: transparent; }
 .react-cupertino-ui-card[data-interactive="true"]:focus-visible { transform: none; }  /* upstream lifts the card */
 
-/* Tabs and list rows fill their strip edge to edge, so the ring goes inside where nothing clips it. The list rule
-   upstream reads an undefined --blue and drew nothing. */
+/* Inside a clipping strip the ring goes inside, where nothing cuts it: tabs and list rows fill theirs edge to edge,
+   chips sit in .hscroll (overflow-x clips y too), segment options in an overflow-hidden track, and the back chevron
+   against the phone edge. The list rule upstream reads an undefined --blue and drew nothing. */
 .react-cupertino-ui-tabs__trigger:focus-visible,
-.react-cupertino-ui-list-item.clickable:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; box-shadow: none; }
+.react-cupertino-ui-list-item.clickable:focus-visible,
+.react-cupertino-ui-suggestion-chip:focus-visible,
+.react-cupertino-ui-segmented-control__option:focus-visible,
+.react-cupertino-ui-navigation-bar .nav-back:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; box-shadow: none; }
 
-/* Text entry: the bare input sits inset in a filled pill and keeps the library's outline:none, so ring the pill */
+/* Text entry: the bare input sits inset in a filled pill and keeps the library's outline:none, so ring the pill.
+   The search pill sits in an overflow-hidden container, so its ring goes inside. */
 .react-cupertino-ui-textfield:focus-within,
-.react-cupertino-ui-search-bar__input-wrapper:focus-within,
 .tk-tagbox:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+.react-cupertino-ui-search-bar__input-wrapper:focus-within { outline: 2px solid var(--focus); outline-offset: -2px; }
 
 /* Checkbox and radio: the real input is invisible (opacity 0), so ring the drawn box */
 .react-cupertino-ui-checkbox:has(.react-cupertino-ui-checkbox__input:focus-visible) .react-cupertino-ui-checkbox__box,
