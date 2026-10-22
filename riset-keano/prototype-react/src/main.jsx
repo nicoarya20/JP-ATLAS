@@ -11,6 +11,7 @@ import { AppProvider } from './core/app.context';
 import { PhoneApp } from './core/PhoneApp';
 import './styles/library.css';   // after the screens and the shell: overrides the library scss they pull in
 import './styles/press.css';     // after library.css: no hover, press animations on tap
+import './styles/focus.css';     // last: one keyboard focus ring over the library's own focus styles
 import { START_SCREEN, readUrl, setRole } from './core/session';
 import { allowed } from './core/registry';
 
