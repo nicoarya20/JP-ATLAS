@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe Beranda</title>
+<!-- Lo-fi wireframe hitam-putih. Shell (top bar + rail navbar) dirender oleh wf.js. Isi Beranda = 4 zona, tiap zona menjawab satu pertanyaan user. -->
+<link rel="stylesheet" href="wf.css">
+<style>
+.zones{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-items:start}
+.z-a{grid-column:span 12}.z-b{grid-column:span 7;grid-row:span 2}.z-c,.z-d{grid-column:span 5}
+
+/* A. Briefing */
+.brief li{display:flex;gap:10px;align-items:center;padding:9px 6px;border-bottom:1px solid var(--fill);cursor:pointer}
+.brief li:hover{background:var(--fill)}
+.brief .num{font-size:12px;font-weight:700;width:18px;flex:none}
+.brief .txt{flex:1;display:flex;flex-direction:column;gap:6px}
+.ai-foot{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--mute)}
+
+/* B. Fokus */
+.task{display:flex;gap:10px;align-items:flex-start;padding:10px 6px;border-bottom:1px solid var(--fill)}
+.task .chk{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--ink);flex:none;margin-top:1px}
+.task .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.task .meta{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
+.task .meta .box{width:14px;height:14px}
+.task .acts{display:none;gap:6px;flex-wrap:wrap}
+.task:hover .acts,.task:focus-within .acts,.task.open .acts{display:flex}
+.group-t{font-size:12px;font-weight:700;margin:12px 0 2px;display:flex;gap:6px}
+.group-t small{font-weight:400;color:var(--mute)}
+.inbox li{display:flex;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--fill)}
+.inbox li .avatar{width:26px;height:26px;font-size:11px}
+.inbox li .txt{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.inbox li .kind{font-size:12px}
+.inbox li.pin{background:var(--fill);border-radius:var(--r)}
+.inbox li.pin .kind{font-weight:700}
+
+/* C. Tanya data */
+.ask{display:flex;gap:8px;align-items:center;border:1.5px solid var(--ink);border-radius:10px;padding:6px 6px 6px 10px}
+.ask input{flex:1;min-width:0;border:0;outline:0;background:none}
+.ask input::placeholder{color:var(--dim)}
+.res li{display:flex;gap:8px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--fill)}
+.lock{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);margin-top:8px}
+
+/* D. Agenda & proyek */
+.ev{display:flex;gap:10px;padding:9px 4px;border-bottom:1px solid var(--fill)}
+.ev time{font-size:12px;font-weight:700;width:42px;flex:none}
+.ev .body{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ev .prep{font-size:12px;color:var(--mute)}
+.proj li{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--fill)}
+.proj .status{grid-column:2/4}
+.prog{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--mute)}
+.prog .bar{flex:1}
+
+.today{font-size:13px;color:var(--mute)}
+.brief .txt small,.res small,.inbox time{font-size:12px;color:var(--mute)}
+.res .grow{flex:1}
+.proj .why{font-size:12px;color:var(--mute)}
+
+@media (max-width:1100px){.z-a,.z-b,.z-c,.z-d{grid-column:span 12;grid-row:auto}}
+@media (max-width:640px){.page{padding:14px 12px 24px}.task .acts{display:flex}.card-h{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<!-- <div class="wf-bar"><b>Wireframe 01 · Beranda</b><span>Lo-fi hitam-putih. 4 zona: A Briefing · B Fokus · C Tanya data · D Agenda &amp; proyek. Data dummy, ✦ = elemen AI, teks miring = pertanyaan yang dijawab zona (catatan, bukan UI).</span></div> -->
+
+<div class="app" data-active="beranda">
+  <main class="main" aria-label="Konten">
+    <div class="page">
+      <div class="page-head"><h1>Beranda</h1><span class="today">Selasa, 6 Oktober 2026 · Selamat pagi, Nico</span></div>
+
+      <div class="zones">
+        <!-- A. Briefing Harian AI (menggantikan: Ditutup 14 hari, Snapshot minggu ini) -->
+        <section class="card z-a">
+          <header class="card-h">
+            <span class="tag">A</span>
+            <div class="grow"><h2>✦ Briefing harian</h2><p class="q">"Apa yang berubah atau berisiko sejak kemarin?"</p></div>
+            <div class="seg"><button type="button" aria-pressed="true" data-show="a-day">Harian</button><button type="button" aria-pressed="false" data-show="a-week">Mingguan</button></div>
+          </header>
+          <ul class="brief" id="a-day">
+            <li><span class="num">1</span><span class="txt"><b>"Fix login SSO" telat 2 hari, padahal ditandai penting</b><small>Proyek Atlas · tenggat Minggu, 4 Okt</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+            <li><span class="num">2</span><span class="txt"><b>Hasil rapat Review Desain kemarin belum dicek (6 temuan)</b><small>AI menemukan 4 tugas, 1 keputusan, 1 pertanyaan</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+            <li><span class="num">3</span><span class="txt"><b>Beban Rina diperkirakan 140% minggu depan</b><small>3 proyek paralel · ada saran pindah tugas di menu Tim</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+          </ul>
+          <ul class="brief" id="a-week" hidden>
+            <li><span class="num">1</span><span class="txt"><b>12 tugas selesai, 3 mundur dari jadwal</b><small>Paling banyak mundur: Proyek Atlas (2)</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+            <li><span class="num">2</span><span class="txt"><b>Portal Klien PT Sinar turun jadi Berisiko</b><small>Progres 35%, 2 bug critical belum ditangani</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+            <li><span class="num">3</span><span class="txt"><b>2 keputusan rapat tercatat</b><small>Onboarding cukup 3 langkah · rilis beta 20 Okt</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+            <li><span class="num">4</span><span class="txt"><b>1 pertanyaan terbuka belum ada yang pegang</b><small>"Siapa yang mengurus migrasi data lama?"</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+            <li><span class="num">5</span><span class="txt"><b>2 tugas Rina dipindah ke Dodi</b><small>Beban Rina turun dari 140% ke 105%</small></span><svg class="ico sm"><use href="#i-right"/></svg></li>
+          </ul>
+          <div class="ai-foot"><svg class="ico sm"><use href="#i-spark"/></svg>Disusun AI dari data proyek · diperbarui 07.30</div>
+          <p class="note">3–5 poin, tiap poin bisa diklik ke datanya. State kosong: "Tidak ada yang mendesak hari ini."</p>
+        </section>
+
+        <!-- B. Fokus Saya Hari Ini (menggantikan: Ditugaskan saya, Status task saya, Jadwal task, Perlu perhatian, Jatuh tempo 7 hari, Ghost reminder, Aktivitas terbaru) -->
+        <section class="card z-b">
+          <header class="card-h">
+            <span class="tag">B</span>
+            <div class="grow"><h2>Fokus saya hari ini</h2><p class="q">"Kerjakan apa duluan, dan kenapa?"</p></div>
+            <div class="seg"><button type="button" aria-pressed="true" data-show="b-prio">Urutan</button><button type="button" aria-pressed="false" data-show="b-due">Per tenggat</button></div>
+          </header>
+
+          <ul id="b-prio">
+            <li class="task open"><span class="chk"></span><div class="body"><b>Fix login SSO</b><span class="meta"><span class="box"></span>Atlas · telat 2 hari</span>
+              <div class="acts"><button class="btn" type="button">Ubah status <svg class="ico sm"><use href="#i-down"/></svg></button><button class="btn" type="button">Tambah catatan</button><button class="btn" type="button">Minta bantuan</button></div></div><span class="badge solid">Telat</span></li>
+            <li class="task"><span class="chk"></span><div class="body"><b>Tulis spesifikasi API</b><span class="meta"><span class="box"></span>Atlas · hari ini · prioritas tinggi</span>
+              <div class="acts"><button class="btn" type="button">Ubah status <svg class="ico sm"><use href="#i-down"/></svg></button><button class="btn" type="button">Tambah catatan</button><button class="btn" type="button">Minta bantuan</button></div></div><span class="badge">Penting</span></li>
+            <li class="task"><span class="chk"></span><div class="body"><b>Periksa desain halaman onboarding</b><span class="meta"><span class="box"></span>Atlas · diminta Rina</span>
+              <div class="acts"><button class="btn" type="button">Ubah status <svg class="ico sm"><use href="#i-down"/></svg></button><button class="btn" type="button">Tambah catatan</button><button class="btn" type="button">Minta bantuan</button></div></div><span class="badge">Menunggu saya</span></li>
+            <li class="task"><span class="chk"></span><div class="body"><b>Siapkan laporan progres untuk PT Sinar</b><span class="meta"><span class="box"></span>Portal Klien · besok</span>
+              <div class="acts"><button class="btn" type="button">Ubah status <svg class="ico sm"><use href="#i-down"/></svg></button><button class="btn" type="button">Tambah catatan</button><button class="btn" type="button">Minta bantuan</button></div></div><span class="badge">Segera jatuh tempo</span></li>
+            <li class="task"><span class="chk"></span><div class="body"><b>Perbarui dokumentasi API</b><span class="meta"><span class="box"></span>Internal · tidak bergerak 9 hari</span>
+              <div class="acts"><button class="btn" type="button">Ubah status <svg class="ico sm"><use href="#i-down"/></svg></button><button class="btn" type="button">Tambah catatan</button><button class="btn" type="button">Minta bantuan</button></div></div><span class="badge">Mandek</span></li>
+          </ul>
+
+          <div id="b-due" hidden>
+            <div class="group-t">Telat <small>1</small></div>
+            <ul><li class="task"><span class="chk"></span><div class="body"><b>Fix login SSO</b></div><span class="badge solid">Telat</span></li></ul>
+            <div class="group-t">Hari ini <small>1</small></div>
+            <ul><li class="task"><span class="chk"></span><div class="body"><b>Tulis spesifikasi API</b></div><span class="badge">Penting</span></li></ul>
+            <div class="group-t">Besok <small>1</small></div>
+            <ul><li class="task"><span class="chk"></span><div class="body"><b>Siapkan laporan progres untuk PT Sinar</b></div><span class="badge">Segera jatuh tempo</span></li></ul>
+            <div class="group-t">Minggu ini <small>1</small></div>
+            <ul><li class="task"><span class="chk"></span><div class="body"><b>Periksa desain halaman onboarding</b></div><span class="badge">Menunggu saya</span></li></ul>
+            <div class="group-t">Nanti <small>0</small></div>
+            <div class="group-t">Tanpa tenggat <small>1</small></div>
+            <ul><li class="task"><span class="chk"></span><div class="body"><b>Perbarui dokumentasi API</b></div><span class="badge">Mandek</span></li></ul>
+          </div>
+          <p class="note">Tiap tugas muncul sekali, diurutkan otomatis, dengan label alasan. Aksi cepat muncul saat baris disentuh (baris pertama dicontohkan terbuka).</p>
+
+          <div class="sub-h">Inbox <span class="badge">4</span><span class="grow"></span><button class="link" type="button">Lihat semua</button></div>
+          <ul class="inbox">
+            <li class="pin"><span class="avatar">R</span><span class="txt"><span class="kind">Menyebut Anda</span><span>Rina: "@Nico tolong cek mockup onboarding ya"</span></span><time>5 mnt</time></li>
+            <li><span class="avatar">D</span><span class="txt"><span class="kind">Komentar baru</span><span>Dodi di "Fix login SSO": error masih muncul di staging</span></span><time>20 mnt</time></li>
+            <li><span class="avatar">K</span><span class="txt"><span class="kind">Ditugaskan ke Anda</span><span>Siapkan laporan progres untuk PT Sinar</span></span><time>1 jam</time></li>
+            <li><span class="avatar">I</span><span class="txt"><span class="kind">Status berubah</span><span>"Halaman profil" → Menunggu diperiksa</span></span><time>2 jam</time></li>
+          </ul>
+        </section>
+
+        <!-- C. Tanyakan ke data proyek (pengganti kebiasaan bikin card baru untuk tiap pertanyaan) -->
+        <section class="card z-c">
+          <header class="card-h">
+            <span class="tag">C</span>
+            <div class="grow"><h2>✦ Tanyakan ke data proyek</h2><p class="q">"Saya mau cari hal spesifik"</p></div>
+          </header>
+          <form class="ask" onsubmit="return false">
+            <svg class="ico sm"><use href="#i-spark"/></svg>
+            <input type="text" aria-label="Tanya data proyek" value="bug critical yang telat di Proyek Atlas">
+            <button class="btn dark" type="submit">Tanya</button>
+          </form>
+          <div class="sub-h">Dipahami sebagai <span class="grow"></span><span style="text-transform:none;font-weight:400">bisa diedit</span></div>
+          <div class="chips">
+            <span class="chip">Jenis: Bug <button type="button" aria-label="Hapus filter"><svg class="ico sm"><use href="#i-x"/></svg></button></span>
+            <span class="chip">Prioritas: Critical <button type="button" aria-label="Hapus filter"><svg class="ico sm"><use href="#i-x"/></svg></button></span>
+            <span class="chip">Status: Telat <button type="button" aria-label="Hapus filter"><svg class="ico sm"><use href="#i-x"/></svg></button></span>
+            <span class="chip">Proyek: Atlas <button type="button" aria-label="Hapus filter"><svg class="ico sm"><use href="#i-x"/></svg></button></span>
+            <span class="chip add">+ Filter</span>
+          </div>
+          <div class="sub-h">3 hasil</div>
+          <ul class="res">
+            <li><span class="box" style="width:14px;height:14px"></span><span class="grow">Login SSO gagal di Safari</span><small>telat 2 hari</small></li>
+            <li><span class="box" style="width:14px;height:14px"></span><span class="grow">Data invoice dobel saat sinkron</span><small>telat 1 hari</small></li>
+            <li><span class="box" style="width:14px;height:14px"></span><span class="grow">Upload foto gagal di atas 5 MB</span><small>telat 4 hari</small></li>
+          </ul>
+          <div class="lock"><svg class="ico sm"><use href="#i-lock"/></svg>Hanya menampilkan data yang boleh Anda akses.</div>
+        </section>
+
+        <!-- D. Agenda & Proyek saya (menggantikan: Proyek aktif, Events mendatang, Proyek kamu) -->
+        <section class="card z-d">
+          <header class="card-h">
+            <span class="tag">D</span>
+            <div class="grow"><h2>Agenda &amp; proyek saya</h2><p class="q">"Rapat apa hari ini, sudah siap belum? Proyek mana yang bermasalah?"</p></div>
+          </header>
+          <div class="sub-h" style="margin-top:0">Hari ini</div>
+          <div class="ev"><time>10.00</time><div class="body"><b>Rapat Mingguan Proyek Atlas</b><span class="prep">Bahan: agenda · 3 tindak lanjut rapat lalu belum selesai</span></div><span class="badge solid">Belum siap</span></div>
+          <div class="ev"><time>14.00</time><div class="body"><b>Sync Klien PT Sinar</b><span class="prep">Bahan: agenda · laporan progres</span></div><span class="badge">Siap</span></div>
+          <div class="sub-h">Besok</div>
+          <div class="ev"><time>09.00</time><div class="body"><b>Daily Standup</b><span class="prep">Bahan: agenda · 1 tindak lanjut belum selesai</span></div><span class="badge solid">Belum siap</span></div>
+
+          <div class="sub-h">Proyek saya <span class="grow"></span><button class="link" type="button" style="text-transform:none;font-weight:400">Lihat semua</button></div>
+          <ul class="proj">
+            <li><span class="box"></span><b>Portal Klien PT Sinar</b><span class="badge solid">Berisiko</span>
+              <span class="prog status"><span class="bar"><i style="width:35%"></i></span>35%</span><span class="why status">2 bug critical belum ditangani, tenggat 20 Okt</span></li>
+            <li><span class="box"></span><b>Proyek Atlas</b><span class="badge">Sehat</span>
+              <span class="prog status"><span class="bar"><i style="width:70%"></i></span>70%</span><span class="why status">Sesuai jadwal, 1 tugas telat</span></li>
+            <li><span class="box"></span><b>Internal Tools</b><span class="badge">Sehat</span>
+              <span class="prog status"><span class="bar"><i style="width:50%"></i></span>50%</span><span class="why status">Berjalan, tidak ada tenggat minggu ini</span></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="wf.js"></script>
+</body>
+</html>

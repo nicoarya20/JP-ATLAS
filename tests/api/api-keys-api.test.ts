@@ -1,19 +1,18 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({
-    user: { id: 'u-test', email: 'u-test@test.local' },
-    role: 'super-admin',
-  }),
-}));
-
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { apiKeysApi } from '../../server/api/api-keys';
+import { createKey } from '../../server/api-keys/service';
 import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(apiKeysApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', email: 'u-test@test.local', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
 const TAG = `kapi-${crypto.randomUUID().slice(0, 8)}`;
 const adminId = `${TAG}-admin`;
 const json = (method: string, body?: unknown) => ({
@@ -27,18 +26,34 @@ async function call(path: string, init?: RequestInit) {
 }
 let keyId = '';
 
-beforeAll(async () => {
-  await db.insert(user).values({
-    id: adminId,
-    name: 'Key Admin',
-    email: `${adminId}@test.local`,
-    emailVerified: true,
-    role: 'admin',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+beforeAll(() => authSpies.as(SUPER_ADMIN));
+// Per test: the lifecycle test rotates, revokes and deletes the key, so it must not rely on another test's key.
+beforeEach(async () => {
+  await db.insert(user).values(
+    testUser({
+      id: adminId,
+      name: 'Key Admin',
+      email: `${adminId}@test.local`,
+      emailVerified: true,
+      role: 'admin',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
+  keyId = (
+    await createKey({
+      name: 'seed',
+      ownerId: adminId,
+      scopes: ['users:read'],
+      expiresDays: 30,
+      rateLimitMax: null,
+      rateLimitWindowMs: null,
+      allowedIps: null,
+      note: null,
+    })
+  ).row.id;
 });
-afterAll(async () => {
+afterEach(async () => {
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetType, 'apikey'))
@@ -89,18 +104,17 @@ describe('API key management API', () => {
       }),
     );
     expect(ok.status).toBe(200);
-    expect((ok.body.key as string).startsWith('mk_live_')).toBe(true);
+    expect((ok.body.key as string).startsWith('sp_live_')).toBe(true);
     const row = ok.body.row as {
       id: string;
       scopes: string[];
       rateLimitMax: number;
       allowedIps: string;
     };
-    keyId = row.id;
     expect(row.scopes).toEqual(['users:read', 'posts:write']);
     expect(row.rateLimitMax).toBe(100);
     expect(row.allowedIps).toBe('10.0.0.');
-    const got = await call(`/api-keys/${keyId}`);
+    const got = await call(`/api-keys/${row.id}`);
     expect(got.status).toBe(200);
     expect(got.body.key).toBeUndefined();
   });
@@ -119,7 +133,7 @@ describe('API key management API', () => {
     expect((usage.body.summary as { total: number }).total).toBe(0);
     const rot = await call(`/api-keys/${keyId}/rotate`, json('POST'));
     expect(rot.status).toBe(200);
-    expect((rot.body.key as string).startsWith('mk_live_')).toBe(true);
+    expect((rot.body.key as string).startsWith('sp_live_')).toBe(true);
     const newId = (rot.body.row as { id: string }).id;
     const rev = await call(`/api-keys/${keyId}/revoke`, json('POST'));
     expect(rev.body.status).toBe('revoked');

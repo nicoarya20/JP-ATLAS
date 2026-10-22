@@ -137,7 +137,7 @@ export function ApiKeyDetailDrawer({ keyRow: k, onClose, soonDays, fetchUsage, h
                   </Field>
                   <Field label="Role pemilik">
                     <Badge size="sm" variant="light">
-                      {k.ownerRole ?? 'user'}
+                      {k.ownerRole ?? 'member'}
                     </Badge>
                   </Field>
                   <Field label="Scope">

@@ -11,7 +11,7 @@
 export type ProcessLogLevel = 'warn' | 'error';
 export type ProcessLogger = Record<ProcessLogLevel, (obj: unknown, msg: string) => void>;
 
-const KEY = '__makuroProcessLogger' as const;
+const KEY = '__simplePmProcessLogger' as const;
 type Holder = typeof globalThis & { [KEY]?: ProcessLogger };
 
 export function registerProcessLogger(logger: ProcessLogger | null): void {

@@ -1,7 +1,7 @@
 import { Avatar, Badge, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { isAdminRole, normalizeRole, ROLES } from '@server/permissions';
 import { FiCheckCircle } from 'react-icons/fi';
-import { type AdminUser, isBanActive } from '~/lib/admin-users-api';
+import { type AdminUser, ROLE_LABEL, userStatus } from '~/lib/admin-users-api';
 import { useTimeFormat } from '~/lib/time-format';
 import { TruncatedText } from '../logs/TruncatedText';
 
@@ -25,7 +25,7 @@ export function RoleBadge({
       withArrow
     >
       <Badge variant="light" color={roleColor(r)} size={size} style={{ flexShrink: 0 }}>
-        {r}
+        {ROLE_LABEL[r] ?? r}
       </Badge>
     </Tooltip>
   );
@@ -33,25 +33,30 @@ export function RoleBadge({
 
 export function StatusBadge({ user, size = 'sm' }: { user: AdminUser; size?: 'xs' | 'sm' }) {
   const { dateTime: formatDateTime } = useTimeFormat();
-  if (isBanActive(user)) {
+  const status = userStatus(user);
+  if (status.key === 'banned') {
     const until = user.banExpires ? `sampai ${formatDateTime(user.banExpires)}` : 'permanen';
     return (
       <Tooltip
-        label={`${user.banReason ? `Alasan: ${user.banReason}. ` : ''}Ban ${until}.`}
+        label={`${user.banReason ? `Alasan: ${user.banReason}. ` : ''}Diblokir ${until}.`}
         withArrow
         multiline
         maw={280}
       >
         <Badge color="red" variant="filled" size={size} style={{ flexShrink: 0 }}>
-          Banned
+          {status.label}
         </Badge>
       </Tooltip>
     );
   }
+  const reason =
+    status.key === 'rejected' && user.approvalReason ? `Alasan: ${user.approvalReason}` : undefined;
   return (
-    <Badge color="teal" variant="light" size={size} style={{ flexShrink: 0 }}>
-      Aktif
-    </Badge>
+    <Tooltip label={reason} disabled={!reason} withArrow multiline maw={280}>
+      <Badge color={status.color} variant="light" size={size} style={{ flexShrink: 0 }}>
+        {status.label}
+      </Badge>
+    </Tooltip>
   );
 }
 

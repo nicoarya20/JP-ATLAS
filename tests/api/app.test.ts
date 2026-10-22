@@ -4,11 +4,14 @@ import { api } from '../../server/api';
 import { auth } from '../../server/auth';
 import * as rolesMod from '../../server/roles';
 
-const ctx: { actor: { id: string; name: string; email: string } | null } = { actor: null };
+type Actor = { id: string; name: string; email: string; approvalStatus?: string; banned?: boolean };
+const ctx: { actor: Actor | null } = { actor: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
-    ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'user'),
+    ctx.actor
+      ? { user: { approvalStatus: 'approved', ...ctx.actor } }
+      : null) as unknown as typeof auth.api.getSession),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => 'member'),
 ];
 afterAll(() => {
   for (const s of spies) s.mockRestore();
@@ -33,6 +36,31 @@ describe('/api/app', () => {
     ctx.actor = { id: 'app-u1', name: 'App User', email: 'app-u1@test.local' };
     const { status, body } = await whoami();
     expect(status).toBe(200);
-    expect(body).toEqual({ userId: 'app-u1', name: 'App User', role: 'user' });
+    expect(body).toEqual({ userId: 'app-u1', name: 'App User', role: 'member' });
+  });
+
+  test.each([
+    ['pending', 'ACCOUNT_PENDING'],
+    ['rejected', 'ACCOUNT_REJECTED'],
+  ])('%s account → 403 %s with the uniform error shape', async (approvalStatus, code) => {
+    ctx.actor = {
+      id: `app-${approvalStatus}`,
+      name: 'Held',
+      email: 'held@test.local',
+      approvalStatus,
+    };
+    const { status, body } = await whoami();
+    expect(status).toBe(403);
+    expect(body.code).toBe(code);
+    expect(body.status).toBe(403);
+    expect(typeof body.error).toBe('string');
+    expect(typeof body.requestId).toBe('string');
+  });
+
+  test('banned account keeps the signed-out answer (401), no third 403 code', async () => {
+    ctx.actor = { id: 'app-banned', name: 'Banned', email: 'banned@test.local', banned: true };
+    const { status, body } = await whoami();
+    expect(status).toBe(401);
+    expect(body.code).toBe('UNAUTHORIZED');
   });
 });

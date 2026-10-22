@@ -4,43 +4,57 @@ import { adminUserStats, buildUserWhere, listAdminUsers } from '../../server/api
 import { db } from '../../server/db';
 import { account, loginLog, user } from '../../server/db/schema';
 import { devOverview } from '../../server/dev-overview';
+import { testUser } from '../support/accounts';
 
 const TAG = `au-${crypto.randomUUID().slice(0, 8)}`;
-const ids = [`${TAG}-alice`, `${TAG}-bob`, `${TAG}-carol`];
+const ids = [`${TAG}-alice`, `${TAG}-bob`, `${TAG}-carol`, `${TAG}-dave`];
 
 beforeAll(async () => {
   const old = new Date(Date.now() - 40 * 86_400_000);
-  await db.insert(user).values([
-    {
-      id: ids[0],
-      name: `Alice ${TAG}`,
-      email: `${ids[0]}@test.local`,
-      emailVerified: true,
-      role: 'admin',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      id: ids[1],
-      name: `Bob ${TAG}`,
-      email: `${ids[1]}@test.local`,
-      emailVerified: false,
-      role: null,
-      banned: true,
-      banReason: 'spam',
-      createdAt: old,
-      updatedAt: old,
-    },
-    {
-      id: ids[2],
-      name: `Carol ${TAG}`,
-      email: `${ids[2]}@test.local`,
-      emailVerified: false,
-      role: 'user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ]);
+  await db.insert(user).values(
+    [
+      {
+        id: ids[0],
+        name: `Alice ${TAG}`,
+        email: `${ids[0]}@test.local`,
+        emailVerified: true,
+        role: 'admin',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: ids[1],
+        name: `Bob ${TAG}`,
+        email: `${ids[1]}@test.local`,
+        emailVerified: false,
+        role: null,
+        banned: true,
+        banReason: 'spam',
+        createdAt: old,
+        updatedAt: old,
+      },
+      {
+        id: ids[2],
+        name: `Carol ${TAG}`,
+        email: `${ids[2]}@test.local`,
+        emailVerified: false,
+        role: 'member',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: ids[3],
+        name: `Dave ${TAG}`,
+        email: `${ids[3]}@test.local`,
+        emailVerified: false,
+        role: 'member',
+        approvalStatus: 'pending',
+        approvalReason: 'menunggu verifikasi',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ].map((u) => testUser(u)),
+  );
   await db.insert(loginLog).values([
     { userId: ids[0], ip: '1.1.1.1', method: 'email' },
     { userId: ids[0], ip: '1.1.1.1', method: 'google' },
@@ -65,7 +79,7 @@ afterAll(async () => {
 describe('listAdminUsers', () => {
   test('enriches rows with login count, last login and providers', async () => {
     const r = await listAdminUsers({ search: TAG, sort: 'name' });
-    expect(r.total).toBe(3);
+    expect(r.total).toBe(4);
     const alice = r.users.find((u) => u.id === ids[0]);
     expect(alice?.loginCount).toBe(2);
     // Same instant as the typed column (a zone-less raw string would shift by the TZ offset).
@@ -86,23 +100,35 @@ describe('listAdminUsers', () => {
 
   test('filters by role (null role counts as user), status and join period', async () => {
     expect(
-      (await listAdminUsers({ search: TAG, role: 'user' })).users.map((u) => u.id).sort(),
-    ).toEqual([ids[1], ids[2]].sort());
+      (await listAdminUsers({ search: TAG, role: 'member' })).users.map((u) => u.id).sort(),
+    ).toEqual([ids[1], ids[2], ids[3]].sort());
     expect((await listAdminUsers({ search: TAG, role: 'admin' })).users.map((u) => u.id)).toEqual([
       ids[0],
     ]);
     expect(
       (await listAdminUsers({ search: TAG, status: 'banned' })).users.map((u) => u.id),
     ).toEqual([ids[1]]);
-    expect((await listAdminUsers({ search: TAG, status: 'active' })).total).toBe(2);
-    expect((await listAdminUsers({ search: TAG, days: '7' })).total).toBe(2);
+    expect((await listAdminUsers({ search: TAG, status: 'active' })).total).toBe(3);
+    expect((await listAdminUsers({ search: TAG, days: '7' })).total).toBe(3);
+  });
+
+  test('returns the approval status and reason, and filters by approval', async () => {
+    const all = await listAdminUsers({ search: TAG });
+    expect(all.users.find((u) => u.id === ids[0])?.approvalStatus).toBe('approved');
+    const dave = all.users.find((u) => u.id === ids[3]);
+    expect(dave?.approvalStatus).toBe('pending');
+    expect(dave?.approvalReason).toBe('menunggu verifikasi');
+    const pending = await listAdminUsers({ search: TAG, approval: 'pending' });
+    expect(pending.users.map((u) => u.id)).toEqual([ids[3]]);
+    expect((await listAdminUsers({ search: TAG, approval: 'approved' })).total).toBe(3);
+    expect((await listAdminUsers({ search: TAG, approval: 'rejected' })).total).toBe(0);
   });
 
   test('sorts by last login with never-logged-in users last, and paginates', async () => {
     const r = await listAdminUsers({ search: TAG, sort: 'lastLogin' });
     expect(r.users[0].id).toBe(ids[0]);
     const p = await listAdminUsers({ search: TAG, limit: '2', page: '2', sort: 'name' });
-    expect(p.users.length).toBe(1);
+    expect(p.users.length).toBe(2);
     expect(p.page).toBe(2);
     expect(buildUserWhere({})).toBeUndefined();
   });
@@ -115,7 +141,8 @@ describe('adminUserStats / devOverview', () => {
     expect(s.admins).toBeGreaterThanOrEqual(1);
     expect(s.banned).toBeGreaterThanOrEqual(1);
     expect(s.verified).toBeGreaterThanOrEqual(1);
-    expect(s.new7d).toBeGreaterThanOrEqual(2);
+    expect(s.new7d).toBeGreaterThanOrEqual(3);
+    expect(s.pending).toBeGreaterThanOrEqual(1);
     expect(typeof s.active24h).toBe('number');
   });
 

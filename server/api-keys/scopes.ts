@@ -5,6 +5,7 @@
  * are never reachable with a key.
  */
 import { isAdminRole, normalizeRole, ROLES, type Role } from '../permissions';
+import { isPmKeyDenied } from './scopes.pm';
 
 export type Scope = (typeof SCOPES)[number]['id'];
 
@@ -49,7 +50,7 @@ export const SCOPES = [
     id: 'posts:write',
     label: 'Posts (tulis)',
     description: 'Buat, ubah, hapus post (baca selalu publik)',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
   {
     id: 'audit:read',
@@ -97,19 +98,19 @@ export const SCOPES = [
     id: 'me:read',
     label: 'Profil sendiri (baca)',
     description: 'Data dan riwayat login akun pemilik kunci',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
   {
     id: 'app:read',
     label: 'App (baca)',
     description: 'Endpoint produk /api/app/* — baca',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
   {
     id: 'app:write',
     label: 'App (tulis)',
     description: 'Endpoint produk /api/app/* — buat, ubah, hapus',
-    minRole: ROLES.USER,
+    minRole: ROLES.MEMBER,
   },
 ] as const;
 
@@ -119,7 +120,12 @@ export function isScope(v: string): v is Scope {
   return SCOPE_IDS.includes(v);
 }
 
-const ROLE_RANK: Record<Role, number> = { user: 0, admin: 1, 'super-admin': 2 };
+const ROLE_RANK: Record<Role, number> = {
+  member: 0,
+  project_manager: 1,
+  admin: 2,
+  'super-admin': 3,
+};
 
 /** A key can never grant more than its owner's role allows. */
 export function roleAllowsScope(role: unknown, scope: Scope): boolean {
@@ -133,6 +139,15 @@ export function scopesForRole(role: unknown): Scope[] {
 }
 
 const READ = new Set(['GET', 'HEAD']);
+
+// `/api/admin/users/:id/(approve|reject|role)` and everything under `/api/admin/invitations`.
+// Deliberately loose on the id segment (`.*`) so odd slashes in it can never fall through to `users:write`.
+const ACCOUNT_GRANT_ROUTE =
+  /^\/api\/admin\/(?:users\/.*\/(?:approve|reject|role)\/?$|invitations(?:\/|$))/i;
+
+function isAccountGrantRoute(pathname: string): boolean {
+  return ACCOUNT_GRANT_ROUTE.test(pathname);
+}
 
 /**
  * Required scope for an API route, or null when API keys may not call it.
@@ -155,6 +170,14 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/settings')) return read ? 'settings:read' : 'settings:write';
   if (p.startsWith('/api/analytics/purge')) return 'analytics:write';
   if (p.startsWith('/api/analytics')) return read ? 'analytics:read' : 'analytics:write';
+  // An API key may never approve, reject, re-role or invite accounts (K-7): that would let a leaked
+  // key mint access. Matched before the generic users rule below, whatever the method.
+  if (isAccountGrantRoute(p)) return null;
+  // The role matrix is a view of the settings, not of the user directory, and it is read-only:
+  // a key may read it with `settings:read`, and no method may ever write it.
+  if (p.startsWith('/api/admin/permissions-matrix')) return read ? 'settings:read' : null;
+  // Bulk CSV export of the whole directory (P11 §5): no scope may reach it, whatever the method.
+  if (p.startsWith('/api/admin/export')) return null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;
@@ -163,13 +186,16 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/ops/reset')) return null;
   if (p.startsWith('/api/ops')) return read ? 'ops:read' : null;
   if (p.startsWith('/api/me')) return read ? 'me:read' : null;
+  if (isPmKeyDenied(m, p)) return null; // D10: session-only PM routes, before the generic app:* rule
+  // POST /api/app/tasks/draft (AI draft, A1) lands here on purpose: it saves nothing but spends the
+  // provider quota, so a read-only key must not reach it. Its per-user rate limit applies to keys too.
   if (p.startsWith('/api/app/') || p === '/api/app') return read ? 'app:read' : 'app:write';
   if (p.startsWith('/api/posts')) return read ? null : 'posts:write';
   return null;
 }
 
 /**
- * Public reads (e.g. GET /api/posts, /api/demo, /api/hello, /api/version) need no scope but may still carry a key for tracking.
+ * Public reads (e.g. GET /api/posts, /api/hello, /api/version) need no scope but may still carry a key for tracking.
  * /api/openapi.json is listed so any valid key passes the plugin; its handler then rejects callers without a key.
  */
 export function isPublicRead(method: string, pathname: string): boolean {
@@ -177,7 +203,6 @@ export function isPublicRead(method: string, pathname: string): boolean {
     READ.has(method.toUpperCase()) &&
     (pathname.startsWith('/api/posts') ||
       pathname.startsWith('/api/storage/avatars/') ||
-      pathname === '/api/demo' ||
       pathname === '/api/hello' ||
       pathname === '/api/version' ||
       pathname === '/api/openapi.json')

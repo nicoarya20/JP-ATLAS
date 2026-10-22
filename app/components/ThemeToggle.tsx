@@ -29,7 +29,7 @@ export function ThemeToggle({ collapsed = false }: { collapsed?: boolean }) {
               onClick={toggle}
               aria-label="Ganti ke mode terang"
             >
-              <FiSun size={16} />
+              <FiSun size="1.25em" />
             </ActionIcon>
           </Tooltip>
         </span>
@@ -42,7 +42,7 @@ export function ThemeToggle({ collapsed = false }: { collapsed?: boolean }) {
               onClick={toggle}
               aria-label="Ganti ke mode gelap"
             >
-              <FiMoon size={16} />
+              <FiMoon size="1.25em" />
             </ActionIcon>
           </Tooltip>
         </span>
@@ -57,7 +57,7 @@ export function ThemeToggle({ collapsed = false }: { collapsed?: boolean }) {
           fullWidth
           variant="default"
           size="xs"
-          leftSection={<FiSun size={16} />}
+          leftSection={<FiSun size="1.25em" />}
           onClick={toggle}
         >
           Light mode
@@ -68,7 +68,7 @@ export function ThemeToggle({ collapsed = false }: { collapsed?: boolean }) {
           fullWidth
           variant="default"
           size="xs"
-          leftSection={<FiMoon size={16} />}
+          leftSection={<FiMoon size="1.25em" />}
           onClick={toggle}
         >
           Dark mode

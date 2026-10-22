@@ -144,7 +144,7 @@ function ProxyGuide({ health }: { health: ProxyHealth }) {
 export function ProxySetupBanner({ health }: { health: ProxyHealth }) {
   const [opened, { open, close }] = useDisclosure(false);
   const [dismissed, setDismissed] = useLocalStorage<number>({
-    key: 'makuro:proxy-banner-dismissed',
+    key: 'simple-pm:proxy-banner-dismissed',
     defaultValue: 0,
   });
   if (dismissed === health.bootId) return null;

@@ -4,18 +4,18 @@
 #   curl -fsSL https://raw.githubusercontent.com/bipprojectbali/makuro-template/main/install.sh | sh
 #
 # Env overrides:
-#   MAKURO_REPO           owner/repo publishing releases   (default below)
-#   MAKURO_VERSION        release tag, e.g. v0.1.0          (default: latest)
-#   MAKURO_INSTALL_DIR    target directory                  (default: $HOME/.local/bin)
-#   MAKURO_DOWNLOAD_BASE  base URL holding the assets       (mirrors/tests; overrides repo+version)
+#   SIMPLE_PM_REPO           owner/repo publishing releases   (default below)
+#   SIMPLE_PM_VERSION        release tag, e.g. v0.1.0          (default: latest)
+#   SIMPLE_PM_INSTALL_DIR    target directory                  (default: $HOME/.local/bin)
+#   SIMPLE_PM_DOWNLOAD_BASE  base URL holding the assets       (mirrors/tests; overrides repo+version)
 set -eu
 
 # Must equal "name" in package.json — release assets are <BIN_NAME>-<os>-<arch>.
-BIN_NAME="makuro-template"
+BIN_NAME="simple-pm"
 
-REPO="${MAKURO_REPO:-bipprojectbali/makuro-template}"
-VERSION="${MAKURO_VERSION:-}"
-INSTALL_DIR="${MAKURO_INSTALL_DIR:-$HOME/.local/bin}"
+REPO="${SIMPLE_PM_REPO:-bipprojectbali/makuro-template}"
+VERSION="${SIMPLE_PM_VERSION:-}"
+INSTALL_DIR="${SIMPLE_PM_INSTALL_DIR:-$HOME/.local/bin}"
 
 fail() {
   echo "error: $*" >&2
@@ -34,8 +34,8 @@ case "$(uname -m)" in
 esac
 
 asset="${BIN_NAME}-${os}-${arch}"
-if [ -n "${MAKURO_DOWNLOAD_BASE:-}" ]; then
-  base="${MAKURO_DOWNLOAD_BASE%/}"
+if [ -n "${SIMPLE_PM_DOWNLOAD_BASE:-}" ]; then
+  base="${SIMPLE_PM_DOWNLOAD_BASE%/}"
 elif [ -n "$VERSION" ]; then
   base="https://github.com/${REPO}/releases/download/${VERSION}"
 else

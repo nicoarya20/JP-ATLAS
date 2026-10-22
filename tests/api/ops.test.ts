@@ -1,22 +1,21 @@
-import { afterAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({
-    user: { id: 'u-test', email: 'u-test@test.local' },
-    role: 'super-admin',
-  }),
-}));
-
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { opsApi, RESET_TARGETS } from '../../server/api/ops';
 import { db } from '../../server/db';
 import { auditLog } from '../../server/db/schema';
 import { env } from '../../server/env';
 import { logBuffer } from '../../server/mcp/log-buffer';
 import { rateLimiter } from '../../server/middleware/rate-limiter';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(opsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', email: 'u-test@test.local', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
+
 async function call(path: string, init?: RequestInit) {
   const res = await app.handle(new Request(`http://localhost${path}`, init));
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
@@ -40,7 +39,7 @@ describe('ops API', () => {
   });
   test('status reports trusted-proxy config and the IP the server sees', async () => {
     const { body } = await call('/ops/status', {
-      headers: { 'x-makuro-client-ip': '172.68.1.1', 'x-forwarded-for': '198.51.100.7' },
+      headers: { 'x-simple-pm-client-ip': '172.68.1.1', 'x-forwarded-for': '198.51.100.7' },
     });
     expect(body.proxy).toMatchObject({
       trustedEntries: env.TRUSTED_PROXIES.length,

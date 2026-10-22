@@ -11,10 +11,13 @@ export function AvatarField({
   image,
   name,
   onChanged,
+  uploadLabel = 'Unggah foto',
 }: {
   image: string | null;
   name: string;
   onChanged: () => void;
+  /** Text of the pick button; the edit screen says "Ganti foto". */
+  uploadLabel?: string;
 }) {
   const fail = (title: string) => (e: Error) =>
     notifications.show({ color: 'red', title, message: e.message });
@@ -72,14 +75,13 @@ export function AvatarField({
         <Group gap="xs" wrap="wrap">
           <FileButton onChange={pick} accept={AVATAR_ACCEPT} disabled={busy}>
             {(props) => (
-              <Button {...props} size="sm" variant="light" loading={upload.isPending}>
-                Unggah foto
+              <Button {...props} variant="light" loading={upload.isPending}>
+                {uploadLabel}
               </Button>
             )}
           </FileButton>
           {image && (
             <Button
-              size="sm"
               variant="subtle"
               color="red"
               onClick={confirmRemove}

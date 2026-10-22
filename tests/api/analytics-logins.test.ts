@@ -1,17 +1,19 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({ user: { id: 'u-test' }, role: 'super-admin' }),
-}));
-
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { analyticsApi } from '../../server/api/analytics';
 import { buildLoginWhere, listLogins, toLoginCsv } from '../../server/api/analytics-logins.query';
 import { db } from '../../server/db';
 import { loginLog, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(analyticsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
 
 async function get(path: string, params: Record<string, string> = {}) {
   const url = new URL(`http://localhost${path}`);
@@ -34,15 +36,19 @@ type Row = {
   userName: string | null;
 };
 
-beforeAll(async () => {
-  await db.insert(user).values({
-    id: userId,
-    name: `Login Tester ${TAG}`,
-    email: `${userId}@test.local`,
-    emailVerified: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+// Per test: the bulk DELETE test removes seeded rows that the other tests count.
+beforeEach(async () => {
+  ids.length = 0;
+  await db.insert(user).values(
+    testUser({
+      id: userId,
+      name: `Login Tester ${TAG}`,
+      email: `${userId}@test.local`,
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   const rows = await db
     .insert(loginLog)
     .values([
@@ -77,7 +83,7 @@ beforeAll(async () => {
   ids.push(...rows.map((r) => r.id));
 });
 
-afterAll(async () => {
+afterEach(async () => {
   // user cascade removes remaining login rows
   await db
     .delete(user)

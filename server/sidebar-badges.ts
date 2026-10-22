@@ -30,6 +30,12 @@ const nf = new Intl.NumberFormat('id-ID');
 const last24h = (col: unknown) =>
   sql<number>`count(*) filter (where ${col} >= now() - interval '24 hours')::int`;
 
+/** Real accounts still waiting for an Admin decision (same definition as the /dashboard/users queue). */
+const pendingCount = sql<number>`count(*) filter (where ${realUser} and ${user.approvalStatus} = 'pending')::int`;
+
+/** Route of the approval queue; shared by the /dev sidebar link and the Admin menu badge. */
+export const APPROVAL_QUEUE_ROUTE = '/dashboard/users';
+
 const alert = (value: number, color: string, tooltip: string): SidebarBadge => ({
   value,
   color,
@@ -52,6 +58,21 @@ async function safe<T>(fallback: T, run: () => Promise<T>): Promise<T> {
   }
 }
 
+type UserCounts = { total: number; banned: number; pending: number };
+const NO_USERS: UserCounts = { total: 0, banned: 0, pending: 0 };
+
+/** Pending approvals outrank "blocked" because they wait on a person; none pending keeps the old badge. */
+export function usersBadge(u: UserCounts): SidebarBadge {
+  if (u.pending > 0) return pendingBadge(u.pending);
+  return u.banned > 0
+    ? alert(u.banned, 'orange', `${nf.format(u.banned)} user sedang diblokir`)
+    : info(u.total, `${nf.format(u.total)} user terdaftar`);
+}
+
+function pendingBadge(n: number): SidebarBadge {
+  return alert(n, 'orange', `${nf.format(n)} akun menunggu persetujuan`);
+}
+
 async function collect(): Promise<SidebarBadges> {
   const [
     users,
@@ -67,15 +88,15 @@ async function collect(): Promise<SidebarBadges> {
     settings,
     changelog,
   ] = await Promise.all([
-    safe({ total: 0, banned: 0, demo: 0 }, async () => {
+    safe(NO_USERS, async () => {
       const [r] = await db
         .select({
           total: sql<number>`count(*) filter (where ${realUser})::int`,
           banned: sql<number>`count(*) filter (where ${realUser} and ${user.banned} = true)::int`,
-          demo: sql<number>`count(*) filter (where ${user.isAnonymous} = true)::int`,
+          pending: pendingCount,
         })
         .from(user);
-      return r ?? { total: 0, banned: 0, demo: 0 };
+      return r ?? NO_USERS;
     }),
     safe({ active: 0, impersonated: 0 }, async () => {
       const [r] = await db
@@ -126,10 +147,7 @@ async function collect(): Promise<SidebarBadges> {
     : [];
 
   const badges: SidebarBadges = {
-    '/dev/users':
-      users.banned > 0
-        ? alert(users.banned, 'orange', `${nf.format(users.banned)} user sedang diblokir`)
-        : info(users.total, `${nf.format(users.total)} user terdaftar`),
+    '/dev/users': usersBadge(users),
     '/dev/sessions':
       sessions.impersonated > 0
         ? alert(
@@ -155,18 +173,16 @@ async function collect(): Promise<SidebarBadges> {
         ? alert(errors, 'red', `${nf.format(errors)} error dalam 1 jam terakhir`)
         : alert(warnings, 'yellow', `${nf.format(warnings)} warning dalam 1 jam terakhir`),
     '/dev/settings': settingsIssues.length
-      ? alert(
-          settingsIssues.length,
-          'orange',
-          `Perlu perhatian: ${settingsIssues.join(', ')} · ${nf.format(users.demo)} user demo aktif`,
-        )
-      : info(users.demo, `${nf.format(users.demo)} user demo aktif`),
+      ? alert(settingsIssues.length, 'orange', `Perlu perhatian: ${settingsIssues.join(', ')}`)
+      : info(0, 'Tidak ada pengaturan yang perlu perhatian'),
     '/dev/tools': alert(
       env.MCP_ADMIN_TOKEN ? 1 : 0,
       'orange',
       'Token MCP bersama (MCP_ADMIN_TOKEN) masih aktif — pindah ke API key ber-scope mcp lalu hapus env-nya',
     ),
   };
+  // Same count feeds the "Antrean persetujuan" link in the /dev "Area lain" menu; no extra query.
+  if (users.pending > 0) badges[APPROVAL_QUEUE_ROUTE] = pendingBadge(users.pending);
   if (keys)
     badges['/dev/api-keys'] =
       keys.expiringSoon > 0
@@ -210,4 +226,17 @@ export function devSidebarBadges(opts: { fresh?: boolean } = {}): Promise<Sideba
   const value = collect().catch(() => ({}) as SidebarBadges);
   cache = { at: now, value };
   return value;
+}
+
+/**
+ * Badges for the Admin sidebar (/dashboard/users). Runs only the pending count, never the /dev
+ * sources, and is not cached: an Admin approves from that page and the badge must drop at once.
+ * Fails soft: any error means no badge and navigation keeps working.
+ */
+export async function adminSidebarBadges(): Promise<SidebarBadges> {
+  const pending = await safe(0, async () => {
+    const [r] = await db.select({ n: pendingCount }).from(user);
+    return r?.n ?? 0;
+  });
+  return pending > 0 ? { [APPROVAL_QUEUE_ROUTE]: pendingBadge(pending) } : {};
 }

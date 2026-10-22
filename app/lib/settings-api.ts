@@ -98,8 +98,6 @@ export type BrandingSettings = {
   supportUrl: string | null;
 };
 export type Branding = { appName: string; appTagline: string; supportUrl: string | null };
-export type DemoSettings = { enabled: boolean; ttlHours: number | null };
-export type DemoDefaults = { ttlHours: number; maxTtlHours: number };
 
 export type SettingsOverviewFull = SettingsOverview & {
   retention: RetentionState;
@@ -108,7 +106,6 @@ export type SettingsOverviewFull = SettingsOverview & {
   };
   features: FeatureFlag[];
   branding: { settings: BrandingSettings; defaults: Branding; effective: Branding };
-  demo: DemoSettings & { defaults: DemoDefaults };
 };
 
 export const fetchSettingsOverviewFull = () => request<SettingsOverviewFull>(`${BASE}/all`);
@@ -122,7 +119,6 @@ export const saveFeatureFlags = (flags: FeatureFlag[]) =>
   request<{ flags: FeatureFlag[] }>(`${BASE}/features`, json('PUT', { flags }));
 export const saveBranding = (s: BrandingSettings) =>
   request<BrandingSettings>(`${BASE}/branding`, json('PUT', s));
-export const saveDemo = (s: DemoSettings) => request<DemoSettings>(`${BASE}/demo`, json('PUT', s));
 
 export function sameRetention(a: RetentionSettings, b: RetentionSettings): boolean {
   return (

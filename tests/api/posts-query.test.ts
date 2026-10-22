@@ -1,4 +1,13 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  spyOn,
+  test,
+} from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { postsApi } from '../../server/api/posts';
@@ -9,13 +18,18 @@ import { auditLog, post, user } from '../../server/db/schema';
 import * as guardMod from '../../server/guard';
 import { ROLES } from '../../server/permissions';
 import * as rolesMod from '../../server/roles';
+import { testUser } from '../support/accounts';
 
 type Actor = { id: string; email: string } | null;
 const ctx: { actor: Actor; role: string | null } = { actor: null, role: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
-    ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => (ctx.role ?? 'user') as 'user'),
+    ctx.actor
+      ? { user: { approvalStatus: 'approved', ...ctx.actor } }
+      : null) as unknown as typeof auth.api.getSession),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(
+    async () => (ctx.role ?? 'member') as 'member',
+  ),
 ];
 const app = new Elysia().use(postsApi);
 const TAG = `pq-${crypto.randomUUID().slice(0, 8)}`;
@@ -49,15 +63,21 @@ const titles = (rows: { title: string }[]) => rows.map((r) => r.title.slice(TAG.
 
 beforeAll(async () => {
   for (const id of [author, admin])
-    await db.insert(user).values({
-      id,
-      name: id,
-      email: `${id}@test.local`,
-      emailVerified: false,
-      role: id === admin ? 'admin' : 'user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id,
+        name: id,
+        email: `${id}@test.local`,
+        emailVerified: false,
+        role: id === admin ? 'admin' : 'member',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
+});
+
+// Posts per test: the admin-edit test renames post A, which the sort and pagination tests expect to keep its title.
+beforeEach(async () => {
   for (const s of seeds) {
     const [row] = await db
       .insert(post)
@@ -67,10 +87,13 @@ beforeAll(async () => {
   }
 });
 
-afterAll(async () => {
-  for (const s of spies) s.mockRestore();
+afterEach(async () => {
   await db.delete(auditLog).where(eq(auditLog.actorId, admin));
   await db.delete(post).where(eq(post.authorId, author));
+});
+
+afterAll(async () => {
+  for (const s of spies) s.mockRestore();
   await db.delete(user).where(inArray(user.id, [author, admin]));
 });
 
@@ -115,8 +138,8 @@ describe('postStats', () => {
 });
 
 describe('GET /posts/stats', () => {
-  // Asserts the contract (route demands super-admin), not guard internals: other test
-  // files mock.module the guard process-wide; requireRole's rejection is covered in guard.test.ts.
+  // Asserts the contract (route demands super-admin), not guard internals:
+  // requireRole's rejection is covered in guard.test.ts.
   test('is gated to super-admin', async () => {
     const gate = spyOn(guardMod, 'requireRole');
     try {

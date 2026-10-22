@@ -32,11 +32,13 @@ export function pickChecksum(text: string, asset: string): string {
 }
 
 function downloadBase(): string {
-  return process.env.MAKURO_DOWNLOAD_BASE ?? `https://github.com/${RELEASE_REPO}/releases/download`;
+  return (
+    process.env.SIMPLE_PM_DOWNLOAD_BASE ?? `https://github.com/${RELEASE_REPO}/releases/download`
+  );
 }
 
 function apiBase(): string {
-  return process.env.MAKURO_API_BASE ?? 'https://api.github.com';
+  return process.env.SIMPLE_PM_API_BASE ?? 'https://api.github.com';
 }
 
 async function fetchOk(url: string): Promise<Response> {

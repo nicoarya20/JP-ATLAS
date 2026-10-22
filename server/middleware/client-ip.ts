@@ -13,7 +13,7 @@ import { logger } from '../logger';
 import { catchAllProxyEntries, createProxyMatcher, type ProxyMatcher } from './trusted-proxy';
 
 /** Set by the HTTP servers; always overwritten, never trusted from the wire. */
-export const CLIENT_IP_HEADER = 'x-makuro-client-ip';
+export const CLIENT_IP_HEADER = 'x-simple-pm-client-ip';
 
 const envTrustedProxies = createProxyMatcher(env.TRUSTED_PROXIES);
 

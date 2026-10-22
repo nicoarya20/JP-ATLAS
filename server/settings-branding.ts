@@ -9,7 +9,7 @@ export type BrandingSettings = {
 };
 
 export const BRANDING_DEFAULTS: Branding = {
-  appName: 'Makuro',
+  appName: 'Simple PM',
   appTagline: 'Fullstack Template',
   supportUrl: null,
 };

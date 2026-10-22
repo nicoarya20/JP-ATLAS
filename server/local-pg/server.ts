@@ -30,20 +30,20 @@ const POLL_MS = 100;
 const STDERR_TAIL = 8_192;
 const SOCKET_PATH_MAX = 103; // macOS sun_path is 104 bytes including the NUL
 
-const g = globalThis as typeof globalThis & { __makuroLocalPg?: Promise<LocalPg> };
+const g = globalThis as typeof globalThis & { __simplePmLocalPg?: Promise<LocalPg> };
 
 /** Start (or reuse) the local cluster; resolves once it accepts connections and the app database exists. */
 export function startLocalPg(opts: StartLocalPgOptions = {}): Promise<LocalPg> {
-  g.__makuroLocalPg ??= boot(opts).catch((err) => {
-    g.__makuroLocalPg = undefined;
+  g.__simplePmLocalPg ??= boot(opts).catch((err) => {
+    g.__simplePmLocalPg = undefined;
     throw err;
   });
-  return g.__makuroLocalPg;
+  return g.__simplePmLocalPg;
 }
 
 /** Stop the cluster started by this process, if any. */
 export async function stopLocalPg(): Promise<void> {
-  const running = g.__makuroLocalPg;
+  const running = g.__simplePmLocalPg;
   if (running) await (await running).stop();
 }
 
@@ -184,7 +184,7 @@ export async function boot(opts: StartLocalPgOptions): Promise<LocalPg> {
       }
     }
     releaseOwner(data);
-    g.__makuroLocalPg = undefined;
+    g.__simplePmLocalPg = undefined;
   };
 
   const adminUrl = localDatabaseUrl(port, 'postgres', sockDir);

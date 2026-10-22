@@ -9,9 +9,10 @@
  *  4. redirectToHome with valid session → throws redirect to role home
  *  5. redirectToHome with no session → throws redirect to /login
  */
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import { api } from '../server/api';
+import { auth } from '../server/auth';
 import { db } from '../server/db';
 import { loginLog, user } from '../server/db/schema';
 import { redirectToHome } from '../server/guard';
@@ -60,6 +61,11 @@ beforeAll(async () => {
   sessionCookie = cookieHeader(rawCookies);
 });
 
+// One test approves the account; the pending-state tests must see the freshly signed-up state whatever ran first.
+beforeEach(async () => {
+  await db.update(user).set({ approvalStatus: 'pending' }).where(eq(user.email, TEST_EMAIL));
+});
+
 afterAll(async () => {
   await db
     .delete(user)
@@ -94,6 +100,21 @@ describe('POST /api/auth/sign-up/email', () => {
     // At least one cookie must be set (session)
     expect(cookies.length).toBeGreaterThan(0);
     expect(cookies.some((c) => c.toLowerCase().includes('session'))).toBe(true);
+  });
+
+  test('new email accounts start as pending members (safe default until the sign-up hook)', async () => {
+    const [row] = await db.select().from(user).where(eq(user.email, TEST_EMAIL));
+    expect(row.approvalStatus).toBe('pending');
+    expect(row.role).toBe('member');
+    expect(row.approvalDecidedBy).toBeNull();
+    expect(row.approvalDecidedAt).toBeNull();
+  });
+
+  test('exposes approvalStatus on the session user', async () => {
+    const session = await auth.api.getSession({ headers: new Headers({ cookie: sessionCookie }) });
+    // Typed access: fails typecheck if additionalFields stop flowing into session.user.
+    const status: string | null | undefined = session?.user.approvalStatus;
+    expect(status).toBe('pending');
   });
 
   test('rejects duplicate email with 4xx', async () => {
@@ -182,9 +203,21 @@ describe('redirectToHome', () => {
     }
   });
 
-  test('authenticated request redirects to role home (not /login)', async () => {
-    // Use the session cookie captured in beforeAll
+  test('a freshly signed-up (pending) account is held at /waiting, not sent to a role home', async () => {
     expect(sessionCookie).toBeTruthy();
+    const req = new Request('http://localhost/go', { headers: { cookie: sessionCookie } });
+    try {
+      await redirectToHome(req);
+      expect(true).toBe(false); // must have thrown
+    } catch (e) {
+      expect((e as Response).headers.get('location')).toBe('/waiting');
+    }
+  });
+
+  test('authenticated request redirects to role home (not /login)', async () => {
+    // Use the session cookie captured in beforeAll; sign-up leaves the account pending, so approve it first.
+    expect(sessionCookie).toBeTruthy();
+    await db.update(user).set({ approvalStatus: 'approved' }).where(eq(user.email, TEST_EMAIL));
     const req = new Request('http://localhost/go', {
       headers: { cookie: sessionCookie },
     });

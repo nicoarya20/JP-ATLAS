@@ -5,6 +5,8 @@ import { stopLocalS3 } from '../server/local-s3/server';
 import { prepareTestStorage } from '../server/local-s3/test-storage';
 
 process.env.NODE_ENV = 'test';
+// Tests must not depend on a developer's .env secret; any non-empty value passes outside production.
+process.env.BETTER_AUTH_SECRET ||= 'test-only-secret-not-for-production'; // test-only
 await prepareTestDb();
 await prepareTestStorage();
 // bun test fires no 'exit' event, so boot's exit hooks cannot stop a Postgres/RustFS this run started; reused ones are untouched.

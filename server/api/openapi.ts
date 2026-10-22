@@ -58,7 +58,7 @@ export function specForKey(base: BaseSpec, key: Pick<ApiKeyIdentity, 'scopes' | 
       ...base.components,
       securitySchemes: {
         apiKeyHeader: { type: 'apiKey', in: 'header', name: 'X-API-Key' },
-        bearer: { type: 'http', scheme: 'bearer', bearerFormat: 'mk_live_…' },
+        bearer: { type: 'http', scheme: 'bearer', bearerFormat: 'sp_live_…' },
       },
     },
     paths,
@@ -73,7 +73,7 @@ export function openapiApi(getApp: () => AnyElysia) {
     if (!key)
       return status(401, {
         error:
-          'Spec OpenAPI butuh API key. Kirim header X-API-Key: mk_live_… atau Authorization: Bearer mk_live_….',
+          'Spec OpenAPI butuh API key. Kirim header X-API-Key: sp_live_… atau Authorization: Bearer sp_live_….',
         code: 'API_KEY_REQUIRED',
       });
     // Routes are fixed once the server has booted, so the generated base is built once.

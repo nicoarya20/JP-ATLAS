@@ -31,14 +31,14 @@ describe('systemd unit', () => {
   });
 
   test('writes <name>.service into cwd for the current user', async () => {
-    dir = await mkdtemp(path.join(os.tmpdir(), 'makuro-unit-'));
+    dir = await mkdtemp(path.join(os.tmpdir(), 'simple-pm-unit-'));
     const file = await writeSystemdUnit({ execPath: '/opt/app/bin', cwd: dir, user: 'deploy' });
     expect(file).toBe(path.join(dir, `${PKG_NAME}.service`));
     expect(await Bun.file(file).text()).toContain('User=deploy');
   });
 
   test('refuses root', async () => {
-    dir = await mkdtemp(path.join(os.tmpdir(), 'makuro-unit-'));
+    dir = await mkdtemp(path.join(os.tmpdir(), 'simple-pm-unit-'));
     await expect(writeSystemdUnit({ execPath: '/x', cwd: dir, user: 'root' })).rejects.toThrow(
       /root/,
     );

@@ -5,6 +5,8 @@
  */
 import { eq } from 'drizzle-orm';
 import { Elysia } from 'elysia';
+import { accountGateResponse } from '../account/gate';
+import { heldKindOf } from '../account/status';
 import { API_KEY_PREFIX, auth } from '../auth';
 import { db } from '../db';
 import { apikey, user } from '../db/schema';
@@ -97,13 +99,22 @@ export function apiKeyPlugin() {
             email: user.email,
             name: user.name,
             role: user.role,
+            emailVerified: user.emailVerified,
             banned: user.banned,
+            banExpires: user.banExpires,
+            approvalStatus: user.approvalStatus,
           })
           .from(user)
           .where(eq(user.id, verified.key.referenceId))
           .limit(1);
         if (!owner) return deny(401, 'Pemilik API key tidak ditemukan', { code: 'OWNER_MISSING' });
-        if (owner.banned) return deny(403, 'Pemilik API key diblokir', { code: 'OWNER_BANNED' });
+        // Held owners (suspended, pending, rejected) lose their keys' access at once. A ban
+        // that has expired no longer counts, so the key works again without a restore step.
+        const held = heldKindOf(owner);
+        if (held === 'banned')
+          return deny(403, 'Pemilik API key diblokir', { code: 'OWNER_BANNED' });
+        const gate = held && accountGateResponse({ kind: held });
+        if (gate) return deny(403, gate.error, { code: gate.code });
         const role = await resolveUserRole(owner);
         if (scope && !roleAllowsScope(role, scope as Scope))
           return deny(403, 'Role pemilik kunci tidak mengizinkan scope ini', {

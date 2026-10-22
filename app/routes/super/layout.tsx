@@ -21,7 +21,6 @@ import {
   FiTag,
   FiTerminal,
   FiTool,
-  FiUser,
   FiUsers,
 } from 'react-icons/fi';
 import { Outlet } from 'react-router';
@@ -32,7 +31,7 @@ import type { AppContext } from '~/lib/app-context';
 import type { Route } from './+types/layout';
 
 export function meta(_: Route.MetaArgs) {
-  return [{ title: 'Dev Console — Makuro' }];
+  return [{ title: 'Dev Console — Simple PM' }];
 }
 
 const NAV: NavGroup[] = [
@@ -146,10 +145,12 @@ const NAV: NavGroup[] = [
     ],
   },
 ];
-const OTHER: NavItem[] = [
+// "Area lain" lists the three areas minus the one open here (Super-admin), always in the same
+// order: App, Admin, Super-admin. The approval queue is no longer a deep link from here — its
+// badge stays on the Admin area's Pengguna menu — and account settings sit in the avatar menu.
+export const OTHER: NavItem[] = [
   { to: '/app', label: 'App', icon: FiLayers },
-  { to: '/dashboard', label: 'Dashboard', icon: FiHome },
-  { to: '/profile', label: 'Profile', icon: FiUser },
+  { to: '/dashboard', label: 'Admin', icon: FiHome },
 ];
 
 export async function loader({ request }: Route.LoaderArgs) {

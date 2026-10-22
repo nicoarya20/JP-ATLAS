@@ -18,7 +18,7 @@ import {
 import type { Route } from './+types/home';
 
 export function meta({ loaderData }: Route.MetaArgs) {
-  const name = loaderData?.branding.appName ?? 'Makuro';
+  const name = loaderData?.branding.appName ?? 'Simple PM';
   const tagline = loaderData?.branding.appTagline ?? 'Fullstack Template';
   const title = `${name} — ${tagline}`;
   const url = `${loaderData?.siteUrl ?? ''}/`;

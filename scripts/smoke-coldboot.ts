@@ -3,7 +3,7 @@
  * exactly as a fresh install would — `init --yes --db=local` → `doctor --json` →
  * `start` → black-box checks → shutdown, then verify the child Postgres stopped.
  *
- *   bun scripts/smoke-coldboot.ts ./makuro-template
+ *   bun scripts/smoke-coldboot.ts ./simple-pm
  *
  * HOME/XDG_CACHE_HOME are kept so the Postgres binaries cache is reused between runs.
  */

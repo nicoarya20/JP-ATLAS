@@ -1,13 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { redirect } from 'react-router';
+import { accountGateResponse } from './account/gate';
+import { type AccountStatusFields, type HeldKind, heldKindOf } from './account/status';
 import { getApiKeyIdentity } from './api-keys/identity';
 import { auth } from './auth';
-import { isBanActive } from './ban';
 import { db } from './db';
 import { user as userTable } from './db/schema';
 import { homeFor, ROLES, type Role } from './permissions';
 import { resolveUserRole } from './roles';
-import { isDemoExpired } from './settings-demo';
 
 /**
  * Layout guard for strict per-role areas. Enforces an authenticated session and
@@ -41,28 +41,61 @@ export function hadSessionCookie(request: Request): boolean {
   return SESSION_COOKIE.test(request.headers.get('cookie') ?? '');
 }
 
-const bannedRequests = new WeakMap<Request, SessionUser>();
-/** The banned session user behind a request that resolveActor rejected, if any. */
+type SessionUser = (typeof auth)['$Infer']['Session']['user'];
+/** An authenticated account that may not proceed: suspended, pending or rejected. */
+export type HeldAccount = { user: SessionUser; kind: HeldKind };
+
+const heldRequests = new WeakMap<Request, HeldAccount>();
+/** The held account behind a request that resolveActor rejected, if any. */
+export function getHeldAccount(request: Request): HeldAccount | null {
+  return heldRequests.get(request) ?? null;
+}
+/** The banned session user behind a rejected request, if any (kept for older callers). */
 export function getBannedUser(request: Request): SessionUser | null {
-  return bannedRequests.get(request) ?? null;
+  const held = getHeldAccount(request);
+  return held?.kind === 'banned' ? held.user : null;
 }
 
 /**
- * Where an unauthenticated page request goes: banned users to /banned, users
- * whose session just vanished to /login with a notice, everyone else to /login.
+ * Where an unauthenticated page request goes: banned users to /banned, pending
+ * or rejected accounts to /waiting, users whose session just vanished to /login
+ * with a notice, everyone else to /login.
  */
 export function signedOutTarget(request: Request): string {
-  if (getBannedUser(request)) return '/banned';
+  const kind = getHeldAccount(request)?.kind;
+  if (kind === 'banned') return '/banned';
+  if (kind) return '/waiting';
   return hadSessionCookie(request) ? '/login?notice=session' : '/login';
 }
 
-type SessionUser = (typeof auth)['$Infer']['Session']['user'];
-/** `isDemo`: a temporary anonymous demo visitor (see server/demo). */
-export type Actor = { user: SessionUser; role: Role; viaApiKey: boolean; isDemo: boolean };
+/** `impersonatedBy`: id of the admin driving the session. */
+export type Actor = {
+  user: SessionUser;
+  role: Role;
+  viaApiKey: boolean;
+  impersonatedBy: string | null;
+};
 
 /**
- * Who is calling: an API-key identity (set by the api-key plugin, scope
- * already enforced) or the cookie session. Null when anonymous.
+ * Throws a JSON Response when the account behind `actor` is held. resolveActor
+ * already returns null for those; this guards Actors built some other way (S0.b).
+ */
+export function assertAccountApproved(actor: { user: AccountStatusFields }): void {
+  const kind = heldKindOf(actor.user);
+  if (!kind) return;
+  const gate = accountGateResponse({ kind });
+  // A banned account has no 403 code of its own (X3 M18): it answers like a signed-out caller.
+  const body = gate ?? { error: 'Silakan masuk terlebih dahulu.', code: 'UNAUTHORIZED' };
+  throw new Response(JSON.stringify(body), {
+    status: gate ? 403 : 401,
+    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+  });
+}
+
+/**
+ * Who is calling: an API-key identity (scope already enforced) or the cookie
+ * session. Null when anonymous, and null for a held account on both paths so no
+ * guard can let one through by forgetting to check (reason: getHeldAccount).
  */
 export async function resolveActor(request: Request): Promise<Actor | null> {
   const key = getApiKeyIdentity(request);
@@ -70,28 +103,33 @@ export async function resolveActor(request: Request): Promise<Actor | null> {
     // Full row so callers (layouts, admin API) see the same shape as a session user.
     const [row] = await db.select().from(userTable).where(eq(userTable.id, key.user.id)).limit(1);
     if (!row) return null;
+    const user = row as unknown as SessionUser;
+    const kind = heldKindOf(row);
+    if (kind) {
+      heldRequests.set(request, { user, kind });
+      return null;
+    }
     return {
-      user: row as unknown as SessionUser,
+      user,
       role: key.role,
       viaApiKey: true,
-      isDemo: Boolean(row.isAnonymous),
+      impersonatedBy: null,
     };
   }
   const session = await auth.api.getSession({ headers: request.headers });
   if (!session) return null;
-  // Better Auth only blocks *new* sessions for banned users; an existing session
-  // must be rejected here so a ban applies immediately everywhere.
-  if (isBanActive(session.user as SessionUser & { banned?: boolean | null })) {
-    bannedRequests.set(request, session.user);
+  // Better Auth only blocks *new* sessions for banned users and ignores approval, so
+  // an existing session is held here; status is fresh per request (no cookieCache).
+  const kind = heldKindOf(session.user as AccountStatusFields);
+  if (kind) {
+    heldRequests.set(request, { user: session.user, kind });
     return null;
   }
-  // The hourly purge lags; an expired demo session must stop working at the TTL.
-  if (session.user.isAnonymous && (await isDemoExpired(session.user.createdAt))) return null;
   return {
     user: session.user,
     role: await resolveUserRole(session.user),
     viaApiKey: false,
-    isDemo: Boolean(session.user.isAnonymous),
+    impersonatedBy: session.session?.impersonatedBy ?? null,
   };
 }
 

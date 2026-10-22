@@ -1,153 +1,94 @@
+/**
+ * Admin console API (`/api/admin/*`): user directory, role changes and deletion.
+ * Authority comes from `access/user.policy` (via `admin-context`), not from
+ * Better Auth's admin endpoints; moderation lives in `admin-moderation`.
+ */
 import { eq } from 'drizzle-orm';
 import { Elysia, t } from 'elysia';
+import { canActOnUser, canSetUserRole } from '../access/user.policy';
 import { AUDIT_ACTIONS, audit } from '../audit';
 import { auth } from '../auth';
 import { db } from '../db';
 import { user as userTable } from '../db/schema';
-import { resolveActor } from '../guard';
-import {
-  canActOnTarget,
-  canSetRole,
-  isAdminRole,
-  isAssignableRole,
-  normalizeRole,
-  ROLES,
-  type Role,
-} from '../permissions';
-import { adminUserStats, listAdminUsers, UserListQuery } from './admin-users.query';
-import { revokeUserSessions } from './sessions.query';
+import { ROLES, type Role } from '../permissions';
+import { fail } from '../pm/respond';
+import { adminContext, callerOf } from './admin-context';
+import { adminExportApi } from './admin-export';
+import { adminInvitationsApi } from './admin-invitations';
+import { adminModerationApi } from './admin-moderation';
+import { adminPermissionsApi } from './admin-permissions';
+import { adminUserStats, findUserTarget, listAdminUsers, UserListQuery } from './admin-users.query';
 
-async function targetRole(id: string): Promise<Role | null> {
-  const [row] = await db
-    .select({ role: userTable.role })
-    .from(userTable)
-    .where(eq(userTable.id, id))
-    .limit(1);
-  return row ? normalizeRole(row.role) : null;
-}
+const Params = t.Object({ id: t.String() });
+const NOT_FOUND = { error: 'Pengguna tidak ditemukan.' };
+const KNOWN_ROLES: readonly string[] = Object.values(ROLES);
 
-/**
- * Admin console API (`/api/admin/*`). Wraps Better Auth's admin endpoints so
- * the role matrix is enforced server-side: admins may view + ban regular
- * users; only super-admins may change roles or delete. super-admin accounts
- * are env-controlled and cannot be mutated here.
- */
 export const adminApi = new Elysia({ prefix: '/admin' })
-  .derive(async ({ request }) => {
-    const who = await resolveActor(request);
-    return { actor: who?.user ?? null, actorRole: who?.role ?? null, headers: request.headers };
-  })
-  .onBeforeHandle(({ actorRole, status }) => {
-    if (!actorRole || !isAdminRole(actorRole)) return status(403, { error: 'Forbidden' });
-  })
+  .use(adminContext)
+  .use(adminModerationApi)
+  .use(adminExportApi)
+  .use(adminInvitationsApi)
+  .use(adminPermissionsApi)
   .get('/users', ({ query }) => listAdminUsers(query), { query: UserListQuery })
   .get('/users/stats', () => adminUserStats())
   .post(
     '/users/:id/role',
-    async ({ actor, actorRole, params, body, headers, status }) => {
-      if (!canSetRole(actorRole))
-        return status(403, { error: 'Only super-admin can change roles' });
-      if (params.id === actor?.id) return status(400, { error: 'Cannot change your own role' });
-      if (!isAssignableRole(body.role)) return status(400, { error: 'Invalid role' });
-      const current = await targetRole(params.id);
-      if (current === null) return status(404, { error: 'User not found' });
-      if (current === ROLES.SUPER_ADMIN)
-        return status(400, { error: 'super-admin is managed via SUPER_ADMIN_EMAILS' });
-      await auth.api.setRole({ headers, body: { userId: params.id, role: body.role } });
+    async (ctx) => {
+      const { params, body, request, status } = ctx;
+      const { actor, principal } = callerOf(ctx);
+      if (!KNOWN_ROLES.includes(body.role))
+        return fail(status, 'VALIDATION', { error: 'Peran tidak dikenal.' });
+      const next = body.role as Role;
+      const target = await findUserTarget(params.id);
+      if (!target) return fail(status, 'NOT_FOUND', NOT_FOUND);
+      const decision = canSetUserRole(principal, target, next);
+      if (!decision.ok) return fail(status, decision.code);
+      // Written straight to the DB (not auth.api.setRole): the policy above is the
+      // authority, so Better Auth's admin permissions need not be widened for Admins.
+      await db
+        .update(userTable)
+        .set({ role: next, updatedAt: new Date() })
+        .where(eq(userTable.id, target.id));
       void audit({
-        actor,
-        headers,
+        actor: actor.user,
+        headers: request.headers,
         action: AUDIT_ACTIONS.USER_ROLE_SET,
         targetType: 'user',
-        targetId: params.id,
-        summary: `Role user diubah dari ${current} ke ${body.role}`,
-        meta: { from: current, to: body.role },
+        targetId: target.id,
+        summary: `Role user diubah dari ${target.appRole} ke ${next}`,
+        meta: { from: target.appRole, to: next },
       });
       return { ok: true };
     },
-    { params: t.Object({ id: t.String() }), body: t.Object({ role: t.String() }) },
-  )
-  .post(
-    '/users/:id/ban',
-    async ({ actor, actorRole, params, body, headers, status }) => {
-      if (params.id === actor?.id) return status(400, { error: 'Cannot ban yourself' });
-      const current = await targetRole(params.id);
-      if (current === null) return status(404, { error: 'User not found' });
-      if (current === ROLES.SUPER_ADMIN) return status(400, { error: 'Cannot ban a super-admin' });
-      if (!canActOnTarget(actorRole, current))
-        return status(403, { error: 'Not allowed to act on this user' });
-      await auth.api.banUser({
-        headers,
-        body: { userId: params.id, banReason: body.reason, banExpiresIn: body.expiresIn },
-      });
-      // Better Auth only blocks new sign-ins; end every live session so the ban is immediate.
-      const revoked = await revokeUserSessions(params.id);
-      void audit({
-        actor,
-        headers,
-        action: AUDIT_ACTIONS.USER_BAN,
-        targetType: 'user',
-        targetId: params.id,
-        summary: `User diblokir${body.expiresIn ? ` selama ${Math.round(body.expiresIn / 86_400)} hari` : ' permanen'}${body.reason ? `: ${body.reason}` : ''}; ${revoked} sesi dicabut`,
-        meta: {
-          reason: body.reason ?? null,
-          expiresIn: body.expiresIn ?? null,
-          revokedSessions: revoked,
-        },
-      });
-      return { ok: true, revokedSessions: revoked };
-    },
-    {
-      params: t.Object({ id: t.String() }),
-      body: t.Object({
-        reason: t.Optional(t.String()),
-        expiresIn: t.Optional(t.Number({ minimum: 1 })),
-      }),
-    },
-  )
-  .post(
-    '/users/:id/unban',
-    async ({ actor, actorRole, params, headers, status }) => {
-      const current = await targetRole(params.id);
-      if (current === null) return status(404, { error: 'User not found' });
-      if (!canActOnTarget(actorRole, current))
-        return status(403, { error: 'Not allowed to act on this user' });
-      await auth.api.unbanUser({ headers, body: { userId: params.id } });
-      void audit({
-        actor,
-        headers,
-        action: AUDIT_ACTIONS.USER_UNBAN,
-        targetType: 'user',
-        targetId: params.id,
-        summary: 'Ban user dibuka',
-      });
-      return { ok: true };
-    },
-    { params: t.Object({ id: t.String() }) },
+    { params: Params, body: t.Object({ role: t.String() }) },
   )
   .delete(
     '/users/:id',
-    async ({ actor, actorRole, params, headers, status }) => {
-      if (!canSetRole(actorRole))
-        return status(403, { error: 'Only super-admin can delete users' });
-      if (params.id === actor?.id) return status(400, { error: 'Cannot delete yourself' });
-      const current = await targetRole(params.id);
-      if (current === null) return status(404, { error: 'User not found' });
-      if (current === ROLES.SUPER_ADMIN)
-        return status(400, { error: 'Cannot delete a super-admin' });
-      await auth.api.removeUser({ headers, body: { userId: params.id } });
+    async (ctx) => {
+      const { params, request, status } = ctx;
+      const { actor, principal } = callerOf(ctx);
+      const target = await findUserTarget(params.id);
+      if (!target) return fail(status, 'NOT_FOUND', NOT_FOUND);
+      // Policy first so impersonation / self / protected targets keep their specific codes.
+      const decision = canActOnUser(principal, target);
+      if (!decision.ok) return fail(status, decision.code);
+      if (principal.appRole !== ROLES.SUPER_ADMIN)
+        return fail(status, 'NOT_APP_ROLE', {
+          error: 'Hanya super-admin yang bisa menghapus pengguna.',
+        });
+      await auth.api.removeUser({ headers: request.headers, body: { userId: target.id } });
       void audit({
-        actor,
-        headers,
+        actor: actor.user,
+        headers: request.headers,
         action: AUDIT_ACTIONS.USER_DELETE,
         targetType: 'user',
-        targetId: params.id,
+        targetId: target.id,
         summary: 'User dihapus permanen',
-        meta: { role: current },
+        meta: { role: target.appRole },
       });
       return { ok: true };
     },
-    { params: t.Object({ id: t.String() }) },
+    { params: Params },
   );
 
 export type AdminApi = typeof adminApi;

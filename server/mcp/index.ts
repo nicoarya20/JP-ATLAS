@@ -18,7 +18,7 @@ function resolveToken(request: Request): string | null {
 }
 
 export const mcpPlugin = mcp({
-  serverInfo: { name: 'makuro-debug', version: '1.0.0' },
+  serverInfo: { name: 'simple-pm-debug', version: '1.0.0' },
   capabilities: { tools: {} },
   // Reply to each POST with a plain application/json body instead of an SSE
   // stream. The MCP Streamable HTTP spec makes SSE optional for single
@@ -37,7 +37,7 @@ export const mcpPlugin = mcp({
     if (!env.MCP_ADMIN_TOKEN) {
       return {
         response: new Response(
-          'Unauthorized: kirim API key ber-scope mcp (Authorization: Bearer mk_live_…)',
+          'Unauthorized: kirim API key ber-scope mcp (Authorization: Bearer sp_live_…)',
           {
             status: 401,
           },
@@ -49,7 +49,7 @@ export const mcpPlugin = mcp({
       return { response: new Response('Unauthorized', { status: 401 }) };
     }
     // AuthInfo requires token + clientId + scopes per MCP SDK.
-    return { authInfo: { token, clientId: 'makuro-debug', scopes: [] } };
+    return { authInfo: { token, clientId: 'simple-pm-debug', scopes: [] } };
   },
   setupServer: async (server) => {
     registerAppStatusTool(server);

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test';
 import { eq, inArray } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { postsApi } from '../../server/api/posts';
@@ -6,13 +6,18 @@ import { auth } from '../../server/auth';
 import { db } from '../../server/db';
 import { auditLog, post, user } from '../../server/db/schema';
 import * as rolesMod from '../../server/roles';
+import { testUser } from '../support/accounts';
 
 type Actor = { id: string; email: string } | null;
 const ctx: { actor: Actor; role: string | null } = { actor: null, role: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
-    ctx.actor ? { user: ctx.actor } : null) as unknown as typeof auth.api.getSession),
-  spyOn(rolesMod, 'resolveUserRole').mockImplementation(async () => (ctx.role ?? 'user') as 'user'),
+    ctx.actor
+      ? { user: { approvalStatus: 'approved', ...ctx.actor } }
+      : null) as unknown as typeof auth.api.getSession),
+  spyOn(rolesMod, 'resolveUserRole').mockImplementation(
+    async () => (ctx.role ?? 'member') as 'member',
+  ),
 ];
 const app = new Elysia().use(postsApi);
 const TAG = `post-${crypto.randomUUID().slice(0, 8)}`;
@@ -37,16 +42,30 @@ async function req(method: string, path: string, body?: unknown) {
 
 beforeAll(async () => {
   for (const id of [owner, other, admin]) {
-    await db.insert(user).values({
-      id,
-      name: id,
-      email: `${id}@test.local`,
-      emailVerified: false,
-      role: id === admin ? 'admin' : 'user',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id,
+        name: id,
+        email: `${id}@test.local`,
+        emailVerified: false,
+        role: id === admin ? 'admin' : 'member',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
   }
+});
+/** Inserts the owner's post directly so a test does not depend on another test having created one. */
+async function seedPost() {
+  const [row] = await db
+    .insert(post)
+    .values({ title: `${TAG} Judul`, content: 'isi', authorId: owner })
+    .returning({ id: post.id });
+  postId = row.id;
+}
+afterEach(async () => {
+  await db.delete(auditLog).where(inArray(auditLog.actorId, [owner, other, admin]));
+  await db.delete(post).where(eq(post.authorId, owner));
 });
 afterAll(async () => {
   for (const s of spies) s.mockRestore();
@@ -65,7 +84,7 @@ describe('posts API', () => {
     ctx.actor = null;
     expect((await req('POST', '/posts', { title: 'x' })).status).toBe(401);
     ctx.actor = { id: owner, email: `${owner}@test.local` };
-    ctx.role = 'user';
+    ctx.role = 'member';
     const created = await req('POST', '/posts', { title: `  ${TAG} Judul  `, content: 'isi' });
     expect(created.status).toBe(200);
     expect(created.body.title).toBe(`${TAG} Judul`);
@@ -78,8 +97,9 @@ describe('posts API', () => {
   });
 
   test('another user cannot edit or delete; owner can edit', async () => {
+    await seedPost();
     ctx.actor = { id: other, email: `${other}@test.local` };
-    ctx.role = 'user';
+    ctx.role = 'member';
     expect((await req('PUT', `/posts/${postId}`, { title: 'hack' })).status).toBe(403);
     expect((await req('DELETE', `/posts/${postId}`)).status).toBe(403);
     ctx.actor = { id: owner, email: `${owner}@test.local` };
@@ -89,6 +109,7 @@ describe('posts API', () => {
   });
 
   test("admin can delete someone else's post and it is audited", async () => {
+    await seedPost();
     ctx.actor = { id: admin, email: `${admin}@test.local` };
     ctx.role = 'admin';
     expect((await req('DELETE', `/posts/${postId}`)).status).toBe(200);

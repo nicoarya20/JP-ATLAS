@@ -1,11 +1,12 @@
 /** Daily rollup + anomaly markers on top of real api_key_usage rows. */
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { and, eq, lt } from 'drizzle-orm';
 import { dailySeries, lifetimeTotal, rollupUsage } from '../../server/api-keys/rollup';
 import { createKey } from '../../server/api-keys/service';
 import { usageAnomalies, usageBreakdown, usageSummary } from '../../server/api-keys/usage';
 import { db } from '../../server/db';
 import { apiKeyUsage, apiKeyUsageDaily, auditLog, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
 
 const TAG = `roll-${crypto.randomUUID().slice(0, 8)}`;
 const ownerId = `${TAG}-user`;
@@ -32,16 +33,19 @@ const row = (
   ...extra,
 });
 
-beforeAll(async () => {
-  await db.insert(user).values({
-    id: ownerId,
-    name: 'Rollup User',
-    email: `${ownerId}@test.local`,
-    emailVerified: true,
-    role: 'user',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+// Per test: rollups and retention deletes mutate the rows, so each test builds the state it asserts on.
+beforeEach(async () => {
+  await db.insert(user).values(
+    testUser({
+      id: ownerId,
+      name: 'Rollup User',
+      email: `${ownerId}@test.local`,
+      emailVerified: true,
+      role: 'member',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }),
+  );
   const k = await createKey({
     name: 'rollup-key',
     ownerId,
@@ -66,7 +70,7 @@ beforeAll(async () => {
       row(0, 200),
     ]);
 });
-afterAll(async () => {
+afterEach(async () => {
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetType, 'apikey'))
@@ -93,6 +97,7 @@ describe('rollupUsage', () => {
     expect(second.map((r) => r.count).sort()).toEqual(first.map((r) => r.count).sort());
   });
   test('counts never shrink after raw rows are retained away', async () => {
+    await rollupUsage(15); // the rollup must exist before retention removes the raw rows
     await db
       .delete(apiKeyUsage)
       .where(and(eq(apiKeyUsage.keyId, keyId), lt(apiKeyUsage.createdAt, daysAgo(8))));
@@ -104,6 +109,7 @@ describe('rollupUsage', () => {
     expect((await usageSummary(keyId)).total).toBe(7);
   });
   test('dailySeries merges rollup (old days) with raw rows (last two days)', async () => {
+    await rollupUsage(15);
     const series = await dailySeries(keyId, 30);
     expect(series.length).toBe(3);
     expect(series[0].count).toBe(4);

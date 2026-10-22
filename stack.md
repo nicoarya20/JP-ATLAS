@@ -1,4 +1,4 @@
-# Makuro — Fullstack Base Template Stack (2026)
+# Simple PM — Fullstack Base Template Stack (2026)
 
 Status: **scaffolded & verified** (dev + prod build, DB migrations, auth flow all
 tested end-to-end). See README.md for usage.
@@ -23,7 +23,7 @@ sederhana (satu proses). Development: Vite middleware mode di dalam server
 
 | Layer | Pilihan | Versi |
 |---|---|---|
-| Runtime | Bun | 1.4.2 |
+| Runtime | Bun (sumber kebenaran: `.bun-version`) | 1.4.2 |
 | Backend | Elysia + Eden Treaty | 1.4.x |
 | ORM | Drizzle ORM + drizzle-kit | 0.45 / 0.31 |
 | Database | PostgreSQL (pgvector/pg16, shared infra-postgres) | 16 |
@@ -40,7 +40,7 @@ sederhana (satu proses). Development: Vite middleware mode di dalam server
 - **TanStack Query vs TanStack Router**: produk terpisah. Pakai Query untuk data,
   tetap React Router untuk routing + SSR.
 - **Database**: memakai instance Postgres yang sudah berjalan (`infra-postgres`,
-  user `bip`), database `makuro`. `docker-compose.yml` menyediakan Postgres lokal
+  user `bip`), database `simple_pm`. `docker-compose.yml` menyediakan Postgres lokal
   opsional via profil: `docker compose --profile local-db up -d`.
 - **Port**: default 3005 karena :3000 dipakai container lain di mesin ini.
 - **SSR di Bun**: import `react-dom/server.node` (bukan bare `react-dom/server`)

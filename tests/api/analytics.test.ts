@@ -1,18 +1,18 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-// Hoist mock before analytics.ts resolves its guard import.
-// bun:test hoists mock.module() calls above static imports automatically.
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({ user: { id: 'u-test' }, role: 'super-admin' }),
-}));
-
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { asc, desc, eq } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { analyticsApi, pageParams } from '../../server/api/analytics';
 import { db } from '../../server/db';
 import { loginLog, rateLimitLog, user, visitLog } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(analyticsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
 
 async function get(path: string, params: Record<string, string> = {}) {
   const url = new URL(`http://localhost${path}`);
@@ -156,15 +156,17 @@ describe('GET /analytics/visits — user attribution', () => {
   let visitId = '';
 
   beforeAll(async () => {
-    await db.insert(user).values({
-      id: testUserId,
-      name: userName,
-      email: `${testUserId}@test.local`,
-      image: 'https://example.com/avatar.png',
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id: testUserId,
+        name: userName,
+        email: `${testUserId}@test.local`,
+        image: 'https://example.com/avatar.png',
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
   });
 
   afterAll(async () => {
@@ -277,14 +279,16 @@ describe('DELETE /analytics/login-logs/:id', () => {
   let rowId = '';
 
   beforeAll(async () => {
-    await db.insert(user).values({
-      id: testUserId,
-      name: 'Test User',
-      email: `${testUserId}@test.local`,
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id: testUserId,
+        name: 'Test User',
+        email: `${testUserId}@test.local`,
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
   });
 
   afterAll(async () => {

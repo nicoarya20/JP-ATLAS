@@ -3,11 +3,13 @@ import { adminAc, defaultStatements } from 'better-auth/plugins/admin/access';
 
 /**
  * Role model for this app. `super-admin` is controlled exclusively by the
- * SUPER_ADMIN_EMAILS env (see reconcileRole); `admin` is granted by a
- * super-admin through the /dev UI; `user` is the default.
+ * SUPER_ADMIN_EMAILS env and a verified email (see reconcileRole); `admin` is
+ * granted by a super-admin through the /dev UI; `member` is the default and
+ * `project_manager` is a member who may also run projects.
  */
 export const ROLES = {
-  USER: 'user',
+  MEMBER: 'member',
+  PROJECT_MANAGER: 'project_manager',
   ADMIN: 'admin',
   SUPER_ADMIN: 'super-admin',
 } as const;
@@ -15,15 +17,24 @@ export const ROLES = {
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 
 /** Roles a super-admin may assign via the UI. super-admin is env-only. */
-export const ASSIGNABLE_ROLES: Role[] = [ROLES.USER, ROLES.ADMIN];
+export const ASSIGNABLE_ROLES: Role[] = [ROLES.MEMBER, ROLES.PROJECT_MANAGER, ROLES.ADMIN];
 
 function isRole(value: unknown): value is Role {
-  return value === ROLES.USER || value === ROLES.ADMIN || value === ROLES.SUPER_ADMIN;
+  return (
+    value === ROLES.MEMBER ||
+    value === ROLES.PROJECT_MANAGER ||
+    value === ROLES.ADMIN ||
+    value === ROLES.SUPER_ADMIN
+  );
 }
 
-/** Coerce a stored role (possibly null/legacy) to a known Role, defaulting to user. */
+/**
+ * Coerce a stored role (possibly null/legacy) to a known Role, defaulting to
+ * member. The legacy `'user'` value is only ever read, never written, so old
+ * rows keep working regardless of deploy/migration order.
+ */
 export function normalizeRole(role: unknown): Role {
-  return isRole(role) ? role : ROLES.USER;
+  return isRole(role) ? role : ROLES.MEMBER;
 }
 
 export function isAdminRole(role: unknown): boolean {
@@ -31,15 +42,15 @@ export function isAdminRole(role: unknown): boolean {
   return r === ROLES.ADMIN || r === ROLES.SUPER_ADMIN;
 }
 
-/** /dev access: admin and super-admin only. */
+/** /dev access: super-admin only (the /dev layout already requires it). */
 export function canAccessDev(role: unknown): boolean {
-  return isAdminRole(role);
+  return normalizeRole(role) === ROLES.SUPER_ADMIN;
 }
 
 /**
  * Single source of truth for each role's home area. Strict isolation: a role
  * may only see its own area, so cross-area guards redirect here.
- *   user -> /app, admin -> /dashboard, super-admin -> /dev
+ *   member/project_manager -> /app, admin -> /dashboard, super-admin -> /dev
  */
 export function homeFor(role: unknown): string {
   const r = normalizeRole(role);
@@ -53,20 +64,24 @@ export function isSuperAdminEmail(email: string, superAdminEmails: ReadonlySet<s
 }
 
 /**
- * Desired role given env membership and the currently stored role. env is the
- * single source of truth for super-admin:
- *  - email in env            -> super-admin
- *  - email gone but was super-> demote to user
- *  - otherwise               -> keep stored role (user/admin via UI)
+ * Desired role given env membership, email verification and the stored role.
+ * env is the single source of truth for super-admin, but only for a verified
+ * email: an unverified sign-up must not be able to claim a super-admin address.
+ *  - email in env and verified   -> super-admin
+ *  - was super-admin but no longer qualifies (email gone/unverified) -> demote to member
+ *  - otherwise                   -> keep stored role (member/project_manager/admin via UI)
  */
 export function reconcileRole(
   email: string,
   currentRole: unknown,
   superAdminEmails: ReadonlySet<string>,
+  emailVerified: boolean,
 ): Role {
-  if (isSuperAdminEmail(email, superAdminEmails)) return ROLES.SUPER_ADMIN;
+  if (emailVerified === true && isSuperAdminEmail(email, superAdminEmails)) {
+    return ROLES.SUPER_ADMIN;
+  }
   const current = normalizeRole(currentRole);
-  if (current === ROLES.SUPER_ADMIN) return ROLES.USER;
+  if (current === ROLES.SUPER_ADMIN) return ROLES.MEMBER;
   return current;
 }
 
@@ -100,7 +115,8 @@ const statement = { ...defaultStatements } as const;
 export const ac = createAccessControl(statement);
 
 export const roles = {
-  [ROLES.USER]: ac.newRole({}),
+  [ROLES.MEMBER]: ac.newRole({}),
+  [ROLES.PROJECT_MANAGER]: ac.newRole({}),
   [ROLES.ADMIN]: ac.newRole({ user: ['list', 'ban'], session: ['list'] }),
   [ROLES.SUPER_ADMIN]: ac.newRole({
     ...adminAc.statements,

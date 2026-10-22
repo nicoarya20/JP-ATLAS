@@ -1,44 +1,47 @@
-/** Deletes expired demo users (and their cascaded data) on a schedule. */
-import { and, eq, inArray, lt } from 'drizzle-orm';
+/**
+ * Removes leftover anonymous demo accounts from before the demo sandbox was retired.
+ * TODO(demo): hapus purge ini setelah semua lingkungan terbersihkan — S0A-13 (lihat CHANGELOG [Removed])
+ */
+import { eq, inArray } from 'drizzle-orm';
 import { db } from '../db';
 import { user } from '../db/schema';
 import { logger } from '../logger';
-import { effectiveDemoTtlHours, getDemo } from '../settings-demo';
 
+/** Rows per DELETE so one sweep never holds a long lock on `user`. */
 const BATCH = 500;
-const HOUR_MS = 3_600_000;
-const CHECK_INTERVAL_MS = 60 * 60_000;
+/** Gives local Postgres and migrations time to settle before the one-off sweep touches the DB. */
+const BOOT_DELAY_MS = 20_000;
 
 /**
- * Delete anonymous users older than the demo TTL; returns how many were removed.
- * Runs even when demo is switched off so leftovers still expire. Plain DB delete is
- * enough: FKs cascade (or set null on logs) and demo users can't upload to storage.
+ * Delete every `is_anonymous = true` user (no TTL: the feature is gone) in batches;
+ * returns how many were removed. FKs cascade (or set null on logs) and demo users
+ * could never upload to storage, so a plain DB delete is enough. Regular accounts
+ * are never matched.
  */
-export async function purgeExpiredDemoUsers(now = new Date()): Promise<number> {
-  const ttlHours = effectiveDemoTtlHours(await getDemo());
-  const cutoff = new Date(now.getTime() - ttlHours * HOUR_MS);
-  const expired = and(eq(user.isAnonymous, true), lt(user.createdAt, cutoff));
+export async function purgeLegacyDemoUsers(): Promise<number> {
+  const legacy = eq(user.isAnonymous, true);
   let total = 0;
   for (;;) {
     const rows = await db
       .delete(user)
-      .where(inArray(user.id, db.select({ id: user.id }).from(user).where(expired).limit(BATCH)))
+      .where(inArray(user.id, db.select({ id: user.id }).from(user).where(legacy).limit(BATCH)))
       .returning({ id: user.id });
     total += rows.length;
     if (rows.length < BATCH) return total;
   }
 }
 
-/** Checked hourly (first run shortly after boot). Safe to call once at boot. */
-export function startDemoCleanupScheduler(): void {
-  const tick = async () => {
-    try {
-      const deleted = await purgeExpiredDemoUsers();
-      if (deleted > 0) logger.info({ deleted }, 'expired demo users purged');
-    } catch (err) {
-      logger.warn({ err }, 'demo cleanup scheduler failed');
-    }
-  };
-  setInterval(tick, CHECK_INTERVAL_MS).unref?.();
-  setTimeout(tick, 20_000).unref?.();
+/** Run the sweep once; a failure is logged (error object only, no PII) and never propagates. */
+export async function runLegacyDemoPurge(): Promise<void> {
+  try {
+    const deleted = await purgeLegacyDemoUsers();
+    logger.info({ deleted }, 'legacy demo users purged');
+  } catch (err) {
+    logger.warn({ err }, 'legacy demo user purge failed');
+  }
+}
+
+/** One-off sweep shortly after boot so a failure can never stop the server from starting. */
+export function schedulePurgeLegacyDemoUsers(): void {
+  setTimeout(() => void runLegacyDemoPurge(), BOOT_DELAY_MS).unref?.();
 }

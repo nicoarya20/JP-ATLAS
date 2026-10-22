@@ -7,13 +7,46 @@ export default [
   route('go', 'routes/go.tsx'),
   // Signed-in but banned users land here (see server/guard.ts).
   route('banned', 'routes/banned.tsx'),
+  // Signed-in accounts awaiting approval or rejected land here (see server/guard.ts).
+  route('waiting', 'routes/waiting.tsx'),
   // Strict per-role areas. Each layout guards its role; children inherit it.
   // Product area (any signed-in role). New product pages go here, not under /dev or /dashboard.
   layout('routes/app/layout.tsx', [
     route('app', 'routes/app/home.tsx'),
+    route('app/inbox', 'routes/app/inbox.tsx'),
+    route('app/projects', 'routes/app/projects.tsx'),
+    // Static `new` is listed before `:projectId` so it is never read as an id.
+    route('app/projects/new', 'routes/app/project-new.tsx'),
+    // Each tab guards itself: a layout guard does not protect its children's parallel loaders.
+    route('app/projects/:projectId', 'routes/app/project/layout.tsx', [
+      index('routes/app/project/summary.tsx'),
+      route('tasks', 'routes/app/project/tasks.tsx'),
+      route('phases', 'routes/app/project/phases.tsx'),
+      route('members', 'routes/app/project/members.tsx'),
+      route('settings', 'routes/app/project/settings.tsx'),
+    ]),
+    route('app/tasks', 'routes/app/tasks.tsx'),
+    route('app/tasks/new', 'routes/app/task-new.tsx'),
+    route('app/tasks/:number', 'routes/app/task-detail.tsx'),
+    route('app/tasks/:number/edit', 'routes/app/task-edit.tsx'),
+    route('app/events/new', 'routes/app/event-new.tsx'),
+    route('app/events', 'routes/app/events.tsx'),
+    route('app/events/:id', 'routes/app/event-detail.tsx'),
+    route('app/team', 'routes/app/team.tsx'),
+    route('app/team/:userId', 'routes/app/team-detail.tsx'),
+    route('app/trash', 'routes/app/trash.tsx'),
+    route('app/settings', 'routes/app/settings.tsx'),
+    route('app/settings/profile', 'routes/app/settings-profile.tsx'),
     route('profile', 'routes/app/profile.tsx'),
   ]),
-  layout('routes/admin/layout.tsx', [route('dashboard', 'routes/admin/dashboard.tsx')]),
+  layout('routes/admin/layout.tsx', [
+    // Listed in sidebar order (NAV in routes/admin/layout.tsx).
+    route('dashboard', 'routes/admin/dashboard.tsx'),
+    route('dashboard/users', 'routes/admin/users.tsx'),
+    route('dashboard/permissions', 'routes/admin/permissions.tsx'),
+    route('dashboard/export', 'routes/admin/export.tsx'),
+    route('dashboard/settings', 'routes/admin/settings.tsx'),
+  ]),
   layout('routes/super/layout.tsx', [
     route('dev', 'routes/super/overview.tsx'),
     route('dev/users', 'routes/super/users.tsx'),

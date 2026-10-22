@@ -1,24 +1,21 @@
 import { Box, Paper, SimpleGrid } from '@mantine/core';
-import { hasGoogleAuth } from '@server/env';
+import { hasGoogleAuth, isProd } from '@server/env';
 import { getSettings } from '@server/settings';
 import { getBranding } from '@server/settings-branding';
-import { effectiveDemoTtlHours, getDemo } from '@server/settings-demo';
 import { LoginForm } from '~/components/login/LoginForm';
 import { LoginShowcase } from '~/components/login/LoginShowcase';
+import { loginAuthMode } from '~/lib/login-mode';
 import type { Route } from './+types/login';
 
 export function meta({ loaderData }: Route.MetaArgs) {
-  return [{ title: `Masuk — ${loaderData?.branding.appName ?? 'Makuro'}` }];
+  return [{ title: `Masuk — ${loaderData?.branding.appName ?? 'Simple PM'}` }];
 }
 
 export async function loader() {
-  const [{ emailAuthEnabled, signupEnabled }, branding, demo] = await Promise.all([
-    getSettings(),
-    getBranding(),
-    getDemo(),
-  ]);
-  const demoTtlHours = demo.enabled ? effectiveDemoTtlHours(demo) : null;
-  return { googleEnabled: hasGoogleAuth, emailAuthEnabled, signupEnabled, branding, demoTtlHours };
+  const [settings, branding] = await Promise.all([getSettings(), getBranding()]);
+  // The server decides the mode so a stale setting can never show email sign-in in production.
+  const { emailAuthEnabled, signupEnabled } = loginAuthMode(isProd, settings);
+  return { googleEnabled: hasGoogleAuth, emailAuthEnabled, signupEnabled, branding };
 }
 
 export default function Login({ loaderData }: Route.ComponentProps) {

@@ -1,5 +1,5 @@
 /**
- * Black-box checks a running Makuro server (script or binary) must pass.
+ * Black-box checks a running Simple PM server (script or binary) must pass.
  * Pure data + evaluator so the list is unit-tested and shared by the runner.
  */
 export type SmokeCheck = {
@@ -22,12 +22,12 @@ export type SmokeCheck = {
 
 const RATE_REMAINING = 'x-ratelimit-remaining';
 const RATE_LIMIT = 'x-ratelimit-limit';
-// test-only: documentation IPs. Literal x-makuro-client-ip (no server import here);
+// test-only: documentation IPs. Literal x-simple-pm-client-ip (no server import here);
 // tests/smoke-server.test.ts pins it to CLIENT_IP_HEADER.
 const spoofHeaders = (ip: string) => ({
   'x-forwarded-for': ip,
   'x-real-ip': ip,
-  'x-makuro-client-ip': ip,
+  'x-simple-pm-client-ip': ip,
 });
 
 export const SMOKE_CHECKS: SmokeCheck[] = [
@@ -41,12 +41,96 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
   { name: 'landing SSR', path: '/', status: 200, contentType: 'text/html', bodyIncludes: '<html' },
   { name: 'halaman login', path: '/login', status: 200, contentType: 'text/html' },
   {
+    // Pins the cookie → theme.scale chain through the real SSR build. Mantine writes `name: value;`
+    // (with a space), so the needle includes it. 1.25 = 'besar' in TEXT_SCALE (server/text-size.ts).
+    name: 'ukuran teks dari cookie',
+    path: '/login',
+    headers: { cookie: 'mk-text-size=besar' },
+    status: 200,
+    contentType: 'text/html',
+    bodyIncludes: '--mantine-scale: 1.25',
+  },
+  {
     name: 'area super-admin anonim → login',
     path: '/dev',
     status: 302,
     header: { name: 'location', includes: '/login' },
   },
+  {
+    // A visitor without a session must reach /login, not a 404 or a loop, from the hold page.
+    name: 'waiting-anon-redirect',
+    path: '/waiting',
+    status: 302,
+    header: { name: 'location', includes: '/login' },
+  },
+  ...['/app/projects', '/app/projects/new', '/app/settings', '/app/trash'].map(
+    (path): SmokeCheck => ({
+      // The /app loaders call requireUser first, so an anonymous visitor reaches /login (S1 gate).
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
+  ...['/app/tasks', '/app/tasks/new', '/app/tasks/1', '/app/tasks/1/edit'].map(
+    (path): SmokeCheck => ({
+      // Same gate for the S2 task pages, including the real shape of a detail and edit URL.
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
+  ...['/app/inbox'].map(
+    (path): SmokeCheck => ({
+      // The Inbox page reads the caller's own cards, so an anonymous visitor must never reach its loader.
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
+  ...['/app/events', '/app/events/new', '/app/events/e1'].map(
+    (path): SmokeCheck => ({
+      // Same gate for the Events pages (S7): list, two-stage form, and the real shape of a detail URL.
+      name: `halaman ${path} anonim → login`,
+      path,
+      status: 302,
+      header: { name: 'location', includes: '/login' },
+    }),
+  ),
+  {
+    // The person detail guards itself with requireUser (S6 layar 2), so an anonymous visitor reaches /login.
+    name: 'halaman /app/team/:userId anonim → login',
+    path: '/app/team/u1',
+    status: 302,
+    header: { name: 'location', includes: '/login' },
+  },
+  ...[
+    '/api/app/projects',
+    '/api/app/trash',
+    '/api/app/tasks',
+    '/api/app/events',
+    // The bell polls this every 60 s, so it has its own rate-limit exemption but must still answer 401 signed out.
+    '/api/app/inbox/count',
+  ].map(
+    (path): SmokeCheck => ({
+      name: `API ${path} anonim → 401`,
+      path,
+      status: 401,
+      contentType: 'application/json',
+      bodyIncludes: '"code":"UNAUTHORIZED"',
+      header: { name: 'x-request-id' },
+    }),
+  ),
   { name: 'favicon svg', path: '/favicon.svg', status: 200, contentType: 'image/svg+xml' },
+  // The design-system font ships from public/; theme.css points its @font-face here.
+  {
+    name: 'font Manrope',
+    path: '/fonts/Manrope-Variable.ttf',
+    status: 200,
+    contentType: 'font/ttf',
+  },
   {
     name: 'favicon.ico → svg',
     path: '/favicon.ico',
@@ -87,9 +171,35 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     contentType: 'application/json',
   },
   {
+    // The smoke server runs with NODE_ENV=production: email sign-up must be shut at the HTTP edge (R12 F1).
+    name: 'auth-signup-closed',
+    path: '/api/auth/sign-up/email',
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{}',
+    status: 404,
+    bodyIncludes: '"code":"NOT_FOUND"',
+  },
+  {
+    // Better Auth's admin endpoints skip our role matrix, so only impersonate/stop may pass the gate (R12 R3).
+    name: 'auth-admin-closed',
+    path: '/api/auth/admin/ban-user',
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{}',
+    status: 404,
+    bodyIncludes: '"code":"NOT_FOUND"',
+  },
+  {
+    name: 'auth-admin-list-closed',
+    path: '/api/auth/admin/list-users',
+    status: 404,
+    bodyIncludes: '"code":"NOT_FOUND"',
+  },
+  {
     name: 'API key palsu ditolak',
     path: '/api/me/logins',
-    headers: { 'x-api-key': 'mk_live_bogus' },
+    headers: { 'x-api-key': 'sp_live_bogus' },
     status: 401,
     bodyIncludes: 'INVALID_API_KEY',
   },
@@ -114,7 +224,7 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     path: '/llms.txt',
     status: 200,
     contentType: 'text/plain',
-    bodyIncludes: '# Makuro',
+    bodyIncludes: '# Simple PM',
   },
   {
     name: 'landing meta OG',

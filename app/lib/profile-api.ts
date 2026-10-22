@@ -1,7 +1,89 @@
-/** Client helpers for /profile: own login history + session/account display helpers. */
+/** Client helpers for the settings page (/app/settings): own login history + session/account display helpers. */
+
 import { parseUserAgent } from '@server/middleware/visitor-ua';
+import type { TextSize } from '@server/pm/enums';
 import type { LoginRow } from './login-logs-api';
 import { deviceLabel, deviceSummary } from './visits-format';
+
+/** Own profile as returned by GET/PATCH /api/app/profile (`name`/`email` are read-only there). */
+export type MyProfile = {
+  userId: string;
+  name: string;
+  email: string;
+  displayName: string | null;
+  nickname: string | null;
+  phone: string | null;
+  jobTitle: string | null;
+  department: string | null;
+  textSize: TextSize;
+};
+export type MyProfilePatch = Partial<
+  Pick<MyProfile, 'displayName' | 'nickname' | 'phone' | 'jobTitle' | 'department' | 'textSize'>
+>;
+
+const PROFILE_URL = '/api/app/profile';
+
+/** Saves profile fields; the server also refreshes the `mk-text-size` cookie when `textSize` is sent. */
+export async function patchMyProfile(patch: MyProfilePatch): Promise<MyProfile> {
+  const res = await fetch(PROFILE_URL, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `Gagal menyimpan profil (${res.status}). Coba lagi.`);
+  }
+  return res.json();
+}
+
+/** The two Pengaturan › Pemberitahuan switches as GET/PUT /api/app/profile/notifications return them. */
+export type NotificationPrefs = { eventReminder: boolean; inboxNews: boolean };
+
+const NOTIFICATIONS_URL = `${PROFILE_URL}/notifications`;
+
+/** Saves the given switches (the rest stay as they are) and returns both as the server now has them. */
+export async function putNotificationPrefs(
+  patch: Partial<NotificationPrefs>,
+): Promise<NotificationPrefs> {
+  const res = await fetch(NOTIFICATIONS_URL, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `Gagal menyimpan pemberitahuan (${res.status}). Coba lagi.`);
+  }
+  return res.json();
+}
+
+/** GET /api/app/profile/delete-check: the active projects only the caller manages (they block the deletion). */
+export type DeleteCheck = {
+  canDelete: boolean;
+  projects: { id: string; name: string }[];
+  total: number;
+};
+
+export async function fetchDeleteCheck(): Promise<DeleteCheck> {
+  const res = await fetch(`${PROFILE_URL}/delete-check`);
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `Gagal memeriksa akun (${res.status}). Coba lagi.`);
+  }
+  return res.json();
+}
+
+/** True when the typed email matches (ignoring case and surrounding spaces) and a password is given if one is needed. */
+export function canConfirmDelete(input: {
+  typed: string;
+  email: string;
+  needsPassword: boolean;
+  password: string;
+}): boolean {
+  const matches = input.typed.trim().toLowerCase() === input.email.toLowerCase();
+  return matches && (!input.needsPassword || input.password.length > 0);
+}
 
 export type MyLogins = { rows: LoginRow[]; total: number };
 

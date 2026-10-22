@@ -29,7 +29,8 @@ const MESSAGES: Record<string, string> = {
   CREDENTIAL_ACCOUNT_NOT_FOUND: 'Akun ini masuk lewat Google. Gunakan tombol Google.',
   FAILED_TO_CREATE_USER: 'Pendaftaran gagal. Coba lagi.',
   // OAuth callback (`?error=` in lowercase snake case)
-  unable_to_create_user: 'Pendaftaran lewat Google tidak diizinkan untuk akun ini.',
+  unable_to_create_user: 'Email ini tidak diizinkan masuk. Hubungi Admin.',
+  account_not_linked: 'Email ini sudah punya akun lain. Hubungi Admin.',
   unable_to_get_user_info: 'Google tidak mengirim data akun. Coba lagi.',
   unable_to_link_account: 'Akun Google ini tidak bisa ditautkan.',
   email_not_found: 'Google tidak memberikan alamat email.',

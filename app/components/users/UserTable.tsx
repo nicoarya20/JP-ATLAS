@@ -1,8 +1,9 @@
-import { Box, LoadingOverlay, Skeleton, Table, Text, Tooltip } from '@mantine/core';
+import { Box, LoadingOverlay, Skeleton, Table, Text, Tooltip, VisuallyHidden } from '@mantine/core';
 import type { AdminUser } from '~/lib/admin-users-api';
 import { useTimeFormat } from '~/lib/time-format';
-import { UserActionsMenu, type UserPermissions } from './UserActionsMenu';
+import { UserActionsMenu } from './UserActionsMenu';
 import { ActivityCell, IdentityCell, RoleBadge, StatusBadge } from './UserCells';
+import type { UserPermissions } from './user-access';
 import type { useUserActions } from './useUserActions';
 
 export type UserListProps = {
@@ -41,12 +42,14 @@ export function UserTable({
       >
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>User</Table.Th>
-            <Table.Th>Role</Table.Th>
+            <Table.Th>Pengguna</Table.Th>
+            <Table.Th>Peran</Table.Th>
             <Table.Th>Status</Table.Th>
             <Table.Th visibleFrom="md">Aktivitas</Table.Th>
             <Table.Th visibleFrom="lg">Bergabung</Table.Th>
-            <Table.Th w={48} />
+            <Table.Th w={48}>
+              <VisuallyHidden>Aksi</VisuallyHidden>
+            </Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>

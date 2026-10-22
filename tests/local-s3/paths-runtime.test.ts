@@ -39,7 +39,7 @@ describe('local-s3 paths', () => {
 
   it('runtime dir keyed by package, RustFS version and platform', () => {
     process.env.XDG_CACHE_HOME = '/tmp/xdg-test';
-    expect(s3RuntimeDir('linux-x64')).toBe('/tmp/xdg-test/makuro-template/rustfs/1.0.1/linux-x64');
+    expect(s3RuntimeDir('linux-x64')).toBe('/tmp/xdg-test/simple-pm/rustfs/1.0.1/linux-x64');
   });
 
   it('dir/port defaults relative to cwd, env overrides; endpoint is loopback only', () => {
@@ -54,7 +54,7 @@ describe('local-s3 paths', () => {
   });
 
   it('bucket names follow S3 rules', () => {
-    expect(localS3Bucket({})).toBe('makuro-template');
+    expect(localS3Bucket({})).toBe('simple-pm');
     expect(localS3Bucket({ LOCAL_S3_BUCKET: 'My_App.Files' })).toBe('my-app-files');
     expect(toBucketName('--a--')).toBe('a-storage');
     expect(toBucketName('')).toBe('app-storage');
@@ -66,12 +66,12 @@ describe('local-s3 paths', () => {
     }
   });
 
-  it('releasesBase: GitHub by default, MAKURO_RUSTFS_RELEASES overrides and trims trailing slash', () => {
+  it('releasesBase: GitHub by default, SIMPLE_PM_RUSTFS_RELEASES overrides and trims trailing slash', () => {
     expect(releasesBase({})).toBe('https://github.com/rustfs/rustfs/releases/download/1.0.1');
-    expect(releasesBase({ MAKURO_RUSTFS_RELEASES: '' })).toBe(
+    expect(releasesBase({ SIMPLE_PM_RUSTFS_RELEASES: '' })).toBe(
       'https://github.com/rustfs/rustfs/releases/download/1.0.1',
     );
-    expect(releasesBase({ MAKURO_RUSTFS_RELEASES: 'https://mirror.example/rustfs/' })).toBe(
+    expect(releasesBase({ SIMPLE_PM_RUSTFS_RELEASES: 'https://mirror.example/rustfs/' })).toBe(
       'https://mirror.example/rustfs',
     );
   });

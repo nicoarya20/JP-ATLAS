@@ -1,87 +1,86 @@
-import { Code, List, Paper, SimpleGrid, Stack, Text, ThemeIcon, Title } from '@mantine/core';
+import { Alert, Button, SimpleGrid, Stack } from '@mantine/core';
 import { requireUser } from '@server/guard';
-import { FiLayers } from 'react-icons/fi';
-import { useApp } from '~/lib/app-context';
+import { getHome } from '@server/home/home.service';
+import { greetingName } from '@server/profile/profile.greeting';
+import { getProfile } from '@server/profile/profile.service';
+import { toPrincipal } from '@server/project/membership.query';
+import { FiRefreshCw } from 'react-icons/fi';
+import { HomeActivity } from '~/components/home/HomeActivity';
+import { HomeAgenda } from '~/components/home/HomeAgenda';
+import { HomeAskData } from '~/components/home/HomeAskData';
+import { HomeBriefing } from '~/components/home/HomeBriefing';
+import { HomeCounters } from '~/components/home/HomeCounters';
+import { HomeDone } from '~/components/home/HomeDone';
+import { HomeFocus } from '~/components/home/HomeFocus';
+import { HOME_COPY } from '~/components/home/home.copy';
+import { PageContainer } from '~/components/ui/PageContainer';
+import { PageHeader } from '~/components/ui/PageHeader';
+import { type HomeData, type HomeSeed, useHome } from '~/lib/home-api';
+import { toJson } from '~/lib/loader-json';
 import type { Route } from './+types/home';
 
 export function meta() {
-  return [{ title: 'App — Makuro' }];
+  return [{ title: 'Beranda — Simple PM' }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  await requireUser(request);
-  return null;
+  const actor = await requireUser(request);
+  const [profile, home] = await Promise.all([
+    getProfile(actor.user.id),
+    getHome(toPrincipal(actor)),
+  ]);
+  const seed: HomeSeed = { data: toJson<HomeData>(home), loadedAt: Date.now() };
+  return { seed, name: profile ? greetingName(profile) : 'pengguna' };
 }
 
-const wrap = { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' } as const;
-
-/** Product home placeholder: guidance for whoever builds the app, replaced by the real home. */
-export default function AppHome() {
-  const { user } = useApp();
-
+/** Beranda: greeting, briefing, counters, focus, Ask Data, agenda, projects and activity, all from `GET /api/app/home`. */
+export default function AppHome({ loaderData }: Route.ComponentProps) {
+  const home = useHome(loaderData.seed);
+  const data = home.data;
+  const retry = { onRetry: () => void home.refetch(), retrying: home.isFetching };
   return (
-    <Stack gap="md" p={{ base: 'sm', md: 'md' }} maw={880}>
-      <div>
-        <Title order={3}>Halo, {user.name || 'pengguna'}</Title>
-        <Text size="sm" c="dimmed">
-          Ini area produk aplikasi Anda. Semua user yang sudah masuk bisa membukanya.
-        </Text>
-      </div>
-
-      <Paper withBorder radius="md" p="xl">
-        <Stack align="center" gap="xs" ta="center">
-          <ThemeIcon size={48} radius="xl" variant="light">
-            <FiLayers size={24} />
-          </ThemeIcon>
-          <Text fw={600}>Belum ada fitur</Text>
-          <Text size="sm" c="dimmed" maw={520}>
-            Mulai bangun di <Code>app/routes/app/</Code>. Halaman ini hanya panduan — ganti dengan
-            beranda aplikasi Anda.
-          </Text>
+    <PageContainer>
+      <PageHeader
+        title={HOME_COPY.title}
+        description={`${data.now.dateLabel} · Selamat ${data.now.greeting}, ${loaderData.name}`}
+      />
+      {home.isError && (
+        <Alert color="warn" role="alert" title={HOME_COPY.staleTitle}>
+          <Button
+            variant="light"
+            leftSection={<FiRefreshCw size="1.25em" aria-hidden />}
+            loading={home.isFetching}
+            onClick={retry.onRetry}
+          >
+            {HOME_COPY.retry}
+          </Button>
+        </Alert>
+      )}
+      <HomeBriefing widget={data.briefing} retry={retry} />
+      <HomeCounters widget={data.counters} retry={retry} />
+      {/* Row 1: focus + done stacked on the left; Ask Data stretches to the height of that stack. */}
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+        <Stack gap="md">
+          <HomeFocus
+            widget={data.focus}
+            counters={data.counters}
+            today={data.now.today}
+            retry={retry}
+          />
+          <HomeDone widget={data.done} retry={retry} />
         </Stack>
-      </Paper>
-
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        <Paper withBorder radius="md" p="md">
-          <Text fw={600} mb="xs">
-            Tambah halaman
-          </Text>
-          <List type="ordered" size="sm" spacing={6}>
-            <List.Item>
-              Buat <Code>app/routes/app/nama.tsx</Code> dengan <Code>meta()</Code>.
-            </List.Item>
-            <List.Item>
-              Daftarkan di layout app pada <Code>app/routes.ts</Code>.
-            </List.Item>
-            <List.Item>
-              Panggil <Code>requireUser(request)</Code> di loader — atau <Code>requireAnyRole</Code>{' '}
-              bila fitur khusus role tertentu.
-            </List.Item>
-            <List.Item>
-              Tambahkan ke <Code>NAV</Code> di <Code>app/routes/app/layout.tsx</Code>.
-            </List.Item>
-          </List>
-        </Paper>
-        <Paper withBorder radius="md" p="md">
-          <Text fw={600} mb="xs">
-            Tambah endpoint
-          </Text>
-          <List type="ordered" size="sm" spacing={6}>
-            <List.Item>
-              Tambah route di <Code>server/api/app.ts</Code> — otomatis butuh login.
-            </List.Item>
-            <List.Item>
-              Panggil dari client (bertipe, via <Code>~/lib/eden</Code>):
-              <Code block mt={4} style={wrap}>
-                {'await client.api.app.whoami.get()'}
-              </Code>
-            </List.Item>
-            <List.Item>
-              API key mengaksesnya dengan scope <Code>app:read</Code> / <Code>app:write</Code>.
-            </List.Item>
-          </List>
-        </Paper>
+        <HomeAskData widget={data.ask} retry={retry} />
       </SimpleGrid>
-    </Stack>
+      {/* Row 2: agenda and activity side by side; the grid makes both cards the same height. */}
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+        <HomeAgenda
+          agenda={data.agenda}
+          projects={data.projects}
+          timeZone={data.now.timeZone}
+          retry={retry}
+        />
+        <HomeActivity widget={data.activity} retry={retry} />
+      </SimpleGrid>
+    </PageContainer>
   );
 }

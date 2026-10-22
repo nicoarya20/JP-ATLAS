@@ -3,7 +3,7 @@ import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { FiAlertTriangle } from 'react-icons/fi';
+import { FiAlertTriangle, FiInfo } from 'react-icons/fi';
 import { type AuthSettings, saveAuthSettings } from '~/lib/settings-api';
 import { SettingRow, SettingsCard } from './SettingsParts';
 
@@ -52,13 +52,17 @@ export function AuthSettingsCard({ initial, googleAuthConfigured }: Props) {
   return (
     <SettingsCard
       title="Autentikasi"
-      description="Cara user masuk dan apakah pendaftaran publik dibuka."
+      description="Cara user masuk dan apakah layar masuk menampilkan form daftar."
       aside={
         <Badge variant="light" color={googleAuthConfigured ? 'teal' : 'gray'}>
           Google OAuth {googleAuthConfigured ? 'aktif' : 'belum dikonfigurasi'}
         </Badge>
       }
     >
+      <Alert color="blue" variant="light" icon={<FiInfo size={16} />}>
+        Pengaturan di bawah ini hanya berlaku di non-produksi. Di produksi, semua orang masuk lewat
+        Google dan pendaftaran email selalu ditutup.
+      </Alert>
       {lockoutRisk && (
         <Alert
           color="red"
@@ -84,8 +88,8 @@ export function AuthSettingsCard({ initial, googleAuthConfigured }: Props) {
         }
       />
       <SettingRow
-        label="Pendaftaran publik"
-        description="Izinkan user baru mendaftar sendiri lewat form email. Matikan untuk menutup app dari pendaftaran."
+        label="Form daftar di layar masuk"
+        description="Hanya menampilkan atau menyembunyikan form daftar email di layar masuk. Tidak menutup pendaftaran di server: akun baru tetap bisa dibuat lewat Google atau API, lalu menunggu persetujuan Admin."
         badge={
           !form.emailAuthEnabled ? (
             <Badge size="xs" color="gray" variant="light">
@@ -104,7 +108,7 @@ export function AuthSettingsCard({ initial, googleAuthConfigured }: Props) {
               checked={form.signupEnabled}
               disabled={!form.emailAuthEnabled}
               onChange={(e) => setForm({ ...form, signupEnabled: e.currentTarget.checked })}
-              aria-label="Pendaftaran publik"
+              aria-label="Form daftar di layar masuk"
             />
           </Tooltip>
         }

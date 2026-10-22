@@ -1,10 +1,11 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test';
 import { and, eq, inArray } from 'drizzle-orm';
 import { auth } from '../server/auth';
 import { db } from '../server/db';
 import { auditLog, loginLog, user } from '../server/db/schema';
 import { logger } from '../server/logger';
 import { CLIENT_IP_HEADER } from '../server/middleware/client-ip';
+import { testUser } from './support/accounts';
 
 const TAG = `ash-${crypto.randomUUID().slice(0, 8)}`;
 const target = `${TAG}-target`;
@@ -18,14 +19,22 @@ function sessionFor(extra: Record<string, unknown> = {}) {
 
 beforeAll(async () => {
   for (const id of [target, admin])
-    await db.insert(user).values({
-      id,
-      name: id,
-      email: `${id}@test.local`,
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    await db.insert(user).values(
+      testUser({
+        id,
+        name: id,
+        email: `${id}@test.local`,
+        emailVerified: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
+});
+
+// Rows written by one test must not be counted by the next.
+afterEach(async () => {
+  await db.delete(auditLog).where(eq(auditLog.actorId, admin));
+  await db.delete(loginLog).where(eq(loginLog.userId, target));
 });
 
 afterAll(async () => {
@@ -50,7 +59,7 @@ describe('session.create.after hook', () => {
     });
     await Bun.sleep(100);
     const logins = await db.select().from(loginLog).where(eq(loginLog.userId, target));
-    expect(logins.map((r) => r.method).sort()).toEqual(['email', 'impersonation']);
+    expect(logins.map((r) => r.method)).toEqual(['impersonation']);
     const audits = await db.select().from(auditLog).where(eq(auditLog.actorId, admin));
     expect(audits.map((a) => [a.action, a.targetId])).toEqual([['user.impersonate', target]]);
   });

@@ -62,10 +62,12 @@ export const appSetting = pgTable('app_setting', {
   appName: text('app_name'),
   appTagline: text('app_tagline'),
   supportUrl: text('support_url'),
-  // Demo sandbox: "Coba Demo" signs visitors in as temporary anonymous users.
+  // Retired demo sandbox (S0A-13): columns stay until the first release, then DROP (expand/contract).
   demoEnabled: boolean('demo_enabled').default(false).notNull(),
-  /** Hours before a demo user and its data are deleted; NULL = default (24). */
+  /** Retired with the demo sandbox; unused, kept for the same expand/contract window. */
   demoTtlHours: integer('demo_ttl_hours'),
+  // Pengaturan tim > "Cuti perlu persetujuan" (Admin only). Off = every leave request is approved on submit.
+  leaveRequiresApproval: boolean('leave_requires_approval').default(true).notNull(),
   updatedAt: timestamp('updated_at')
     .$defaultFn(() => new Date())
     .notNull(),

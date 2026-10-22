@@ -2,7 +2,8 @@ node_modules
 build
 .react-router
 .env
-.env.local
+.env.*
+!.env.example
 *.log
 .DS_Store
 .vite
@@ -18,3 +19,5 @@ makuro.exe
 /data/
 /backups/
 *.service
+# local Orca CLI binary dropped in the repo root; never commit
+/orca-office

@@ -10,8 +10,8 @@ describe('ops-api helpers', () => {
   it('mcpConfigSnippet references the env var, never a literal key', () => {
     const s = mcpConfigSnippet('http://localhost:3005/api/mcp');
     // biome-ignore lint/suspicious/noTemplateCurlyInString: asserting the literal env placeholder
-    expect(s).toContain('${MAKURO_MCP_KEY}');
-    expect(s).not.toContain('mk_live_');
+    expect(s).toContain('${SIMPLE_PM_MCP_KEY}');
+    expect(s).not.toContain('sp_live_');
     expect(s).toContain('http://localhost:3005/api/mcp');
   });
 });

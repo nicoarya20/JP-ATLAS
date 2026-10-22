@@ -1,5 +1,5 @@
-import { getTableName, is, SQL } from 'drizzle-orm';
-import { getTableConfig, PgTable } from 'drizzle-orm/pg-core';
+import { Column, getTableName, is, Name, Param, SQL, StringChunk } from 'drizzle-orm';
+import { type AnyPgColumn, getTableConfig, PgTable } from 'drizzle-orm/pg-core';
 import * as schema from './schema';
 
 export type ColumnMeta = {
@@ -9,8 +9,8 @@ export type ColumnMeta = {
   pk: boolean;
   notNull: boolean;
   unique: boolean;
-  /** 'literal' (constant), 'sql' (e.g. now()), 'fn' (JS $defaultFn), or null. */
-  defaultKind: 'literal' | 'sql' | 'fn' | null;
+  /** 'literal' (constant), 'sql' (e.g. now()), 'fn' (JS $defaultFn), 'identity', or null. */
+  defaultKind: 'literal' | 'sql' | 'fn' | 'identity' | null;
   /** Human-readable default when known ("false", "now()", "'singleton'"). */
   defaultText: string | null;
   fkTable?: string;
@@ -18,7 +18,14 @@ export type ColumnMeta = {
   onDelete?: string;
 };
 
-export type IndexMeta = { name: string; columns: string[]; unique: boolean };
+export type IndexMeta = {
+  name: string;
+  /** Plain column names; expression columns are rendered as SQL text, e.g. "lower(name)". */
+  columns: string[];
+  unique: boolean;
+  /** Predicate of a partial index ("status <> 'archived'"); absent for full indexes. */
+  where?: string;
+};
 
 export type TableMeta = {
   id: string;
@@ -45,12 +52,18 @@ const PG_TYPE_MAP: Record<string, string> = {
   PgTimestamp: 'timestamp',
   PgInteger: 'integer',
   PgSerial: 'serial',
-  PgBigInt: 'bigint',
+  PgBigInt53: 'bigint',
+  PgBigInt64: 'bigint',
+  PgSmallInt: 'smallint',
   PgNumeric: 'numeric',
+  PgNumericNumber: 'numeric',
+  PgNumericBigInt: 'numeric',
   PgJsonb: 'jsonb',
   PgJson: 'json',
   PgUUID: 'uuid',
   PgDate: 'date',
+  PgDateString: 'date',
+  PgTimestampString: 'timestamp',
 };
 
 type ColumnInternals = {
@@ -58,7 +71,23 @@ type ColumnInternals = {
   defaultFn?: unknown;
   default?: unknown;
   isUnique?: boolean;
+  generatedIdentity?: { type: 'always' | 'byDefault' };
 };
+
+/** Renders a drizzle SQL fragment as readable text (columns by name, params inline). */
+function sqlText(q: SQL): string {
+  return q.queryChunks
+    .map((c) => {
+      if (is(c, SQL)) return sqlText(c);
+      if (is(c, StringChunk)) return c.value.join('');
+      if (is(c, Column)) return c.name;
+      if (is(c, Name)) return c.value;
+      if (is(c, Param)) return String(c.value);
+      return '';
+    })
+    .join('')
+    .trim();
+}
 
 /** Best-effort text for a column default (drizzle keeps SQL defaults as chunk lists). */
 export function describeDefault(
@@ -66,25 +95,31 @@ export function describeDefault(
 ): Pick<ColumnMeta, 'defaultKind' | 'defaultText'> {
   if (typeof col.defaultFn === 'function')
     return { defaultKind: 'fn', defaultText: 'app-generated' };
+  // Checked before hasDefault: drizzle also flags identity columns as hasDefault with no value.
+  if (col.generatedIdentity) {
+    const mode = col.generatedIdentity.type === 'always' ? 'always' : 'by default';
+    return { defaultKind: 'identity', defaultText: `generated ${mode} as identity` };
+  }
   if (!col.hasDefault) return { defaultKind: null, defaultText: null };
   const d = col.default;
-  if (is(d, SQL)) {
-    const text = (d as unknown as { queryChunks?: Array<{ value?: string[] }> }).queryChunks
-      ?.map((c) => (Array.isArray(c.value) ? c.value.join('') : ''))
-      .join('')
-      .trim();
-    return { defaultKind: 'sql', defaultText: text || 'sql' };
-  }
+  if (is(d, SQL)) return { defaultKind: 'sql', defaultText: sqlText(d) || 'sql' };
   if (d === undefined) return { defaultKind: 'sql', defaultText: null };
   return { defaultKind: 'literal', defaultText: typeof d === 'string' ? `'${d}'` : String(d) };
 }
 
-export function introspectDrizzleSchema(): SchemaGraph {
+/** SQL type name of a column; timezone-aware timestamps are reported as timestamptz. */
+function typeName(col: AnyPgColumn): string {
+  const base = PG_TYPE_MAP[col.columnType] ?? col.dataType ?? 'unknown';
+  const withTimezone = (col as unknown as { withTimezone?: boolean }).withTimezone;
+  return base === 'timestamp' && withTimezone ? 'timestamptz' : base;
+}
+
+/** Introspects the given Drizzle tables into column/index metadata and FK edges. */
+export function introspectTables(pgTables: PgTable[]): SchemaGraph {
   const tables: TableMeta[] = [];
   const edges: FkEdge[] = [];
 
-  for (const value of Object.values(schema)) {
-    if (!is(value, PgTable)) continue;
+  for (const value of pgTables) {
     const config = getTableConfig(value);
     const tableName = config.name;
     const pkCols = new Set<string>(
@@ -116,7 +151,7 @@ export function introspectDrizzleSchema(): SchemaGraph {
       return {
         key: col.name,
         dbName: col.name,
-        type: PG_TYPE_MAP[col.columnType as string] ?? col.dataType ?? 'unknown',
+        type: typeName(col),
         pk: col.primary || pkCols.has(col.name),
         notNull: col.notNull,
         unique: Boolean(internals.isUnique),
@@ -127,12 +162,21 @@ export function introspectDrizzleSchema(): SchemaGraph {
 
     const indexes: IndexMeta[] = config.indexes.map((ix) => ({
       name: ix.config.name ?? '',
-      columns: ix.config.columns.map((c) => ('name' in c ? String(c.name) : String(c))),
+      // Expression columns (e.g. lower(name)) are SQL objects without a name.
+      columns: ix.config.columns.map((c) =>
+        is(c, SQL) ? sqlText(c) : String((c as { name?: string }).name),
+      ),
       unique: Boolean(ix.config.unique),
+      ...(ix.config.where ? { where: sqlText(ix.config.where) } : {}),
     }));
 
     tables.push({ id: tableName, name: tableName, columns, indexes });
   }
 
   return { tables, edges };
+}
+
+/** Introspects every PgTable exported from the app schema (feeds /dev/db-schema). */
+export function introspectDrizzleSchema(): SchemaGraph {
+  return introspectTables(Object.values(schema).flatMap((v) => (is(v, PgTable) ? [v] : [])));
 }

@@ -1,25 +1,28 @@
-# CLAUDE.md — makuro-template
+# CLAUDE.md — simple-pm
 
 Aturan project ini menambah/override global `~/.claude/CLAUDE.md`.
 
 ## Membangun Fitur Produk — Default di `/app`
 
-Project ini template; fitur produk milik project turunan **default dibangun di area `/app`** (minimal role `user` / sudah login), kecuali user eksplisit meminta area lain.
+Simple PM adalah turunan template ini; fitur produk **default dibangun di area `/app`** (minimal role `member` / sudah login), kecuali user eksplisit meminta area lain.
 
-- **Halaman:** `app/routes/app/<nama>.tsx` → daftarkan sebagai child `layout('routes/app/layout.tsx', [...])` di `app/routes.ts` → tambahkan ke `NAV` di `app/routes/app/layout.tsx`. Wajib `meta()` (`'Nama — Makuro'`).
+- **Halaman:** `app/routes/app/<nama>.tsx` → daftarkan sebagai child `layout('routes/app/layout.tsx', [...])` di `app/routes.ts` → tambahkan ke `NAV` di `app/routes/app/layout.tsx`. Wajib `meta()` (`'Nama — Simple PM'`).
 - **Guard per halaman wajib:** loader memanggil `await requireUser(request)` dari `@server/guard` — atau `requireAnyRole(request, [...])` bila fitur khusus role. Loader layout & halaman berjalan **paralel** di React Router, jadi guard layout saja tidak melindungi data halaman. `tests/app-routes.test.ts` menjaga ini.
-- **Endpoint:** tambahkan ke `server/api/app.ts` (prefix `/api/app`, otomatis `401` tanpa sesi; `actor` tersedia di handler). Batasan role per fitur → cek `actor.role` di handler, `status(403, { error, code })`. Scope API key sudah dipetakan (`app:read`/`app:write`); file endpoint baru di luar `/api/app` tetap wajib dipetakan di `scopes.ts`. Client: Eden `client.api.app.<route>` dari `~/lib/eden`.
-- `app/routes/app/home.tsx` hanya panduan placeholder — ganti dengan beranda produk saat fitur pertama dibangun.
-- **Jangan** taruh fitur produk di `/dev` (ops super-admin) atau `/dashboard` (admin). Role home ada di `homeFor` (`server/permissions.ts`): user → `/app`.
+- **Endpoint:** tambahkan ke berkas modul `server/api/app-<modul>[.<bagian>].ts` yang dirakit `server/api/app.ts` (prefix `/api/app`, otomatis `401` tanpa sesi; `actor` tersedia di handler). Batasan role per fitur → cek `actor.role` di handler, `status(403, { error, code })`. Scope API key sudah dipetakan (`app:read`/`app:write`); file endpoint baru di luar `/api/app` tetap wajib dipetakan di `scopes.ts`. Client: Eden `client.api.app.<route>` dari `~/lib/eden`.
+- `app/routes/app/home.tsx` adalah Beranda produk: loader memanggil `getHome` (`server/home/*`, satu panggilan untuk seluruh layar; sama dengan `GET /api/app/home`) dan menyemai react-query kunci `['home']`; widget-nya di `app/components/home/*`. Tiap bagian `Widget { ok }` gagal-lunak dengan tombol "Coba lagi". Briefing dan Ask Data disusun dengan aturan dari data nyata, **tanpa LLM**.
+- **Jangan** taruh fitur produk di `/dev` (ops super-admin) atau `/dashboard` (admin). `/dashboard` khusus manajemen akun dan tim untuk Admin/super-admin (saat ini `/dashboard/users`: persetujuan, peran, undangan; pengaturan tim menyusul). Empat role (`member`, `project_manager`, `admin`, `super-admin`) didefinisikan di `server/permissions.ts`; home ada di `homeFor`: `member` dan `project_manager` → `/app`, `admin` → `/dashboard`, `super-admin` → `/dev`. Admin dan super-admin tetap boleh membuka `/app`. Nilai `'user'` lama hanya dibaca (`normalizeRole` → `member`), tidak pernah ditulis.
 
 ## UI Framework — Mantine Wajib Dipakai
 
-Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantine/modals`) sebagai UI framework utama.
+Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantine/modals`, `@mantine/dates`) sebagai UI framework utama.
 
 **Wajib pakai Mantine untuk semua UI element:**
 - Konfirmasi/dialog → `modals.openConfirmModal()` dari `@mantine/modals` — **bukan** `window.confirm()`
 - Alert/notifikasi → Mantine `notifications.show()` — **bukan** `window.alert()`
 - Semua input, button, badge, tooltip, loader, modal, dll → pakai komponen Mantine
+- Input tanggal → `DateInput` dari `@mantine/dates` (bisa diketik + kalender pop-up), **bukan** `<input type="date">`; `valueFormat="D MMMM YYYY"`, nilai `string | null` berformat `YYYY-MM-DD`. Locale `id` dan hari pertama pekan (`FIRST_DAY_OF_WEEK`) dari `app/lib/date-config.ts` lewat `DatesProvider` di `app/root.tsx`. "Hari ini" ditentukan server, jangan `dayjs()` di klien. Grid kalender bulan tetap dibuat sendiri (`DateInput` hanya untuk isian)
+
+**Satu versi untuk semua `@mantine/*`:** semua paket `@mantine/*` di `package.json` wajib versi persis yang sama, tanpa `^`/`~` (saat ini `9.6.3`), karena `modals`/`notifications`/`dates` meminta peer `core` dan `hooks` tepat di versi itu. Naik versi = ubah semua paket sekaligus lewat `bun install` di satu PR `chore(deps)`; `tests/mantine-version-sync.test.ts` menjaganya. `dayjs` juga dipatok persis.
 
 **Setup yang sudah ada di project:**
 - `ModalsProvider` sudah wrap app di `app/root.tsx`
@@ -28,21 +31,28 @@ Project ini menggunakan **Mantine** (`@mantine/core`, `@mantine/hooks`, `@mantin
 
 **Blocker:** memakai `window.confirm`/`window.alert`/native HTML element yang sudah di-cover Mantine → STOP sebelum commit; ganti dengan komponen Mantine.
 
+## Design System — JP Atlas
+
+Tema mengikuti paket handoff **JP Atlas** (21 Okt 2026; sumber: `~/Documents/JP-Atlas-Design-System-2026-10-21`, token kandidat v0.1). Yang dipakai hanya **design system-nya** (warna, tipografi, radius, jarak) — nama produk, logo, dan favicon tetap Simple PM.
+
+- **Satu sumber token:** `app/lib/theme-tokens.ts` (hex, skala radius/jarak/tipe). Jangan menulis hex di komponen; `theme-palette.ts` (palet Mantine), `theme-vars.ts` (variabel CSS per skema), dan `theme-components.ts` (default komponen) diturunkan darinya. Variabel `--jp-*` (kanvas, primary, fokus) tersedia di CSS.
+- **Peran warna:** lime `#C8F904` = aksi utama (`Button` terisi tanpa `color`; teks navy, **bukan putih**; lime bukan warna teks kecil dan bukan penanda sukses). Violet = interaksi (primaryColor `atlas`: tautan, item aktif, fokus). Nama `blue/indigo/violet`, `teal/green`, `orange/yellow`, `red` di-alias ke palet peran (`atlas`, `ok`, `warn`, `danger`) — kode lama `color="red"` tetap benar. Status memakai teks + warna, tidak hanya warna.
+- **Kanvas vs permukaan:** halaman dicat `--jp-canvas`; `--mantine-color-body` = permukaan (kartu, menu, modal). Dua-duanya di-set di `theme-vars.ts`, bukan per halaman.
+- **Skala:** radius kontrol 10 / kartu 14 (`md`) / modal 16 (`lg`) / identitas 20 (`xl`); jarak 8/12/16/24/32 (`xs`..`xl`); judul halaman `Title order={1}` 32 px (26 px ponsel), judul bagian `order={3}` 20 px; Manrope dari `public/fonts/` (lisensi OFL di folder yang sama).
+- **Kontras:** `tests/theme-contrast.test.ts` menjaga pasangan teks ≥ 4,5:1 dan non-teks ≥ 3:1 untuk kedua skema; ubah token → jalankan tes itu. Hover lime (`primaryHover`) diturunkan sendiri karena handoff tidak mendefinisikannya.
+
 ## UX Production-Ready — Wajib Dipatuhi Agent
 
 Ini adalah standar kualitas UX yang membuat app terasa selesai dan layak produksi. Agent wajib menerapkan ini secara **proaktif** tanpa menunggu user mengingatkan.
 
 ### 1. Konfirmasi untuk Aksi Destruktif / Irreversible
-Setiap aksi yang menghapus data, mengakhiri sesi, atau susah dibatalkan **wajib** tampilkan confirm dialog via `modals.openConfirmModal()` sebelum dieksekusi.
+Setiap aksi yang menghapus data, mengakhiri sesi, atau susah dibatalkan **wajib** punya pengaman sesuai salah satu dari tiga tingkat di bawah. Tingkat ditentukan oleh bisa-tidaknya aksi diurungkan (X1-Q1, R11 K6), bukan satu dialog untuk semua.
 
-Contoh yang **wajib** ada confirm:
-- Sign out / logout → confirm "Kamu akan keluar dari akun ini"
-- Hapus item (row, post, user) → confirm "Data ini akan dihapus permanen"
-- Purge / bulk delete → confirm dengan deskripsi dampak
-- Perubahan role user (escalate/demote) → confirm
-- Ban / unban user → confirm
+- **T1 — Urungkan, tanpa dialog:** hapus tugas/event/lampiran **ke Sampah** (bisa dipulihkan 30 hari). Eksekusi langsung, lalu `notifications.show()` dengan tombol "Urungkan" (±10 detik). Hanya untuk aksi yang benar-benar masuk Sampah; Sampah baru lengkap di S6 (S1 hanya Sampah proyek), jadi **S2 tidak memasang hapus tugas**.
+- **T2 — Dialog `modals.openConfirmModal()`:** sign out ("Kamu akan keluar dari akun ini"); hapus proyek (sebut dampak, mis. jumlah tugas dan event; hanya Super-admin, Admin, dan PM-Pengelola — Member-Pengelola tidak boleh); keluarkan anggota; ubah role akun/proyek (escalate/demote); setujui/tolak akun; ban/unban/nonaktifkan user; purge/bulk delete; hapus item lain yang tidak masuk Sampah (row, post) — "Data ini akan dihapus permanen".
+- **T3 — Dialog + ketik nama/email:** hapus permanen dan hapus akun.
 
-**Blocker:** aksi destruktif tanpa confirm dialog → STOP sebelum commit.
+**Blocker:** aksi destruktif tanpa pengaman T1/T2/T3 yang sesuai → STOP sebelum commit. T1 tanpa tombol Urungkan atau tanpa Sampah di belakangnya juga dilarang.
 
 ### 2. Loading State pada Setiap Aksi Async
 Button yang memicu request async **wajib** punya `loading` prop / spinner selama request berlangsung. User tidak boleh dibiarkan tanpa feedback.
@@ -76,14 +86,14 @@ Setiap route yang dirender (bukan redirect-only) **wajib** punya `export functio
 // Halaman publik (landing, login, dll)
 export function meta(_: Route.MetaArgs) {
   return [
-    { title: 'Judul Halaman — Makuro' },
+    { title: 'Judul Halaman — Simple PM' },
     { name: 'description', content: 'Deskripsi singkat halaman ini, 120–160 karakter.' },
   ];
 }
 
 // Halaman app/admin (tidak diindex search engine, tapi title tetap wajib)
 export function meta() {
-  return [{ title: 'Nama Halaman — Makuro' }];
+  return [{ title: 'Nama Halaman — Simple PM' }];
 }
 ```
 
@@ -107,9 +117,9 @@ Untuk halaman yang bisa dishare (home, landing page):
 ```ts
 export function meta(_: Route.MetaArgs) {
   return [
-    { title: 'Makuro — Fullstack Template' },
+    { title: 'Simple PM — Fullstack Template' },
     { name: 'description', content: '...' },
-    { property: 'og:title', content: 'Makuro — Fullstack Template' },
+    { property: 'og:title', content: 'Simple PM — Fullstack Template' },
     { property: 'og:description', content: '...' },
     { property: 'og:type', content: 'website' },
   ];
@@ -234,7 +244,7 @@ Header halaman yang berisi judul + tombol-tombol wajib menggunakan `wrap="wrap"`
 
 ### 5. Touch Targets
 
-- Tombol aksi utama: minimum `size="sm"` (44px touch area).
+- Area `/app`: `Button`/input `size="lg"` (50 px) dan `ActionIcon` `size="xl"` (44 px) — sudah menjadi default lewat `defaultProps` tema (`app/lib/theme-components.ts`), jadi jangan menulis ulang `size`. `size="sm"` (36 px) **bukan** 44 px; pakai hanya di tabel padat `/dev` dan `/dashboard`.
 - `ActionIcon` kecil di dalam tabel: boleh `size="xs"` karena tabel sudah scrollable.
 - Jarak antar touch target: minimal `gap="xs"`.
 - Hindari link/button berdekatan tanpa jarak yang cukup.
@@ -244,6 +254,11 @@ Header halaman yang berisi judul + tombol-tombol wajib menggunakan `wrap="wrap"`
 - Set `inputMode` yang sesuai: `inputMode="email"`, `inputMode="numeric"`, `inputMode="url"`.
 - Jangan set `font-size` di bawah 16px pada input — browser mobile akan auto-zoom.
 - Mantine input component sudah handle ini secara default, jangan override ke ukuran lebih kecil.
+
+### 7. Ikon & Skala Teks
+
+- Ikon baru `size="1.25em"` agar ikut ukuran teks; jangan `size={16}` atau angka piksel lain.
+- Skala teks pengguna (cookie `mk-text-size`: 1 / 1,25 / 1,5) memakai satu `theme.scale` lewat `buildTheme` (`app/lib/theme.ts`), dan breakpoint ikut diskala. Pakai `visibleFrom`/`hiddenFrom`/prop responsif Mantine yang membaca `theme.breakpoints`; jangan hardcode lebar piksel atau `@media (min-width: …)` sendiri.
 
 **Cara agent menerapkan:** Bayangkan layar 375px lebar (iPhone SE). Apakah semua elemen visible dan bisa di-tap? Apakah ada overflow horizontal tanpa scroll? Apakah burger tidak menimpa konten? Jika ada masalah → perbaiki sebelum commit.
 
@@ -320,8 +335,11 @@ Saat bekerja dengan `bun build --compile --asset`:
 - **Bentuk error API wajib seragam:** `{ error, code, status, requestId }`. Handler mengembalikan `status(4xx, { error, code? })`; jangan `throw` string atau kirim stack. Error tak tertangkap otomatis jadi 500 JSON ber-`requestId` lewat `server/api-error.ts` (pesan disembunyikan di produksi). Untuk pesan ke user pakai bahasa Indonesia yang actionable.
 - **`.mount(auth.handler)` adalah catch-all** untuk semua `/api/*` yang tidak cocok — mount tetap dibungkus agar hanya `/api/auth/*` yang diteruskan (lihat `index.ts`). Jangan menambah mount lain tanpa pembungkus serupa.
 - **Route API baru wajib dipetakan ke scope** di `server/api-keys/scopes.ts` (`requiredScope`), atau eksplisit `null` bila tidak boleh diakses API key, atau `isPublicRead` bila publik — lalu tambahkan assertion di `tests/api-keys/scopes.test.ts`. Tanpa pemetaan, pemanggil API key mendapat 403.
+- **Gerbang 401 `/api/app/**`** ada di `derive` `appContext` (`server/api/app-context.ts`) dan menjawab lewat `unauthorizedResponse` sebagai `throw Response`; **dilarang `throw status()` di `derive`** (menjadi 500, bukan 4xx). Router `/api/app` baru wajib `.use(appContext)`.
+- **Berkas API per modul:** `server/api/app-<modul>[.<bagian>].ts` (mis. `app-projects.ts`, `app-projects.members.ts`); `app.ts` tetap tipis dan hanya merakit.
+- **`PM_KEY_DENY`** (`server/api-keys/scopes.pm.ts`): rute destruktif/eskalasi (hapus proyek, anggota, profil, foto) ditolak untuk API key apa pun scope-nya. Rute destruktif baru ditambahkan ke `PM_KEY_DENY` dan `PM_DENY_OWNER`; tiap rute `/api/app/` baru wajib tes pemetaan scope-nya (`tests/api-keys/scopes.test.ts`, `scopes.pm.test.ts`).
 - **Better Auth apiKey:** `auth.api.createApiKey/updateApiKey` dipanggil **tanpa** `headers`; scope dicek sendiri (plugin melaporkan scope kurang sebagai `KEY_NOT_FOUND`); total pemakaian dari `api_key_usage`, bukan `requestCount`.
-- **Tanggal di fragmen `sql` mentah:** kirim `${d.toISOString()}::timestamp`, bukan objek `Date` (fragmen raw tidak mendapat pemetaan kolom).
+- **Tanggal di fragmen `sql` mentah:** kirim string ISO, bukan objek `Date` (fragmen raw tidak mendapat pemetaan kolom): `${d.toISOString()}::timestamp` untuk tabel lama, `${d.toISOString()}::timestamptz` untuk tabel baru. Tabel baru wajib kolom `timestamptz` (`server/db/schema.columns.ts`); sesi DB dipaksa UTC (`TimeZone: 'UTC'` di `server/db/index.ts`) — jangan diubah.
 - **Request non-halaman sebelum SSR:** probe browser (`/favicon.ico`, `/.well-known/`, `apple-touch-icon`) ditangani `server/http-probes.ts`; dokumentasi agent (`/README.md`, `/llms*.txt`) oleh `server/readme.ts`. Keduanya harus tetap masuk daftar pengecualian `visitor.ts` dan `settings-maintenance.ts`. Tambahkan di sana bila ada path statis baru, jangan biarkan jatuh ke React Router (menghasilkan stack trace 404).
 - **Dev server `--hot`** tidak selalu memuat ulang plugin Elysia baru — minta user restart `bun run dev` setelah menambah plugin/hook.
 - **Versi** hanya dari `package.json` (`server/app-info.ts`); jangan hardcode di tempat lain.
@@ -345,7 +363,7 @@ Saat bekerja dengan `bun build --compile --asset`:
 ## Build & Deploy — Verifikasi Wajib
 
 - `bun run typecheck` harus **nol** error tanpa filter apa pun (deklarasi untuk modul tanpa tipe ada di `server/types/*.d.ts`; `build/server/index.js` dideklarasikan di `ssr-build.d.ts` agar typecheck tidak bergantung pada hasil build).
-- Perubahan yang menyentuh `server/`, `app/entry.server.tsx`, `app/root.tsx`, logger, atau skrip build → jalankan `bun run smoke:prod` **dan** `bun run smoke:binary` sebelum lapor selesai. Keduanya build, boot server di port acak dengan `NODE_ENV=production`, menjalankan 23 pemeriksaan black-box (`scripts/smoke-server.checks.ts`), dan exit ≠ 0 bila gagal. Skrip mengabaikan `PORT`/`NODE_ENV` dari `.env` — jangan pernah mengarahkan pemeriksaan ke port dev server user.
+- Perubahan yang menyentuh `server/`, `app/entry.server.tsx`, `app/root.tsx`, logger, atau skrip build → jalankan `bun run smoke:prod` **dan** `bun run smoke:binary` sebelum lapor selesai. Keduanya build, boot server di port acak dengan `NODE_ENV=production`, menjalankan pemeriksaan black-box dari daftar `SMOKE_CHECKS` di `scripts/smoke-server.checks.ts` (jumlahnya tidak ditulis di sini agar tidak basi), dan exit ≠ 0 bila gagal. Skrip mengabaikan `PORT`/`NODE_ENV` dari `.env` — jangan pernah mengarahkan pemeriksaan ke port dev server user.
 - **Bundle SSR ≠ proses Bun:** modul `@server/*` yang diimpor dari `app/` dibundel Vite menjadi salinan kedua di `build/server/index.js`. Singleton proses (`logger`, `logBuffer`) disimpan di `globalThis` agar kedua salinan memakai satu instance; ikuti pola itu untuk singleton baru (scheduler, cache, koneksi). `app/entry.server.tsx` melapor lewat `processLog` dari `@server/ssr-log`, bukan mengimpor logger.
 - **pino-roll v4** memakai satu objek opsi (`{ file, frequency: 'daily', size, limit, mkdir }`); `frequency: '1d'` atau bentuk `build(path, opts)` membuat `bun run start` gagal boot.
 - Binary men-default `NODE_ENV=production` tetapi menghormati `.env` di direktori kerja (Bun auto-load) dan memperingatkan bila bukan production. Menambah pemeriksaan smoke = tambah entri di `SMOKE_CHECKS` (nama unik, path absolut) — `tests/smoke-server.test.ts` menjaganya.

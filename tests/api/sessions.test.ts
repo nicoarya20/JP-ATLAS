@@ -1,20 +1,19 @@
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({
-    user: { id: 'u-test', email: 'u-test@test.local' },
-    role: 'super-admin',
-  }),
-}));
-
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { sessionsApi } from '../../server/api/sessions';
 import { buildSessionWhere } from '../../server/api/sessions.query';
 import { db } from '../../server/db';
 import { auditLog, session, user } from '../../server/db/schema';
+import { testUser } from '../support/accounts';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(sessionsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', email: 'u-test@test.local', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
 const TAG = `ses-${crypto.randomUUID().slice(0, 8)}`;
 const uid = `${TAG}-user`;
 const ids = { a: `${TAG}-a`, b: `${TAG}-b`, expired: `${TAG}-x` };
@@ -26,16 +25,19 @@ async function getJson(path: string, params: Record<string, string> = {}) {
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
 }
 
-beforeAll(async () => {
+// Seeded per test: the DELETE tests revoke these rows and the GET tests count them, so a shared seed is order-dependent.
+beforeEach(async () => {
   const now = new Date();
-  await db.insert(user).values({
-    id: uid,
-    name: `Sess ${TAG}`,
-    email: `${uid}@test.local`,
-    emailVerified: false,
-    createdAt: now,
-    updatedAt: now,
-  });
+  await db.insert(user).values(
+    testUser({
+      id: uid,
+      name: `Sess ${TAG}`,
+      email: `${uid}@test.local`,
+      emailVerified: false,
+      createdAt: now,
+      updatedAt: now,
+    }),
+  );
   await db.insert(session).values([
     {
       id: ids.a,
@@ -66,7 +68,7 @@ beforeAll(async () => {
     },
   ]);
 });
-afterAll(async () => {
+afterEach(async () => {
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetId, uid))
@@ -119,7 +121,7 @@ describe('DELETE /sessions', () => {
       new Request(`http://localhost/sessions/user/${uid}?keep=${ids.a}`, { method: 'DELETE' }),
     );
     const body = (await res.json()) as { revoked: number };
-    expect(body.revoked).toBe(1); // only the expired one remained besides a
+    expect(body.revoked).toBe(2); // b and the expired one; a is kept
     expect((await getJson('/sessions', { userId: uid, status: 'all' })).body.total).toBe(1);
     await new Promise((r) => setTimeout(r, 100));
     const audits = await db.select().from(auditLog).where(eq(auditLog.targetId, uid));

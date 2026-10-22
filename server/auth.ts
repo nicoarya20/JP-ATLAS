@@ -1,7 +1,10 @@
 import { apiKey } from '@better-auth/api-key';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin, anonymous, multiSession } from 'better-auth/plugins';
+import { admin, multiSession } from 'better-auth/plugins';
+import { emailPasswordEnabled } from './account/auth-policy';
+import { guardSelfDelete } from './account/delete-guard';
+import { afterCreateUser, beforeCreateUser } from './account/signup-hooks';
 import { deleteAvatarObject } from './api/app-avatar';
 import { AUDIT_ACTIONS, audit } from './audit';
 import { db } from './db';
@@ -12,8 +15,8 @@ import { CLIENT_IP_HEADER, normalizeIp, resolveClientIp } from './middleware/cli
 import { describeClient, loginMethodFromPath } from './middleware/request-meta';
 import { ac, ROLES, roles } from './permissions';
 
-/** Public part of every key, e.g. mk_live_abc… — also how the header getter recognises a key. */
-export const API_KEY_PREFIX = 'mk_live_';
+/** Public part of every key, e.g. sp_live_abc… — also how the header getter recognises a key. */
+export const API_KEY_PREFIX = 'sp_live_';
 const DEFAULT_KEY_TTL_SEC = 90 * 86_400;
 const MAX_KEY_TTL_DAYS = 365;
 
@@ -35,14 +38,12 @@ export const auth = betterAuth({
       ac,
       roles,
       adminRoles: [ROLES.ADMIN, ROLES.SUPER_ADMIN],
-      defaultRole: ROLES.USER,
+      defaultRole: ROLES.MEMBER,
       impersonationSessionDuration: 60 * 60,
     }),
     // Lets a browser stay signed in to several accounts at once and switch
     // between them. Cookie-based, so no extra DB tables/migration.
     multiSession({ maximumSessions: 5 }),
-    // Demo visitors (server/demo/*): only reachable through POST /api/demo/start.
-    anonymous({ generateName: () => 'Pengunjung Demo' }),
     // API keys: hashed at rest, per-key expiry/rate limit/permissions. Our own
     // middleware (server/api-keys/*) adds scopes, usage tracking and rotation.
     apiKey({
@@ -73,7 +74,11 @@ export const auth = betterAuth({
   ],
   databaseHooks: {
     // Self-delete and admin removeUser both go through internalAdapter.deleteUser → this hook.
-    user: { delete: { after: (u) => deleteAvatarObject(u.id, u.image) } },
+    user: {
+      delete: { after: (u) => deleteAvatarObject(u.id, u.image) },
+      // Approval decision for every new account (S0A-06); runs after the admin plugin's own hook, so it wins on `role`.
+      create: { before: beforeCreateUser, after: afterCreateUser },
+    },
     session: {
       create: {
         after: async (session, ctx) => {
@@ -118,13 +123,35 @@ export const auth = betterAuth({
   // /api/auth/* skips the app limiter; BA's own per-IP limiter (default rules,
   // stricter on sign-in) guards it in production.
   rateLimit: { enabled: isProd, storage: 'memory' },
+  // Production signs in with Google only; the gate and the sign-up hook (signup-hooks.ts) add the
+  // other two layers (R12 F1).
   emailAndPassword: {
-    enabled: true,
+    enabled: emailPasswordEnabled(isProd),
+  },
+  account: {
+    // Never merge a provider login into an existing account by matching email: a recycled or
+    // unverified address would hand over someone else's account and approval (R12 C-AUTH-5).
+    accountLinking: { disableImplicitLinking: true },
   },
   user: {
-    // Self-service account deletion from /profile. Credential accounts must
+    // Approval state lives on `user` (migration 0014) so it rides on `session.user`. Every field is
+    // `input:false`: clients can neither set it at sign-up nor change it via /update-user.
+    // `databaseHooks.user.create` (signup-hooks.ts) sets these; the schema default 'pending' is the fail-closed fallback.
+    additionalFields: {
+      approvalStatus: {
+        type: 'string',
+        required: false,
+        defaultValue: 'pending',
+        input: false,
+      },
+      approvalDecidedBy: { type: 'string', required: false, input: false },
+      approvalDecidedAt: { type: 'date', required: false, input: false },
+      approvalReason: { type: 'string', required: false, input: false },
+    },
+    // Self-service account deletion from Pengaturan. Credential accounts must
     // confirm with their password; the client asks for it before calling.
-    deleteUser: { enabled: true },
+    // Only a Super-admin who is not the sole manager of an active project may delete themselves (Q4/N03, P9 A7).
+    deleteUser: { enabled: true, beforeDelete: guardSelfDelete },
   },
   socialProviders: hasGoogleAuth
     ? {

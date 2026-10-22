@@ -16,7 +16,7 @@ const routes = new Elysia({ prefix: '/api' })
 
 const base = toOpenAPISchema(routes);
 
-const key = (scopes: string[], role: ApiKeyIdentity['role'] = 'user'): ApiKeyIdentity => ({
+const key = (scopes: string[], role: ApiKeyIdentity['role'] = 'member'): ApiKeyIdentity => ({
   keyId: 'k1',
   keyName: 'test',
   scopes,
@@ -43,7 +43,7 @@ describe('specForKey', () => {
   });
 
   test('drops scopes the owner role no longer allows', () => {
-    expect(ops(specForKey(base, key(['users:read'], 'user')))).not.toContain(
+    expect(ops(specForKey(base, key(['users:read'], 'member')))).not.toContain(
       'get /api/admin/users',
     );
     expect(ops(specForKey(base, key(['users:read'], 'admin')))).toContain('get /api/admin/users');

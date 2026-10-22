@@ -240,7 +240,7 @@ bun run dev
 
 # 5. Produksi: satu binary, tanpa Bun di server
 curl -fsSL https://raw.githubusercontent.com/bipprojectbali/makuro-template/main/install.sh | sh
-makuro-template init && makuro-template start`;
+simple-pm init && simple-pm start`;
 
 export const ARCH = `Browser
   │

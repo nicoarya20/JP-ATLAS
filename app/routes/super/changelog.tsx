@@ -28,7 +28,7 @@ import { StatTileGrid } from '~/components/logs/StatTile';
 import type { Route } from './+types/changelog';
 
 export function meta() {
-  return [{ title: 'Changelog — Makuro Dev' }];
+  return [{ title: 'Changelog — Simple PM Dev' }];
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

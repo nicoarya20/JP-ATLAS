@@ -37,10 +37,16 @@ export type { NavBadge, NavGroup, NavItem } from './frame/nav';
 
 // Written to cookie so the server can read it on next request (no SSR flash).
 const COOKIE = 'mk-sidebar-collapsed';
-const WIDTH_EXPANDED = 248;
+// Wide enough for the brand name beside three 44 px header icons (bell, theme, collapse) in /app.
+const WIDTH_EXPANDED = 296;
 const WIDTH_COLLAPSED = 72;
 /** Footer badge must never eat the name — short labels, full role in the tooltip. */
-const ROLE_SHORT: Record<string, string> = { 'super-admin': 'Super', admin: 'Admin', user: 'User' };
+const ROLE_SHORT: Record<string, string> = {
+  'super-admin': 'Super',
+  admin: 'Admin',
+  project_manager: 'PM',
+  member: 'Anggota',
+};
 
 type Props = {
   /** Flat list or labeled groups. */
@@ -55,9 +61,11 @@ type Props = {
   consoleLabel?: string;
   /** Live counters keyed by route path, resolved in the layout loader. */
   navBadges?: Record<string, NavBadge>;
+  /** Notification bell: shown beside the theme toggle and in the mobile header; areas without one omit it. */
+  bell?: ReactNode;
   env?: string;
   version?: string;
-  /** App name/tagline from settings (defaults to Makuro). */
+  /** App name/tagline from settings (defaults to Simple PM). */
   branding?: Branding;
   /** Show the maintenance banner to admins who can still use the app. */
   maintenance?: boolean;
@@ -86,9 +94,10 @@ export function AppFrame(props: Props) {
     version,
     branding,
     maintenance,
+    bell,
     initialCollapsed = false,
   } = props;
-  const appName = branding?.appName ?? 'Makuro';
+  const appName = branding?.appName ?? 'Simple PM';
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] = useDisclosure();
   // Initialized from server-resolved value — no useEffect needed, no flash.
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -136,7 +145,7 @@ export function AppFrame(props: Props) {
           />
           <Link to={home} style={{ textDecoration: 'none', color: 'inherit', minWidth: 0 }}>
             <Group gap={6} wrap="nowrap">
-              <FiZap size={18} />
+              <FiZap size="1.25em" />
               <Text fw={700} truncate>
                 {appName}
               </Text>
@@ -147,6 +156,7 @@ export function AppFrame(props: Props) {
               )}
             </Group>
           </Link>
+          {bell && <div style={{ marginLeft: 'auto', flexShrink: 0 }}>{bell}</div>}
         </Group>
       </AppShell.Header>
 
@@ -159,7 +169,12 @@ export function AppFrame(props: Props) {
             consoleLabel={consoleLabel}
             env={env}
             version={version}
-            extra={<ThemeToggle collapsed />}
+            extra={
+              <>
+                {bell}
+                <ThemeToggle collapsed />
+              </>
+            }
             appName={appName}
           />
         </AppShell.Section>
@@ -177,7 +192,7 @@ export function AppFrame(props: Props) {
                   onClick={stopImpersonating}
                   aria-label="Berhenti impersonasi"
                 >
-                  <FiCornerUpLeft size={18} />
+                  <FiCornerUpLeft size="1.25em" />
                 </ActionIcon>
               </Tooltip>
             ) : (
@@ -186,7 +201,7 @@ export function AppFrame(props: Props) {
                 size="xs"
                 variant="light"
                 color="orange"
-                leftSection={<FiCornerUpLeft size={16} />}
+                leftSection={<FiCornerUpLeft size="1.25em" />}
                 onClick={stopImpersonating}
               >
                 Berhenti impersonasi
@@ -238,7 +253,7 @@ export function AppFrame(props: Props) {
           <Alert
             color="orange"
             variant="filled"
-            icon={<FiTool size={16} />}
+            icon={<FiTool size="1.25em" />}
             mb="md"
             title="Mode maintenance aktif"
           >

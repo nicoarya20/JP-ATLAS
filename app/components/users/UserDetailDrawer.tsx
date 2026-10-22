@@ -1,11 +1,19 @@
 import { Alert, Avatar, Badge, Button, Divider, Drawer, Group, Stack, Text } from '@mantine/core';
-import { normalizeRole, ROLES } from '@server/permissions';
-import { FiLogIn, FiShield, FiSlash, FiTrash2, FiUser, FiUserCheck } from 'react-icons/fi';
-import { type AdminUser, isBanActive } from '~/lib/admin-users-api';
+import {
+  FiCheck,
+  FiClock,
+  FiLogIn,
+  FiShield,
+  FiSlash,
+  FiTrash2,
+  FiUserCheck,
+  FiX,
+} from 'react-icons/fi';
+import { type AdminUser, isBanActive, ROLE_LABEL } from '~/lib/admin-users-api';
 import { useTimeFormat } from '~/lib/time-format';
 import { Copyable, Field, Section } from '../logs/DetailParts';
-import { allowedActions, type UserPermissions } from './UserActionsMenu';
 import { RoleBadge, StatusBadge } from './UserCells';
+import { hasAnyAction, type UserPermissions, userAccess } from './user-access';
 import type { useUserActions } from './useUserActions';
 
 type Props = {
@@ -20,17 +28,16 @@ const nf = new Intl.NumberFormat('id-ID');
 /** Full profile + permitted actions for one user. */
 export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
   const { dateTime: formatDateTime, relative: formatRelative } = useTimeFormat();
-  const can = user ? allowedActions(user, perms) : null;
+  const can = user ? userAccess(user, perms) : null;
   const busy = user ? actions.busyId === user.id : false;
   const banned = user ? isBanActive(user) : false;
-  const target = user ? normalizeRole(user.role) : ROLES.USER;
   return (
     <Drawer
       opened={user !== null}
       onClose={onClose}
       position="right"
       size="md"
-      title="Detail user"
+      title="Detail pengguna"
       padding="md"
     >
       {user && can && (
@@ -59,7 +66,7 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
                   variant={user.emailVerified ? 'light' : 'outline'}
                   color={user.emailVerified ? 'teal' : 'gray'}
                 >
-                  {user.emailVerified ? 'Email terverifikasi' : 'Belum verifikasi'}
+                  {user.emailVerified ? 'Email terverifikasi' : 'Email belum diverifikasi'}
                 </Badge>
               </Group>
             </Stack>
@@ -70,7 +77,7 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
               color="red"
               variant="light"
               icon={<FiSlash size={16} />}
-              title="User ini diblokir"
+              title="Akun ini diblokir"
             >
               {user.banReason ? `Alasan: ${user.banReason}. ` : 'Tanpa alasan tercatat. '}
               {user.banExpires
@@ -78,16 +85,36 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
                 : 'Permanen sampai dibuka manual.'}
             </Alert>
           )}
+          {user.approvalStatus === 'pending' && (
+            <Alert
+              color="yellow"
+              variant="light"
+              icon={<FiClock size={16} />}
+              title="Menunggu persetujuan"
+            >
+              Orang ini belum bisa memakai aplikasi sampai kamu menyetujuinya.
+            </Alert>
+          )}
+          {user.approvalStatus === 'rejected' && (
+            <Alert
+              color="orange"
+              variant="light"
+              icon={<FiX size={16} />}
+              title="Pendaftaran ditolak"
+            >
+              {user.approvalReason ? `Alasan: ${user.approvalReason}` : 'Tanpa alasan tercatat.'}
+            </Alert>
+          )}
 
           <Section title="Aktivitas">
-            <Field label="Login terakhir">
+            <Field label="Masuk terakhir">
               <Text size="sm">
                 {user.lastLoginAt
                   ? `${formatRelative(user.lastLoginAt)} · ${formatDateTime(user.lastLoginAt)}`
                   : 'Belum pernah'}
               </Text>
             </Field>
-            <Field label="Total login">
+            <Field label="Jumlah masuk">
               <Text size="sm">{nf.format(user.loginCount)}</Text>
             </Field>
             <Field label="Sesi aktif">
@@ -127,37 +154,45 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
           <Divider />
 
           <Section title="Aksi">
-            {!can.role && !can.ban && !can.impersonate && !can.remove ? (
+            {!hasAnyAction(can) ? (
               <Text size="sm" c="dimmed">
-                {can.isSelf
-                  ? 'Ini akun Anda sendiri.'
-                  : target === ROLES.SUPER_ADMIN
-                    ? 'Super-admin dikelola lewat SUPER_ADMIN_EMAILS di env.'
-                    : 'Role Anda tidak bisa mengubah user ini.'}
+                {can.blockedReason ?? 'Tidak ada aksi yang tersedia untuk akun ini.'}
               </Text>
             ) : (
               <Stack gap="xs">
-                {can.role && target !== ROLES.ADMIN && (
+                {can.approve && (
                   <Button
+                    variant="light"
+                    color="teal"
+                    leftSection={<FiCheck size={14} />}
+                    loading={busy}
+                    onClick={() => actions.approve(user, can.approveRoles)}
+                  >
+                    Setujui…
+                  </Button>
+                )}
+                {can.reject && (
+                  <Button
+                    variant="light"
+                    color="red"
+                    leftSection={<FiX size={14} />}
+                    loading={busy}
+                    onClick={() => actions.reject(user)}
+                  >
+                    Tolak…
+                  </Button>
+                )}
+                {can.roles.map((r) => (
+                  <Button
+                    key={r}
                     variant="light"
                     leftSection={<FiShield size={14} />}
                     loading={busy}
-                    onClick={() => actions.changeRole(user, ROLES.ADMIN)}
+                    onClick={() => actions.changeRole(user, r)}
                   >
-                    Jadikan admin
+                    Jadikan {ROLE_LABEL[r] ?? r}
                   </Button>
-                )}
-                {can.role && target !== ROLES.USER && (
-                  <Button
-                    variant="light"
-                    color="orange"
-                    leftSection={<FiUser size={14} />}
-                    loading={busy}
-                    onClick={() => actions.changeRole(user, ROLES.USER)}
-                  >
-                    Jadikan user biasa
-                  </Button>
-                )}
+                ))}
                 {can.impersonate && (
                   <Button
                     variant="light"
@@ -166,7 +201,7 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
                     loading={busy}
                     onClick={() => actions.impersonate(user)}
                   >
-                    Masuk sebagai user ini
+                    Masuk sebagai pengguna ini
                   </Button>
                 )}
                 {can.ban &&
@@ -178,7 +213,7 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
                       loading={busy}
                       onClick={() => actions.unbanConfirm(user)}
                     >
-                      Buka ban
+                      Buka blokir
                     </Button>
                   ) : (
                     <Button
@@ -188,7 +223,7 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
                       loading={busy}
                       onClick={() => actions.banWithForm(user)}
                     >
-                      Ban user…
+                      Blokir akun…
                     </Button>
                   ))}
                 {can.remove && (

@@ -3,17 +3,19 @@ import { and, asc, desc, eq, gte, ilike, isNull, or, type SQL, sql } from 'drizz
 import { t } from 'elysia';
 import { db } from '../db';
 import { loginLog, user } from '../db/schema';
-import { ROLES } from '../permissions';
+import { normalizeRole, ROLES, type Role } from '../permissions';
 import { parsePaging } from './analytics-paging';
 
 export const UserListQuery = t.Object({
   page: t.Optional(t.String()),
   limit: t.Optional(t.String()),
   search: t.Optional(t.String()),
-  /** 'user' | 'admin' | 'super-admin' */
+  /** 'member' | 'project_manager' | 'admin' | 'super-admin' */
   role: t.Optional(t.String()),
   /** 'active' | 'banned' */
   status: t.Optional(t.String()),
+  /** 'pending' | 'approved' | 'rejected' (account approval, S0A). */
+  approval: t.Optional(t.String()),
   /** Joined within the last N days (1–365). */
   days: t.Optional(t.String()),
   /** 'newest' (default) | 'oldest' | 'name' | 'lastLogin' */
@@ -23,7 +25,10 @@ export type UserListQueryType = typeof UserListQuery.static;
 
 const MAX_DAYS = 365;
 
-/** Excludes temporary demo (anonymous) users; the column is nullable for older rows. */
+/** Pre-rename role value; rows keep it until the S0A-02 backfill, so the member filter still matches them. */
+const LEGACY_USER_ROLE = 'user';
+
+/** Excludes leftover anonymous users (retired sandbox, swept at boot); the column is nullable for older rows. */
 export const realUser = sql`${user.isAnonymous} is not true`;
 
 // Correlated subqueries must qualify columns explicitly: drizzle renders bare
@@ -52,8 +57,9 @@ export function buildUserWhere(q: UserListQueryType): SQL | undefined {
           ilike(user.id, `%${search}%`),
         )
       : undefined,
-    q.role === ROLES.USER
-      ? or(eq(user.role, ROLES.USER), isNull(user.role))
+    q.role === ROLES.MEMBER
+      ? // Legacy rows may still hold 'user' or NULL; both read as member (normalizeRole).
+        or(eq(user.role, ROLES.MEMBER), eq(user.role, LEGACY_USER_ROLE), isNull(user.role))
       : q.role
         ? eq(user.role, q.role)
         : undefined,
@@ -62,6 +68,7 @@ export function buildUserWhere(q: UserListQueryType): SQL | undefined {
       : q.status === 'active'
         ? or(eq(user.banned, false), isNull(user.banned))
         : undefined,
+    q.approval ? eq(user.approvalStatus, q.approval) : undefined,
     days > 0 ? gte(user.createdAt, new Date(Date.now() - days * 86_400_000)) : undefined,
   );
 }
@@ -95,6 +102,8 @@ export async function listAdminUsers(q: UserListQueryType) {
         banned: user.banned,
         banReason: user.banReason,
         banExpires: user.banExpires,
+        approvalStatus: user.approvalStatus,
+        approvalReason: user.approvalReason,
         createdAt: user.createdAt,
         lastLoginAt,
         loginCount,
@@ -119,6 +128,7 @@ export async function adminUserStats() {
       admins: sql<number>`count(*) filter (where ${user.role} = ${ROLES.ADMIN})::int`,
       superAdmins: sql<number>`count(*) filter (where ${user.role} = ${ROLES.SUPER_ADMIN})::int`,
       banned: sql<number>`count(*) filter (where ${user.banned} = true)::int`,
+      pending: sql<number>`count(*) filter (where ${user.approvalStatus} = 'pending')::int`,
       verified: sql<number>`count(*) filter (where ${user.emailVerified} = true)::int`,
       new7d: sql<number>`count(*) filter (where ${user.createdAt} >= now() - interval '7 days')::int`,
     })
@@ -130,4 +140,14 @@ export async function adminUserStats() {
     .innerJoin(user, eq(loginLog.userId, user.id))
     .where(and(realUser, sql`${loginLog.createdAt} >= now() - interval '24 hours'`));
   return { ...row, active24h: active?.count ?? 0 };
+}
+
+/** The id + effective app role of one user (legacy/null roles read as member), or null when no such user. */
+export async function findUserTarget(id: string): Promise<{ id: string; appRole: Role } | null> {
+  const [row] = await db
+    .select({ id: user.id, role: user.role })
+    .from(user)
+    .where(eq(user.id, id))
+    .limit(1);
+  return row ? { id: row.id, appRole: normalizeRole(row.role) } : null;
 }

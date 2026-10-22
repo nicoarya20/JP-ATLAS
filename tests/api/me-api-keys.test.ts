@@ -1,13 +1,15 @@
 /** Personal API keys: owner-only management, role-clamped scopes, session-only access. */
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import Elysia from 'elysia';
 import { MAX_PERSONAL_KEYS, meApiKeysApi } from '../../server/api/me-api-keys';
 import { setApiKeyIdentity } from '../../server/api-keys/identity';
+import { createKey } from '../../server/api-keys/service';
 import { auth } from '../../server/auth';
 import { db } from '../../server/db';
 import { auditLog, user } from '../../server/db/schema';
 import * as rolesMod from '../../server/roles';
+import { testUser } from '../support/accounts';
 
 // Real resolveActor; only the session lookup and role reconciliation are stubbed
 // (a module mock of guard would leak into other test files in the same run).
@@ -16,10 +18,10 @@ const ctx: { actor: FakeActor } = { actor: null };
 const spies = [
   spyOn(auth.api, 'getSession').mockImplementation((async () =>
     ctx.actor && !ctx.actor.viaApiKey
-      ? { user: ctx.actor.user }
+      ? { user: { approvalStatus: 'approved', ...ctx.actor.user } }
       : null) as unknown as typeof auth.api.getSession),
   spyOn(rolesMod, 'resolveUserRole').mockImplementation(
-    async () => (ctx.actor?.role ?? 'user') as 'user',
+    async () => (ctx.actor?.role ?? 'member') as 'member',
   ),
 ];
 const setActor = (a: FakeActor) => {
@@ -31,7 +33,7 @@ const aliceId = `${TAG}-alice`;
 const bobId = `${TAG}-bob`;
 const alice: FakeActor = {
   user: { id: aliceId, email: `${aliceId}@test.local` },
-  role: 'user',
+  role: 'member',
   viaApiKey: false,
 };
 const bob: FakeActor = {
@@ -52,7 +54,7 @@ async function call(path: string, init?: RequestInit) {
       keyName: 'k',
       scopes: ['me:read'],
       user: { ...ctx.actor.user, name: 'x' },
-      role: ctx.actor.role as 'user',
+      role: ctx.actor.role as 'member',
       startedAt: 0,
     });
   const res = await app.handle(req);
@@ -69,24 +71,32 @@ const input = (name: string, scopes: string[]) => ({
 });
 let aliceKeyId = '';
 
-beforeAll(async () => {
+// Per test: tests rotate, revoke and delete alice's key, so each one starts from its own users and key.
+beforeEach(async () => {
   await db.insert(user).values(
     [
-      [aliceId, 'user'],
+      [aliceId, 'member'],
       [bobId, 'admin'],
-    ].map(([id, role]) => ({
-      id,
-      name: id,
-      email: `${id}@test.local`,
-      emailVerified: true,
-      role,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    })),
+    ].map(([id, role]) =>
+      testUser({
+        id,
+        name: id,
+        email: `${id}@test.local`,
+        emailVerified: true,
+        role,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    ),
   );
+  aliceKeyId = (
+    await createKey({ ...input('seed', ['me:read']), scopes: ['me:read'], ownerId: aliceId })
+  ).row.id;
 });
-afterAll(async () => {
+afterAll(() => {
   for (const sp of spies) sp.mockRestore();
+});
+afterEach(async () => {
   await db
     .delete(auditLog)
     .where(eq(auditLog.targetType, 'apikey'))
@@ -121,13 +131,12 @@ describe('/me/api-keys', () => {
     expect(forever.status).toBe(400);
     const ok = await call('/', json('POST', input('cli', ['me:read'])));
     expect(ok.status).toBe(200);
-    expect(String(ok.body.key).startsWith('mk_live_')).toBe(true);
+    expect(String(ok.body.key).startsWith('sp_live_')).toBe(true);
     const row = ok.body.row as { id: string; ownerId: string; scopes: string[] };
     expect(row.ownerId).toBe(aliceId);
     expect(row.scopes).toEqual(['me:read']);
-    aliceKeyId = row.id;
     await Bun.sleep(50); // audit() is fire-and-forget
-    const audit = await db.select().from(auditLog).where(eq(auditLog.targetId, aliceKeyId));
+    const audit = await db.select().from(auditLog).where(eq(auditLog.targetId, row.id));
     expect(audit[0]?.actorId).toBe(aliceId);
   });
   test('other users cannot see, edit, rotate or delete the key', async () => {

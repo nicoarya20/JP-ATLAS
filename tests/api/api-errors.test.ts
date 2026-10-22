@@ -2,7 +2,7 @@
 import { describe, expect, test } from 'bun:test';
 import { Elysia, t } from 'elysia';
 import { api } from '../../server/api';
-import { apiErrorPlugin } from '../../server/api-error';
+import { apiErrorPlugin, unauthorizedResponse } from '../../server/api-error';
 
 class ApiLikeError extends Error {
   statusCode = 409;
@@ -24,6 +24,13 @@ const app = new Elysia({ prefix: '/api' })
   })
   .get('/forbidden', ({ status }) => status(403, { error: 'Tidak boleh', hint: 'x' }))
   .get('/coded', ({ status }) => status(400, { error: 'Salah', code: 'BAD_INPUT' }))
+  .group('/denied', (g) =>
+    g
+      .derive(({ request }) => {
+        throw unauthorizedResponse(request);
+      })
+      .post('/v', ({ body }) => body, { body: t.Object({ n: t.Integer() }) }),
+  )
   .group('/guarded', (g) =>
     g.onBeforeHandle(({ status }) => status(401, { error: 'Masuk dulu' })).get('/x', () => 'never'),
   );
@@ -96,5 +103,22 @@ describe('apiErrorPlugin', () => {
     const body = (await res.json()) as { code: string; requestId: string };
     expect(body.code).toBe('NOT_FOUND');
     expect(body.requestId).toBeTruthy();
+  });
+  test('a Response thrown from derive answers 401 before body validation can answer 422', async () => {
+    const { res, body } = await call('/api/denied/v', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ n: 'not-a-number' }),
+    });
+    expect<number>(res.status).toBe(401);
+    expect(body).toMatchObject({
+      error: 'Silakan masuk terlebih dahulu.',
+      code: 'UNAUTHORIZED',
+      status: 401,
+      method: 'POST',
+      path: '/api/denied/v',
+    });
+    expect(res.headers.get('x-request-id')).toBe(body?.requestId as string);
+    expect(res.headers.get('cache-control')).toBe('no-store');
   });
 });

@@ -1,14 +1,6 @@
-import { afterAll, describe, expect, mock, test } from 'bun:test';
-import Elysia from 'elysia';
-
-mock.module('../../server/guard', () => ({
-  requireRole: async () => ({
-    user: { id: 'u-test', email: 'u-test@test.local' },
-    role: 'super-admin',
-  }),
-}));
-
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
+import Elysia from 'elysia';
 import { settingsApi } from '../../server/api/settings';
 import { settingsOpsApi } from '../../server/api/settings-ops';
 import { db } from '../../server/db';
@@ -16,8 +8,14 @@ import { appSetting } from '../../server/db/schema';
 import { maintenancePlugin } from '../../server/middleware/maintenance';
 import { invalidateSettingsCache } from '../../server/settings.core';
 import { upsertMaintenance } from '../../server/settings-maintenance';
+import { installAuthSpies } from '../support/auth';
 
 const app = new Elysia().use(settingsApi).use(settingsOpsApi);
+
+// The real requireRole runs; only the session and role lookups are spied (replacing the guard module leaks across files).
+const SUPER_ADMIN = { id: 'u-test', email: 'u-test@test.local', role: 'super-admin' }; // test-only
+const authSpies = installAuthSpies();
+beforeAll(() => authSpies.as(SUPER_ADMIN));
 const json = (method: string, body: unknown) => ({
   method,
   headers: { 'Content-Type': 'application/json' },
@@ -134,6 +132,10 @@ describe('settings ops API', () => {
 });
 
 describe('maintenancePlugin', () => {
+  // The suite signs in as super-admin; this test is about callers without a session, so sign out here.
+  beforeEach(() => authSpies.as(null));
+  afterEach(() => authSpies.as(SUPER_ADMIN));
+
   test('blocks anonymous API calls with 503 JSON when enabled, exempts auth routes, passes when disabled', async () => {
     const guarded = new Elysia()
       .use(maintenancePlugin())

@@ -1,22 +1,24 @@
 import { Elysia } from 'elysia';
-import { apiErrorPlugin, notFoundResponse } from '../api-error';
+import { apiErrorPlugin } from '../api-error';
 import { apiKeyPlugin } from '../api-keys/plugin';
 import { startUsageRollupScheduler } from '../api-keys/rollup';
 import { auth } from '../auth';
-import { startDemoCleanupScheduler } from '../demo/cleanup';
-import { demoRestrictPlugin } from '../demo/restrict';
+import { schedulePurgeLegacyDemoUsers } from '../demo/cleanup';
+import { startEventReminderScheduler } from '../event/events.reminders';
 import { mcpPlugin } from '../mcp';
 import { maintenancePlugin } from '../middleware/maintenance';
 import { rateLimitPlugin } from '../middleware/rate-limiter';
+import { startNotificationPurgeScheduler } from '../notification/notification.scheduler';
 import { applyRateLimitSettings } from '../settings';
 import { startRetentionScheduler } from '../settings-retention';
+import { startTrashPurgeScheduler } from '../trash/trash.scheduler';
 import { adminApi } from './admin';
 import { analyticsApi } from './analytics';
 import { apiKeysApi } from './api-keys';
 import { apiKeysUsageApi } from './api-keys-usage';
 import { appApi } from './app';
 import { auditApi } from './audit';
-import { demoApi } from './demo';
+import { authMount } from './auth-gate';
 import { fileHealthApi } from './file-health';
 import { logsApi } from './logs';
 import { meApi } from './me';
@@ -44,22 +46,10 @@ void applyRateLimitSettings();
 if (process.env.NODE_ENV !== 'test') {
   startRetentionScheduler();
   startUsageRollupScheduler();
-  startDemoCleanupScheduler();
-}
-
-const AUTH_BASE = '/api/auth';
-/** Anonymous sign-in is server-only (POST /api/demo/start enforces the demo switch + IP limit). */
-const BLOCKED_AUTH_PATHS = [`${AUTH_BASE}/sign-in/anonymous`];
-
-function isAuthPath(pathname: string): boolean {
-  if (!pathname.startsWith(AUTH_BASE)) return false;
-  let p = pathname.toLowerCase();
-  try {
-    p = decodeURIComponent(p).replace(/\/{2,}/g, '/');
-  } catch {
-    return false;
-  }
-  return !BLOCKED_AUTH_PATHS.some((b) => p.startsWith(b));
+  schedulePurgeLegacyDemoUsers();
+  startNotificationPurgeScheduler();
+  startEventReminderScheduler();
+  startTrashPurgeScheduler();
 }
 
 /**
@@ -75,16 +65,12 @@ export const api = new Elysia({ prefix: '/api' })
   .use(rateLimitPlugin())
   // Maintenance mode: 503 for everyone but the allowed roles (auth routes exempt).
   .use(maintenancePlugin())
-  // API keys: identity + scope enforcement + usage tracking (X-API-Key / Bearer mk_live_…).
+  // API keys: identity + scope enforcement + usage tracking (X-API-Key / Bearer sp_live_…).
   .use(apiKeyPlugin())
-  // Demo visitors: 403 on sensitive actions, before auth so Better Auth routes are covered too.
-  .use(demoRestrictPlugin())
-  // Better Auth handler for /api/auth/*. A mount is a catch-all fallback for
-  // every unmatched /api path, so anything else gets the uniform JSON 404 here
-  // instead of Better Auth's empty one.
-  .mount((request) =>
-    isAuthPath(new URL(request.url).pathname) ? auth.handler(request) : notFoundResponse(request),
-  )
+  // Better Auth handler for /api/auth/*, behind the path gate (auth-gate.ts: admin + email
+  // endpoints closed). A mount is a catch-all fallback for every unmatched /api path, so
+  // anything else gets the uniform JSON 404 there instead of Better Auth's empty one.
+  .mount(authMount)
   // Admin console endpoints (self-guarded by role).
   .use(adminApi)
   // MCP debug server at /api/mcp — API key with `mcp` scope, or legacy MCP_ADMIN_TOKEN.
@@ -113,8 +99,6 @@ export const api = new Elysia({ prefix: '/api' })
   .use(meApi)
   // Product endpoints (/api/app/*, any signed-in role) — new app features go here.
   .use(appApi)
-  // Demo sandbox entry (public status + start).
-  .use(demoApi)
   // Public reads of stored files (avatars), before the session derive so images skip the lookup.
   .use(storageFilesApi)
   // Derive the session for downstream handlers.

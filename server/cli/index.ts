@@ -7,6 +7,10 @@ export const COMMANDS: Record<string, Command> = {
   start: { summary: 'Jalankan server (default bila tanpa argumen)', load: () => import('./start') },
   init: { summary: 'Siapkan .env, Postgres lokal, dan migrasi', load: () => import('./init') },
   doctor: { summary: 'Periksa kesiapan lingkungan & database', load: () => import('./doctor') },
+  migrate: {
+    summary: 'Terapkan migrasi ke Postgres eksternal (--status: daftar pending)',
+    load: () => import('./migrate'),
+  },
   backup: { summary: 'Cadangkan data Postgres lokal', load: () => import('./backup') },
   upgrade: { summary: 'Perbarui binary ke rilis terbaru', load: () => import('./upgrade') },
   version: { summary: 'Tampilkan versi', load: () => import('./version') },

@@ -48,7 +48,7 @@ describe('local-pg paths', () => {
 
   it('runtimeDir lives in the global cache keyed by package name, PG version and platform', () => {
     process.env.XDG_CACHE_HOME = '/tmp/xdg-test';
-    expect(runtimeDir('linux-x64')).toBe('/tmp/xdg-test/makuro-template/pg/18.4.0/linux-x64');
+    expect(runtimeDir('linux-x64')).toBe('/tmp/xdg-test/simple-pm/pg/18.4.0/linux-x64');
   });
 
   it('dataDir/port honour env overrides, defaults relative to cwd', () => {
@@ -61,10 +61,10 @@ describe('local-pg paths', () => {
     expect(dataDir()).toBe('/srv/app/pg');
     delete process.env.LOCAL_PG_SOCKET_DIR;
     delete process.env.LOCAL_PG_DB;
-    const sock = `/tmp/makuro_template-pg-${process.getuid?.()}`;
+    const sock = `/tmp/simple_pm-pg-${process.getuid?.()}`;
     expect(socketDir()).toBe(sock);
     expect(localDatabaseUrl()).toBe(
-      `postgres://postgres@localhost:55001/makuro_template?host=${encodeURIComponent(sock)}`,
+      `postgres://postgres@localhost:55001/simple_pm?host=${encodeURIComponent(sock)}`,
     );
     // LOCAL_PG_DB renames the database only; the socket stays tied to the cluster.
     process.env.LOCAL_PG_DB = 'shop';
@@ -77,8 +77,8 @@ describe('local-pg paths', () => {
   });
 
   it('localPgDb: package name by default, LOCAL_PG_DB override, both sanitized', () => {
-    expect(localPgDb({})).toBe('makuro_template');
-    expect(localPgDb({ LOCAL_PG_DB: '' })).toBe('makuro_template');
+    expect(localPgDb({})).toBe('simple_pm');
+    expect(localPgDb({ LOCAL_PG_DB: '' })).toBe('simple_pm');
     expect(localPgDb({ LOCAL_PG_DB: 'My-App.db' })).toBe('my_app_db');
     expect(localPgDb({ LOCAL_PG_DB: 'x"; drop' })).toMatch(/^[a-z0-9_]+$/);
   });
@@ -94,10 +94,10 @@ describe('local-pg paths', () => {
     }
   });
 
-  it('registryRoot: npmjs by default, MAKURO_PG_REGISTRY overrides and trims trailing slash', () => {
+  it('registryRoot: npmjs by default, SIMPLE_PM_PG_REGISTRY overrides and trims trailing slash', () => {
     expect(registryRoot({})).toBe('https://registry.npmjs.org');
-    expect(registryRoot({ MAKURO_PG_REGISTRY: '' })).toBe('https://registry.npmjs.org');
-    expect(registryRoot({ MAKURO_PG_REGISTRY: 'https://registry.npmmirror.com/' })).toBe(
+    expect(registryRoot({ SIMPLE_PM_PG_REGISTRY: '' })).toBe('https://registry.npmjs.org');
+    expect(registryRoot({ SIMPLE_PM_PG_REGISTRY: 'https://registry.npmmirror.com/' })).toBe(
       'https://registry.npmmirror.com',
     );
   });
