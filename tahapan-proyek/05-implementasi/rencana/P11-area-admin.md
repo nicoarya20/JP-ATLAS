@@ -156,6 +156,13 @@ Matriks role × kemampuan dari `server/permissions.ts` (sumber tunggal, jangan d
 ### AD-10 · Tab Ekspor data · Dep: AD-02 · L (2) · PARALEL
 CSV anggota/proyek/tugas, streaming + paginasi (jangan muat seluruh tabel), diaudit, rate-limited.
 
+### AD-P · Pratinjau layar AD-04..AD-08, AD-14/AD-15, P9 G-02 · Dep: AD-02 · **selesai 21 Okt 2026**
+Permintaan user 21 Okt 2026: layar yang masih kosong dibuatkan pratinjau berisi data contoh supaya **bentuk** tiap menu bisa dinilai sebelum tugasnya dikerjakan. Bukan implementasi — tidak ada loader, mutasi, atau endpoint; tombol simpan `disabled`.
+
+Berkasnya: `app/components/admin/settings/{identitas,pengumuman,akses-masuk,kebijakan-kerja,pemberitahuan,fitur}.tsx` lewat registry `settings.previews.tsx` (terpisah dari `panels.tsx`, supaya `isPlaceholderTab()` tetap menjawab "belum terisi"), `app/components/admin/home/beranda.*` untuk Beranda, dan `app/components/admin/pratinjau/pratinjau.tsx` untuk penandanya. Tiap berkas diawali `// PRATINJAU(<tugas>):` dan terdaftar di `tests/admin-pratinjau.test.ts`.
+
+**Kewajiban tiap tugas pemilik:** saat AD-04..AD-08 / AD-14 / AD-15 / P9 G-02 dikerjakan, hapus berkas pratinjaunya, barisnya di registry, dan barisnya di tes — dalam commit yang sama. Tes merah bila salah satu tertinggal.
+
 ### AD-20 · Pecah Peran & izin dan Ekspor data jadi menu sendiri · Dep: AD-09, AD-10 · M (1,5) · **selesai 21 Okt 2026**
 Tugas baru dari pengamatan user atas layar nyata: delapan tab tidak muat satu baris di 1366px, dan dua di antaranya bukan setelan. Rute `/dashboard/permissions` dan `/dashboard/export`, panel dipindah dengan `git mv` tanpa mengubah perilaku, `SETTINGS_TABS` turun ke 6, registry `panels.tsx` dipertahankan untuk AD-04..AD-08. Endpoint tidak berubah.
 

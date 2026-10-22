@@ -3,14 +3,17 @@
  * loaders in parallel, so a Member must be turned away here, not only by the layout — and the tab
  * shell renders the six tabs of P11 §4 that really are settings (AD-20 moved the report and the
  * tool out) with the panel of `?tab=` and a list that scrolls sideways instead of wrapping (six
- * tabs fit a laptop but never 375px).
+ * tabs fit a laptop but never 375px). A tab resolves in three steps — registered panel, else the
+ * preview that shows its shape with sample content, else the bare placeholder.
  */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
+import { PRATINJAU_COPY } from '../../app/components/admin/pratinjau/pratinjau';
 import { isPlaceholderTab, SETTINGS_PANELS } from '../../app/components/admin/settings/panels';
+import { SETTINGS_PREVIEWS } from '../../app/components/admin/settings/settings.previews';
 import { SETTINGS_TABS } from '../../app/components/admin/settings/settings.tabs';
 import AdminSettingsPage, { loader } from '../../app/routes/admin/settings';
 import { installAuthSpies } from '../support/auth';
@@ -108,31 +111,31 @@ describe('/dashboard/settings shell', () => {
   });
 
   it('opens the tab named by ?tab=, so every tab is linkable', async () => {
-    // Any tab but the first that still shows its placeholder: a tab whose panel has landed renders
-    // the panel instead, so naming one here would break the moment that task ships. Every tab is a
-    // placeholder today — AD-20 emptied the registry — so this picks the second tab.
-    const target = SETTINGS_TABS.find((t, i) => i > 0 && isPlaceholderTab(t.value));
-    if (!target) throw new Error('every tab is filled: assert a filled tab instead');
-    const html = await renderAt(`?tab=${target.value}`);
-    expect(shows(html, target.title)).toBe(true);
-    expect(shows(html, target.description)).toBe(true);
-    expect(shows(html, SETTINGS_TABS[0].title)).toBe(false);
+    // A tab that is not filled for real — preview or placeholder — names the task that owns it,
+    // and the owners are unique, so the owner string says which tab opened. Naming a title would
+    // break the moment a panel lands; `keepMounted={false}` keeps the other tabs out of the markup.
+    for (const target of SETTINGS_TABS.filter((t) => isPlaceholderTab(t.value))) {
+      const html = await renderAt(`?tab=${target.value}`);
+      expect(shows(html, target.owner)).toBe(true);
+      const leaked = SETTINGS_TABS.filter((t) => t.owner !== target.owner && shows(html, t.owner));
+      expect(leaked.map((t) => t.value)).toEqual([]);
+    }
   });
 
-  it('renders the registered panel of a filled tab, not its placeholder', async () => {
-    const registered = Object.keys(SETTINGS_PANELS);
-    // The registry is empty since AD-20 took both filled panels out to menus of their own, so
-    // every tab must show its placeholder; the loop below takes over as AD-04..AD-08 refill it.
-    if (registered.length === 0) {
-      const html = await renderAt(`?tab=${SETTINGS_TABS[0].value}`);
-      expect(shows(html, SETTINGS_TABS[0].description)).toBe(true);
-      return;
-    }
-    for (const value of registered) {
-      const tab = SETTINGS_TABS.find((t) => t.value === value);
-      if (!tab) throw new Error(`panel registered for unknown tab ${value}`);
-      const html = await renderAt(`?tab=${value}`);
-      expect(shows(html, tab.description)).toBe(false);
+  it('prefers a registered panel, then the preview, then the bare placeholder', async () => {
+    for (const tab of SETTINGS_TABS) {
+      const html = await renderAt(`?tab=${tab.value}`);
+      if (SETTINGS_PANELS[tab.value]) {
+        // Filled for real: neither the preview strip nor the placeholder text may survive.
+        expect(shows(html, PRATINJAU_COPY.title)).toBe(false);
+        expect(shows(html, tab.description)).toBe(false);
+      } else if (SETTINGS_PREVIEWS[tab.value]) {
+        // Preview stands in: it must say so, and must not be mistaken for the placeholder.
+        expect(shows(html, PRATINJAU_COPY.title)).toBe(true);
+        expect(shows(html, tab.description)).toBe(false);
+      } else {
+        expect(shows(html, tab.description)).toBe(true);
+      }
     }
   });
 

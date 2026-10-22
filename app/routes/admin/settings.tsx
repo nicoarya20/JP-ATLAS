@@ -3,6 +3,7 @@ import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { useSearchParams } from 'react-router';
 import { SETTINGS_PANELS } from '~/components/admin/settings/panels';
+import { SETTINGS_PREVIEWS } from '~/components/admin/settings/settings.previews';
 import {
   parseSettingsTab,
   SETTINGS_PAGE_COPY,
@@ -18,9 +19,10 @@ export function meta() {
 /**
  * Shell of Setelan organisasi: the six tabs of P11 §4 that really are settings — AD-20 moved the
  * report (Peran & izin) and the tool (Ekspor data) out to menus of their own — each one rendering
- * its registered panel (`panels.tsx`) or, while none is registered, the placeholder from
- * `settings.tabs.ts`. The guard is repeated here on purpose — React Router runs the layout and
- * page loaders in parallel, so the layout guard does not cover this page's data.
+ * its registered panel (`panels.tsx`), else the preview that shows the tab's shape with sample
+ * content (`settings.previews.tsx`), else the placeholder from `settings.tabs.ts`. The guard is
+ * repeated here on purpose — React Router runs the layout and page loaders in parallel, so the
+ * layout guard does not cover this page's data.
  */
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAnyRole(request, [ROLES.ADMIN, ROLES.SUPER_ADMIN]);
@@ -77,7 +79,9 @@ export default function AdminSettingsPage() {
         </ScrollArea>
 
         {SETTINGS_TABS.map(({ value, icon: Icon, title, description }) => {
-          const Panel = SETTINGS_PANELS[value];
+          // Real panel first; while none is registered, the preview stands in for it, and the
+          // EmptyState is the last resort for a tab that has neither.
+          const Panel = SETTINGS_PANELS[value] ?? SETTINGS_PREVIEWS[value];
           return (
             <Tabs.Panel key={value} value={value} pt="md">
               {Panel ? (
