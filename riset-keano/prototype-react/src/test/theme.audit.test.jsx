@@ -50,6 +50,18 @@ describe('profile calendar', () => {
   });
 });
 
+describe('presence dot', () => {
+  // User 2026-10-22: Atlas success (#0c6847) read too dark as the light-theme online dot.
+  it('fills the online dot with --presence: the iOS green in light, Atlas success in dark', () => {
+    const css = read('screens/profile/profile.css');
+    expect(rule(css, '.pf-dot.is-on')).toContain('background: var(--presence)');
+    expect(rule(css, '.pf-dot.pf-dot-sm.is-on')).toContain('background: var(--presence)');
+    const tokens = read('styles/tokens.css');
+    expect(tokens).toMatch(/:root[^]*?--presence: var\(--color-green\)/);
+    expect(rule(tokens, '.dark')).toContain('--presence: var(--atlas-success)');
+  });
+});
+
 describe('icon tiles', () => {
   // User's pick 2026-10-22: the Atlas status tints faded into the grey glass panel, so the menu tiles keep the
   // solid iOS hues with a white glyph (the pre-audit look).

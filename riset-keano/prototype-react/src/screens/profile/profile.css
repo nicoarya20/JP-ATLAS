@@ -8,10 +8,10 @@
 /* presence: green when online; a hollow grey ring when offline (Discord). The ring cuts into the photo edge. */
 .pf-dot { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%;
   background: var(--sheet-bg); border: 4px solid var(--sheet-bg); box-shadow: inset 0 0 0 4px var(--label-2); }
-.pf-dot.is-on { background: var(--success); box-shadow: none; }
+.pf-dot.is-on { background: var(--presence); box-shadow: none; }
 .pf-dot.pf-dot-sm { position: static; width: 14px; height: 14px; border-width: 0; margin: 0 9px;
   box-shadow: inset 0 0 0 3px var(--label-2); background: transparent; }
-.pf-dot.pf-dot-sm.is-on { background: var(--success); box-shadow: none; }
+.pf-dot.pf-dot-sm.is-on { background: var(--presence); box-shadow: none; }
 
 /* Thought bubble: rounded pill with two small circles trailing down-left toward the photo */
 .pf-note { position: relative; min-width: 0; flex: 1; display: flex; padding: var(--sp-1) 0 var(--sp-4) var(--sp-2); }

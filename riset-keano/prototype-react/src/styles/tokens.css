@@ -23,8 +23,8 @@
   --ring: 245 55% 53%;
   --radius: 0.5rem;
 
-  /* iOS hues: not part of JP Atlas. Only the category tiles (home/profile More and Create grids) and calendar event
-     categories use them; Atlas has no category palette yet, so they stay until one is chosen. */
+  /* iOS hues: not part of JP Atlas. Only the category tiles (home/profile More and Create grids), the presence dot and
+     calendar event categories use them; Atlas has no category palette yet, so they stay until one is chosen. */
   --color-red: #ff3b30;
   --color-orange: #ff9500;
   --color-yellow: #ffcc00;
@@ -76,6 +76,7 @@
   --danger-bg: var(--atlas-danger-bg);
   --info: var(--atlas-info);
   --info-bg: var(--atlas-info-bg);
+  --presence: var(--color-green);        /* online dot: Atlas success (#0c6847) is a text green, too dark for a light dot */
   --bg: var(--atlas-canvas);
   --surface: var(--atlas-surface);       /* cards, lists */
   --surface-raised: var(--atlas-surface); /* a card on a --fill column (Kanban), a floating menu, or the --fill of a
@@ -177,6 +178,7 @@
   --glass-bar-shine: rgba(255, 255, 255, 0.1);
   --glass-bar-open: color-mix(in srgb, var(--atlas-surface) 60%, transparent);  /* same as closed: dark glass reads right over the dim */
   --glass-card: var(--atlas-raised);     /* surface would sink into the dark glass */
+  --presence: var(--atlas-success);      /* online dot: Atlas dark success is already a light mint */
   --seg-thumb: var(--atlas-line);        /* surface would sink into the raised track */
   --seg-thumb-shadow: none;              /* a shadow can't show on navy; the lighter thumb lifts by its fill */
   --pop-bg: var(--atlas-raised);
