@@ -46,7 +46,7 @@ Kit (`import { ... } from '../../kit'`):
 - `StackedScreen`: the frame of the four tab roots (Home, Tasks, Projects, Events). Props `title`, `aside`, `find`, `onFind`, `pinned`, `tab`. A header on surface (title left; on the right a search icon, then `aside`), the `find` search block under it, and the content as a rounded canvas sheet. Scrolling the sheet up fades the block into the header icon and snaps a half-folded block open or shut. `onFind` is the icon's action; by default it scrolls back and focuses the block's field (Home opens `home.search` instead). `pinned` is an optional first row that sticks under the header together with the sheet's rounded top edge. Scrolled past the search block, it compacts with the scroll: the row styles its compact form from `--stk-q` (0 = tall, 1 = compact), and every height it changes must move linearly with `--stk-q`. Home's stat chips fold to one line this way. See `kit/stacked.jsx`.
 - `Section` is a card. Its props are `title`, `sub`, `right`, plus nav props, which make the whole card tappable.
 - `Rows` and `Row` make an iOS grouped list. Row props: `lead`, `title`, `sub`, `right`, `chev`.
-- `Btn`: `kind` is `primary`, `outline`, `ghost`, `danger` or `plain`. Other props: `block`, `sm`, `icon`.
+- `Btn`: `kind` is `primary`, `outline`, `ghost`, `danger`, `danger-ghost` or `plain`. `danger-ghost` is a destructive text button in a row of equal items (Delete forever, Deactivate). Other props: `block`, `sm`, `icon`.
 - `Link` is a "See all" text button.
 - `Chips`, `Seg` and `Tabs` take `items`, `on` and `gos`.
 - `Field`: props `label`, `value`, `placeholder`, `area`, `disabled`, `icon`.

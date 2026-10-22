@@ -99,6 +99,8 @@
 .react-cupertino-ui-button.variant-outline, .react-cupertino-ui-button.variant-outline:hover {
   background: var(--accent-soft); color: var(--accent); border: 0; box-shadow: none; }
 .react-cupertino-ui-button.variant-ghost, .react-cupertino-ui-button.variant-link { color: var(--accent); }
+/* kit Btn kind="danger-ghost": a destructive action in a row of equal items (Delete forever, Deactivate), not violet */
+.react-cupertino-ui-button.variant-ghost.btn-danger { color: var(--danger); }
 /* Atlas danger fill (user's pick, 2026-10-22): iOS red + white failed AA (3.55 light / 3.41 dark). The label is the
    surface knocked out: white on deep red in light (7.44), navy on pink in dark (9.12). */
 .react-cupertino-ui-button.variant-destructive { background: var(--danger); color: var(--on-accent); box-shadow: none; }

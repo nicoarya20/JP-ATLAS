@@ -28,7 +28,7 @@ function Item({ t }) {
         {t.includes && <span className="t-footnote muted">Includes {t.includes}</span>}
       </div>
       <div className="ar-acts">
-        {is('admin') && <Btn kind="ghost" sm sheet="archive.delete" params={{ title: t.title }}>Delete forever</Btn>}
+        {is('admin') && <Btn kind="danger-ghost" sm sheet="archive.delete" params={{ title: t.title }}>Delete forever</Btn>}
         <Btn sm toast="Restored">Restore</Btn>
       </div>
     </Section>

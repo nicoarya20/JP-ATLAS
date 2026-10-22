@@ -11,15 +11,18 @@ export function splitNav({ go, sheet, back, close, toast, replace, task, params,
   return [{ go, sheet, back, close, toast, replace, task, params }, rest];
 }
 
-const BTN_VARIANT = { primary: 'solid', outline: 'outline', ghost: 'ghost', danger: 'destructive', plain: 'link' };
+const BTN_VARIANT = { primary: 'solid', outline: 'outline', ghost: 'ghost', danger: 'destructive', 'danger-ghost': 'ghost',
+  plain: 'link' };
 
-/** Button. kind: 'primary' | 'outline' | 'ghost' | 'danger' | 'plain'; block = full width; sm = small; icon = lucide element. */
-export function Btn({ children, kind = 'outline', block, sm, icon, disabled, ...props }) {
+/** Button. kind: 'primary' | 'outline' | 'ghost' | 'danger' | 'danger-ghost' (a destructive text button in a row of
+ *  equal items) | 'plain'; block = full width; sm = small; icon = lucide element. */
+export function Btn({ children, kind = 'outline', block, sm, icon, disabled, className, ...props }) {
   const [nav, rest] = splitNav(props);
   const onClick = useNav(nav);
   if (!BTN_VARIANT[kind]) throw new Error(`Btn kind "${kind}" unknown`);
   return (
     <Button variant={BTN_VARIANT[kind]} size={sm ? 'sm' : 'default'} fullWidth={!!block} icon={icon}
+      className={kind === 'danger-ghost' ? `btn-danger ${className ?? ''}`.trim() : className}
       disabled={disabled} onClick={onClick} {...rest}>{children}</Button>
   );
 }

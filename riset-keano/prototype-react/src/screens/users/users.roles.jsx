@@ -12,7 +12,7 @@ function Person({ k }) {
     : (
       <span className="stack xs us-side">
         <Select toast="Member · Project Manager">{p.role}</Select>
-        <Btn kind="ghost" sm toast="User deactivated">Deactivate</Btn>
+        <Btn kind="danger-ghost" sm toast="User deactivated">Deactivate</Btn>
       </span>
     );
   return <Row lead={<Avatar name={p.name} />} title={you ? `${p.full} (You)` : p.full} sub={p.email} right={side} chev={false} />;
