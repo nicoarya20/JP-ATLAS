@@ -103,6 +103,9 @@
 .react-cupertino-ui-button.variant-ghost.btn-danger { color: var(--danger); }
 /* A violet .tint glyph (the AI sparkle) on lime fell to 1.55:1; on lime it takes the navy label like the text */
 .react-cupertino-ui-button.variant-solid .tint { color: inherit; }
+/* Disabled primary: lime at half opacity read as a muddy olive main action; grey it out on --fill instead */
+.react-cupertino-ui-button.variant-solid:disabled { background: var(--fill); color: var(--label-3); border-color: transparent;
+  opacity: 1; }
 /* Atlas danger fill (user's pick, 2026-10-22): iOS red + white failed AA (3.55 light / 3.41 dark). The label is the
    surface knocked out: white on deep red in light (7.44), navy on pink in dark (9.12). */
 .react-cupertino-ui-button.variant-destructive { background: var(--danger); color: var(--on-accent); box-shadow: none; }
