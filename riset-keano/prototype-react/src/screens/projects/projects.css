@@ -9,6 +9,8 @@
 .pj-foot > :last-child { flex: 1; }
 
 .pj-soft.card.react-cupertino-ui-card { background: var(--fill); }
+/* Controls inside that also use --fill (progress track, chips) step up to the surface instead of vanishing into it */
+.pj-soft.card.react-cupertino-ui-card > * { --fill: var(--surface-raised); }
 .pj-strong.card.react-cupertino-ui-card { box-shadow: inset 0 0 0 1.5px var(--accent); }
 .pj-pick.card.react-cupertino-ui-card:has(input:checked) { box-shadow: inset 0 0 0 1.5px var(--accent); background: var(--accent-soft); }
 .pj-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); align-items: start; }

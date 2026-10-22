@@ -24,6 +24,8 @@
 .hm-time { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--fill); display: grid; place-items: center;
   font-weight: 650; font-size: var(--fs-subhead); }
 .hm-answer { padding: var(--sp-3); border-radius: var(--radius-sm); background: var(--fill); }
+/* Controls inside that also use --fill (progress track, chips) step up to the surface instead of vanishing into it */
+.hm-answer > * { --fill: var(--surface-raised); }
 .hm-bullet { display: grid; gap: 2px; padding-left: var(--sp-4); position: relative; }
 .hm-bullet::before { content: ""; position: absolute; left: 0; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 /* colours from the shared .tile-* tones (app.css), same as .mm-tile and .pf-tile */

@@ -78,8 +78,9 @@
   --info-bg: var(--atlas-info-bg);
   --bg: var(--atlas-canvas);
   --surface: var(--atlas-surface);       /* cards, lists */
-  --surface-raised: var(--atlas-surface); /* a card on a --fill column (Kanban) or a floating menu: surface again, set
-                                             apart by its line edge or shadow; Atlas raised is the column itself */
+  --surface-raised: var(--atlas-surface); /* a card on a --fill column (Kanban), a floating menu, or the --fill of a
+                                             control inside a --fill panel: surface again, set apart by its line edge
+                                             or shadow; Atlas raised is the column itself */
   --fill: var(--atlas-raised);           /* chips, inputs, icon squares, Kanban columns */
   --label: var(--atlas-text);
   --label-2: var(--atlas-muted);         /* metadata */

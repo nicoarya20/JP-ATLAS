@@ -2,6 +2,11 @@
 .ev-pills { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); }
 .ev-bul { margin: 0; padding-left: var(--sp-5); display: grid; gap: var(--sp-1); }
 .ev-box { padding: var(--sp-3); border-radius: var(--radius-sm); background: var(--fill); }
+/* Controls inside that also use --fill (progress track, chips) step up to the surface instead of vanishing into it */
+.ev-box > * { --fill: var(--surface-raised); }
+/* Tinted buttons (Type / Photo / Voice): their violet-tint pill matched the light --fill box, leaving bare text */
+.ev-box .react-cupertino-ui-button.variant-outline,
+.ev-box .react-cupertino-ui-button.variant-outline:hover { background: var(--surface-raised); }
 .ev-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
 .ev-two.wide { grid-template-columns: 1fr 1.6fr; }
 .ev-day { margin-top: var(--sp-2); }

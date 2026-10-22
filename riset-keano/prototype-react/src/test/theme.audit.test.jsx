@@ -77,3 +77,31 @@ describe('icon tiles', () => {
     expect(found.filter(t => !['tile-info', 'tile-success', 'tile-warning', 'tile-danger', 'tile-neutral'].includes(t))).toEqual([]);
   });
 });
+
+describe('panels drawn in --fill', () => {
+  // A progress track or chip in --fill vanished into a --fill panel (Ask Data answer, AI draft ambiguity chips).
+  const PANELS = [
+    ['screens/home/home.css', '.hm-answer'], ['screens/events/events.css', '.ev-box'],
+    ['screens/archive/archive.css', '.ar-note.card.react-cupertino-ui-card'],
+    ['screens/projects/projects.css', '.pj-soft.card.react-cupertino-ui-card'],
+    ['screens/tasks/tasks.css', '.tk-soft.card.react-cupertino-ui-card'],
+    ['screens/users/users.css', '.us-box.card.react-cupertino-ui-card'],
+  ];
+
+  it.each(PANELS)('%s %s steps the --fill of what it holds up to the surface', (file, sel) => {
+    const css = read(file);
+    expect(rule(css, sel)).toMatch(/background:\s*var\(--fill\)/);
+    expect(rule(css, `${sel} > *`)).toMatch(/--fill:\s*var\(--surface-raised\)/);
+  });
+
+  it('lifts tinted buttons in the event Minutes box onto the surface', () => {
+    const sel = '.ev-box .react-cupertino-ui-button.variant-outline';
+    expect(rule(read('screens/events/events.css'), `${sel},\n${sel}:hover`)).toMatch(/background:\s*var\(--surface-raised\)/);
+  });
+
+  it('keeps the Ask Data bars inside the .hm-answer panel the remap targets', () => {
+    renderApp('home.main', 'pm');
+    const tracks = document.querySelectorAll('.hm-answer .react-cupertino-ui-progressbar__track');
+    expect(tracks.length).toBeGreaterThan(0);
+  });
+});

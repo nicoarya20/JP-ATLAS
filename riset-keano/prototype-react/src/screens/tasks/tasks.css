@@ -9,6 +9,8 @@
   background: var(--fill); color: var(--label); min-width: 0; }
 
 .tk-soft.card.react-cupertino-ui-card { background: var(--fill); }
+/* Controls inside that also use --fill (progress track, chips) step up to the surface instead of vanishing into it */
+.tk-soft.card.react-cupertino-ui-card > * { --fill: var(--surface-raised); }
 .tk-strong.card.react-cupertino-ui-card { box-shadow: inset 0 0 0 1.5px var(--accent); }
 
 /* Lists */
