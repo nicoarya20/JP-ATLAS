@@ -96,7 +96,8 @@ Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, s
   - `--separator` is decorative. Focus rings use `--focus`; `src/styles/focus.css` (loaded last) draws one ring for every control.
   - Destructive buttons and unread counts: `--danger` fill with `--on-accent` as the label. Placeholders: `--label-2`.
   - `Radio` and `Checkbox` always take `variant="solid"`; only that variant is themed. `test/a11y.controls.test.jsx` checks it.
-  - `--color-*` (iOS hues) only for category tiles and calendar categories, until Atlas has a category palette.
+  - Icon tiles (More panel, Create, profile menu) take a `tile-info|success|warning|danger|neutral` class: an Atlas status pair.
+  - `--color-*` (iOS hues) only for calendar event categories, until Atlas has a category palette.
 - Library parts are themed in `src/styles/library.css` (loaded last), so light and dark both work. Restyle a kit part there, mapped to tokens from `tokens.css`; never a raw colour.
 - Files stay under 300 lines. Split a module into `<module>.<part>.jsx` files.
 

@@ -8,7 +8,7 @@ import ProfileNote from './profile.note';
 import { setProfile, useProfile } from './profile.store';
 
 const ICON = 18;
-const Tile = ({ icon, tone = 'gray' }) => <span className={`pf-tile ${tone}`} aria-hidden="true">{icon}</span>;
+const Tile = ({ icon, tone = 'neutral' }) => <span className={`pf-tile tile-${tone}`} aria-hidden="true">{icon}</span>;
 
 /** Photo, presence dot, note bubble, name and role. data-sheet-drag: the overlay can be swiped down from here. */
 function Hero({ me, online, admin }) {
@@ -46,11 +46,11 @@ export default function ProfileMain() {
       <Hero me={me} online={online} admin={is('admin')} />
       <Btn kind="primary" block icon={<Pencil size={16} />} go="settings.profile">Edit profile</Btn>
       <Rows>
-        <Row lead={<Tile icon={<ListChecks size={ICON} />} tone="blue" />} title="My tasks" go="tasks.my" />
-        <Row lead={<Tile icon={<CalendarDays size={ICON} />} tone="red" />} title="My calendar" go="profile.calendar" />
-        <Row lead={<Tile icon={<Inbox size={ICON} />} tone="blue" />} title="Inbox" go="inbox.respond"
+        <Row lead={<Tile icon={<ListChecks size={ICON} />} tone="info" />} title="My tasks" go="tasks.my" />
+        <Row lead={<Tile icon={<CalendarDays size={ICON} />} tone="warning" />} title="My calendar" go="profile.calendar" />
+        <Row lead={<Tile icon={<Inbox size={ICON} />} tone="info" />} title="Inbox" go="inbox.respond"
           right={<span className="pf-count">{D.inbox.respond.length}</span>} />
-        <Row lead={<Tile icon={<BellOff size={ICON} />} tone="indigo" />} title="Mute notifications"
+        <Row lead={<Tile icon={<BellOff size={ICON} />} tone="neutral" />} title="Mute notifications"
           right={<Switch on={muted} label="Mute notifications" onChange={v => setProfile({ muted: v })} />} />
         <Row lead={<Tile icon={<Settings size={ICON} />} />} title="Settings" go="settings.main" />
         <Row lead={<Tile icon={<CircleHelp size={ICON} />} />} title="Help & resources" chev

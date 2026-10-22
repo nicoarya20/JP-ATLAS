@@ -30,10 +30,8 @@
 .pf-status { margin-top: 2px; }
 
 /* ---- Menu rows ---- */
-/* same tile and badge colours as the More panel (.mm-tile / .mm-badge): white glyph in both themes, Atlas danger count */
-.pf-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: var(--color-white); }
-.pf-tile.blue { background: var(--color-blue); } .pf-tile.red { background: var(--color-red); }
-.pf-tile.indigo { background: var(--color-indigo); } .pf-tile.gray { background: var(--label-3); }
+/* same tile tones (.tile-*, app.css) and badge colour as the More panel (.mm-tile / .mm-badge) */
+.pf-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; }
 .pf-count { min-width: 22px; padding: 0 var(--sp-2); border-radius: 99px; background: var(--danger); color: var(--on-accent);
   font-size: var(--fs-footnote); font-weight: 600; line-height: 22px; text-align: center; }
 .pf-copy { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%;

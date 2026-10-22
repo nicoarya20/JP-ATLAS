@@ -23,8 +23,8 @@
   --ring: 245 55% 53%;
   --radius: 0.5rem;
 
-  /* iOS hues: not part of JP Atlas. Only the category tiles (home/profile More and Create grids) and calendar event
-     categories use them; Atlas has no category palette yet, so they stay until one is chosen. */
+  /* iOS hues: not part of JP Atlas. Only the calendar event categories use them (the menu tiles moved to Atlas status
+     pairs, .tile-* in app.css); Atlas has no category palette yet, so they stay until one is chosen. */
   --color-red: #ff3b30;
   --color-orange: #ff9500;
   --color-yellow: #ffcc00;

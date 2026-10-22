@@ -83,6 +83,13 @@ h1, h2, h3 { margin: 0; }
 /* ---- Horizontal scrollers (chips, stat cards): never let a scroll row collapse its children ---- */
 .hscroll { display: flex; gap: var(--sp-2); overflow-x: auto; min-height: min-content; }
 .hscroll > * { flex: none; }
+/* Icon tiles (More panel, Create, profile menu): an Atlas status pair, glyph in the fg on its -bg (user's pick,
+   2026-10-22). The iOS hues with a white glyph fell to about 2:1 on green, orange and teal; Atlas has no category palette. */
+.tile-info { background: var(--info-bg); color: var(--info); }
+.tile-success { background: var(--success-bg); color: var(--success); }
+.tile-warning { background: var(--warning-bg); color: var(--warning); }
+.tile-danger { background: var(--danger-bg); color: var(--danger); }
+.tile-neutral { background: var(--fill); color: var(--label-2); }
 
 /* ---- Kit parts ---- */
 .sec-head { display: flex; align-items: flex-start; gap: var(--sp-3); }

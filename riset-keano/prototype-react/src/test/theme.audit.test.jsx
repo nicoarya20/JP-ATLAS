@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { render, screen as dom } from '@testing-library/react';
+import { fireEvent, render, screen as dom } from '@testing-library/react';
 import '../screens';
 import { Btn } from '../kit';
 import { AppProvider } from '../core/app.context';
@@ -46,5 +46,33 @@ describe('profile calendar', () => {
     expect(css).not.toContain('--danger');
     expect(rule(css, '.pf-cal-now')).toContain('var(--accent)');
     expect(rule(css, '.pf-cal-day.is-on.is-today .pf-cal-num')).toContain('var(--accent)');
+  });
+});
+
+describe('icon tiles', () => {
+  const app = read('styles/app.css');
+  const TONES = { info: 'info', success: 'success', warning: 'warning', danger: 'danger' };
+  const tones = root => [...root.querySelectorAll('.mm-tile, .hm-tile, .pf-tile')]
+    .map(t => [...t.classList].find(c => c.startsWith('tile-')));
+
+  it('fills each tone with its Atlas status pair, never an iOS hue', () => {
+    for (const [tone, pair] of Object.entries(TONES)) {
+      const body = rule(app, `.tile-${tone}`);
+      expect(body).toContain(`background: var(--${pair}-bg)`);
+      expect(body).toContain(`color: var(--${pair})`);
+    }
+    expect(rule(app, '.tile-neutral')).toContain('background: var(--fill)');
+    for (const f of ['screens/home/home.css', 'screens/profile/profile.css']) expect(read(f)).not.toMatch(/--color-(?!white)/);
+  });
+
+  it.each([
+    ['the More panel', 'home.main', () => fireEvent.click(dom.getByRole('tab', { name: 'More' }))],
+    ['Create', 'home.main', () => fireEvent.click(document.querySelector('.glassbar-fab'))],
+  ])('gives every tile in %s a tone', (_, start, open) => {
+    renderApp(start, 'admin');
+    open();
+    const found = tones(document.body);
+    expect(found.length).toBeGreaterThan(2);
+    expect(found.filter(t => !['tile-info', 'tile-success', 'tile-warning', 'tile-danger', 'tile-neutral'].includes(t))).toEqual([]);
   });
 });
