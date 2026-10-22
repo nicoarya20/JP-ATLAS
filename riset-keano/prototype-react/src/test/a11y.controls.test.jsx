@@ -106,14 +106,14 @@ describe('keyboard focus ring', () => {
 });
 
 describe('destructive colour', () => {
-  // Atlas danger fill instead of iOS red + white, which failed AA in both themes
+  // --danger-fill (high-contrast red in light, Atlas pink in dark) instead of iOS red + white, which failed AA in both themes
   it.each([
     ['styles/library.buttons.css', '.react-cupertino-ui-button.variant-destructive'],
     ['screens/home/home.css', '.mm-badge'],
     ['screens/profile/profile.css', '.pf-count'],
-  ])('%s %s fills with --danger and labels with --on-accent', (file, sel) => {
+  ])('%s %s fills with --danger-fill and labels with --on-accent', (file, sel) => {
     const body = rule(read(file), sel);
-    expect(body).toMatch(/background:\s*var\(--danger\)/);
+    expect(body).toMatch(/background:\s*var\(--danger-fill\)/);
     expect(body).toMatch(/[^-]color:\s*var\(--on-accent\)/);
     expect(body).not.toContain('--color-red');
   });

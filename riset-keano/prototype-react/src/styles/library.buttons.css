@@ -14,8 +14,8 @@
 /* Disabled primary: lime at half opacity read as a muddy olive main action; grey it out on --fill instead */
 .react-cupertino-ui-button.variant-solid:disabled { background: var(--fill); color: var(--label-3); border-color: transparent;
   opacity: 1; }
-/* Atlas danger fill (user's pick, 2026-10-22): iOS red + white failed AA (3.55 light / 3.41 dark). The label is the
-   surface knocked out: white on deep red in light (7.44), navy on pink in dark (9.12). */
-.react-cupertino-ui-button.variant-destructive { background: var(--danger); color: var(--on-accent); box-shadow: none; }
+/* Danger fill (tokens.css --danger-fill): iOS red + white failed AA (3.55 light / 3.41 dark). The label is the
+   surface knocked out: white on high-contrast red in light (5.38), navy on Atlas pink in dark (9.67). */
+.react-cupertino-ui-button.variant-destructive { background: var(--danger-fill); color: var(--on-accent); box-shadow: none; }
 /* Upstream outline sets border-radius: inherit, which turned Filter / View / Today into square boxes; keep every button a pill. */
 .react-cupertino-ui-button.variant-outline { border-radius: 999px; }

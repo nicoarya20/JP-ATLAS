@@ -74,6 +74,8 @@
   --warning-bg: var(--atlas-warning-bg);
   --danger: var(--atlas-danger);
   --danger-bg: var(--atlas-danger-bg);
+  --danger-fill: #d70015;                /* destructive button + unread badge: Atlas danger #a51b3c read as a dull maroon fill;
+                                            iOS high-contrast red keeps white at AA (5.38), plain iOS red (3.55) does not */
   --info: var(--atlas-info);
   --info-bg: var(--atlas-info-bg);
   --presence: var(--color-green);        /* online dot: Atlas success (#0c6847) is a text green, too dark for a light dot */
@@ -179,6 +181,7 @@
   --glass-bar-open: color-mix(in srgb, var(--atlas-surface) 60%, transparent);  /* same as closed: dark glass reads right over the dim */
   --glass-card: var(--atlas-raised);     /* surface would sink into the dark glass */
   --presence: var(--atlas-success);      /* online dot: Atlas dark success is already a light mint */
+  --danger-fill: var(--atlas-danger);    /* dark: Atlas pink with the navy label (9.67); iOS red + navy is only 5.48 */
   --seg-thumb: var(--atlas-line);        /* surface would sink into the raised track */
   --seg-thumb-shadow: none;              /* a shadow can't show on navy; the lighter thumb lifts by its fill */
   --pop-bg: var(--atlas-raised);
