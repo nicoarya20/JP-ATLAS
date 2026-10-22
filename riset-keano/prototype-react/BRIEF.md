@@ -93,7 +93,9 @@ Other react-cupertino-ui components are allowed: `@react-cupertino-ui/<name>`, s
     fails when a rendered screen or sheet shows more than one lime button or a status pill outside its pair.
   - Violet (`--accent`) is interaction: links, selected, active, progress.
   - A status is a pair plus its text: `--success` on `--success-bg`, never a tint of the text colour.
-  - `--separator` is decorative. Focus rings use `--focus`.
+  - `--separator` is decorative. Focus rings use `--focus`; `src/styles/focus.css` (loaded last) draws one ring for every control.
+  - Destructive buttons and unread counts: `--danger` fill with `--on-accent` as the label. Placeholders: `--label-2`.
+  - `Radio` and `Checkbox` always take `variant="solid"`; only that variant is themed. `test/a11y.controls.test.jsx` checks it.
   - `--color-*` (iOS hues) only for category tiles and calendar categories, until Atlas has a category palette.
 - Library parts are themed in `src/styles/library.css` (loaded last), so light and dark both work. Restyle a kit part there, mapped to tokens from `tokens.css`; never a raw colour.
 - Files stay under 300 lines. Split a module into `<module>.<part>.jsx` files.
