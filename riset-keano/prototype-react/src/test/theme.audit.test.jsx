@@ -61,7 +61,7 @@ describe('icon tiles', () => {
       expect(body).toContain(`background: var(--${pair}-bg)`);
       expect(body).toContain(`color: var(--${pair})`);
     }
-    expect(rule(app, '.tile-neutral')).toContain('background: var(--fill)');
+    expect(rule(app, '.tile-neutral')).toContain('background: var(--tile-neutral)');
     for (const f of ['screens/home/home.css', 'screens/profile/profile.css']) expect(read(f)).not.toMatch(/--color-(?!white)/);
   });
 

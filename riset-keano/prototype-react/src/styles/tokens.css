@@ -86,6 +86,7 @@
   --label-3: var(--atlas-control);       /* chevrons, empty checkbox rings (3:1 boundary, not text) */
   --separator: var(--atlas-line);        /* decorative only */
   --media: var(--atlas-raised);          /* image placeholder */
+  --tile-neutral: var(--atlas-raised);   /* neutral icon tile (.tile-neutral) */
   --phone-frame: var(--atlas-identity-surface);
   --index-stage: #000;                   /* behind the phone on the index page, both themes: no glare while reviewing light mode */
   /* Index sidebar: Atlas dark values in both themes, so the page around the phone never glares */
@@ -188,4 +189,7 @@
   --sheet-bg: var(--atlas-surface);
   --sheet-surface: var(--atlas-raised);
   --sheet-edge: rgba(255, 255, 255, 0.1);
+  /* Dark sheets lift their rows to raised, the same colour as the neutral tile, so the tile square vanished in
+     profile.me and Create; one step up (line) keeps it a square everywhere, glyph --label-2 still 6:1 on it. */
+  --tile-neutral: var(--atlas-line);
 }

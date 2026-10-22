@@ -89,7 +89,7 @@ h1, h2, h3 { margin: 0; }
 .tile-success { background: var(--success-bg); color: var(--success); }
 .tile-warning { background: var(--warning-bg); color: var(--warning); }
 .tile-danger { background: var(--danger-bg); color: var(--danger); }
-.tile-neutral { background: var(--fill); color: var(--label-2); }
+.tile-neutral { background: var(--tile-neutral); color: var(--label-2); }
 
 /* ---- Kit parts ---- */
 .sec-head { display: flex; align-items: flex-start; gap: var(--sp-3); }
