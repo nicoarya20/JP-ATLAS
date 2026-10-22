@@ -18,9 +18,10 @@
 .pf-cal-num { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; font-size: var(--fs-title3);
   transition: background-color 200ms ease, color 200ms ease; }
 .pf-cal-day.is-weekend .pf-cal-num { color: var(--label-2); }
-.pf-cal-day.is-today .pf-cal-num { color: var(--danger); font-weight: 600; }
+/* Today and the now line in the accent, like events.calendar: Atlas danger means an error, not "today" */
+.pf-cal-day.is-today .pf-cal-num { color: var(--accent); font-weight: 600; }
 .pf-cal-day.is-on .pf-cal-num { background: var(--label); color: var(--bg); font-weight: 600; }
-.pf-cal-day.is-on.is-today .pf-cal-num { background: var(--danger); color: var(--on-accent); }
+.pf-cal-day.is-on.is-today .pf-cal-num { background: var(--accent); color: var(--on-accent); }
 .pf-cal-day:active .pf-cal-num { scale: 0.92; }
 .pf-cal-mark { width: 5px; height: 5px; border-radius: 50%; }
 .pf-cal-mark.is-on { background: var(--label-3); }
@@ -50,10 +51,10 @@
 .pf-cal-ev.is-short { flex-direction: row; align-items: center; gap: var(--sp-2); padding-block: 0; white-space: nowrap; }
 .pf-cal-ev.is-short .pf-cal-ev-meta { overflow: hidden; text-overflow: ellipsis; }
 
-/* Now line (today only): red rule with the time in a red pill over the hour labels */
+/* Now line (today only): accent rule with the time in an accent pill over the hour labels */
 .pf-cal-now { position: absolute; left: 64px; right: 0; top: calc(var(--sp-2) + var(--at) * var(--hour) / 60); z-index: 1;
-  height: 2px; background: var(--danger); pointer-events: none; }
+  height: 2px; background: var(--accent); pointer-events: none; }
 .pf-cal-now-t { position: absolute; right: 100%; top: 50%; translate: 4px -50%; padding: 1px 6px; border-radius: 99px;
-  background: var(--danger); color: var(--on-accent); font-size: var(--fs-caption1); font-weight: 600; }
+  background: var(--accent); color: var(--on-accent); font-size: var(--fs-caption1); font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) { .pf-cal-track, .pf-cal-num { transition: none; } }
