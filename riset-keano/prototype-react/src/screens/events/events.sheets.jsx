@@ -30,7 +30,7 @@ function Which({ name, opts, on, pick }) {
       <legend className="t-footnote muted">Which one?</legend>
       {opts.map(([label, hint], i) => (
         <div key={label} className="ev-plain">
-          <Radio name={name} label={label} helperText={hint} checked={i === on} onChange={() => pick(i)} />
+          <Radio variant="solid" name={name} label={label} helperText={hint} checked={i === on} onChange={() => pick(i)} />
         </div>
       ))}
     </fieldset>
