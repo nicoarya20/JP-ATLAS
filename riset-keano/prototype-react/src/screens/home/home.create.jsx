@@ -6,15 +6,15 @@ import { Row, Rows, Sheet } from '../../kit';
 import { LEAVE } from '../settings/settings.leave';
 
 const ICON = 18;
-const tile = (icon, tone) => <span className={`hm-tile tile-${tone}`}>{icon}</span>;
+const tile = (icon, tone) => <span className={`hm-tile ${tone}`}>{icon}</span>;
 
 /** Everything a person can add: [target id, title, sub, icon tile]. Leave's title follows the role (request vs set). */
 const OPTIONS = role => [
-  ['tasks.write', 'Task', 'Just write it or fill a form', tile(<ListPlus size={ICON} />, 'info')],
-  ['projects.new', 'Project', 'From a story, a template or a form', tile(<FolderPlus size={ICON} />, 'success')],
-  ['events.new', 'Event', 'Meeting, review or team event', tile(<CalendarPlus size={ICON} />, 'warning')],
-  ['tasks.csv', 'Import tasks', 'Add many tasks from a CSV file', tile(<FileUp size={ICON} />, 'neutral')],
-  ['settings.leave', LEAVE[role].title, 'Days you will be away', tile(<Plane size={ICON} />, 'neutral')],
+  ['tasks.write', 'Task', 'Just write it or fill a form', tile(<ListPlus size={ICON} />, 'blue')],
+  ['projects.new', 'Project', 'From a story, a template or a form', tile(<FolderPlus size={ICON} />, 'green')],
+  ['events.new', 'Event', 'Meeting, review or team event', tile(<CalendarPlus size={ICON} />, 'orange')],
+  ['tasks.csv', 'Import tasks', 'Add many tasks from a CSV file', tile(<FileUp size={ICON} />, 'gray')],
+  ['settings.leave', LEAVE[role].title, 'Days you will be away', tile(<Plane size={ICON} />, 'gray')],
 ];
 
 export default function HomeCreate() {

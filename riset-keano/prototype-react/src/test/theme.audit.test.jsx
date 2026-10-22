@@ -51,30 +51,26 @@ describe('profile calendar', () => {
 });
 
 describe('icon tiles', () => {
-  const app = read('styles/app.css');
-  const TONES = { info: 'info', success: 'success', warning: 'warning', danger: 'danger' };
-  const tones = root => [...root.querySelectorAll('.mm-tile, .hm-tile, .pf-tile')]
-    .map(t => [...t.classList].find(c => c.startsWith('tile-')));
+  // User's pick 2026-10-22: the Atlas status tints faded into the grey glass panel, so the menu tiles keep the
+  // solid iOS hues with a white glyph (the pre-audit look).
+  const TILES = [
+    ['screens/home/home.css', '.mm-tile', ['blue', 'green', 'orange', 'teal', 'gray']],
+    ['screens/home/home.css', '.hm-tile', ['blue', 'green', 'orange', 'gray']],
+    ['screens/profile/profile.css', '.pf-tile', ['blue', 'red', 'indigo', 'gray']],
+  ];
 
-  it('fills each tone with its Atlas status pair, never an iOS hue', () => {
-    for (const [tone, pair] of Object.entries(TONES)) {
-      const body = rule(app, `.tile-${tone}`);
-      expect(body).toContain(`background: var(--${pair}-bg)`);
-      expect(body).toContain(`color: var(--${pair})`);
-    }
-    expect(rule(app, '.tile-neutral')).toContain('background: var(--tile-neutral)');
-    for (const f of ['screens/home/home.css', 'screens/profile/profile.css']) expect(read(f)).not.toMatch(/--color-(?!white)/);
+  it.each(TILES)('%s %s fills each tone solid under a white glyph', (file, sel, tones) => {
+    const css = read(file);
+    expect(rule(css, sel)).toContain('color: var(--color-white)');
+    for (const t of tones) expect(css).toMatch(new RegExp(`\\${sel}\\.${t} \\{ background: var\\(--`));
   });
 
-  it.each([
-    ['the More panel', 'home.main', () => fireEvent.click(dom.getByRole('tab', { name: 'More' }))],
-    ['Create', 'home.main', () => fireEvent.click(document.querySelector('.glassbar-fab'))],
-  ])('gives every tile in %s a tone', (_, start, open) => {
-    renderApp(start, 'admin');
-    open();
-    const found = tones(document.body);
-    expect(found.length).toBeGreaterThan(2);
-    expect(found.filter(t => !['tile-info', 'tile-success', 'tile-warning', 'tile-danger', 'tile-neutral'].includes(t))).toEqual([]);
+  it('gives every tile in the More panel a solid tone', () => {
+    renderApp('home.main', 'admin');
+    fireEvent.click(dom.getByRole('tab', { name: 'More' }));
+    const tiles = [...document.querySelectorAll('.mm-tile')];
+    expect(tiles.length).toBeGreaterThan(2);
+    for (const t of tiles) expect(['blue', 'green', 'orange', 'teal', 'gray'].some(c => t.classList.contains(c))).toBe(true);
   });
 });
 

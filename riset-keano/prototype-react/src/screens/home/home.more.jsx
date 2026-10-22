@@ -9,11 +9,11 @@ const ICON = 24;
 
 /** Grid tiles: {go, label, icon, tone, badge?}. Users is for Admin only. */
 const tiles = is => [
-  { go: 'inbox.respond', label: 'Inbox', icon: <Inbox size={ICON} />, tone: 'info', badge: D.inbox.respond.length },
-  { go: 'team.list', label: 'Team', icon: <Users size={ICON} />, tone: 'success' },
-  is('admin') && { go: 'users.approve', label: 'Users', icon: <UserCog size={ICON} />, tone: 'warning', badge: D.users.counts.pending },
-  { go: 'archive.list', label: 'Archive', icon: <Archive size={ICON} />, tone: 'neutral' },
-  { go: 'settings.main', label: 'Settings', icon: <Settings size={ICON} />, tone: 'neutral' },
+  { go: 'inbox.respond', label: 'Inbox', icon: <Inbox size={ICON} />, tone: 'blue', badge: D.inbox.respond.length },
+  { go: 'team.list', label: 'Team', icon: <Users size={ICON} />, tone: 'green' },
+  is('admin') && { go: 'users.approve', label: 'Users', icon: <UserCog size={ICON} />, tone: 'orange', badge: D.users.counts.pending },
+  { go: 'archive.list', label: 'Archive', icon: <Archive size={ICON} />, tone: 'teal' },
+  { go: 'settings.main', label: 'Settings', icon: <Settings size={ICON} />, tone: 'gray' },
 ].filter(Boolean);
 
 /** close() folds the panel; every pick closes it first so the bar is back to normal on the next screen. */
@@ -36,7 +36,7 @@ export default function MoreMenu({ close }) {
         {tiles(is).map((t, i) => (
           <button key={t.go} type="button" className="mm-item tb-rise" style={{ '--i': i + 1 }}
             aria-label={t.badge ? `${t.label}, ${t.badge} new` : t.label} onClick={() => open(t.go)}>
-            <span className={`mm-tile tile-${t.tone}`}>
+            <span className={`mm-tile ${t.tone}`}>
               {t.icon}
               {t.badge ? <span className="mm-badge">{t.badge}</span> : null}
             </span>

@@ -23,8 +23,8 @@
   --ring: 245 55% 53%;
   --radius: 0.5rem;
 
-  /* iOS hues: not part of JP Atlas. Only the calendar event categories use them (the menu tiles moved to Atlas status
-     pairs, .tile-* in app.css); Atlas has no category palette yet, so they stay until one is chosen. */
+  /* iOS hues: not part of JP Atlas. Only the category tiles (home/profile More and Create grids) and calendar event
+     categories use them; Atlas has no category palette yet, so they stay until one is chosen. */
   --color-red: #ff3b30;
   --color-orange: #ff9500;
   --color-yellow: #ffcc00;
@@ -87,7 +87,6 @@
   --label-3: var(--atlas-control);       /* chevrons, empty checkbox rings (3:1 boundary, not text) */
   --separator: var(--atlas-line);        /* decorative only */
   --media: var(--atlas-raised);          /* image placeholder */
-  --tile-neutral: var(--atlas-raised);   /* neutral icon tile (.tile-neutral) */
   --phone-frame: var(--atlas-identity-surface);
   --index-stage: #000;                   /* behind the phone on the index page, both themes: no glare while reviewing light mode */
   /* Index sidebar: Atlas dark values in both themes, so the page around the phone never glares */
@@ -190,7 +189,4 @@
   --sheet-bg: var(--atlas-surface);
   --sheet-surface: var(--atlas-raised);
   --sheet-edge: rgba(255, 255, 255, 0.1);
-  /* Dark sheets lift their rows to raised, the same colour as the neutral tile, so the tile square vanished in
-     profile.me and Create; one step up (line) keeps it a square everywhere, glyph --label-2 still 6:1 on it. */
-  --tile-neutral: var(--atlas-line);
 }

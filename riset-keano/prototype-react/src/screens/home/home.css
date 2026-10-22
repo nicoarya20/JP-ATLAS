@@ -28,8 +28,10 @@
 .hm-answer > * { --fill: var(--surface-raised); }
 .hm-bullet { display: grid; gap: 2px; padding-left: var(--sp-4); position: relative; }
 .hm-bullet::before { content: ""; position: absolute; left: 0; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-/* colours from the shared .tile-* tones (app.css), same as .mm-tile and .pf-tile */
-.hm-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; }
+/* white glyph in both themes, same as .mm-tile and .pf-tile */
+.hm-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: var(--color-white); }
+.hm-tile.blue { background: var(--color-blue); } .hm-tile.green { background: var(--color-green); }
+.hm-tile.orange { background: var(--color-orange); } .hm-tile.gray { background: var(--label-3); }
 
 /* ---- More menu (panel unfolded from the tab bar, see kit/tabbar.css) ---- */
 .mm { display: grid; gap: var(--sp-3); padding: var(--sp-4) var(--sp-3) var(--sp-2); }
@@ -42,8 +44,13 @@
 .mm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-2); }
 .mm-item { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--label); cursor: pointer; }
 .mm-tile { position: relative; width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center;
-  transition: scale 180ms var(--tb-spring, ease); }
+  color: var(--color-white); transition: scale 180ms var(--tb-spring, ease); }
 .mm-item:active .mm-tile { scale: 0.9; transition-duration: 60ms; }
+/* solid tones, white glyph in both themes: a --fill tile sank into the glass panel (it lands at the same grey over
+   the dim), and the navy --on-accent glyph of dark mode made the tiles look dead */
+.mm-tile.blue { background: var(--color-blue); } .mm-tile.green { background: var(--color-green); }
+.mm-tile.orange { background: var(--color-orange); } .mm-tile.teal { background: var(--color-teal); }
+.mm-tile.gray { background: var(--label-3); }
 .mm-badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box;
   border-radius: 999px; display: grid; place-items: center; background: var(--danger); color: var(--on-accent); /* Atlas danger, like destructive buttons (AA) */
   font-size: var(--fs-caption2); font-weight: 650; box-shadow: 0 0 0 2px var(--surface); }
