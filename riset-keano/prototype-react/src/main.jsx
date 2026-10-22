@@ -13,16 +13,16 @@ import './styles/library.css';   // after the screens and the shell: overrides t
 import './styles/press.css';     // after library.css: no hover, press animations on tap
 import './styles/focus.css';     // last: one keyboard focus ring over the library's own focus styles
 import { START_SCREEN, readUrl, setRole } from './core/session';
-import { allowed } from './core/registry';
+import { startFor } from './core/registry';
 
 const url = readUrl();
 setRole(url.role);
 document.documentElement.classList.toggle('dark', url.mode === 'dark');
-const start = allowed(url.screen, url.role) ? url.screen : START_SCREEN;
+const start = startFor(url.screen, url.role, START_SCREEN);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AppProvider start={start}>
+    <AppProvider start={start.screen} sheet={start.sheet}>
       <PhoneApp />
     </AppProvider>
   </StrictMode>,

@@ -34,9 +34,11 @@ function reducer(state, a) {
   }
 }
 
-/** Provides navigation state. start = first screen id (already validated by the caller). */
-export function AppProvider({ start, children }) {
-  const [state, dispatch] = useReducer(reducer, { stack: [{ id: start, params: {} }], sheet: null, toast: null, closing: false });
+/** Provides navigation state. start = first screen id, sheet = a sheet id open on top of it (both already validated
+ *  by the caller, see registry startFor). */
+export function AppProvider({ start, sheet = null, children }) {
+  const [state, dispatch] = useReducer(reducer,
+    { stack: [{ id: start, params: {} }], sheet: sheet && { id: sheet, params: {} }, toast: null, closing: false });
   const role = getRole();
 
   const toast = useCallback(msg => dispatch({ type: 'toast', toast: { msg, key: Date.now() + Math.random() } }), []);

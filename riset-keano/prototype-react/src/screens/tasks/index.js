@@ -14,7 +14,7 @@ import './tasks.css';
 const G = 'Tasks';
 
 screen('tasks.my', { title: '① My tasks (List)', group: G, Component: TasksMy });
-sheet('tasks.filter', { title: '①b Overlay · Filter & sort', group: G, full: true, Component: TasksFilter });
+sheet('tasks.filter', { from: 'tasks.all', title: '①b Overlay · Filter & sort', group: G, full: true, Component: TasksFilter });
 screen('tasks.all', { title: '② All tasks (List)', group: G, Component: TasksAll });
 screen('tasks.board', { title: '③ Kanban', group: G, Component: TasksBoard });
 screen('tasks.empty', { title: '④ My tasks empty', group: G, Component: TasksEmpty });
@@ -25,6 +25,6 @@ screen('tasks.detail-todo', { title: '⑧ Detail · To do', group: G, Component:
 screen('tasks.detail-progress', { title: '⑨ Detail · In progress', group: G, Component: TasksDetailProgress });
 screen('tasks.detail-review', { title: '⑩ Detail · In review', group: G, Component: TasksDetailReview });
 screen('tasks.edit', { title: '⑩b Edit task (detail ⋯)', group: G, Component: TasksEdit });
-sheet('tasks.return', { title: '⑪ Sheet · Return', group: G, roles: ['pm', 'admin'], Component: TasksReturn });
-sheet('tasks.cancel', { title: '⑫ Sheet · Cancel', group: G, Component: TasksCancel });
+sheet('tasks.return', { from: 'tasks.detail-review', title: '⑪ Sheet · Return', group: G, roles: ['pm', 'admin'], Component: TasksReturn });
+sheet('tasks.cancel', { from: 'tasks.detail-todo', title: '⑫ Sheet · Cancel', group: G, Component: TasksCancel });
 screen('tasks.settings', { title: '⑬ Project settings', group: G, Component: TasksSettings });

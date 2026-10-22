@@ -9,4 +9,4 @@ const G = 'Archive';
 screen('archive.list', { title: '① Archive · List', group: G, Component: ArchiveList });
 screen('archive.empty', { title: '② Archive · Empty', group: G, Component: ArchiveEmpty });
 screen('archive.undo', { title: '③ Undo after archive', group: G, Component: ArchiveUndo });
-sheet('archive.delete', { title: '④ Sheet · Delete forever', group: G, roles: ['admin'], Component: ArchiveDelete });
+sheet('archive.delete', { from: 'archive.list', title: '④ Sheet · Delete forever', group: G, roles: ['admin'], Component: ArchiveDelete });

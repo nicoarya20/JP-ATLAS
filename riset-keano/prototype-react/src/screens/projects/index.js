@@ -14,7 +14,7 @@ const G = 'Projects';
 const MANAGERS = ['pm', 'admin'];
 
 screen('projects.list', { title: () => (getRole() === 'admin' ? '① All projects (Admin)' : '① All projects'), group: G, Component: ProjectsList });
-sheet('projects.filter', { title: '①b Overlay · Filter & sort', group: G, full: true, Component: ProjectsFilter });
+sheet('projects.filter', { from: 'projects.list', title: '①b Overlay · Filter & sort', group: G, full: true, Component: ProjectsFilter });
 screen('projects.new', { title: '③ New project · choose method', group: G, roles: MANAGERS, modal: true, Component: ProjectsNew });
 screen('projects.form', { title: '④ Project form', group: G, roles: MANAGERS, Component: ProjectsForm });
 screen('projects.story', { title: '⑤ Tell us about the project', group: G, roles: MANAGERS, Component: ProjectsStory });
@@ -24,4 +24,4 @@ screen('projects.overview', { title: '⑧ Detail · Overview', group: G, Compone
 screen('projects.tasks', { title: '⑨ Detail · Tasks', group: G, Component: ProjectsTasks });
 screen('projects.phases', { title: '⑩ Detail · Phases', group: G, Component: ProjectsPhases });
 screen('projects.members', { title: '⑪ Detail · Members', group: G, Component: ProjectsMembers });
-sheet('projects.extend', { title: '⑫ Extend deadline', group: G, roles: MANAGERS, Component: ProjectsExtend });
+sheet('projects.extend', { from: 'projects.overview', title: '⑫ Extend deadline', group: G, roles: MANAGERS, Component: ProjectsExtend });

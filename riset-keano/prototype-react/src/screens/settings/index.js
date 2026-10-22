@@ -9,4 +9,4 @@ import SettingsLeave, { LEAVE } from './settings.leave';
 const G = 'Settings';
 screen('settings.main', { title: '① Settings', group: G, Component: SettingsMain });
 screen('settings.profile', { title: '② Edit profile', group: G, Component: SettingsProfile });
-sheet('settings.leave', { title: () => `③ Sheet · ${LEAVE[getRole()].title}`, group: G, Component: SettingsLeave });
+sheet('settings.leave', { from: 'settings.main', title: () => `③ Sheet · ${LEAVE[getRole()].title}`, group: G, Component: SettingsLeave });

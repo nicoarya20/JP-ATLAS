@@ -30,8 +30,8 @@ import { panel, screen, sheet } from '../../core/registry';
 screen('tasks.my', { title: '① My tasks', group: 'Tasks', Component: TasksMy });
 screen('users.roles', { ..., roles: ['admin'] });  // omit roles = every role
 screen('tasks.write', { ..., modal: true });  // modal = a create/edit flow: slides up over the screen it opened from, a down chevron instead of the left one
-sheet('tasks.return', { title: '…', group: 'Tasks', snap: 0.5, Component: ReturnSheet }); // snap = share of phone height, default 0.6
-sheet('profile.me', { title: '…', group: 'Profile', full: true, Component: ProfileMain }); // full = full-height overlay (kit FullSheet)
+sheet('tasks.return', { from: 'tasks.detail-review', title: '…', group: 'Tasks', Component: ReturnSheet }); // from = screen it opens over (a link to the sheet starts there); sizes to its content, snap?: drag-to-close share, default 0.6
+sheet('profile.me', { from: 'home.main', title: '…', group: 'Profile', full: true, Component: ProfileMain }); // full = full-height overlay (kit FullSheet)
 panel('more', { Component: MoreMenu });  // what a tab unfolds from the tab bar instead of a screen; gets {close}
 ```
 

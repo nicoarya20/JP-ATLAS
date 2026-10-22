@@ -6,5 +6,5 @@ import './profile.calendar.css';
 import ProfileCalendar from './profile.calendar';
 import ProfileMain from './profile.main';
 
-sheet('profile.me', { title: '① Overlay · Profile', group: 'Profile', full: true, Component: ProfileMain });
+sheet('profile.me', { from: 'home.main', title: '① Overlay · Profile', group: 'Profile', full: true, Component: ProfileMain });
 screen('profile.calendar', { title: '② My calendar', group: 'Profile', Component: ProfileCalendar });

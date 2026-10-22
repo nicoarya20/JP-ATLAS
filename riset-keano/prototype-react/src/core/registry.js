@@ -11,9 +11,10 @@ function register(map, kind, id, def) {
 /** Register a full screen. def: {title (string | () => string), group, roles?: ['pm', ...], modal?: true, Component}.
  *  modal = a create/edit flow: slides up over the screen it opened from, a down chevron (named Cancel) instead of the left one, slides down on back. */
 export const screen = (id, def) => register(screens, 'screen', id, def);
-/** Register a bottom sheet. def: same as a screen, plus snap?: 0..1 (sheet height as a share of the phone, default 0.6),
- *  or full?: true for a full-height overlay (kit FullSheet: X top-left, swipe down to close; snap is ignored),
- *  plus fit?: true to size that overlay to its content instead of the full height. */
+/** Register a bottom sheet. def: same as a screen, plus from: the screen id it opens over (a link to the sheet starts
+ *  there and opens the sheet on top), snap?: 0..1 (how far a drag must pull it down to close, default 0.6; the sheet
+ *  itself sizes to its content), or full?: true for a full-height overlay (kit FullSheet: X top-left, swipe down to
+ *  close; snap is ignored), plus fit?: true to size that overlay to its content instead of the full height. */
 export const sheet = (id, def) => register(sheets, 'sheet', id, def);
 
 const panels = new Map();  // tab id -> {Component({close})}
@@ -34,6 +35,14 @@ export const exists = id => screens.has(id) || sheets.has(id);
 export function allowed(id, role) {
   const d = screens.get(id) || sheets.get(id);
   return !!d && (!d.roles || d.roles.includes(role));
+}
+
+/** Where the app starts for a link to id: {screen, sheet}. A sheet starts on its `from` screen with the sheet open on
+ *  top (a sheet id as the first screen rendered nothing); an id the role may not open falls back to `fallback`. */
+export function startFor(id, role, fallback) {
+  const sh = sheets.get(id);
+  if (sh) return allowed(id, role) && allowed(sh.from, role) ? { screen: sh.from, sheet: id } : { screen: fallback, sheet: null };
+  return { screen: screens.has(id) && allowed(id, role) ? id : fallback, sheet: null };
 }
 
 /** Every id the role may open, grouped for the index: {group: [{id, title, sheet}]}, in registration order. */
