@@ -68,6 +68,8 @@ describe('stacked tab screens', () => {
     expect(rule('.stk-edge')).toMatch(/pointer-events: none/);
     expect(rule('.stk-edge::before')).toMatch(/border-radius: 24px 24px 0 0/);
     expect(rule('.stk-edge::before')).toMatch(/border-top: 1px solid var\(--separator\)/);
+    // Opaque part measured from the border box, so it ends with the 12 px edge instead of 1 px past it (under the hairline)
+    expect(rule('.stk-edge::before')).toMatch(/linear-gradient\(var\(--bg\) var\(--sp-3\), transparent 0\) border-box/);
   });
 
   it('compacts the pinned stat row step by step with the scroll past the search, and back', async () => {
