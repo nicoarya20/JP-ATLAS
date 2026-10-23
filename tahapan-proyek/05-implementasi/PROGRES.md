@@ -15,7 +15,7 @@
 | S2 — Tugas inti | 17 | 15 | 0 | 0 |
 | **Total** | **93** | **91** | **0** | **0** |
 
-Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 (uji pengguna) belum terpenuhi: penguji masih data dummy.
+Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerbang S2 belum terpenuhi. **Sejak 23 Okt 2026 isinya berubah atas keputusan user:** bukan lagi uji 5 penguji nyata berusia ≥50 (dipindah ke S8, `HUTANG.md` H-F1), melainkan **uji mandiri user atas seluruh menu `/app`** — skenario UM-1..UM-8 di [`uji-pengguna/uji-mandiri-mvp1.md`](uji-pengguna/uji-mandiri-mvp1.md).
 
 ## Gerbang dan titik sinkron
 
@@ -32,7 +32,7 @@ Estimasi total MVP Inti ≈ 128 hari-orang AI (KEPUTUSAN-MVP-INTI.md §6). Gerba
 | SP2 | S2-03 merge (`GET /tasks…` stabil) | UI tugas | **lolos** 17 Okt (`2ee041a`) |
 | SP-S2a / SP-M | S2-05, S2-06 merge · S1-10 merge | S2-12/13 · S2-14 | belum |
 | SP-G1 | S1-17: demo S1 diterima user | (tidak memblokir S2) | belum |
-| **SP-G2** | S2-16: uji pengguna ≥3 dari 5 penguji **nyata** berusia ≥50 selesai tanpa bantuan | S3 boleh dimulai | belum |
+| **SP-G2** | S2-16: **uji mandiri user** — UM-1..UM-8 di `uji-pengguna/uji-mandiri-mvp1.md` semuanya lulus, didahului perbaikan bug kritis+tinggi `audit/` (HUTANG H-A10). *Diubah 23 Okt 2026 atas keputusan user; syarat lama (≥3 dari 5 penguji **nyata** berusia ≥50) pindah ke gerbang rilis ke pengguna luar, HUTANG H-F1* | S3 boleh dimulai | belum |
 
 ## S0.0 — Prasyarat ops
 
@@ -159,7 +159,7 @@ Sumber spesifikasi: `rencana/P3-s1-s2-proyek-tugas.md §5`.
 | S2-13 | Detail tugas: daftar periksa, komentar, riwayat | L3b | S2-12, SP-S2a (S2-06) | M (2,5) | **selesai** | `feature/pm-s2-13-task-detail-body` | `5353aca`, `05e0e36` merge `030dacf` | Daftar periksa, linimasa + kotak komentar, dan "Ubah tugas" (rute baru `/app/tasks/:number/edit`, snapshot `contract-v1` 12 → 13 URL; catatan ADR 0002 ditambahkan koordinator). `error TS` 0, lint baseline; tanpa perubahan `server/**` |
 | S2-14 | Tab Tugas di detail proyek + sorotan Ringkasan | L3b | SP-M (S1-10), S2-09 | S (1,5) | **selesai** | `feature/pm-s2-10-tasks-page` | `0c76068` merge `e64f997` | worker: 3.653 lulus/0 gagal. Sorotan maks 5 (terlambat, lalu prioritas tinggi/kritis) dari API |
 | S2-15 | Smoke S2, QA, persiapan uji pengguna | L10 | S2-13, S2-14 | S (2) | **selesai** | `feature/pm-s2-15-smoke-user-test-prep` | `3a41a76`, `a8121ca`, `513471f` merge `4611cd9` | 5 pemeriksaan smoke tugas baru (39 total); skenario seed `uji` (`SEED_ALLOW=1 bun scripts/seed-dev.ts uji`): "Renovasi Dapur", 5 akun `Penguji-N (dummy)` + 1 `Fasilitator (dummy)` (pemilik tugas untuk skenario), domain `.invalid`, idempoten; pemindaian skala diperluas ke komponen tugas; `putaran-1-skrip.md`, `putaran-1-lembar-catat.md`, `qa-s2.md` (typecheck 3,4-3,9 dtk). **Hasil dummy tidak memenuhi gerbang S2.** Sel visual dan 6 langkah demo S2: menunggu user |
-| S2-16 | Uji pengguna putaran 1 dan perbaikan | L10 + reviewer | S2-15, KB-4 terjawab | S (2 AI + 1,5 reviewer + sesi) | belum |  |  |  |
+| S2-16 | **Uji mandiri user** atas seluruh menu `/app` dan perbaikan temuannya *(diubah 23 Okt 2026: uji pengguna putaran 1 dengan penguji nyata pindah ke HUTANG H-F1)* | user + L10 | S2-15, HUTANG H-A10 (bug kritis+tinggi audit diperbaiki) | S (sesi user + perbaikan) | belum |  |  | Skenario UM-1..UM-8 di `uji-pengguna/uji-mandiri-mvp1.md`. Butuh dua akun (PM/Admin + member): member tidak bisa membuat proyek |
 | S2-17 | Integrasi dan gerbang demo S2 | Integrator | S2-07, S2-16 | S (0,5) | belum |  |  |  |
 
 ## Jadwal peluncuran S0.a + S0.b (disetujui user 15 Okt 2026)

@@ -22,7 +22,7 @@
 | Q11 | Detail tugas = halaman penuh `/app/tasks/:id` (juga sesuai wireframe Penpot) |
 | Q12 | Proyek Selesai/Dibatalkan/Ditunda: tugas tetap boleh ditambah dan diubah; hanya Sampah yang mengunci. Tampilkan catatan lembut |
 | Q13 | Ukuran huruf awal akun baru = Normal; dipilih di Profil |
-| Q14 | Gerbang S2: ≥3 dari 5 penguji berusia ≥50 selesai tanpa bantuan; rilis S8: ≥4 dari 5 dalam ≤3 menit. **Penguji memakai DATA DUMMY dulu (§5)**: tidak dihitung untuk gerbang S2 sampai diganti orang sungguhan |
+| Q14 | ~~Gerbang S2: ≥3 dari 5 penguji berusia ≥50 selesai tanpa bantuan~~ **diubah 23 Okt 2026 (§6)**: gerbang S2 = uji mandiri user (`uji-pengguna/uji-mandiri-mvp1.md`); syarat penguji nyata pindah ke gerbang rilis ke pengguna luar (`HUTANG.md` H-F1). Rilis S8 tetap: ≥4 dari 5 dalam ≤3 menit |
 | Q15-Q22 | Semua pilihan (a) sesuai saran X2 (Inbox, Events, retensi log, lampiran gambar+PDF maks 10 MB, UU PDP ditinjau sebelum S8, beban Tim). Berlaku untuk S3+, tidak memengaruhi kode S0-S2 |
 | D1-D12 | Berlaku semua (X2 §2A "Default yang dipakai") |
 
@@ -49,7 +49,9 @@ D1 Mantine pin 9.6.3 + `@mantine/dates` + `dayjs` hanya untuk `DateInput` (grid 
 | `Penguji-1 (dummy)` ... `Penguji-5 (dummy)` | Skenario uji pengguna UP-1 (P3 S2-15, T0-T7), lembar catat, dan data contoh | Usia contoh ≥50 tahun; **tidak ada nama atau data orang sungguhan di repo** |
 | `Peninjau-2 (dummy)` | Penetapan peninjau kedua untuk S0.b dan keamanan (jadwal dan titik tinjau SP-*) | Diganti nama sungguhan sebelum S0.b mulai ditinjau |
 
-**Konsekuensi yang harus diingat:** dummy cukup untuk menyiapkan skrip dan lembar catat, tetapi **hasil uji dengan dummy TIDAK memenuhi gerbang S2** (≥3 dari 5 penguji nyata berusia ≥50). Gerbang S2 tetap belum terpenuhi sampai penguji sungguhan menggantikannya; S3 tidak boleh dimulai atas dasar hasil dummy.
+**Konsekuensi yang harus diingat:** dummy cukup untuk menyiapkan skrip dan lembar catat, tetapi **hasil uji dengan dummy TIDAK memenuhi gerbang mana pun**.
+
+> **Diubah 23 Oktober 2026 (§6):** gerbang S2 **bukan lagi** "≥3 dari 5 penguji nyata berusia ≥50". Syarat itu pindah ke gerbang rilis ke pengguna luar (`HUTANG.md` H-F1) dan skrip di `uji-pengguna/putaran-1-*.md` tetap dipakai di sana. Gerbang S2 sekarang = **uji mandiri user** (`uji-pengguna/uji-mandiri-mvp1.md`).
 
 Masih terbuka:
 1. Mengganti `Penguji-1..5 (dummy)` dengan orang sungguhan sebelum hari ke-12 setelah `contract-v1`.
@@ -62,6 +64,7 @@ Masih terbuka:
 ## 6. Perubahan keputusan setelah dokumen ini dibuat
 | Tanggal | Keputusan | Dampak |
 |---|---|---|
+| 23 Okt 2026 | **Gerbang S2 diganti: uji mandiri user, bukan uji 5 penguji nyata** (user). Alasan user: ingin membuktikan sendiri dulu bahwa seluruh menu `/app` berfungsi. Syarat "≥3 dari 5 penguji nyata berusia ≥50" **dipindah, bukan dihapus** — menjadi gerbang sebelum produk dipakai orang di luar tim (`HUTANG.md` H-F1, S8) | Gerbang baru: UM-1..UM-8 di `uji-pengguna/uji-mandiri-mvp1.md`, wajib menyentuh cari/filter/muat-lagi (kriteria "datanya sudah real" ditolak karena `PRJ-01` lolos dari kriteria itu) dan wajib didahului perbaikan bug kritis+tinggi `audit/` (`HUTANG.md` H-A10). Dokumen yang disunting: `HUTANG.md` §0 + H-A1/A3/A9/A10/A11 + H-F + urutan, `PROGRES.md` (SP-G2, S2-16), §5 dokumen ini. Skrip `putaran-1-*.md` dan seed `uji` tetap dipakai untuk H-F1 |
 | 15 Okt 2026 | **Hapus proyek: pilihan B** (user), menggantikan bawaan "tombol disembunyikan sampai S6" (P2 K3 / P3 KB-1). Halaman **Sampah minimal khusus proyek** masuk S1 dan tombol **Hapus proyek** aktif | Tugas baru `S1-18` di `rencana/P3-s1-s2-proyek-tugas.md` (+2-3 hari-orang AI); `PROJECT_DELETE_UI_ENABLED=true`; S6 tinggal menambah hapus permanen, pembersihan 30 hari, dan entri tugas/event. Total MVP Inti ≈ 127-128 hari-orang AI |
 | 15 Okt 2026 | **Siapa boleh menghapus proyek: pilihan 2** (user). Buat proyek: Super-admin, Admin, PM. Ubah proyek (nama, status, anggota): Super-admin/Admin semua proyek; PM hanya yang ia kelola; Member hanya bila ditunjuk Pengelola. **Hapus proyek: Super-admin, Admin, dan PM-Pengelola saja; Member-Pengelola TIDAK boleh menghapus** (boleh melihat dan memulihkan dari Sampah) | Fungsi izin baru `canTrashProject` terpisah dari `canManageProject` (P2 S0B-14, `ACCESS_RULES.MEMBER_MANAGER_CAN_TRASH_PROJECT=false`, kode tolak baru `ROLE_CANNOT_TRASH`); invarian "PM-K ≡ M-K" kini punya satu pengecualian (`trash`); tombol Hapus tampil hanya bila `can.project.trash` (P3 S1-05, S1-18). Dokumen yang disunting: X2 §2E2, X3 §2a, P2 S0B-14, P3, `03-desain/erd/project.md`. **Belum disunting** (kalah dari dokumen ini): `riset/R03` baris 177 dan 356 (rumusan invarian) |
 | 15 Okt 2026 | **Merge per gelombang** (user), bukan per tugas. Pengecualian yang tetap disetujui satu per satu: tugas yang menyentuh `server/auth.ts`, `server/guard.ts`, `server/permissions.ts`, atau `server/db/migrations/*` | Menggantikan "persetujuan user atas tiap merge" di P2 §4 dan aturan global §2 untuk tugas biasa; dicatat di `README.md` §3 dan `PROGRES.md` (Log merge per gelombang) |

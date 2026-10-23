@@ -14,9 +14,13 @@ Menurut [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) §1, **MVP Inti = S0 (a
 |---|---|---|
 | S0 Akun dan akses | selesai (91 dari 93 tugas `PROGRES.md`) | lihat H-A |
 | S1 Proyek + profil | selesai, ditambah S5a (Tahapan, Perpanjang tenggat, Gantt) | lihat H-B |
-| S2 Tugas inti | selesai dibangun (S2-01..15) | **gerbang uji pengguna nyata belum**; menu Tugas belum diaudit terhadap wireframe (H-C1) |
+| S2 Tugas inti | selesai dibangun (S2-01..15) | **gerbang uji mandiri belum**; menu Tugas belum diaudit terhadap wireframe (H-C1) |
 
 **MVP 1 dianggap selesai bila seluruh H-A terpenuhi.** Bagian H-B dan H-C yang bertanda "MVP 1" sebaiknya ikut; sisanya pasca MVP 1.
+
+**Perubahan gerbang, 23 Oktober 2026 (keputusan user):** gerbang "≥3 dari 5 penguji **nyata** berusia ≥50" **dicopot dari MVP 1** dan dipindah ke gerbang rilis ke pengguna luar (S8, lihat H-F). Penggantinya: **uji mandiri user atas seluruh menu `/app`** dengan skenario di [`uji-pengguna/uji-mandiri-mvp1.md`](uji-pengguna/uji-mandiri-mvp1.md) (H-A1 baru). Alasan user: ingin membuktikan dulu semua menu berfungsi sendiri sebelum melibatkan orang luar. Catatan koordinator: penguji usia ≥50 adalah sumber daya langka dan premis produk ini; membawa mereka ke build yang `PRJ-01` belum diperbaiki akan membuang sesi itu — karena itu dipindah, bukan dihapus.
+
+**Kriteria gerbang bukan "datanya sudah real".** Audit 22 Okt membuktikan layar bisa menampilkan data sungguhan dan tetap rusak: tenggat berubah jadi "—" dan Gantt kosong **setelah** daftar diambil ulang oleh klien (`PRJ-01`/`T-01`). Karena itu tiap skenario uji mandiri wajib menyentuh cari/filter/muat-lagi, dan **bug kritis + tinggi di [`audit/`](audit/) ikut menjadi penutup MVP 1** (lihat H-A10).
 
 ---
 
@@ -24,15 +28,17 @@ Menurut [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) §1, **MVP Inti = S0 (a
 
 | ID | Hutang | Kenapa | Sumber |
 |---|---|---|---|
-| H-A1 | **Uji pengguna putaran 1 dengan penguji NYATA** (S2-16): ≥3 dari 5 penguji berusia ≥50 menyelesaikan skenario tanpa bantuan. Skrip dan lembar catat sudah ada | Ini **gerbang S2 (SP-G2)**. Penguji masih `Penguji-1..5 (dummy)`; hasil dummy tidak dihitung | `PROGRES.md` S2-16; `uji-pengguna/putaran-1-*.md`; KEPUTUSAN §5 |
-| H-A2 | **Gerbang demo S2** (S2-17): integrasi setelah uji pengguna, perbaikan temuan | Menutup S2 | `PROGRES.md` S2-17 |
-| H-A3 | Ganti `Penguji-1..5 (dummy)` dan `Peninjau-2 (dummy)` dengan orang sungguhan | Prasyarat H-A1; dummy tidak boleh jadi dasar gerbang | KEPUTUSAN §5 butir 1-2 |
+| H-A1 | **Uji mandiri user atas seluruh menu `/app`** (menggantikan uji penguji nyata sejak 23 Okt 2026): UM-1..UM-8 di [`uji-pengguna/uji-mandiri-mvp1.md`](uji-pengguna/uji-mandiri-mvp1.md) semuanya `lulus`. Butuh **dua akun** (PM/Admin + member) karena member tidak bisa membuat proyek, dan data cukup untuk memaksa paginasi | Gerbang S2 (SP-G2) versi baru. Membuktikan tiap menu benar-benar berfungsi, bukan sekadar memakai data nyata | keputusan user 23 Okt 2026; `uji-pengguna/uji-mandiri-mvp1.md` |
+| H-A2 | **Gerbang demo S2** (S2-17): integrasi setelah uji mandiri, perbaikan temuan | Menutup S2 | `PROGRES.md` S2-17 |
+| H-A3 | ~~Ganti `Penguji-1..5 (dummy)` dengan orang sungguhan~~ **dipindah ke H-F (S8)** 23 Okt 2026. **Sisa di sini:** ganti `Peninjau-2 (dummy)` dengan peninjau keamanan sungguhan | Peninjau kedua S0.a masih dummy, dan itu soal keamanan, bukan uji kegunaan | KEPUTUSAN §5 butir 2 |
 | H-A4 | **`smoke:binary` dan `smoke:coldboot` belum dijalankan** untuk S5a. Butuh **Bun 1.4.2** (mesin ini 1.3.14, build binary gagal di `./server/db/migrations`) | CLAUDE.md mewajibkan untuk perubahan di `server/` | `qa-s2.md` §5; sesi 19 Okt |
 | H-A5 | **UAT login Google (S0A-15)** dijalankan manusia; kolom "Hasil" di `uat/UAT-S0A.md` masih kosong **(pengamatan)** | Cerita masuk-undangan-setujui belum terbukti di layar sungguhan | `uat/UAT-S0A.md` |
 | H-A6 | Persetujuan user atas `contract-v1` dan demo S1 (SP-G1) | Di tabel gerbang `PROGRES.md` masih "belum" **(pengamatan: bisa jadi hanya belum diperbarui)** | `PROGRES.md` gerbang |
 | H-A7 | **KB-3:** form "Ubah proyek" masih bisa mengubah tenggat langsung, tanpa lewat Perpanjang tenggat | Riwayat tenggat dan lencana "Diperpanjang ×N" bisa bolong. Perlu keputusan: tutup jalur itu atau biarkan | `P3` KB-3; laporan `ui-06` |
 | H-A8 | `bun audit`: cek ulang high/critical sebelum rilis (terakhir 1 moderate saat SP-0.0) | Aturan global §10 | `PROGRES.md` SP-0.0 |
-| H-A9 | **Rilis:** `main` tertinggal 431 commit dari `feature/project-management`. Belum ada PR/merge ke `main`, belum ada versi/tag. CHANGELOG masih `[Unreleased]` | Tanpa ini tidak ada yang bisa dipakai di luar cabang | sesi 19 Okt |
+| H-A9 | **Rilis:** ~~`main` tertinggal 431 commit~~ **`main` sudah sinkron 23 Okt 2026** (0 commit beda dengan `feature/project-management`). **Sisa:** tag terakhir masih `v0.2.0` sementara CHANGELOG `[Unreleased]` sudah memuat ±20 poin — bump versi + entri `## [x.y.z]` + tag | Tanpa ini tidak ada versi yang bisa dipakai orang | sesi 19 Okt; diperbarui 23 Okt |
+| H-A10 | **Perbaiki bug kritis + tinggi dari [`audit/`](audit/)** sebelum uji mandiri (H-A1): `PRJ-01`/`T-01` (Eden mengubah tanggal jadi `Date` → tenggat "—", Gantt kosong, ubah milestone ditolak), `PRJ-02` (header proyek tidak segar setelah diubah), `PD-01` (salah ketik tahun membuat Gantt macet), `TD-01`/`PRJ-09` (anggota yang dikeluarkan tetap jadi pengerja) | Enam temuan ini **pasti ditemui** di UM-3 dan UM-4. Memperbaikinya dulu berarti sesi uji dipakai mencari yang belum diketahui, bukan mengulang yang sudah tertulis | `audit/README.md` paket 1, 2, 4, 5 |
+| H-A11 | **Tes perilaku UI (`LK-01`)**: repo tidak punya DOM test, jadi 6000+ tes tetap hijau saat `PRJ-01` hidup. Butuh persetujuan dependency (happy-dom / testing-library) | Tanpa ini, bug kelas yang sama akan lolos lagi setelah diperbaiki | `audit/lintas/BUG.md` LK-01 |
 
 ## H-B. Menu Proyek
 
@@ -133,6 +139,8 @@ Menurut [`KEPUTUSAN-MVP-INTI.md`](KEPUTUSAN-MVP-INTI.md) §1, **MVP Inti = S0 (a
 
 AI: cerita proyek, notulensi foto/suara, Ask Data (butuh `ai_enabled`, D3) · Template proyek (H-B2) · Impor/unduh CSV · Cuti dengan persetujuan · Mode Pendamping · Retro/commits/status update AI · Kalender proyek, Channel · Menu Ticket/Pengembangan terpisah · **S8 Pengerasan dan rilis** (belum direncanakan): tinjauan UU PDP sebelum rilis, narasi editorial README (X1-Q8), uji rilis "≥4 dari 5 dalam ≤3 menit".
 
+**H-F1 · Uji pengguna dengan penguji NYATA** (dipindah dari H-A1 pada 23 Okt 2026 atas keputusan user): ≥3 dari 5 penguji berusia ≥50 menyelesaikan skenario tanpa bantuan. Skrip dan lembar catat sudah siap di [`uji-pengguna/putaran-1-skrip.md`](uji-pengguna/putaran-1-skrip.md) dan [`putaran-1-lembar-catat.md`](uji-pengguna/putaran-1-lembar-catat.md); seed `SEED_ALLOW=1 bun scripts/seed-dev.ts uji` juga sudah ada. Nama `Penguji-1..5 (dummy)` harus diganti orang sungguhan lebih dulu (KEPUTUSAN §5 butir 1). **Ini tetap gerbang sebelum produk dipakai orang di luar tim** — premis produk ini adalah "bisa dipakai awam usia ≥50", jadi klaim itu belum pernah diuji sampai H-F1 dijalankan.
+
 ## H-G. Keputusan user yang masih terbuka
 
 | ID | Pertanyaan | Usulan | Dampak |
@@ -156,10 +164,14 @@ AI: cerita proyek, notulensi foto/suara, Ask Data (butuh `ai_enabled`, D3) · Te
 
 ## Urutan yang disarankan untuk MVP 1
 
-1. ~~**H-C1** audit menu Tugas, **H-B5** pemilih Tahapan~~ selesai untuk daftar dan form (19 Okt); sisa: audit detail tugas + cek visual di browser, **H-C15** (Eden Date), **H-C14** (uji AI sungguhan), **H-C12** (kolom Tahapan/nomor di daftar).
-3. **H-A7 / H-G1** putuskan KB-3 (kecil, tapi memengaruhi riwayat tenggat).
-4. **H-A4** jalankan smoke binary dan coldboot dengan Bun 1.4.2.
-5. **H-A1..A3** cari penguji nyata, jalankan uji pengguna, lalu **H-A2** gerbang demo S2.
-6. **H-A9** rilis: CHANGELOG berversi, PR ke `main`.
+*Diperbarui 23 Okt 2026 mengikuti gerbang baru (uji mandiri menggantikan uji penguji nyata).*
 
-Setelah MVP 1: **H-C2..C5** (S4), lalu **H-D** (hubungkan layar contoh ke backend) menurut menu yang paling dibutuhkan.
+1. **H-A10** perbaiki bug kritis + tinggi audit — `PRJ-01`/`T-01` dulu sendirian (satu perbaikan di `app/lib/eden.ts`, menutup H-C15 sekaligus), lalu `PRJ-02`, `PD-01`, `TD-01`/`PRJ-09`.
+2. **H-A1** jalankan [`uji-pengguna/uji-mandiri-mvp1.md`](uji-pengguna/uji-mandiri-mvp1.md) UM-1..UM-8 di desktop dan 375 px; bug baru masuk ke [`audit/`](audit/).
+3. Perbaiki temuan uji mandiri, lalu **H-A2** gerbang demo S2.
+4. **H-A7 / H-G1** putuskan KB-3 (kecil, tapi memengaruhi riwayat tenggat).
+5. **H-A4** jalankan smoke binary dan coldboot dengan Bun 1.4.2 (mesin ini masih 1.3.14), **H-A8** `bun audit`.
+6. **H-A9** rilis: bump versi, ubah `[Unreleased]` jadi `## [x.y.z] - YYYY-MM-DD`, tag.
+7. Sisa yang bertanda MVP 1 bila sempat: **H-C1** (audit detail tugas), **H-C14** (uji AI sungguhan), **H-A11** (tes perilaku UI).
+
+Setelah MVP 1: **H-F1** (penguji nyata ≥50, sebelum dipakai orang luar) · **H-C2..C5** (S4) · **P13** (Admin lepas dari pratinjau) · **P14** (cuti jadi status yang disetel Admin) · sisa **H-D** menurut menu yang paling dibutuhkan.
