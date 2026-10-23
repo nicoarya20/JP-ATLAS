@@ -1,0 +1,57 @@
+/* Theme layer, loaded through library.css. Content surfaces: card, list, avatar, badge, progress bar. Colours only
+   via tokens (tokens.css). */
+
+/* Glass highlight overlay off everywhere we flatten a glass panel */
+.react-cupertino-ui-avatar::before, .react-cupertino-ui-badge::before,
+.react-cupertino-ui-bottom-sheet__content.glass::before,
+.react-cupertino-ui-segmented-control::before, .react-cupertino-ui-progressbar__track::before,
+.react-cupertino-ui-checkbox__box::before, .react-cupertino-ui-radio__ring::before { content: none; }
+
+/* ---- Card (kit Section) ---- */
+.card.react-cupertino-ui-card { --card-padding-block: var(--sp-4); --card-padding-inline: var(--sp-4);
+  gap: var(--sp-3); border-radius: var(--radius-card); background: var(--surface); color: var(--label);
+  box-shadow: none; border: 0; text-align: left; }
+
+/* ---- List (kit Rows/Row): iOS inset group = one surface, hairline separators between rows ---- */
+.rows.react-cupertino-ui-list { margin: 0; border: 0; border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+.rows.react-cupertino-ui-list .react-cupertino-ui-list-item,
+.rows.react-cupertino-ui-list .react-cupertino-ui-list-item:first-child,
+.rows.react-cupertino-ui-list .react-cupertino-ui-list-item:last-child {
+  margin: 0; border-radius: 0; background: transparent; border-bottom: 0.5px solid var(--separator); }
+.rows.react-cupertino-ui-list .react-cupertino-ui-list-item:last-child { border-bottom: 0; }
+.rows.react-cupertino-ui-list .react-cupertino-ui-list-item.clickable:active:not(.disabled) { background: var(--fill); }
+.react-cupertino-ui-list-item-title { color: var(--label); }
+.react-cupertino-ui-list-item-subtitle, .react-cupertino-ui-list-item-right { color: var(--label-2); }
+.react-cupertino-ui-list-item-chevron { color: var(--label-3); }
+/* The lead slot is a fixed 2rem blue square upstream; leads here are avatars, tiles and times that size themselves. */
+.react-cupertino-ui-list-item-icon { width: auto; height: auto; min-width: 2rem; min-height: 2rem;
+  background: none; color: var(--label); border-radius: 0; }
+
+/* ---- Avatar: flex: none so a row or the lead slot cannot squeeze the circle into an oval ---- */
+.react-cupertino-ui-avatar { flex: none; background: var(--avatar-bg); border: 0; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none; }
+.react-cupertino-ui-avatar.size-default { font-size: 1rem; }
+.react-cupertino-ui-avatar__fallback { font-size: inherit; color: var(--on-accent); }
+.avatars > .react-cupertino-ui-avatar + .react-cupertino-ui-avatar { margin-left: calc(var(--sp-2) * -1);
+  box-shadow: 0 0 0 2px var(--surface); }
+
+/* ---- Badge (kit Pill) ---- */
+.react-cupertino-ui-badge.variant-glass { background: var(--fill); color: var(--label); border: 0; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* Atlas status pairs: text on its own -bg (contrast-checked in the handoff), not a tint of the text colour */
+.react-cupertino-ui-badge.variant-solid { background: var(--accent-soft); color: var(--selected-text); box-shadow: none; }
+.react-cupertino-ui-badge.variant-outline { background: transparent; color: var(--label-2); border: 1px solid var(--separator); }
+.react-cupertino-ui-badge.variant-success { background: var(--success-bg); color: var(--success); }
+.react-cupertino-ui-badge.variant-warning { background: var(--warning-bg); color: var(--warning); }
+.react-cupertino-ui-badge.variant-error { background: var(--danger-bg); color: var(--danger); }
+.react-cupertino-ui-badge.tone-info { background: var(--info-bg); color: var(--info); }
+
+/* ---- Progress bar (kit Progress) ---- */
+.react-cupertino-ui-progressbar__track { background: var(--fill); border: 0; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none; }
+.react-cupertino-ui-progressbar__fill { background: var(--accent); }
+/* The percentage chip: the Atlas selected pair, like the violet fill it labels (upstream tints it iOS blue) */
+.react-cupertino-ui-progressbar__value { background: var(--accent-soft); color: var(--selected-text); }
+.react-cupertino-ui-progressbar.variant-success .react-cupertino-ui-progressbar__fill { background: var(--success); }
+.react-cupertino-ui-progressbar.variant-warning .react-cupertino-ui-progressbar__fill { background: var(--warning); }
+.react-cupertino-ui-progressbar.variant-error .react-cupertino-ui-progressbar__fill { background: var(--danger); }

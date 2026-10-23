@@ -1,0 +1,10 @@
+/* Inbox module (prefix ib-). */
+.ib-card { display: grid; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--radius-card); background: var(--surface); }
+.ib-who { display: flex; align-items: center; gap: var(--sp-3); }
+.ib-body { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.ib-ai { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); }
+.ib-quote { border-left: 3px solid var(--separator); padding-left: var(--sp-3); }
+.ib-acts { display: flex; justify-content: flex-end; }
+.ib-row { display: flex; align-items: flex-start; gap: var(--sp-3); padding: var(--sp-3) 0; border-bottom: 1px solid var(--separator); }
+.ib-side { display: grid; justify-items: end; gap: var(--sp-1); }
+.ib-unread { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }

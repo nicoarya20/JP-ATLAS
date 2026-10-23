@@ -1,0 +1,57 @@
+/* Home module (hm-). */
+.hm-bar { flex: none; display: grid; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4) var(--sp-3); background: var(--bg); }
+.hm-search { display: flex; align-items: center; gap: var(--sp-2); width: 100%; padding: var(--sp-2) var(--sp-3); border: 0;
+  border-radius: 10px; background: var(--fill); color: var(--label-2); font-size: var(--fs-body); text-align: left; cursor: pointer; }
+.hm-input { padding: var(--sp-2) var(--sp-3); border-radius: 10px; background: var(--fill); font-size: var(--fs-subhead); }
+/* Stat chips: each chip as wide as its text (never wraps), first chip highlighted. The layout lives on .hm-stat-in so the
+   press transition on .hm-stat (press.css) stays its own. Tall: icon on top (absolute, the top padding makes its room),
+   label, sub line. As the pinned row compacts (--stk-q 0..1, scrubbed by the scroll, see kit stacked.css) the icon slides
+   to the middle of the left edge, the padding moves its room to the left and the sub line folds away. Every height here
+   moves linearly with --stk-q: the row's fold is measured from its two ends only. */
+.hm-stat { padding: 0; border: 0; border-radius: var(--radius-card); background: var(--surface); text-align: left; cursor: pointer; }
+.hm-stat:first-child { background: var(--accent-soft); }
+.hm-stat-in { --q: var(--stk-q, 0); --ico: 24px; --top: calc(var(--sp-3) + var(--ico) + var(--sp-1));
+  position: relative; display: grid; gap: calc(2px * (1 - var(--q))); justify-items: start; white-space: nowrap;
+  padding: calc(var(--top) + (var(--sp-2) - var(--top)) * var(--q)) calc(var(--sp-5) + (var(--sp-4) - var(--sp-5)) * var(--q))
+    calc(var(--sp-3) + (var(--sp-2) - var(--sp-3)) * var(--q)) calc(var(--sp-3) + (var(--ico) + var(--sp-2)) * var(--q)); }
+.hm-ico { position: absolute; left: var(--sp-3); top: calc(var(--sp-3) + (50% - var(--sp-3)) * var(--q)); translate: 0 calc(-50% * var(--q));
+  width: var(--ico); height: var(--ico); border-radius: 6px; display: grid; place-items: center; background: var(--fill); color: var(--label); }
+.hm-stat:first-child .hm-ico { background: var(--accent); color: var(--on-accent); }
+/* 1lh = the sub line's own line height, so its height folds to 0 in step with --q; it fades out over the first half. */
+.hm-sub { height: calc(1lh * (1 - var(--q))); overflow: hidden; opacity: calc(1 - var(--q) * 2); }
+.hm-count { font-weight: 400; }
+.hm-label { text-transform: uppercase; letter-spacing: .02em; margin-top: var(--sp-2); }
+.hm-time { width: 48px; height: 48px; border-radius: var(--radius-sm); background: var(--fill); display: grid; place-items: center;
+  font-weight: 650; font-size: var(--fs-subhead); }
+.hm-answer { padding: var(--sp-3); border-radius: var(--radius-sm); background: var(--fill); }
+/* Controls inside that also use --fill (progress track, chips) step up to the surface instead of vanishing into it */
+.hm-answer > * { --fill: var(--surface-raised); }
+.hm-bullet { display: grid; gap: 2px; padding-left: var(--sp-4); position: relative; }
+.hm-bullet::before { content: ""; position: absolute; left: 0; top: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+/* white glyph in both themes, same as .mm-tile and .pf-tile */
+.hm-tile { width: 30px; height: 30px; border-radius: 7px; display: grid; place-items: center; color: var(--color-white); }
+.hm-tile.blue { background: var(--color-blue); } .hm-tile.green { background: var(--color-green); }
+.hm-tile.orange { background: var(--color-orange); } .hm-tile.gray { background: var(--label-3); }
+
+/* ---- More menu (panel unfolded from the tab bar, see kit/tabbar.css) ---- */
+.mm { display: grid; gap: var(--sp-3); padding: var(--sp-4) var(--sp-3) var(--sp-2); }
+.mm-me { display: flex; align-items: center; gap: var(--sp-3); width: 100%; padding: var(--sp-2); border: 0; border-radius: 18px;
+  background: var(--glass-card); color: var(--label); text-align: left; cursor: pointer; transition: scale 180ms ease; }
+.mm-me:active { scale: 0.98; }
+.mm-who { flex: 1; min-width: 0; display: grid; }
+.mm-who > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mm-name { font-weight: 600; }
+.mm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-3) var(--sp-2); }
+.mm-item { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--label); cursor: pointer; }
+.mm-tile { position: relative; width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center;
+  color: var(--color-white); transition: scale 180ms var(--tb-spring, ease); }
+.mm-item:active .mm-tile { scale: 0.9; transition-duration: 60ms; }
+/* solid tones, white glyph in both themes: a --fill tile sank into the glass panel (it lands at the same grey over
+   the dim), and the navy --on-accent glyph of dark mode made the tiles look dead */
+.mm-tile.blue { background: var(--color-blue); } .mm-tile.green { background: var(--color-green); }
+.mm-tile.orange { background: var(--color-orange); } .mm-tile.teal { background: var(--color-teal); }
+.mm-tile.gray { background: var(--label-3); }
+.mm-badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box;
+  border-radius: 999px; display: grid; place-items: center; background: var(--danger-fill); color: var(--on-accent); /* danger fill, like destructive buttons (AA) */
+  font-size: var(--fs-caption2); font-weight: 650; box-shadow: 0 0 0 2px var(--surface); }
+.mm-label { font-size: var(--fs-footnote); }

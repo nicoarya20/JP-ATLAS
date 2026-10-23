@@ -1,0 +1,98 @@
+// Home ①: greeting header with search, stat chips, Daily Briefing, My Focus, Ask Data, Agenda & Projects, activity.
+import { useState } from 'react';
+import { CircleCheck, Mic, Search, Sparkles } from 'lucide-react';
+import { SuggestionChip } from '@react-cupertino-ui/suggestion-chip';
+import { useApp, useNav } from '../../core/app.context';
+import { D } from '../../data/sample';
+import { Avatar, Btn, Link, Progress, Row, Rows, Section, StackedScreen } from '../../kit';
+import { AgendaProjects, Focus } from './home.focus';
+import { roleHome } from './home.roles';
+
+/** Search field that opens Search; the stacked frame fades it into the header icon as the sheet scrolls over it. */
+function HomeSearch({ openSearch }) {
+  return (
+    <button type="button" className="hm-search" onClick={openSearch}>
+      <Search size={17} aria-hidden="true" />
+      <span className="grow">Search or ask anything…</span>
+      <Mic size={17} aria-label="Voice input" />
+    </button>
+  );
+}
+
+/** Stat chip: icon over label + count over the sub line; as the row sticks under the header it compacts with the scroll
+ *  to one line (icon beside label + count, sub line folded away), see .hm-stat-in in home.css. */
+function StatChip({ s }) {
+  return (
+    <button type="button" className="hm-stat" onClick={useNav({ go: s.go })}>
+      <span className="hm-stat-in">
+        <span className="hm-ico" aria-hidden="true">{s.icon}</span>
+        <span className="t-subhead bold">{s.label}{s.count != null && <> <span className="hm-count">{s.count}</span></>}</span>
+        <span className={`hm-sub t-subhead ${s.alert ? 'danger' : 'muted'}`}>{s.sub}</span>
+      </span>
+    </button>
+  );
+}
+
+function AskData({ count }) {
+  const H = D.home;
+  const [q, setQ] = useState(0);
+  return (
+    <Section title={<span className="row-flex"><Sparkles size={17} className="tint" /> Ask Data</span>} sub="Ask anything about your projects">
+      <div className="row-flex">
+        <span className="hm-input grow muted">Type or say a question…</span>
+        <Btn kind="outline" toast="Answer generated">Ask</Btn>
+      </div>
+      <div className="row-flex wrap">
+        {H.ask.questions.slice(0, count).map((text, i) => (
+          <SuggestionChip key={text} size="sm" variant="secondary" active={i === q} onClick={() => setQ(i)}>{text}</SuggestionChip>
+        ))}
+      </div>
+      <div className="hm-answer stack">
+        <p className="t-subhead">{H.ask.answer}</p>
+        {H.projects.map(p => <Progress key={p.name} value={p.pct} label={p.name} showValue />)}
+      </div>
+    </Section>
+  );
+}
+
+function HomeMain() {
+  const { role } = useApp();
+  const H = D.home;
+  const R = roleHome(role);
+  const me = D.me();
+  const openSearch = useNav({ go: 'home.search' });
+  return (
+    <StackedScreen title={`${D.today.greeting}, ${me.name}`} aside={<Avatar name={me.name} />}
+      find={<HomeSearch openSearch={openSearch} />} onFind={openSearch} tab="home"
+      pinned={<div className="hscroll bleed hm-stats">{R.stats.map(s => <StatChip key={s.label} s={s} />)}</div>}>
+
+      <Section title={<span className="row-flex"><Sparkles size={17} className="tint" /> Daily Briefing</span>} sub="What do I need to know today?">
+        <div className="stack sm">{H.briefing.map(t => <p key={t}>{t}</p>)}</div>
+        <p className="t-footnote muted">{H.briefingMeta}</p>
+      </Section>
+
+      <Section title="My Focus" sub="What should I work on now?"><Focus role={role} /></Section>
+
+      <AskData count={R.asks} />
+
+      <Section title="Agenda & Projects" sub="Any meetings? How are my projects?"><AgendaProjects role={role} /></Section>
+
+      <Section title="Tasks Completed This Week">
+        <Rows plain>
+          {H.doneThisWeek.slice(0, R.done).map(([t, who]) => (
+            <Row key={t} lead={<CircleCheck size={20} className="success" />} title={t} right={<span className="t-footnote muted">{who}</span>} />
+          ))}
+        </Rows>
+        <Link go="tasks.my" replace>See all</Link>
+      </Section>
+
+      <Section title="Latest Activity">
+        {H.activity.slice(0, R.activity).map(([t, meta]) => (
+          <div key={t} className="hm-bullet"><span>{t}</span><span className="t-footnote muted">{meta}</span></div>
+        ))}
+      </Section>
+    </StackedScreen>
+  );
+}
+
+export default HomeMain;

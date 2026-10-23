@@ -1,0 +1,193 @@
+/* Mobile prototype base styles. Colors come only from theme.tokens.css (ClickUp light/dark + accent themes).
+   Type and spacing come only from the scale below — see TYPO-BRIEF.md. */
+:root {
+  --r: 10px;
+  /* Type scale: one size per role. Modules never write px font sizes. */
+  --fs-caption: 11px;  /* uppercase section labels, tab bar, badges */
+  --fs-xs: 12px;       /* pills, timestamps */
+  --fs-sm: 13px;       /* meta / secondary text, chips, small buttons, links */
+  --fs: 15px;          /* body */
+  --fs-h3: 16px;       /* row & card titles */
+  --fs-h2: 18px;       /* section / sheet titles, app bar */
+  --fs-title: 26px;    /* page title */
+  --fs-num: 28px;      /* big stat numbers */
+  --fs-icon: 32px;     /* empty-state emoji / glyph */
+  --fs-display: 40px;  /* timers */
+  --lh-tight: 1.2;     /* titles, numbers */
+  --lh-snug: 1.35;     /* one-to-two line labels, meta */
+  --lh-body: 1.5;      /* paragraphs */
+  /* Spacing scale (4px grid). Rule: space inside a group < space between groups. */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: Inter, ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink); background: var(--page);
+  display: flex; justify-content: center; align-items: flex-start; gap: 32px; padding: 24px 16px;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input, textarea { font: inherit; }
+
+/* ---------- Screen index (desktop only) ---------- */
+.index { width: 260px; max-height: calc(100vh - 48px); overflow-y: auto; position: sticky; top: 24px; font-size: 13px; }
+.index h1 { font-size: 16px; margin: 0 0 4px; }
+.index p { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+.index h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 14px 0 4px; }
+.index a { display: block; padding: 4px 8px; border-radius: 6px; color: inherit; text-decoration: none; }
+.index a:hover { background: var(--paper); }
+.index a[aria-current="true"] { color: var(--accent-ink); }
+.index a[aria-current="true"] { background: var(--paper); font-weight: 700; }
+.role-switch { display: flex; gap: 2px; padding: 3px; margin-bottom: 8px; border-radius: 8px; background: var(--soft); }
+.role-switch button { flex: 1; padding: 6px 4px; border-radius: 6px; font-size: 12px; color: var(--muted); }
+.role-switch button[aria-pressed="true"] { background: var(--paper); color: var(--ink); font-weight: 700; }
+@media (max-width: 760px) { .index { display: none; } body { padding: 0; } }
+
+/* ---------- Phone frame ---------- */
+.phone {
+  width: 375px; height: 812px; flex: none; position: relative; overflow: hidden;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 28px;
+  display: flex; flex-direction: column; font-size: var(--fs); line-height: var(--lh-snug);
+}
+.phone :is(p, h1, h2, h3, h4) { margin: 0; }
+.phone p { line-height: var(--lh-body); }
+@media (max-width: 760px) { .phone { width: 100vw; height: 100dvh; border: 0; border-radius: 0; } }
+.statusbar { height: 44px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font-weight: 700; font-size: var(--fs); }
+.statusbar .batt { display: flex; gap: 4px; }
+.statusbar .batt i { width: 18px; height: 11px; border-radius: 3px; background: var(--ink); }
+.statusbar .batt i + i { width: 30px; background: none; border: 1.5px solid var(--ink); }
+.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.content { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-4); }
+.content.flush { padding: 0; }
+/* Rows are always as tall as their content and packed to the top. Without max-content, a scroll container
+   (.chips, .tabs: overflow-x makes its min height 0) collapses when a fixed-height .content overflows. */
+.stack { display: grid; gap: var(--sp-3); grid-auto-rows: max-content; align-content: start; }
+.content.stack { gap: var(--sp-4); }          /* between cards / blocks of a screen */
+.stack.xs { gap: var(--sp-1); }               /* title + its meta */
+.stack.sm { gap: var(--sp-2); }               /* label + its control, lines of one block */
+.stack.lg { gap: var(--sp-5); }
+.mt-0 { margin-top: 0; } .mt-1 { margin-top: var(--sp-1); } .mt-2 { margin-top: var(--sp-2); }
+.mt-3 { margin-top: var(--sp-3); } .mt-4 { margin-top: var(--sp-4); } .mt-6 { margin-top: var(--sp-6); }
+.spacer { flex: 1; }
+.grow { flex: 1; min-width: 0; }                /* fill the rest of a row (instead of style="flex:1") */
+
+/* ---------- App bar ---------- */
+.appbar { flex: none; min-height: 56px; display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: var(--bar); border-bottom: 1px solid var(--line); }
+.appbar h1 { margin: 0; font-size: var(--fs-h2); line-height: var(--lh-tight); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appbar .sub { display: block; margin-top: 2px; font-size: var(--fs-sm); font-weight: 400; color: var(--muted); }
+.appbar .back { font-size: var(--fs-h2); width: 28px; }
+.appbar .right { display: flex; gap: 8px; align-items: center; }
+
+/* ---------- Bottom nav ---------- */
+.tabbar { flex: none; height: 84px; display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); background: var(--bar); padding-top: 10px; }
+.tabbar button { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: var(--fs-caption); color: var(--muted); position: relative; }
+.tabbar i { width: 24px; height: 24px; border: 1.5px solid var(--muted); border-radius: 7px; }
+.tabbar [aria-current="page"] { color: var(--accent-ink); font-weight: 700; }
+.tabbar [aria-current="page"] i { background: var(--accent); border-color: var(--accent); }
+.tabbar [aria-current="page"]::after { content: ""; position: absolute; bottom: 14px; width: 32px; height: 3px; border-radius: 2px; background: var(--accent); }
+.tabbar .dot { position: absolute; top: -4px; right: calc(50% - 20px); min-width: 16px; height: 16px; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-size: var(--fs-caption); display: grid; place-items: center; }
+
+/* ---------- Placeholders ---------- */
+.ph { display: block; width: var(--w, 60%); height: 10px; border-radius: 4px; background: var(--ph); }
+.ph.sm { height: 8px; } .ph.lg { height: 14px; } .ph.xl { height: 22px; }
+.ph.inline { display: inline-block; vertical-align: middle; }
+.lines { display: grid; gap: 8px; }
+.num { font-size: var(--fs-num); font-weight: 700; line-height: 1; }
+.media { background: var(--soft); border-radius: var(--r); display: grid; place-items: center; color: var(--muted); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; text-align: center; }
+.avatar { width: var(--s, 40px); height: var(--s, 40px); flex: none; border-radius: 50%; background: var(--ph); display: inline-grid; place-items: center; font-size: calc(var(--s, 40px) * .42); font-weight: 700; color: var(--ink); }
+.input .val { flex: 1; min-width: 0; color: var(--ink); }
+.avatars { display: flex; } .avatars .avatar { --s: 20px; border: 2px solid var(--paper); margin-left: -6px; }
+.icon { width: var(--s, 20px); height: var(--s, 20px); flex: none; border: 1.5px solid var(--line-strong); border-radius: 6px; }
+.icon.round { border-radius: 50%; }
+
+/* ---------- Text ---------- */
+.title { font-size: var(--fs-title); font-weight: 700; line-height: var(--lh-tight); margin: 0; }
+.h2 { font-size: var(--fs-h2); font-weight: 700; line-height: var(--lh-tight); margin: 0; }
+.h3 { font-size: var(--fs-h3); font-weight: 700; line-height: var(--lh-snug); margin: 0; }
+.muted { color: var(--muted); } .center { text-align: center; }
+.small { font-size: var(--fs-sm); line-height: var(--lh-snug); }
+.xs { font-size: var(--fs-xs); line-height: var(--lh-snug); }
+.icon-xl { font-size: var(--fs-icon); line-height: 1; }
+.display { font-size: var(--fs-display); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+/* Uppercase group label: more space above (new group) than below (its content). */
+.label { font-size: var(--fs-caption); font-weight: 700; line-height: var(--lh-snug); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: var(--sp-4) 0 var(--sp-1); }
+.label:first-child, .sec-head + .label, .stack > .label { margin-top: 0; }
+.stack > .label { margin-bottom: 0; }
+/* In a screen's .content.stack (16px gap) a label must hug its own block: 24px above, 8px below. */
+.content.stack > .label { margin: var(--sp-2) 0 calc(var(--sp-2) - var(--sp-4)); }
+.content.stack > .label:first-child { margin-top: 0; }
+.between > .label { margin: 0; }                 /* label beside a link/action in one row */
+/* Section header inside a card: title + one-line question/meta, then the card body. */
+.sec-head { display: grid; gap: var(--sp-1); margin-bottom: var(--sp-3); }
+.stack > .sec-head { margin-bottom: 0; }
+.sec-head .sub { font-size: var(--fs-sm); line-height: var(--lh-snug); color: var(--muted); }
+/* Text link ("See all →", "Edit"). */
+.link { font-size: var(--fs-sm); font-weight: 700; color: var(--accent-ink); }
+.row-flex { display: flex; align-items: center; gap: 10px; }
+.between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+/* ---------- Buttons, pills, chips ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: var(--r); border: 1.5px solid var(--line-strong); font-weight: 700; background: var(--paper); color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn.ghost { border-color: transparent; }
+.btn.sm { min-height: 32px; padding: 0 12px; font-size: var(--fs-sm); border-radius: 8px; }
+.btn.block { display: flex; width: 100%; }
+.btn:active { transform: scale(.98); }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: var(--fs-xs); line-height: var(--lh-snug); white-space: nowrap; }
+.pill.solid { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--accent); color: var(--on-accent); font-size: var(--fs-caption); font-weight: 700; display: inline-grid; place-items: center; }
+.badge.neutral { background: var(--soft); color: var(--ink); }
+/* overflow-x makes these scroll containers, whose automatic min height is 0: pin it so no grid/flex parent squashes them. */
+.chips { display: flex; gap: var(--sp-2); overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; min-height: min-content; }
+.chips.wrap { flex-wrap: wrap; overflow: visible; }
+.chip { flex: none; padding: 7px 14px; border: 1.5px solid var(--line-strong); border-radius: 999px; font-size: var(--fs-sm); line-height: var(--lh-snug); }
+.chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 3px; border-radius: var(--r); background: var(--soft); }
+.seg button { padding: 8px; border-radius: 8px; color: var(--muted); font-size: var(--fs-sm); }
+.seg button.on { background: var(--paper); color: var(--ink); font-weight: 700; box-shadow: 0 0 0 1px var(--line); }
+.tabs { display: flex; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; min-height: min-content; }
+.tabs button { flex: none; padding: 12px 14px; color: var(--muted); border-bottom: 2.5px solid transparent; }
+.tabs button.on { color: var(--accent-ink); font-weight: 700; border-color: var(--accent); }
+
+/* ---------- Surfaces ---------- */
+.card { display: block; width: 100%; text-align: left; border: 1px solid var(--line); border-radius: var(--r); padding: var(--sp-4); background: var(--paper); }
+.card.strong { border: 1.5px solid var(--accent); }
+.card.fill { background: var(--soft); border-color: transparent; }
+.card.dashed { border-style: dashed; border-color: var(--line-strong); }
+.card.stack { display: grid; }                /* .card (display:block) is declared after .stack and would cancel its gap */
+.list { border-top: 1px solid var(--line); }
+.item { display: flex; align-items: center; gap: var(--sp-3); width: 100%; text-align: left; padding: var(--sp-3) 0; border-bottom: 1px solid var(--line); }
+.item:last-child { border-bottom: 0; }
+.list > .item:last-child { border-bottom: 1px solid var(--line); }
+.item .body { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.chev::after { content: "›"; color: var(--muted); font-size: var(--fs-h2); }
+.progress { height: 6px; border-radius: 3px; background: var(--soft); overflow: hidden; }
+.card.fill .progress { background: var(--line-strong); }   /* --soft track is invisible on a --soft card */
+.progress i { display: block; height: 100%; width: var(--p, 50%); background: var(--accent); }
+.divider { height: 1px; background: var(--line); margin: 4px 0; }
+.empty { border: 1.5px dashed var(--line-strong); border-radius: var(--r); padding: 28px var(--sp-4); display: grid; gap: var(--sp-2); justify-items: center; text-align: center; color: var(--muted); }
+
+/* ---------- Form ---------- */
+.field { display: grid; gap: 6px; }
+.field > span { font-size: var(--fs-sm); font-weight: 700; }
+.input { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1.5px solid var(--line-strong); border-radius: var(--r); color: var(--muted); background: var(--paper); }
+.input:focus-within { border-color: var(--accent); }
+.input.area { min-height: 110px; align-items: flex-start; padding-top: 12px; }
+.input.disabled { background: var(--soft); border-color: var(--line); }
+.input input { border: 0; outline: 0; flex: 1; min-width: 0; background: transparent; color: var(--ink); }
+.input input::placeholder { color: var(--muted); }
+
+/* ---------- Bottom sheet ---------- */
+.scrim { position: absolute; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10; }
+.scrim.open { opacity: 1; pointer-events: auto; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 11; max-height: 85%; overflow-y: auto; background: var(--paper); border-radius: 20px 20px 0 0; padding: 10px 16px 24px; transform: translateY(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.sheet.open { transform: none; }
+.sheet .grab { width: 44px; height: 5px; border-radius: 3px; background: var(--ph); margin: 0 auto var(--sp-4); }
+.sheet .sub { margin-top: var(--sp-1); font-size: var(--fs-sm); color: var(--muted); }
+.sheet > .stack { margin-top: var(--sp-4); }
+
+/* ---------- Toast ---------- */
+.toast { position: absolute; left: 16px; right: 16px; bottom: 100px; z-index: 20; padding: 12px 14px; border-radius: var(--r); background: var(--inverse); color: var(--on-inverse); font-size: var(--fs-sm); opacity: 0; transform: translateY(8px); transition: .2s; pointer-events: none; }
+.toast.show { opacity: 1; transform: none; }
+

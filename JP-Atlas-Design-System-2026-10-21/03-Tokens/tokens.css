@@ -1,0 +1,68 @@
+/* JP Atlas - source design/system/v0.1. Working handoff, not application migration. */
+@font-face{font-family:Manrope;src:url('../02-Typography/Manrope-Variable.ttf') format('truetype');font-style:normal;font-weight:200 800;font-display:swap}
+:root,[data-theme="dark"]{
+  --canvas: #071321;
+  --surface: #0e1a24;
+  --raised: #162638;
+  --text: #f3f6fb;
+  --muted: #b7c4d3;
+  --line: #34465a;
+  --control: #72869c;
+  --primary: #c8f904;
+  --on-primary: #071321;
+  --primary-border: #c8f904;
+  --violet: #b6b4ff;
+  --selected: #252949;
+  --selected-text: #e5e0ff;
+  --focus: #c8f904;
+  --success: #74deae;
+  --success-bg: #14382e;
+  --warning: #ffd17a;
+  --warning-bg: #382d15;
+  --danger: #ffa0ac;
+  --danger-bg: #381e29;
+  --info: #b6b4ff;
+  --info-bg: #252949;
+  --plan: #b7c4d3;
+  --actual: #b6b4ff;
+  --forecast: #c8f904;
+  --shadow: 0 14px 48px #0005;
+  --veil: #071321bb;
+  --row: 56px;
+  --radius: 14px;
+  --sidebar: 248px;
+}
+[data-theme="light"]{
+  --canvas: #f4f6fa;
+  --surface: #fff;
+  --raised: #eaf0f6;
+  --text: #122236;
+  --muted: #4c6075;
+  --line: #c7d2df;
+  --control: #697d92;
+  --primary: #c8f904;
+  --on-primary: #071321;
+  --primary-border: #647d00;
+  --violet: #5146c9;
+  --selected: #ebe9ff;
+  --selected-text: #3b3294;
+  --focus: #5146c9;
+  --success: #0c6847;
+  --success-bg: #e5f6ec;
+  --warning: #805400;
+  --warning-bg: #fff3d6;
+  --danger: #a51b3c;
+  --danger-bg: #ffedf0;
+  --info: #5146c9;
+  --info-bg: #ebe9ff;
+  --plan: #4c6075;
+  --actual: #5146c9;
+  --forecast: #647d00;
+  --shadow: 0 14px 48px #16263818;
+  --veil: #07132199;
+  --row: 56px;
+  --radius: 14px;
+  --sidebar: 248px;
+}
+ :root{--identity-surface:#0b1522;--font-family:Manrope,Arial,sans-serif;--type-page:32px;--type-page-mobile:26px;--type-section:20px;--type-body:16px;--type-table:14px;--type-meta:12px;--type-metric:32px;--body-leading:1.5;--radius-control:10px;--radius-card:14px;--radius-modal:16px;--radius-identity:20px;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;--space-12:48px;--space-16:64px}
+/* Desktop page600; mobile page600; body400/500; emphasis600/650; metric550 with tabular-nums. */

@@ -1,0 +1,14 @@
+/* Filter & sort (kit SearchFilter, FilterPanel). */
+.search-filter { display: flex; align-items: center; gap: var(--sp-2); }
+.search-filter > .grow { min-width: 0; }
+/* Filter icon: a square in the search field's fill, height and 10px radius, icon in the search icon's grey;
+   a dot marks a non-default filter. */
+.filter-btn { position: relative; flex: none; width: 36px; height: 36px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 10px; background: var(--fill); color: var(--label-2); cursor: pointer; }
+.filter-btn:active { scale: 0.92; }
+.filter-btn.is-on::after { content: ''; position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 0 2px var(--bg); }
+/* Overlay body (kit FullSheet): fields from the top, Reset / Apply pushed to the bottom edge; chip rows wrap. */
+.filter-panel { min-height: 100%; display: flex; flex-direction: column; gap: var(--sp-5); }
+.filter-panel .hscroll { flex-wrap: wrap; }
+.filter-foot { margin-top: auto; padding-top: var(--sp-3); display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }

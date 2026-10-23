@@ -1,0 +1,29 @@
+// Phone entry (phone.html, loaded in the index iframe): read ?role=&mode=#screen, register screens, mount the app.
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './styles/atlas.css';     // JP Atlas palette + Manrope, before the roles that map onto it
+import './styles/tokens.css';
+import './styles/app.css';
+import './screens';
+// The shell pulls in the bottom-sheet and toast scss, so it must come before library.css too, or that scss loads last
+// and wins over the theme layer at equal specificity.
+import { AppProvider } from './core/app.context';
+import { PhoneApp } from './core/PhoneApp';
+import './styles/library.css';   // after the screens and the shell: overrides the library scss they pull in
+import './styles/press.css';     // after library.css: no hover, press animations on tap
+import './styles/focus.css';     // last: one keyboard focus ring over the library's own focus styles
+import { START_SCREEN, readUrl, setRole } from './core/session';
+import { startFor } from './core/registry';
+
+const url = readUrl();
+setRole(url.role);
+document.documentElement.classList.toggle('dark', url.mode === 'dark');
+const start = startFor(url.screen, url.role, START_SCREEN);
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <AppProvider start={start.screen} sheet={start.sheet}>
+      <PhoneApp />
+    </AppProvider>
+  </StrictMode>,
+);

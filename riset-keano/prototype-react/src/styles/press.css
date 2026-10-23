@@ -1,0 +1,36 @@
+/* Press layer: the prototype is a phone app, so nothing reacts to hover; a tap plays a short press animation instead.
+   Loaded after library.css. Press lands fast (60ms) and springs back on release (180ms). */
+:root { --press-in: 60ms; --press-out: 180ms; --press-scale: 0.96; --press-dim: 0.5; }
+html { -webkit-tap-highlight-color: transparent; }
+
+/* ---- No hover: pin every upstream :hover to the resting look ---- */
+.react-cupertino-ui-button.variant-solid:hover, .react-cupertino-ui-button.variant-destructive:hover { filter: none; }
+.react-cupertino-ui-button.variant-ghost:hover, .react-cupertino-ui-button.variant-link:hover { background: transparent; opacity: 1; }
+.react-cupertino-ui-navigation-bar .back-button:hover { opacity: 1; }
+.react-cupertino-ui-card[data-interactive="true"]:hover { transform: none; box-shadow: none; }
+.react-cupertino-ui-list-item.clickable:hover:not(.disabled),
+.react-cupertino-ui-list.variant-inset .react-cupertino-ui-list-item:hover:not(.disabled) { background-color: transparent; }
+
+/* ---- Press: blocks shrink, text-only targets dim (the tab bar has its own bubble, kit/tabbar.css) ---- */
+.hm-stat, .ev-date, .ev-arrow, .react-cupertino-ui-suggestion-chip,
+.react-cupertino-ui-card[data-interactive="true"] {
+  transition: transform var(--press-out) cubic-bezier(0.34, 1.56, 0.64, 1); }
+.hm-stat:active, .ev-date:active, .ev-arrow:active, .react-cupertino-ui-suggestion-chip:active:not(:disabled) { transform: scale(var(--press-scale)); transition-duration: var(--press-in); }
+.react-cupertino-ui-card[data-interactive="true"]:active { transform: scale(0.98); transition-duration: var(--press-in); }
+
+.link, .react-cupertino-ui-navigation-bar .back-button, .react-cupertino-ui-tabs__trigger,
+.react-cupertino-ui-segmented-control__option {
+  transition: opacity var(--press-out) ease; }
+.link:active, .react-cupertino-ui-navigation-bar .back-button:active, .react-cupertino-ui-tabs__trigger:active,
+.react-cupertino-ui-segmented-control__option:active {
+  opacity: var(--press-dim); transition-duration: var(--press-in); }
+
+/* Rows keep the library press (fill + slight shrink); they only get the same timing. */
+.rows.react-cupertino-ui-list .react-cupertino-ui-list-item.clickable { transition: background-color var(--press-out) ease,
+  transform var(--press-out) ease; }
+.rows.react-cupertino-ui-list .react-cupertino-ui-list-item.clickable:active:not(.disabled) { transition-duration: var(--press-in); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-stat:active, .ev-date:active, .ev-arrow:active, .react-cupertino-ui-suggestion-chip:active,
+  .react-cupertino-ui-card[data-interactive="true"]:active { transform: none; }
+}

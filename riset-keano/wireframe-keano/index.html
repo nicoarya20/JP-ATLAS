@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe — PM Dashboard</title>
+<link rel="stylesheet" href="sidebar.css">
+<link rel="stylesheet" href="beranda.css">
+<link rel="stylesheet" href="inbox.css">
+<link rel="stylesheet" href="project.css">
+<link rel="stylesheet" href="project.channel.css">
+<link rel="stylesheet" href="project.time.css">
+<link rel="stylesheet" href="task.detail.css">
+<style>
+  /* Wireframe hitam-putih: hanya struktur & flow, belum ada visual design */
+  :root {
+    --ink: #111;
+    --line: #111;
+    --muted: #777;
+    --soft: #e9e9e9;
+    --paper: #fff;
+    --hover: #f3f3f3;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper);
+    display: grid;
+    grid-template-rows: 56px 1fr;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  /* Ikon placeholder: kotak bersilang ala wireframe */
+  .ph-icon {
+    width: 18px; height: 18px; flex: none;
+    border: 1.5px solid var(--line); border-radius: 3px;
+    background:
+      linear-gradient(45deg, transparent 47%, var(--line) 47% 53%, transparent 53%),
+      linear-gradient(-45deg, transparent 47%, var(--line) 47% 53%, transparent 53%);
+  }
+  .avatar {
+    width: 28px; height: 28px; flex: none;
+    border: 1.5px solid var(--line); border-radius: 6px;
+    display: grid; place-items: center; font-weight: 700;
+  }
+
+  /* ---------- Topbar ---------- */
+  .topbar {
+    display: grid;
+    grid-template-columns: 260px 1fr 260px;
+    align-items: center;
+    gap: 16px;
+    padding: 0 12px;
+    border-bottom: 1.5px solid var(--line);
+  }
+  .ws-wrap { position: relative; }
+  .ws-btn {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 6px 8px;
+    border: 1.5px solid var(--line); border-radius: 8px;
+  }
+  .ws-btn:hover, .ws-btn[aria-expanded="true"] { background: var(--hover); }
+  .ws-btn .name { flex: 1; text-align: left; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chev { transition: transform .15s; }
+  .ws-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+  .search {
+    justify-self: center;
+    width: min(560px, 100%);
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 6px 6px 12px;
+    border: 1.5px solid var(--line); border-radius: 999px;
+  }
+  .search input { flex: 1; border: 0; outline: 0; font: inherit; background: transparent; }
+  .search input::placeholder { color: var(--muted); }
+  .kbd { font-size: 12px; color: var(--muted); }
+  .ai-tag {
+    padding: 3px 10px; border: 1.5px dashed var(--line); border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+  }
+
+  /* ---------- Dropdown workspace ---------- */
+  .ws-menu {
+    position: absolute; top: calc(100% + 8px); left: 0; z-index: 10;
+    width: 320px; padding: 12px;
+    background: var(--paper);
+    border: 1.5px solid var(--line); border-radius: 10px;
+    box-shadow: 4px 4px 0 var(--line);
+  }
+  .ws-menu[hidden] { display: none; }
+  .ws-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .ws-head .avatar { width: 44px; height: 44px; font-size: 18px; border-radius: 8px; }
+  .ws-head .title { font-weight: 700; font-size: 15px; }
+  .ws-head .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .ws-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 12px; border-bottom: 1.5px solid var(--soft); }
+  .btn-outline {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 7px 8px; border: 1.5px solid var(--line); border-radius: 8px;
+  }
+  .btn-outline:hover { background: var(--hover); }
+  .ws-section-label { color: var(--muted); font-size: 12px; margin: 12px 4px 6px; }
+  .ws-list { list-style: none; margin: 0 0 12px; padding: 0; }
+  .ws-list button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 6px; border-radius: 6px; }
+  .ws-list button:hover { background: var(--hover); }
+  .ws-create { width: 100%; border-style: dashed; }
+
+  .content { flex: 1; min-width: 0; display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+  .content-head { padding: 18px 24px; border-bottom: 1.5px solid var(--soft); }
+  .content-head h1 { margin: 0; font-size: 20px; }
+  .empty {
+    margin: 24px; border: 1.5px dashed var(--line); border-radius: 10px;
+    display: grid; place-items: center; text-align: center; color: var(--muted);
+    min-height: 240px;
+  }
+  .empty[hidden] { display: none; }
+  .empty strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
+
+  @media (max-width: 720px) {
+    .topbar { grid-template-columns: 1fr; height: auto; padding: 8px 16px; }
+    body { grid-template-rows: auto 1fr; }
+    .ws-menu { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="ws-wrap">
+    <button class="ws-btn" id="wsBtn" aria-haspopup="true" aria-expanded="false" aria-controls="wsMenu">
+      <span class="avatar">W</span>
+      <span class="name">Workspace Name</span>
+      <span class="chev" aria-hidden="true">▾</span>
+    </button>
+
+    <div class="ws-menu" id="wsMenu" hidden>
+      <div class="ws-head">
+        <span class="avatar">W</span>
+        <div>
+          <div class="title">Workspace Name</div>
+          <div class="sub">N members • Plan</div>
+        </div>
+      </div>
+      <div class="ws-actions">
+        <button class="btn-outline"><span class="ph-icon"></span>Settings</button>
+        <button class="btn-outline"><span class="ph-icon"></span>People</button>
+      </div>
+      <div class="ws-section-label">Manage</div>
+      <ul class="ws-list">
+        <li><button><span class="ph-icon"></span>Apps</button></li>
+        <li><button><span class="ph-icon"></span>Templates</button></li>
+        <li><button><span class="ph-icon"></span>Custom Fields</button></li>
+        <li><button><span class="ph-icon"></span>Automations</button></li>
+        <li><button><span class="ph-icon"></span>Tag Manager</button></li>
+      </ul>
+      <button class="btn-outline ws-create">+ Create Workspace</button>
+    </div>
+  </div>
+
+  <label class="search">
+    <span class="ph-icon" aria-hidden="true"></span>
+    <input id="searchInput" type="search" placeholder="Search or ask AI…">
+    <span class="kbd">⌘K</span>
+    <span class="ai-tag">AI</span>
+  </label>
+</header>
+
+<div class="shell">
+  <nav class="sidebar" aria-label="Main menu">
+    <ul class="nav" id="nav">
+      <li><a href="#home"     data-label="Home"><span class="ph-icon"></span><span class="nav-label">Home</span></a></li>
+      <li><a href="#inbox"    data-label="Inbox"><span class="ph-icon"></span><span class="nav-label">Inbox</span></a></li>
+      <li><a href="#projects" data-label="Projects"><span class="ph-icon"></span><span class="nav-label">Projects</span></a></li>
+      <li><a href="#task"     data-label="Task"><span class="ph-icon"></span><span class="nav-label">Task</span></a></li>
+      <li><a href="#meetings" data-label="Meetings"><span class="ph-icon"></span><span class="nav-label">Meetings</span></a></li>
+      <li><a href="#teams"    data-label="Teams"><span class="ph-icon"></span><span class="nav-label">Teams</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar kedua, hanya di menu Projects: daftar project dan list di dalamnya -->
+  <nav class="subnav" id="projectNav" aria-label="Projects" hidden>
+    <div class="subnav-head"><h2>Projects</h2><button class="btn-outline subnav-create">+ Create</button></div>
+    <ul class="tree" id="projectTree"></ul>
+  </nav>
+
+  <main class="content">
+    <div class="content-head"><h1 id="pageTitle">Home</h1></div>
+    <div class="empty" id="emptyView">
+      <div><strong id="emptyTitle">Home</strong>No content yet</div>
+    </div>
+
+    <!-- Home = dashboard. Isi default meniru template Simple Dashboard ClickUp, bisa diedit -->
+    <section class="dash" id="berandaView" hidden>
+      <div class="dash-bar">
+        <label class="switch"><input type="checkbox" id="editToggle"><span class="track"></span>Edit mode</label>
+        <span class="spacer"></span>
+        <span class="muted small" id="refreshedAt">Refreshed just now</span>
+        <button class="pill" id="refreshBtn">⟳ Refresh</button>
+        <button class="pill" id="autoBtn" aria-pressed="true">Auto refresh: On</button>
+        <label class="pill">Project <select><option>All projects</option><option>Project Name</option></select></label>
+        <button class="pill solid" id="addBtn">+ Add card</button>
+      </div>
+      <div class="edit-hint" id="editHint" hidden>
+        <span>Drag cards to reorder · ↔ change width · ✕ remove · click a title to rename · number cards can switch data</span>
+        <button class="btn-sm" id="resetBtn">Reset to default</button>
+      </div>
+      <div class="dash-grid" id="dashGrid"></div>
+    </section>
+    <!-- Inbox: kejadian dari orang lain yang menyangkut user (+ pengingat tenggat), bekerja seperti email -->
+    <section class="inbox" id="inboxView" hidden>
+      <nav class="ib-tabs" id="ibTabs" aria-label="Inbox tabs"></nav>
+      <div class="ib-bar">
+        <div class="ib-filter-wrap">
+          <button class="pill" id="ibFilterBtn" aria-haspopup="true" aria-expanded="false" aria-controls="ibFilter"><span class="ph-icon"></span>Filter</button>
+          <div class="ib-filter" id="ibFilter" hidden></div>
+        </div>
+        <span class="spacer"></span>
+        <button class="btn-sm" title="Inbox settings" aria-label="Inbox settings">⚙</button>
+        <button class="btn-sm" id="ibClearAll">✓ Clear all</button>
+      </div>
+      <ul class="ib-list" id="ibList"></ul>
+    </section>
+
+    <!-- Projects: tab Channel, Overview, List, Kanban, Calendar, Gantt (level list & All Tasks hanya tab task) -->
+    <section class="project" id="projectView" hidden>
+      <nav class="pv-tabs" id="pvTabs" aria-label="Project views"></nav>
+      <div class="pv-body" id="pvBody"></div>
+    </section>
+  </main>
+</div>
+
+<dialog class="picker" id="pickerDlg">
+  <h2>Add card</h2>
+  <div class="muted small">Choose what to show on Home</div>
+  <ul id="pickerList"></ul>
+  <form method="dialog"><button class="btn-outline">Cancel</button></form>
+</dialog>
+
+<dialog class="td" id="taskDlg" aria-label="Task detail"></dialog>
+
+<aside class="drawer" id="drawer" hidden aria-labelledby="drawerTitle">
+  <div class="drawer-head"><h2 id="drawerTitle">Tasks</h2><button class="btn-sm" id="drawerClose">✕ Close</button></div>
+  <ul id="drawerList"></ul>
+</aside>
+
+<script src="beranda.cards.js"></script>
+<script src="beranda.js"></script>
+<script src="project.views.js"></script>
+<script src="task.detail.js"></script>
+<script src="project.channel.js"></script>
+<script src="project.overview.js"></script>
+<script src="project.tasks.js"></script>
+<script src="project.calendar.js"></script>
+<script src="project.gantt.js"></script>
+<script src="projects.js"></script>
+<script src="inbox.js"></script>
+<script>
+  // Routing via hash supaya tiap menu punya URL sendiri saat review flow
+  const links = [...document.querySelectorAll('#nav a')];
+  const pageTitle = document.getElementById('pageTitle');
+  const emptyTitle = document.getElementById('emptyTitle');
+  const emptyView = document.getElementById('emptyView');
+  // Menu yang sudah punya isi; menu lain menampilkan tampilan kosong
+  const views = {
+    Home: document.getElementById('berandaView'),
+    Inbox: document.getElementById('inboxView'),
+    Projects: document.getElementById('projectView'),
+  };
+
+  // Format hash: #menu, #projects/<project>/<urutan list>/<tampilan>, atau #inbox/<tab>
+  function renderRoute() {
+    const [base, ...path] = (location.hash || '#home').split('/');
+    const active = links.find(a => a.getAttribute('href') === base) || links[0];
+    links.forEach(a => a.removeAttribute('aria-current'));
+    active.setAttribute('aria-current', 'page');
+    const isProjects = active.dataset.label === 'Projects';
+    window.WF_PROJECTS.nav.hidden = !isProjects;
+    const label = active.dataset.label;
+    const title = isProjects ? window.WF_PROJECTS.sync(path) : label;
+    if (label === 'Inbox') window.WF_INBOX.sync(path);
+    pageTitle.textContent = title;
+    emptyTitle.textContent = title;
+    Object.entries(views).forEach(([key, view]) => { view.hidden = key !== label; });
+    emptyView.hidden = label in views;
+  }
+  window.addEventListener('hashchange', renderRoute);
+  renderRoute();
+
+  // Dropdown workspace: klik untuk buka/tutup, klik di luar atau Esc untuk tutup
+  const wsBtn = document.getElementById('wsBtn');
+  const wsMenu = document.getElementById('wsMenu');
+
+  function setMenu(open) {
+    wsMenu.hidden = !open;
+    wsBtn.setAttribute('aria-expanded', String(open));
+  }
+  wsBtn.addEventListener('click', () => setMenu(wsMenu.hidden));
+  document.addEventListener('click', e => {
+    if (!wsMenu.hidden && !e.target.closest('.ws-wrap')) setMenu(false);
+  });
+
+  // ⌘K / Ctrl+K fokus ke search AI
+  const searchInput = document.getElementById('searchInput');
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') setMenu(false);
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
+</script>
+</body>
+</html>
