@@ -10,7 +10,8 @@ export const scaledRem = (n: number) => `calc(${n}rem * var(--mantine-scale))`;
 /** Sticky label column: narrow on phones so the timeline keeps most of the screen. */
 export const LABEL_WIDTH = { base: scaledRem(9.5), sm: scaledRem(16) };
 export const BAR_MIN_WIDTH = scaledRem(0.75);
-export const GRID_LINE = '1px solid var(--mantine-color-default-border)';
+export const GRID_LINE_COLOR = 'var(--mantine-color-default-border)';
+export const GRID_LINE = `1px solid ${GRID_LINE_COLOR}`;
 
 const CONDITION_COLOR = { on_track: 'ok', at_risk: 'warn', off_track: 'danger' } as const;
 

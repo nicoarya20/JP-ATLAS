@@ -24,6 +24,12 @@ export const GANTT = {
   MIN_TIMELINE_REM: 36,
   MAX_TIMELINE_REM: 240,
   MIN_BAR_PCT: 0.6,
+  /**
+   * Most month ticks the grid ever draws. The timeline is at most MAX_TIMELINE_REM wide, so beyond
+   * this the lines are already closer than a letter; a wider range is coarsened instead of drawn
+   * tick by tick, which is what a mistyped year used to do (PD-01: 95,679 months for 9999).
+   */
+  MAX_MONTH_TICKS: 120,
 } as const;
 
 const PCT = 100;
@@ -169,9 +175,26 @@ export function layoutGantt(sources: readonly GanttSource[], today: string): Gan
       GANTT.MAX_TIMELINE_REM,
       Math.max(GANTT.MIN_TIMELINE_REM, total * GANTT.REM_PER_DAY),
     ),
-    months: buildMonths(first, total, min, max),
+    months: buildMonths(first, total, min, max, GANTT.MAX_MONTH_TICKS),
     todayPct: t !== null && t >= first && t <= last ? mark(t) : null,
     rows,
     unscheduled,
   };
+}
+
+/**
+ * One CSS `background-image` that draws every month line, so a row costs one element instead of one
+ * per month (PD-01: 100 rows x 879 months was 87,900 nodes, and a 9999 typo put that in the
+ * millions). The bands are half a pixel either side of the boundary, so the lines stay 1 px however
+ * wide the timeline is scrolled.
+ */
+export function monthGridImage(months: readonly MonthTick[], color: string): string {
+  if (months.length === 0) return 'none';
+  const stops: string[] = [];
+  for (const m of months) {
+    const from = `calc(${m.leftPct}% - 0.5px)`;
+    const to = `calc(${m.leftPct}% + 0.5px)`;
+    stops.push(`transparent ${from}`, `${color} ${from}`, `${color} ${to}`, `transparent ${to}`);
+  }
+  return `linear-gradient(to right, ${stops.join(', ')})`;
 }

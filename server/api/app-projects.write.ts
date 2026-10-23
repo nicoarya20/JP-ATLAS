@@ -23,7 +23,8 @@ import { appContext } from './app-context';
 const strict = { additionalProperties: false } as const;
 const name = t.String({ minLength: 1, maxLength: PROJECT_NAME_MAX });
 const description = t.Optional(t.Nullable(t.String({ maxLength: PROJECT_DESCRIPTION_MAX })));
-// Shape only; the service rejects impossible dates such as 2026-02-30.
+// Shape only; the service rejects impossible dates such as 2026-02-30 and years outside
+// CALENDAR_YEAR_MIN..CALENDAR_YEAR_MAX, with an Indonesian message a shape error cannot give (PD-01).
 const date = t.Optional(t.Nullable(t.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' })));
 const userId = t.String({ minLength: 1 });
 

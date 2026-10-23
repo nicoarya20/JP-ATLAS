@@ -1,7 +1,15 @@
 import { Button, type MantineThemeComponents, rem } from '@mantine/core';
+import { CALENDAR_DATE_MAX, CALENDAR_DATE_MIN } from '@server/metrics/dates';
 import { RADIUS } from './theme-tokens';
 
 const LARGE = { defaultProps: { size: 'lg' } } as const;
+
+/**
+ * Every date input is bounded to the sane calendar range, so a mistyped year (2062 for 2026, or
+ * 9999) is refused at the keyboard instead of reaching the server or the project timeline (PD-01).
+ * A screen with a narrower range passes its own `minDate`/`maxDate`, which wins over this default.
+ */
+const DATE_BOUNDS = { minDate: CALENDAR_DATE_MIN, maxDate: CALENDAR_DATE_MAX } as const;
 
 /** Overlay behind modals and drawers: the identity navy at the handoff's veil strength. */
 const OVERLAY = { color: 'var(--jp-canvas)', backgroundOpacity: 0.73 } as const;
@@ -40,7 +48,7 @@ export const themeComponents: MantineThemeComponents = {
   NumberInput: LARGE,
   Select: LARGE,
   // Project forms use DateInput (CLAUDE.md); left at `md` it would sit next to 50 px inputs.
-  DateInput: LARGE,
+  DateInput: { defaultProps: { ...LARGE.defaultProps, ...DATE_BOUNDS } },
   // Event form (S7): TimeInput and MultiSelect also sit beside 50 px inputs and defaulted to `md`.
   TimeInput: LARGE,
   MultiSelect: LARGE,

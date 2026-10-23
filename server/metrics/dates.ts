@@ -39,3 +39,18 @@ function utcDay(date: IsoDate): number {
 export function diffDays(from: IsoDate, to: IsoDate): number {
   return utcDay(to) - utcDay(from);
 }
+
+/**
+ * Years a user-entered calendar date may fall in. A typo such as 2062 for 2026 is not worth a
+ * timeline 36 years wide, and 9999 made the project Gantt unreadable and slow to draw for everyone
+ * (PD-01); 2000-2100 covers every plan anyone can sensibly make.
+ */
+export const CALENDAR_YEAR_MIN = 2000;
+export const CALENDAR_YEAR_MAX = 2100;
+export const CALENDAR_DATE_MIN: IsoDate = `${CALENDAR_YEAR_MIN}-01-01`;
+export const CALENDAR_DATE_MAX: IsoDate = `${CALENDAR_YEAR_MAX}-12-31`;
+
+/** True when `date` lies inside the accepted calendar range; ISO dates compare correctly as text. */
+export function isInCalendarRange(date: IsoDate): boolean {
+  return date >= CALENDAR_DATE_MIN && date <= CALENDAR_DATE_MAX;
+}
