@@ -3,6 +3,12 @@ import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '../../server/db';
 import { project, projectActivity, projectMember, taskKind } from '../../server/db/schema';
+import {
+  CALENDAR_DATE_MAX,
+  CALENDAR_DATE_MIN,
+  CALENDAR_YEAR_MAX,
+  CALENDAR_YEAR_MIN,
+} from '../../server/metrics/dates';
 import { DEFAULT_TASK_KINDS } from '../../server/pm/limits';
 import { toPrincipal } from '../../server/project/membership.query';
 import {
@@ -172,6 +178,40 @@ describe('createProject', () => {
   });
 });
 
+describe('createProject year range (PD-01)', () => {
+  // A typo like 2062 for 2026, or 9999, used to be stored and then made the Gantt unreadable.
+  it.each(['9999-12-31', '2101-01-01', `${CALENDAR_YEAR_MIN - 1}-12-31`, '0001-01-01'])(
+    'refuses %s with the Indonesian year message',
+    async (dueDate) => {
+      const pm = await f.user({ role: 'project_manager' });
+      expect(await create(pm, { dueDate })).toMatchObject({
+        ok: false,
+        code: 'VALIDATION',
+        error: PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE,
+      });
+    },
+  );
+
+  it('names both bounds so the message says what to do', () => {
+    expect(PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE).toContain(String(CALENDAR_YEAR_MIN));
+    expect(PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE).toContain(String(CALENDAR_YEAR_MAX));
+  });
+
+  it('accepts both edges of the range, and a start date inside it', async () => {
+    const pm = await f.user({ role: 'project_manager' });
+    expect(
+      (await create(pm, { startDate: CALENDAR_DATE_MIN, dueDate: CALENDAR_DATE_MAX })).ok,
+    ).toBe(true);
+  });
+
+  it('refuses an out-of-range start date too, not only the due date', async () => {
+    const pm = await f.user({ role: 'project_manager' });
+    expect(await create(pm, { startDate: '1899-01-01', dueDate: '2030-01-01' })).toMatchObject({
+      error: PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE,
+    });
+  });
+});
+
 describe('isCalendarDate', () => {
   it.each([
     ['2026-02-28', true],
@@ -248,6 +288,15 @@ describe('updateProject', () => {
       ok: false,
       code: 'NOT_FOUND',
     });
+  });
+
+  it('refuses an out-of-range year on an edit as well (PD-01)', async () => {
+    const { lead, p } = await graph({ startDate: '2030-05-01', dueDate: '2030-06-01' });
+    expect(await updateProject(principal(lead), p.id, { dueDate: '9999-12-31' })).toMatchObject({
+      code: 'VALIDATION',
+      error: PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE,
+    });
+    expect((await updateProject(principal(lead), p.id, { dueDate: '2031-06-01' })).ok).toBe(true);
   });
 
   it('checks the due date against the stored start date', async () => {

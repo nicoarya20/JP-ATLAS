@@ -6,6 +6,7 @@ import { renderToString } from 'react-dom/server';
 import { buildTheme } from '../app/lib/theme';
 import { DARK, LIGHT } from '../app/lib/theme-tokens';
 import { cssVariablesResolver } from '../app/lib/theme-vars';
+import { CALENDAR_DATE_MAX, CALENDAR_DATE_MIN } from '../server/metrics/dates';
 
 const ROOT = new URL('../', import.meta.url);
 const read = (relative: string) => readFileSync(new URL(relative, ROOT), 'utf8');
@@ -87,6 +88,16 @@ describe('typography, radius and surfaces', () => {
     expect(theme.components?.Modal?.defaultProps?.radius).toBe(16);
     expect(theme.components?.Drawer?.defaultProps?.radius).toBe(16);
     expect(theme.components?.Card?.defaultProps?.radius).toBe(14);
+  });
+
+  test('every date input is bounded to the sane calendar range (PD-01)', () => {
+    const props = buildTheme(1).components?.DateInput?.defaultProps as
+      | { size?: string; minDate?: string; maxDate?: string }
+      | undefined;
+    // A mistyped year (2062 for 2026, 9999) is refused at the keyboard, not in the Gantt.
+    expect(props?.minDate).toBe(CALENDAR_DATE_MIN);
+    expect(props?.maxDate).toBe(CALENDAR_DATE_MAX);
+    expect(props?.size).toBe('lg'); // the 50 px touch target stays
   });
 
   test('the page is painted with the canvas, before and after the stylesheet loads', () => {

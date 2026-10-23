@@ -26,6 +26,8 @@ export type MonthTick = {
   month: number;
   leftPct: number;
   widthPct: number;
+  /** How many calendar months this tick covers; more than one only in a coarsened grid (see below). */
+  span: number;
 };
 
 export type YearMonth = { y: number; m: number };
@@ -56,22 +58,42 @@ export const yearMonthOf = (n: number): YearMonth => {
 export const monthLabel = (t: Pick<MonthTick, 'year' | 'month'>) =>
   `${MONTHS_SHORT[t.month - 1]} ${t.year}`;
 
-/** One tick per calendar month from `from` to `to`, as shares of the `total` days that start at day `first`. */
-export function buildMonths(first: number, total: number, from: YearMonth, to: YearMonth) {
+/** Calendar months from `from` to `to` inclusive. */
+export const monthCount = (from: YearMonth, to: YearMonth) =>
+  (to.y - from.y) * 12 + (to.m - from.m) + 1;
+
+/**
+ * One tick per calendar month from `from` to `to`, as shares of the `total` days that start at day
+ * `first`. A range wider than `maxTicks` months is coarsened to one tick per `span` months instead
+ * of returning tens of thousands of them: a mistyped year used to make this array (and the element
+ * the caller drew per tick) big enough to freeze the screen (PD-01).
+ */
+export function buildMonths(
+  first: number,
+  total: number,
+  from: YearMonth,
+  to: YearMonth,
+  maxTicks: number,
+) {
   const months: MonthTick[] = [];
+  const span = Math.max(1, Math.ceil(monthCount(from, to) / maxTicks));
   let { y, m } = from;
   while (y < to.y || (y === to.y && m <= to.m)) {
     const start = monthStart(y, m);
-    const next = monthStart(y, m + 1);
+    const next = monthStart(y, m + span);
+    const leftPct = ((start - first) / total) * PCT;
     months.push({
       key: `${y}-${pad2(m)}`,
       year: y,
       month: m,
-      leftPct: ((start - first) / total) * PCT,
-      widthPct: ((next - start) / total) * PCT,
+      leftPct,
+      // A coarse last block may reach past the range end; it must not widen the timeline.
+      widthPct: Math.min(((next - start) / total) * PCT, PCT - leftPct),
+      span,
     });
-    y = m === 12 ? y + 1 : y;
-    m = m === 12 ? 1 : m + 1;
+    const advanced = m + span - 1;
+    y += Math.floor(advanced / 12);
+    m = (advanced % 12) + 1;
   }
   return months;
 }

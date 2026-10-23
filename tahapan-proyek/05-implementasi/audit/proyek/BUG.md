@@ -15,7 +15,7 @@
 ## Kritis
 
 ### PRJ-01 — Tenggat jadi "—" dan Gantt kosong setelah data diambil klien
-**Bukti:** Terkonfirmasi · **Status:** terbuka · **Ukuran:** S · **Akar sama dengan** [`T-01`](../tugas/BUG.md) (satu perbaikan untuk keduanya)
+**Bukti:** Terkonfirmasi · **Status:** selesai (`parseDate: false` di `app/lib/eden.ts`; tes kontrak `tests/eden-date-contract.test.ts`) · **Ukuran:** S · **Akar sama dengan** [`T-01`](../tugas/BUG.md) (satu perbaikan untuk keduanya)
 
 - **Gejala:** halaman pertama (dari server) benar, tetapi begitu daftar diambil klien (cari, ganti filter/tampilan, "Tampilkan lebih banyak", kembali setelah invalidasi) kolom **Tenggat** menjadi "—" dan **Gantt kosong** (semua proyek masuk "Belum ada tanggal").
 - **Penyebab:** klien Eden 1.4.9 mengubah teks `YYYY-MM-DD` menjadi objek `Date` (regex di `node_modules/@elysiajs/eden/dist/chunk-I5KHAGLL.mjs`). Kode yang memeriksa tanggal sebagai teks lalu gagal: `describeDue` → "—", `isIso(Date)` false, `layoutGantt` → 0 baris.
@@ -25,7 +25,7 @@
 ## Tinggi
 
 ### PRJ-02 — Header proyek tidak berubah setelah "Ubah proyek"
-**Bukti:** Terkonfirmasi (kode + tes) · **Status:** terbuka · **Ukuran:** S
+**Bukti:** Terkonfirmasi (kode + tes) · **Status:** selesai (`useRefreshProject` di kedua hook; tes `tests/ui/project-refresh.test.ts`) · **Ukuran:** S
 
 - **Gejala:** setelah mengubah nama/status/tenggat proyek, atau mencentang milestone, header (nama, status, tenggat, kondisi) tetap versi lama sampai halaman dimuat ulang.
 - **Penyebab:** header dari loader `layout`; React Router tidak menjalankan ulang loader induk saat berpindah antar-anak (tes `createMemoryRouter`: hitungan loader layout tetap). Hanya `useRefreshProject` memanggil `revalidate()`.
@@ -33,7 +33,9 @@
 - **Perbaikan:** pakai `useRefreshProject` di `useProjectActions` dan `usePlanActions`.
 
 ### PD-01 — Satu salah ketik tahun membuat Gantt macet bagi semua orang
-**Bukti:** Terkonfirmasi · **Status:** terbuka · **Ukuran:** M
+**Bukti:** Terkonfirmasi · **Status:** selesai (tahun dibatasi 2000-2100 di `project.service.ts` + bawaan `DateInput`; garis bulan satu lapisan dan jumlah tick dibatasi `GANTT.MAX_MONTH_TICKS`) · **Ukuran:** M
+
+> **Sisa:** tanggal milestone dan tahapan (`app-projects.plan.ts`) belum dibatasi tahunnya di server. Lewat UI sudah tertutup oleh bawaan `DateInput`, dan batas tick membuat Gantt tetap terbaca, jadi ini bukan lagi pembeku layar — tetapi kunci API masih bisa menitipkan tonggak bertahun 9999.
 
 - **Gejala:** tenggat bertahun ekstrem (mis. 2062 untuk 2026, atau 9999) membuat Gantt tidak terbaca atau membeku.
 - **Penyebab:** server menerima tahun apa pun (tes: `POST /projects` `dueDate 9999-12-31` → 201). `layoutGantt` untuk 2026-10 s/d 9999-12 menghasilkan **95.679 bulan**; `GanttRow` menggambar satu `Box` garis per bulan **per baris** (100 baris × 879 bulan = 87.900 node untuk tahun 2099, ≈9,5 juta untuk 9999). Lebar lini waktu terkunci 240 rem, jadi label bulan terpotong dan batang proyek lain mengecil ke 0,6%.
@@ -41,18 +43,18 @@
 - **Perbaikan:** batasi tahun di server dan `DateInput` (mis. 2000-2100, pesan Indonesia); gambar garis bulan sekali (CSS `repeating-linear-gradient` atau satu lapisan), bukan per baris; batasi jumlah bulan yang digambar.
 
 ### PRJ-03 — "Ubah milestone" ditolak server setelah daftar dimuat ulang
-**Bukti:** Dugaan (422 terbukti lewat tes, jalur UI perlu browser) · **Status:** terbuka · **Ukuran:** S · bergantung PRJ-01
+**Bukti:** Dugaan (422 terbukti lewat tes, jalur UI perlu browser) · **Status:** selesai oleh PRJ-01 · **Ukuran:** S · bergantung PRJ-01
 
 - **Gejala:** mengubah milestone yang sudah ada gagal dengan galat validasi.
 - **Penyebab:** setelah refetch Eden, `m.dueDate` berupa `Date`; form mengirim ISO penuh, sedangkan server menuntut `^\d{4}-\d{2}-\d{2}$`. Tes sementara: PATCH → 422 `VALIDATION`.
 - **Berkas:** `plan/plan-form.ts:52-54,110`, `server/api/app-projects.plan.ts:59`, `plan/MilestoneForm.tsx:56-64`.
-- **Perbaikan:** selesai oleh PRJ-01; paksa string tanggal di `toMilestoneInput`.
+- **Perbaikan:** selesai oleh PRJ-01. Diverifikasi dengan tes yang menarik milestone lewat Eden asli lalu memeriksa bahwa `toMilestoneInput` tetap mengirim `YYYY-MM-DD` (pola yang diminta route). Tidak ditambahkan pemaksaan kedua di `toMilestoneInput`: tipenya `string` dan sumber masalahnya sudah ditutup, jadi penjaga itu tak akan pernah jalan.
 
 ## Sedang
 
 | ID | Bukti | Gejala | Penyebab dan berkas | Perbaikan | Uk |
 |---|---|---|---|---|---|
-| PRJ-04 | Terkonfirmasi | Lencana milestone **"Terlewat" hilang** setelah data dimuat ulang | `m.dueDate < today` membandingkan `Date` dengan teks, hasilnya `false` (`plan/plan-view.ts:39`, `plan/MilestoneList.tsx:82`) | Sembuh dengan PRJ-01 | S |
+| PRJ-04 | Terkonfirmasi | Lencana milestone **"Terlewat" hilang** setelah data dimuat ulang | `m.dueDate < today` membandingkan `Date` dengan teks, hasilnya `false` (`plan/plan-view.ts:39`, `plan/MilestoneList.tsx:82`) | **selesai** oleh PRJ-01; diverifikasi di `tests/eden-date-contract.test.ts` | S |
 | PRJ-05 | Terkonfirmasi | **API key masih bisa mengubah tenggat** tanpa riwayat, dan membatalkan proyek. `extend-deadline` sengaja ditolak untuk kunci, tetapi jalan lain terbuka | `PATCH /projects/:id {dueDate}` dan `POST …/status` lolos scope `app:write` (`requiredScope` → `app:write`, dicoba). `server/api-keys/scopes.pm.ts:52-58`, `server/api/app-projects.write.ts:51-60,92`, `tests/api-keys/scopes.projects.test.ts:20-21` | Putuskan HUTANG H-G1; tutup `dueDate` di PATCH dan/atau tolak PATCH/status untuk kunci | M |
 | PRJ-06 | Terkonfirmasi (kode) | Setelah menulis tugas (mulai, selesai, centang), **progres dan kondisi proyek basi** di daftar (cache 30 detik) dan header | Tulis tugas hanya menginvalidasi `taskKeys.all`; hanya `useTaskDelete` menyegarkan `projectKeys.all`. `app/components/tasks/useTaskWrite.ts:71`, `useTaskBodyActions.ts:19,48`, `useTaskActions.tsx:35`, `app/lib/query.tsx:8` | Invalidasi `projectKeys.all` + `revalidate` (koordinasi dengan menu Tugas) | S |
 | PRJ-07 | Terkonfirmasi | PM/Admin yang belum jadi anggota proyek apa pun membuka **"Proyek saya"** dan melihat *"Belum ada proyek. Buat proyek pertama Anda."* padahal "Semua proyek" berisi | `emptyKind` memberi `creator` untuk daftar kosong. Tes: `mine.total=0`, `all.total≥1`. `app/routes/app/projects.tsx:132-141`, `ProjectEmpty.tsx:14-22`, `app/lib/projects-filters.ts:146-149` | Pesan khusus saat `lingkup=saya` kosong dan `canSeeAll`, mis. tautan ke "Semua proyek" | S |

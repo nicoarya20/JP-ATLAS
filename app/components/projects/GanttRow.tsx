@@ -1,16 +1,18 @@
 /** One project on the timeline: a sticky label cell (name link, status, dates) and its bar or diamond. */
 import { Anchor, Box, Group, Stack, Text } from '@mantine/core';
 import type { ProjectListItem } from '@server/project/project.dto';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { formatCalendarDate } from '~/components/ui/DateText';
 import { CONDITION_LABELS, PROJECT_STATUS_LABELS } from '~/lib/pm-labels';
 import { GanttMilestones, GanttSegments } from './GanttMarks';
-import type { GanttRowLayout, MonthTick } from './gantt-layout';
+import { type GanttRowLayout, type MonthTick, monthGridImage } from './gantt-layout';
 import {
   BAR_MIN_WIDTH,
   barHeight,
   filled,
   GRID_LINE,
+  GRID_LINE_COLOR,
   ganttColor,
   LABEL_WIDTH,
   light,
@@ -158,6 +160,8 @@ function Track({ project: p, row }: Pick<Props, 'project' | 'row'>) {
 export function GanttRow({ project, row, months, todayPct, timelineRem }: Props) {
   const hasStages = row.segments.length > 0;
   const href = projectHref(project.id);
+  // One painted layer for the whole month grid; drawing a Box per month per row did not scale (PD-01).
+  const grid = useMemo(() => monthGridImage(months, GRID_LINE_COLOR), [months]);
   return (
     <Box className="mk-gantt-row" style={{ display: 'flex', borderBottom: GRID_LINE }}>
       <LabelCell project={project} row={row} />
@@ -168,19 +172,15 @@ export function GanttRow({ project, row, months, todayPct, timelineRem }: Props)
           minHeight: rowMinHeight(hasStages || row.milestones.length > 0),
         }}
       >
-        {months.map((m) => (
-          <Box
-            key={m.key}
-            aria-hidden
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: `${m.leftPct}%`,
-              borderLeft: GRID_LINE,
-            }}
-          />
-        ))}
+        <Box
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: grid,
+            pointerEvents: 'none',
+          }}
+        />
         {todayPct !== null && (
           <Box
             aria-hidden

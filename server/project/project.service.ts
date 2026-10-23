@@ -9,6 +9,7 @@ import { canCreateProject, canManageProject } from '../access/project.policy';
 import type { Principal, ProjectSubject } from '../access/types';
 import { isBanActive } from '../ban';
 import { project, projectActivity, projectMember, taskKind, user } from '../db/schema';
+import { CALENDAR_YEAR_MAX, CALENDAR_YEAR_MIN, isInCalendarRange } from '../metrics/dates';
 import type { ProjectMemberRole, ProjectPriority, ProjectStatus } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
 import { DEFAULT_TASK_KINDS, TASK_REVIEW_UI_ENABLED } from '../pm/limits';
@@ -49,6 +50,7 @@ export const PROJECT_WRITE_MESSAGES = {
   REVIEW_UNAVAILABLE:
     'Pemeriksaan tugas belum tersedia. Matikan pilihan "Tugas baru perlu diperiksa", lalu simpan lagi.',
   BAD_DATE: 'Tanggal tidak valid. Pilih tanggal dari kalender, lalu simpan lagi.',
+  DATE_OUT_OF_RANGE: `Tahun tanggal harus antara ${CALENDAR_YEAR_MIN} dan ${CALENDAR_YEAR_MAX}. Periksa tahunnya, lalu simpan lagi.`,
   DUE_BEFORE_START: 'Tenggat tidak boleh sebelum tanggal mulai. Ubah salah satu tanggalnya.',
   BAD_CANDIDATE:
     'Ada orang yang belum disetujui, sedang diblokir, atau tidak ditemukan. Hapus dari daftar, lalu simpan lagi.',
@@ -70,9 +72,17 @@ export function isCalendarDate(s: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
-/** The date problem of a start/due pair, or null; ISO strings compare correctly as text. */
+/**
+ * The date problem of a start/due pair, or null; ISO strings compare correctly as text. The year
+ * range is checked here and not in the route schema, so a mistyped year answers in Indonesian
+ * instead of a shape error (PD-01).
+ */
 function dateProblem(start: string | null | undefined, due: string | null | undefined) {
-  for (const d of [start, due]) if (d && !isCalendarDate(d)) return PROJECT_WRITE_MESSAGES.BAD_DATE;
+  for (const d of [start, due]) {
+    if (!d) continue;
+    if (!isCalendarDate(d)) return PROJECT_WRITE_MESSAGES.BAD_DATE;
+    if (!isInCalendarRange(d)) return PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE;
+  }
   return start && due && due < start ? PROJECT_WRITE_MESSAGES.DUE_BEFORE_START : null;
 }
 

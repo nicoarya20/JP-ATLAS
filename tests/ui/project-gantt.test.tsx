@@ -305,4 +305,17 @@ describe('ProjectGantt stages and milestones', () => {
     expect(html).toContain('min-height:calc(5.5rem * var(--mantine-scale))');
     expect(html).not.toMatch(/(?:width|height|min-width)\s*:\s*\d+px/);
   });
+
+  it('paints the month grid once per row, however many months the range covers (PD-01)', async () => {
+    const layers = (html: string) => html.split('linear-gradient(to right').length - 1;
+    const rows = [
+      item({ id: 'p-a', startDate: '2026-10-01', dueDate: '2026-10-31' }),
+      item({ id: 'p-b', startDate: '2026-10-05', dueDate: '2026-10-20' }),
+      item({ id: 'p-c', startDate: '2026-10-10', dueDate: '2026-10-15' }),
+    ];
+    expect(layers(await gantt(rows))).toBe(rows.length);
+    // A range 15 months wide still costs one layer per row, not one element per month per row.
+    const wide = rows.map((p, i) => ({ ...p, dueDate: i === 0 ? '2027-12-31' : p.dueDate }));
+    expect(layers(await gantt(wide))).toBe(rows.length);
+  });
 });

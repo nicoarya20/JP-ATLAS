@@ -7,6 +7,7 @@ import {
   type GanttDueRow,
   type GanttSource,
   layoutGantt,
+  monthGridImage,
   monthLabel,
 } from '../../app/components/projects/gantt-layout';
 import { ganttPlanOf } from '../../app/components/projects/gantt-plan';
@@ -147,6 +148,53 @@ describe('layoutGantt month ticks', () => {
   it('knows a leap February (2028 has 29 days)', () => {
     const l = layoutGantt([src('a', '2028-02-10', '2028-02-12')], TODAY);
     expect(l.range?.totalDays).toBe(29);
+  });
+
+  describe('a mistyped year cannot flood the grid (PD-01)', () => {
+    // 2026-10 to 9999-12 is 95,679 calendar months; one tick each froze the screen.
+    it.each(['2062-12-31', '2099-12-31', '9999-12-31'])(
+      '%s stays within the tick budget',
+      (due) => {
+        const l = layoutGantt([src('a', '2026-10-01', due)], TODAY);
+        expect(l.months.length).toBeLessThanOrEqual(GANTT.MAX_MONTH_TICKS);
+        expect(l.months.length).toBeGreaterThan(0);
+        // Still a real grid: the first tick sits at the left edge and none leaves the range.
+        expect(l.months[0]?.leftPct).toBe(0);
+        for (const m of l.months) expect(m.leftPct + m.widthPct).toBeLessThanOrEqual(100 + 1e-9);
+      },
+    );
+
+    it('coarsens by whole months, keeping the ticks in order and the bar drawn', () => {
+      const l = layoutGantt([src('a', '2026-10-01', '9999-12-31')], TODAY);
+      const span = l.months[0]?.span ?? 0;
+      expect(span).toBeGreaterThan(1);
+      for (const m of l.months) expect(m.span).toBe(span);
+      for (const [i, m] of l.months.entries()) {
+        const prev = l.months[i - 1];
+        if (prev) expect(m.leftPct).toBeGreaterThan(prev.leftPct);
+      }
+      expect(l.rows).toHaveLength(1);
+    });
+
+    it('still gives one tick per month for an ordinary range', () => {
+      const l = layoutGantt([src('a', '2026-11-20', '2027-02-03')], TODAY);
+      expect(l.months.map((m) => m.span)).toEqual([1, 1, 1, 1]);
+    });
+  });
+});
+
+describe('monthGridImage', () => {
+  it('draws every month line in one background layer, with a band per boundary', () => {
+    const l = layoutGantt([src('a', '2026-11-20', '2027-02-03')], TODAY);
+    const image = monthGridImage(l.months, 'red');
+    expect(image.startsWith('linear-gradient(to right, ')).toBe(true);
+    // Four stops per tick (transparent, colour, colour, transparent) and nothing else.
+    expect(image.split('red ').length - 1).toBe(l.months.length * 2);
+    for (const m of l.months) expect(image).toContain(`calc(${m.leftPct}% - 0.5px)`);
+  });
+
+  it('paints nothing when there is no range', () => {
+    expect(monthGridImage([], 'red')).toBe('none');
   });
 });
 
