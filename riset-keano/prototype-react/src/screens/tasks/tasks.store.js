@@ -6,7 +6,7 @@ import { useSyncExternalStore } from 'react';
 import { D } from '../../data/sample';
 import { TODAY, days, info } from './tasks.shared';
 
-const CLOCK = '09:41';   // the phone's status-bar time, so a move counts as "recently updated" today
+const CLOCK = '09:41';   // the prototype's clock, so a move counts as "recently updated" today
 const pad = n => String(n).padStart(2, '0');
 const NOW = `${TODAY.getFullYear()}-${pad(TODAY.getMonth() + 1)}-${pad(TODAY.getDate())}T${CLOCK}`;
 /** The sample "today" as a short label ("Oct 7"), for history lines. */
