@@ -36,9 +36,9 @@ export function Section({ title, sub, right, className = '', children, ...props 
   );
 }
 
-/** Grouped list (iOS inset table). */
-export function Rows({ children, plain }) {
-  return <List variant={plain ? 'default' : 'inset'} className="rows">{children}</List>;
+/** Grouped list (iOS inset table). className adds a module look on top (e.g. one card per row). */
+export function Rows({ children, plain, className }) {
+  return <List variant={plain ? 'default' : 'inset'} className={`rows ${className ?? ''}`.trim()}>{children}</List>;
 }
 
 /** List row. lead = avatar/icon; right = trailing element; chev defaults to true when the row navigates. */

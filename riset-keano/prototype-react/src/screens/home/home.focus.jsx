@@ -33,7 +33,7 @@ function Group({ label, tasks }) {
   return (
     <>
       <Label>{label}</Label>
-      <Rows plain>{tasks.map(t => <FocusRow key={t.no} t={t} />)}</Rows>
+      <Rows plain className="hm-cards">{tasks.map(t => <FocusRow key={t.no} t={t} />)}</Rows>
     </>
   );
 }
@@ -54,7 +54,7 @@ export function Focus({ role }) {
       {role === 'admin' && (
         <>
           <Label>Needs action</Label>
-          <Rows plain>
+          <Rows plain className="hm-cards">
             <Row title={`Approve ${D.users.counts.pending} new users`} sub="Users · Approval · Waiting 1 day" chev={false}
               go="users.approve" right={<Btn sm kind="primary" go="users.approve">Open</Btn>} />
           </Rows>
@@ -64,7 +64,7 @@ export function Focus({ role }) {
       {review.length > 0 && (
         <>
           <Label>Awaiting your review</Label>
-          <Rows plain>
+          <Rows plain className="hm-cards">
             {review.map((t, i) => <FocusRow key={t.no} t={t} btn={<Btn sm kind={i ? 'outline' : 'primary'} go={taskScreen(t)} task={t.no}>Review</Btn>} />)}
           </Rows>
         </>
