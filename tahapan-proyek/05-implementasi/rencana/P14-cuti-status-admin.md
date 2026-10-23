@@ -7,9 +7,9 @@
 - Fitur Cuti berpindah bentuk: dari **pengajuan + persetujuan di dalam aplikasi** menjadi **pencatatan status oleh Admin**. Pengajuan cuti terjadi di luar aplikasi (HRD atau atasan, lewat WhatsApp); aplikasi hanya mencatat hasilnya supaya rekan satu tim tahu siapa yang sedang tidak ada.
 - **Ini bukan hapus-lalu-bangun-ulang.** Tabel yang ada sudah dirancang "rentang tanggal → status dihitung per tanggal, cuti berakhir sendiri" (`server/db/schema.leave.ts`). Yang dicabut adalah **alur pengajuan dan persetujuan**, bukan pencatatannya. Badge `Cuti sampai 16 Okt` di Tim tetap hidup apa adanya.
 - **8 tugas, CU-01..CU-08**, ≈ **12,5 hari-orang AI**. Sebagian besarnya penghapusan, jadi angka ini didominasi tes yang ditulis ulang, bukan fitur baru.
-- **Satu migrasi `0022`** — bentrok nomor dengan P13 RD-01, diselesaikan di §4 K3.
+- **Satu migrasi `0023`** — semula `0022`, tetapi nomor itu sudah mendarat sebagai `0022_admin_policy.sql` (P13 RD-01, 23 Okt 2026). Lihat §4 K3.
 - **Tab "Kebijakan kerja" dihapus** dari Pengaturan admin (6 tab → 5). Saklar "Cuti perlu persetujuan" adalah satu-satunya isi tab itu yang punya backend nyata; begitu persetujuan tidak ada lagi, tab itu tinggal pratinjau tanpa tujuan.
-- **Akibat berantai ke P13:** migrasi `0022` miliknya turun dari enam kolom jadi lima (`working_days` dicabut), dan RD-07 dicoret.
+- **Akibat berantai ke P13:** migrasi `0022_admin_policy.sql` miliknya turun dari enam kolom jadi lima (`working_days` dicabut), dan RD-07 dicoret.
 
 ## 2. Keadaan sekarang (dibaca di kode)
 
@@ -48,14 +48,16 @@
 | # | Rencana lama menulis | Yang berubah | Akibat |
 |---|---|---|---|
 | K1 | **P11 AD-07** dan **P13 RD-07** · "Tab Kebijakan kerja · L (2)" — hari kerja, hari libur, pengingat acara bawaan, saklar cuti wajib disetujui | Saklar cuti dihapus bersama persetujuan; hari kerja & libur ditunda sampai ada konsumennya | **AD-07 dan RD-07 dicoret.** Anggaran P13 turun ≈2 |
-| K2 | **P13 §5** migrasi `0022` = **enam** kolom, termasuk `working_days` jsonb | Tidak ada lagi layar yang menulis `working_days` | Migrasi P13 jadi **lima** kolom. Kolomnya tidak dibuat sekarang — dibuat nanti bersama kalkulator tenggat, bukan dibiarkan kosong menunggu |
-| K3 | **P11 R1** dan **P13 RD-01** sama-sama mengklaim nomor **`0022`** | Dua lajur mengincar nomor yang sama | **P14 CU-01 memegang `0022`** karena lajur ini yang aktif; **P13 RD-01 geser ke `0023`**. Aturan P11 R1 tetap berlaku: periksa ulang `server/db/migrations/` sebelum `db:generate`, siapa pun yang mendarat duluan menang dan yang lain menyesuaikan |
+| K2 | **P13 §5** migrasi setelan admin = **enam** kolom, termasuk `working_days` jsonb | Tidak ada lagi layar yang menulis `working_days` | Migrasi P13 jadi **lima** kolom. Kolomnya tidak dibuat sekarang — dibuat nanti bersama kalkulator tenggat, bukan dibiarkan kosong menunggu |
+| K3 | **P11 R1** dan **P13 RD-01** sama-sama mengklaim nomor **`0022`** | Dua lajur mengincar nomor yang sama | **DIPUTUSKAN OLEH EKSEKUSI, 23 Okt 2026:** rencana ini sempat mengklaim `0022`, tetapi **P13 RD-01 yang mendarat duluan** — ia memeriksa `server/db/migrations/`, menemukan migrasi terakhir masih `0021_leave_request.sql`, dan membuat **`0022_admin_policy.sql`**. Aturan P11 R1 ("siapa pun yang mendarat duluan menang dan yang lain menyesuaikan") karena itu memberi `0022` ke P13, dan **lajur ini bergeser ke `0023_leave_period.sql`**. Tetap periksa ulang `server/db/migrations/` sebelum `db:generate` — `0023` bisa ikut terambil bila ada lajur lain mendarat sebelum CU-01 |
 | K4 | **P11 §9 kontradiksi 3** · "Pengingat acara bawaan bertindih P7 M09. Usul: pindah ke tab Kebijakan kerja" | Rumah yang diusulkan itu hilang | Pengingat acara bawaan pindah ke **tab Pemberitahuan (P13 RD-08)** — memang default notifikasi, bukan kebijakan kerja. M09 tetap dicoret |
 | K5 | **P13 RD-09** · katalog fitur memuat `leave` sebagai salah satu dari empat flag `/app` | `leave` bukan lagi modul dengan alur pengajuan | `leave` **tetap** di katalog (mematikannya menyembunyikan badge Ketersediaan dan menu setel cuti), tetapi kalimat "bila dimatikan" wajib ditulis ulang. Bukan lagi "anggota tidak bisa mengajukan cuti" |
 | K6 | **P11 §4** tabel Tab Pengaturan = **6 tab** | Satu tab hilang | **5 tab**: Identitas, Pengumuman, Akses masuk, Pemberitahuan, Fitur. `tests/admin-settings-tabs.test.ts` ikut disesuaikan |
 | K7 | **`HUTANG.md` H-D4** · "Ketersediaan/cuti dan urutan ketersediaan: menunggu cuti (fase 5) dan Events" | Cuti tidak lagi menunggu fase 5 | H-D4 disunting: ketersediaan tersedia begitu P14 mendarat; yang tersisa menunggu hanyalah **urutan** berdasarkan ketersediaan |
 
-## 5. Migrasi `0022_leave_period.sql`
+## 5. Migrasi `0023_leave_period.sql`
+
+**Nomor dikoreksi 23 Okt 2026 (§4 K3):** semula `0022`, bergeser ke `0023` karena `0022_admin_policy.sql` (P13 RD-01) mendarat lebih dulu.
 
 Satu berkas, satu transaksi, guard idempoten. Urutannya penting: **salin dulu, hapus terakhir.**
 
@@ -101,7 +103,7 @@ Keduanya **wajib masuk `PM_KEY_DENY`** (`server/api-keys/scopes.pm.ts`): menyete
 
 ### Tahap A — fondasi (≈3,5)
 
-#### CU-01 · Migrasi `0022` + skema ciut · Dep: – · M (1,5) · **baton migrasi**
+#### CU-01 · Migrasi `0023` + skema ciut · Dep: – · M (1,5) · **baton migrasi**
 Berkas migrasi §5 + `server/db/schema.leave.ts` ditulis ulang jadi `leavePeriod` tanpa enum status; `leaveRequiresApproval` dicabut dari `schema.app.ts`. Jalankan ke **dua** DB (dev + test) sebelum lapor selesai. Tes: baris `approved` ikut pindah, baris `pending`/`rejected` tidak, tabel lama hilang.
 
 #### CU-07 · Hapus tab Kebijakan kerja · Dep: – · S (1) · PARALEL
@@ -141,7 +143,7 @@ Hapus kind `leave_requested` dan `leave_decided` dari `notification.types.ts` + 
 
 | # | Risiko | Mitigasi |
 |---|---|---|
-| R1 | **Baton migrasi** `0022` bentrok dengan P13 RD-01 | §4 K3: P14 memegang `0022`, P13 geser `0023`. Jangan luncurkan dua tugas bermigrasi bersamaan |
+| R1 | ~~**Baton migrasi** `0022` bentrok dengan P13 RD-01~~ **Terjadi dan selesai 23 Okt 2026** | §4 K3: P13 RD-01 mendarat duluan sebagai `0022_admin_policy.sql`, jadi lajur ini memakai **`0023`**. Jangan luncurkan dua tugas bermigrasi bersamaan, dan periksa ulang direktori migrasi sebelum `db:generate` |
 | R2 | `DROP TABLE leave_request` menghapus riwayat cuti yang nyata | Migrasi menyalin baris `approved` **sebelum** drop, satu transaksi (§5). Verifikasi jumlah baris sebelum/sesudah di DB dev |
 | R3 | Baris notifikasi lama (`leave_requested`) tertinggal di DB dan merusak Inbox | Inbox sudah gagal-lunak untuk kind tak dikenal (`inbox-view.ts:67`) — CU-06 membuktikannya dengan tes, bukan mengandalkan janji docstring |
 | R4 | Member kehilangan cara mengajukan tanpa penjelasan, lalu mengira aplikasinya rusak | CU-05 wajib memasang kalimat penjelas. Bagian yang hilang begitu saja = cacat UX, bukan penyederhanaan |
