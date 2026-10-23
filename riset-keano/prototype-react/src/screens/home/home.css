@@ -56,9 +56,12 @@
   font-size: var(--fs-caption2); font-weight: 650; box-shadow: 0 0 0 2px var(--surface); }
 .mm-label { font-size: var(--fs-footnote); }
 
-/* ---- My Focus: each row is its own card (outlined, since it sits on the white section card) ---- */
-.hm-cards.rows.react-cupertino-ui-list { display: grid; gap: var(--sp-2); border-radius: 0; background: none; overflow: visible; }
+/* ---- My Focus: each row is its own soft card on the white section card, drawn like the other in-card panels
+   (--fill, no line: .hm-answer, .ev-box). The list stays the library's flex column (width 100%): a grid's auto track
+   grew to the nowrap title and pushed the long rows past the card. ---- */
+.hm-cards.rows.react-cupertino-ui-list { gap: var(--sp-2); border-radius: 0; background: none; overflow: visible; }
 .hm-cards.rows.react-cupertino-ui-list .react-cupertino-ui-list-item,
 .hm-cards.rows.react-cupertino-ui-list .react-cupertino-ui-list-item:first-child,
 .hm-cards.rows.react-cupertino-ui-list .react-cupertino-ui-list-item:last-child {
-  border-bottom: 0; border-radius: var(--radius-card); background: var(--surface); box-shadow: inset 0 0 0 1px var(--separator); }
+  border-bottom: 0; border-radius: var(--radius-card); background: var(--fill); }
+.hm-cards.rows.react-cupertino-ui-list .react-cupertino-ui-list-item > * { --fill: var(--surface-raised); }
