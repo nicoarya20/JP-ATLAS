@@ -7,7 +7,7 @@
  * The real panel (AD-06) reuses `app/components/settings/AuthSettingsCard.tsx` with the technical
  * half (provider wiring) left behind in /dev: an Admin decides policy, not transport.
  */
-import { List, NumberInput, Select, Stack, Switch, TagsInput, Text } from '@mantine/core';
+import { List, NumberInput, Select, Stack, Switch, Text } from '@mantine/core';
 import { useState } from 'react';
 import { FiArrowRight } from 'react-icons/fi';
 import { PratinjauPanel } from '~/components/admin/pratinjau/pratinjau';
@@ -21,7 +21,7 @@ const ROLE_OPTIONS = [
 ];
 
 /** The path a newcomer walks, recomputed from the switches so the policy is readable as a story. */
-function journey(open: boolean, approval: boolean, domains: string[], role: string): string[] {
+function journey(open: boolean, approval: boolean, role: string): string[] {
   const label = ROLE_OPTIONS.find((r) => r.value === role)?.label.split(' — ')[0] ?? 'Member';
   if (!open)
     return [
@@ -31,9 +31,6 @@ function journey(open: boolean, approval: boolean, domains: string[], role: stri
     ];
   return [
     'Orang mengisi form daftar di halaman masuk.',
-    domains.length > 0
-      ? `Email di luar ${domains.join(', ')} ditolak saat itu juga.`
-      : 'Email dari domain mana pun diterima.',
     approval
       ? 'Akun dibuat tetapi terkunci di halaman tunggu sampai Admin menyetujui.'
       : 'Akun langsung aktif tanpa persetujuan siapa pun.',
@@ -44,7 +41,6 @@ function journey(open: boolean, approval: boolean, domains: string[], role: stri
 export function AksesMasukPreview() {
   const [open, setOpen] = useState(true);
   const [approval, setApproval] = useState(true);
-  const [domains, setDomains] = useState<string[]>(['contoh.co.id']);
   const [role, setRole] = useState<string>('member');
   const [expiry, setExpiry] = useState<string | number>(7);
 
@@ -77,14 +73,6 @@ export function AksesMasukPreview() {
               />
             }
           />
-          <TagsInput
-            label="Domain email yang diizinkan"
-            description="Kosongkan untuk menerima domain apa pun. Tekan Enter setelah mengetik satu domain."
-            placeholder="contoh.co.id"
-            value={domains}
-            onChange={setDomains}
-            maw={420}
-          />
           <Select
             label="Peran bawaan pendaftar baru"
             description="Peran bisa diubah per orang di menu Pengguna setelah mereka masuk."
@@ -116,7 +104,7 @@ export function AksesMasukPreview() {
           icon={<FiArrowRight size="1.25em" aria-hidden />}
           styles={{ itemWrapper: { alignItems: 'flex-start' } }}
         >
-          {journey(open, approval, domains, role).map((step) => (
+          {journey(open, approval, role).map((step) => (
             <List.Item key={step}>
               <Text size="sm">{step}</Text>
             </List.Item>
