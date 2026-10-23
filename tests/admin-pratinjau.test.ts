@@ -25,7 +25,6 @@ const PREVIEW_FILES: Record<string, string> = {
   'app/components/admin/home/beranda.content.ts': 'AD-14',
   'app/components/admin/home/beranda.widgets.tsx': 'AD-15',
   'app/components/admin/settings/akses-masuk.tsx': 'AD-06',
-  'app/components/admin/settings/fitur.tsx': 'AD-08',
   'app/components/admin/settings/kebijakan-kerja.tsx': 'AD-07',
   'app/components/admin/settings/pemberitahuan.tsx': 'P9 G-02',
   'app/components/admin/settings/pengumuman.tsx': 'AD-05',
@@ -78,8 +77,8 @@ describe('/dashboard/settings previews', () => {
   });
 
   test('every tab has a real panel or a preview, so no tab is a blank screen', () => {
-    // A filled tab (P13 RD-03 onwards) drops its preview, so the two registers together — never
-    // the preview register alone — must still cover every tab.
+    // A filled tab (P13 RD-03 and RD-09 onwards) drops its preview, so the two registers together
+    // — never the preview register alone — must still cover every tab.
     const covered = SETTINGS_TABS.filter(
       (t) => SETTINGS_PANELS[t.value] || SETTINGS_PREVIEWS[t.value],
     ).map((t) => t.value);

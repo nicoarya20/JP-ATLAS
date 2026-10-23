@@ -129,3 +129,13 @@ export function sameRetention(a: RetentionSettings, b: RetentionSettings): boole
     a.apiUsageDays === b.apiUsageDays
   );
 }
+
+// ── Public read (no role) ────────────────────────────────────────────────────
+
+/** Shape of the unauthenticated `GET /api/settings`: the login page and the Admin Fitur tab read it. */
+export type PublicSettings = AuthSettings & {
+  features: Record<string, boolean>;
+  branding: Branding;
+};
+
+export const fetchPublicSettings = () => request<PublicSettings>(BASE);

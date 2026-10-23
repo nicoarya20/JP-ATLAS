@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { featureLabel } from '@server/features.catalog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
@@ -19,7 +20,15 @@ import { SettingsCard } from './SettingsParts';
 
 const KEY_RE = /^[a-z][a-z0-9_-]{1,49}$/;
 
-/** Named boolean switches readable server-side (isFeatureEnabled) and publicly via GET /api/settings. */
+/**
+ * Named boolean switches readable server-side (isFeatureEnabled) and publicly via GET
+ * /api/settings. The only writer of `app_setting.feature_flags`: Admin reads the same keys in
+ * /dashboard/settings?tab=fitur and has no switch there (plan P13 §3 D5).
+ *
+ * Indonesian names come from `@server/features.catalog`, the file that Admin screen reads too, so
+ * one key cannot end up with two names. A key outside the catalogue — invented here — shows as
+ * the bare key, and the catalogue never deletes it.
+ */
 export function FeatureFlagsCard({ flags }: { flags: FeatureFlag[] }) {
   const qc = useQueryClient();
   const [list, setList] = useState<FeatureFlag[]>(flags);
@@ -68,7 +77,14 @@ export function FeatureFlagsCard({ flags }: { flags: FeatureFlag[] }) {
         {list.map((f, i) => (
           <Group key={f.key} justify="space-between" wrap="nowrap" gap="sm">
             <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
-              <Code>{f.key}</Code>
+              <Group gap="xs" wrap="nowrap">
+                <Code>{f.key}</Code>
+                {featureLabel(f.key) && (
+                  <Text size="xs" c="dimmed" truncate style={{ minWidth: 0 }}>
+                    {featureLabel(f.key)}
+                  </Text>
+                )}
+              </Group>
               <TextInput
                 size="xs"
                 variant="unstyled"

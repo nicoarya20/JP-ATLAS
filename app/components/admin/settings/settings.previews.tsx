@@ -12,7 +12,6 @@
  */
 import type { ComponentType } from 'react';
 import { AksesMasukPreview } from './akses-masuk';
-import { FiturPreview } from './fitur';
 import { KebijakanKerjaPreview } from './kebijakan-kerja';
 import { PemberitahuanPreview } from './pemberitahuan';
 import { PengumumanPreview } from './pengumuman';
@@ -22,5 +21,4 @@ export const SETTINGS_PREVIEWS: Partial<Record<string, ComponentType>> = {
   'akses-masuk': AksesMasukPreview,
   'kebijakan-kerja': KebijakanKerjaPreview,
   pemberitahuan: PemberitahuanPreview,
-  fitur: FiturPreview,
 };
