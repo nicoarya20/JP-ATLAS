@@ -1,11 +1,13 @@
 // Tasks ⑧–⑫ detail actions: Start working, Mark done, Request review, Approve, Return and Reopen change the task's
 // status through tasks.store, log it in Chat & history and reopen the same task on the screen for its new status.
-// Return and Cancel need a reason; Cancel takes the task out of every list and into Archive.
+// Return and Cancel need a reason; Cancel keeps the task in place marked Canceled (Restore brings it back), while
+// ⋯ › Move to Archive takes it out of every list into Archive with an Undo.
 import { afterEach, describe, expect, it } from 'vitest';
 import { fireEvent, screen as dom, within } from '@testing-library/react';
 import '../screens';
 import { D } from '../data/sample';
 import { note } from '../screens/tasks/tasks.shared';
+import { STATUSES, applyQuery, queryOf } from '../screens/tasks/tasks.query';
 import { resetTasks } from '../screens/tasks/tasks.store';
 import { renderApp } from './render';
 
@@ -121,31 +123,91 @@ describe('Cancel sheet', () => {
     expect(send).toBeEnabled();
   });
 
-  it('moves the task out of the lists and into Archive, then closes the detail', () => {
+  it('marks the task Canceled in place, logs why and shows Restore instead of the actions', () => {
     const sheet = open(14);
     fireEvent.click(sheet.getByRole('radio', { name: 'No longer needed' }));
     fireEvent.click(sheet.getByRole('button', { name: 'Cancel task' }));
-    expect(D.tasks.some(t => t.no === 14)).toBe(false);
-    expect(D.archive[0]).toMatchObject({ kind: 'TASK', title: '#14 Write the API spec', by: 'Nico', date: 'Oct 7' });
+    expect(D.task(14).status).toBe('Canceled');
+    expect(D.tasks.some(t => t.no === 14)).toBe(true);
+    expect(D.archive.some(a => a.task === 14)).toBe(false);
     expect(D.taskDetail[14].history.at(-1)[0]).toBe('Nico canceled this task: No longer needed');
-    expect(window.location.hash).toBe('#tasks.all');
+    expect(window.location.hash).toBe('#tasks.detail-todo');
+    expect(heading(14)).toBeInTheDocument();
+    expect(dom.getByText('Canceled by Nico: No longer needed')).toBeInTheDocument();
+    expect(dom.queryByRole('button', { name: 'Start working' })).not.toBeInTheDocument();
+    expect(dom.getByText('Task canceled')).toBeInTheDocument();
+  });
+
+  it('leaves a canceled task only Move to Archive in the ⋯ menu', () => {
+    const sheet = open(14);
+    fireEvent.click(sheet.getByRole('radio', { name: 'Created by mistake' }));
+    fireEvent.click(sheet.getByRole('button', { name: 'Cancel task' }));
+    fireEvent.click(btn('Task actions'));
+    expect(within(dom.getByRole('menu')).getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Move to Archive']);
+  });
+
+  it('Restore puts a canceled task back to To do', () => {
+    const sheet = open(14);
+    fireEvent.click(sheet.getByRole('radio', { name: 'No longer needed' }));
+    fireEvent.click(sheet.getByRole('button', { name: 'Cancel task' }));
+    tap('Restore');
+    expect(D.task(14).status).toBe('To do');
+    expect(D.taskDetail[14].canceled).toBeUndefined();
+    expect(within(history()).getByText('Nico restored this task')).toBeInTheDocument();
+    expect(btn('Start working')).toBeInTheDocument();
+  });
+
+  it('hides canceled tasks from the default lists; the Canceled filter shows them', () => {
+    const sheet = open(14);
+    fireEvent.click(sheet.getByRole('radio', { name: 'No longer needed' }));
+    fireEvent.click(sheet.getByRole('button', { name: 'Cancel task' }));
+    expect(applyQuery(D.tasks, queryOf({}, false)).some(t => t.no === 14)).toBe(false);
+    expect(applyQuery(D.tasks, queryOf({ status: STATUSES.indexOf('Canceled') }, false)).map(t => t.no)).toEqual([14]);
+  });
+});
+
+describe('Move to Archive', () => {
+  const archive = (no, role = 'pm') => {
+    detail(no, role);
+    fireEvent.click(btn('Task actions'));
+    fireEvent.click(within(dom.getByRole('menu')).getByRole('menuitem', { name: 'Move to Archive' }));
+  };
+
+  it('takes the task out of every list into Archive with no dialog, then offers Undo on All tasks', () => {
+    archive(14);
+    expect(dom.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(D.tasks.some(t => t.no === 14)).toBe(false);
+    expect(D.archive[0]).toMatchObject({ kind: 'TASK', title: '#14 Write the API spec', by: 'Nico', date: 'Oct 7', task: 14 });
+    expect(window.location.hash).toBe('#archive.undo');
     expect(dom.queryByText('Write the API spec')).not.toBeInTheDocument();
     expect(dom.getByText('Task moved to Archive')).toBeInTheDocument();
   });
 
-  it('lists the canceled task in Archive', () => {
-    open(14);
-    fireEvent.click(dom.getByRole('radio', { name: 'Created by mistake' }));
-    fireEvent.click(within(dom.getByRole('dialog')).getByRole('button', { name: 'Cancel task' }));
+  it('Undo puts the task back where it was', () => {
+    const order = D.tasks.map(t => t.no);
+    archive(14);
+    tap('Undo');
+    expect(D.tasks.map(t => t.no)).toEqual(order);
+    expect(D.archive.some(a => a.task === 14)).toBe(false);
+    expect(window.location.hash).toBe('#tasks.all');
+    expect(dom.getByText('Write the API spec')).toBeInTheDocument();
+  });
+
+  it('lists the archived task in Archive', () => {
+    archive(14);
     renderApp('archive.list', 'pm');
     expect(dom.getAllByText('#14 Write the API spec')[0]).toBeInTheDocument();
   });
 
+  it('is offered to a Member only on tasks they created', () => {
+    detail(16, 'member');
+    fireEvent.click(btn('Task actions'));
+    expect(within(dom.getByRole('menu')).queryByRole('menuitem', { name: 'Move to Archive' })).not.toBeInTheDocument();
+  });
+
   it('comes back in place after a reset', () => {
     const order = D.tasks.map(t => t.no);
-    const sheet = open(14);
-    fireEvent.click(sheet.getByRole('radio', { name: 'No longer needed' }));
-    fireEvent.click(sheet.getByRole('button', { name: 'Cancel task' }));
+    archive(14);
     resetTasks();
     expect(D.tasks.map(t => t.no)).toEqual(order);
     expect(D.archivedTasks).toHaveLength(0);

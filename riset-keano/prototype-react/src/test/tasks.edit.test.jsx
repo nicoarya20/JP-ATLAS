@@ -1,4 +1,4 @@
-// Tasks ⑧b Edit task: the detail ⋯ (label colour, not the accent) opens Edit task / Cancel task; Edit task changes
+// Tasks ⑧b Edit task: the detail ⋯ (label colour, not the accent) opens Edit task / Cancel task / Move to Archive; Edit task changes
 // every field the detail shows and Save writes them back, so the detail and the lists show the new values.
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, screen as dom, within } from '@testing-library/react';
@@ -23,12 +23,12 @@ function detail(no, role = 'pm') {
 afterEach(resetTasks);
 
 describe('task detail ⋯ menu', () => {
-  it('is a plain ⋯ icon button that opens Edit task and Cancel task', () => {
+  it('is a plain ⋯ icon button that opens Edit task, Cancel task and Move to Archive', () => {
     detail(14);
     expect(dots()).toHaveClass('menu-btn');
     expect(dots()).toHaveAttribute('aria-expanded', 'false');
     const m = menu();
-    expect(m.getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task', 'Cancel task']);
+    expect(m.getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task', 'Cancel task', 'Move to Archive']);
     fireEvent.click(m.getByRole('menuitem', { name: 'Cancel task' }));
     expect(within(dom.getByRole('dialog')).getByText(`#14 ${D.task(14).title}`)).toBeInTheDocument();
   });
@@ -58,10 +58,10 @@ describe('task detail ⋯ menu', () => {
 
   it('keeps the ⋯ for a PM on a task assigned to someone else', () => {
     detail(15);
-    expect(menu().getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task', 'Cancel task']);
+    expect(menu().getAllByRole('menuitem').map(b => b.textContent)).toEqual(['Edit task', 'Cancel task', 'Move to Archive']);
   });
 
-  it('gives a Member Edit task and Cancel task on their own task in every status', () => {
+  it('gives a Member Edit task and Cancel task, but not Move to Archive, on their own task they did not create', () => {
     for (const no of [16, 17]) {
       cleanup();
       detail(no, 'member');

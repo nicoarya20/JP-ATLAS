@@ -42,7 +42,10 @@ export const note = t => {
   return isMe(r) ? 'Waiting for my review' : `Awaiting review by ${r}`;
 };
 
-/** Detail screen per status; Done shares the In progress screen, which shows the real status. */
+/** Done and Canceled tasks are closed: lists hide them unless a status filter picks them, and they count as no one's work. */
+export const isOpen = t => t.status !== 'Done' && t.status !== 'Canceled';
+
+/** Detail screen per status; Canceled opens on the To do screen, which shows the real status. Done shares the In progress screen, which shows the real status. */
 export const detailOf = t => (t.status === 'In review' ? 'tasks.detail-review'
   : t.status === 'In progress' || t.status === 'Done' ? 'tasks.detail-progress' : 'tasks.detail-todo');
 
@@ -55,6 +58,6 @@ export function pick(params, id, fallback) {
 /** Extras of a task; one without D.taskDetail only gets who created it (its project lead), nothing invented. */
 export function info(no) {
   if (D.taskDetail[no]) return { proof: [], ...D.taskDetail[no] };
-  const lead = D.projects.find(p => p.name === D.task(no).project).lead;
+  const lead = [...D.projects, ...D.archivedProjects].find(p => p.name === D.task(no).project).lead;
   return { desc: '', by: lead, steps: [], proof: [], history: [[`${lead} created this task`, '']] };
 }

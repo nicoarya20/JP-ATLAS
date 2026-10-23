@@ -1,6 +1,7 @@
-// Task changes: a Kanban move or a detail action (Start working, Mark done, Request review, Approve, Return, Reopen) writes
-// the new status, the ⋯ › Edit task form writes its fields into the sample task (and its D.taskDetail extras), New task ·
-// Fill form adds a task and Cancel task moves it to Archive, so the board, the lists and the detail all show them.
+// Task changes: a Kanban move or a detail action (Start working, Mark done, Request review, Approve, Return, Reopen,
+// Restore) writes the new status, the ⋯ › Edit task form writes its fields into the sample task (and its D.taskDetail
+// extras), New task · Fill form adds a task, Cancel task is a move to Canceled (the task stays in place) and Move to Archive takes it out of
+// every list into Archive (a project moved to Archive takes its tasks along), so the board, the lists and the detail all show them.
 // Readers re-render through useTaskMoves(); a page reload brings the sample back.
 import { useSyncExternalStore } from 'react';
 import { D } from '../../data/sample';
@@ -22,6 +23,7 @@ const notify = () => { version += 1; listeners.forEach(fn => fn()); };
 /** Due note after a move: Done today, else the sample note, or one from the due date for a task that started Done. */
 function whenOf(t, status) {
   if (status === 'Done') return `Done ${TODAY_LABEL}`;
+  if (status === 'Canceled') return `Canceled ${TODAY_LABEL}`;
   const o = ORIGINAL.get(t.no);
   if (o.status !== 'Done') return o.when;
   const d = days(t.due);
@@ -47,14 +49,51 @@ export function moveTask(no, status, { log, extras } = {}) {
   notify();
 }
 
-/** Cancel task #no (Tasks ⑫): it leaves every list, its history logs why, and Archive lists it as archived by `by`. */
-export function cancelTask(no, reason, by) {
+/** Move task #no to Archive: it leaves every list and Archive lists it as archived by `by`, until Undo or Restore. */
+export function archiveTask(no, by) {
   const i = D.tasks.findIndex(t => t.no === no);
-  if (i < 0) throw new Error(`Cannot cancel task #${no}: not in the task lists`);
+  if (i < 0) throw new Error(`Cannot archive task #${no}: not in the task lists`);
   const [t] = D.tasks.splice(i, 1);
   D.archivedTasks.push(t);
-  record(no, `${by} canceled this task: ${reason}`);
-  D.archive.unshift({ kind: 'TASK', title: `#${no} ${t.title}`, where: t.project, by, date: TODAY_LABEL, task: no });
+  record(no, `${by} moved this task to Archive`);
+  D.archive.unshift({ kind: 'TASK', title: `#${no} ${t.title}`, where: t.project, by, date: TODAY_LABEL, task: no, at: i });
+  notify();
+}
+
+/** Undo / Restore of archived task #no: back in the lists where it was. */
+export function unarchiveTask(no) {
+  const e = D.archive.findIndex(a => a.task === no);
+  const a = D.archivedTasks.findIndex(t => t.no === no);
+  if (e < 0 || a < 0) throw new Error(`Cannot restore task #${no}: not in Archive`);
+  const [entry] = D.archive.splice(e, 1);
+  D.tasks.splice(Math.min(entry.at, D.tasks.length), 0, D.archivedTasks.splice(a, 1)[0]);
+  notify();
+}
+
+/**
+ * Take every listed task of project `name` out of the lists into D.archivedTasks (the project moves to Archive).
+ * Returns [index, task] pairs, which putTasksBack needs to put them back where they were.
+ */
+export function takeProjectTasks(name) {
+  const taken = D.tasks.map((t, i) => [i, t]).filter(([, t]) => t.project === name);
+  [...taken].reverse().forEach(([i]) => D.tasks.splice(i, 1));
+  D.archivedTasks.push(...taken.map(([, t]) => t));
+  notify();
+  return taken;
+}
+
+/** Put tasks taken by takeProjectTasks back at their places (the project came back from Archive). */
+export function putTasksBack(taken) {
+  taken.forEach(([i, t]) => {
+    D.archivedTasks.splice(D.archivedTasks.indexOf(t), 1);
+    D.tasks.splice(Math.min(i, D.tasks.length), 0, t);
+  });
+  notify();
+}
+
+/** A project was renamed: its tasks, listed and archived, follow the new name. */
+export function renameProjectTasks(from, to) {
+  [...D.tasks, ...D.archivedTasks].filter(t => t.project === from).forEach(t => { t.project = to; });
   notify();
 }
 
@@ -93,7 +132,7 @@ export function addTask(fields, extras, creator) {
   return no;
 }
 
-/** Every task and its extras back to the sample; added tasks are dropped, canceled ones come back. test-only */
+/** Every task and its extras back to the sample; added tasks are dropped, archived ones come back. test-only */
 export function resetTasks() {
   const all = new Map([...D.tasks, ...D.archivedTasks].map(t => [t.no, t]));
   D.tasks.splice(0, D.tasks.length, ...[...ORIGINAL.keys()].map(no => all.get(no)));

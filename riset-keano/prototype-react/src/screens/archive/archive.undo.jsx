@@ -1,19 +1,30 @@
-// Archive ③ Undo after archive: the Events list with an Undo snackbar for the event just archived (screen params
-// {event}). Undo puts it back and leaves the plain list; opened with nothing archived, there is no snackbar.
+// Archive ③ Undo after archive: the list the archived item came from, with an Undo snackbar for it (screen params
+// {event} or {task}). Undo puts it back and leaves the plain list; opened with nothing archived, there is no
+// snackbar (the Events list, as before).
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Snack } from '../../kit';
 import { EventsList } from '../events/events.list';
 import { restoreEvent } from '../events/events.store';
+import { TasksAll } from '../tasks/tasks.list';
+import { unarchiveTask } from '../tasks/tasks.store';
+
+/** Per kind: the params key, the list it lands on, how Undo puts it back, and the snackbar and toast texts. */
+const KINDS = [
+  { key: 'task', List: TasksAll, list: 'tasks.all', restore: unarchiveTask, moved: 'Task moved to Archive', back: 'Task restored' },
+  { key: 'event', List: EventsList, list: 'events.list', restore: restoreEvent, moved: 'Event moved to Archive', back: 'Event restored' },
+];
 
 export default function ArchiveUndo() {
   const { params, go, toast } = useApp();
-  const id = params.event;
-  const archived = id != null && D.archive.some(a => a.event === id);
+  const k = KINDS.find(x => params[x.key] != null) || KINDS.at(-1);
+  const id = params[k.key];
+  const archived = id != null && D.archive.some(a => a[k.key] === id);
   const undo = () => {
-    restoreEvent(id);
-    toast('Event restored');
-    go('events.list', { top: true });
+    k.restore(id);
+    toast(k.back);
+    go(k.list, { top: true });
   };
-  return <EventsList overlay={archived && <Snack action="Undo" onAction={undo}>Event moved to Archive</Snack>} />;
+  const { List } = k;
+  return <List params={{}} overlay={archived && <Snack action="Undo" onAction={undo}>{k.moved}</Snack>} />;
 }

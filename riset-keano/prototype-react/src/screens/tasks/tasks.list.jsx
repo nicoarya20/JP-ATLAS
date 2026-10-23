@@ -59,9 +59,9 @@ function MyCard({ t }) {
   );
 }
 
-const GROUPS = ['Overdue', 'Today', 'Tomorrow', 'This week', 'Later', 'Done'];
+const GROUPS = ['Overdue', 'Today', 'Tomorrow', 'This week', 'Later', 'Done', 'Canceled'];
 const weekLeft = (7 - TODAY.getDay()) % 7;
-const groupOf = t => { const d = days(t.due); return t.status === 'Done' ? 5 : d < 0 ? 0 : d <= 1 ? d + 1 : d <= weekLeft ? 3 : 4; };
+const groupOf = t => { const d = days(t.due); return t.status === 'Canceled' ? 6 : t.status === 'Done' ? 5 : d < 0 ? 0 : d <= 1 ? d + 1 : d <= weekLeft ? 3 : 4; };
 
 /** Shown when the query leaves a list empty: Reset filters re-opens the list with its default query. */
 export function NoMatch() {
@@ -95,8 +95,9 @@ export function TasksMy({ params }) {
   );
 }
 
-/** ② All tasks — checkbox for bulk select, card opens the detail. Scoped to the Atlas project until the filter changes it. */
-export function TasksAll({ params }) {
+/** ② All tasks — checkbox for bulk select, card opens the detail. Scoped to the Atlas project until the filter changes it.
+ *  overlay renders inside the screen (Archive ③ puts its Undo <Snack> there). */
+export function TasksAll({ params, overlay }) {
   const q = queryOf(params, false);
   const list = applyQuery(D.tasks, q);
   return (
@@ -118,6 +119,7 @@ export function TasksAll({ params }) {
           </div>
         </Section>
       ))}
+      {overlay}
     </ListScreen>
   );
 }
