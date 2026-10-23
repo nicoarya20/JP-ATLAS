@@ -1,7 +1,9 @@
 import { Group, ScrollArea, Stack, Tabs, Text, Title } from '@mantine/core';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
+import { brandingForEditor } from '@server/settings-branding';
 import { useSearchParams } from 'react-router';
+import type { IdentitasData } from '~/components/admin/settings/identitas.panel';
 import { SETTINGS_PANELS } from '~/components/admin/settings/panels';
 import { SETTINGS_PREVIEWS } from '~/components/admin/settings/settings.previews';
 import {
@@ -23,21 +25,33 @@ export function meta() {
  * content (`settings.previews.tsx`), else the placeholder from `settings.tabs.ts`. The guard is
  * repeated here on purpose — React Router runs the layout and page loaders in parallel, so the
  * layout guard does not cover this page's data.
+ *
+ * The loader carries what the filled tabs need. Identitas (RD-03) is read here rather than from
+ * the API because `GET /api/settings/all` stays super-admin: an Admin writes branding but may not
+ * read the whole overview.
  */
 export async function loader({ request }: Route.LoaderArgs) {
   await requireAnyRole(request, [ROLES.ADMIN, ROLES.SUPER_ADMIN]);
-  return null;
+  const branding: IdentitasData = await brandingForEditor();
+  return { branding };
 }
 
-/** Switching tab only changes `?tab=`, and no panel reads the loader, so skip the reload. */
+/**
+ * Switching tab only changes `?tab=`, so skip that reload. An explicit revalidate (a panel just
+ * saved) leaves the URL untouched and must still go through, or the form would keep showing the
+ * values from before the save.
+ */
 export function shouldRevalidate({
   currentUrl,
   nextUrl,
+  defaultShouldRevalidate,
 }: {
   currentUrl: URL;
   nextUrl: URL;
+  defaultShouldRevalidate: boolean;
 }): boolean {
-  return currentUrl.pathname !== nextUrl.pathname;
+  if (currentUrl.pathname !== nextUrl.pathname) return true;
+  return currentUrl.search === nextUrl.search && defaultShouldRevalidate;
 }
 
 export default function AdminSettingsPage() {

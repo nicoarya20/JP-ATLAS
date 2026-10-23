@@ -35,6 +35,17 @@ export async function getBranding(): Promise<Branding> {
   return effectiveBranding(parseBranding(await readSettingsRow()));
 }
 
+/**
+ * Stored overrides plus the built-in defaults, for the screens that *edit* branding — they need to
+ * tell "Default" from "Diubah" per field, which the effective values can no longer show.
+ */
+export async function brandingForEditor(): Promise<{
+  settings: BrandingSettings;
+  defaults: Branding;
+}> {
+  return { settings: parseBranding(await readSettingsRow()), defaults: BRANDING_DEFAULTS };
+}
+
 export async function upsertBranding(s: BrandingSettings): Promise<BrandingSettings> {
   await upsertSettingsRow({
     appName: s.appName?.trim() || null,
