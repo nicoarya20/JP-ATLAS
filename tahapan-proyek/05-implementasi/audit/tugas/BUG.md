@@ -17,7 +17,7 @@
 ## Kritis
 
 ### T-01 — Tenggat tugas jadi "—" dan warna "terlambat" hilang
-**Bukti:** Terkonfirmasi · **Status:** terbuka · **Ukuran:** S · **Akar sama dengan** [`PRJ-01`](../proyek/BUG.md)
+**Bukti:** Terkonfirmasi · **Status:** selesai (`parseDate: false` di `app/lib/eden.ts`; tes kontrak `tests/eden-date-contract.test.ts`) · **Ukuran:** S · **Akar sama dengan** [`PRJ-01`](../proyek/BUG.md)
 
 - **Gejala:** baris tugas yang diambil klien menampilkan tenggat **"—"** (seharusnya mis. "5 Okt 2026 · terlambat 2 hari") dan kehilangan warna terlambat. Terjadi pada **semua baris "Tugas saya"** (selalu diambil klien tanpa seed), hasil ganti filter/urutan, "Tampilkan lebih banyak", kartu sorotan proyek, dan **header detail tugas setelah aksi pertama** (semua aksi meng-invalidate `taskKeys.all`, `staleTime` 30 detik). Hanya halaman pertama dari SSR yang benar.
 - **Penyebab:** klien Eden mengubah teks `YYYY-MM-DD` dan ISO instan menjadi objek `Date` (`app/lib/eden.ts:13`, `treaty<Api>(baseUrl())` tanpa `parseDate:false`). `describeDue` memeriksa `ISO_DATE_RE.test(Date)` → gagal. Tes UI tidak menangkapnya karena memakai teks dan tidak melewati Eden.
@@ -27,13 +27,13 @@
 ## Tinggi
 
 ### T-02 — Riwayat tugas salah tulis, bahkan bisa membuat seluruh riwayat error
-**Bukti:** Terkonfirmasi · **Status:** terbuka · **Ukuran:** S (selesai oleh T-01 + tes)
+**Bukti:** Terkonfirmasi · **Status:** selesai oleh T-01 · **Ukuran:** S (selesai oleh T-01 + tes)
 
 - **Gejala 1:** riwayat menulis **"mengubah tenggat (dikosongkan)"** padahal tenggat diubah.
 - **Gejala 2:** **komentar yang isinya hanya tanggal** (mis. `05/10/2026`, `2026-10-05`) menjadi `Date` → `splitLinks` melempar `text.matchAll is not a function` → bagian "Obrolan & riwayat" crash untuk **semua orang yang membuka tugas itu**. Judul atau langkah yang persis berupa tanggal berisiko sama (React child object).
 - **Penyebab:** akibat T-01 pada payload `due_date_changed {from,to}` → `str()` mengembalikan null.
 - **Berkas:** `app/components/tasks/task-timeline.ts:41-49,20-38`, `TimelineText.tsx`.
-- **Perbaikan:** selesai oleh T-01; tambah tes untuk judul/komentar/langkah berbentuk tanggal.
+- **Perbaikan:** selesai oleh T-01. `tests/eden-date-contract.test.ts` menjaga keduanya: riwayat tenggat kini berbunyi "mengubah tenggat dari 5 Okt 2026 ke 12 Okt 2026", dan komentar yang isinya persis tanggal tetap teks sehingga `splitLinks` tidak melempar.
 
 ## Sedang
 

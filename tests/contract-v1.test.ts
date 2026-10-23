@@ -47,7 +47,10 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/metrics/condition.ts':
     'ConditionInput ConditionMilestone ConditionOverride ConditionReason ConditionResult ConditionTask activeOverride computeCondition formatConditionReason',
   'server/metrics/config.ts': 'METRICS',
-  'server/metrics/dates.ts': 'IsoDate diffDays isoDateIn',
+  // PD-01 addition (contract-v1 §2 "menambah"): the sane calendar range both the write services and
+  // every date input read, so a mistyped year cannot reach the project timeline. Nothing renamed.
+  'server/metrics/dates.ts':
+    'CALENDAR_DATE_MAX CALENDAR_DATE_MIN CALENDAR_YEAR_MAX CALENDAR_YEAR_MIN IsoDate diffDays isInCalendarRange isoDateIn',
   'server/metrics/project.metrics.ts':
     'ElapsedResult MilestoneState ProgressResult elapsed milestoneState progress',
   'server/metrics/schedule.ts':
