@@ -5,6 +5,11 @@
  * tool out) with the panel of `?tab=` and a list that scrolls sideways instead of wrapping (six
  * tabs fit a laptop but never 375px). A tab resolves in three steps — registered panel, else the
  * preview that shows its shape with sample content, else the bare placeholder.
+ *
+ * Since P13 RD-03 the first tab is a real panel fed by the page loader, so the harness below hands
+ * the static route the loader data the page gets in the app. Which tab is open is read from the
+ * markup (the hidden panels render empty), not from the placeholder text, so the next panel to
+ * land does not break these tests.
  */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
@@ -16,6 +21,7 @@ import { isPlaceholderTab, SETTINGS_PANELS } from '../../app/components/admin/se
 import { SETTINGS_PREVIEWS } from '../../app/components/admin/settings/settings.previews';
 import { SETTINGS_TABS } from '../../app/components/admin/settings/settings.tabs';
 import AdminSettingsPage, { loader } from '../../app/routes/admin/settings';
+import { BRANDING_DEFAULTS } from '../../server/settings-branding';
 import { installAuthSpies } from '../support/auth';
 import { createCleaner } from '../support/cleanup';
 import { createUserFactory } from '../support/factory.user';
@@ -45,9 +51,25 @@ async function redirectOf(): Promise<{ status: number; to: string | null } | nul
   }
 }
 
-/** Renders the page at `?tab=…` under a static router, like React Router does on the server. */
-async function renderAt(search: string): Promise<string> {
-  const handler = createStaticHandler([{ id: 'page', path: PATH, Component: AdminSettingsPage }]);
+/** The route id the real app gives this page; a panel reads the loader data by this name. */
+const ROUTE_ID = 'routes/admin/settings';
+
+/** Loader data with no branding override stored, which is what a fresh install looks like. */
+const DEFAULT_LOADER_DATA = {
+  branding: {
+    settings: { appName: null, appTagline: null, supportUrl: null },
+    defaults: BRANDING_DEFAULTS,
+  },
+};
+
+/**
+ * Renders the page at `?tab=…` under a static router, like React Router does on the server.
+ * `data` is what the page loader returns; `null` stands for a panel rendered without it.
+ */
+async function renderAt(search: string, data: unknown = DEFAULT_LOADER_DATA): Promise<string> {
+  const handler = createStaticHandler([
+    { id: ROUTE_ID, path: PATH, Component: AdminSettingsPage, loader: () => data },
+  ]);
   const context = await handler.query(new Request(`http://localhost${PATH}${search}`));
   if (context instanceof Response) throw new Error(`Unexpected redirect ${context.status}`);
   const router = createStaticRouter(handler.dataRoutes, context);
@@ -60,6 +82,18 @@ async function renderAt(search: string): Promise<string> {
       </MantineProvider>
     </QueryClientProvider>,
   );
+}
+
+/**
+ * The `?tab=` value of the tab actually on screen. `keepMounted={false}` still renders a div per
+ * tab, but only the open one has children and the rest carry `display:none` — so this reads which
+ * tab opened without depending on any text inside it.
+ */
+function openTabsOf(html: string): string[] {
+  return [...html.matchAll(/<div[^>]*role="tabpanel"[^>]*>/g)]
+    .map((m) => m[0])
+    .filter((tag) => !tag.includes('display:none'))
+    .map((tag) => /-panel-([a-z-]+)"/.exec(tag)?.[1] ?? '');
 }
 
 describe('/dashboard/settings guard', () => {
@@ -102,18 +136,20 @@ describe('/dashboard/settings shell', () => {
   });
 
   it('opens the first tab when ?tab= is missing or unknown', async () => {
-    const first = SETTINGS_TABS[0];
     for (const search of ['', '?tab=tidak-ada']) {
-      const html = await renderAt(search);
-      expect(shows(html, first.title)).toBe(true);
-      expect(shows(html, SETTINGS_TABS[1].title)).toBe(false);
+      expect(openTabsOf(await renderAt(search))).toEqual([SETTINGS_TABS[0].value]);
     }
   });
 
   it('opens the tab named by ?tab=, so every tab is linkable', async () => {
-    // A tab that is not filled for real — preview or placeholder — names the task that owns it,
-    // and the owners are unique, so the owner string says which tab opened. Naming a title would
-    // break the moment a panel lands; `keepMounted={false}` keeps the other tabs out of the markup.
+    for (const target of SETTINGS_TABS) {
+      expect(openTabsOf(await renderAt(`?tab=${target.value}`))).toEqual([target.value]);
+    }
+  });
+
+  it('shows no other tab content alongside the one that is open', async () => {
+    // A tab not yet filled names the task that owns it, and the owners are unique, so an owner
+    // string in the markup is the fingerprint of a tab that leaked into another tab's panel.
     for (const target of SETTINGS_TABS.filter((t) => isPlaceholderTab(t.value))) {
       const html = await renderAt(`?tab=${target.value}`);
       expect(shows(html, target.owner)).toBe(true);
@@ -137,6 +173,27 @@ describe('/dashboard/settings shell', () => {
         expect(shows(html, tab.description)).toBe(true);
       }
     }
+  });
+
+  it('Identitas renders the branding form from the loader, not a preview (P13 RD-03)', async () => {
+    const html = await renderAt('?tab=identitas', {
+      branding: {
+        settings: { appName: 'Koperasi Maju', appTagline: null, supportUrl: null },
+        defaults: BRANDING_DEFAULTS,
+      },
+    });
+    expect(shows(html, 'Nama aplikasi')).toBe(true);
+    expect(shows(html, 'Simpan branding')).toBe(true);
+    // The stored value is in the form, and the built-in default is only the placeholder.
+    expect(html.includes('value="Koperasi Maju"')).toBe(true);
+    expect(html.includes(`placeholder="${BRANDING_DEFAULTS.appName}"`)).toBe(true);
+    expect(shows(html, PRATINJAU_COPY.title)).toBe(false);
+  });
+
+  it('says so instead of showing an empty form when the loader data is missing', async () => {
+    const html = await renderAt('?tab=identitas', null);
+    expect(shows(html, 'Identitas belum bisa dimuat')).toBe(true);
+    expect(shows(html, 'Simpan branding')).toBe(false);
   });
 
   it('keeps the tab list on one scrollable line instead of wrapping', async () => {

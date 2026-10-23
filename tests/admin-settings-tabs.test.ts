@@ -62,6 +62,11 @@ describe('/dashboard/settings tabs', () => {
     }
   });
 
+  test('Identitas is a real panel now, not a placeholder (P13 RD-03)', () => {
+    expect(SETTINGS_PANELS.identitas).toBeDefined();
+    expect(isPlaceholderTab('identitas')).toBe(false);
+  });
+
   test('the owners are the tasks assigned by the plan', () => {
     expect(SETTINGS_TABS.map((t) => t.owner)).toEqual([
       'AD-04',
