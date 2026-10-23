@@ -29,7 +29,7 @@ describe('projects filter & sort', () => {
     const sheet = openFilter();
     expect(dom.getByRole('dialog')).toHaveClass('fs');
     expect(sheet.getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual(['Status', 'Health', 'Sort by']);
-    expect(field(sheet, 'Status').getAllByRole('button').map(b => b.textContent)).toEqual(['All', 'Active', 'On hold', 'Done', 'Draft']);
+    expect(field(sheet, 'Status').getAllByRole('button').map(b => b.textContent)).toEqual(['All', 'Active', 'On hold', 'Done', 'Draft', 'Canceled']);
     expect(field(sheet, 'Health').getAllByRole('button').map(b => b.textContent)).toEqual(['All', 'Needs attention', 'Overdue', 'On track']);
     expect(sheet.getByRole('radio', { name: 'Nearest deadline' })).toBeChecked();
     fireEvent.click(sheet.getByRole('button', { name: 'Close' }));

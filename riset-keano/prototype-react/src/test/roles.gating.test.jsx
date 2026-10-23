@@ -1,7 +1,7 @@
 // Role gating (audit step 3): a Member moves, edits and cancels only their own tasks, and sees the project detail
 // without the Manager tools (⋯ project settings, phase actions, + Milestone, + Phase). Managers keep all of them.
 import { afterEach, describe, expect, it } from 'vitest';
-import { fireEvent, render, screen as dom } from '@testing-library/react';
+import { fireEvent, render, screen as dom, within } from '@testing-library/react';
 import '../screens';
 import { AppProvider } from '../core/app.context';
 import { setRole } from '../core/session';
@@ -60,18 +60,21 @@ describe('task detail per role', () => {
 });
 
 describe('project detail per role', () => {
-  it('a Member sees no ⋯ project settings, phase actions, + Milestone or + Phase', () => {
+  it('a Member sees no ⋯ project actions, phase actions, + Milestone or + Phase', () => {
     renderApp('projects.phases', 'member');
-    expect(btn('Project settings')).not.toBeInTheDocument();
+    expect(btn('Project actions')).not.toBeInTheDocument();
     ['Complete phase', 'Start phase', '+ Phase', '+ Milestone'].forEach(name => expect(btn(name)).not.toBeInTheDocument());
     expect(dom.getAllByText('Milestone').length).toBe(D.atlas.phases.length);
   });
 
-  it('a Manager keeps ⋯ (opening Project settings) and every phase action', () => {
+  it('a Manager keeps ⋯ (Edit project, Project settings, Move to Archive) and every phase action', () => {
     renderApp('projects.phases', 'pm');
     ['Complete phase', 'Start phase', '+ Phase'].forEach(name => expect(btn(name)).toBeInTheDocument());
     expect(dom.getAllByRole('button', { name: '+ Milestone' }).length).toBe(D.atlas.phases.length);
-    fireEvent.click(btn('Project settings'));
+    fireEvent.click(btn('Project actions'));
+    const items = within(dom.getByRole('menu')).getAllByRole('menuitem');
+    expect(items.map(b => b.textContent)).toEqual(['Edit project', 'Project settings', 'Move to Archive']);
+    fireEvent.click(items[1]);
     expect(window.location.hash).toBe('#tasks.settings');
   });
 });
