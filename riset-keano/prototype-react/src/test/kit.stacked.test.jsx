@@ -70,6 +70,8 @@ describe('stacked tab screens', () => {
     expect(rule('.stk-edge::before')).toMatch(/border-top: 1px solid var\(--separator\)/);
     // Opaque part measured from the border box, so it ends with the 12 px edge instead of 1 px past it (under the hairline)
     expect(rule('.stk-edge::before')).toMatch(/linear-gradient\(var\(--bg\) var\(--sp-3\), transparent 0\) border-box/);
+    // Corner fill lifted so it stops at the box's bottom: below it, the clip's edge drew a line across the avatars
+    expect(rule('.stk-edge::before')).toMatch(/box-shadow: 0 -24px 0 24px var\(--surface\)/);
   });
 
   it('compacts the pinned stat row step by step with the scroll past the search, and back', async () => {

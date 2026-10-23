@@ -14,13 +14,15 @@
    edge: a first row that reaches up into the gap (the Projects people row's -4 px margin, room for the picked avatar's
    ring) was cut off by the opaque edge. The corners' curve runs 24 px deep, past the opaque 12 px: the ::before draws it
    24 px tall and see-through below 12 px so the content shows there, its shadow fills the outer corners with surface
-   and the clip-path keeps that shadow inside its own box. The gradient runs from the border box: from the padding box
+   and the clip-path keeps that shadow inside its own box. The shadow is lifted 24 px so it ends at the box's bottom:
+   unlifted it ran 24 px past it, and on a fractional pixel the clip's edge let one blended row of it show as a dark
+   line across the row under the edge (the Projects avatars). The gradient runs from the border box: from the padding box
    (default) it started under the 1 px hairline, so the opaque part ran 1 px past the edge and cut the ring's top again.
    Not tappable: taps reach the content under it. */
 .stk-edge { position: sticky; top: 0; z-index: 2; height: var(--sp-3); pointer-events: none; }
 .stk-edge::before { content: ""; position: absolute; inset: 0 0 auto; height: 24px; border-radius: 24px 24px 0 0;
   border-top: 1px solid var(--separator); background: linear-gradient(var(--bg) var(--sp-3), transparent 0) border-box;
-  box-shadow: 0 0 0 24px var(--surface); clip-path: inset(0); }
+  box-shadow: 0 -24px 0 24px var(--surface); clip-path: inset(0); }
 /* Pinned row (StackedScreen pinned): takes over the sheet's rounded top edge and sticks with it under the header.
    --stk-q (0..1, set by useSearchCollapse) = how far it has compacted; --stk-pin-h = its measured tall height. The row
    keeps its tall height in the flow and sticks at the top with the visible part on top, so each pixel scrolled lifts the
