@@ -63,22 +63,25 @@ export function PratinjauActions({ label }: { label: string }) {
   );
 }
 
-/** Page frame of a preview panel: the alert, then the cards, then the dead save row. */
+/**
+ * Page frame of a preview panel: the alert, then the cards, then the dead save row.
+ * A read-only screen omits `action` and gets no save row — there would be nothing to save.
+ */
 export function PratinjauPanel({
   owner,
   action,
   children,
 }: {
   owner: string;
-  /** Label of the save button this screen would really have. */
-  action: string;
+  /** Label of the save button this screen would really have; omitted on a read-only screen. */
+  action?: string;
   children: ReactNode;
 }) {
   return (
     <Stack gap="md">
       <PratinjauAlert owner={owner} />
       {children}
-      <PratinjauActions label={action} />
+      {action ? <PratinjauActions label={action} /> : null}
     </Stack>
   );
 }
