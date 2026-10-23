@@ -15,7 +15,7 @@
  * `isFeatureEnabled()` has no caller among the features: `whenOff` says what gating *will* hide,
  * not what happens today, and a flag reading off disables nothing. A screen quoting this file must
  * therefore talk about the *flag status* and never claim "fitur ini mati" (plan §9 R3). The open
- * debt is H-G9 in `tahapan-proyek/05-implementasi/HUTANG.md`.
+ * debt is H-E10 in `tahapan-proyek/05-implementasi/HUTANG.md`.
  */
 
 export type FeatureCatalogEntry = {

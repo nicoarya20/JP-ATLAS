@@ -25,7 +25,6 @@ const PREVIEW_FILES: Record<string, string> = {
   'app/components/admin/home/beranda.content.ts': 'AD-14',
   'app/components/admin/home/beranda.widgets.tsx': 'AD-15',
   'app/components/admin/settings/akses-masuk.tsx': 'AD-06',
-  'app/components/admin/settings/fitur.tsx': 'AD-08',
   'app/components/admin/settings/identitas.tsx': 'AD-04',
   'app/components/admin/settings/kebijakan-kerja.tsx': 'AD-07',
   'app/components/admin/settings/pemberitahuan.tsx': 'P9 G-02',
@@ -78,7 +77,10 @@ describe('/dashboard/settings previews', () => {
     }
   });
 
-  test('all six settings tabs have a preview, so no tab is a blank screen', () => {
-    expect(Object.keys(SETTINGS_PREVIEWS).sort()).toEqual(SETTINGS_TABS.map((t) => t.value).sort());
+  test('every tab has a preview or a real panel, so no tab is a blank screen', () => {
+    const covered = SETTINGS_TABS.filter(
+      (t) => SETTINGS_PREVIEWS[t.value] || SETTINGS_PANELS[t.value],
+    );
+    expect(covered.map((t) => t.value)).toEqual(SETTINGS_TABS.map((t) => t.value));
   });
 });
