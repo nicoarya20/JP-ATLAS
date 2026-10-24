@@ -113,13 +113,13 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W2b | Events layar + route | Sesi C | ✅ | F1a, G0c, W2a |
 | G0d | Kit `ConfirmDialog` T2/T3, ekspor `toUtc` dari `dates.ts`, paritas `StackedScreen` (baris pinned memadat, fokus setelah reveal) | Sesi B | ✅ | G0c |
 | W3 | More + Auth + Profile | Sesi B | 🔄 | F1a, G0d |
-| H1 | Home membaca getter tasks/events store; target More → route `more/*` | Sesi B | ⏳ | W3 |
+| H1 | Home membaca getter tasks/events store; target More → route `more/*`; stub `(auth)` di helper tes | Sesi A | 🔄 | F1e; route W3 untuk target More |
 | W2c | Undo snack Events setelah Delete forever: tangkap error → notice | Sesi C | 🔄 | W2b |
 | W4 | Projects (list/create/overview/phases/members/extend/edit/archive dulu; tab Tasks + settings + task-filter setelah W1b) + projects store | Sesi C | 🔄 | W2c; W1b untuk tab Tasks |
 | F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
 | F1c | FAB + sheet Create (`router.replace` ke target) | Sesi A | ✅ | F1b |
 | F1d | Panel More (scrim, Escape a11y, Android back) | Sesi A | ✅ | F1c |
-| F1e | Kaca, reduced motion, a11y (+ aksi increment/decrement, bar sembunyi saat keyboard, hide-descendants Android), QA | Sesi A | 🔄 | F1d |
+| F1e | Kaca, reduced motion, a11y (+ aksi increment/decrement, bar sembunyi saat keyboard, hide-descendants Android), QA | Sesi A | ✅ | F1d |
 
 ## 7. Pertanyaan Terbuka
 
@@ -154,3 +154,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — F1b selesai (Sesi A, `1e87802`, 432 tes): gelembung via pan RNGH, reduced motion = slide 120 ms; navigasi tombol panah prototipe → aksi a11y di F1e. G0d selesai (Sesi B, `27645d4`, 436 tes): `ConfirmDialog` deklaratif (T2/T3, loading + error), `toUtc` diekspor, `StackedScreen` `pinnedShrink`. Archive Delete forever = T3 di dalam formSheet itu sendiri (bukan dialog di atas sheet, agar tidak konfirmasi ganda).
 - 2026-10-25 — F1c (`c84ae33`) dan F1d (`939f351`) selesai (Sesi A): FAB + sheet Create, panel More; 190 tes navigasi. Typed routes (`.expo/types`) hanya dibuat ulang oleh `expo start`; tiap sesi regenerate di port sendiri (A 8194, B 8193, C 8191, D 8192), bukan 8081.
 - 2026-10-25 — W2b selesai (Sesi C, `ff8f10f`, 46 berkas): semua layar + route Events; route yang belum ada lewat `routeHref()` Sesi A. Cek HP dicatat: notice dari dalam modal/formSheet iOS, `dismissTo` setelah Create tasks, tinggi formSheet + keyboard Reason/Agenda, VoiceOver sel kalender. W4 Projects diberikan ke Sesi C.
+- 2026-10-25 — F1e selesai (Sesi A, `62c7142`, 202 tes navigasi): GlassView iOS 26 (fallback `bg-card/60`, solid saat Reduce Transparency), bar sembunyi saat keyboard, aksi screen reader "Next tab"/"Previous tab" (pengganti tombol panah; increment/decrement butuh elemen adjustable), hide-descendants Android. **Navigasi Fase 1 selesai**; QA perangkat dikumpulkan untuk user. H1 dipindah dari Sesi B ke Sesi A.
