@@ -18,12 +18,14 @@ export function ProjectTaskCard({ t, action }: { t: TaskCard; action: TaskAction
   const open = () => router.push(`/tasks/${t.no}`);
   const who = t.people[0]?.name ?? '';
   const name = `#${t.no} ${t.title}`;
+  // "#12 Login flow, In progress, Bug, High, Lea, Oct 5": the link reads what it shows, without the note.
+  const spoken = [name, t.status, t.type, t.priority, who, t.due].filter(Boolean).join(', ');
   // The action sits beside the card's link, not inside it: an accessible Pressable would hide a nested button.
   return (
     <VStack testID={`project-task-${t.no}`} className="gap-2 rounded-card bg-card p-4">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={name}
+        accessibilityLabel={spoken}
         onPress={open}
         className="gap-2 rounded-control data-[active=true]:bg-muted"
       >

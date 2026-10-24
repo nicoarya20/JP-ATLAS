@@ -18,8 +18,10 @@ import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { allowedScreen } from '@/navigation/screen-roles';
 
-import { Foot, Labelled, Note } from '../parts/project-parts';
+import { Note } from '../parts/display';
+import { Foot, Labelled } from '../parts/form-bits';
 import { CREATE, EDIT, FORM } from '../projects.strings';
+import { WHY } from '../projects.strings.added';
 import { createProject } from './create-done';
 import { FormMembers } from './form-members';
 
@@ -39,7 +41,9 @@ export function ProjectFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const [start, setStart] = useState(c.today);
   const [quick, setQuick] = useState<number | null>(ONE_MONTH);
   const [end, setEnd] = useState(() => QUICK_ENDS[ONE_MONTH]?.(c.today) ?? c.today);
+  const [touched, setTouched] = useState(false);
   if (!allowedScreen('projects.form', role)) return <Redirect href="/" />;
+  const why = name.trim() ? undefined : WHY.name;
   const pick = (i: number) => {
     setQuick(i);
     setEnd(QUICK_ENDS[i]?.(start) ?? end);
@@ -48,14 +52,22 @@ export function ProjectFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
     <DetailPage
       testID="project-form"
       title={FORM.title}
-      foot={<Foot label={CREATE.create} ok={!!name.trim()} onPress={() => createProject(notice)} />}
+      foot={
+        <Foot label={CREATE.create} ok={!why} why={why} onPress={() => createProject(notice)} />
+      }
     >
       <Field
         label={FORM.name}
         required
         value={name}
         placeholder={FORM.namePlaceholder}
-        onChangeText={setName}
+        onChangeText={(t) => {
+          setTouched(true);
+          setName(t);
+        }}
+        onBlur={() => setTouched(true)}
+        error={touched ? why : undefined}
+        testID="form-name"
       />
       <Field
         label={FORM.desc}

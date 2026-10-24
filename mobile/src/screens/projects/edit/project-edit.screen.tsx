@@ -1,6 +1,7 @@
 // Projects ⑬ Edit project (prototype projects.edit.jsx ProjectsEdit), from the detail ⋯ (Manager / Admin): every field
 // the creation form had except members (Members tab) and the deadline reason (Extend deadline). Save changes writes
-// the project store (a new name carries over to the project's tasks) and goes back to the project.
+// the project store (a new name carries over to the project's tasks) and goes back to the project. Save stays off, and
+// says why under the name, while the name is blank (once touched) or another project's.
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
@@ -12,13 +13,15 @@ import { useNotice } from '@/components/notice/use-notice';
 import { DetailPage } from '@/components/screen/detail-page';
 import { me } from '@/data/people';
 import { getProjectEdit } from '@/data/projects';
-import { editProject, type ProjectFields } from '@/data/projects.store';
+import { editProject, type ProjectFields, projectNameTaken } from '@/data/projects.store';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { allowedScreen } from '@/navigation/screen-roles';
 
-import { Foot, Labelled, Note } from '../parts/project-parts';
+import { Note } from '../parts/display';
+import { Foot, Labelled } from '../parts/form-bits';
 import { EDIT } from '../projects.strings';
+import { WHY } from '../projects.strings.added';
 
 /** Edit form of the project in the route param `id`; a Member, or a project not listed, goes home. */
 export function ProjectEditScreen({ role = SESSION_ROLE }: { role?: Role }) {
@@ -35,8 +38,14 @@ export function ProjectEditScreen({ role = SESSION_ROLE }: { role?: Role }) {
     due: p?.due ?? '',
     started: p?.started,
   }));
+  const [touched, setTouched] = useState(false);
   if (!view || !p || !allowedScreen('projects.edit', role)) return <Redirect href="/" />;
   const set = (patch: Partial<ProjectFields>) => setF((s) => ({ ...s, ...patch }));
+  const why = !f.name.trim()
+    ? WHY.name
+    : projectNameTaken(f.name, p.id)
+      ? WHY.nameTaken
+      : undefined;
   const save = () => {
     editProject(p.id, f, me(role).name);
     router.back();
@@ -46,9 +55,20 @@ export function ProjectEditScreen({ role = SESSION_ROLE }: { role?: Role }) {
     <DetailPage
       testID="project-edit"
       title={EDIT.title}
-      foot={<Foot cancel={EDIT.cancel} label={EDIT.save} ok={!!f.name.trim()} onPress={save} />}
+      foot={<Foot cancel={EDIT.cancel} label={EDIT.save} ok={!why} why={why} onPress={save} />}
     >
-      <Field label={EDIT.name} required value={f.name} onChangeText={(name) => set({ name })} />
+      <Field
+        label={EDIT.name}
+        required
+        value={f.name}
+        onChangeText={(name) => {
+          setTouched(true);
+          set({ name });
+        }}
+        onBlur={() => setTouched(true)}
+        error={why === WHY.nameTaken || touched ? why : undefined}
+        testID="edit-name"
+      />
       <Field
         label={EDIT.desc}
         multiline

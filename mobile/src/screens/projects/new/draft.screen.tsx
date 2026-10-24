@@ -19,22 +19,14 @@ import type { DraftType, StoryPhase } from '@/data/sample/projects.extra';
 import { SESSION_ROLE } from '@/data/session';
 import { allowedScreen } from '@/navigation/screen-roles';
 
-import { Ai, CheckRow, Foot, Note, Sec, Soft } from '../parts/project-parts';
+import { Ai, Info, Note, Sec, Soft } from '../parts/display';
+import { CheckRow, Foot } from '../parts/form-bits';
 import { CREATE, DRAFT } from '../projects.strings';
 import { createProject } from './create-done';
 
 const TYPE_OPTIONS = DRAFT.types.map((t) => ({ value: t, label: t }));
 
 type PhaseEdit = { on: boolean; tasks: { on: boolean; type: DraftType }[] };
-
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <VStack className="gap-0.5">
-      <Text className="text-footnote text-muted-foreground">{label}</Text>
-      <Text className="text-body text-foreground">{value}</Text>
-    </VStack>
-  );
-}
 
 function PhaseCard({
   n,

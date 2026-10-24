@@ -78,7 +78,7 @@ export const MEMBERS = {
   ],
   removeTitle: (name: string) => `Remove ${name} from the project?`,
   removeMessage: (name: string, project: string) =>
-    `${name} loses access to “${project}”. Their tasks stay in the project.`,
+    `${name} loses access to “${project}”. Their tasks stay in the project. Their tasks stay assigned to them.`,
   removeConfirm: 'Remove member',
   removed: 'Member removed',
   roleTitle: (name: string) => `Change ${name}'s role?`,

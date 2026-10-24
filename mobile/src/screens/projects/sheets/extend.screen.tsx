@@ -1,6 +1,7 @@
 // Projects ⑫ Extend deadline (prototype projects.extend.jsx), from the detail header (Manager / Admin): the current
 // deadline, the new one (after it), why, the reason and its impact. Save records nothing yet in Phase 1, like the
-// prototype: it closes the sheet with "Deadline extended".
+// prototype: it closes the sheet with "Deadline extended". While Save is off it says why: no new deadline, one not
+// after the current, or no reason (once touched).
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
@@ -20,8 +21,10 @@ import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { allowedScreen } from '@/navigation/screen-roles';
 
-import { Labelled, Note, Soft } from '../parts/project-parts';
+import { Note, Soft } from '../parts/display';
+import { Labelled } from '../parts/form-bits';
 import { EXTEND } from '../projects.strings';
+import { WHY } from '../projects.strings.added';
 
 /** The Extend deadline sheet of the project in the route param `id`; a Member, or a project not listed, goes home. */
 export function ExtendProjectScreen({ role = SESSION_ROLE }: { role?: Role }) {
@@ -31,9 +34,11 @@ export function ExtendProjectScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const [next, setNext] = useState<string | null>(x?.next ?? null);
   const [why, setWhy] = useState<string>(EXTEND.reasons[0]);
   const [reason, setReason] = useState(x?.reason ?? '');
+  const [touched, setTouched] = useState(false);
   if (!x || !allowedScreen('projects.extend', role)) return <Redirect href="/" />;
   const late = next !== null && next <= x.current;
-  const ok = next !== null && !late && !!reason.trim();
+  const noReason = reason.trim() ? undefined : WHY.reason;
+  const off = next === null ? WHY.next : late ? EXTEND.after(x.currentLabel) : noReason;
   const save = () => {
     router.back();
     notice(EXTEND.saved);
@@ -45,7 +50,7 @@ export function ExtendProjectScreen({ role = SESSION_ROLE }: { role?: Role }) {
       sub={x.name}
       actions={
         <>
-          <Button isDisabled={!ok} onPress={save}>
+          <Button isDisabled={!!off} accessibilityHint={off} onPress={save}>
             <ButtonText>{EXTEND.save}</ButtonText>
           </Button>
           <Button variant="outline" onPress={() => router.back()}>
@@ -77,7 +82,19 @@ export function ExtendProjectScreen({ role = SESSION_ROLE }: { role?: Role }) {
           onChange={setWhy}
         />
       </Labelled>
-      <Field label={EXTEND.reason} required multiline value={reason} onChangeText={setReason} />
+      <Field
+        label={EXTEND.reason}
+        required
+        multiline
+        value={reason}
+        onChangeText={(t) => {
+          setTouched(true);
+          setReason(t);
+        }}
+        onBlur={() => setTouched(true)}
+        error={touched ? noReason : undefined}
+        testID="extend-reason"
+      />
       {x.impact && (
         <Soft>
           <Text className="text-subhead font-semibold">{EXTEND.impact}</Text>

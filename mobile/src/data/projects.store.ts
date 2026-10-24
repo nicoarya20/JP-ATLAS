@@ -4,7 +4,12 @@
 // other modules (Tasks, Home) read projects through the getters here, so a renamed or archived project shows as such.
 import { addEntry, findEntry, removeEntry } from './archive.store';
 import { BASE_QUERY, type ProjectsQuery } from './projects.query';
-import { findProject, type ProjectItem, projectsStore as store } from './projects.state';
+import {
+  findProject,
+  type ProjectItem,
+  projectNameTaken,
+  projectsStore as store,
+} from './projects.state';
 import { TODAY } from './sample';
 import type { ProjectRole } from './sample/projects.extra';
 import { createStore, useStore } from './store';
@@ -26,6 +31,7 @@ export {
   listProjects,
   type ProjectItem,
   type ProjectsState,
+  projectNameTaken,
   useProjectsState,
 } from './projects.state';
 
@@ -70,11 +76,14 @@ export function taskCountOf(id: string): number {
   return getTasksState().tasks.filter((t) => t.project === p.name).length;
 }
 
-/** Save the Edit project form for project id; a new name carries over to its tasks; the edit is logged. */
+/** Save the Edit project form for project id; a new name (unused by any other project) carries over to its tasks. */
 export function editProject(id: string, fields: ProjectFields, editor: string): void {
   const p = listed(id, 'edit');
   const name = fields.name.trim();
   if (!name) throw new Error(`Cannot edit project "${id}": the name is blank`);
+  if (projectNameTaken(name, id)) {
+    throw new Error(`Cannot edit project "${id}": another project is already named "${name}"`);
+  }
   if (!p.members.includes(fields.lead)) {
     throw new Error(`Cannot edit project "${id}": Lead ${fields.lead} is not a member`);
   }

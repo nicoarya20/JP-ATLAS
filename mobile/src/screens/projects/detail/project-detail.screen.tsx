@@ -55,8 +55,20 @@ export function ProjectDetailScreen({ role = SESSION_ROLE }: { role?: Role }) {
     return (
       <ProjectPage testID="screen-project" title={h.name} right={menu} sticky={top.length}>
         {top}
-        <TasksTools id={h.id} view={view} search={search} onSearch={setSearch} />
-        <TasksBody id={h.id} role={role} data={data} onReset={() => setSearch('')} />
+        <TasksTools
+          id={h.id}
+          view={view}
+          search={search}
+          onSearch={setSearch}
+          archived={h.archived}
+        />
+        <TasksBody
+          id={h.id}
+          role={role}
+          data={data}
+          archived={h.archived}
+          onReset={() => setSearch('')}
+        />
       </ProjectPage>
     );
   }

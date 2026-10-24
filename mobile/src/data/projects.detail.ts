@@ -22,7 +22,14 @@ function projectOrThrow(id: string, what: string): ProjectItem {
 /** Why a task needs attention, in the order the Overview lists them. */
 export type AttentionReason = 'Overdue' | 'Awaiting review' | 'Due today';
 
-export type AttentionRow = { no: number; title: string; sub: string; reason: AttentionReason };
+/** due = "Oct 5", for the row's spoken label (the row shows the reason's icon, the title and sub). */
+export type AttentionRow = {
+  no: number;
+  title: string;
+  sub: string;
+  due: string;
+  reason: AttentionReason;
+};
 
 function reasonOf(t: TaskCard & { dueIso: string }): AttentionReason | null {
   const d = daysBetween(TODAY, t.dueIso);
@@ -41,7 +48,15 @@ function attention(s: TasksState, role: Role, name: string): AttentionRow[] {
       const c = taskCard(s, role, t);
       const reason = reasonOf({ ...c, dueIso: t.due });
       return reason
-        ? [{ no: t.no, title: `#${t.no} ${t.title}`, sub: `${t.who} · ${c.note}`, reason }]
+        ? [
+            {
+              no: t.no,
+              title: `#${t.no} ${t.title}`,
+              sub: `${t.who} · ${c.note}`,
+              due: c.due,
+              reason,
+            },
+          ]
         : [];
     });
   return ORDER.flatMap((r) => rows.filter((x) => x.reason === r));
@@ -110,6 +125,8 @@ export function getProjectTasks(
   return {
     view: list.view,
     filtered: list.filtered,
+    /** noMatch once the query or search leaves nothing (the board too, with Reset filters). */
+    empty: list.empty,
     cards,
     /** List cards with their action; the board takes `cards` alone. */
     rows:

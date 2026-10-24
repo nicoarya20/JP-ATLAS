@@ -80,16 +80,18 @@ describe('Tasks tab', () => {
   it('Kanban lives in the route param; the filter opens the project task-filter sheet', async () => {
     await openProjects('/projects/atlas?tab=tasks');
     await fireEvent.press(
-      within(screen.getByTestId('project-task-view')).getByRole('tab', { name: 'Kanban' }),
+      within(screen.getByTestId('project-task-view')).getByRole('radio', {
+        name: 'Kanban',
+      }),
     );
     expect(screen).toHaveSearchParams({ id: 'atlas', tab: 'tasks', view: 'board' });
     await fireEvent.press(screen.getByLabelText('Filter and sort'));
     await waitFor(() => expect(screen).toHavePathname('/projects/atlas/task-filter'));
   });
 
-  it('+ New task opens the task form with the project picked', async () => {
+  it('New task opens the task form with the project picked', async () => {
     await openProjects('/projects/atlas?tab=tasks');
-    await press('+ New task');
+    await press('New task');
     await waitFor(() => expect(screen).toHavePathname('/tasks/new/form'));
     expect(screen).toHaveSearchParams({ project: 'atlas' });
   });
@@ -98,7 +100,7 @@ describe('Tasks tab', () => {
 describe('Phases tab', () => {
   it('shows the phases with their actions for a PM; Add phase is a notice', async () => {
     await openProjects('/projects/atlas?tab=phases');
-    await press('+ Phase');
+    await press('Add phase');
     expect(screen.getByText('Add phase')).toBeOnTheScreen();
   });
 });

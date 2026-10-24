@@ -10,8 +10,9 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { getProjectPhases } from '@/data/projects';
 
-import { Bar, Note, Sec, Soft } from '../parts/project-parts';
+import { Bar, Note, Sec, Soft } from '../parts/display';
 import { OVERVIEW, PHASES } from '../projects.strings';
+import { NAMES } from '../projects.strings.added';
 
 type Phases = ReturnType<typeof getProjectPhases>;
 
@@ -39,24 +40,28 @@ function PhaseCard({ ph, canEdit }: { ph: Phases['cards'][number]; canEdit: bool
       ) : (
         <Note>{PHASES.noProgress}</Note>
       )}
-      <VStack className="gap-1">
-        <Text className="text-subhead font-semibold">{PHASES.milestone}</Text>
-        {ph.milestone && (
-          <>
-            <Text className="text-subhead">{ph.milestone.name}</Text>
-            <Note>{ph.milestone.line}</Note>
-          </>
-        )}
-        {canEdit && (
-          <Button
-            variant="link"
-            className="self-start"
-            onPress={() => notice(PHASES.addMilestoneNotice)}
-          >
-            <ButtonText>{PHASES.addMilestone}</ButtonText>
-          </Button>
-        )}
-      </VStack>
+      {/* No milestone and nothing to add: the heading would head nothing. */}
+      {(ph.milestone || canEdit) && (
+        <VStack className="gap-1">
+          <Text className="text-subhead font-semibold">{PHASES.milestone}</Text>
+          {ph.milestone && (
+            <>
+              <Text className="text-subhead">{ph.milestone.name}</Text>
+              <Note>{ph.milestone.line}</Note>
+            </>
+          )}
+          {canEdit && (
+            <Button
+              variant="link"
+              className="self-start"
+              accessibilityLabel={NAMES.addMilestone(ph.name)}
+              onPress={() => notice(PHASES.addMilestoneNotice)}
+            >
+              <ButtonText>{PHASES.addMilestone}</ButtonText>
+            </Button>
+          )}
+        </VStack>
+      )}
       {b && (
         <Button
           size="sm"
@@ -78,7 +83,12 @@ export function PhasesTab({ p, canEdit }: { p: Phases; canEdit: boolean }) {
       <HStack className="items-center justify-between gap-2">
         <Note>{p.cards.length ? p.count : PHASES.none}</Note>
         {canEdit && (
-          <Button size="sm" variant="outline" onPress={() => notice(PHASES.addPhaseNotice)}>
+          <Button
+            size="sm"
+            variant="outline"
+            accessibilityLabel={NAMES.addPhase}
+            onPress={() => notice(PHASES.addPhaseNotice)}
+          >
             <ButtonText>{PHASES.addPhase}</ButtonText>
           </Button>
         )}

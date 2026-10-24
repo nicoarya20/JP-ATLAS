@@ -12,8 +12,9 @@ import { VStack } from '@/components/ui/vstack';
 import { PROJECT_ROLES_LIST } from '@/data/projects.detail';
 import type { ProjectRole } from '@/data/sample/projects.extra';
 
-import { Labelled } from '../parts/project-parts';
+import { Labelled } from '../parts/form-bits';
 import { FORM } from '../projects.strings';
+import { NAMES } from '../projects.strings.added';
 
 const ROLE_OPTIONS = PROJECT_ROLES_LIST.map((r) => ({ value: r, label: r }));
 
@@ -62,7 +63,12 @@ export function FormMembers({ creator, helpers }: { creator: string; helpers: re
           ))}
         </VStack>
       </Labelled>
-      <Button variant="link" className="self-start" onPress={() => notice(FORM.addNotice)}>
+      <Button
+        variant="link"
+        className="self-start"
+        accessibilityLabel={NAMES.addMember}
+        onPress={() => notice(FORM.addNotice)}
+      >
         <ButtonText>{FORM.addMember}</ButtonText>
       </Button>
     </>

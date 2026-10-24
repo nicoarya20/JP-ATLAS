@@ -13,8 +13,9 @@ import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { allowedScreen } from '@/navigation/screen-roles';
 
-import { Ai, Sec } from '../parts/project-parts';
+import { Ai, Sec } from '../parts/display';
 import { CREATE } from '../projects.strings';
+import { NAMES } from '../projects.strings.added';
 
 type Way = keyof typeof CREATE.ways;
 
@@ -41,7 +42,7 @@ function WayCard({ way, primary, mark }: { way: Way; primary?: boolean; mark?: R
         <Button
           size="sm"
           variant={primary ? 'default' : 'outline'}
-          accessibilityHint={w.title}
+          accessibilityLabel={NAMES.choose(w.title)}
           onPress={() => router.push(`/projects/new/${way}`)}
         >
           <ButtonText>{CREATE.choose}</ButtonText>

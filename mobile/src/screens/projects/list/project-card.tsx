@@ -8,8 +8,21 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { ProjectCard as Card } from '@/data/projects';
 
-import { Bar } from '../parts/project-parts';
+import { Bar } from '../parts/display';
 import { LIST } from '../projects.strings';
+import { ADDED } from '../projects.strings.added';
+
+/** "Atlas, Active, Lead: Nico, On track, Progress 70%, Due Oct 31, 4 members": what the card shows, read once. */
+const spoken = (c: Card) =>
+  [
+    c.name,
+    c.status,
+    LIST.lead(c.lead),
+    c.health,
+    ADDED.progress(c.percent),
+    LIST.due(c.due),
+    ADDED.members(c.members.length),
+  ].join(', ');
 
 /** One project; onOpen gets its id. */
 export function ProjectCard({ card, onOpen }: { card: Card; onOpen: (id: string) => void }) {
@@ -17,7 +30,7 @@ export function ProjectCard({ card, onOpen }: { card: Card; onOpen: (id: string)
     <Pressable
       testID={`project-card-${card.id}`}
       accessibilityRole="button"
-      accessibilityLabel={card.name}
+      accessibilityLabel={spoken(card)}
       onPress={() => onOpen(card.id)}
       className="gap-3 rounded-card bg-card p-4 data-[active=true]:bg-muted"
     >

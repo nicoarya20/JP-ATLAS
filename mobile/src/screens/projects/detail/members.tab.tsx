@@ -17,13 +17,18 @@ import { PROJECT_ROLES_LIST } from '@/data/projects.detail';
 import { removeMember, setMemberRole } from '@/data/projects.store';
 import type { ProjectRole } from '@/data/sample/projects.extra';
 
-import { Head, Note, Sec, Soft } from '../parts/project-parts';
+import { Head, Note, Sec, Soft } from '../parts/display';
 import { MEMBERS } from '../projects.strings';
+import { ADDED, NAMES } from '../projects.strings.added';
 
 type Members = ReturnType<typeof getProjectMembers>;
 type Card = Members['cards'][number];
 /** The change waiting for its confirmation. */
 type Pending = { name: string; role?: ProjectRole } | null;
+
+/** "Nico Pratama, (You), Lead, Design · 6 tasks". */
+const who = (m: Card) =>
+  [m.full, m.you && MEMBERS.you, m.lead && MEMBERS.lead, m.sub].filter(Boolean).join(', ');
 
 const ROLE_OPTIONS = PROJECT_ROLES_LIST.map((r) => ({ value: r, label: r }));
 
@@ -38,7 +43,8 @@ function MemberCard({
 }) {
   return (
     <Sec testID={`member-${m.name}`}>
-      <HStack className="items-center gap-3">
+      {/* Avatar, name, (You), Lead and the sub line read once, as one stop. */}
+      <HStack accessible accessibilityLabel={who(m)} className="items-center gap-3">
         <PersonAvatar name={m.full} />
         <VStack className="flex-1 gap-1">
           <HStack className="flex-wrap items-center gap-2">
@@ -54,25 +60,29 @@ function MemberCard({
         </VStack>
       </HStack>
       {canEdit ? (
-        <HStack className="items-center justify-between gap-2">
-          <VStack className="flex-1">
-            <SelectField
-              label={MEMBERS.role(m.name)}
-              options={ROLE_OPTIONS}
-              value={m.role}
-              disabled={m.lead}
-              onChange={(role) => role !== m.role && onAsk({ name: m.name, role })}
-            />
-          </VStack>
-          <Button
-            variant="link"
-            isDisabled={m.lead}
-            accessibilityLabel={MEMBERS.removeLabel(m.name)}
-            onPress={() => onAsk({ name: m.name })}
-          >
-            <ButtonText>{MEMBERS.remove}</ButtonText>
-          </Button>
-        </HStack>
+        <>
+          <HStack className="items-center justify-between gap-2">
+            <VStack className="flex-1">
+              <SelectField
+                label={MEMBERS.role(m.name)}
+                options={ROLE_OPTIONS}
+                value={m.role}
+                disabled={m.lead}
+                onChange={(role) => role !== m.role && onAsk({ name: m.name, role })}
+              />
+            </VStack>
+            <Button
+              variant="link"
+              isDisabled={m.lead}
+              accessibilityLabel={MEMBERS.removeLabel(m.name)}
+              accessibilityHint={m.lead ? ADDED.leadStays : undefined}
+              onPress={() => onAsk({ name: m.name })}
+            >
+              <ButtonText>{MEMBERS.remove}</ButtonText>
+            </Button>
+          </HStack>
+          {m.lead && <Note>{ADDED.leadStays}</Note>}
+        </>
       ) : (
         <Text className="text-subhead font-semibold">{m.role}</Text>
       )}
@@ -97,7 +107,12 @@ export function MembersTab({ id, m, canEdit }: { id: string; m: Members; canEdit
       <HStack className="items-center justify-between gap-2">
         <Note>{m.count}</Note>
         {canEdit && (
-          <Button size="sm" variant="outline" onPress={() => notice(MEMBERS.addNotice)}>
+          <Button
+            size="sm"
+            variant="outline"
+            accessibilityLabel={NAMES.addMember}
+            onPress={() => notice(MEMBERS.addNotice)}
+          >
             <ButtonText>{MEMBERS.add}</ButtonText>
           </Button>
         )}

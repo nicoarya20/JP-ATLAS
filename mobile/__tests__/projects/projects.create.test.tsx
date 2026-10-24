@@ -20,11 +20,13 @@ async function expectCreated() {
 describe('New project', () => {
   it('offers three ways, the story one recommended, and one Cancel', async () => {
     await openProjects('/projects/new');
-    expect(screen.getAllByRole('button', { name: 'Choose' })).toHaveLength(3);
+    expect(screen.getAllByRole('button', { name: /^Choose: / })).toHaveLength(3);
     expect(within(screen.getByTestId('way-story')).getByText('Recommended')).toBeOnTheScreen();
     expect(screen.getAllByRole('button', { name: 'Cancel' })).toHaveLength(1);
     await fireEvent.press(
-      within(screen.getByTestId('way-form')).getByRole('button', { name: 'Choose' }),
+      within(screen.getByTestId('way-form')).getByRole('button', {
+        name: 'Choose: Fill in the form yourself',
+      }),
     );
     await waitFor(() => expect(screen).toHavePathname('/projects/new/form'));
   });
@@ -93,9 +95,9 @@ describe('Use template', () => {
   it('estimates the end from the picked template and the start date', async () => {
     await openProjects('/projects/new/template');
     expect(screen.getByRole('radio', { name: 'Internal app' })).toBeChecked();
-    expect(screen.getByTestId('template-end')).toHaveTextContent('Fri, Dec 11, 2026 (60 days)');
+    expect(screen.getByLabelText('Estimated end: Fri, Dec 11, 2026 (60 days)')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('radio', { name: 'Data migration' }));
-    expect(screen.getByTestId('template-end')).toHaveTextContent('Wed, Nov 11, 2026 (30 days)');
+    expect(screen.getByLabelText('Estimated end: Wed, Nov 11, 2026 (30 days)')).toBeOnTheScreen();
     await press('Create project');
     await expectCreated();
   });

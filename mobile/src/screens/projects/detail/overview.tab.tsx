@@ -13,8 +13,9 @@ import { VStack } from '@/components/ui/vstack';
 import type { getProjectOverview } from '@/data/projects';
 import type { AttentionReason } from '@/data/projects.detail';
 
-import { Bar, Head, Note, Sec } from '../parts/project-parts';
-import { OVERVIEW } from '../projects.strings';
+import { Bar, Head, Note, Sec } from '../parts/display';
+import { LIST, OVERVIEW } from '../projects.strings';
+import { NAMES, STEP_STATE } from '../projects.strings.added';
 
 type Overview = ReturnType<typeof getProjectOverview>;
 
@@ -27,22 +28,43 @@ const REASON_ICON: Record<AttentionReason, LucideIcon> = {
 function Pct({ label, value }: { label: string; value: number }) {
   return (
     <VStack className="gap-1">
-      <Text className="text-subhead">{label}</Text>
+      {/* The bar is named by the label, so the visible one is not read again. */}
+      <Text
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        className="text-subhead"
+      >
+        {label}
+      </Text>
       <Bar value={value} label={label} percent={OVERVIEW.percent(value)} />
     </VStack>
   );
 }
 
-/** One dot per phase: ✓ when done, filled for the one in progress. */
+/** One dot per phase, read as "<name>, done": ✓ when done, a ring with a dot for the one in progress (not colour alone). */
 function Steps({ steps }: { steps: Overview['steps'] }) {
   return (
     <HStack className="gap-2">
       {steps.map((s) => (
-        <VStack key={s.name} className="flex-1 items-center gap-1">
+        <VStack
+          key={s.name}
+          accessible
+          accessibilityLabel={`${s.name}, ${STEP_STATE[s.state]}`}
+          className="flex-1 items-center gap-1"
+        >
           <View
             className={`h-6 w-6 items-center justify-center rounded-full ${s.state === 'Done' ? 'bg-atlas' : s.state === 'In progress' ? 'border-2 border-atlas' : 'bg-muted'}`}
           >
-            {s.state === 'Done' && <Text className="text-footnote text-card">✓</Text>}
+            {s.state === 'Done' && (
+              <Text
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+                className="text-footnote text-card"
+              >
+                ✓
+              </Text>
+            )}
+            {s.state === 'In progress' && <View className="h-2 w-2 rounded-full bg-atlas" />}
           </View>
           <Text className="text-footnote" numberOfLines={1}>
             {s.name}
@@ -73,7 +95,12 @@ export function OverviewTab({ o, onPhases }: { o: Overview; onPhases: () => void
                 <Note>{o.milestone.line}</Note>
               </VStack>
             )}
-            <Button variant="link" className="self-start" onPress={onPhases}>
+            <Button
+              variant="link"
+              className="self-start"
+              accessibilityLabel={NAMES.allPhases}
+              onPress={onPhases}
+            >
               <ButtonText>{OVERVIEW.allPhases}</ButtonText>
             </Button>
           </>
@@ -89,7 +116,7 @@ export function OverviewTab({ o, onPhases }: { o: Overview; onPhases: () => void
               key={a.no}
               title={a.title}
               sub={a.sub}
-              accessibilityLabel={`${a.reason}: ${a.title}`}
+              accessibilityLabel={`${a.reason}: ${a.title}, ${a.sub}, ${LIST.due(a.due)}`}
               lead={<Icon as={REASON_ICON[a.reason]} size="lg" className="text-atlas" />}
               onPress={() => router.push(`/tasks/${a.no}`)}
             />

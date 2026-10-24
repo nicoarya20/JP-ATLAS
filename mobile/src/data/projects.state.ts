@@ -78,6 +78,16 @@ export function getProjectByName(name: string): ProjectItem | undefined {
   return s.list.find((p) => p.name === name) ?? s.archived.find((p) => p.name === name);
 }
 
+/**
+ * True when another project than `exceptId`, listed or archived, already has `name` (trimmed, any case). Tasks name
+ * their project in Phase 1, so two projects with one name would share their tasks.
+ */
+export function projectNameTaken(name: string, exceptId?: string): boolean {
+  const key = name.trim().toLowerCase();
+  const s = projectsStore.get();
+  return [...s.list, ...s.archived].some((p) => p.id !== exceptId && p.name.toLowerCase() === key);
+}
+
 /** Listed projects, in the sample's order; archived ones are left out. */
 export const listProjects = () => projectsStore.get().list;
 

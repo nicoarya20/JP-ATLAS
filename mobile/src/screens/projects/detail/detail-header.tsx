@@ -11,7 +11,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { ProjectHeader } from '@/data/projects';
 
-import { Note } from '../parts/project-parts';
+import { Note } from '../parts/display';
 import { DETAIL } from '../projects.strings';
 
 export const TABS = ['overview', 'tasks', 'phases', 'members'] as const;

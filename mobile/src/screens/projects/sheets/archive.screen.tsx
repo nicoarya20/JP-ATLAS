@@ -16,7 +16,7 @@ import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { allowedScreen } from '@/navigation/screen-roles';
 
-import { Soft } from '../parts/project-parts';
+import { Soft } from '../parts/display';
 import { ARCHIVE } from '../projects.strings';
 
 /** The archive sheet of the project in the route param `id`; a Member, or a project not listed, goes home. */

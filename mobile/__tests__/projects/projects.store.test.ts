@@ -1,5 +1,5 @@
 // Projects store (W4): edit carries a new name to the tasks, member roles keep the Lead, Archive takes the tasks along
-// and Undo puts them back, Delete forever ends the Undo, reset brings the sample back.
+// and Undo puts them back, Delete forever ends the Undo, reset brings the sample back. W4e: no two projects share a name.
 import { findEntry, listEntries, resetArchive } from '../../src/data/archive.store';
 import {
   archiveProject,
@@ -11,6 +11,7 @@ import {
   isArchivedProject,
   listArchivedProjects,
   listProjects,
+  projectNameTaken,
   removeMember,
   resetProjects,
   restoreProject,
@@ -50,6 +51,20 @@ describe('getters', () => {
 });
 
 describe('editProject', () => {
+  it("refuses another project's name, in any case and padded, also one in Archive; its own name is fine", () => {
+    const taken = /Cannot edit project "atlas": another project is already named "internal tools"/;
+    expect(() =>
+      editProject('atlas', { ...atlasFields(), name: ' internal tools ' }, 'Nico'),
+    ).toThrow(taken);
+    expect(findProject('atlas')?.name).toBe('Atlas Project');
+    expect(projectNameTaken('ATLAS PROJECT', 'atlas')).toBe(false);
+    expect(() =>
+      editProject('atlas', { ...atlasFields(), name: 'atlas project' }, 'Nico'),
+    ).not.toThrow();
+    archiveProject('tools', 'Nico');
+    expect(projectNameTaken('Internal Tools', 'atlas')).toBe(true);
+  });
+
   it('saves the fields, logs the edit and renames the project on its tasks', () => {
     const before = tasksOf('Atlas Project').length;
     editProject('atlas', { ...atlasFields(), name: '  Atlas v2 ' }, 'Nico');
