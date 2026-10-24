@@ -54,6 +54,7 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
 - [ ] **Chip statistik melipat saat menggulir** `[keduanya]`
   - Gulir Home ke bawah perlahan → chip statistik tetap tersemat di atas, baris keterangannya memudar dan chip memendek mengikuti jari (tidak melompat).
   - Gulir kembali ke atas → chip kembali penuh. Lempar cepat lalu hentikan → tidak ada kedipan.
+  - Gulir sampai chip memendek → ketuk tepi atas atau bawah chip, sedikit di luar garisnya → layar chip itu tetap terbuka (area ketuk ≥ 44 pt).
 - [ ] **Chip di 375 pt dan teks besar** `[keduanya]`
   - Baris chip bisa digeser ke samping, chip terakhir tidak terpotong tepi layar.
   - Dengan skala teks sistem besar, angka dan keterangan chip tidak bertumpuk.
