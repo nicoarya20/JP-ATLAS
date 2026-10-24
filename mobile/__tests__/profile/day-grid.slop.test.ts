@@ -1,11 +1,12 @@
-import { blockSlops, MIN_TARGET_PX } from '../../src/screens/profile/day-grid.slop';
+import { blockSlops } from '../../src/screens/profile/day-grid.slop';
+import { MIN_TARGET } from '../../src/theme/tokens';
 
 // test-only: a 24 × 56 pt grid.
 const END = 1344;
 
 describe('blockSlops', () => {
   test('a block of 44 or more gets none', () => {
-    expect(blockSlops([{ top: 100, height: MIN_TARGET_PX }], END)).toEqual([{ top: 0, bottom: 0 }]);
+    expect(blockSlops([{ top: 100, height: MIN_TARGET }], END)).toEqual([{ top: 0, bottom: 0 }]);
   });
 
   test('a lone short block grows evenly to 44', () => {

@@ -2,8 +2,8 @@
 // grows it to 44, taken from the empty space above and below. A gap to a neighbouring block is shared half each, so
 // two short blocks never claim the same strip; a block that overlaps another gets nothing on that side.
 
-/** The smallest touch target, in points (iOS HIG; Android asks 48 dp, which the hour rows' width covers sideways). */
-export const MIN_TARGET_PX = 44;
+// Android asks 48 dp; the hour rows' width covers that sideways.
+import { MIN_TARGET } from '@/theme/tokens';
 
 /** A block's place in the grid, in points from the top. */
 export type BlockSpan = { top: number; height: number };
@@ -12,7 +12,7 @@ export type BlockSlop = { top: number; bottom: number };
 /** The vertical hitSlop of each block, in the order given; `end` is the grid's height. */
 export function blockSlops(spans: readonly BlockSpan[], end: number): BlockSlop[] {
   return spans.map((s, i) => {
-    const need = MIN_TARGET_PX - s.height;
+    const need = MIN_TARGET - s.height;
     if (need <= 0) return { top: 0, bottom: 0 };
     const bottom = s.top + s.height;
     const others = spans.filter((_, j) => j !== i);

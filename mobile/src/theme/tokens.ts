@@ -10,6 +10,12 @@ export const RADIUS = { control: 10, card: 14, modal: 16, identity: 20 } as cons
 /** Spacing scale in px (4/8/12/16/24/32/48/64); Mantine's xs..xl take the middle five. */
 export const SPACING = { xs: 8, sm: 12, md: 16, lg: 24, xl: 32 } as const;
 
+/**
+ * Smallest touch target in pt (iOS HIG; Atlas main_control_ergonomic_min_px). Mobile only: the web tokens have no
+ * counterpart, so the sync test leaves it out. A control drawn smaller reaches it through hitSlop.
+ */
+export const MIN_TARGET = 44;
+
 /** Page title: 32 px on desktop, 26 px on mobile. Section title: 20 px. Body line height 1.5. */
 export const TYPE = { pageMobile: 26, page: 32, section: 20, bodyLeading: '1.5' } as const;
 

@@ -16,7 +16,7 @@ import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import type { StatChip as Stat, StatKey } from '@/data/home.types';
-import { SPACING } from '@/theme/tokens';
+import { MIN_TARGET, SPACING } from '@/theme/tokens';
 
 import { STAT_LABEL, statSub } from '../home.strings';
 
@@ -41,9 +41,6 @@ const CHIP = {
   end: 20,
   endCompact: SPACING.md,
 } as const;
-/** The smallest touch target, in points (iOS HIG). */
-const MIN_TARGET = 44;
-
 /**
  * Vertical hitSlop of a chip whose label line is `line` pt (0 = not measured yet, still tall). Compact, a chip is one
  * line between two small paddings, under 44 pt: its touch area grows into the gaps above and below, its look stays.
