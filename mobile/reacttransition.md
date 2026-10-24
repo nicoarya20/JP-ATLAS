@@ -113,7 +113,8 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W2b | Events layar + route | Sesi C | ✅ | F1a, G0c, W2a |
 | G0d | Kit `ConfirmDialog` T2/T3, ekspor `toUtc` dari `dates.ts`, paritas `StackedScreen` (baris pinned memadat, fokus setelah reveal) | Sesi B | ✅ | G0c |
 | W3 | More + Auth + Profile | Sesi B | ✅ | F1a, G0d |
-| W3b | QA silang (read-only) Events: copy vs prototipe, aria-label, empty state | Sesi B | 🔄 | W2b |
+| W3b | QA silang (read-only) Events: copy vs prototipe, aria-label, empty state | Sesi B | ✅ | W2b |
+| W3c | Perbaikan 11 temuan W3b (label kartu/hari, tautan Cancel inline, error form, required, Seg radio, label per draf, AiNote, jamak, empty state kalender + search); wilayah Events dipinjam Sesi B | Sesi B | 🔄 | W3b |
 | H1 | Home membaca getter tasks/events store; target More → route `more/*`; stub `(auth)` di helper tes | Sesi A | 🔄 | F1e; route W3 untuk target More |
 | W2c | Undo snack Events setelah Delete forever: tangkap error → notice | Sesi C | ✅ | W2b |
 | W4 | Projects (list/create/overview/phases/members/extend/edit/archive dulu; tab Tasks + settings + task-filter setelah W1b) + projects store | Sesi C | 🔄 | W2c; W1b untuk tab Tasks |
@@ -158,3 +159,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — F1e selesai (Sesi A, `62c7142`, 202 tes navigasi): GlassView iOS 26 (fallback `bg-card/60`, solid saat Reduce Transparency), bar sembunyi saat keyboard, aksi screen reader "Next tab"/"Previous tab" (pengganti tombol panah; increment/decrement butuh elemen adjustable), hide-descendants Android. **Navigasi Fase 1 selesai**; QA perangkat dikumpulkan untuk user. H1 dipindah dari Sesi B ke Sesi A.
 - 2026-10-25 — W2c (`6fdf99d`): akar masalahnya, Undo memulihkan *langkah arsip terbaru* untuk id event, jadi setelah Delete forever, Undo bisa diam-diam memulihkan kemunculan lama. Sekarang Undo terikat ke key entrinya (`canRestoreEvent(id, key)`); kalau entri sudah hilang → notice "This event was deleted forever and can't be restored." Tes router kadang gagal acak saat mesin berat (4 sesi jest paralel); diagnosis diserahkan ke Sesi A.
 - 2026-10-25 — W3 selesai (Sesi B, `11d1876`, 90 berkas, 87 tes baru): route `more/*`, `(auth)`, `/leave`, `/profile(/calendar)`; T2 dialog Users, T3 Delete forever di sheet, sign out T2. Copy karangan untuk keadaan yang tidak ada di prototipe (orang/entri tidak ditemukan, gagal hapus, dialog Users). Kit: `Field readOnly` (gluestack menyembunyikan input disabled dari screen reader), `CountChips`, `PersonAvatar`, `DetailPage`, helper `router-mock`.
+- 2026-10-25 — W3b (Sesi B): copy Events cocok dengan prototipe; 8 celah a11y/kit dan 3 edge case bawaan prototipe. Penyimpangan disengaja: jamak "1 task"; "Outcomes confirmed" bila 0 tugas; empty state + Reset di view Calendar (UX §4 mengalahkan prototipe).
