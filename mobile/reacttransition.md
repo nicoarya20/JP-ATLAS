@@ -14,7 +14,7 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 | 2026-10-25 | gluestack-ui **Pro tidak dibeli** | Isinya hanya template layar (e-commerce, sosial, dll), tidak relevan untuk PM |
 | 2026-10-25 | **T2: gluestack-ui v5 (CLI 5.0.3) + UniWind 1.13 (Tailwind 4.3), bukan NativeWind**; Expo SDK 58, RN 0.88, React 19.3, TS 6 | NativeWind v5 masih RC (`latest` = 4.2.7) dan "not intended for production". CLI gluestack v5 untuk Expo hanya menawarkan nativewind-v5 atau uniwind; jalur NativeWind v4 berarti turun ke gluestack v3. UniWind stabil, MIT, tanpa kode native (aman untuk Expo Go), className/@theme setara; bisa pindah engine lewat `gluestack-ui upgrade` |
 | 2026-10-25 | Token: salinan `app/lib/theme-tokens.ts` di `mobile/src/theme/tokens.ts` + tes penjaga kesamaan hex + tes kontras; `popover` = surface | Mobile proyek mandiri, tidak bisa impor root; tes mencegah token melenceng dari web |
-| 2026-10-25 | Jarak dan ukuran font dalam px, bukan rem | NativeWind menghitung rem = 14 di native, sehingga skala 8/12/16 bisa bergeser |
+| 2026-10-25 | Jarak dan ukuran font dalam px, bukan rem | Awalnya untuk antisipasi rem = 14 di NativeWind. Di UniWind rem = 16 (`polyfills.rem`), jadi px tetap dipakai supaya ukuran eksplisit dan tidak bergantung polyfill |
 | 2026-10-25 | Manrope statis 400/500/600/700 dibuat dengan fonttools instancer dari TTF variabel; 650 → 600 | Android tidak bisa memilih axis bobot dari TTF variabel lewat expo-font; tanpa dependency npm baru |
 | 2026-10-25 | Data contoh: tanggal ISO + formatter, "hari ini" = konstanta 2026-10-07; `getHome(role)` satu titik tukar; Admin "Overdue" = 3 seperti prototipe, disimpan di data contoh (bukan di komponen) | Meniru `getHome` di server; user: ikuti prototipe |
 | 2026-10-25 | **Bahasa UI mobile = Inggris; ikuti prototipe mobile 1:1** (perilaku, copy, data contoh termasuk `home`) | Keputusan user. Menyimpang hanya bila terkendala teknis RN, dan wajib dilaporkan |
@@ -30,6 +30,7 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 - **Milik rekan (jangan diubah):** `app/`, `server/`, skema DB, migrasi, endpoint. Mobile nanti hanya **mengonsumsi** API `/api/app/*`.
 - **Satu-satunya sentuhan di root:** `tsconfig.json` `exclude: ["mobile"]` dan `biome.json` `"!mobile"`, supaya `bun run typecheck` dan `bun run lint` root tidak ikut memeriksa kode RN.
 - **Aturan project yang tidak berlaku di `mobile/`:** Mantine (khusus web), `meta()` per route, `AppShell`/Burger, dan `DateInput` dari `@mantine/dates`. Pengganti untuk mobile: komponen gluestack, Expo Router, tab bar native.
+- **Pengecualian kode vendored:** `src/components/ui/**` adalah keluaran CLI gluestack (disalin, bukan ditulis). Kode ini dikecualikan dari biome dan dari batas file health / suppression (Rule 8/17), mis. `icon/index.tsx` 1.576 baris dan `@ts-expect-error` bawaan upstream. Kode ini tidak dipangkas supaya diff dengan upstream tetap bersih saat `gluestack-ui upgrade`. Kustomisasi kita di sana dibatasi ke `styles.tsx` (token/kelas) dan dicatat di commit.
 - **Aturan yang tetap berlaku:** token JP Atlas (lime = aksi utama dengan teks navy, violet = interaksi, Manrope, radius 10/14/16/20, jarak 8/12/16/24/32), standar UX (konfirmasi T1/T2/T3, loading, feedback, empty state), file health, tes wajib, dan tanpa hex di komponen.
 
 ## 3. Stack Target
@@ -81,7 +82,8 @@ Branch: `feature/mobile-expo-spike` (dari `main`). Pekerja **tidak** commit/chec
 | T8 | Layar Home (`src/screens/home/**`) + tes | Sesi B | ✅ | T5, T6, T7 |
 | T9 | Verifikasi di HP via Expo Go | User | ⏳ | T8 |
 | T10 | Linter mobile: biome (versi sama dengan root), `mobile/biome.json` | Sesi A | ✅ | install Sesi B selesai |
-| C1 | Review kode independen Fase 0 + `bun audit` + doctor (read-only) | Sesi C | 🔄 | — |
+| C1 | Review kode independen Fase 0 + `bun audit` + doctor (read-only) | Sesi C | ✅ | — |
+| C2 | Perbaikan temuan C1: B = #1 bobot font, #2 worker jest bocor, #4 reset palet; A = #5 app.config splash, #6 dependency tak terpakai, nit | Sesi A, B | 🔄 | C1 |
 | D1 | Spesifikasi porting Fase 1 semua layar di luar Home/tab bar → `mobile/docs/phase1-screens*.md` | Sesi D | 🔄 | — |
 | A1 | Spesifikasi (read-only) tab bar/navigasi Fase 1 persis prototipe: pil kaca, gelembung, "+", panel More | Sesi A | ✅ | — |
 
@@ -105,3 +107,4 @@ Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sud
 - 2026-10-25 — Tambah Sesi C (`pm-dashboard-01`, reviewer read-only) dan Sesi D (`pm-dashboard-83`, perencana porting layar Fase 1).
 - 2026-10-25 — T10 selesai: Biome 2.5.12 (persis, sama dengan root), `mobile/biome.json`, `src/components/ui/**` dikecualikan (output CLI). Spesifikasi A1 ditulis di `docs/phase1-navigation.md`. Tes sementara merah karena mock Reanimated di `jest.setup.js` (T8 Sesi B); selama T8 Sesi B memegang jest setup dan wajib memakai setup resmi.
 - 2026-10-25 — T6–T8 selesai (Sesi B): 87/87 tes, typecheck dan lint 0 error, export iOS+Android, doctor 20/20. Jest pakai `setUpTests()` resmi Reanimated + resolver gabungan (`jest.resolver.js`) + mock resmi safe-area. Commit `e6d85fd` (scaffold), `74eacd7` (tema), `0016b99` (Home), `03fc15c` (docs). Kepemilikan jest setup kembali ke Sesi A.
+- 2026-10-25 — C1 selesai (Sesi C): 1 temuan sedang (kelas `font-semibold/bold` bawaan Tailwind menimpa bobot Manrope), 5 rendah, beberapa nit; semua dibagi ke Sesi A/B. Sesi C memverifikasi ulang setelah perbaikan.
