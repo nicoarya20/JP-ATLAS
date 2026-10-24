@@ -1,8 +1,11 @@
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { View } from 'react-native';
 
+import { SESSION_ROLE } from '@/data/session';
+import { createFor } from '@/navigation/tab-create';
 import { tabOfRoute } from '@/navigation/tabs.config';
 
+import { CreateFab } from './create-fab';
 import { GlassPill } from './glass-pill';
 import { useTabBarVisible } from './use-tab-bar-visible';
 
@@ -12,7 +15,8 @@ const EDGE = 16;
 /**
  * The app's bottom tab bar, given to the expo-router Tabs as `tabBar`: drawn once over every tab screen so it outlives
  * screen changes (prototype PhoneApp host). Floats over the content; screens leave room with useTabBarInset().
- * A tap emits `tabPress` like the stock bar, so a tab's listener can take it over (More).
+ * A tap emits `tabPress` like the stock bar, so a tab's listener can take it over (More). Beside the pill, the "+"
+ * creates what the active tab holds, for the signed-in role.
  */
 export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const visible = useTabBarVisible();
@@ -43,6 +47,7 @@ export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTab
       className="flex-row items-end"
     >
       <GlassPill tabs={tabs} active={state.index} onPick={pick} />
+      <CreateFab target={createFor(tabs[state.index].id, SESSION_ROLE)} />
     </View>
   );
 }

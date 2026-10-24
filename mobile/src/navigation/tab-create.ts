@@ -1,11 +1,12 @@
 // What the round "+" next to the tab pill creates (prototype kit/layout.jsx CREATE, CREATE_MENU, createFor).
 import type { Role } from '@/data/sample/people';
 
-import { allowedScreen, type ScreenId } from './screen-roles';
+import type { CreateGo } from './create-href';
+import { allowedScreen } from './screen-roles';
 import type { TabId } from './tabs.config';
 
-/** go = prototype screen id the "+" opens; label = its accessibility label. */
-export type CreateTarget = { go: ScreenId; label: string };
+/** go = prototype screen id the "+" opens (its route: createHref); label = its accessibility label. */
+export type CreateTarget = { go: CreateGo; label: string };
 
 /** Each tab's own "new" screen. */
 export const CREATE: Partial<Record<TabId, CreateTarget>> = {

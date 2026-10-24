@@ -1,55 +1,9 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { type RenderRouterResult, renderRouter, testRouter } from 'expo-router/testing-library';
-import { Text } from 'react-native';
+import { type RenderRouterResult, testRouter } from 'expo-router/testing-library';
 
-import * as RootLayout from '../app/_layout';
-import TabsLayout from '../app/(tabs)/_layout';
-import HomeStack from '../app/(tabs)/(home)/_layout';
-import HomeRoute from '../app/(tabs)/(home)/index';
-import * as EventsStack from '../app/(tabs)/events/_layout';
-import EventsRoute from '../app/(tabs)/events/index';
-import MoreStack from '../app/(tabs)/more/_layout';
-import MoreIndex from '../app/(tabs)/more/index';
-import * as ProjectsStack from '../app/(tabs)/projects/_layout';
-import ProjectsRoute from '../app/(tabs)/projects/index';
-import * as TasksStack from '../app/(tabs)/tasks/_layout';
-import TasksRoute from '../app/(tabs)/tasks/index';
 import { resetSnack, showSnack } from '../src/components/snack/use-snack';
-import { GluestackUIProvider } from '../src/components/ui/gluestack-ui-provider';
-
-// The root layout waits for Manrope; jest has no font assets, so report it loaded.
-jest.mock('expo-font', () => ({
-  ...jest.requireActual('expo-font'),
-  useFonts: () => [true, null],
-}));
-
-// Layouts go in as whole modules so their `unstable_settings` (anchor) apply, as in the app.
-// Stand-ins for screens the module workers port later: only their place in the route tree matters here.
-const stub = (testID: string) => () => <Text testID={testID}>{testID}</Text>;
-
-const routes = {
-  _layout: RootLayout,
-  '(tabs)/_layout': TabsLayout,
-  '(tabs)/(home)/_layout': HomeStack,
-  '(tabs)/(home)/index': HomeRoute,
-  '(tabs)/tasks/_layout': TasksStack,
-  '(tabs)/tasks/index': TasksRoute,
-  '(tabs)/tasks/[id]/index': stub('screen-task'),
-  '(tabs)/projects/_layout': ProjectsStack,
-  '(tabs)/projects/index': ProjectsRoute,
-  '(tabs)/projects/[id]/index': stub('screen-project'),
-  '(tabs)/events/_layout': EventsStack,
-  '(tabs)/events/index': EventsRoute,
-  '(tabs)/more/_layout': MoreStack,
-  '(tabs)/more/index': MoreIndex,
-  '(tabs)/more/inbox': stub('screen-inbox'),
-  '(tabs)/more/settings/index': stub('screen-settings'),
-  create: stub('screen-create'),
-};
-
-const open = (initialUrl: string) =>
-  renderRouter(routes, { initialUrl, wrapper: GluestackUIProvider });
+import { openApp as open } from './helpers/app-router';
 
 type NavState = { routes: { name: string; state?: NavState }[] };
 /** Screens in the Tasks tab's stack (router state: root → (tabs) → tasks). */

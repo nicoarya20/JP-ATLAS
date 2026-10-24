@@ -9,6 +9,23 @@ export const EASE = Easing.bezier(0.25, 0.1, 0.25, 1);
 /** CSS `ease-out`. */
 export const EASE_OUT = Easing.bezier(0, 0, 0.58, 1);
 
+/** --fab-ease: the "+" folding away and back (an iOS sheet curve). */
+export const FAB_EASE = Easing.bezier(0.32, 0.72, 0, 1);
+
+/** The "+" (styles/app.css .glassbar-fab): 60 px round, 10 px from the pill; folds to nothing where it creates nothing. */
+export const FAB = {
+  size: 60,
+  gap: 10,
+  /** Scale while folded, and while pressed. */
+  foldedScale: 0.6,
+  pressedScale: 0.94,
+  /** Width and gap, both ways. */
+  sizeMs: 380,
+  pressMs: 220,
+  unfold: { opacityMs: 220, opacityDelayMs: 120, scaleMs: 380 },
+  fold: { opacityMs: 160, scaleMs: 260 },
+} as const;
+
 /** Bubble timings in ms. */
 export const BUBBLE_MS = {
   slide: 420,
