@@ -9,11 +9,12 @@ import {
   FormControlHelper,
   FormControlHelperText,
   FormControlLabel,
-  FormControlLabelAstrick,
   FormControlLabelText,
 } from '@/components/ui/form-control';
 import { Input, InputField, InputSlot } from '@/components/ui/input';
 import { Textarea, TextareaInput } from '@/components/ui/textarea';
+
+import { fieldName } from './field-name';
 
 type FieldProps = {
   label: string;
@@ -21,11 +22,13 @@ type FieldProps = {
   /** Left out for a read-only field. */
   onChangeText?: (text: string) => void;
   placeholder?: string;
-  /** Draws the star after the label and marks the field required for screen readers. */
+  /** Draws the star after the label and names the field "<label>, required" for screen readers. */
   required?: boolean;
   hint?: string;
-  /** Shown under the field, and marks it invalid. */
+  /** Shown under the field (announced as it appears), and marks it invalid. */
   error?: string;
+  /** Leaving the field: a form shows "required" errors only once the field was touched. */
+  onBlur?: () => void;
   /** Several lines (description, comment). */
   multiline?: boolean;
   /** Not usable for now (a dialog is busy). */
@@ -41,7 +44,11 @@ type FieldProps = {
 /** Labelled text input; the label is the input's accessible name ("Title *" reads as "Title, required"). */
 export function Field(p: FieldProps) {
   // aria-label, not accessibilityLabel: gluestack sets aria-label "Input Field" itself, and aria-label wins in RN.
-  const a11y = { 'aria-label': p.label, accessibilityHint: p.hint };
+  const a11y = {
+    'aria-label': fieldName(p.label, p.required),
+    accessibilityHint: p.hint,
+    onBlur: p.onBlur,
+  };
   return (
     <FormControl
       isRequired={p.required}
@@ -49,11 +56,11 @@ export function Field(p: FieldProps) {
       isDisabled={p.disabled}
       isReadOnly={p.readOnly}
     >
-      <FormControlLabel>
+      {/* The input carries the label as its name; read here too, it would be said twice. gluestack adds the star. */}
+      <FormControlLabel accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <FormControlLabelText className="text-footnote text-muted-foreground">
           {p.label}
         </FormControlLabelText>
-        {p.required && <FormControlLabelAstrick>*</FormControlLabelAstrick>}
       </FormControlLabel>
       {p.multiline ? (
         <Textarea className="rounded-control">
@@ -97,7 +104,9 @@ export function Field(p: FieldProps) {
       )}
       {p.error && (
         <FormControlError>
-          <FormControlErrorText className="text-footnote">{p.error}</FormControlErrorText>
+          <FormControlErrorText accessibilityLiveRegion="polite" className="text-footnote">
+            {p.error}
+          </FormControlErrorText>
         </FormControlError>
       )}
     </FormControl>

@@ -59,11 +59,11 @@ describe('PendingScreen', () => {
       'readOnly',
       true,
     );
-    await fireEvent.changeText(screen.getByLabelText('Full name'), '  ');
+    await fireEvent.changeText(screen.getByLabelText('Full name, required'), '  ');
     await fireEvent.press(screen.getByText('Save profile'));
     expect(screen.getByText('Enter your full name.')).toBeOnTheScreen();
     expect(screen.queryByText('Profile saved')).not.toBeOnTheScreen();
-    await fireEvent.changeText(screen.getByLabelText('Full name'), 'Budi S.');
+    await fireEvent.changeText(screen.getByLabelText('Full name, required'), 'Budi S.');
     await fireEvent.press(screen.getByText('Save profile'));
     expect(screen.queryByText('Enter your full name.')).not.toBeOnTheScreen();
     expect(screen.getByText('Profile saved')).toBeOnTheScreen();

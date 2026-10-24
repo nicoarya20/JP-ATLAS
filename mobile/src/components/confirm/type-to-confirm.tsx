@@ -11,6 +11,8 @@ type TypeToConfirmProps = {
   name: string;
   value: string;
   onChangeText: (text: string) => void;
+  /** Locked while the delete runs. Read-only, not disabled: gluestack hides a disabled input from VoiceOver, so focus
+   *  would jump away mid-delete. */
   disabled?: boolean;
 };
 
@@ -22,7 +24,7 @@ export function TypeToConfirm({ name, value, onChangeText, disabled }: TypeToCon
       value={value}
       onChangeText={onChangeText}
       placeholder={name}
-      disabled={disabled}
+      readOnly={disabled}
       testID="type-to-confirm"
     />
   );

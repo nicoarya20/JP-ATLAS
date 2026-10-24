@@ -14,6 +14,8 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 
+import { fieldName } from './field-name';
+
 export type SelectOption<V extends string = string> = { value: V; label: string };
 
 type SelectFieldProps<V extends string> = {
@@ -23,6 +25,10 @@ type SelectFieldProps<V extends string> = {
   value: V;
   onChange: (value: V) => void;
   disabled?: boolean;
+  /** Names it "<label>, required" (the visible star belongs to the label above it). */
+  required?: boolean;
+  /** Marks it invalid: red border, and the message read as its hint (the form shows the message itself). */
+  error?: string;
   testID?: string;
 };
 
@@ -40,14 +46,16 @@ export function SelectField<V extends string>(p: SelectFieldProps<V>) {
       selectedLabel={picked?.label}
       onValueChange={(v) => p.onChange(v as V)}
       isDisabled={p.disabled}
+      isInvalid={!!p.error}
     >
       <SelectTrigger
         testID={p.testID}
         // The input showing the label is hidden from screen readers (gluestack), so the trigger carries the value
-        accessibilityLabel={p.label}
+        accessibilityLabel={fieldName(p.label, p.required)}
         accessibilityValue={{ text: picked?.label ?? '' }}
+        accessibilityHint={p.error}
         size="lg"
-        className="min-h-11 rounded-control border-input bg-card pr-3"
+        className={`min-h-11 rounded-control bg-card pr-3 ${p.error ? 'border-destructive' : 'border-input'}`}
       >
         <SelectInput editable={false} value={picked?.label} className="flex-1 text-body" />
         <SelectIcon as={ChevronDown} className="text-muted-foreground" />

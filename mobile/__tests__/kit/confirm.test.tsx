@@ -102,6 +102,22 @@ describe('ConfirmDialog · T3', () => {
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
+  test('while the delete runs the typed name stays readable to screen readers, but locked', async () => {
+    await openDialog({
+      onConfirm: () => new Promise<void>(() => undefined),
+      typeToConfirm: 'Old client portal',
+      confirmLabel: 'Delete forever',
+    });
+    const label = 'Type the item name to confirm';
+    await fireEvent.changeText(screen.getByLabelText(label), 'Old client portal');
+    expect(screen.getByLabelText(label)).toHaveProp('readOnly', false);
+    await fireEvent.press(action());
+    expect(action().props.accessibilityState).toMatchObject({ busy: true });
+    // read-only, not disabled: gluestack hides a disabled input from VoiceOver
+    expect(screen.getByLabelText(label)).toHaveProp('readOnly', true);
+    expect(screen.getByLabelText(label)).not.toHaveProp('accessibilityElementsHidden', true);
+  });
+
   test('nameMatches ignores surrounding spaces only', () => {
     expect(nameMatches('  Atlas ', 'Atlas')).toBe(true);
     expect(nameMatches('atlas', 'Atlas')).toBe(false);

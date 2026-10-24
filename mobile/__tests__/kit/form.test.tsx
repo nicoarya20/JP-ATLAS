@@ -3,9 +3,11 @@ import { List, SquareKanban } from 'lucide-react-native';
 
 import { Chips, MultiChips } from '../../src/components/form/chips';
 import { Field } from '../../src/components/form/field';
+import { FormError } from '../../src/components/form/form-error';
 import { RadioList } from '../../src/components/form/radio-list';
 import { SectionLabel } from '../../src/components/form/section-label';
 import { Seg } from '../../src/components/form/seg';
+import { SelectField } from '../../src/components/form/select-field';
 import { SwitchRow } from '../../src/components/form/switch-row';
 import { Button, ButtonText } from '../../src/components/ui/button';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
@@ -30,8 +32,19 @@ describe('Field', () => {
     );
     await fireEvent.changeText(screen.getByTestId('title'), 'Fix login');
     expect(onChangeText).toHaveBeenCalledWith('Fix login');
-    expect(screen.getByLabelText('Title')).toBeOnTheScreen();
-    expect(screen.getByText('Add a title.')).toBeOnTheScreen();
+    // "required" is said in the name; the visible label and its one star stay out of the reading order
+    expect(screen.getByLabelText('Title, required')).toBeOnTheScreen();
+    expect(screen.queryByText('Title')).not.toBeOnTheScreen();
+    expect(screen.getAllByText('*', { includeHiddenElements: true })).toHaveLength(1);
+    expect(screen.getByText('Add a title.').props.accessibilityLiveRegion).toBe('polite');
+  });
+
+  test('an optional field is named by its label alone and reports leaving it', async () => {
+    const onBlur = jest.fn();
+    await show(<Field label="Nickname" value="" onChangeText={jest.fn()} onBlur={onBlur} />);
+    await fireEvent(screen.getByLabelText('Nickname'), 'blur');
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('*', { includeHiddenElements: true })).not.toBeOnTheScreen();
   });
 
   test('a button in the right slot stays reachable by screen readers', async () => {
@@ -99,6 +112,52 @@ describe('Chips, MultiChips and Seg', () => {
     expect(selected('List', 'tab')).toBe(true);
     await fireEvent.press(screen.getByRole('tab', { name: 'Kanban' }));
     expect(onChange).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('Seg as radios, SelectField and FormError', () => {
+  test('Seg kind radio is a named radio group with the picked radio checked', async () => {
+    const onChange = jest.fn();
+    await show(
+      <Seg
+        kind="radio"
+        label="Location"
+        items={['In person', 'Online']}
+        value={0}
+        onChange={onChange}
+        testID="mode"
+      />,
+    );
+    const group = screen.getByTestId('mode').props;
+    expect([group.accessibilityRole, group.accessibilityLabel]).toEqual(['radiogroup', 'Location']);
+    expect(screen.getByRole('radio', { name: 'In person' })).toBeChecked();
+    expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Online' }));
+    expect(onChange).toHaveBeenCalledWith(1);
+  });
+
+  test('SelectField says "required" and reads its error as the hint', async () => {
+    await show(
+      <SelectField
+        label="End"
+        required
+        options={[{ value: 'a', label: '9:00 AM' }]}
+        value="a"
+        onChange={jest.fn()}
+        error="The end time must be after the start time."
+      />,
+    );
+    const end = screen.getByRole('button', { name: 'End, required' });
+    expect(end.props.accessibilityHint).toBe('The end time must be after the start time.');
+    expect(end.props.accessibilityValue).toEqual({ text: '9:00 AM' });
+  });
+
+  test('FormError is a polite live alert', async () => {
+    await show(<FormError testID="err">Pick a later end.</FormError>);
+    expect(screen.getByTestId('err').props).toMatchObject({
+      accessibilityRole: 'alert',
+      accessibilityLiveRegion: 'polite',
+    });
   });
 });
 
