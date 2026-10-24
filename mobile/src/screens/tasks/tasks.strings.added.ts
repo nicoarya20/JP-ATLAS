@@ -1,9 +1,7 @@
 /* Words the port adds beyond the prototype (W1e QA): names only screen readers hear, and the few messages the project's
    UX rules ask for (a reason next to a disabled button, a confirm before deleting a tag). */
 
-/** One spoken name from the visible parts of a card, skipping the empty ones: "#12 Fix login, Website, High, …". */
-export const spoken = (...parts: readonly (string | false | null | undefined)[]) =>
-  parts.filter(Boolean).join(', ');
+export { spoken } from '@/components/a11y/spoken';
 
 /** New task's Just write ✦ / Fill form segments, without the ✦. */
 export const MODE_NAMES = ['Just write', 'Fill form'] as const;

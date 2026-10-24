@@ -1,9 +1,7 @@
 /* Words the port adds beyond the prototype: names only screen readers hear, and the few messages the project's UX
    rules ask for (a reason next to a disabled Save, a search-only no-match). */
 
-/** One spoken name from the visible parts of a card, skipping the empty ones: "Sprint review, Fri, Oct 23, …". */
-export const spoken = (...parts: readonly (string | null | undefined)[]) =>
-  parts.filter(Boolean).join(', ');
+export { spoken } from '@/components/a11y/spoken';
 
 export const SPOKEN = {
   /** The Month / Week pick inside the Calendar tab. */
