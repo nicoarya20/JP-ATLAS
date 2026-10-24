@@ -15,10 +15,9 @@ import type { TaskCard } from '@/data/tasks';
 import { type BoardStatus, holdGroup, sharedStatus } from '@/data/tasks.columns';
 import { clampCenter } from '@/data/tasks.radial';
 import { deniedNotice } from '@/data/tasks.shared';
-import { getTask } from '@/data/tasks.state';
 import { moveOnBoard } from '@/data/tasks.store';
 
-import { type MoveMenuState, measureStack } from './move-menu.state';
+import { type MoveMenuState, measureGroup, taskOf } from './move-menu.state';
 import { useCardViews, useClosingMenu, useTapGuard } from './use-move-menu.parts';
 
 type MoveMenuOptions = {
@@ -28,12 +27,6 @@ type MoveMenuOptions = {
   picked: readonly number[];
   /** A group was moved: selecting ends. */
   onGroupMoved: () => void;
-};
-
-const taskOf = (no: number) => {
-  const t = getTask(no);
-  if (!t) throw new Error(`Cannot open the move menu: task #${no} is not on the board`);
-  return t;
 };
 
 /** The move menu of one board. */
@@ -82,11 +75,10 @@ export function useMoveMenu({ role, cards, picked, onGroupMoved }: MoveMenuOptio
     const tasks = nos.map(taskOf);
     const group = nos.length > 1;
     const center = clampCenter(x, y, screen.width, screen.height, group);
-    const title = `#${no} ${task.title}`;
     show({
       no,
       nos,
-      title,
+      title: `#${no} ${task.title}`,
       from: sharedStatus(tasks),
       ...center,
       sticky: false,
@@ -94,8 +86,11 @@ export function useMoveMenu({ role, cards, picked, onGroupMoved }: MoveMenuOptio
       stack: null,
     });
     if (!group) return;
-    measureStack(views.current, tasks, screen, center).then((stack) => {
-      if (live.current?.no === no) show({ ...live.current, stack });
+    measureGroup(no, views.current, tasks, screen, center).then((stack) => {
+      if (live.current?.no !== no) return;
+      // Without the cards' places the group cannot fly in: cancel the move (nothing moves, the picks stay).
+      if (stack) show({ ...live.current, stack });
+      else close();
     });
   };
 

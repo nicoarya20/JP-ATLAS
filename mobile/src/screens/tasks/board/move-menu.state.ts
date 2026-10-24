@@ -4,6 +4,7 @@ import type { HostInstance } from 'react-native';
 
 import { offsetOf } from '@/data/tasks.radial';
 import type { TaskStatus } from '@/data/tasks.shared';
+import { getTask } from '@/data/tasks.state';
 
 /** A card of a group move: where it sits from the menu centre, so it can fly in from there. */
 export type StackCard = { no: number; title: string; dx: number; dy: number };
@@ -23,6 +24,13 @@ export type MoveMenuState = {
   group: boolean;
   /** The group's cards, once measured. */
   stack: StackCard[] | null;
+};
+
+/** Task #no from the store; the menu only opens on cards that are on the board. */
+export const taskOf = (no: number) => {
+  const t = getTask(no);
+  if (!t) throw new Error(`Cannot open the move menu: task #${no} is not on the board`);
+  return t;
 };
 
 type Rect = { x: number; y: number; width: number; height: number };
@@ -45,4 +53,23 @@ export async function measureStack(
     ...cards[i],
     ...offsetOf(r, screen.width, screen.height, center.x, center.y),
   }));
+}
+
+/**
+ * measureStack for the group menu of task #no, or null when a card could not be measured (it left the board, or the
+ * view is gone); the reason is warned with the task and group size, and the caller cancels the menu.
+ */
+export async function measureGroup(
+  no: number,
+  ...args: Parameters<typeof measureStack>
+): Promise<StackCard[] | null> {
+  try {
+    return await measureStack(...args);
+  } catch (e) {
+    const why = e instanceof Error ? e.message : String(e);
+    console.warn(
+      `Move menu of task #${no} closed: measuring its group of ${args[1].length} failed: ${why}`,
+    );
+    return null;
+  }
 }

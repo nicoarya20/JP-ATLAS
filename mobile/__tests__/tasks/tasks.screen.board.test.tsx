@@ -6,6 +6,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { createGestureController } from 'react-native-gesture-handler/jest-utils';
 import { HOLD_MS } from '../../src/data/tasks.radial';
 import { getTask } from '../../src/data/tasks.state';
+import * as moveMenuState from '../../src/screens/tasks/board/move-menu.state';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
 import { drainToastTimers } from '../helpers/toast-timers';
 
@@ -117,6 +118,30 @@ describe('kanban select', () => {
     await lift(pan, -40);
     expect([status(14), status(9)]).toEqual(['Done', 'Done']);
     expect(await screen.findByText('Moved 2 tasks to Done')).toBeOnTheScreen();
+  });
+
+  it('a group whose cards cannot be measured cancels the menu: nothing moves, the picks stay', async () => {
+    const real = moveMenuState.measureGroup;
+    // Measure against no registered views, as when the cards left the board before the menu opened.
+    const spy = jest
+      .spyOn(moveMenuState, 'measureGroup')
+      .mockImplementation((no, _views, ...rest) => real(no, new Map(), ...rest));
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    await openTasks('/tasks?view=board');
+    await fireEvent.press(screen.getByTestId('select-To do'));
+    await fireEvent.press(screen.getByTestId('board-card-14'));
+    await fireEvent.press(screen.getByTestId('board-card-9'));
+    const pan = await hold(14);
+    await advance(400);
+    expect(menu()).not.toBeOnTheScreen();
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^Move menu of task #14 closed: /));
+    await slide(pan, -40);
+    await lift(pan, -40);
+    expect([status(14), status(9)]).toEqual(['To do', 'To do']);
+    expect(screen.getByTestId('board-card-14')).toBeSelected();
+    expect(screen.getByTestId('board-card-9')).toBeSelected();
+    spy.mockRestore();
+    warn.mockRestore();
   });
 
   it('select all picks a column, and again clears it', async () => {
