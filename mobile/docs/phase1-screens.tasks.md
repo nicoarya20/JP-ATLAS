@@ -1,5 +1,7 @@
 # Phase 1 — Tasks (W1)
 
+Status: diimplementasikan di Fase 1 (2026-10-25). Penyimpangan dari prototipe dan log: reacttransition.md §1 dan §8.
+
 Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screens/tasks/*` (21 berkas), `src/data/sample.js` (`tasks`, `taskDetail`, `quickWrite`, `csv`), tes `tasks.list`, `tasks.filter`, `tasks.board.move`, `tasks.board.select`, `tasks.detail.actions`, `tasks.edit`, `tasks.form`, `items.open`, `atlas.rules`.
 
 ## 1. Id → route
@@ -21,7 +23,7 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 - **Aturan query saat pindah** (`ListScreen.open`): scope sama → query dipertahankan; scope berganti → query kembali ke default scope itu.
 - Kartu → `router.push('/tasks/<no>')`. Detail memilih varian dari status: In review → review; In progress/Done → progress; To do/Canceled → todo (`detailOf` di `tasks.shared.js`).
 - Perubahan status di detail tidak bernavigasi; layar re-render dari store. Dari sheet: aksi → `router.back()` → detail re-render.
-- Kartu tugas dari Home (Sesi B `tabFor`) nanti diarahkan ke `/tasks/<no>`; minta Sesi B mengganti `tabFor` saat route ini ada.
+- Kartu tugas dari Home membuka `/tasks/<no>` (`taskHref` di `src/screens/home/home.targets.ts`, H1).
 
 ## 2. List (My tasks / All tasks)
 
@@ -32,7 +34,7 @@ Kerangka `StackedScreen` (W0) judul **"Tasks"**, cari **"Search title, #number, 
 - Sumber: tugas yang ditugaskan ke saya (`assigned(t, me)`), lalu `applyQuery`.
 - Grup review di atas, hanya non-member: **"Waiting for my review"** (pm) / **"Waiting for review"** (admin); isinya **semua** tugas In review (setelah query), dan tugas itu dikeluarkan dari grup lain (`TasksMy` di `tasks.list.jsx`).
 - Sort = Due date → grup **Overdue / Today / Tomorrow / This week / Later / Done / Canceled** (`groupOf`: Canceled 6, Done 5, d<0 → 0, d≤1 → d+1, d≤sisa pekan → 3, lainnya 4). Sisa pekan = hari sampai Minggu = `daysToSunday(TODAY)` dari `src/data/dates.ts`. Sort lain → satu grup berjudul nama sort.
-- Kartu (`MyCard`): judul + chevron; `#no · project · priority`; catatan (`note(t)`, bold) bila status bukan To do; **"Due X"** (merah bold bila lewat).
+- Kartu (`MyCard`): judul + chevron; `#no · project · priority`; catatan (`note(t)`, bold) bila status bukan To do; **"Due X"** (merah bold bila lewat, diikuti **"· N days late"** dari `lateBy`, supaya terlambat tidak hanya ditandai warna).
 - `note(t)`: In review → "Waiting for my review" bila reviewer = saya, selain itu "Awaiting review by <reviewer>"; status lain → `t.when`.
 
 ### 2.2 All tasks (`TasksAll`)
@@ -44,8 +46,8 @@ Kerangka `StackedScreen` (W0) judul **"Tasks"**, cari **"Search title, #number, 
 
 | Keadaan | Copy | Tombol |
 |---|---|---|
-| My tasks tanpa tugas dan tanpa filter (`tasks.empty`) | "No tasks for you yet." / "Tasks assigned to you will show up here." | **New task** (primary, `Plus`) → `/tasks/new` (write) |
-| My tasks kosong karena filter; All tasks kosong apa pun sebabnya (`NoMatch`, ikon `SearchX`) | "No tasks match these filters." / "Change the filters, or reset them to see the whole list." | **Reset filters** (primary) → query default |
+| My tasks tanpa tugas, tanpa filter, dan tanpa cari (`tasks.empty`) | "No tasks for you yet." / "Tasks assigned to you will show up here." | **New task** (primary, `Plus`) → `/tasks/new` (write) |
+| My tasks kosong karena filter atau cari; All tasks kosong apa pun sebabnya; Board tanpa kartu karena filter atau cari (`NoMatch`, ikon `SearchX`; papan tanpa filter tetap menampilkan kolom kosong seperti prototipe) | "No tasks match these filters." / "Change the filters, or reset them to see the whole list." | **Reset filters** (primary) → query default |
 
 ### 2.4 Filter & sort (`tasks.filter`)
 
@@ -61,7 +63,7 @@ Kerangka `StackedScreen` (W0) judul **"Tasks"**, cari **"Search title, #number, 
 
 - Kolom (`tasks.columns.js`): **To do** (`CircleDashed`, arah **up**), **In progress** (`CircleDot`, **right**), **In review** (`Circle`, **down**), **Done** (`CircleCheck`, **left**). Lebar kolom 272 px, scroll horizontal bebas tanpa snap; kolom berikutnya mengintip.
 - Kepala kolom: badge bernada + jumlah; kontrol abu **Select / Cancel** di kanan.
-- Kartu (`BoardCard`): judul (subhead bold), `#no · project` (mine) atau `#no · type`; chip: avatar, `Calendar` + due (merah bila lewat dan bukan Done), `Flag` + prioritas (warna per prioritas), `ListChecks` + "2/3" bila ada steps. Label aksesibilitas `#no title`.
+- Kartu (`BoardCard`): judul (subhead bold), `#no · project` (mine) atau `#no · type`; chip (`board/board-card-chips.tsx`): avatar, `Calendar` + due (merah bila lewat dan bukan Done, ditambah "· N days late"), `Flag` + prioritas (warna per prioritas), `ListChecks` + "2/3" bila ada steps. Kartu = satu tombol; namanya dari `cardName` (`list/card-name.ts`): `#no title`, project/type, prioritas, status, due, "N days late" bila tampil, assignee, steps.
 - Tiap kolom diakhiri tombol plain **"Add task"** (`Plus`) → `/tasks/new/form`.
 - Papan memakai semua status (Done ikut) dan query yang sama dengan list.
 
@@ -86,11 +88,11 @@ Konstanta (port persis ke `src/data/tasks.radial.ts`, fungsi `'worklet'`):
 
 - `aimOf(dx, dy)`: `hypot < 28` → null; sumbu lebih panjang menentukan sisi (right/left/down/up → status kolom).
 - Lepas saat membidik = **pindah**. Pernah membidik lalu kembali ke tengah = **batal**. Tidak pernah bergeser = **sticky** (menu tetap terbuka, tap status). Tap dim / tombol back Android = tutup.
-- Status saat ini ditandai **"Now"** dan disabled; memilih status yang sama hanya menutup.
+- Status saat ini ditandai **"Now"** dan disabled (dibacakan "<status>, current status"); memilih status yang sama hanya menutup.
 - Petunjuk: `#no title` + "Slide to a status and let go" (menahan) / "Tap a status to move the task(s)" (sticky). Label dialog "Move #no title" / "Move n tasks".
 - Visual (`tasks.css`): ring radius 92 (grup 116), kotak opsi 48 / ring 124; opsi muncul 200 ms dengan stagger 0/25/50/75 ms; opsi dibidik scale 1.12 berisi warna nada; tutup 240 ms (fold 160, swell 180). Ambil angka lain dari `tasks.css` saat porting.
-- Grup (kartu terpilih > 1 dan kartu yang ditahan termasuk pilihan): kartu terbang dari posisinya ke jari 280 ms, stagger 35 ms, miring 4°, angkat 3 px, badge jumlah; batal = terbang kembali; pindah = `tk-stack-away` 220 ms. Kartu yang terangkat redup di kolomnya (`is-lifted`).
-- Hasil: `moveTask` per tugas yang statusnya berbeda; notice **"Moved to <status>"** (satu) / **"Moved n tasks to <status>"** (grup, lalu mode pilih berakhir).
+- Grup (kartu terpilih > 1 dan kartu yang ditahan termasuk pilihan): kartu terbang dari posisinya ke jari 280 ms, stagger 35 ms, miring 4°, angkat 3 px, badge jumlah; batal = terbang kembali; pindah = `tk-stack-away` 220 ms. Kartu yang terangkat redup di kolomnya (`is-lifted`). Posisi kartu grup diukur `measureGroup` (`board/move-menu.state.ts`); bila satu kartu gagal diukur → `null` + warning ber-konteks, menu ditutup (W1c).
+- Hasil: `moveOnBoard(viewer, nos, status)` (`moveTasks` → `moveTask` hanya untuk tugas yang statusnya berbeda; tugas yang tidak boleh diubah viewer = throw, karena papan sudah mengecek `mayChange` sebelum membuka menu); notice **"Moved to <status>"** (satu) / **"Moved n tasks to <status>"** (grup, lalu mode pilih berakhir).
 - Haptic **tidak** diport (K9).
 
 ## 4. Detail (`TaskDetail`, `tasks.detail*.jsx`)
@@ -115,11 +117,11 @@ Konstanta (port persis ke `src/data/tasks.radial.ts`, fungsi `'worklet'`):
 
 ## 5. Sheet, edit, form, write, CSV, settings
 
-**Return** (`tasks.return`, pm/admin): judul **"Return task"**; quick pick 'Still has errors', 'Not as requested', 'Evidence unclear' (mengisi alasan); **Reason \*** wajib; catatan "The task goes back to In progress and is logged as "Returned ×n". <who> gets a notification."; → In progress, "Task returned".
+**Return** (`tasks.return`, pm/admin): judul **"Return task"**; quick pick 'Still has errors', 'Not as requested', 'Evidence unclear' (mengisi alasan); **Reason \*** wajib (tombol disabled, alasan "Enter a reason to return the task." sebagai hint dan di bawah field setelah disentuh); catatan "The task goes back to In progress and is logged as "Returned ×n". <who> gets a notification."; → In progress, "Task returned".
 
-**Cancel** (`tasks.cancel`): **"Why cancel? \*"** radio 'Duplicate / already exists', 'No longer needed', 'Outside the project scope', 'Created by mistake', 'Other'; catatan wajib bila Other; tombol **Back** + **Cancel task** (danger) → Canceled `{ by, reason }`, "Task canceled".
+**Cancel** (`tasks.cancel`): **"Why cancel? \*"** radio 'Duplicate / already exists', 'No longer needed', 'Outside the project scope', 'Created by mistake', 'Other'; catatan wajib bila Other; tombol **Back** + **Cancel task** (danger; disabled dengan alasan "Pick why to cancel the task." / "Add a note to cancel for Other.") → Canceled `{ by, reason }`, "Task canceled".
 
-**Edit** (`tasks.edit`): judul **"Edit task"**; Title\*, Assignee (chip multi), Due date (DateField), Priority (chip `Low/Medium/High/Critical`), Type (`TYPES`: `['Task','Task (task)'], ['Bug','Issue (issue)'], ['Improvement','Idea (idea)']`), Phase (hanya Atlas), Needs review (`ReviewEdit`, reviewer dari `reviewersOf`), Tags (Enter/submit menambah, lowercase, tanpa duplikat), Description, Steps (`StepsEdit`), Evidence (`EvidenceEdit`). **Save** → `editTask`, "Task updated", `router.back()`.
+**Edit** (`tasks.edit`): judul **"Edit task"**; Title\*, Assignee (chip multi), Due date (DateField), Priority (chip `Low/Medium/High/Critical`), Type (`TYPES`: `['Task','Task (task)'], ['Bug','Issue (issue)'], ['Improvement','Idea (idea)']`), Phase (hanya Atlas), Needs review (`ReviewEdit`, reviewer dari `reviewersOf`), Tags (Enter/submit menambah, lowercase, tanpa duplikat), Description, Steps (`StepsEdit`), Evidence (`EvidenceEdit`). **Save** → `editTask`, "Task updated", `router.back()`. Title = `TitleField` dan Tags = `TagsEdit` (`new/title-field.tsx`, `new/tags-edit.tsx`, dipakai juga oleh Form); Save disabled dengan alasan `saveHint` ("Enter a title to save.", lalu "Pick at least one person."). Label kontrol non-teks lewat `Labelled` (`parts/labelled.tsx`): label terlihat disembunyikan dari screen reader, kontrolnya bernama "X, required".
 
 **Form** (`tasks.form`, modal **"New task"**): Seg 'Just write ✦' / 'Fill form'; Project (select), Title\*, Assignee, Priority, Due; **Show more / Show less** membuka Description, Type, Phase, Start date, Estimated hours, Tags, Needs review + catatan "Needs review starts from the project setting (Atlas: off)." Nilai awal dari `quickWrite.drafts[0]`, deskripsi 'The login page layout breaks on phones. Fix it before the staging release.' **Save** → `addTask`, "Task created", `router.dismiss()` lalu `router.push('/tasks/<no>')`.
 
@@ -127,7 +129,7 @@ Konstanta (port persis ke `src/data/tasks.radial.ts`, fungsi `'worklet'`):
 
 **CSV** (`tasks.csv`): judul **"Import tasks from CSV"**; "Download sample CSV" (toast); Seg Upload file / Paste text; berkas `atlas-tasks.csv · 5 rows`, ringkasan `4 ready (1 with a note) · 1 error`; 5 baris pratinjau (Ready/Error/Note); **Import 4 tasks** (toast, tutup). Pratinjau = tabel ≥ 4 kolom → kartu per baris di ponsel (aturan mobile).
 
-**Project settings** (`tasks.settings`): judul **"Project settings"**; Member: "Not available for Member"; switch **New tasks need review**; Task types (maks 6); Tags dengan Rename/Merge/Delete (toast). Port copy dari `tasks.settings.jsx`.
+**Project settings** (`tasks.settings`): judul **"Project settings"**; Member: "Not available for Member"; switch **New tasks need review**; Task types (maks 6); Tags dengan Rename/Merge (toast) dan Delete → dialog T2 "Delete tag <tag>?" lalu notice (penghapusan nyata di Fase 2; prototipe langsung toast). Port copy dari `tasks.settings.jsx`.
 
 ## 6. Interaksi RN (Reanimated 4 + RNGH 3)
 
@@ -135,13 +137,13 @@ Diverifikasi di types terpasang (`react-native-gesture-handler/lib/typescript/v3
 
 - **Papan**: `ScrollView` horizontal dari RNGH; tiap kolom `View` (tanpa scroll sendiri); halaman vertikal = `StackedScreen`.
 - **Tahan kartu**: `usePanGesture({ activateAfterLongPress: HOLD_MS })` per kartu dalam `GestureDetector`. Gerak sebelum 350 ms membuat Pan gagal sehingga ScrollView menang (padanan `SLOP_PX`; ukur toleransi default di perangkat, set `failOffsetX/Y ±SLOP_PX` bila perlu).
-  - `onActivate`: `scheduleOnRN(open, no, absoluteX, absoluteY)`. `open` mengecek `mayChange` (bila tidak boleh → notice, batal), menentukan grup, mengukur kartu grup dengan `measureInWindow`, meng-clamp pusat ke `EDGE`.
-  - `onUpdate` (worklet): `aim.value = aimOf(translationX, translationY)`; `left.value ||= aim != null`.
-  - `onDeactivate`: aim → `scheduleOnRN(pick, aim)`; `left` → tutup; selain itu sticky.
-  - Tap kartu (buka detail / toggle pilih) = `Pressable` biasa; aktivasi Pan membatalkan press sehingga lepas setelah menahan bukan tap (padanan `swallowClick`). Uji di perangkat.
-- **Overlay menu**: dirender lewat gluestack `Portal` (di atas tab bar, tanpa jendela native baru). RN `Modal` **tidak** dipakai karena membuka jendela baru dan membatalkan sentuhan yang sedang ditahan di iOS. Dim `Pressable` = tutup; `BackHandler` Android = tutup.
+  - `onActivate`: `scheduleOnRN(open, no, absoluteX, absoluteY)`. `open` mengecek `mayChange` (bila tidak boleh → notice, batal), menentukan grup, mengukur kartu grup (`measureGroup` → `measureInWindow`), meng-clamp pusat ke `EDGE`.
+  - `onUpdate` (worklet): `aimOf(translationX, translationY)`; bila berubah → `scheduleOnRN(aimTo, aim)`.
+  - `onFinalize` → `scheduleOnRN(finish, canceled)`: pindah / batal / sticky diputuskan di ref JS (`use-move-menu.ts`), bukan dari shared value, karena shared value tidak terbaca konsisten setelah re-render (reacttransition.md §8, W1b).
+  - Tap kartu (buka detail / toggle pilih) = `Pressable` biasa; lepas setelah menahan ditelan `takeTap` (`use-move-menu.parts.ts`, padanan `swallowClick`).
+- **Overlay menu**: dirender lewat gluestack `Portal` (`radial-menu.tsx`, di atas tab bar, tanpa jendela native baru; `onRequestClose` = tutup). RN `Modal` **tidak** dipakai karena membuka jendela baru dan membatalkan sentuhan yang sedang ditahan di iOS. Dim `Pressable` = tutup; `BackHandler` Android = tutup.
 - **Animasi**: opsi `withDelay(stagger, withTiming(...))`, scale aim `withTiming(1.12)` dari `useAnimatedStyle` membaca `aim`; stack terbang dari offset kartu ke pusat (`withTiming` 280 ms + delay 35·i, rotasi 4°). `useReducedMotion()` → tanpa stagger/scale/terbang, opacity saja.
-- **Aksesibilitas** (tak ada padanan tahan-geser): tiap kartu punya `accessibilityActions` "Move to To do/In progress/In review/Done" (kecuali status saat ini) → `moveTask` + notice yang sama. Mode pilih: `accessibilityState={{ selected }}`.
+- **Aksesibilitas** (tak ada padanan tahan-geser): tiap kartu punya `accessibilityActions` "Move to To do/In progress/In review/Done" (kecuali status saat ini); pada kartu yang termasuk pilihan bernama **"Move N tasks to X"** dan memindah seluruh grup lewat jalur gestur (`holdGroup` → `moveOnBoard`) + notice yang sama. Mode pilih: `accessibilityState={{ selected }}`.
 
 ## 7. Data dan logika (TS murni, `src/data/`)
 
@@ -149,29 +151,32 @@ Diverifikasi di types terpasang (`react-native-gesture-handler/lib/typescript/v3
 |---|---|---|
 | `sample/tasks.extra.ts` | `sample.js` `tasks[].next/updated/tags`, `taskDetail`, `quickWrite`, `csv` | `TASK_EXTRA: Record<no, { next, updated, tags }>`, `TASK_DETAIL`, `QUICK_WRITE`, `CSV_PREVIEW` (tanggal ISO) |
 | `sample/tasks.settings.ts` | `tasks.settings.jsx` | Tipe tugas, tag, nilai switch per proyek |
-| `tasks.shared.ts` | `tasks.shared.js` | `dueIn(t)` (pakai `daysBetween(TODAY, t.due)`), `assignees`, `assigned`, `whoLabel`, `note`, `isOpen`, `detailVariant`, `dueLabel`, `TYPES`, `PRIORITIES` |
-| `tasks.query.ts` | `tasks.query.js` | `STATUSES`, `PRIORITIES`, `SORTS`, `ASSIGNEES`, `baseQuery(scope)`, `isFiltered`, `applyQuery`, `searchTasks` |
-| `tasks.query-state.ts` | (params prototipe) | Store query per scope (`'mine' \| 'all' \| 'project:<id>'`), `setQuery`, `resetQuery` |
+| `tasks.shared.ts` | `tasks.shared.js` | `dueIn(t)` (pakai `daysBetween(TODAY, t.due)`), `assignees`, `assigned`, `whoLabel`, `note`, `isOpen`, `detailVariant`, `dueLabel`, `daysLate(n)` ("1 day late" / "N days late"), `dueNote`, `TYPES`, `PRIORITIES` |
+| `tasks.query.ts` | `tasks.query.js` | `STATUSES`, `PRIORITIES`, `SORTS`, `ASSIGNEES`, `baseQuery(scope)`, `withListedProject(q, scope, listed?)` (project yang diarsipkan → default scope, atau semua proyek; W4g), `isFiltered`, `applyQuery`, `searchTasks` |
+| `tasks.query-state.ts` | (params prototipe) | Store query per scope (`'mine' \| 'all' \| 'project:<id>'`), `defaultQuery` (Reset di sheet), `getQuery`, `useQuery`, `setQuery`, `resetQuery`; tiap baca lewat `withListedProject`, query tersimpan tidak ditimpa |
 | `tasks.groups.ts` | `tasks.list.jsx` | `GROUPS`, `groupOf`, grup review per role |
-| `tasks.store.ts` | `tasks.store.js` | `moveTask`, `archiveTask`, `unarchiveTask`, `takeProjectTasks`, `putTasksBack`, `renameProjectTasks`, `editTask`, `addTask`, `listArchivedTasks`, `resetTasks`; versi via `createStore` (W0) |
+| `tasks.store.ts` | `tasks.store.js` | `moveTask`, `moveTasks`, `moveOnBoard`, `archiveTask`, `unarchiveTask`, `forgetArchivedTask(key)` (Delete forever di Archive), `takeProjectTasks`, `putTasksBack`, `forgetProjectTasks(taken)` (Delete forever proyek), `renameProjectTasks`, `listArchivedTasks`, `resetTasks`. State + baca di `tasks.state.ts` (`createStore` W0); `editTask`, `addTask` di `tasks.store.edit.ts` |
 | `tasks.radial.ts` | `tasks.radial.js` | Konstanta §3.3, `aimOf` (worklet), `clampCenter(x, y, w, h, group)` |
-| `tasks.ts` | — | Titik tukar API: `getTasksList(role, { scope, view, query, search })` → `{ groups \| columns, filtered, empty }`; `getTaskDetail(role, no)` → `{ task, variant, facts, actions, mayChange, mayArchive, canReturn }`; `getTaskForm(role, project?)`; `getTaskEdit(no)`; `getQuickWrite()`; `getCsvImport()`; `getTaskSettings(role, projectId)` |
+| `tasks.ts` | — | Titik tukar API: `getTasksList(role, { scope, view, query?, search? })` → `{ groups \| columns, filtered, empty }`, kartu `TaskCard` membawa `late`, `lateOnBoard`, `lateBy` ("2 days late" atau null); `getTaskDetail(role, no)` → `{ task, variant, facts, actions, mayChange, mayArchive, canReturn, … }`; `getTaskForm(role, projectId?)`, `getTaskEdit(role, no)`, `getQuickWrite()`, `getCsvImport()`, `getTaskSettings(role, projectId)` diekspor ulang dari `tasks.form.ts`, `tasks.write.ts`, `tasks.settings.ts` |
 
 - File sampel Sesi B (`sample/tasks.ts`: `no, title, project, type, priority, status, who, also, due ISO, when, doneOn`; `TASK_REVIEWERS`) dibaca, tidak diubah (K7). Tipe `type` Sesi B hanya `'Task' | 'Bug'`; Improvement dari `TYPES` perlu tipe lebar di `tasks.shared.ts`.
 - `when` sampel adalah teks ("2 days overdue"); turunkan dari tanggal bila bisa, kalau tidak pakai teks sampel.
 - Peran orang (`ROLE_TAG`, reviewer) dari `src/data/people.ts` (W0, §4 main doc).
+- Berkas data tambahan dari implementasi: `tasks.state.ts`, `tasks.store.edit.ts`, `tasks.columns.ts`, `tasks.detail.ts`, `tasks.actions.ts`, `tasks.form.ts`, `tasks.settings.ts`, `tasks.write.ts`.
+- Proyek dibaca dari `projects.state.ts` (store Projects), bukan `PROJECTS` statis: filter Project, form, Just write, Project settings, dan daftar tugas proyek ikut rename dan tidak menawarkan proyek di Archive. `projects.state` tidak mengimpor tasks, jadi tidak ada siklus (W4b, W4d, W4f).
 
 ## 8. Berkas layar (`src/screens/tasks/`, tiap ≤ 150 baris)
 
-`tasks.strings.ts`; `list/tasks.screen.tsx` (menggantikan placeholder T5), `list/task-list.tsx`, `list/my-card.tsx`, `list/all-card.tsx`; `board/task-board.tsx`, `board/board-card.tsx`, `board/select-control.tsx`, `board/use-move-gesture.ts`, `board/radial-menu.tsx`, `board/move-stack.tsx`; `filter/tasks-filter.screen.tsx`, `filter/tasks-search.tsx`; `detail/task-detail.screen.tsx`, `detail/detail-actions.tsx`, `detail/detail-facts.tsx`, `detail/detail-steps.tsx`, `detail/detail-evidence.tsx`; `sheets/return.screen.tsx`, `sheets/cancel.screen.tsx`; `edit/task-edit.screen.tsx`, `edit/edit-lists.tsx`; `new/write.screen.tsx`, `new/form.screen.tsx`, `new/form-fields.tsx`; `csv/csv.screen.tsx`; `settings/tasks-settings.screen.tsx`.
+`tasks.strings.ts`, `tasks.strings.more.ts`, `tasks.strings.added.ts` (kata di luar prototipe dari QA W1e: nama untuk screen reader, alasan tombol disabled `MISSING`, dialog `DELETE_TAG`); `index.ts` (ekspor §9); `list/tasks.screen.tsx`, `list/task-list.tsx`, `list/my-card.tsx`, `list/all-card.tsx`, `list/card-title.tsx`, `list/card-name.ts`; `board/task-board.tsx`, `board/board-column.tsx`, `board/board-card.tsx`, `board/board-card-chips.tsx`, `board/board.tones.ts`, `board/select-control.tsx`, `board/use-move-gesture.ts`, `board/use-move-menu.ts`, `board/use-move-menu.parts.ts`, `board/move-menu.state.ts` (`MoveMenuState`, `measureStack`, `measureGroup`), `board/radial-menu.tsx`, `board/radial-option.tsx`, `board/radial-ring.tsx`, `board/move-stack.tsx`; `filter/tasks-filter.screen.tsx`, `filter/tasks-search.tsx`; `detail/task-detail.screen.tsx`, `detail/detail-actions.tsx`, `detail/detail-facts.tsx`, `detail/detail-steps.tsx`, `detail/detail-evidence.tsx`, `detail/detail-history.tsx`; `sheets/return.screen.tsx`, `sheets/cancel.screen.tsx`, `sheets/sheet-parts.tsx`; `edit/task-edit.screen.tsx`, `edit/edit-lists.tsx`; `new/write.screen.tsx`, `new/form.screen.tsx`, `new/form-fields.tsx`, `new/form-choices.tsx`, `new/title-field.tsx`, `new/tags-edit.tsx`; `parts/labelled.tsx`, `parts/task-page.tsx`, `parts/task-parts.tsx`; `csv/csv.screen.tsx`; `settings/tasks-settings.screen.tsx`, `settings/settings-parts.tsx`.
 
 ## 9. Kontrak untuk W4 (Projects)
 
-- `TaskBoard({ tasks, role, mine })` diekspor dari `board/task-board.tsx` (papan lengkap: kolom, pilih, menu radial); re-render saat store tugas berubah. Tab Tasks proyek memakai kartu list sendiri (`TaskCard` di `projects.tabs.jsx`, milik W4), bukan kartu My/All.
-- `TasksSearchField({ scope, inProject })` (cari + ikon filter bertitik) diekspor dari `filter/tasks-search.tsx`.
+- Semua ekspor di bawah tersedia lewat `src/screens/tasks/index.ts`.
+- `TaskBoard({ tasks, role?, mine })` diekspor dari `board/task-board.tsx` (papan lengkap: kolom, pilih, menu radial); re-render saat store tugas berubah. Tab Tasks proyek memakai kartu list sendiri (`src/screens/projects/detail/task-card.tsx`, milik W4), bukan kartu My/All.
+- `TasksSearchField({ scope, inProject?, value, onChangeText, onFilter? })` (cari + ikon filter bertitik; teks cari dikendalikan pemanggil, `onFilter` default `/tasks/filter`) diekspor dari `filter/tasks-search.tsx`.
 - `TasksSettings({ projectId, role })` dari `settings/tasks-settings.screen.tsx`.
 - Filter tab Tasks proyek: W1 mengekspor `TasksFilterPanel({ scope, inProject })`; W4 membuat route `projects/[id]/task-filter.tsx` yang me-render panel itu.
-- Store: `takeProjectTasks`, `putTasksBack`, `renameProjectTasks` dipakai W4 saat proyek diarsipkan/di-restore/di-rename.
+- Store: `takeProjectTasks`, `putTasksBack`, `renameProjectTasks`, `forgetProjectTasks` dipakai W4 saat proyek diarsipkan/di-restore/di-rename/dihapus selamanya; `forgetArchivedTask` dipakai `archive.ts` untuk Delete forever tugas.
 
 ## 10. Risiko
 
