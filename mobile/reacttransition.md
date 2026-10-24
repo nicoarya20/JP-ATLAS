@@ -33,7 +33,7 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 - **Milik rekan (jangan diubah):** `app/`, `server/`, skema DB, migrasi, endpoint. Mobile nanti hanya **mengonsumsi** API `/api/app/*`.
 - **Satu-satunya sentuhan di root:** `tsconfig.json` `exclude: ["mobile"]` dan `biome.json` `"!mobile"`, supaya `bun run typecheck` dan `bun run lint` root tidak ikut memeriksa kode RN.
 - **Aturan project yang tidak berlaku di `mobile/`:** Mantine (khusus web), `meta()` per route, `AppShell`/Burger, dan `DateInput` dari `@mantine/dates`. Pengganti untuk mobile: komponen gluestack, Expo Router, tab bar native.
-- **Pengecualian kode vendored:** `src/components/ui/**` adalah keluaran CLI gluestack (disalin, bukan ditulis). Kode ini dikecualikan dari biome dan dari batas file health / suppression (Rule 8/17), mis. `icon/index.tsx` 1.576 baris dan `@ts-expect-error` bawaan upstream. Kode ini tidak dipangkas supaya diff dengan upstream tetap bersih saat `gluestack-ui upgrade`. Kustomisasi JP Atlas di folder itu ada di `text/styles.tsx`, `heading/styles.tsx`, `button/index.tsx`, `badge/index.tsx`, `toast/index.tsx`, `avatar/index.tsx`, `progress`/`card` (tema). `gluestack-ui upgrade` bisa menimpa file-file ini, jadi setelah upgrade wajib cek `git diff` file tersebut dan jalankan tes tema.
+- **Pengecualian kode vendored:** `src/components/ui/**` adalah keluaran CLI gluestack (disalin, bukan ditulis). Kode ini dikecualikan dari biome dan dari batas file health / suppression (Rule 8/17), mis. `icon/index.tsx` 1.576 baris dan `@ts-expect-error` bawaan upstream. Kode ini tidak dipangkas supaya diff dengan upstream tetap bersih saat `gluestack-ui upgrade`. Kustomisasi JP Atlas di folder itu ada di `text/styles.tsx`, `heading/styles.tsx`, `button/index.tsx`, `badge/index.tsx`, `toast/index.tsx`, `avatar/index.tsx`, `progress`/`card` (tema). Fase 1 (G0b) menambah: `menu/index.tsx` dan `alert-dialog/index.tsx` (`opacity` dihapus dari `ZoomIn.withInitialValues`; tipe Reanimated 4.7 menolaknya, runtime sama), `checkbox/index.tsx` (3× `@ts-expect-error` bertanda alasan). `gluestack-ui upgrade` bisa menimpa file-file ini, jadi setelah upgrade wajib cek `git diff` file tersebut dan jalankan tes tema.
 - **Aturan yang tetap berlaku:** token JP Atlas (lime = aksi utama dengan teks navy, violet = interaksi, Manrope, radius 10/14/16/20, jarak 8/12/16/24/32), standar UX (konfirmasi T1/T2/T3, loading, feedback, empty state), file health, tes wajib, dan tanpa hex di komponen.
 
 ## 3. Stack Target
@@ -103,9 +103,9 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | ID | Task | Pemilik | Status | Bergantung |
 |---|---|---|---|---|
 | F1a | Pohon route §6.1 nav + registrasi presentasi semua route `phase1-screens.md` §3.1/§3.2, JS Tabs + bar polos, `src/navigation/{tabs.config,tab-create,tab-bar.visibility,bubble.math}.ts`, setup jest RNGH, tes T5 ditulis ulang | Sesi A | 🔄 | — |
-| G0a | Modul bersama murni: `src/data/{store,archive.store,people}.ts`, `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts` + tes | Sesi B | 🔄 | — |
-| G0b | Install: komponen gluestack `phase1-screens.md` §5 + `expo-clipboard` + `@react-native-community/datetimepicker` | Sesi B | ⏳ | G0a |
-| G0c | Kit komponen `phase1-screens.md` §4 (`src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`) + tes | Sesi B | ⏳ | G0b |
+| G0a | Modul bersama murni: `src/data/{store,archive.store,people}.ts`, `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts` + tes | Sesi B | ✅ | — |
+| G0b | Install: komponen gluestack `phase1-screens.md` §5 + `expo-clipboard` + `@react-native-community/datetimepicker` | Sesi B | ✅ | G0a |
+| G0c | Kit komponen `phase1-screens.md` §4 (`src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`) + tes | Sesi B | 🔄 | G0b |
 | W1a | Tasks lapisan data murni (sampel, query, kolom, matematika radial, store) + tes unit | Sesi D | 🔄 | G0a (store) |
 | W2a | Events lapisan data murni (sampel, query, `events.dates.ts` kalender, store) + tes unit | Sesi C | 🔄 | G0a (store) |
 | W1b | Tasks layar + route | Sesi D | ⏳ | F1a, G0c, W1a |
@@ -119,6 +119,8 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - Login dari RN dengan Better Auth (token atau cookie), disepakati dengan rekan sebelum Fase 2.
 - Archive (prototipe) vs Sampah 30 hari (app web).
 - `bun audit`: 2 high transitif lewat `expo > @expo/cli` (node-forge ≤1.4.0 GHSA-86w9-cpqp-85rv, zod <4.6.6 GHSA-mrhx-c7xc-m3w5). Hanya di tool CLI dev, tidak masuk bundle app. Tunggu patch Expo; cek ulang tiap naik versi Expo.
+- `@legendapp/motion` (dipakai actionsheet/select v5) menarik peer `nativewind` 4.2.7 + `react-native-css-interop` ke `bun.lock`/`node_modules` (tidak di `package.json`, tidak diimpor/dikonfigurasi; sama seperti init Fase 0). Diterima; buang bila gluestack melepas legendapp.
+- Plugin config `@react-native-community/datetimepicker` (tema Android) belum dipasang; tidak perlu untuk Expo Go, dipasang di Fase 3 (EAS).
 - Client API: Eden (berbagi tipe dengan `server/`) atau fetch biasa.
 
 ## 8. Log
@@ -137,3 +139,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — C2 (Sesi C): semua temuan C1 tertutup, tanpa regresi. Commit `2af2785` (config/deps Sesi A) dan `5757e60` (bobot font, palet, tailwind-merge Sesi B; termasuk 2 bug tambahan: font-family menimpa bobot, tailwind-merge 1.x membuang ukuran/warna teks). Sisa RM1: urutan pemuatan `tw-merge.ts` belum dijamin, dikerjakan Sesi A.
 - 2026-10-25 — RM1 selesai (`4d53981` Sesi A, `ae3d2a1` Sesi B); C3 (Sesi C): bersih, 95/95, tanpa regresi. **Fase 0 tertutup secara kode**; tinggal T9 (cek di HP oleh user).
 - 2026-10-25 — T9 selesai: user sudah cek di HP lewat Expo Go. **Fase 1 mulai**: F1a (Sesi A), G0a→G0b→G0c (Sesi B), W1a Tasks data (Sesi D), W2a Events data (Sesi C). Konteks keempat sesi di-clear user, jadi brief ditulis mandiri.
+- 2026-10-25 — G0a (`8991fea`) dan G0b selesai (Sesi B): 13 komponen gluestack + `@legendapp/motion`, `expo-clipboard`, datetimepicker 9.2.1; doctor 20/20, audit tanpa temuan baru, berkas vendored lama tanpa diff. Overlay portal ada di belakang formSheet/modal native iOS, jadi kit memakai `useRNModal`; perlu QA di HP. `sample/archive.ts` pindah dari W3 ke W0.
