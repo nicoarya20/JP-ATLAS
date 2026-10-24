@@ -15,11 +15,60 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
 
 ## Navigasi & tab bar
 
-(diisi Sesi A)
+- [ ] **Kaca di iOS 26** `[iOS]`
+  - Pil tab dan tombol "+" memakai Liquid Glass: konten di belakangnya terlihat samar saat daftar digulir di bawah bar.
+  - Di iOS < 26 dan di Android: permukaan semi-padat bertoken (tanpa blur), tepi dan bayangan tetap ada.
+- [ ] **Kaca saat panel More terbuka** `[keduanya]`
+  - Buka More → pil dan "+" menjadi lebih padat di atas latar gelap, teks/ikon tetap terbaca di mode terang dan gelap.
+- [ ] **Ketuk tab: gelembung jelly** `[keduanya]`
+  - Ketuk Tasks dari Home → gelembung meluncur ke Tasks lalu memantul (melebar, memipih, kembali); ikon Tasks ikut "pop".
+  - Ketuk tab yang sudah aktif → tidak pindah layar, hanya pantulan di tempat. Membuka app pertama kali tidak memantul.
+- [ ] **Tahan dan seret gelembung** `[keduanya]`
+  - Tahan pil di satu tab → gelembung melompat ke bawah jari dan sedikit membesar.
+  - Seret ke kanan/kiri → gelembung mengikuti jari tanpa tersendat; ikon di bawahnya menyala. Lepas → pindah ke tab terdekat lalu memantul.
+  - Seret melewati ujung pil → gelembung berhenti di tab pertama/terakhir. Gestur yang dibatalkan sistem (mis. notifikasi turun) → kembali ke tab aktif.
+- [ ] **Tab bar mengikuti link** `[keduanya]`
+  - Dari Home ketuk baris tugas → bar tersembunyi di detail tugas. Back → bar muncul lagi dengan Home terpilih.
+  - Dari Home ketuk "See all tasks" → bar memilih Tasks dan gelembung pindah ke sana.
+- [ ] **"+" berganti per tab dan terlipat** `[keduanya]`
+  - Label/aksi "+" per tab: Tasks → New task, Projects → New project, Events → New event, Home/More → sheet Create.
+  - Sebagai Member di Projects → "+" terlipat halus (menyempit dan memudar), pil melebar mengisi ruang. Kembali ke Home → "+" terbuka lagi, tidak muncul mendadak.
+- [ ] **Panel More: buka dan tutup** `[keduanya]`
+  - Ketuk More → pil tumbuh ke atas menjadi kartu dengan sedikit "swell"; kartu profil lalu ubin muncul berurutan dari bawah.
+  - Tutup lewat More lagi, ketuk latar gelap, atau tab lain → panel melipat tanpa swell; tab lain langsung terbuka setelahnya.
+- [ ] **Ubin panel More** `[keduanya]`
+  - Ubin Inbox, Team, Archive, Settings (Admin juga Users) 58 pt, ikon putih terbaca di kedua skema; ditekan sedikit mengecil.
+  - Badge merah (Inbox, Users untuk Admin) bulat utuh dengan cincin, tidak terpotong tepi ubin.
+  - Memilih ubin → panel tertutup dulu, lalu layar terbuka dengan tab More terpilih.
+- [ ] **Sheet Create** `[iOS]`
+  - "+" di Home → sheet setinggi isinya dengan grabber dan sudut 16; ditutup lewat X, geser ke bawah, atau ketuk latar.
+  - Tab bar tetap terlihat di bawah sheet dengan tab yang sama terpilih.
+- [ ] **Keyboard** `[keduanya]`
+  - Ketik di kolom pencarian Tasks → tab bar menyingkir selama keyboard terbuka dan kembali saat keyboard tutup.
+- [ ] **VoiceOver/TalkBack di tab bar** `[keduanya]`
+  - Bar terbaca "App navigation"; tiap tab terbaca nama + terpilih/tidak. Swipe atas/bawah (rotor Actions / menu TalkBack) → "Next"/"Previous" pindah tab; dari Home "Previous" membuka panel More.
+  - Panel More terbaca sebagai "More"; fokus tidak lolos ke layar di belakangnya, dan ubin berbadge terbaca "Inbox, 3 new".
 
 ## Home
 
-(diisi Sesi A)
+- [ ] **Chip statistik melipat saat menggulir** `[keduanya]`
+  - Gulir Home ke bawah perlahan → chip statistik tetap tersemat di atas, baris keterangannya memudar dan chip memendek mengikuti jari (tidak melompat).
+  - Gulir kembali ke atas → chip kembali penuh. Lempar cepat lalu hentikan → tidak ada kedipan.
+- [ ] **Chip di 375 pt dan teks besar** `[keduanya]`
+  - Baris chip bisa digeser ke samping, chip terakhir tidak terpotong tepi layar.
+  - Dengan skala teks sistem besar, angka dan keterangan chip tidak bertumpuk.
+- [ ] **Pencarian Home** `[keduanya]`
+  - Ketuk "Search or ask anything…" → notifikasi "Search is coming soon." tampil di atas tab bar.
+- [ ] **My Focus: Done** `[keduanya]`
+  - Sebagai PM, ketuk Done di tugas milik sendiri → "Task marked done", baris hilang dari My Focus, dan hitungan chip ikut berubah.
+  - Buka tab Tasks → tugas itu ada di grup Done.
+- [ ] **Baris membuka layar yang tepat** `[keduanya]`
+  - Baris tugas → detail tugas; baris event berikutnya → detail event; baris proyek di My projects → detail proyek; "See all" di My projects → tab Projects; "Approve 2 new users" (Admin) → Users › Approval; "See all tasks" → My tasks.
+  - Back dari tiap layar kembali ke Home pada posisi gulir yang sama.
+  - Ganti nama satu proyek di Projects, atau pindahkan ke Archive → Home (My projects, chip Active milik Admin) ikut berubah tanpa memuat ulang.
+- [ ] **VoiceOver/TalkBack di Home** `[keduanya]`
+  - Tiap chip statistik terbaca sekali: angka + label + keterangan. Judul seksi terbaca sebagai heading.
+  - Tombol Done terbaca bersama judul tugasnya ("Done: <judul>"), tidak hanya "Done".
 
 ## Tasks
 
