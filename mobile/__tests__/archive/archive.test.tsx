@@ -5,6 +5,12 @@ import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provid
 import { deleteForever, getArchive, getArchiveDelete } from '../../src/data/archive';
 import { findEntry, listEntries, removeEntry, resetArchive } from '../../src/data/archive.store';
 import * as events from '../../src/data/events.store';
+import {
+  archiveProject,
+  canRestoreProject,
+  listArchivedProjects,
+  resetProjects,
+} from '../../src/data/projects.store';
 import type { Role } from '../../src/data/sample';
 import * as tasks from '../../src/data/tasks.store';
 import { ArchiveScreen } from '../../src/screens/archive/archive.screen';
@@ -17,6 +23,8 @@ drainToastTimers();
 
 beforeEach(() => {
   resetArchive();
+  resetProjects();
+  tasks.resetTasks();
   jest.clearAllMocks();
 });
 afterAll(() => jest.restoreAllMocks());
@@ -50,7 +58,15 @@ describe('archive data', () => {
     expect(findEntry('event-test-meeting')).toBeUndefined();
   });
 
-  test('deleteForever: a project only leaves Archive; an unknown key throws with context', () => {
+  test('deleteForever: an archived project is forgotten, so its Undo is over', () => {
+    const key = archiveProject('atlas', 'Nico');
+    deleteForever(key);
+    expect(findEntry(key)).toBeUndefined();
+    expect(listArchivedProjects().map((p) => p.id)).not.toContain('atlas');
+    expect(canRestoreProject('atlas', key)).toBe(false);
+  });
+
+  test('deleteForever: a sample project only leaves Archive; an unknown key throws with context', () => {
     const forgetTask = jest.spyOn(tasks, 'forgetArchivedTask');
     deleteForever('project-senior-app-trial');
     expect(findEntry('project-senior-app-trial')).toBeUndefined();

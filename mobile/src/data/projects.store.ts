@@ -216,6 +216,7 @@ export function restoreProject(id: string, key?: string): void {
 export function forgetArchivedProject(key: string): void {
   const s = store.get();
   const h = s.held.find((x) => x.key === key);
+  // An entry that came with the Archive sample (no project of the store behind it) has nothing to forget here.
   if (!h) return;
   const { [h.id]: _, ...activity } = s.activity;
   store.set({

@@ -3,6 +3,7 @@
 import { type ArchiveEntry, type ArchiveKind, findEntry, removeEntry } from './archive.store';
 import { monthDay } from './dates';
 import { forgetArchivedEvent } from './events.store';
+import { forgetArchivedProject } from './projects.store';
 import type { Role } from './sample';
 import { forgetArchivedTask } from './tasks.store';
 
@@ -85,6 +86,6 @@ export function deleteForever(key: string): void {
   if (!e) throw new Error(`Cannot delete ${key} forever: it is not in Archive`);
   if (e.kind === 'TASK') forgetArchivedTask(key);
   if (e.kind === 'EVENT') forgetArchivedEvent(key);
-  // TODO(archive): a project only leaves Archive for now; call forgetArchivedProject(key) once W4 exports it.
+  if (e.kind === 'PROJECT') forgetArchivedProject(key);
   removeEntry(key);
 }

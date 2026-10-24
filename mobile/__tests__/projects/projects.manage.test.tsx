@@ -5,7 +5,7 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-
 
 import { deleteForever } from '../../src/data/archive';
 import { listEntries } from '../../src/data/archive.store';
-import { findProject } from '../../src/data/projects.store';
+import { findProject, listArchivedProjects } from '../../src/data/projects.store';
 import { getTasksState } from '../../src/data/tasks.store';
 import { openProjects, resetProjectStores } from '../helpers/projects-router';
 import { drainToastTimers } from '../helpers/toast-timers';
@@ -112,6 +112,8 @@ describe('Move to Archive', () => {
     const entry = listEntries().find((x) => x.ref === 'atlas');
     if (!entry) throw new Error('archiving atlas wrote no Archive entry');
     await act(async () => deleteForever(entry.key));
+    expect(listEntries().some((x) => x.ref === 'atlas')).toBe(false);
+    expect(listArchivedProjects().map((p) => p.id)).not.toContain('atlas');
     await press('Undo');
     expect(
       screen.getByText("This project was deleted forever and can't be restored."),
