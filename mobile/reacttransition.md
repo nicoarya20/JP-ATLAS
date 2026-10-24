@@ -1,0 +1,105 @@
+# React Native Transition — Simple PM Mobile
+
+Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + `react-cupertino-ui`) ke **React Native**. Dokumen ini adalah kontrak bersama orchestrator dan sesi pekerja: baca dulu sebelum mengerjakan task, dan perbarui bagian **Papan Task** serta **Log** setiap selesai.
+
+## 1. Keputusan
+
+| Tanggal | Keputusan | Alasan |
+|---|---|---|
+| 2026-10-23 | Desktop = website, mobile = aplikasi | Arah produk dari user |
+| 2026-10-25 | Mobile = **React Native** (Expo + Expo Router) | Pilihan user; menggantikan opsi PWA/Capacitor |
+| 2026-10-25 | UI kit = **gluestack-ui** (awalnya direncanakan di atas NativeWind/Tailwind; engine akhirnya lihat T2 di bawah) | Komponen milik kode kita (copy-paste, MIT) jadi bisa dibentuk persis JP Atlas. Tamagui dinilai terlalu rumit; RN Paper bertampilan Material sehingga bentrok dengan JP Atlas |
+| 2026-10-25 | Kode mobile di folder **`mobile/`** di repo ini, proyek mandiri (`package.json` + lockfile sendiri, **tanpa** workspaces root) | Tipe API bisa dibagi nanti; root repo milik rekan tidak diubah selain pengecualian di tsconfig/biome |
+| 2026-10-25 | Test runner mobile = **`jest-expo`** + React Native Testing Library | `bun:test` tidak menjalankan komponen RN; root tetap `bun:test` |
+| 2026-10-25 | gluestack-ui **Pro tidak dibeli** | Isinya hanya template layar (e-commerce, sosial, dll), tidak relevan untuk PM |
+| 2026-10-25 | **T2: gluestack-ui v5 (CLI 5.0.3) + UniWind 1.13 (Tailwind 4.3), bukan NativeWind**; Expo SDK 58, RN 0.88, React 19.3, TS 6 | NativeWind v5 masih RC (`latest` = 4.2.7) dan "not intended for production". CLI gluestack v5 untuk Expo hanya menawarkan nativewind-v5 atau uniwind; jalur NativeWind v4 berarti turun ke gluestack v3. UniWind stabil, MIT, tanpa kode native (aman untuk Expo Go), className/@theme setara; bisa pindah engine lewat `gluestack-ui upgrade` |
+| 2026-10-25 | Token: salinan `app/lib/theme-tokens.ts` di `mobile/src/theme/tokens.ts` + tes penjaga kesamaan hex + tes kontras; `popover` = surface | Mobile proyek mandiri, tidak bisa impor root; tes mencegah token melenceng dari web |
+| 2026-10-25 | Jarak dan ukuran font dalam px, bukan rem | NativeWind menghitung rem = 14 di native, sehingga skala 8/12/16 bisa bergeser |
+| 2026-10-25 | Manrope statis 400/500/600/700 dibuat dengan fonttools instancer dari TTF variabel; 650 → 600 | Android tidak bisa memilih axis bobot dari TTF variabel lewat expo-font; tanpa dependency npm baru |
+| 2026-10-25 | Data contoh: tanggal ISO + formatter, "hari ini" = konstanta 2026-10-07; `getHome(role)` satu titik tukar; Admin "Overdue" = 3 seperti prototipe, disimpan di data contoh (bukan di komponen) | Meniru `getHome` di server; user: ikuti prototipe |
+| 2026-10-25 | **Bahasa UI mobile = Inggris; ikuti prototipe mobile 1:1** (perilaku, copy, data contoh termasuk `home`) | Keputusan user. Menyimpang hanya bila terkendala teknis RN, dan wajib dilaporkan |
+| 2026-10-25 | Ikon = `lucide-react-native` (^1.61, ISC) | Prototipe memakai lucide, jadi ikon bisa 1:1. `expo-symbols` hanya iOS dan bentuknya berbeda |
+| 2026-10-25 | Tab Fase 0 = `NativeTabs` (expo-router/native-tabs): liquid glass di iOS, Material di Android; ikon SF Symbol/Material | Bawaan template SDK 58; tab bar prototipe menyusul di Fase 1 (A1) |
+| 2026-10-25 | **Fase 1 tab bar = custom `tabBar` di atas JS `Tabs` expo-router** (bukan NativeTabs, bukan `expo-router/ui`); Reanimated 4 + RNGH 3 + `expo-glass-effect`; Create = route `formSheet`; tanpa expo-haptics | NativeTabs tidak bisa membuat pil + FAB + panel More prototipe. Konsekuensi: kehilangan perilaku bar sistem iOS 26 (minimize-on-scroll, Large Content Viewer). Spesifikasi lengkap: `mobile/docs/phase1-navigation.md` |
+| 2026-10-25 | Linter mobile = biome (bukan ESLint expo) | Konsisten dengan root; biome root mengecualikan `mobile/` |
+| 2026-10-25 | Fase 0: Tabs Expo Router standar; gelembung, drag, panel More, dan sheet Create menyusul | Butuh Reanimated + Gesture Handler; di luar tujuan spike |
+
+## 2. Batas Wilayah
+
+- **Milik kita:** semua di `mobile/`.
+- **Milik rekan (jangan diubah):** `app/`, `server/`, skema DB, migrasi, endpoint. Mobile nanti hanya **mengonsumsi** API `/api/app/*`.
+- **Satu-satunya sentuhan di root:** `tsconfig.json` `exclude: ["mobile"]` dan `biome.json` `"!mobile"`, supaya `bun run typecheck` dan `bun run lint` root tidak ikut memeriksa kode RN.
+- **Aturan project yang tidak berlaku di `mobile/`:** Mantine (khusus web), `meta()` per route, `AppShell`/Burger, dan `DateInput` dari `@mantine/dates`. Pengganti untuk mobile: komponen gluestack, Expo Router, tab bar native.
+- **Aturan yang tetap berlaku:** token JP Atlas (lime = aksi utama dengan teks navy, violet = interaksi, Manrope, radius 10/14/16/20, jarak 8/12/16/24/32), standar UX (konfirmasi T1/T2/T3, loading, feedback, empty state), file health, tes wajib, dan tanpa hex di komponen.
+
+## 3. Stack Target
+
+- Expo SDK terbaru yang stabil, Expo Router, TypeScript strict.
+- gluestack-ui v5 + UniWind + Tailwind v4 (CSS-first `global.css`, tanpa `tailwind.config.js`).
+- Reanimated + Gesture Handler untuk interaksi khusus (menu radial Kanban, sheet), dipasang saat dibutuhkan, bukan di spike.
+- Data contoh dulu (data Nico dari prototipe), dengan satu titik tukar per layar supaya mudah diganti API.
+- Sumber acuan UX: `riset-keano/prototype-react/` (BRIEF.md + `src/`). Acuan token: `app/lib/theme-tokens.ts`. Font: `public/fonts/` (Manrope, OFL).
+
+## 4. Struktur `mobile/` (target)
+
+```
+mobile/
+  reacttransition.md     ← dokumen ini
+  app/                   ← route Expo Router (tipis, hanya merender screen)
+    _layout.tsx
+    (tabs)/_layout.tsx, index.tsx, ...
+  src/
+    screens/<tab>/       ← isi layar
+    components/ui/       ← komponen gluestack (hasil init/add)
+    theme/               ← pemetaan token JP Atlas
+    data/                ← data contoh (titik tukar ke API)
+  assets/fonts/          ← Manrope
+  __tests__/ atau *.test.tsx
+```
+
+## 5. Fase
+
+- **Fase 0 — Spike (sekarang):** buktikan Expo + gluestack + token JP Atlas + satu layar Home jalan dan bisa dicek di HP lewat Expo Go.
+- **Fase 1 — Porting layar:** pindahkan layar prototipe per modul (auth, home, projects, tasks, events, inbox, team, settings).
+- **Fase 2 — Sambung API:** login (Better Auth dari RN, disepakati dengan rekan), client API, ganti data contoh.
+- **Fase 3 — Rilis:** EAS Build, ikon/splash, distribusi.
+
+## 6. Papan Task — Fase 0
+
+Branch: `feature/mobile-expo-spike` (dari `main`). Pekerja **tidak** commit/checkout/stash/reset/push; orchestrator me-review lalu commit per task.
+
+| ID | Task | Pemilik | Status | Bergantung |
+|---|---|---|---|---|
+| T1 | Scaffold Expo (Expo Router + TS) di `mobile/`, pakai bun | Sesi A | 👀 | — |
+| T2 | Cek stabilitas NativeWind v5 / gluestack v5, putuskan versi, `gluestack-ui init` | Sesi A | 👀 | T1 |
+| T3 | `jest-expo` + RNTL + satu tes asap yang lulus | Sesi A | 👀 | T1 |
+| T4 | Pengecualian root: `tsconfig.json` exclude + `biome.json` `!mobile`; typecheck/lint root tetap lulus | Sesi A | ✅ | T1 |
+| T5 | Kerangka tab Expo Router sesuai tab prototipe, layar placeholder di `src/screens/<tab>/` | Sesi A | 👀 | T2 |
+| B0 | Analisis (read-only): pemetaan token JP Atlas → Tailwind/gluestack, spesifikasi Home + tab bar, inventaris data contoh | Sesi B | ✅ | — |
+| T6 | Terapkan token JP Atlas ke config gluestack/Tailwind + font Manrope (expo-font) | Sesi B | 🔄 | T2, B0 |
+| T7 | Modul data contoh `src/data/` (data Nico untuk Home) | Sesi B | 🔄 | T1, B0 |
+| T8 | Layar Home (`src/screens/home/**`) + tes | Sesi B | 🔄 | T5, T6, T7 |
+| T9 | Verifikasi di HP via Expo Go | User | ⏳ | T8 |
+| T10 | Linter mobile: biome (versi sama dengan root), `mobile/biome.json` | Sesi A | 👀 | install Sesi B selesai |
+| C1 | Review kode independen Fase 0 + `bun audit` + doctor (read-only) | Sesi C | 🔄 | — |
+| D1 | Spesifikasi porting Fase 1 semua layar di luar Home/tab bar → `mobile/docs/phase1-screens*.md` | Sesi D | 🔄 | — |
+| A1 | Spesifikasi (read-only) tab bar/navigasi Fase 1 persis prototipe: pil kaca, gelembung, "+", panel More | Sesi A | ✅ | — |
+
+Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sudah di-commit).
+
+## 7. Pertanyaan Terbuka
+
+- Login dari RN dengan Better Auth (token atau cookie), disepakati dengan rekan sebelum Fase 2.
+- Archive (prototipe) vs Sampah 30 hari (app web).
+- Client API: Eden (berbagi tipe dengan `server/`) atau fetch biasa.
+
+## 8. Log
+
+- 2026-10-25 — Dokumen dibuat; branch `feature/mobile-expo-spike`; Fase 0 dibagi ke Sesi A (`pm-dashboard-64`, toolchain) dan Sesi B (`pm-dashboard-47`, desain + layar Home).
+- 2026-10-25 — User: bahasa Inggris, ikuti prototipe mobile 1:1.
+- 2026-10-25 — T1+T2 selesai (Sesi A): Expo SDK 58 + gluestack v5 + UniWind; expo-doctor 20/20, `expo export` iOS+Android sukses. Sesi B mulai T6/T7.
+- 2026-10-25 — B0 selesai (pemetaan token, spesifikasi Home 6 section × 3 role, inventaris data dari `riset-keano/prototype-react/src/data/sample*.js`); keputusan token/font/data dicatat di §1.
+- 2026-10-25 — T3–T5 selesai (Sesi A): jest-expo 6/6 lulus, NativeTabs 5 tab, root typecheck lulus; lint root gagal karena error lama di `tahapan-proyek/` (bukan dari mobile). Commit `ac9dd4f` (pengecualian root). Sisa scaffold di-commit setelah T6, karena `global.css`/`app/_layout.tsx` sudah berisi kerja Sesi B.
+- 2026-10-25 — A1 selesai: spesifikasi navigasi Fase 1 (F1a route + bar polos → F1b gelembung → F1c FAB + Create → F1d panel More → F1e kaca/a11y/QA). Fase 1 mulai setelah T8 + T9.
+- 2026-10-25 — Tambah Sesi C (`pm-dashboard-01`, reviewer read-only) dan Sesi D (`pm-dashboard-83`, perencana porting layar Fase 1).
+- 2026-10-25 — T10 selesai: Biome 2.5.12 (persis, sama dengan root), `mobile/biome.json`, `src/components/ui/**` dikecualikan (output CLI). Spesifikasi A1 ditulis di `docs/phase1-navigation.md`. Tes sementara merah karena mock Reanimated di `jest.setup.js` (T8 Sesi B); selama T8 Sesi B memegang jest setup dan wajib memakai setup resmi.
