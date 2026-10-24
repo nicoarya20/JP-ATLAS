@@ -136,7 +136,7 @@ describe('HomeScreen · Project Manager', () => {
       '/projects/atlas',
     ]);
     await fireEvent.press(screen.getByRole('search', { name: 'Search or ask anything…' }));
-    expect(await screen.findByText('Search arrives in Phase 1.')).toBeTruthy();
+    expect(await screen.findByText('Search is coming soon.')).toBeTruthy();
     expect(onOpen).toHaveBeenCalledTimes(7);
   });
 

@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { type Href, router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
 import { type ComponentRef, useEffect, useRef } from 'react';
 import { AccessibilityInfo, type HostInstance, View } from 'react-native';
@@ -13,7 +13,6 @@ import { Text } from '@/components/ui/text';
 import { getProfile } from '@/data/profile';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
-import { routeHref } from '@/navigation/route-href';
 
 import { type MoreTile, type MoreTone, moreTiles, PROFILE_PATH, tileLabel } from './more.tiles';
 
@@ -75,9 +74,9 @@ export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
     }, PANEL.openMs);
     return () => clearTimeout(focus);
   }, [unfolded]);
-  const open = (path: string) => {
+  const open = (path: Href) => {
     close();
-    router.push(routeHref(path));
+    router.push(path);
   };
   return (
     <View className="gap-3 px-3 pb-2 pt-4">
@@ -107,7 +106,7 @@ export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
       </PanelRise>
       <View className="flex-row flex-wrap gap-y-3">
         {moreTiles(role).map((tile, i) => (
-          <View key={tile.path} className="basis-1/3">
+          <View key={tile.label} className="basis-1/3">
             <PanelRise i={i + 1}>
               <Tile tile={tile} onOpen={() => open(tile.path)} />
             </PanelRise>

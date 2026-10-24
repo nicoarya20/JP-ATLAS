@@ -1,4 +1,5 @@
 // What the More panel opens (prototype screens/home/home.more.jsx tiles): the secondary destinations, role-gated.
+import type { Href } from 'expo-router';
 import { Archive, Inbox, type LucideIcon, Settings, UserCog, Users } from 'lucide-react-native';
 
 import { getProfile } from '@/data/profile';
@@ -10,8 +11,8 @@ export const MORE_PANEL = { label: 'More' } as const;
 export type MoreTone = 'blue' | 'green' | 'orange' | 'teal' | 'gray';
 
 export type MoreTile = {
-  /** Route it opens (the module workers add these files; registered in app/(tabs)/more/_layout.tsx). */
-  path: string;
+  /** Route it opens (registered in app/(tabs)/more/_layout.tsx). */
+  path: Href;
   label: string;
   Icon: LucideIcon;
   tone: MoreTone;
@@ -20,7 +21,7 @@ export type MoreTile = {
 };
 
 /** The profile card opens the profile overlay (prototype profile.me, a root modal). */
-export const PROFILE_PATH = '/profile';
+export const PROFILE_PATH: Href = '/profile';
 
 /** The grid, in the prototype's order; Users is for Admin only. */
 export function moreTiles(role: Role): MoreTile[] {

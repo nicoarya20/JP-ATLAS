@@ -49,7 +49,7 @@ export const FOCUS_GROUP: Record<FocusGroupKey, string> = {
 export const S = {
   greeting: (greeting: string, name: string) => `${greeting}, ${name}`,
   search: 'Search or ask anything…',
-  searchLater: 'Search arrives in Phase 1.',
+  searchLater: 'Search is coming soon.',
   briefing: { title: 'Daily Briefing', sub: 'What do I need to know today?' },
   focus: {
     title: 'My Focus',
