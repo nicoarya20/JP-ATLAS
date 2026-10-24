@@ -111,11 +111,12 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W2a | Events lapisan data murni (sampel, query, `events.dates.ts` kalender, store) + tes unit | Sesi C | ✅ | G0a (store) |
 | W1b | Tasks layar + route | Sesi D | 🔄 | F1a, G0c, W1a |
 | W2b | Events layar + route | Sesi C | 🔄 | F1a, G0c, W2a |
-| G0d | Kit `ConfirmDialog` T2/T3, ekspor `toUtc` dari `dates.ts`, paritas `StackedScreen` (baris pinned memadat, fokus setelah reveal) | Sesi B | 🔄 | G0c |
-| W3 | More + Auth + Profile | Sesi B | ⏳ | F1a, G0d |
+| G0d | Kit `ConfirmDialog` T2/T3, ekspor `toUtc` dari `dates.ts`, paritas `StackedScreen` (baris pinned memadat, fokus setelah reveal) | Sesi B | ✅ | G0c |
+| W3 | More + Auth + Profile | Sesi B | 🔄 | F1a, G0d |
 | H1 | Home membaca getter tasks/events store; target More → route `more/*` | Sesi B | ⏳ | W3 |
 | W4 | Projects | (menyusul) | ⏳ | W1b (TaskBoard) |
-| F1b–F1e | Gelembung, FAB + Create, panel More, kaca/a11y/QA | Sesi A | 🔄 | F1a |
+| F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
+| F1c–F1e | FAB + Create, panel More, kaca/a11y/QA (+ aksi a11y increment/decrement, bar sembunyi saat keyboard) | Sesi A | 🔄 | F1b |
 
 ## 7. Pertanyaan Terbuka
 
@@ -146,3 +147,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — F1a selesai (Sesi A, `5ec4098`): `expo-router/js-tabs` + bar polos, pohon route + presentasi semua route (`src/navigation/stack-presentation.ts`), `useTabBarInset`; 284/284. W2a selesai (Sesi C), commit menunggu W1a karena `events.store` mengimpor `tasks.store`. Draft tugas rapat tanpa due: ikut prototipe (Create diblokir sampai semua due terisi).
 - 2026-10-25 — W1a (Sesi D, `b0f2809`, 80 tes) dan W2a + lanjutan (Sesi C, `731e7b0`, 47 tes; `events.form.ts`, `forgetArchivedEvent`) di-commit. Kontrak Delete forever untuk W3: `forget<Archived X>(key)` lalu `removeEntry(key)`. Rename/Merge/Delete di Settings tugas tetap notice (ikut prototipe); dialog T2 di Fase 2.
 - 2026-10-25 — G0c selesai (Sesi B, `9cf7f32`, 406/406): kit §4 + peran tema snack. Catatan untuk worker: beri nama input gluestack dengan `aria-label` (Input/Textarea/RadioGroup menimpa `accessibilityLabel`). `forgetArchivedTask` (`dda1ee4`); nomor tugas baru tidak pernah dipakai ulang. W1b (D) dan W2b (C) mulai; Sesi B mengerjakan G0d lalu W3.
+- 2026-10-25 — F1b selesai (Sesi A, `1e87802`, 432 tes): gelembung via pan RNGH, reduced motion = slide 120 ms; navigasi tombol panah prototipe → aksi a11y di F1e. G0d selesai (Sesi B, `27645d4`, 436 tes): `ConfirmDialog` deklaratif (T2/T3, loading + error), `toUtc` diekspor, `StackedScreen` `pinnedShrink`. Archive Delete forever = T3 di dalam formSheet itu sendiri (bukan dialog di atas sheet, agar tidak konfirmasi ganda).
