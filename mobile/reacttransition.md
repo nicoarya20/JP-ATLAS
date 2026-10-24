@@ -33,7 +33,7 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 - **Milik rekan (jangan diubah):** `app/`, `server/`, skema DB, migrasi, endpoint. Mobile nanti hanya **mengonsumsi** API `/api/app/*`.
 - **Satu-satunya sentuhan di root:** `tsconfig.json` `exclude: ["mobile"]` dan `biome.json` `"!mobile"`, supaya `bun run typecheck` dan `bun run lint` root tidak ikut memeriksa kode RN.
 - **Aturan project yang tidak berlaku di `mobile/`:** Mantine (khusus web), `meta()` per route, `AppShell`/Burger, dan `DateInput` dari `@mantine/dates`. Pengganti untuk mobile: komponen gluestack, Expo Router, tab bar native.
-- **Pengecualian kode vendored:** `src/components/ui/**` adalah keluaran CLI gluestack (disalin, bukan ditulis). Kode ini dikecualikan dari biome dan dari batas file health / suppression (Rule 8/17), mis. `icon/index.tsx` 1.576 baris dan `@ts-expect-error` bawaan upstream. Kode ini tidak dipangkas supaya diff dengan upstream tetap bersih saat `gluestack-ui upgrade`. Kustomisasi kita di sana dibatasi ke `styles.tsx` (token/kelas) dan dicatat di commit.
+- **Pengecualian kode vendored:** `src/components/ui/**` adalah keluaran CLI gluestack (disalin, bukan ditulis). Kode ini dikecualikan dari biome dan dari batas file health / suppression (Rule 8/17), mis. `icon/index.tsx` 1.576 baris dan `@ts-expect-error` bawaan upstream. Kode ini tidak dipangkas supaya diff dengan upstream tetap bersih saat `gluestack-ui upgrade`. Kustomisasi JP Atlas di folder itu ada di `text/styles.tsx`, `heading/styles.tsx`, `button/index.tsx`, `badge/index.tsx`, `toast/index.tsx`, `avatar/index.tsx`, `progress`/`card` (tema). `gluestack-ui upgrade` bisa menimpa file-file ini, jadi setelah upgrade wajib cek `git diff` file tersebut dan jalankan tes tema.
 - **Aturan yang tetap berlaku:** token JP Atlas (lime = aksi utama dengan teks navy, violet = interaksi, Manrope, radius 10/14/16/20, jarak 8/12/16/24/32), standar UX (konfirmasi T1/T2/T3, loading, feedback, empty state), file health, tes wajib, dan tanpa hex di komponen.
 
 ## 3. Stack Target
@@ -86,7 +86,7 @@ Branch: `feature/mobile-expo-spike` (dari `main`). Pekerja **tidak** commit/chec
 | T9 | Verifikasi di HP via Expo Go | User | ⏳ | T8 |
 | T10 | Linter mobile: biome (versi sama dengan root), `mobile/biome.json` | Sesi A | ✅ | install Sesi B selesai |
 | C1 | Review kode independen Fase 0 + `bun audit` + doctor (read-only) | Sesi C | ✅ | — |
-| C2 | Perbaikan temuan C1: B = #1 bobot font, #2 worker jest bocor, #4 reset palet; A = #5 app.config splash, #6 dependency tak terpakai, nit | Sesi A, B | 🔄 | C1 |
+| C2 | Perbaikan temuan C1: B = #1 bobot font, #2 worker jest bocor, #4 reset palet; A = #5 app.config splash, #6 dependency tak terpakai, nit | Sesi A, B | ✅ | C1 |
 | D1 | Spesifikasi porting Fase 1 semua layar di luar Home/tab bar → `mobile/docs/phase1-screens*.md` | Sesi D | ✅ | — |
 | A1 | Spesifikasi (read-only) tab bar/navigasi Fase 1 persis prototipe: pil kaca, gelembung, "+", panel More | Sesi A | ✅ | — |
 
@@ -112,3 +112,4 @@ Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sud
 - 2026-10-25 — T6–T8 selesai (Sesi B): 87/87 tes, typecheck dan lint 0 error, export iOS+Android, doctor 20/20. Jest pakai `setUpTests()` resmi Reanimated + resolver gabungan (`jest.resolver.js`) + mock resmi safe-area. Commit `e6d85fd` (scaffold), `74eacd7` (tema), `0016b99` (Home), `03fc15c` (docs). Kepemilikan jest setup kembali ke Sesi A.
 - 2026-10-25 — C1 selesai (Sesi C): 1 temuan sedang (kelas `font-semibold/bold` bawaan Tailwind menimpa bobot Manrope), 5 rendah, beberapa nit; semua dibagi ke Sesi A/B. Sesi C memverifikasi ulang setelah perbaikan.
 - 2026-10-25 — D1 selesai (Sesi D): `docs/phase1-screens*.md` (5 berkas, 813 baris), commit `95ef6f2`. Keputusan penyimpangan dicatat di §1.
+- 2026-10-25 — C2 (Sesi C): semua temuan C1 tertutup, tanpa regresi. Commit `2af2785` (config/deps Sesi A) dan `5757e60` (bobot font, palet, tailwind-merge Sesi B; termasuk 2 bug tambahan: font-family menimpa bobot, tailwind-merge 1.x membuang ukuran/warna teks). Sisa RM1: urutan pemuatan `tw-merge.ts` belum dijamin, dikerjakan Sesi A.
