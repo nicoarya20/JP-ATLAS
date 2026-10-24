@@ -106,12 +106,14 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | F1a | Pohon route §6.1 nav + registrasi presentasi semua route `phase1-screens.md` §3.1/§3.2, JS Tabs + bar polos, `src/navigation/{tabs.config,tab-create,tab-bar.visibility,bubble.math}.ts`, setup jest RNGH, tes T5 ditulis ulang | Sesi A | ✅ | — |
 | G0a | Modul bersama murni: `src/data/{store,archive.store,people}.ts`, `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts` + tes | Sesi B | ✅ | — |
 | G0b | Install: komponen gluestack `phase1-screens.md` §5 + `expo-clipboard` + `@react-native-community/datetimepicker` | Sesi B | ✅ | G0a |
-| G0c | Kit komponen `phase1-screens.md` §4 (`src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`) + tes | Sesi B | 🔄 | G0b |
+| G0c | Kit komponen `phase1-screens.md` §4 (`src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`) + tes | Sesi B | ✅ | G0b |
 | W1a | Tasks lapisan data murni (sampel, query, kolom, matematika radial, store) + tes unit | Sesi D | ✅ | G0a (store) |
 | W2a | Events lapisan data murni (sampel, query, `events.dates.ts` kalender, store) + tes unit | Sesi C | ✅ | G0a (store) |
-| W1b | Tasks layar + route | Sesi D | ⏳ | F1a, G0c, W1a |
-| W2b | Events layar + route | Sesi C | ⏳ | F1a, G0c, W2a |
-| W3 | More + Auth + Profile | Sesi B | ⏳ | F1a, G0c |
+| W1b | Tasks layar + route | Sesi D | 🔄 | F1a, G0c, W1a |
+| W2b | Events layar + route | Sesi C | 🔄 | F1a, G0c, W2a |
+| G0d | Kit `ConfirmDialog` T2/T3, ekspor `toUtc` dari `dates.ts`, paritas `StackedScreen` (baris pinned memadat, fokus setelah reveal) | Sesi B | 🔄 | G0c |
+| W3 | More + Auth + Profile | Sesi B | ⏳ | F1a, G0d |
+| H1 | Home membaca getter tasks/events store; target More → route `more/*` | Sesi B | ⏳ | W3 |
 | W4 | Projects | (menyusul) | ⏳ | W1b (TaskBoard) |
 | F1b–F1e | Gelembung, FAB + Create, panel More, kaca/a11y/QA | Sesi A | 🔄 | F1a |
 
@@ -143,3 +145,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — G0a (`8991fea`) dan G0b selesai (Sesi B): 13 komponen gluestack + `@legendapp/motion`, `expo-clipboard`, datetimepicker 9.2.1; doctor 20/20, audit tanpa temuan baru, berkas vendored lama tanpa diff. Overlay portal ada di belakang formSheet/modal native iOS, jadi kit memakai `useRNModal`; perlu QA di HP. `sample/archive.ts` pindah dari W3 ke W0.
 - 2026-10-25 — F1a selesai (Sesi A, `5ec4098`): `expo-router/js-tabs` + bar polos, pohon route + presentasi semua route (`src/navigation/stack-presentation.ts`), `useTabBarInset`; 284/284. W2a selesai (Sesi C), commit menunggu W1a karena `events.store` mengimpor `tasks.store`. Draft tugas rapat tanpa due: ikut prototipe (Create diblokir sampai semua due terisi).
 - 2026-10-25 — W1a (Sesi D, `b0f2809`, 80 tes) dan W2a + lanjutan (Sesi C, `731e7b0`, 47 tes; `events.form.ts`, `forgetArchivedEvent`) di-commit. Kontrak Delete forever untuk W3: `forget<Archived X>(key)` lalu `removeEntry(key)`. Rename/Merge/Delete di Settings tugas tetap notice (ikut prototipe); dialog T2 di Fase 2.
+- 2026-10-25 — G0c selesai (Sesi B, `9cf7f32`, 406/406): kit §4 + peran tema snack. Catatan untuk worker: beri nama input gluestack dengan `aria-label` (Input/Textarea/RadioGroup menimpa `accessibilityLabel`). `forgetArchivedTask` (`dda1ee4`); nomor tugas baru tidak pernah dipakai ulang. W1b (D) dan W2b (C) mulai; Sesi B mengerjakan G0d lalu W3.
