@@ -1,7 +1,7 @@
 // Events ⑨ detail with confirmed results (prototype events.confirmed.jsx DetailConfirmed): the kickoff sample or what
 // Step 3 confirmed. Created tasks read live from Tasks (status, owner, due); one Tasks no longer has opens All tasks.
 // Tasks go to the project, decisions to its history, open questions to the next meeting's agenda. No ⋯ menu.
-import { router, useLocalSearchParams } from 'expo-router';
+import { type Href, router, useLocalSearchParams } from 'expo-router';
 
 import { StatusPill } from '@/components/status/status-pill';
 import { Badge, BadgeText } from '@/components/ui/badge';
@@ -15,14 +15,13 @@ import { getEventResults, type MadeTask } from '@/data/events.results';
 import { eventDate, eventWhere } from '@/data/events.shared';
 import { useEventsState } from '@/data/events.store';
 import { useTasks } from '@/data/tasks.store';
-import { routeHref } from '@/navigation/route-href';
 
 import { RESULTS } from '../events.strings.outcomes';
 import { EventMissing, EventPage } from '../parts/event-page';
 import { Box, Bullets, EvHead, EvSec, Note } from '../parts/event-parts';
 
-// The task detail route lands with Tasks (Sesi D); routeHref until then.
-const taskHref = (t: MadeTask) => routeHref(t.exists ? `/tasks/${t.no}` : '/tasks?scope=all');
+// A task missing from the Tasks store has no detail to open: All tasks instead.
+const taskHref = (t: MadeTask): Href => (t.exists ? `/tasks/${t.no}` : '/tasks?scope=all');
 
 function Made({ t }: { t: MadeTask }) {
   const label = `#${t.no} ${t.title}`;
