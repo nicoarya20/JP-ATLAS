@@ -116,7 +116,9 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | H1 | Home membaca getter tasks/events store; target More → route `more/*` | Sesi B | ⏳ | W3 |
 | W4 | Projects | (menyusul) | ⏳ | W1b (TaskBoard) |
 | F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
-| F1c–F1e | FAB + Create, panel More, kaca/a11y/QA (+ aksi a11y increment/decrement, bar sembunyi saat keyboard) | Sesi A | 🔄 | F1b |
+| F1c | FAB + sheet Create (`router.replace` ke target) | Sesi A | ✅ | F1b |
+| F1d | Panel More (scrim, Escape a11y, Android back) | Sesi A | ✅ | F1c |
+| F1e | Kaca, reduced motion, a11y (+ aksi increment/decrement, bar sembunyi saat keyboard, hide-descendants Android), QA | Sesi A | 🔄 | F1d |
 
 ## 7. Pertanyaan Terbuka
 
@@ -125,6 +127,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - `bun audit`: 2 high transitif lewat `expo > @expo/cli` (node-forge ≤1.4.0 GHSA-86w9-cpqp-85rv, zod <4.6.6 GHSA-mrhx-c7xc-m3w5). Hanya di tool CLI dev, tidak masuk bundle app. Tunggu patch Expo; cek ulang tiap naik versi Expo.
 - `@legendapp/motion` (dipakai actionsheet/select v5) menarik peer `nativewind` 4.2.7 + `react-native-css-interop` ke `bun.lock`/`node_modules` (tidak di `package.json`, tidak diimpor/dikonfigurasi; sama seperti init Fase 0). Diterima; buang bila gluestack melepas legendapp.
 - Plugin config `@react-native-community/datetimepicker` (tema Android) belum dipasang; tidak perlu untuk Expo Go, dipasang di Fase 3 (EAS).
+- **Warna tile More/Create (keputusan user):** prototipe memakai tile solid hue iOS + glyph putih (`home.css:49`), tapi kontras glyph putih di green/orange/teal ±2,2–2,6:1 (< 3:1 non-teks). Sementara memakai soft tile Atlas (lulus kontras).
 - Client API: Eden (berbagi tipe dengan `server/`) atau fetch biasa.
 
 ## 8. Log
@@ -148,3 +151,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — W1a (Sesi D, `b0f2809`, 80 tes) dan W2a + lanjutan (Sesi C, `731e7b0`, 47 tes; `events.form.ts`, `forgetArchivedEvent`) di-commit. Kontrak Delete forever untuk W3: `forget<Archived X>(key)` lalu `removeEntry(key)`. Rename/Merge/Delete di Settings tugas tetap notice (ikut prototipe); dialog T2 di Fase 2.
 - 2026-10-25 — G0c selesai (Sesi B, `9cf7f32`, 406/406): kit §4 + peran tema snack. Catatan untuk worker: beri nama input gluestack dengan `aria-label` (Input/Textarea/RadioGroup menimpa `accessibilityLabel`). `forgetArchivedTask` (`dda1ee4`); nomor tugas baru tidak pernah dipakai ulang. W1b (D) dan W2b (C) mulai; Sesi B mengerjakan G0d lalu W3.
 - 2026-10-25 — F1b selesai (Sesi A, `1e87802`, 432 tes): gelembung via pan RNGH, reduced motion = slide 120 ms; navigasi tombol panah prototipe → aksi a11y di F1e. G0d selesai (Sesi B, `27645d4`, 436 tes): `ConfirmDialog` deklaratif (T2/T3, loading + error), `toUtc` diekspor, `StackedScreen` `pinnedShrink`. Archive Delete forever = T3 di dalam formSheet itu sendiri (bukan dialog di atas sheet, agar tidak konfirmasi ganda).
+- 2026-10-25 — F1c (`c84ae33`) dan F1d (`939f351`) selesai (Sesi A): FAB + sheet Create, panel More; 190 tes navigasi. Typed routes (`.expo/types`) hanya dibuat ulang oleh `expo start`; tiap sesi regenerate di port sendiri (A 8194, B 8193, C 8191, D 8192), bukan 8081.
