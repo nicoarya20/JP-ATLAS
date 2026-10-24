@@ -27,10 +27,13 @@ export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTab
     return tab;
   });
 
+  /** Emit `tabPress` like the stock bar, then switch unless a listener took it; true when tab `index` is now active. */
   const pick = (index: number) => {
     const route = state.routes[index];
     const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-    if (index !== state.index && !event.defaultPrevented) navigateToTab(route.key);
+    if (event.defaultPrevented) return false;
+    if (index !== state.index) navigateToTab(route.key);
+    return true;
   };
 
   return (

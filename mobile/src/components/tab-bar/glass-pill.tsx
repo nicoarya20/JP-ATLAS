@@ -1,49 +1,56 @@
 import { View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 
-import { Icon } from '@/components/ui/icon';
-import { Pressable } from '@/components/ui/pressable';
 import type { TabDef } from '@/navigation/tabs.config';
+
+import { TabBubble } from './tab-bubble';
+import { TabItem } from './tab-item';
+import { useBubble } from './use-bubble';
 
 type GlassPillProps = {
   tabs: readonly TabDef[];
   /** Index of the selected tab. */
   active: number;
-  onPick: (index: number) => void;
+  /** Pick tab `index`; false when it did not become the active tab (its press was taken over, e.g. More). */
+  onPick: (index: number) => boolean;
 };
 
 /**
- * The pill of icon tabs (prototype kit/tabbar.jsx GlassTabs, plain for now): the selected icon in the accent colour,
- * labels for screen readers only. The bubble, drag and glass arrive in F1b and F1e (docs/phase1-navigation.md §6.6).
+ * The pill of icon tabs (prototype kit/tabbar.jsx GlassTabs): a bubble behind the lit tab that a finger drags across
+ * the tabs, labels for screen readers only (docs/phase1-navigation.md §2.3–2.4). The glass arrives in F1e.
  */
 export function GlassPill({ tabs, active, onPick }: GlassPillProps) {
+  const bubble = useBubble({
+    n: tabs.length,
+    active,
+    onRelease: (index) => {
+      if (!onPick(index) && index !== active) bubble.snapBack();
+    },
+  });
+
   return (
-    // A plain View, not accessible itself: VoiceOver would otherwise read the pill as one element and skip its tabs.
-    <View
-      testID="tab-bar"
-      accessibilityRole="tablist"
-      accessibilityLabel="App navigation"
-      className="h-[58px] flex-1 flex-row rounded-full border border-border bg-card p-1"
-    >
-      {tabs.map((tab, i) => {
-        const selected = i === active;
-        return (
-          <Pressable
+    <GestureDetector gesture={bubble.pan}>
+      {/* A plain View, not accessible itself: VoiceOver would otherwise read the pill as one element and skip its tabs. */}
+      <View
+        testID="tab-bar"
+        accessibilityRole="tablist"
+        accessibilityLabel="App navigation"
+        onLayout={(e) => bubble.onWidth(e.nativeEvent.layout.width)}
+        className="h-[58px] flex-1 flex-row rounded-full border border-border bg-card p-1"
+      >
+        <TabBubble n={tabs.length} values={bubble.values} />
+        {tabs.map((tab, i) => (
+          <TabItem
             key={tab.id}
-            testID={`tab-${tab.id}`}
-            accessibilityRole="tab"
-            accessibilityLabel={tab.label}
-            accessibilityState={{ selected }}
-            onPress={() => onPick(i)}
-            className="flex-1 items-center justify-center rounded-full"
-          >
-            {/* 22 px like the prototype's TAB_ICON (the gluestack Icon types no numeric size) */}
-            <Icon
-              as={tab.Icon}
-              className={`h-[22px] w-[22px] ${selected ? 'text-atlas' : 'text-foreground'}`}
-            />
-          </Pressable>
-        );
-      })}
-    </View>
+            tab={tab}
+            index={i}
+            selected={i === active}
+            lit={i === bubble.litTab}
+            values={bubble.values}
+            onActivate={() => bubble.release(i)}
+          />
+        ))}
+      </View>
+    </GestureDetector>
   );
 }

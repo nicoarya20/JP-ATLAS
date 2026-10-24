@@ -15,6 +15,7 @@ import * as ProjectsStack from '../app/(tabs)/projects/_layout';
 import ProjectsRoute from '../app/(tabs)/projects/index';
 import * as TasksStack from '../app/(tabs)/tasks/_layout';
 import TasksRoute from '../app/(tabs)/tasks/index';
+import { resetSnack, showSnack } from '../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../src/components/ui/gluestack-ui-provider';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
@@ -61,6 +62,11 @@ function tasksStackDepth(view: RenderRouterResult) {
 }
 
 const tab = (name: string) => screen.getByRole('tab', { name });
+/** Pick a tab the way a screen reader does; touches and drags are covered in navigation/tab-bar.bubble.test.tsx. */
+const pick = (name: string) =>
+  fireEvent(tab(name), 'accessibilityAction', {
+    nativeEvent: { actionName: 'activate' },
+  });
 // The pill is a tablist container but not an accessibility element itself, so it is found by testID.
 const bar = () => screen.queryByTestId('tab-bar');
 
@@ -99,7 +105,7 @@ describe('tab bar', () => {
   it('switches screens from a tab', async () => {
     await open('/');
 
-    await fireEvent.press(tab('Tasks'));
+    await pick('Tasks');
 
     expect(screen).toHavePathname('/tasks');
     expect(tab('Tasks')).toBeSelected();
@@ -109,7 +115,7 @@ describe('tab bar', () => {
   it('does not navigate from More (its panel arrives in F1d)', async () => {
     await open('/projects');
 
-    await fireEvent.press(tab('More'));
+    await pick('More');
 
     expect(screen).toHavePathname('/projects');
     expect(tab('Projects')).toBeSelected();
@@ -138,7 +144,7 @@ describe('tab bar', () => {
     expect(screen).toHavePathname('/');
     // The tab view pops the tab it left once its switch transition ends (a frame later).
     await waitFor(() => expect(tasksStackDepth(view)).toBe(1));
-    await fireEvent.press(tab('Tasks'));
+    await pick('Tasks');
 
     expect(screen).toHavePathname('/tasks');
     expect(screen.getByTestId('screen-tasks')).toBeOnTheScreen();
@@ -174,10 +180,23 @@ describe('tab bar visibility (docs/phase1-navigation.md §2.6)', () => {
   it('keeps the bar under a root sheet opened over a tab screen', async () => {
     await open('/');
 
-    await fireEvent.press(tab('Events'));
+    await pick('Events');
     await testRouter.push('/create');
 
     expect(await screen.findByTestId('screen-create')).toBeOnTheScreen();
     expect(screen.getByRole('tab', { name: 'Events', hidden: true })).toBeSelected();
+  });
+});
+
+describe('snack host', () => {
+  afterEach(() => act(() => resetSnack()));
+
+  it('draws a snack over any tab screen, from the one host the tabs mount', async () => {
+    await open('/projects');
+
+    await act(() => showSnack({ message: 'Project archived' }));
+
+    expect(screen.getByTestId('snack')).toHaveTextContent('Project archived');
+    expect(tab('Projects')).toBeSelected();
   });
 });

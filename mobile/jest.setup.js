@@ -34,3 +34,20 @@ jest.mock(
 // app/_layout.tsx imports the Tailwind entry for Uniwind (Metro compiles it); jest cannot parse CSS and the tests do not
 // need it: class names resolve through Uniwind's runtime, not this file.
 jest.mock('./global.css', () => ({}));
+
+// Gesture Handler hands Worklets' UI runtime to its native module once loaded (its jest utils load the lib/module build). The
+// resolver above gives Worklets its web build, whose getUIRuntimeHolder throws, so use Gesture Handler's web variant
+// of that step too: a no-op, as there is no UI runtime in jest.
+jest.mock(
+  require('node:path').join(
+    __dirname,
+    'node_modules/react-native-gesture-handler/lib/module/handlers/gestures/installUIRuntimeBindings',
+  ),
+  () =>
+    require(
+      require('node:path').join(
+        __dirname,
+        'node_modules/react-native-gesture-handler/lib/module/handlers/gestures/installUIRuntimeBindings.web',
+      ),
+    ),
+);
