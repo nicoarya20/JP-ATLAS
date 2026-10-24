@@ -130,7 +130,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | K1 | Kit `Seg lines?: 1\|2`; Inbox `lines={2}` agar "Needs your response (3)" tidak terpotong | Sesi B | ✅ | W3d |
 | K2 | Kit `Seg names?: readonly string[]` (nama yang dibacakan per segmen; panjang beda → diabaikan) untuk W1e #11 | Sesi B | ✅ | W1e |
 | W4 | Projects (list/create/overview/phases/members/extend/edit/archive dulu; tab Tasks + settings + task-filter setelah W1b) + projects store | Sesi C | ✅ `5259821` `f5808ab` | W2c; W1b untuk tab Tasks |
-| W4a | `archive.ts` memanggil `forgetArchivedProject` (Delete forever proyek) | Sesi C | 🔄 | W4 |
+| W4a | `archive.ts` memanggil `forgetArchivedProject` (Delete forever proyek) | Sesi C | ✅ `bbeabca` | W4 |
 | W4b | Tasks membaca projects store, bukan `PROJECTS` statis (`tasks.ts:118`, `tasks.query.ts:80`, `tasks.state.ts:83`, `tasks.form.ts:87/184`, sehingga rename aman dan proyek terarsip tidak ditawarkan) + API membuang tugas yang diambil `takeProjectTasks` saat Delete forever | Sesi D | 🔄 (tasks.ts setelah W1e) | W1e, Q1 |
 | W4c | QA silang (read-only) Projects | Sesi B | 🔄 | W4 |
 | H2 | Home membaca projects store (proyek di Agenda, stat Admin) + lepas `projectHref`/`routeHref` `/projects/<id>` (Home, Team, event-facts, Inbox) | Sesi A | ⏳ | W1e |
