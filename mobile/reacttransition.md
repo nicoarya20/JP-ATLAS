@@ -136,7 +136,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W4e | Perbaikan temuan W4c: nama proyek unik, catatan Remove, proyek di Archive (tanpa New task + empty state), tujuan create-done, label gabungan, List/Kanban radio, Steps satu elemen, nama tanpa simbol, gabung perhentian, Start date required, alasan tombol disabled, hint Lead, area sentuh 44pt, pecah project-parts | Sesi C | 🔄 | W4d |
 | W4f | `tasks-filter.screen.tsx:28` opsi Project dari store (tanpa proyek di Archive, nama baru) + `tasks.ts:118` | Sesi D | ✅ `d8d23f7` | W1e |
 | W4g | Query Tasks kembali ke default project bila proyeknya diarsipkan (Select tidak tanpa label) | Sesi D | ✅ `e28b049` | W4f |
-| R1 | Lepas 3 `routeHref` terakhir (team/person, events/event-facts, inbox.links) + hapus `src/navigation/route-href.ts` | Sesi D | 🔄 | H2 |
+| R1 | Lepas 3 `routeHref` terakhir (team/person, events/event-facts, inbox.links) + hapus `src/navigation/route-href.ts` | Sesi D | ✅ `5e71a85` | H2 |
 | K3 | Sapu area sentuh ≥44pt (hitSlop/wrapper, visual tetap) di semua area kecuali Tasks/Projects | Sesi B | ✅ `6527e30` | W4c |
 | K4 | Satu `MIN_TARGET = 44` di `src/theme/tokens.ts` (day-grid slop + stat-chip) + isi cek HP Events W3c dan Switch | Sesi B | ✅ `d31b8fc` + cek HP | K3 |
 | W4c | QA silang (read-only) Projects | Sesi B | 🔄 | W4 |
