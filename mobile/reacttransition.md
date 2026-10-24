@@ -118,7 +118,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W2d | Pecah `src/data/events.ts` (246 baris) per tanggung jawab tanpa ubah ekspor | Sesi B | ✅ `3d394d7` | W3c |
 | W1d | QA silang (read-only) Tasks: copy, a11y, T1/T2/T3, empty state, dampak kit "X, required" | Sesi B | ✅ | W2d |
 | W1e | Perbaikan 14 temuan W1d (label kartu gabungan, teks late, jamak kolom, aksi pindah grup untuk screen reader, nama tombol berkonteks, label ganda + "X, required", alasan tombol disabled, label Seg, nama tanpa simbol, gabung perhentian fokus, T2 hapus tag, NoMatch di Board); wilayah Tasks dipinjam Sesi A | Sesi A | 🔄 | W1d |
-| W2e | Lepas `routeHref` di `events/results` (rute `/tasks/*` sudah ada) | Sesi B | 🔄 | W1d |
+| W2e | Lepas `routeHref` di `events/results` (rute `/tasks/*` sudah ada) | Sesi B | ✅ | W1d |
 | H1 | Home membaca getter tasks/events store; target More → route `more/*`; stub `(auth)` di helper tes | Sesi A | ✅ `a046417` | F1e; route W3 untuk target More |
 | H1b | Lepas `routeHref` untuk `/more/*` + `/profile` (typed routes sudah ada); teks toast search Home "Search is coming soon." | Sesi A | ✅ `fd1ed7c` | H1, W3 |
 | W2c | Undo snack Events setelah Delete forever: tangkap error → notice | Sesi C | ✅ | W2b |
