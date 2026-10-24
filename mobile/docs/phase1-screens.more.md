@@ -20,7 +20,7 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 | `settings.main` | `app/(tabs)/more/settings/index.tsx` | push | tidak |
 | `settings.profile` | `app/(tabs)/more/settings/profile.tsx` | push | tidak |
 | `settings.leave` | `app/leave.tsx` (root, juga dari sheet Create) | formSheet | — |
-| `profile.me` | `app/profile/index.tsx` | modal (rekomendasi, §2 main doc) | — |
+| `profile.me` | `app/profile/index.tsx` | modal setinggi penuh (§2 main doc) | — |
 | `profile.calendar` | `app/profile/calendar.tsx` | push di Stack modal | — |
 
 - Panel More (Sesi A) membuka route `more/*`; kartu profil membuka `/profile`.
@@ -36,8 +36,8 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 | Denied | **"Access denied"**, "Reason from admin:", "Please sign in with your office email (@kantor.id), not a personal Gmail account. — Ayu" | Back ke account |
 | Pending | Judul "[App Name]", **Sign out** → login (replace); "Your account is awaiting admin approval" + pill Pending; field profil; **Save profile** ("Profile saved"); **Check status** → `/` (replace); "No other menus until an admin approves your account." | — |
 
-- "[App Name]" dipertahankan seperti prototipe (placeholder nama). Sign out → AlertDialog T2 (deviasi §2 main doc).
-- Layar awal app = keputusan orchestrator (§2 main doc); route `(auth)` tetap bisa dibuka.
+- "[App Name]" dipertahankan seperti prototipe (placeholder nama). Sign out → AlertDialog T2 (§2 main doc).
+- Layar awal app = `(tabs)`; route `(auth)` tetap bisa dibuka, gerbang login di Phase 2 (§2 main doc).
 
 ## 3. Inbox
 
@@ -72,16 +72,16 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
   - Kartu menolak (Budi): "Profile not filled in. Only name, email and photo from Google."; **Reason for rejecting (required)**; "The reason is shown to the user when they try to sign in."; **Cancel** ("Rejection canceled") / **Reject user** (danger, "User rejected").
   - InfoBox **"After approval"**: "Approved users become Members right away; their next sign-in goes straight to Home." / "The Project Manager role is given in the Roles tab."
 - **Roles**: intro "Give or remove the Project Manager role, or deactivate a user."; chip "Approved 6 · Deactivated 0"; "6 users"; baris orang (nama, email; saya: pill Active + role; lainnya: select role + **Deactivate** danger-ghost "User deactivated"). InfoBox **"Rules"** (3 butir, port persis dari `users.roles.jsx`).
-- Semua aksi Approve/Reject/Deactivate/ubah role → AlertDialog T2 sebelum notice (deviasi §2 main doc).
+- Semua aksi Approve/Reject/Deactivate/ubah role → AlertDialog T2 sebelum notice (§2 main doc).
 
 ## 6. Archive
 
 - Frame **"Archive"**, back; "Archived items stay here until someone restores them."; chip **All n · Projects n · Tasks n · Events n**; "n items".
 - Kartu: label jenis (PROJECT/TASK/EVENT), judul, "<where> · Archived by <by> · <date>", "Includes …" (proyek); **Restore** dan (Admin) **Delete forever** (danger-ghost) → sheet.
-- Prototipe: Restore di list hanya notice "Restored". **Rekomendasi**: panggil restore store yang sama dengan Undo (`unarchiveTask`/`restoreProject`/`restoreEvent`) + notice "<Kind> restored". Deviasi kecil, perlu persetujuan.
-- **Delete forever** (`archive.delete`): judul **"Delete forever?"**, sub "<Kind> · <title>"; "<Kind> “<title>” [with <includes>] will be gone for good. This cannot be undone."; "Only an Admin can delete forever. Others can only restore."; **Cancel** / **Delete forever** (danger, "Deleted forever"). T3: tambah input ketik judul (deviasi §2 main doc).
+- **Restore** di list = notice "Restored" saja, seperti prototipe (ditetapkan; pemulihan nyata di Phase 2 bersama API).
+- **Delete forever** (`archive.delete`): judul **"Delete forever?"**, sub "<Kind> · <title>"; "<Kind> “<title>” [with <includes>] will be gone for good. This cannot be undone."; "Only an Admin can delete forever. Others can only restore."; **Cancel** / **Delete forever** (danger, "Deleted forever"). **T3**: input "Type the item name to confirm"; **Delete forever** disabled sampai teks sama dengan judul (§2 main doc).
 - **Empty**: ikon `Archive`, **"Archive is empty"** / "What you archive shows up here."
-- **Undo setelah arsip** (dari Tasks/Projects/Events): snack **"Task/Project/Event moved to Archive"** + **Undo** → restore + notice "… restored". Tugas mendarat di **All tasks** (`/tasks?scope=all`, seperti `archive.undo.jsx`), proyek di Projects, event di Events.
+- **Undo setelah arsip** (dari Tasks/Projects/Events): snack (hilang otomatis 10 detik) **"Task/Project/Event moved to Archive"** + **Undo** → restore + notice "… restored". Tugas mendarat di **All tasks** (`/tasks?scope=all`, seperti `archive.undo.jsx`), proyek di Projects, event di Events.
 - Data: `src/data/archive.store.ts` (W0, karena ditulis tiga modul): entri `{ key, kind, title, where, by, date, includes?, ref }` + `addEntry`, `removeEntry`, `listEntries`, `reset`; sampel awal dari `sample.js` `archive`. Store tugas/proyek/event menambah/menghapus entri saat arsip/restore.
 
 ## 7. Settings
@@ -156,4 +156,5 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 - **Unit**: `team.load` (active/overdue dari store tugas; berubah setelah `moveTask`), `profile.calendar.dates` (Minggu-pertama, `dayLabel`, `hourLabel(0)` = "12 AM", initialScroll tiga cabang), `profile.calendar.swipe.pageOf` (seperempat lebar, minimum 40, flick), `inbox.store`, `profile.store`, `archive.store`.
 - **Port tes prototipe**: `inbox.updates` (Mark all as read bertahan setelah keluar-masuk), `archive.undo` (tiga jenis, tugas ke All tasks), `archive.settings`, `users` (chip angka, kartu pending/menolak, Roles: saya tanpa select), `settings.profile` (Role/Email disabled, Save), `profile` (baris, switch online mengubah sub dan titik, Copy email memanggil clipboard), `profile.calendar` (swipe ke pekan berikutnya, garis sekarang, warna per tipe), `roles.gating` (users/archive.delete hanya admin; team.empty/events.empty member).
 - **Varian role**: Team tiga varian, Inbox Admin dengan Approvals, Leave tiga copy.
+- **Dialog**: Sign out (settings, profile, pending) membuka AlertDialog dan baru pindah ke `/login` setelah konfirmasi; Approve/Reject/Deactivate/ubah role lewat AlertDialog; Delete forever disabled sampai judul diketik persis; snack Undo hilang setelah 10 detik (timer palsu).
 - **Auth**: alur login → account → pending (replace) / denied; Check status → `/`.

@@ -30,22 +30,24 @@ Dokumen ini dipecah per modul agar tiap berkas ≤ 500 baris:
 | K11 | "Hari ini" = `TODAY` (`2026-10-07`) dan "sekarang" = 9:41 dari `src/data/sample/today.ts` + konstanta baru; tidak pakai jam perangkat | Sama dengan prototipe dan aturan project ("Hari ini ditentukan server") |
 | K12 | Role diterima sebagai prop dari `SESSION_ROLE` (`src/data/session.ts`); tes merender ketiga role | Pola Sesi B |
 
-## 2. Deviasi prototipe vs aturan UX project — perlu keputusan orchestrator/user
+## 2. Keputusan orchestrator (2026-10-25, dicatat di `reacttransition.md` §1)
 
-`CLAUDE.md` (UX §1) menuntut pengaman T1/T2/T3. Prototipe melanggarnya di tempat berikut. **Rekomendasi: tambahkan `AlertDialog` gluestack** dan catat sebagai deviasi sadar dari 1:1.
+Aturan UX project (`CLAUDE.md` UX §1) **mengalahkan** prototipe untuk aksi destruktif. Pakai `AlertDialog` gluestack:
 
-| Tempat | Prototipe | Aturan | Rekomendasi |
-|---|---|---|---|
-| Sign out (`settings.main`, `profile.me`, `auth.pending`) | Langsung ke login | T2 dialog "Kamu akan keluar dari akun ini" | AlertDialog "Sign out?" / "You'll be signed out of this account." / Cancel · Sign out |
-| Archive "Delete forever" (`archive.delete`) | Sheet konfirmasi saja | T3 ketik nama | Tambah Input "Type the item name to confirm"; tombol disabled sampai cocok |
-| Remove member (`projects.members`) | Toast saja | T2 | AlertDialog sebelum toast |
-| Users: Approve / Reject / Deactivate / ubah role (`users.*`), ubah role anggota proyek | Toast saja | T2 | AlertDialog per aksi, copy menyebut nama + role tujuan |
-| Archive vs Sampah 30 hari | "Move to Archive", restore kapan saja | T1 + Sampah 30 hari (web) | Pertanyaan terbuka di `reacttransition.md`; Phase 1 ikut prototipe (Archive + Undo) |
-| Undo snack | Snack tanpa batas waktu (`kit/form.jsx`), hilang saat navigasi | T1 ±10 detik | Snack hilang otomatis 10 detik |
+| Tempat | Prototipe | Ditetapkan |
+|---|---|---|
+| Sign out (`settings.main`, `profile.me`, `auth.pending`) | Langsung ke login | **T2** AlertDialog "Sign out?" / "You'll be signed out of this account." / Cancel · Sign out |
+| Archive "Delete forever" (`archive.delete`) | Sheet konfirmasi saja | **T3**: sheet + Input "Type the item name to confirm"; tombol disabled sampai cocok |
+| Remove member (`projects.members`) | Toast saja | **T2** AlertDialog sebelum notice |
+| Users: Approve / Reject / Deactivate / ubah role (`users.*`), ubah role anggota proyek | Toast saja | **T2** AlertDialog per aksi; copy menyebut nama + role tujuan |
+| Undo snack | Tanpa batas waktu (`kit/form.jsx`), hilang saat navigasi | Hilang otomatis **10 detik** (T1) |
+| Restore di Archive | Notice "Restored" saja | **Tetap notice** seperti prototipe; pemulihan nyata menyusul di Phase 2 bersama API. Undo di snack tetap benar-benar memulihkan |
+| Archive vs Sampah 30 hari | "Move to Archive", restore kapan saja | Phase 1 ikut prototipe (Archive + Undo); pertanyaan Sampah tetap terbuka di `reacttransition.md` |
 
-Keputusan lain yang menunggu:
-- **Layar awal.** `START_SCREEN` prototipe = `auth.login`. Rekomendasi Phase 1: app mulai di `(tabs)` (seperti T5 sekarang); route `(auth)` ada dan bisa dibuka dari Sign out. Pengalihan otomatis ke login menunggu Better Auth (Phase 2). Root layout = wilayah Sesi A.
-- **profile.me**: formSheet `[1]` vs modal. Rekomendasi: `presentation: 'modal'` (iOS pageSheet, swipe-down) karena isinya scroll panjang; formSheet `[1]` menimbulkan konflik scroll vs drag sheet.
+Lainnya:
+- **Layar awal = `(tabs)`.** Route `(auth)` tetap ada dan dibuka dari Sign out; gerbang login menyusul di Phase 2 (Better Auth).
+- **profile.me = modal** setinggi penuh (`presentation: 'modal'`, padanan FullSheet prototipe).
+- **Detail proyek selain Atlas** = header dari data list + empty state per bagian (`phase1-screens.projects.md` §1).
 
 ## 3. Peta route semua modul
 
@@ -153,7 +155,7 @@ Komponen gluestack v5 (`npx gluestack-ui@latest add <nama>`), di luar yang sudah
 | `switch` | Needs review, notifikasi, Show me as online, Project settings |
 | `select` + `actionsheet` | Project/Type/Phase/Date/Time/Role; Select gluestack membuka Actionsheet, jadi keduanya dipasang |
 | `menu` | ⋯ aksi |
-| `alert-dialog` | Deviasi T2/T3 §2 |
+| `alert-dialog` | Dialog T2/T3 (§2) |
 | `spinner` | Tombol loading |
 | `link` | "Help · Privacy Policy", tautan teks |
 | `portal` | Menu radial Kanban di atas tab bar tanpa jendela native baru (RN `Modal` membatalkan sentuhan yang sedang ditahan) — verifikasi saat `add` bahwa host Portal ada di dalam `GestureHandlerRootView` |
@@ -183,7 +185,7 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 | G2 | **W4 Projects** | `app/(tabs)/projects/**`, `app/projects/**`, `src/screens/projects/**`, `src/data/projects*.ts`, `src/data/sample/projects.*.ts` (baru), `__tests__/projects/**` | Doc projects §Tes lulus |
 
 - W4 boleh mulai di G1 untuk list/create/overview/phases/members; tab **Tasks** proyek dan `projects/[id]/settings` menunggu ekspor `TaskBoard`/`TasksSearchField`/`TasksFilterPanel`/`TasksSettings` dari W1 (kontrak di `phase1-screens.tasks.md` §9).
-- Archive (W3) membaca entri dari `archive.store.ts` (W0). Store W1/W2/W4 menulis entri saat arsip/restore dan mengekspor `restore…()` untuk tombol Restore; sebelum tersedia, W3 hanya menampilkan entri sampel.
+- Archive (W3) membaca entri dari `archive.store.ts` (W0). Store W1/W2/W4 menulis entri saat arsip dan menghapusnya saat Undo. Tombol Restore di Archive hanya notice di Phase 1 (§2).
 - Snack Undo setelah arsip dipanggil oleh W1/W2/W4 lewat `useSnack()` W0.
 - Placeholder T5 (`src/screens/{tasks,projects,events,more}/*.screen.tsx`) diganti oleh pemilik modul; `more.screen.tsx` + panel More tetap wilayah Sesi A.
 - Berkas bersama yang tidak dimiliki worker mana pun (`app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `*/_layout.tsx` Stack tab, `package.json`, `src/data/sample/*.ts` Sesi B) diubah hanya oleh orchestrator/Sesi A atas permintaan worker.
@@ -215,8 +217,5 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 
 ## 9. Pertanyaan terbuka
 
-1. Deviasi T2/T3 §2: ikut aturan project (rekomendasi) atau 1:1 prototipe?
-2. Layar awal: `(tabs)` (rekomendasi) atau `auth.login` seperti prototipe?
-3. Kepemilikan `src/data/sample/*.ts` setelah Home selesai: tetap Sesi B (extras di file baru, rekomendasi) atau pindah ke worker modul?
-4. `profile.me`: modal (rekomendasi) atau formSheet `[1]`?
-5. Date picker: `@react-native-community/datetimepicker` (rekomendasi, stabil) atau gluestack `date-time-picker` (alpha)?
+1. Kepemilikan `src/data/sample/*.ts` setelah Home selesai: tetap Sesi B (extras di file baru, rekomendasi) atau pindah ke worker modul?
+2. Date picker: `@react-native-community/datetimepicker` (rekomendasi, stabil) atau gluestack `date-time-picker` (alpha)?

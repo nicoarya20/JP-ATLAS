@@ -18,7 +18,7 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 | `projects.form`, `.story`, `.draft`, `.template` | `app/projects/new/{form,story,draft,template}.tsx` | push di Stack modal | — |
 
 - Ganti tab detail = `router.setParams({ tab })`; header dan tab tetap (prototipe: `go` antar empat id dengan header bersama).
-- **Phase 1 = 1:1 prototipe**: hanya Atlas punya data detail (`atlas`), dan semua kartu prototipe membuka detail Atlas. Rekomendasi: kartu membuka `/projects/<id>`; `getProjectDetail(id)` mengembalikan detail Atlas bila id = `atlas`, dan untuk proyek lain header dari data list + bagian tanpa data memakai empty state ("No phases yet." dst.). Bila orchestrator memilih 1:1 murni, semua kartu → `/projects/atlas`. **Perlu keputusan.**
+- **Ditetapkan (orchestrator 2026-10-25):** hanya Atlas punya data detail (`atlas`; prototipe membuka Atlas dari semua kartu). Kartu membuka `/projects/<id>`; `getProjectDetail(id)` mengembalikan detail lengkap untuk `atlas`, dan untuk proyek lain header dari data list + empty state di tiap bagian tanpa data ("No phases yet." dst.).
 - Member tidak bisa membuka `projects.new/*`, `edit`, `extend`, `archive` (Redirect `/`). FAB Projects untuk Member sudah dilipat Sesi A.
 
 ## 2. List (`ProjectsList`)
@@ -59,7 +59,7 @@ Header (semua tab):
 | Overview (`ProjectsOverview`) | **Progress**: "Tasks done" %, "Time elapsed" %, "Start X · due Y · N days left". **Phases & next milestone**: langkah fase (✓ Done, sekarang), "Now: <fase> · n%", "◆ Next milestone: …", tanggal + "in N days", tautan "See all phases →". **Tasks needing attention**: #12 Overdue, #17 Awaiting review, #14 Due today → detail tugas. **Recent activity** | Tautan ke tab Phases dan detail tugas |
 | Tasks (`ProjectsTasks`) | Cari + filter (scope proyek, field Assignee), Seg **List / Kanban**, **+ New task** (primary). List: kartu `#no title`, StatusPill, `type · priority · who · due`, catatan + tombol aksi; "n tasks". Kanban: `TaskBoard` W1 | Tombol per tugas (PM/Admin): #12 **Request review** ("Sent for review"), #17 **Review** → detail review, #14/#15 **Start working** ("Task started"); lainnya / Member: **View**. "+ New task" → `/tasks/new/form?project=<id>` |
 | Phases (`ProjectsPhases`) | Kartu per fase: nomor/✓, nama, rentang, StatusPill, progres; **Deadline history** (`original`, `change`, `reason`) | canEdit: **+ Phase** ("Add phase"), **+ Milestone** ("Add milestone"), fase In progress **Complete phase** ("Phase completed"), Testing **Start phase** ("Phase started") |
-| Members (`ProjectsMembers`) | "n members", kartu anggota (role select Manager/Member/Viewer, "(You)"), catatan lead "<lead> is the only Manager, so they can't be removed. Add a second Manager so their tasks can be reviewed by someone else.", **What roles mean** (Manager / Member / Viewer + penjelasan) | canEdit: **+ Member** ("Pick a member"), ubah role, **Remove** ("Member removed") — **T2 dialog** (deviasi §2 main doc) |
+| Members (`ProjectsMembers`) | "n members", kartu anggota (role select Manager/Member/Viewer, "(You)"), catatan lead "<lead> is the only Manager, so they can't be removed. Add a second Manager so their tasks can be reviewed by someone else.", **What roles mean** (Manager / Member / Viewer + penjelasan) | canEdit: **+ Member** ("Pick a member"), ubah role, **Remove** ("Member removed") — **T2 AlertDialog** (§2 main doc) |
 
 - Catatan tugas di proyek (`useNote`): In review dan role bukan pm → "Awaiting review by <reviewer>"; selain itu `t.when`.
 - Kartu dan papan re-render saat store tugas berubah.
@@ -100,7 +100,7 @@ Header (semua tab):
 
 | Risiko | Penanganan |
 |---|---|
-| Detail hanya punya data Atlas | Keputusan §1; tes kedua jalur |
+| Detail hanya punya data Atlas | Header + empty state (§1); tes kedua jalur |
 | Papan di dalam ScrollView vertikal detail | Papan W1 sudah dirancang di dalam halaman vertikal; uji tahan kartu di tab Tasks proyek |
 | Arsip proyek memindahkan tugasnya | Tes store gabungan: arsip → tugas hilang dari list Tasks; Undo → kembali |
 | Rename proyek | `renameProjectTasks` agar list tugas tetap cocok (port perilaku prototipe) |
