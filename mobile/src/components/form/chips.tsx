@@ -88,3 +88,19 @@ export function MultiChips<V extends string>({
     </Row>
   );
 }
+
+/** Read-only count chips ("Pending 2 · Approved 6"): the same pills, without a tap. */
+export function CountChips({ items, label }: { items: readonly string[]; label?: string }) {
+  return (
+    <Row label={label}>
+      {items.map((item) => (
+        <Text
+          key={item}
+          className="min-h-11 rounded-full bg-muted px-4 py-3 text-subhead font-medium text-foreground"
+        >
+          {item}
+        </Text>
+      ))}
+    </Row>
+  );
+}

@@ -1,0 +1,108 @@
+import { fireEvent, render, screen, within } from '@testing-library/react-native';
+import { router } from 'expo-router';
+
+import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
+import type { Role } from '../../src/data/sample';
+import { getLeave, getSettings, LEAVE } from '../../src/data/settings';
+import { LeaveScreen } from '../../src/screens/settings/leave.screen';
+import { ProfileEditScreen } from '../../src/screens/settings/profile-edit.screen';
+import { SettingsScreen } from '../../src/screens/settings/settings.screen';
+import { drainToastTimers } from '../helpers/toast-timers';
+
+jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
+
+// The signed-in role, as a variable: biome reads a literal `role` prop as an ARIA role.
+const ADMIN: Role = 'admin';
+const PM: Role = 'pm';
+
+drainToastTimers();
+
+beforeEach(() => jest.clearAllMocks());
+
+const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvider });
+
+describe('settings data', () => {
+  test('only an Admin gets the team settings', () => {
+    expect(getSettings('admin').team).toBe(true);
+    expect(getSettings('pm').team).toBe(false);
+  });
+
+  test('the leave copy per role, which the Create sheet reads as LEAVE[role].title', () => {
+    expect([LEAVE.member.title, LEAVE.pm.title, LEAVE.admin.title]).toEqual([
+      'Request leave',
+      'Request leave',
+      'Set leave',
+    ]);
+    expect(getLeave('admin')).toMatchObject({ save: 'Save leave', notice: 'Leave saved' });
+  });
+});
+
+describe('SettingsScreen', () => {
+  test('Edit profile and the leave action open their screens', async () => {
+    await show(<SettingsScreen role={PM} />);
+    await fireEvent.press(screen.getByText('Edit profile'));
+    expect(router.push).toHaveBeenCalledWith('/more/settings/profile');
+    await fireEvent.press(screen.getByText('Request leave'));
+    expect(router.push).toHaveBeenCalledWith('/leave');
+    expect(screen.queryByText('Team settings (Admin only)')).not.toBeOnTheScreen();
+  });
+
+  test('Admin: the team settings group', async () => {
+    await show(<SettingsScreen role={ADMIN} />);
+    expect(screen.getByText('Team settings (Admin only)')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('View ›'));
+    expect(screen.getByText('Roles and permissions — not in the prototype yet')).toBeOnTheScreen();
+  });
+
+  test('Sign out asks first (T2); Cancel stays, confirming goes to the login screen', async () => {
+    await show(<SettingsScreen role={PM} />);
+    await fireEvent.press(screen.getByText('Sign out'));
+    const dialog = within(screen.getByTestId('sign-out-dialog'));
+    expect(dialog.getByText("You'll be signed out of this account.")).toBeOnTheScreen();
+    await fireEvent.press(dialog.getByText('Cancel'));
+    expect(router.replace).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByText('Sign out'));
+    await fireEvent.press(screen.getByTestId('confirm-action'));
+    expect(router.replace).toHaveBeenCalledWith('/login');
+  });
+});
+
+describe('ProfileEditScreen', () => {
+  test('role and email are read-only with the reason; Save says so and closes', async () => {
+    await show(<ProfileEditScreen role={PM} />);
+    expect(screen.getByLabelText('Full name')).toHaveDisplayValue('Nico Pratama');
+    // Read-only, yet still read out by a screen reader (a disabled gluestack input is hidden from it).
+    expect(screen.getByLabelText('Role')).toHaveProp('readOnly', true);
+    expect(screen.getByLabelText('Email')).toHaveProp('readOnly', true);
+    expect(
+      screen.getByText("Email comes from your Google account and can't be changed."),
+    ).toBeOnTheScreen();
+    await fireEvent.changeText(screen.getByLabelText('Nickname (for greetings)'), 'Nic');
+    await fireEvent.press(screen.getByText('Save'));
+    expect(screen.getByText('Profile saved')).toBeOnTheScreen();
+    expect(router.back).toHaveBeenCalledTimes(1);
+  });
+
+  test('Cancel closes without saving', async () => {
+    await show(<ProfileEditScreen role={PM} />);
+    await fireEvent.press(screen.getByText('Cancel'));
+    expect(router.back).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Profile saved')).not.toBeOnTheScreen();
+  });
+});
+
+describe('LeaveScreen', () => {
+  test.each<[Role, string, string, string]>([
+    ['member', 'Request leave', 'Send request', 'Leave request sent'],
+    ['pm', 'Request leave', 'Save', 'Leave request sent'],
+    ['admin', 'Set leave', 'Save leave', 'Leave saved'],
+  ])('%s: "%s", saved with "%s"', async (role, title, save, notice) => {
+    await show(<LeaveScreen role={role} />);
+    expect(screen.getByRole('header', { name: title })).toBeOnTheScreen();
+    expect(screen.getByText(LEAVE[role].hint)).toBeOnTheScreen();
+    expect(screen.getByTestId('leave-from')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText(save));
+    expect(screen.getByText(notice)).toBeOnTheScreen();
+    expect(router.back).toHaveBeenCalledTimes(1);
+  });
+});

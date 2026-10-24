@@ -18,7 +18,8 @@ import { Textarea, TextareaInput } from '@/components/ui/textarea';
 type FieldProps = {
   label: string;
   value: string;
-  onChangeText: (text: string) => void;
+  /** Left out for a read-only field. */
+  onChangeText?: (text: string) => void;
   placeholder?: string;
   /** Draws the star after the label and marks the field required for screen readers. */
   required?: boolean;
@@ -27,7 +28,10 @@ type FieldProps = {
   error?: string;
   /** Several lines (description, comment). */
   multiline?: boolean;
+  /** Not usable for now (a dialog is busy). */
   disabled?: boolean;
+  /** Read-only (Role, Email): shown on a muted box and still read out, but not editable. */
+  readOnly?: boolean;
   keyboardType?: KeyboardTypeOptions;
   /** Trailing element inside the box (an icon button). */
   right?: ReactNode;
@@ -39,7 +43,12 @@ export function Field(p: FieldProps) {
   // aria-label, not accessibilityLabel: gluestack sets aria-label "Input Field" itself, and aria-label wins in RN.
   const a11y = { 'aria-label': p.label, accessibilityHint: p.hint };
   return (
-    <FormControl isRequired={p.required} isInvalid={!!p.error} isDisabled={p.disabled}>
+    <FormControl
+      isRequired={p.required}
+      isInvalid={!!p.error}
+      isDisabled={p.disabled}
+      isReadOnly={p.readOnly}
+    >
       <FormControlLabel>
         <FormControlLabelText className="text-footnote text-muted-foreground">
           {p.label}
@@ -58,7 +67,7 @@ export function Field(p: FieldProps) {
           />
         </Textarea>
       ) : (
-        <Input className="min-h-11 rounded-control">
+        <Input className={`min-h-11 rounded-control ${p.readOnly ? 'bg-muted' : ''}`}>
           <InputField
             {...a11y}
             testID={p.testID}
