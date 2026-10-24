@@ -1,5 +1,5 @@
 import { monthDay } from './dates';
-import { findProject } from './projects.store';
+import { findProject } from './projects.state';
 import { CSV_PREVIEW, CSV_STATE_LABEL, type CsvRow, QUICK_WRITE } from './sample/tasks.extra';
 import { ATLAS_ID } from './tasks.shared';
 

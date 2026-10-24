@@ -9,7 +9,7 @@ import { FilterSheet } from '@/components/filter/filter-sheet';
 import { Chips } from '@/components/form/chips';
 import { RadioList } from '@/components/form/radio-list';
 import { SelectField } from '@/components/form/select-field';
-import { PROJECTS } from '@/data/sample';
+import { useProjectsState } from '@/data/projects.state';
 import {
   ASSIGNEES,
   baseQuery,
@@ -23,9 +23,10 @@ import { getQuery, setQuery } from '@/data/tasks.query-state';
 
 import { S } from '../tasks.strings';
 
-const PROJECT_OPTIONS = [
+/** All projects, then each listed one by its current name (one in Archive is not offered). */
+const projectOptions = (list: readonly { id: string; name: string }[]) => [
   { value: '', label: S.filter.allProjects },
-  ...PROJECTS.map((p) => ({ value: p.id, label: p.name })),
+  ...list.map((p) => ({ value: p.id, label: p.name })),
 ];
 
 type TasksFilterPanelProps = {
@@ -43,6 +44,7 @@ export function TasksFilterPanel({
   onDone = router.back,
 }: TasksFilterPanelProps) {
   const [draft, setDraft] = useState<TaskQuery>(() => getQuery(scope));
+  const projects = useProjectsState().list;
   const set = (patch: Partial<TaskQuery>) => setDraft((d) => ({ ...d, ...patch }));
   const apply = () => {
     setQuery(scope, draft);
@@ -72,7 +74,7 @@ export function TasksFilterPanel({
           <SelectField
             testID="filter-project"
             label={S.filter.project}
-            options={PROJECT_OPTIONS}
+            options={projectOptions(projects)}
             value={draft.project}
             onChange={(project) => set({ project })}
           />

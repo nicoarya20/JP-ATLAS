@@ -1,4 +1,5 @@
-import { PROJECTS, TASK_REVIEWERS, TASKS, TODAY } from './sample';
+import { getProjectByName } from './projects.state';
+import { TASK_REVIEWERS, TASKS, TODAY } from './sample';
 import { TASK_DETAIL, TASK_EXTRA } from './sample/tasks.extra';
 import { createStore, useStore } from './store';
 import type { TaskInfo, TaskItem } from './tasks.shared';
@@ -80,7 +81,8 @@ export function taskInfo(s: TasksState, no: number): TaskInfo {
   const x = s.info[no];
   if (x) return x;
   const t = taskOrThrow(s, no, 'read');
-  const lead = PROJECTS.find((p) => p.name === t.project)?.lead ?? '';
+  // The project's Lead now (Edit project may have changed it), not the sample's.
+  const lead = getProjectByName(t.project)?.lead ?? '';
   const history = lead ? [{ text: `${lead} created this task`, on: null }] : [];
   return { desc: '', by: lead, steps: [], proof: [], history };
 }

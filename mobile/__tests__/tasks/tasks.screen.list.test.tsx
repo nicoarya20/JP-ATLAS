@@ -1,8 +1,14 @@
 // Tasks list and Filter & sort screens (port of prototype tasks.list.test / tasks.filter.test): the My tasks groups,
 // My / All, opening a card, NoMatch + Reset, what a screen reader hears of the cards and heads, and the filter sheet's
 // draft, Reset, Apply and dot.
-import { fireEvent, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 
+import {
+  archiveProject,
+  editProject,
+  findProject,
+  resetProjects,
+} from '../../src/data/projects.store';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
 
 resetTaskStores();
@@ -101,6 +107,25 @@ describe('tasks filter', () => {
     await fireEvent.press(await screen.findByText('Reset'));
     await fireEvent.press(sheet().getByText('Apply'));
     expect(filterOn()).toBe(false);
+  });
+
+  it('offers each listed project by its current name, and none from Archive', async () => {
+    const atlas = findProject('atlas');
+    if (!atlas) throw new Error('test-only: no sample project atlas');
+    // Before anything renders, so no act() is needed.
+    editProject('atlas', { ...atlas, name: 'Atlas v2' }, 'Nico');
+    archiveProject('migration', 'Ayu');
+    try {
+      await openTasks('/tasks?scope=all');
+      await fireEvent.press(filterButton());
+      const pick = await screen.findByTestId('filter-project');
+      expect(pick).toHaveAccessibilityValue({ text: 'Atlas v2' });
+      await fireEvent.press(pick);
+      expect(await screen.findByText('Internal Tools')).toBeOnTheScreen();
+      expect(screen.queryByText('Legacy Data Migration')).not.toBeOnTheScreen();
+    } finally {
+      await act(async () => resetProjects());
+    }
   });
 
   it('a draft left without Apply changes nothing', async () => {

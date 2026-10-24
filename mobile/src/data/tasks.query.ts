@@ -1,4 +1,4 @@
-import { findProject } from './projects.store';
+import { findProject } from './projects.state';
 import {
   ATLAS_ID,
   assigned,

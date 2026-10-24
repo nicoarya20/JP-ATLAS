@@ -1,6 +1,7 @@
 import { monthDay } from './dates';
 import { me } from './people';
-import { PROJECTS, type Role, TASK_REVIEWERS } from './sample';
+import { findProject } from './projects.state';
+import { type Role, TASK_REVIEWERS } from './sample';
 import { boardColumns } from './tasks.columns';
 import { buildTaskDetail, type TaskDetailView } from './tasks.detail';
 import { myGroups } from './tasks.groups';
@@ -115,7 +116,8 @@ function sourceOf(s: TasksState, scope: TaskScope, name: string): readonly TaskI
   if (scope === 'mine') return s.tasks.filter((t) => assigned(t, name));
   const id = projectOfScope(scope);
   if (!id) return s.tasks;
-  const project = PROJECTS.find((p) => p.id === id);
+  // By id in the projects store: a renamed project keeps its tasks.
+  const project = findProject(id);
   if (!project) throw new Error(`Cannot list the tasks of project "${id}": no such project`);
   return s.tasks.filter((t) => t.project === project.name);
 }

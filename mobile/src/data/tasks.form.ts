@@ -1,5 +1,5 @@
 import { listPeople, me, ROLE_TAG } from './people';
-import { getProjectByName, listProjects } from './projects.store';
+import { getProjectByName, listProjects } from './projects.state';
 import { type Project, type Role, TODAY } from './sample';
 import { FORM_DESC, QUICK_WRITE } from './sample/tasks.extra';
 import { TASK_PHASES } from './sample/tasks.settings';

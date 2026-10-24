@@ -8,10 +8,10 @@ import {
   type ProjectFields,
   resetProjects,
 } from '../../src/data/projects.store';
-import { getQuickWrite, getTaskSettings } from '../../src/data/tasks';
+import { getQuickWrite, getTaskSettings, getTasksList } from '../../src/data/tasks';
 import { formProjects, getTaskForm } from '../../src/data/tasks.form';
 import { applyQuery, baseQuery } from '../../src/data/tasks.query';
-import { getTask, getTasksState } from '../../src/data/tasks.state';
+import { getTask, getTasksState, taskInfo } from '../../src/data/tasks.state';
 import {
   forgetProjectTasks,
   putTasksBack,
@@ -25,13 +25,18 @@ afterEach(() => {
   resetArchive();
 });
 
-/** Rename sample project `id`, keeping its other fields. */
-function rename(id: string, name: string) {
+/** Save Edit project for sample project `id` with `change` over its fields. */
+function edit(id: string, change: Partial<ProjectFields>) {
   const p = findProject(id);
   if (!p) throw new Error(`test-only: no sample project ${id}`);
-  const fields: ProjectFields = { ...p, name };
+  const fields: ProjectFields = { ...p, ...change };
   editProject(id, fields, 'Nico');
 }
+const rename = (id: string, name: string) => edit(id, { name });
+
+const projectTab = () => getTasksList('pm', { scope: 'project:atlas', view: 'list' });
+const listed = (l: ReturnType<typeof projectTab>) =>
+  l.view === 'list' ? l.groups.flatMap((g) => g.tasks) : [];
 
 describe('a renamed project', () => {
   test('its tasks still show under the project filter, by id', () => {
@@ -43,12 +48,33 @@ describe('a renamed project', () => {
     expect(after.every((t) => t.project === 'Atlas v2')).toBe(true);
   });
 
+  test("the project's Tasks tab keeps its tasks", () => {
+    const before = listed(projectTab()).length;
+    expect(before).toBeGreaterThan(0);
+    rename('atlas', 'Atlas v2');
+    expect(listed(projectTab())).toHaveLength(before);
+  });
+
   test('the forms, Project settings and Just write name it by its new name', () => {
     rename('atlas', 'Atlas v2');
     expect(getTaskForm('pm', 'atlas').project.name).toBe('Atlas v2');
     const settings = getTaskSettings('pm', 'atlas');
     expect(settings.allowed && settings.project).toBe('Atlas v2');
     expect(getQuickWrite().project).toBe('Atlas v2');
+  });
+});
+
+describe('a new Lead', () => {
+  test('is who created a task that has no history of its own', () => {
+    const s = getTasksState();
+    const plain = s.tasks.find((t) => t.project === 'Atlas Project' && !s.info[t.no]);
+    if (!plain) throw new Error('test-only: every Atlas sample task has extras');
+    expect(taskInfo(s, plain.no).by).toBe('Nico');
+    edit('atlas', { lead: 'Rina' });
+    expect(taskInfo(getTasksState(), plain.no)).toMatchObject({
+      by: 'Rina',
+      history: [{ text: 'Rina created this task', on: null }],
+    });
   });
 });
 

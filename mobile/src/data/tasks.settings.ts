@@ -1,4 +1,4 @@
-import { findProject } from './projects.store';
+import { findProject } from './projects.state';
 import type { Role } from './sample';
 import { NEEDS_REVIEW, TASK_TYPE_MAX } from './sample/tasks.settings';
 import { TYPES } from './tasks.shared';
