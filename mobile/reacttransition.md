@@ -70,17 +70,17 @@ Branch: `feature/mobile-expo-spike` (dari `main`). Pekerja **tidak** commit/chec
 
 | ID | Task | Pemilik | Status | Bergantung |
 |---|---|---|---|---|
-| T1 | Scaffold Expo (Expo Router + TS) di `mobile/`, pakai bun | Sesi A | 👀 | — |
-| T2 | Cek stabilitas NativeWind v5 / gluestack v5, putuskan versi, `gluestack-ui init` | Sesi A | 👀 | T1 |
-| T3 | `jest-expo` + RNTL + satu tes asap yang lulus | Sesi A | 👀 | T1 |
+| T1 | Scaffold Expo (Expo Router + TS) di `mobile/`, pakai bun | Sesi A | ✅ | — |
+| T2 | Cek stabilitas NativeWind v5 / gluestack v5, putuskan versi, `gluestack-ui init` | Sesi A | ✅ | T1 |
+| T3 | `jest-expo` + RNTL + satu tes asap yang lulus | Sesi A | ✅ | T1 |
 | T4 | Pengecualian root: `tsconfig.json` exclude + `biome.json` `!mobile`; typecheck/lint root tetap lulus | Sesi A | ✅ | T1 |
-| T5 | Kerangka tab Expo Router sesuai tab prototipe, layar placeholder di `src/screens/<tab>/` | Sesi A | 👀 | T2 |
+| T5 | Kerangka tab Expo Router sesuai tab prototipe, layar placeholder di `src/screens/<tab>/` | Sesi A | ✅ | T2 |
 | B0 | Analisis (read-only): pemetaan token JP Atlas → Tailwind/gluestack, spesifikasi Home + tab bar, inventaris data contoh | Sesi B | ✅ | — |
-| T6 | Terapkan token JP Atlas ke config gluestack/Tailwind + font Manrope (expo-font) | Sesi B | 🔄 | T2, B0 |
-| T7 | Modul data contoh `src/data/` (data Nico untuk Home) | Sesi B | 🔄 | T1, B0 |
-| T8 | Layar Home (`src/screens/home/**`) + tes | Sesi B | 🔄 | T5, T6, T7 |
+| T6 | Terapkan token JP Atlas ke config gluestack/Tailwind + font Manrope (expo-font) | Sesi B | ✅ | T2, B0 |
+| T7 | Modul data contoh `src/data/` (data Nico untuk Home) | Sesi B | ✅ | T1, B0 |
+| T8 | Layar Home (`src/screens/home/**`) + tes | Sesi B | ✅ | T5, T6, T7 |
 | T9 | Verifikasi di HP via Expo Go | User | ⏳ | T8 |
-| T10 | Linter mobile: biome (versi sama dengan root), `mobile/biome.json` | Sesi A | 👀 | install Sesi B selesai |
+| T10 | Linter mobile: biome (versi sama dengan root), `mobile/biome.json` | Sesi A | ✅ | install Sesi B selesai |
 | C1 | Review kode independen Fase 0 + `bun audit` + doctor (read-only) | Sesi C | 🔄 | — |
 | D1 | Spesifikasi porting Fase 1 semua layar di luar Home/tab bar → `mobile/docs/phase1-screens*.md` | Sesi D | 🔄 | — |
 | A1 | Spesifikasi (read-only) tab bar/navigasi Fase 1 persis prototipe: pil kaca, gelembung, "+", panel More | Sesi A | ✅ | — |
@@ -91,6 +91,7 @@ Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sud
 
 - Login dari RN dengan Better Auth (token atau cookie), disepakati dengan rekan sebelum Fase 2.
 - Archive (prototipe) vs Sampah 30 hari (app web).
+- `bun audit`: 2 high transitif lewat `expo > @expo/cli` (node-forge ≤1.4.0 GHSA-86w9-cpqp-85rv, zod <4.6.6 GHSA-mrhx-c7xc-m3w5). Hanya di tool CLI dev, tidak masuk bundle app. Tunggu patch Expo; cek ulang tiap naik versi Expo.
 - Client API: Eden (berbagi tipe dengan `server/`) atau fetch biasa.
 
 ## 8. Log
@@ -103,3 +104,4 @@ Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sud
 - 2026-10-25 — A1 selesai: spesifikasi navigasi Fase 1 (F1a route + bar polos → F1b gelembung → F1c FAB + Create → F1d panel More → F1e kaca/a11y/QA). Fase 1 mulai setelah T8 + T9.
 - 2026-10-25 — Tambah Sesi C (`pm-dashboard-01`, reviewer read-only) dan Sesi D (`pm-dashboard-83`, perencana porting layar Fase 1).
 - 2026-10-25 — T10 selesai: Biome 2.5.12 (persis, sama dengan root), `mobile/biome.json`, `src/components/ui/**` dikecualikan (output CLI). Spesifikasi A1 ditulis di `docs/phase1-navigation.md`. Tes sementara merah karena mock Reanimated di `jest.setup.js` (T8 Sesi B); selama T8 Sesi B memegang jest setup dan wajib memakai setup resmi.
+- 2026-10-25 — T6–T8 selesai (Sesi B): 87/87 tes, typecheck dan lint 0 error, export iOS+Android, doctor 20/20. Jest pakai `setUpTests()` resmi Reanimated + resolver gabungan (`jest.resolver.js`) + mock resmi safe-area. Commit `e6d85fd` (scaffold), `74eacd7` (tema), `0016b99` (Home), `03fc15c` (docs). Kepemilikan jest setup kembali ke Sesi A.
