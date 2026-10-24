@@ -21,6 +21,9 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 | 2026-10-25 | Ikon = `lucide-react-native` (^1.61, ISC) | Prototipe memakai lucide, jadi ikon bisa 1:1. `expo-symbols` hanya iOS dan bentuknya berbeda |
 | 2026-10-25 | Tab Fase 0 = `NativeTabs` (expo-router/native-tabs): liquid glass di iOS, Material di Android; ikon SF Symbol/Material | Bawaan template SDK 58; tab bar prototipe menyusul di Fase 1 (A1) |
 | 2026-10-25 | **Fase 1 tab bar = custom `tabBar` di atas JS `Tabs` expo-router** (bukan NativeTabs, bukan `expo-router/ui`); Reanimated 4 + RNGH 3 + `expo-glass-effect`; Create = route `formSheet`; tanpa expo-haptics | NativeTabs tidak bisa membuat pil + FAB + panel More prototipe. Konsekuensi: kehilangan perilaku bar sistem iOS 26 (minimize-on-scroll, Large Content Viewer). Spesifikasi lengkap: `mobile/docs/phase1-navigation.md` |
+| 2026-10-25 | Fase 1 layar: spesifikasi di `docs/phase1-screens*.md` (64 id → route); gelombang G0 kit → G1 Tasks/Events/More+Auth paralel → G2 Projects | Wilayah file per gelombang tidak tumpang tindih |
+| 2026-10-25 | Penyimpangan prototipe yang disengaja: (1) konfirmasi `AlertDialog` gluestack untuk sign out, hapus anggota, aksi Users (T2) dan hapus permanen dengan ketik nama (T3); (2) snack Urungkan hilang otomatis 10 detik (T1) | Standar UX project (blocker) mengalahkan "ikuti prototipe" untuk aksi destruktif |
+| 2026-10-25 | Ikuti prototipe: layar awal = `(tabs)` (auth ada sebagai route, gerbang login di Fase 2); detail proyek selain Atlas = header + empty state; `profile.me` = modal penuh; Restore di Archive = toast seperti prototipe (pemulihan nyata di Fase 2 bersama API) | Aturan user: ikuti prototipe 1:1 |
 | 2026-10-25 | Linter mobile = biome (bukan ESLint expo) | Konsisten dengan root; biome root mengecualikan `mobile/` |
 | 2026-10-25 | Fase 0: Tabs Expo Router standar; gelembung, drag, panel More, dan sheet Create menyusul | Butuh Reanimated + Gesture Handler; di luar tujuan spike |
 
@@ -84,7 +87,7 @@ Branch: `feature/mobile-expo-spike` (dari `main`). Pekerja **tidak** commit/chec
 | T10 | Linter mobile: biome (versi sama dengan root), `mobile/biome.json` | Sesi A | ✅ | install Sesi B selesai |
 | C1 | Review kode independen Fase 0 + `bun audit` + doctor (read-only) | Sesi C | ✅ | — |
 | C2 | Perbaikan temuan C1: B = #1 bobot font, #2 worker jest bocor, #4 reset palet; A = #5 app.config splash, #6 dependency tak terpakai, nit | Sesi A, B | 🔄 | C1 |
-| D1 | Spesifikasi porting Fase 1 semua layar di luar Home/tab bar → `mobile/docs/phase1-screens*.md` | Sesi D | 🔄 | — |
+| D1 | Spesifikasi porting Fase 1 semua layar di luar Home/tab bar → `mobile/docs/phase1-screens*.md` | Sesi D | ✅ | — |
 | A1 | Spesifikasi (read-only) tab bar/navigasi Fase 1 persis prototipe: pil kaca, gelembung, "+", panel More | Sesi A | ✅ | — |
 
 Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sudah di-commit).
@@ -108,3 +111,4 @@ Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sud
 - 2026-10-25 — T10 selesai: Biome 2.5.12 (persis, sama dengan root), `mobile/biome.json`, `src/components/ui/**` dikecualikan (output CLI). Spesifikasi A1 ditulis di `docs/phase1-navigation.md`. Tes sementara merah karena mock Reanimated di `jest.setup.js` (T8 Sesi B); selama T8 Sesi B memegang jest setup dan wajib memakai setup resmi.
 - 2026-10-25 — T6–T8 selesai (Sesi B): 87/87 tes, typecheck dan lint 0 error, export iOS+Android, doctor 20/20. Jest pakai `setUpTests()` resmi Reanimated + resolver gabungan (`jest.resolver.js`) + mock resmi safe-area. Commit `e6d85fd` (scaffold), `74eacd7` (tema), `0016b99` (Home), `03fc15c` (docs). Kepemilikan jest setup kembali ke Sesi A.
 - 2026-10-25 — C1 selesai (Sesi C): 1 temuan sedang (kelas `font-semibold/bold` bawaan Tailwind menimpa bobot Manrope), 5 rendah, beberapa nit; semua dibagi ke Sesi A/B. Sesi C memverifikasi ulang setelah perbaikan.
+- 2026-10-25 — D1 selesai (Sesi D): `docs/phase1-screens*.md` (5 berkas, 813 baris), commit `95ef6f2`. Keputusan penyimpangan dicatat di §1.
