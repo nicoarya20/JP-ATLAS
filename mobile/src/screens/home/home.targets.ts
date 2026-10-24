@@ -1,23 +1,20 @@
 import type { Href } from 'expo-router';
 
 import type { HomeTarget } from '@/data/home.types';
+import { routeHref } from '@/navigation/route-href';
 
-/** What a Home element opens: the prototype's screen ids, plus the detail screens its rows open. */
-export type OpenTarget =
-  | HomeTarget
-  | 'home.search'
-  | 'tasks.detail'
-  | 'projects.overview'
-  | 'events.detail';
+/** Where each prototype screen id a Home chip or link names lives in the app. */
+export const TARGET_HREF: Record<HomeTarget, Href> = {
+  'tasks.all': '/tasks?scope=all',
+  'tasks.my': '/tasks?scope=mine',
+  'projects.list': '/projects',
+  'users.approve': '/more/users',
+  'events.calendar': '/events?view=calendar',
+  'inbox.respond': '/more/inbox',
+};
 
-/**
- * Phase 0 has only the five tabs, so every target lands on the tab that will hold its screen (the detail screens come
- * with their modules in Phase 1). Search has no tab: null, and Home says it arrives later.
- */
-export function tabFor(target: OpenTarget): Href | null {
-  if (target === 'home.search') return null;
-  if (target.startsWith('tasks.')) return '/tasks';
-  if (target.startsWith('projects.')) return '/projects';
-  if (target.startsWith('events.')) return '/events';
-  return '/more';
-}
+/** A task row opens the task. */
+export const taskHref = (no: number): Href => `/tasks/${no}`;
+
+/** A project row opens the project; its route file comes with the Projects module (routeHref). */
+export const projectHref = (id: string): Href => routeHref(`/projects/${id}`);

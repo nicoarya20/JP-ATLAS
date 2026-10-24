@@ -1,18 +1,17 @@
 import { daysBetween, daysSinceMonday, sameMonth } from './dates';
-import { dueIn, isAssigned, isOpen } from './home.tasks';
+import type { EventItem } from './events.shared';
+import { doneOn } from './home.tasks';
 import type { HomeTarget, StatChip, StatKey, StatSub } from './home.types';
-import {
-  ADMIN_OVERDUE_TASKS,
-  EVENTS,
-  INBOX_RESPOND,
-  PROJECTS,
-  type Role,
-  type Task,
-  TODAY,
-  USER_COUNTS,
-} from './sample';
+import { respondCards } from './inbox';
+import { ADMIN_OVERDUE_TASKS, PROJECTS, type Role, TODAY, USER_COUNTS } from './sample';
+import { assigned, dueIn, isOpen, type TaskItem } from './tasks.shared';
 
-/* Home stat chips per role, ported from the prototype (home.stats.js, home.roles.js) against the sample "today". */
+/*
+ * Home stat chips per role, ported from the prototype (home.stats.js, home.roles.js) on the live tasks and events,
+ * against the sample "today".
+ */
+
+type Tasks = readonly TaskItem[];
 
 const TARGET: Record<StatKey, HomeTarget> = {
   assigned: 'tasks.all',
@@ -37,7 +36,7 @@ const chip = (key: StatKey, count: number | null, sub: StatSub, alert = false): 
 const leftThisMonth = (iso: string) => sameMonth(iso, TODAY) && daysBetween(TODAY, iso) >= 0;
 
 /** Line under In Progress: the most urgent thing among the tasks being worked on. */
-function activeSub(active: Task[]): StatSub {
+function activeSub(active: Tasks): StatSub {
   const overdue = active.filter((t) => dueIn(t) < 0).length;
   const today = active.filter((t) => dueIn(t) === 0).length;
   if (overdue) return { kind: 'overdue', n: overdue };
@@ -48,15 +47,15 @@ function activeSub(active: Task[]): StatSub {
 }
 
 /** Assigned, In Progress and Completed for the signed-in person (Member and PM). */
-function taskChips(tasks: Task[], me: string): StatChip[] {
-  const mine = tasks.filter((t) => isAssigned(t, me));
+function taskChips(tasks: Tasks, me: string): StatChip[] {
+  const mine = tasks.filter((t) => assigned(t, me));
   const open = mine.filter(isOpen);
   const overdue = open.filter((t) => dueIn(t) < 0).length;
   const active = mine.filter((t) => t.status === 'In progress');
-  const done = mine.filter(
-    (t) =>
-      t.status === 'Done' && t.doneOn && daysBetween(TODAY, t.doneOn) >= -daysSinceMonday(TODAY),
-  );
+  const done = mine.filter((t) => {
+    const on = doneOn(t);
+    return on !== undefined && daysBetween(TODAY, on) >= -daysSinceMonday(TODAY);
+  });
   return [
     chip(
       'assigned',
@@ -74,17 +73,21 @@ function taskChips(tasks: Task[], me: string): StatChip[] {
   ];
 }
 
-/** Upcoming (my open tasks and events still ahead this month) and Inbox (cards waiting for my response). */
-function aheadChips(tasks: Task[], me: string, role: Role): StatChip[] {
-  const dueTasks = tasks.filter(
-    (t) => isAssigned(t, me) && isOpen(t) && leftThisMonth(t.due),
+/** Upcoming (my open tasks and events not canceled still ahead this month) and Inbox (cards waiting for my response). */
+function aheadChips(
+  tasks: Tasks,
+  events: readonly EventItem[],
+  me: string,
+  role: Role,
+): StatChip[] {
+  const dueTasks = tasks.filter((t) => assigned(t, me) && isOpen(t) && leftThisMonth(t.due)).length;
+  // A canceled event stays listed (marked Canceled) but is no longer ahead of me, as in Agenda.
+  const ahead = events.filter(
+    (e) => e.attendees.includes(me) && e.status !== 'Done' && !e.canceled && leftThisMonth(e.date),
   ).length;
-  const events = EVENTS.filter(
-    (e) => e.attendees.includes(me) && e.status !== 'Done' && leftThisMonth(e.date),
-  ).length;
-  const respond = INBOX_RESPOND[role].length;
+  const respond = respondCards(role).length;
   return [
-    chip('upcoming', null, { kind: 'items', n: dueTasks + events }),
+    chip('upcoming', null, { kind: 'items', n: dueTasks + ahead }),
     chip('inbox', null, respond ? { kind: 'toRespond', n: respond } : { kind: 'caughtUp' }),
   ];
 }
@@ -100,7 +103,12 @@ const adminChips = (): StatChip[] => [
 ];
 
 /** Stat chips of a role, in the prototype's order. */
-export function homeStats(role: Role, tasks: Task[], me: string): StatChip[] {
+export function homeStats(
+  role: Role,
+  tasks: Tasks,
+  events: readonly EventItem[],
+  me: string,
+): StatChip[] {
   const first = role === 'admin' ? adminChips() : taskChips(tasks, me);
-  return [...first, ...aheadChips(tasks, me, role)];
+  return [...first, ...aheadChips(tasks, events, me, role)];
 }

@@ -1,6 +1,11 @@
+import { resetArchive } from '../../src/data/archive.store';
 import { daysBetween, daysToSunday, monthDay, weekdayMonthDay } from '../../src/data/dates';
+import { addEvent, archiveEvent, cancelEvent, resetEvents } from '../../src/data/events.store';
 import { getHome } from '../../src/data/home';
+import { markFocusDone } from '../../src/data/home.actions';
 import type { HomeData, StatKey } from '../../src/data/home.types';
+import { getTasksState, taskInfo } from '../../src/data/tasks.state';
+import { archiveTask, moveTask, resetTasks } from '../../src/data/tasks.store';
 
 // Expected values are the prototype's Home on its sample "today" (Wed, Oct 7, 2026), per role.
 
@@ -78,14 +83,6 @@ describe('getHome · Project Manager (Nico)', () => {
     ]);
     expect([h.ask.questions.length, h.done.length, h.activity.length]).toEqual([3, 4, 3]);
   });
-
-  test('a task marked done leaves My Focus and counts as completed today', () => {
-    const after = getHome('pm', { completed: [14] });
-    expect(groupNos(after).today).toEqual([]);
-    expect(stat(after, 'assigned')?.count).toBe(2);
-    expect(stat(after, 'completed')?.count).toBe(1);
-    expect(after.focus.openCount).toBe(2);
-  });
 });
 
 describe('getHome · Member (Dodi)', () => {
@@ -133,5 +130,79 @@ describe('getHome · Admin (Ayu)', () => {
     expect(h.focus).toMatchObject({ pendingUsers: 2, openCount: 0, empty: true, review: [] });
     expect(h.agenda.next?.id).toBe('party');
     expect(h.agenda.projects).toHaveLength(5);
+  });
+});
+
+// Home reads the live stores: what Tasks and Events change shows on the next getHome (and re-renders the screen).
+describe('getHome on the live stores', () => {
+  afterEach(() => {
+    resetTasks();
+    resetEvents();
+    resetArchive();
+  });
+  const upcoming = (h: HomeData) => stat(h, 'upcoming')?.sub;
+
+  test("Done from My Focus moves the task through tasks.store and logs it as Nico's", () => {
+    markFocusDone('pm', 14);
+    const h = getHome('pm');
+    expect(groupNos(h).today).toEqual([]);
+    expect(stat(h, 'assigned')?.count).toBe(2);
+    expect(stat(h, 'completed')?.count).toBe(1);
+    expect(h.focus.openCount).toBe(2);
+    expect(getTasksState().tasks.find((t) => t.no === 14)?.status).toBe('Done');
+    expect(taskInfo(getTasksState(), 14).history.at(-1)).toMatchObject({
+      text: 'Nico marked this task done',
+    });
+  });
+
+  test('Done is refused where My Focus does not offer it', () => {
+    expect(() => markFocusDone('pm', 12)).toThrow(
+      'Cannot mark task #12 done from Home: My Focus does not offer it to Nico',
+    );
+    expect(() => markFocusDone('pm', 17)).toThrow('Cannot mark task #17 done from Home');
+    expect(() => markFocusDone('member', 14)).toThrow('Cannot mark task #14 done from Home');
+  });
+
+  test('a task canceled or moved to Archive in Tasks leaves My Focus and Upcoming', () => {
+    moveTask(9, 'Canceled');
+    archiveTask(14, 'Nico');
+    const h = getHome('pm');
+    expect(groupNos(h)).toEqual({ overdue: [12], today: [], thisWeek: [] });
+    expect(stat(h, 'assigned')?.count).toBe(1);
+    expect(upcoming(h)).toEqual({ kind: 'items', n: 5 });
+  });
+
+  test('a canceled or archived event leaves Agenda and Upcoming; the next one shows with its link', () => {
+    cancelEvent('review', 'Moved to next week', 'Nico');
+    let h = getHome('pm');
+    expect(h.agenda.next?.id).not.toBe('review');
+    expect(upcoming(h)).toEqual({ kind: 'items', n: 6 });
+    const next = h.agenda.next?.id ?? '';
+    expect(h.agenda.next?.href).toBe(`/events/${next}`);
+    archiveEvent(next, 'Nico');
+    h = getHome('pm');
+    expect(h.agenda.next?.id).not.toBe(next);
+    expect(upcoming(h)).toEqual({ kind: 'items', n: 5 });
+  });
+
+  test('a new event I attend this month counts as upcoming', () => {
+    addEvent(
+      {
+        title: 'Sprint demo',
+        date: '2026-10-20',
+        start: '10:00 AM',
+        end: '11:00 AM',
+        mode: 'Online',
+        place: 'Meet',
+        attendees: [],
+        type: 'Meeting',
+        project: '',
+        agenda: [],
+        repeat: '',
+      },
+      'Nico',
+    );
+    expect(upcoming(getHome('pm'))).toEqual({ kind: 'items', n: 8 });
+    expect(upcoming(getHome('member'))).toEqual({ kind: 'items', n: 5 });
   });
 });

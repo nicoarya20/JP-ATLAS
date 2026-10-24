@@ -1,7 +1,7 @@
+import { eventsStore } from './events.store';
 import { homeAgenda, homeFocus } from './home.focus';
 import { homeStats } from './home.stats';
-import { tasksWith } from './home.tasks';
-import type { HomeData } from './home.types';
+import type { HomeData, HomeSources } from './home.types';
 import {
   ACTIVITY,
   ASK,
@@ -12,11 +12,15 @@ import {
   PEOPLE,
   type Role,
 } from './sample';
+import { getTasksState } from './tasks.state';
 
 /*
- * Home data in one call, the swap point to the API: today it is built from the prototype's sample data, later it
- * becomes a fetch of GET /api/app/home (the web app's getHome) that returns the same HomeData.
+ * Home data in one call, the swap point to the API: today it is built from the live task and event stores (so a task
+ * moved, canceled or archived in Tasks, or an event added or archived in Events, shows on Home) plus the prototype's
+ * sample copy; later it becomes a fetch of GET /api/app/home (the web app's getHome) that returns the same HomeData.
  */
+
+export type { HomeSources } from './home.types';
 
 /** How many Ask Data questions, completed tasks and activity rows each role sees (prototype home.roles.js). */
 const LENGTHS: Record<Role, { asks: number; done: number; activity: number }> = {
@@ -25,25 +29,26 @@ const LENGTHS: Record<Role, { asks: number; done: number; activity: number }> = 
   admin: { asks: 3, done: 4, activity: 3 },
 };
 
-export type HomeOptions = {
-  /** Task numbers marked done on this screen since it opened. */
-  completed?: readonly number[];
-};
+/** The stores as they are now; a screen passes what it read with useTasks / useEventsState to re-render on changes. */
+export const homeSources = (): HomeSources => ({
+  tasks: getTasksState(),
+  events: eventsStore.get(),
+});
 
 /** Everything Home shows for `role`. */
-export function getHome(role: Role, { completed = [] }: HomeOptions = {}): HomeData {
+export function getHome(role: Role, src: HomeSources = homeSources()): HomeData {
   const person = PEOPLE[ME_BY_ROLE[role]];
-  const tasks = tasksWith(completed);
   const n = LENGTHS[role];
+  const events = src.events.list;
   return {
     role,
     me: { name: person.name, full: person.full },
     greeting: GREETING,
-    stats: homeStats(role, tasks, person.name),
+    stats: homeStats(role, src.tasks.tasks, events, person.name),
     briefing: BRIEFING,
-    focus: homeFocus(role, tasks, person.name),
+    focus: homeFocus(role, src.tasks, person.name),
     ask: { ...ASK, questions: ASK.questions.slice(0, n.asks) },
-    agenda: homeAgenda(role, person.name),
+    agenda: homeAgenda(role, events, person.name),
     done: DONE_THIS_WEEK.slice(0, n.done),
     activity: ACTIVITY.slice(0, n.activity),
   };

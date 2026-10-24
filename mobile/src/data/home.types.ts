@@ -1,9 +1,15 @@
+import type { EventHref } from './events.shared';
+import type { EventsState } from './events.store';
 import type { ProjectStatus, Role, TaskStatus } from './sample';
+import type { TasksState } from './tasks.state';
 
 /*
  * Shape of everything Home shows, built by getHome (src/data/home.ts). The data carries values, not copy: the screen
  * words them (src/screens/home/home.strings.ts), so the API can later return this same shape.
  */
+
+/** What Home is built from: the task and event state (Phase 2: the API's answer instead). */
+export type HomeSources = { tasks: TasksState; events: EventsState };
 
 /** Prototype screen a Home element opens (riset-keano/prototype-react screen ids). */
 export type HomeTarget =
@@ -70,6 +76,8 @@ export type HomeFocus = {
 
 export type AgendaEvent = {
   id: string;
+  /** Where its row leads (eventHref: the detail of an event not done). */
+  href: EventHref;
   title: string;
   time: string;
   date: string;

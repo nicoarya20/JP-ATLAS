@@ -1,25 +1,16 @@
-import { daysBetween } from './dates';
-import { TASKS, type Task, TODAY } from './sample';
+import { monthDay } from './dates';
+import { TODAY } from './sample';
+import type { TaskItem } from './tasks.shared';
 
 /*
- * Task helpers of the Home data, ported from the prototype (tasks.shared.js, tasks.store.js): open/assigned checks,
- * days to a due date, and the task list with the tasks marked done on this screen applied.
+ * Task helpers of the Home data, ported from the prototype (home.stats.js doneOn): when a Done task was completed.
  */
 
-export const isOpen = (t: Task) => t.status !== 'Done' && t.status !== 'Canceled';
+/** The sample's own Done dates, and "Done Oct 7" as the task store writes it when a task is moved to Done today. */
+const DONE_TODAY = `Done ${monthDay(TODAY)}`;
 
-/** True when `name` is one of the task's assignees. */
-export const isAssigned = (t: Task, name: string) =>
-  t.who === name || (t.also ?? []).includes(name);
-
-/** Days from today to the due date (negative = overdue). */
-export const dueIn = (t: Task) => daysBetween(TODAY, t.due);
-
-/** Sample tasks, with `completed` task numbers moved to Done today (the prototype's Done button). */
-export function tasksWith(completed: readonly number[]): Task[] {
-  return TASKS.map((t) =>
-    completed.includes(t.no) && isOpen(t)
-      ? { ...t, status: 'Done', when: 'Done today', doneOn: TODAY }
-      : t,
-  );
+/** Completion date (ISO) of a Done task; undefined when it is not done or the date is unknown. */
+export function doneOn(t: Pick<TaskItem, 'status' | 'when' | 'doneOn'>): string | undefined {
+  if (t.status !== 'Done') return undefined;
+  return t.doneOn ?? (t.when === DONE_TODAY ? TODAY : undefined);
 }

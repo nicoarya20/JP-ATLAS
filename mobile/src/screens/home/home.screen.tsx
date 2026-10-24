@@ -1,16 +1,19 @@
-import { router } from 'expo-router';
+import { type Href, router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
 
+import { PersonAvatar } from '@/components/avatar/person-avatar';
 import { useNotice } from '@/components/notice/use-notice';
-import { VStack } from '@/components/ui/vstack';
+import { StackedScreen } from '@/components/screen/stacked-screen';
+import { useEventsState } from '@/data/events.store';
 import { getHome } from '@/data/home';
+import { markFocusDone } from '@/data/home.actions';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
+import { useTasks } from '@/data/tasks.state';
 
 import { S } from './home.strings';
-import { type OpenTarget, tabFor } from './home.targets';
-import { HomeSearch, HomeStats, HomeTitle } from './parts/home-header';
+import { HomeSearch, HomeStats } from './parts/home-header';
+import { statFold } from './parts/stat-chip';
 import { AgendaSection } from './sections/agenda.section';
 import { AskSection } from './sections/ask.section';
 import { BriefingSection } from './sections/briefing.section';
@@ -18,50 +21,49 @@ import { FocusSection } from './sections/focus.section';
 import { ActivitySection, DoneSection } from './sections/lists.section';
 
 type HomeScreenProps = {
-  /** Who is signed in; Phase 0 has no sign-in, so it comes from the session constant. */
+  /** Who is signed in; Phase 1 has no sign-in, so it comes from the session constant. */
   role?: Role;
-  /** Where a Home element leads; by default the tab that will hold that screen. */
-  onOpen?: (target: OpenTarget) => void;
+  /** Where a Home chip or link leads; by default the router goes there. */
+  onOpen?: (href: Href) => void;
 };
 
-function openTab(target: OpenTarget) {
-  const href = tabFor(target);
-  if (href) router.navigate(href);
-}
+const go = (href: Href) => router.navigate(href);
 
 /**
- * Home ①, ported 1:1 from the prototype: greeting, search, pinned stat chips, then Daily Briefing, My Focus, Ask Data,
- * Agenda & Projects, completed tasks and activity. Everything comes from getHome (the API swap point).
+ * Home ①, ported 1:1 from the prototype (home.main): a StackedScreen with the greeting, my avatar, search and the stat
+ * chips pinned under the header, then Daily Briefing, My Focus, Ask Data, Agenda & Projects, completed tasks and
+ * activity. Everything comes from getHome (the API swap point) on the live task and event stores, so a change made in
+ * Tasks or Events, or Done here, shows at once.
  */
-export function HomeScreen({ role = SESSION_ROLE, onOpen = openTab }: HomeScreenProps) {
-  const [completed, setCompleted] = useState<number[]>([]);
+export function HomeScreen({ role = SESSION_ROLE, onOpen = go }: HomeScreenProps) {
+  const tasks = useTasks((s) => s);
+  const events = useEventsState();
+  const [line, setLine] = useState(0);
   const notice = useNotice();
-  const data = getHome(role, { completed });
+  const data = getHome(role, { tasks, events });
 
-  const open = (target: OpenTarget) => {
-    if (tabFor(target) === null) notice(S.searchLater);
-    else onOpen(target);
-  };
+  const search = () => notice(S.searchLater);
   const markDone = (no: number) => {
-    setCompleted((done) => [...done, no]);
+    markFocusDone(role, no);
     notice(S.focus.markedDone);
   };
 
   return (
-    <View testID="screen-home" className="flex-1 bg-card pt-safe">
-      <HomeTitle greeting={data.greeting} me={data.me} />
-      <ScrollView stickyHeaderIndices={[1]} className="flex-1">
-        <HomeSearch onPress={() => open('home.search')} />
-        <HomeStats stats={data.stats} onOpen={open} />
-        <VStack className="gap-4 bg-background px-4 pb-8">
-          <BriefingSection briefing={data.briefing} />
-          <FocusSection focus={data.focus} onOpen={open} onDone={markDone} />
-          <AskSection ask={data.ask} onAsk={() => notice(S.ask.answered)} />
-          <AgendaSection agenda={data.agenda} onOpen={open} />
-          <DoneSection done={data.done} onOpen={open} />
-          <ActivitySection activity={data.activity} />
-        </VStack>
-      </ScrollView>
-    </View>
+    <StackedScreen
+      testID="screen-home"
+      title={S.greeting(data.greeting, data.me.name)}
+      aside={<PersonAvatar name={data.me.name} />}
+      find={<HomeSearch onPress={search} />}
+      onFind={search}
+      pinned={<HomeStats stats={data.stats} line={line} onLine={setLine} onOpen={onOpen} />}
+      pinnedShrink={statFold(line)}
+    >
+      <BriefingSection briefing={data.briefing} />
+      <FocusSection focus={data.focus} onOpen={onOpen} onDone={markDone} />
+      <AskSection ask={data.ask} onAsk={() => notice(S.ask.answered)} />
+      <AgendaSection agenda={data.agenda} onOpen={onOpen} />
+      <DoneSection done={data.done} onOpen={onOpen} />
+      <ActivitySection activity={data.activity} />
+    </StackedScreen>
   );
 }

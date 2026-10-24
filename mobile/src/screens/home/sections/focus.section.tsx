@@ -1,9 +1,11 @@
+import type { Href } from 'expo-router';
+
 import { Button, ButtonText } from '@/components/ui/button';
 import { VStack } from '@/components/ui/vstack';
 import type { HomeFocus } from '@/data/home.types';
 
 import { FOCUS_GROUP, S } from '../home.strings';
-import type { OpenTarget } from '../home.targets';
+import { TARGET_HREF, taskHref } from '../home.targets';
 import { ListRow } from '../parts/list-row';
 import { SectionCard } from '../parts/section-card';
 import { EmptyLine, GroupLabel, SeeAll } from '../parts/small-parts';
@@ -11,7 +13,7 @@ import { FocusRow } from './focus.row';
 
 type FocusSectionProps = {
   focus: HomeFocus;
-  onOpen: (target: OpenTarget) => void;
+  onOpen: (href: Href) => void;
   onDone: (no: number) => void;
 };
 
@@ -20,7 +22,6 @@ type FocusSectionProps = {
  * also gets other people's tasks in review. Only the first Review (or Admin's Open) is lime: one lime per view.
  */
 export function FocusSection({ focus, onOpen, onDone }: FocusSectionProps) {
-  const openTask = () => onOpen('tasks.detail');
   return (
     <SectionCard title={S.focus.title} sub={S.focus.sub}>
       {focus.pendingUsers !== null && (
@@ -30,9 +31,9 @@ export function FocusSection({ focus, onOpen, onDone }: FocusSectionProps) {
             soft
             title={S.focus.approve(focus.pendingUsers)}
             sub={S.focus.approveSub}
-            onPress={() => onOpen('users.approve')}
+            onPress={() => onOpen(TARGET_HREF['users.approve'])}
             right={
-              <Button size="sm" onPress={() => onOpen('users.approve')}>
+              <Button size="sm" onPress={() => onOpen(TARGET_HREF['users.approve'])}>
                 <ButtonText>{S.focus.open}</ButtonText>
               </Button>
             }
@@ -45,7 +46,7 @@ export function FocusSection({ focus, onOpen, onDone }: FocusSectionProps) {
           <VStack key={g.key} className="gap-2">
             <GroupLabel>{FOCUS_GROUP[g.key]}</GroupLabel>
             {g.tasks.map((t) => (
-              <FocusRow key={t.no} task={t} onOpen={openTask} onDone={onDone} />
+              <FocusRow key={t.no} task={t} onOpen={() => onOpen(taskHref(t.no))} onDone={onDone} />
             ))}
           </VStack>
         ))}
@@ -56,7 +57,7 @@ export function FocusSection({ focus, onOpen, onDone }: FocusSectionProps) {
             <FocusRow
               key={t.no}
               task={t}
-              onOpen={openTask}
+              onOpen={() => onOpen(taskHref(t.no))}
               onDone={onDone}
               action={{ label: S.focus.review, primary: i === 0 }}
             />
@@ -66,7 +67,7 @@ export function FocusSection({ focus, onOpen, onDone }: FocusSectionProps) {
       {focus.empty && <EmptyLine>{S.focus.empty}</EmptyLine>}
       <SeeAll
         label={S.focus.seeAll(focus.openCount, focus.review.length)}
-        onPress={() => onOpen('tasks.my')}
+        onPress={() => onOpen(TARGET_HREF['tasks.my'])}
       />
     </SectionCard>
   );

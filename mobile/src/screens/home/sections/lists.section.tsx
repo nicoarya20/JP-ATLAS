@@ -1,3 +1,4 @@
+import type { Href } from 'expo-router';
 import { CircleCheck } from 'lucide-react-native';
 
 import { Box } from '@/components/ui/box';
@@ -8,12 +9,12 @@ import { VStack } from '@/components/ui/vstack';
 import type { HomeData } from '@/data/home.types';
 
 import { S } from '../home.strings';
-import type { OpenTarget } from '../home.targets';
+import { TARGET_HREF } from '../home.targets';
 import { ListRow } from '../parts/list-row';
 import { SectionCard } from '../parts/section-card';
 import { EmptyLine, SeeAll } from '../parts/small-parts';
 
-type DoneSectionProps = { done: HomeData['done']; onOpen: (target: OpenTarget) => void };
+type DoneSectionProps = { done: HomeData['done']; onOpen: (href: Href) => void };
 
 /** Tasks Completed This Week: green check, task, who and when; See all opens my tasks. */
 export function DoneSection({ done, onOpen }: DoneSectionProps) {
@@ -28,7 +29,7 @@ export function DoneSection({ done, onOpen }: DoneSectionProps) {
           right={<Text className="text-footnote text-muted-foreground">{d.who}</Text>}
         />
       ))}
-      <SeeAll onPress={() => onOpen('tasks.my')} />
+      <SeeAll onPress={() => onOpen(TARGET_HREF['tasks.my'])} />
     </SectionCard>
   );
 }

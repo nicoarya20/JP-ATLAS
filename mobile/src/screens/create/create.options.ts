@@ -9,6 +9,7 @@ import {
 } from 'lucide-react-native';
 
 import type { Role } from '@/data/sample/people';
+import { LEAVE } from '@/data/settings';
 import type { CreateGo } from '@/navigation/create-href';
 import { allowedScreen } from '@/navigation/screen-roles';
 
@@ -23,18 +24,6 @@ export type CreateOption = {
   sub: string;
   Icon: LucideIcon;
   tone: CreateTone;
-};
-
-/**
- * Leave's title follows the role: a Member or PM requests it, an Admin sets it (prototype settings.leave.jsx
- * LEAVE[role].title).
- * TODO(settings): read it from the settings module's LEAVE once settings.leave is ported in Phase 1, so the two
- * cannot drift.
- */
-const LEAVE_TITLE: Record<Role, string> = {
-  member: 'Request leave',
-  pm: 'Request leave',
-  admin: 'Set leave',
 };
 
 const OPTIONS = (role: Role): CreateOption[] => [
@@ -68,7 +57,8 @@ const OPTIONS = (role: Role): CreateOption[] => [
   },
   {
     go: 'settings.leave',
-    title: LEAVE_TITLE[role],
+    // A Member or PM requests leave, an Admin sets it: the title is the Leave sheet's own (settings.leave).
+    title: LEAVE[role].title,
     sub: 'Days you will be away',
     Icon: Plane,
     tone: 'gray',
