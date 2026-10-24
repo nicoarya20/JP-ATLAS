@@ -4,21 +4,12 @@ import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provid
 import type { Role } from '../../src/data/sample';
 import { HomeScreen } from '../../src/screens/home/home.screen';
 import { tabFor } from '../../src/screens/home/home.targets';
+import { drainToastTimers } from '../helpers/toast-timers';
 
 // Home is rendered on its own (the tab host mounts every tab, see tabs.test.tsx); expected values are the prototype's.
 
-// A gluestack toast hides itself with a setTimeout(duration) that nothing clears. Left pending when a test ends, it
-// outlives the test file and keeps the jest worker from exiting. Fake timers let every toast run out (3 s, then its
-// 150 ms exit animation) after each test. (Not a timer count: Reanimated keeps a frame timer under fake timers.)
-const TOAST_LIFETIME_MS = 4000;
-
-beforeEach(() => jest.useFakeTimers());
-
-afterEach(async () => {
-  await act(async () => jest.advanceTimersByTime(TOAST_LIFETIME_MS));
-  await act(async () => jest.advanceTimersByTime(TOAST_LIFETIME_MS));
-  jest.useRealTimers();
-});
+// Home shows toasts (Done, Ask, Search): every test lets them run out so no toast timer outlives the file.
+drainToastTimers();
 
 async function renderHome(role: Role) {
   const onOpen = jest.fn();

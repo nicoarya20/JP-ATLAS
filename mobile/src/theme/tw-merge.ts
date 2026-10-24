@@ -1,4 +1,4 @@
-import { defaultConfig } from 'tailwind-variants';
+import { defaultConfig, tv } from 'tailwind-variants';
 
 import { RADIUS } from './tokens';
 import { TEXT_SCALE } from './type-scale';
@@ -18,3 +18,6 @@ export const TW_MERGE_CONFIG = {
 
 // tailwind-variants shares one merger: any tva defined from here on carries this config and switches it on for all.
 defaultConfig.twMergeConfig = TW_MERGE_CONFIG;
+// tailwind-variants 0.1.20 only rebuilds that shared merger when a tv() is created with a new twMergeConfig. Creating
+// one here switches the config on now, so tva styles defined before this module ran (Button, Badge) merge right too.
+tv({}, { twMergeConfig: TW_MERGE_CONFIG });
