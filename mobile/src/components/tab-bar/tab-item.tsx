@@ -14,17 +14,27 @@ type TabItemProps = {
   lit: boolean;
   values: BubbleValues;
   onActivate: () => void;
+  /** Pick the tab `step` away (±1, wrapping), the prototype's arrow keys. */
+  onStep: (step: 1 | -1) => void;
 };
 
-/** The screen reader's way to pick a tab, since touches go to the pill's pan gesture. */
-const ACTIVATE = [{ name: 'activate' }] as const;
+/**
+ * The screen reader's way to pick a tab, since touches go to the pill's pan gesture, plus the arrow keys' stand-in.
+ * Named actions rather than increment/decrement: VoiceOver offers those only on adjustable elements, not on a tab.
+ */
+export const TAB_ACTIONS = [
+  { name: 'activate' },
+  { name: 'next', label: 'Next tab' },
+  { name: 'previous', label: 'Previous tab' },
+] as const;
+const STEP: Record<string, 1 | -1> = { next: 1, previous: -1 };
 
 /**
  * One tab of the pill: an icon, its label for screen readers only. It takes no touches itself (the pill's pan does);
- * a double tap with a screen reader arrives as the `activate` action. The lit icon wears the accent and grows with
- * the bubble.
+ * a double tap with a screen reader arrives as the `activate` action, and its actions offer the next and previous
+ * tab. The lit icon wears the accent and grows with the bubble.
  */
-export function TabItem({ tab, index, selected, lit, values, onActivate }: TabItemProps) {
+export function TabItem({ tab, index, selected, lit, values, onActivate, onStep }: TabItemProps) {
   const { icon, lit: litIndex } = values;
   const grow = useAnimatedStyle(() => ({
     transform: [{ scale: litIndex.get() === index ? icon.get() : 1 }],
@@ -37,9 +47,10 @@ export function TabItem({ tab, index, selected, lit, values, onActivate }: TabIt
       accessibilityRole="tab"
       accessibilityLabel={tab.label}
       accessibilityState={{ selected }}
-      accessibilityActions={ACTIVATE}
-      onAccessibilityAction={(e) => {
-        if (e.nativeEvent.actionName === 'activate') onActivate();
+      accessibilityActions={TAB_ACTIONS}
+      onAccessibilityAction={({ nativeEvent: { actionName } }) => {
+        if (actionName === 'activate') onActivate();
+        else if (STEP[actionName]) onStep(STEP[actionName]);
       }}
       className="flex-1 items-center justify-center"
     >

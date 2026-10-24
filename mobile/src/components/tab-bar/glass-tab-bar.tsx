@@ -9,9 +9,10 @@ import { MorePanel } from '@/screens/more/more-panel';
 
 import { CreateFab } from './create-fab';
 import { GlassPill } from './glass-pill';
+import { useMore } from './more-panel.context';
 import { TabShell } from './tab-panel';
 import { TabScrim } from './tab-scrim';
-import { useMorePanel } from './use-more-panel';
+import { useKeyboardShown } from './use-keyboard-shown';
 import { useTabBarVisible } from './use-tab-bar-visible';
 
 /** Gap between the bar and the screen edges (prototype --sp-4). */
@@ -22,12 +23,15 @@ const EDGE = 16;
  * screen changes (prototype PhoneApp host, kit/layout.jsx AppTabBar). Floats over the content; screens leave room with
  * useTabBarInset(). A tab emits `tabPress` like the stock bar, so a tab's listener can take it over. More has no
  * screen: it unfolds the More panel over a dimmed screen, and More again, the dim, another tab or any navigation folds
- * it (docs/phase1-navigation.md §2.5). Beside the pill, the "+" creates what the active tab holds, for the role.
+ * it (docs/phase1-navigation.md §2.5; its state lives in MorePanelProvider). Beside the pill, the "+" creates what the
+ * active tab holds, for the role. The keyboard hides the bar.
  */
 export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const visible = useTabBarVisible();
-  const more = useMorePanel();
-  if (!visible) return null;
+  const more = useMore();
+  // Typing: the keyboard covers the bar's place, so it steps aside (tabBarHideOnKeyboard only serves the stock bar).
+  const typing = useKeyboardShown();
+  if (!visible || typing) return null;
 
   const tabs = state.routes.map((route) => {
     const tab = tabOfRoute(route.name);
@@ -78,7 +82,11 @@ export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTab
         >
           <GlassPill tabs={tabs} active={more.open ? moreIndex : state.index} onPick={pick} />
         </TabShell>
-        <CreateFab target={createFor(tabs[state.index].id, SESSION_ROLE)} onOpen={more.close} />
+        <CreateFab
+          target={createFor(tabs[state.index].id, SESSION_ROLE)}
+          onOpen={more.close}
+          panelOpen={more.open}
+        />
       </View>
     </View>
   );

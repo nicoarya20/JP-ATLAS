@@ -1,6 +1,7 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { type RenderRouterResult, testRouter } from 'expo-router/testing-library';
+import { Keyboard } from 'react-native';
 
 import { resetSnack, showSnack } from '../src/components/snack/use-snack';
 import { openApp as open } from './helpers/app-router';
@@ -75,6 +76,32 @@ describe('tab bar', () => {
     expect(screen.getByTestId('tab-panel')).toHaveAccessibleName('More');
   });
 
+  it.each([
+    ['/', 'Home', 'next', '/tasks', 'Tasks'],
+    ['/tasks', 'Tasks', 'previous', '/', 'Home'],
+  ])(
+    'from %s, steps from %s to the %s tab with the screen reader action',
+    async (start, from, action, path, to) => {
+      await open(start);
+
+      await fireEvent(tab(from), 'accessibilityAction', { nativeEvent: { actionName: action } });
+
+      expect(screen).toHavePathname(path);
+      expect(tab(to)).toBeSelected();
+    },
+  );
+
+  it("wraps from Home back to More, which opens its panel (the prototype's arrow keys)", async () => {
+    await open('/');
+
+    await fireEvent(tab('Home'), 'accessibilityAction', {
+      nativeEvent: { actionName: 'previous' },
+    });
+
+    expect(screen).toHavePathname('/');
+    expect(screen.getByTestId('tab-panel')).toHaveAccessibleName('More');
+  });
+
   it('sends a link to /more home, since More has no screen of its own', async () => {
     await open('/more');
 
@@ -139,6 +166,27 @@ describe('tab bar visibility (docs/phase1-navigation.md §2.6)', () => {
 
     expect(await screen.findByTestId('screen-create')).toBeOnTheScreen();
     expect(screen.getByRole('tab', { name: 'Events', hidden: true })).toBeSelected();
+  });
+});
+
+describe('tab bar and the keyboard', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('steps aside while the keyboard is up', async () => {
+    const listen = jest.spyOn(Keyboard, 'addListener');
+    await open('/tasks');
+    const fire = (event: string) =>
+      act(() => {
+        for (const [name, handler] of listen.mock.calls)
+          if (name === event) (handler as () => void)();
+      });
+
+    await fire('keyboardWillShow');
+    expect(bar()).not.toBeOnTheScreen();
+
+    await fire('keyboardWillHide');
+    expect(bar()).toBeOnTheScreen();
+    expect(tab('Tasks')).toBeSelected();
   });
 });
 

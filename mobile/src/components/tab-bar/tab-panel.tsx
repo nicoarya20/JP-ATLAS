@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { GlassSurface } from './glass-surface';
 import { FAB_EASE, keyframes, PANEL, PANEL_CLOSE_EASE, SPRING, SWELL } from './tab-bar.motion';
 
 /** Half the 58 px pill: a pill while folded, a card with round corners once the panel is open. */
@@ -78,11 +79,11 @@ export function TabShell({ open, label, panel, onEscape, children }: TabShellPro
       testID="tab-shell-swell"
       style={[{ flex: 1, transformOrigin: '50% 100%' }, swell]}
     >
-      <View
+      <GlassSurface
         testID="tab-shell"
+        radius={SHELL_RADIUS}
+        open={open}
         onAccessibilityEscape={open ? onEscape : undefined}
-        style={{ borderRadius: SHELL_RADIUS }}
-        className="overflow-hidden border border-border bg-card"
       >
         <Animated.View
           testID="tab-panel"
@@ -106,7 +107,7 @@ export function TabShell({ open, label, panel, onEscape, children }: TabShellPro
           </View>
         </Animated.View>
         {children}
-      </View>
+      </GlassSurface>
     </Animated.View>
   );
 }

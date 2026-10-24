@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { useEffect, useRef } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useReducedMotion,
@@ -14,6 +14,7 @@ import { Icon } from '@/components/ui/icon';
 import { createHref } from '@/navigation/create-href';
 import { CREATE_MENU, type CreateTarget } from '@/navigation/tab-create';
 
+import { GlassSurface } from './glass-surface';
 import { BUBBLE_MS, EASE, FAB, FAB_EASE } from './tab-bar.motion';
 
 type CreateFabProps = {
@@ -21,6 +22,8 @@ type CreateFabProps = {
   target: CreateTarget | null;
   /** Runs before it opens its screen (the bar folds the More panel first). */
   onOpen?: () => void;
+  /** The More panel is open over the dim: the surface goes nearly solid, like the pill's. */
+  panelOpen?: boolean;
 };
 
 /**
@@ -28,7 +31,7 @@ type CreateFabProps = {
  * when there is nothing to create, so it folds away and back (width and gap, then the pill takes the room) instead of
  * popping. Folded, it is hidden from touch and screen readers.
  */
-export function CreateFab({ target, onOpen }: CreateFabProps) {
+export function CreateFab({ target, onOpen, panelOpen = false }: CreateFabProps) {
   const reduced = useReducedMotion();
   const shown = target !== null;
   // Folded, it keeps the last name it had (prototype: aria-label create?.label ?? 'Create').
@@ -94,8 +97,15 @@ export function CreateFab({ target, onOpen }: CreateFabProps) {
           onOpen?.();
           router.push(createHref(target.go));
         }}
-        className="flex-1 items-center justify-center overflow-hidden rounded-full border border-border bg-card"
+        className="flex-1 items-center justify-center"
       >
+        <GlassSurface
+          radius={FAB.size / 2}
+          open={panelOpen}
+          hidden={!shown}
+          pointerEvents="none"
+          style={StyleSheet.absoluteFill}
+        />
         {/* 26 px: the prototype's TAB_ICON + 4 */}
         <Icon as={Plus} className="h-[26px] w-[26px] text-foreground" />
       </Pressable>

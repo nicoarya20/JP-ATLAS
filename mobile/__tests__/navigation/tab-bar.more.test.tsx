@@ -1,8 +1,8 @@
 // Port of the prototype's src/test/tabbar.more.test.jsx (docs/phase1-navigation.md §2.5): More unfolds the tab bar
 // into the More panel over a dimmed screen instead of opening a screen. expo-router's testing library swaps Reanimated
 // for its mock, so the panel's motion is tested on the component alone (tab-panel.test.tsx).
-import { act, fireEvent, screen } from '@testing-library/react-native';
-import { BackHandler } from 'react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { AccessibilityInfo, BackHandler } from 'react-native';
 
 import { getProfile } from '../../src/data/profile';
 import { INBOX_RESPOND, USER_COUNTS } from '../../src/data/sample';
@@ -52,6 +52,36 @@ describe('More panel', () => {
     expect(button('Close More')).toBeOnTheScreen(); // the dim
     expect(button(`Inbox, ${INBOX_RESPOND.member.length} new`)).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeOnTheScreen(); // Settings only
+  });
+
+  it('hides the screen under it from TalkBack too, and gives it back on fold', async () => {
+    await open('/');
+    // Android has no accessibilityViewIsModal: the tab screens step out of reach themselves.
+    const behind = () =>
+      screen
+        .getAllByTestId('behind-more-panel', { includeHiddenElements: true })
+        .map((v) => v.props.importantForAccessibility);
+
+    await pick('More');
+    expect(behind().every((v) => v === 'no-hide-descendants')).toBe(true);
+
+    await pick('More');
+    expect(behind().every((v) => v === 'auto')).toBe(true);
+  });
+
+  it('starts the screen reader on the profile card once it has unfolded', async () => {
+    const focus = jest.spyOn(AccessibilityInfo, 'sendAccessibilityEvent');
+    await open('/');
+
+    await pick('More');
+
+    const card = button(`${getProfile('member').me.full}, open profile`);
+    await waitFor(() => expect(focus).toHaveBeenCalledWith(expect.anything(), 'focus'));
+    // jest's View is a class standing in for the host view: the focused one carries the card's props.
+    const target = focus.mock.lastCall?.[0] as unknown as {
+      props: { accessibilityLabel?: string };
+    };
+    expect(target.props.accessibilityLabel).toBe(card.props.accessibilityLabel);
   });
 
   it('folds away on More again, on the dim, on the screen reader escape and on back', async () => {

@@ -1,8 +1,11 @@
 import { router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
-import { View } from 'react-native';
+import { type ComponentRef, useEffect, useRef } from 'react';
+import { AccessibilityInfo, type HostInstance, View } from 'react-native';
 
 import { PanelRise } from '@/components/tab-bar/panel-rise';
+import { PANEL } from '@/components/tab-bar/tab-bar.motion';
+import { usePanel } from '@/components/tab-bar/tab-panel';
 import { Avatar, AvatarFallbackText } from '@/components/ui/avatar';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
@@ -60,6 +63,18 @@ type MorePanelProps = {
  */
 export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
   const { me, line } = getProfile(role);
+  const card = useRef<ComponentRef<typeof Pressable>>(null);
+  const { open: unfolded } = usePanel();
+  // A screen reader starts on the profile card once the panel has unfolded under it.
+  useEffect(() => {
+    if (!unfolded) return;
+    const focus = setTimeout(() => {
+      // gluestack's Pressable forwards its ref to React Native's Pressable, a host view, but types it as its props.
+      const host = card.current as unknown as HostInstance | null;
+      if (host) AccessibilityInfo.sendAccessibilityEvent(host, 'focus');
+    }, PANEL.openMs);
+    return () => clearTimeout(focus);
+  }, [unfolded]);
   const open = (path: string) => {
     close();
     router.push(routeHref(path));
@@ -68,6 +83,7 @@ export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
     <View className="gap-3 px-3 pb-2 pt-4">
       <PanelRise i={0}>
         <Pressable
+          ref={card}
           accessibilityRole="button"
           accessibilityLabel={`${me.full}, open profile`}
           onPress={() => open(PROFILE_PATH)}

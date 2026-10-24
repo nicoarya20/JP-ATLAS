@@ -49,6 +49,7 @@ export function GlassPill({ tabs, active, onPick }: GlassPillProps) {
             lit={i === bubble.litTab}
             values={bubble.values}
             onActivate={() => bubble.release(i)}
+            onStep={(step) => bubble.release((active + step + tabs.length) % tabs.length)}
           />
         ))}
       </View>
