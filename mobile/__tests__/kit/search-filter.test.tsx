@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { FilterButton, SearchFilter } from '../../src/components/filter/filter-button';
 import { FilterField } from '../../src/components/filter/filter-field';
 import { FilterSheet } from '../../src/components/filter/filter-sheet';
+import { FindFieldContext } from '../../src/components/screen/stacked-context';
 import { SearchField } from '../../src/components/search/search-field';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { Text } from '../../src/components/ui/text';
@@ -40,6 +41,16 @@ describe('SearchField', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Clear search' }));
     expect(onChangeText).toHaveBeenCalledWith('');
   });
+});
+
+test('inside a stacked search block the field registers itself for the header icon', async () => {
+  const register = jest.fn();
+  await show(
+    <FindFieldContext.Provider value={register}>
+      <SearchField placeholder="Search tasks" />
+    </FindFieldContext.Provider>,
+  );
+  expect(register).toHaveBeenCalledWith(expect.objectContaining({ focus: expect.any(Function) }));
 });
 
 describe('FilterButton and SearchFilter', () => {

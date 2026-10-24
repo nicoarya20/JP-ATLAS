@@ -1,7 +1,12 @@
+// Reanimated declares toHaveAnimatedStyle (installed by setUpTests in jest.setup.js) in a file nothing imports.
+/// <reference path="../../node_modules/react-native-reanimated/lib/typescript/jestUtils/index.native.d.ts" />
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { useEffect } from 'react';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { DetailHeader } from '../../src/components/screen/detail-header';
+import { usePinnedProgress, useRegisterFind } from '../../src/components/screen/stacked-context';
 import { StackedScreen } from '../../src/components/screen/stacked-screen';
 import { SheetFrame } from '../../src/components/sheet/sheet-frame';
 import { Button, ButtonText } from '../../src/components/ui/button';
@@ -119,5 +124,83 @@ describe('StackedScreen', () => {
       </StackedScreen>,
     );
     expect(screen.queryByTestId('stacked-find')).not.toBeOnTheScreen();
+  });
+});
+
+describe('StackedScreen · pinned row and reveal', () => {
+  /** Pinned child that paints the compaction progress as its opacity. */
+  function Chips() {
+    const q = usePinnedProgress();
+    const style = useAnimatedStyle(() => ({ opacity: q.get() }));
+    return <Animated.View testID="probe" style={style} />;
+  }
+
+  /** Search block content that registers a fake field. */
+  function FakeField({ focus }: { focus: () => void }) {
+    const register = useRegisterFind();
+    useEffect(() => {
+      register?.({ focus });
+      return () => register?.(null);
+    }, [register, focus]);
+    return <Text>Field</Text>;
+  }
+
+  const scrollTo = async (y: number) =>
+    act(async () => {
+      fireEvent.scroll(screen.getByTestId('stacked-scroll'), {
+        nativeEvent: {
+          contentOffset: { x: 0, y },
+          contentSize: { width: 375, height: 2000 },
+          layoutMeasurement: { width: 375, height: 700 },
+        },
+      });
+    });
+
+  async function renderPinned(focus = jest.fn()) {
+    await show(
+      <StackedScreen
+        title="Home"
+        find={<FakeField focus={focus} />}
+        pinned={<Chips />}
+        pinnedShrink={12}
+      >
+        <Text>Card</Text>
+      </StackedScreen>,
+    );
+    await fireEvent(screen.getByTestId('stacked-find-block'), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 375, height: 60 } },
+    });
+    return focus;
+  }
+
+  test('the pinned row compacts step by step past the search block (12 px content + 4 px padding), and back', async () => {
+    await renderPinned();
+    for (const [y, q] of [
+      [30, 0],
+      [60, 0],
+      [64, 0.25],
+      [68, 0.5],
+      [76, 1],
+      [200, 1],
+      [72, 0.75],
+      [0, 0],
+    ]) {
+      await scrollTo(y);
+      expect(screen.getByTestId('probe')).toHaveAnimatedStyle({ opacity: q });
+    }
+  });
+
+  test('outside a StackedScreen the progress stays 0', async () => {
+    await show(<Chips />);
+    expect(screen.getByTestId('probe')).toHaveAnimatedStyle({ opacity: 0 });
+  });
+
+  test('the header icon scrolls back and focuses the field once the block is open again', async () => {
+    const focus = await renderPinned();
+    await scrollTo(40);
+    await fireEvent.press(await screen.findByRole('button', { name: 'Search' }));
+    expect(focus).not.toHaveBeenCalled();
+    await scrollTo(0);
+    expect(focus).toHaveBeenCalledTimes(1);
   });
 });

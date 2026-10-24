@@ -14,6 +14,8 @@ import { Text } from '@/components/ui/text';
 import { useTabBarInset } from '@/navigation/use-tab-bar-inset';
 import { SPACING } from '@/theme/tokens';
 
+import { FindFieldContext } from './stacked-context';
+import { PIN_PAD_SHRINK, StackedPinned } from './stacked-pinned';
 import { useSearchCollapse } from './use-search-collapse';
 
 export const STACKED_SCREEN = { search: 'Search' } as const;
@@ -32,6 +34,8 @@ type StackedScreenProps = {
   onFind?: () => void;
   /** First row of the sheet that sticks with its rounded edge under the header (Home's chips, Tasks' switches). */
   pinned?: ReactNode;
+  /** px the pinned row's content loses when compact (it styles itself from usePinnedProgress()); default 0. */
+  pinnedShrink?: number;
   children: ReactNode;
   testID?: string;
 };
@@ -43,14 +47,14 @@ export function StackedScreen({
   find,
   onFind,
   pinned,
+  pinnedShrink = 0,
   children,
   testID,
 }: StackedScreenProps) {
   const top = useSafeAreaInsets().top;
   const bottom = useTabBarInset() + SPACING.md;
-  const { ref, onScroll, onBlockLayout, blockStyle, iconStyle, collapsed, reveal } =
-    useSearchCollapse();
-  const edge = 'rounded-t-3xl border-t border-border bg-background';
+  const fold = useSearchCollapse(pinnedShrink + PIN_PAD_SHRINK);
+  const { ref, onScroll, onBlockLayout, blockStyle, iconStyle, collapsed, reveal } = fold;
   return (
     <View testID={testID} className="flex-1 bg-card">
       <HStack
@@ -101,16 +105,26 @@ export function StackedScreen({
           importantForAccessibility={collapsed ? 'no-hide-descendants' : 'auto'}
           className="px-4 pb-4"
         >
-          {find}
+          <FindFieldContext.Provider value={fold.register}>{find}</FindFieldContext.Provider>
         </Animated.View>
         {pinned ? (
-          <View testID="stacked-pinned" className={`${edge} px-4 pb-2 pt-4`}>
-            {pinned}
-          </View>
+          <StackedPinned progress={fold.pinned}>{pinned}</StackedPinned>
         ) : (
-          <View className={`${edge} h-3`} />
+          <View className="h-3 rounded-t-3xl border-t border-border bg-background" />
         )}
-        <View className="flex-1 gap-4 bg-background px-4 pt-1" style={{ paddingBottom: bottom }}>
+        {/* With a pinned row the canvas runs up under its see-through fold, so no seam shows the surface. */}
+        <View
+          className="flex-1 gap-4 bg-background px-4"
+          style={
+            pinned
+              ? {
+                  marginTop: -SPACING.lg,
+                  paddingTop: SPACING.lg + SPACING.xs,
+                  paddingBottom: bottom,
+                }
+              : { paddingTop: SPACING.xs / 2, paddingBottom: bottom }
+          }
+        >
           {children}
         </View>
       </Animated.ScrollView>

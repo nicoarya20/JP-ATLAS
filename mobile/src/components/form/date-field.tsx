@@ -9,11 +9,10 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
-import { monthDay } from '@/data/dates';
+import { monthDay, toUtc } from '@/data/dates';
 
 export const DATE_FIELD = { none: 'No date' } as const;
 
-const toDate = (iso: string) => new Date(`${iso}T00:00:00Z`);
 const toIso = (d: Date) => d.toISOString().slice(0, 10);
 
 type DateFieldProps = {
@@ -61,8 +60,8 @@ export function DateField({ label, value, onChange, initial, min, testID }: Date
           mode="date"
           display={Platform.OS === 'ios' ? 'inline' : 'default'}
           timeZoneName="UTC"
-          value={toDate(value ?? initial)}
-          minimumDate={min ? toDate(min) : undefined}
+          value={toUtc(value ?? initial)}
+          minimumDate={min ? toUtc(min) : undefined}
           onValueChange={pick}
           onDismiss={() => setOpen(false)}
         />

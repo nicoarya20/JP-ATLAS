@@ -2,7 +2,7 @@
 // empties it, unless `keep` (a screen whose results come from the text keeps its query).
 import { Search, X } from 'lucide-react-native';
 import { useState } from 'react';
-
+import { type Focusable, useRegisterFind } from '@/components/screen/stacked-context';
 import { Icon } from '@/components/ui/icon';
 import { Input, InputField, InputSlot } from '@/components/ui/input';
 
@@ -31,12 +31,16 @@ export function SearchField({
   const [own, setOwn] = useState('');
   const text = value ?? own;
   const setText = onChangeText ?? setOwn;
+  // Inside a StackedScreen's search block: the header's search icon focuses this field after scrolling back.
+  const register = useRegisterFind();
   return (
     <Input className="min-h-11 rounded-control border-0 bg-muted">
       <InputSlot className="pl-3">
         <Icon as={Search} size="lg" className="text-muted-foreground" />
       </InputSlot>
       <InputField
+        // gluestack types InputField's ref as its props; the node is the TextInput, which has focus()
+        ref={register ? (node) => register(node as unknown as Focusable | null) : undefined}
         testID={testID}
         accessibilityRole="search"
         // aria-label: gluestack names every input "Input Field" unless aria-label is given
