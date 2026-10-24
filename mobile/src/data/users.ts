@@ -26,6 +26,8 @@ export type ApprovalData = {
 };
 
 export type Decision = 'approved' | 'rejected';
+/** Decisions taken, by sign-up key. */
+export type Decisions = Readonly<Record<string, Decision>>;
 
 export type RoleRow = { person: PersonInfo; you: boolean };
 
@@ -37,7 +39,7 @@ const C = USER_COUNTS;
 const REJECT_DRAFTS: Readonly<Record<string, string>> = { budi: REJECT_REASON_DRAFT };
 
 // Decisions taken this session, by sign-up key: once one Admin decides, the sign-up leaves the list for every Admin.
-const decisions = createStore<Readonly<Record<string, Decision>>>({});
+const decisions = createStore<Decisions>({});
 
 /** Approve or reject sign-up `key` (Phase 2: the API call). */
 export function decide(key: string, decision: Decision) {
@@ -46,17 +48,22 @@ export function decide(key: string, decision: Decision) {
   decisions.set((s) => ({ ...s, [key]: decision }));
 }
 
-/** The decisions in a component, so the Approval tab redraws when one is taken. */
+/** The decisions in a component, so every screen counting sign-ups redraws when one is taken. */
 export const useDecisions = () => useStore(decisions);
+
+/** The decisions as they are now (outside a component). */
+export const getDecisions = () => decisions.get();
+
+/** Sign-ups no Admin has decided on yet, oldest first: what the Users, Home, More and Inbox counts read. */
+export const waitingUsers = (decided: Decisions = decisions.get()): PendingUser[] =>
+  PENDING_USERS.filter((u) => !decided[u.key]);
 
 /** No decisions taken: the sample's two sign-ups wait again. test-only */
 export const resetDecisions = () => decisions.reset();
 
 /** Users ① Approval: who still waits, and the counts with this session's decisions added. */
-export function getApproval(
-  decided: Readonly<Record<string, Decision>> = decisions.get(),
-): ApprovalData {
-  const people = PENDING_USERS.filter((u) => !decided[u.key]).map((u) => {
+export function getApproval(decided: Decisions = decisions.get()): ApprovalData {
+  const people = waitingUsers(decided).map((u) => {
     const draft = REJECT_DRAFTS[u.key];
     return draft === undefined ? u : { ...u, draft };
   });

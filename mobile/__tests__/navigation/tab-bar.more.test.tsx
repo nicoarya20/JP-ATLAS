@@ -7,6 +7,7 @@ import { AccessibilityInfo, BackHandler } from 'react-native';
 import { getProfile } from '../../src/data/profile';
 import { INBOX_RESPOND, USER_COUNTS } from '../../src/data/sample';
 import type { Role } from '../../src/data/sample/people';
+import { decide, resetDecisions } from '../../src/data/users';
 import { openApp } from '../helpers/app-router';
 
 // The signed-in role, per test (the app reads it from src/data/session until Phase 2 signs in).
@@ -18,6 +19,7 @@ jest.mock('../../src/data/session', () => ({
 }));
 afterEach(() => {
   mockRole = 'member';
+  resetDecisions();
   jest.restoreAllMocks();
 });
 
@@ -187,6 +189,19 @@ describe('More panel', () => {
 
     expect(screen).toHavePathname('/more/users');
     expect(await screen.findByTestId('screen-users')).toBeOnTheScreen();
+  });
+
+  it('counts down Users and Inbox as sign-ups are decided', async () => {
+    await open('/', 'admin');
+    await act(() => decide('sari', 'approved'));
+    await pick('More');
+    expect(button('Users, 1 new')).toBeOnTheScreen();
+    expect(button('Inbox, 3 new')).toBeOnTheScreen();
+
+    // The panel stays open: the last decision takes the badge off Users and the approvals card out of Inbox.
+    await act(() => decide('budi', 'rejected'));
+    expect(button('Users')).toBeOnTheScreen();
+    expect(button('Inbox, 2 new')).toBeOnTheScreen();
   });
 
   it.each(['member', 'pm'] as const)('has no Users for %s', async (role) => {

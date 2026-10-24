@@ -3,8 +3,9 @@ import type { EventItem } from './events.shared';
 import { doneOn } from './home.tasks';
 import type { HomeTarget, StatChip, StatKey, StatSub } from './home.types';
 import { respondCards } from './inbox';
-import { ADMIN_OVERDUE_TASKS, PROJECTS, type Role, TODAY, USER_COUNTS } from './sample';
+import { ADMIN_OVERDUE_TASKS, PROJECTS, type Role, TODAY } from './sample';
 import { assigned, dueIn, isOpen, type TaskItem } from './tasks.shared';
+import { type Decisions, waitingUsers } from './users';
 
 /*
  * Home stat chips per role, ported from the prototype (home.stats.js, home.roles.js) on the live tasks and events,
@@ -79,13 +80,14 @@ function aheadChips(
   events: readonly EventItem[],
   me: string,
   role: Role,
+  decided: Decisions,
 ): StatChip[] {
   const dueTasks = tasks.filter((t) => assigned(t, me) && isOpen(t) && leftThisMonth(t.due)).length;
   // A canceled event stays listed (marked Canceled) but is no longer ahead of me, as in Agenda.
   const ahead = events.filter(
     (e) => e.attendees.includes(me) && e.status !== 'Done' && !e.canceled && leftThisMonth(e.date),
   ).length;
-  const respond = respondCards(role).length;
+  const respond = respondCards(role, decided).length;
   return [
     chip('upcoming', null, { kind: 'items', n: dueTasks + ahead }),
     chip('inbox', null, respond ? { kind: 'toRespond', n: respond } : { kind: 'caughtUp' }),
@@ -93,22 +95,23 @@ function aheadChips(
 }
 
 /** Admin: workspace health (active projects, overdue tasks, users awaiting approval). */
-const adminChips = (): StatChip[] => [
+const adminChips = (decided: Decisions): StatChip[] => [
   chip('active', PROJECTS.filter((p) => p.status === 'Active').length, {
     kind: 'unit',
     unit: 'projects',
   }),
   chip('overdue', ADMIN_OVERDUE_TASKS, { kind: 'unit', unit: 'tasks' }),
-  chip('awaiting', USER_COUNTS.pending, { kind: 'unit', unit: 'users' }),
+  chip('awaiting', waitingUsers(decided).length, { kind: 'unit', unit: 'users' }),
 ];
 
-/** Stat chips of a role, in the prototype's order. */
+/** Stat chips of a role, in the prototype's order; `decided` (the Users decisions) sets the approval counts. */
 export function homeStats(
   role: Role,
   tasks: Tasks,
   events: readonly EventItem[],
   me: string,
+  decided: Decisions,
 ): StatChip[] {
-  const first = role === 'admin' ? adminChips() : taskChips(tasks, me);
-  return [...first, ...aheadChips(tasks, events, me, role)];
+  const first = role === 'admin' ? adminChips(decided) : taskChips(tasks, me);
+  return [...first, ...aheadChips(tasks, events, me, role, decided)];
 }

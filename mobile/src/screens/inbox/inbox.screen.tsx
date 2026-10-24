@@ -8,6 +8,7 @@ import { getInbox, type InboxTab } from '@/data/inbox';
 import { useAllRead } from '@/data/inbox.store';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
+import { useDecisions } from '@/data/users';
 
 import { INBOX } from './inbox.strings';
 import { RespondTab } from './respond.tab';
@@ -19,7 +20,7 @@ const TABS: readonly InboxTab[] = ['respond', 'updates'];
 export function InboxScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const params = useLocalSearchParams<{ tab?: string }>();
   const tab: InboxTab = params.tab === 'updates' ? 'updates' : 'respond';
-  const data = getInbox(role, useAllRead());
+  const data = getInbox(role, useAllRead(), useDecisions());
   const show = (t: InboxTab) => router.setParams({ tab: t });
   return (
     <DetailPage testID="screen-inbox" title={INBOX.title} tabBar>

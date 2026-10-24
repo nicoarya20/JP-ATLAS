@@ -13,6 +13,7 @@ import {
   type Role,
 } from './sample';
 import { getTasksState } from './tasks.state';
+import { getDecisions, waitingUsers } from './users';
 
 /*
  * Home data in one call, the swap point to the API: today it is built from the live task and event stores (so a task
@@ -29,10 +30,14 @@ const LENGTHS: Record<Role, { asks: number; done: number; activity: number }> = 
   admin: { asks: 3, done: 4, activity: 3 },
 };
 
-/** The stores as they are now; a screen passes what it read with useTasks / useEventsState to re-render on changes. */
+/**
+ * The stores as they are now; a screen passes what it read with useTasks / useEventsState / useDecisions to re-render
+ * on changes.
+ */
 export const homeSources = (): HomeSources => ({
   tasks: getTasksState(),
   events: eventsStore.get(),
+  decisions: getDecisions(),
 });
 
 /** Everything Home shows for `role`. */
@@ -40,13 +45,14 @@ export function getHome(role: Role, src: HomeSources = homeSources()): HomeData 
   const person = PEOPLE[ME_BY_ROLE[role]];
   const n = LENGTHS[role];
   const events = src.events.list;
+  const waiting = waitingUsers(src.decisions).length;
   return {
     role,
     me: { name: person.name, full: person.full },
     greeting: GREETING,
-    stats: homeStats(role, src.tasks.tasks, events, person.name),
+    stats: homeStats(role, src.tasks.tasks, events, person.name, src.decisions),
     briefing: BRIEFING,
-    focus: homeFocus(role, src.tasks, person.name),
+    focus: homeFocus(role, src.tasks, person.name, waiting),
     ask: { ...ASK, questions: ASK.questions.slice(0, n.asks) },
     agenda: homeAgenda(role, events, person.name),
     done: DONE_THIS_WEEK.slice(0, n.done),

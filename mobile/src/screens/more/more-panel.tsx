@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import { getProfile } from '@/data/profile';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
+import { useDecisions } from '@/data/users';
 
 import { type MoreTile, type MoreTone, moreTiles, PROFILE_PATH, tileLabel } from './more.tiles';
 
@@ -61,7 +62,8 @@ type MorePanelProps = {
  * the secondary destinations. Each child rises in after the one before (PanelRise order).
  */
 export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
-  const { me, line } = getProfile(role);
+  const decided = useDecisions();
+  const { me, line } = getProfile(role, decided);
   const card = useRef<ComponentRef<typeof Pressable>>(null);
   const { open: unfolded } = usePanel();
   // A screen reader starts on the profile card once the panel has unfolded under it.
@@ -105,7 +107,7 @@ export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
         </Pressable>
       </PanelRise>
       <View className="flex-row flex-wrap gap-y-3">
-        {moreTiles(role).map((tile, i) => (
+        {moreTiles(role, decided).map((tile, i) => (
           <View key={tile.label} className="basis-1/3">
             <PanelRise i={i + 1}>
               <Tile tile={tile} onOpen={() => open(tile.path)} />

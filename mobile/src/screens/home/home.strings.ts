@@ -55,7 +55,8 @@ export const S = {
     title: 'My Focus',
     sub: 'What should I work on now?',
     needsAction: 'Needs action',
-    approve: (n: number) => `Approve ${n} new users`,
+    // The prototype only words two; one left after a decision reads "1 new user".
+    approve: (n: number) => `Approve ${n} new user${n === 1 ? '' : 's'}`,
     approveSub: 'Users · Approval · Waiting 1 day',
     open: 'Open',
     review: 'Review',

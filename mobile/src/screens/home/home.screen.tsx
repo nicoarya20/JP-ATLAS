@@ -10,6 +10,7 @@ import { markFocusDone } from '@/data/home.actions';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { useTasks } from '@/data/tasks.state';
+import { useDecisions } from '@/data/users';
 
 import { S } from './home.strings';
 import { HomeSearch, HomeStats } from './parts/home-header';
@@ -40,7 +41,8 @@ export function HomeScreen({ role = SESSION_ROLE, onOpen = go }: HomeScreenProps
   const events = useEventsState();
   const [line, setLine] = useState(0);
   const notice = useNotice();
-  const data = getHome(role, { tasks, events });
+  const decisions = useDecisions();
+  const data = getHome(role, { tasks, events, decisions });
 
   const search = () => notice(S.searchLater);
   const markDone = (no: number) => {

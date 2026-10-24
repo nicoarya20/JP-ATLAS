@@ -4,9 +4,10 @@ import { eventHref } from './events.shared';
 import { eventsStore } from './events.store';
 import { actor, type InboxHref, link } from './inbox.links';
 import { me } from './people';
-import { INBOX_RESPOND, type Role, USER_COUNTS } from './sample';
+import { INBOX_RESPOND, type Role } from './sample';
 import { ADMIN_REVIEW_WHY, INBOX_UPDATES, type InboxDay } from './sample/inbox.extra';
-import { PENDING_USERS } from './sample/users';
+import type { PendingUser } from './sample/users';
+import { type Decisions, getDecisions, waitingUsers } from './users';
 
 export type InboxTab = 'respond' | 'updates';
 export type { InboxHref } from './inbox.links';
@@ -52,12 +53,14 @@ const personLead = (title: string, meta?: string): InboxLead => ({
   name: actor(title, meta),
 });
 
-function approvals(): RespondCard {
-  const names = PENDING_USERS.map((u) => u.full);
+function approvals(waiting: readonly PendingUser[]): RespondCard {
+  const names = waiting.map((u) => u.full);
+  const n = waiting.length;
   return {
     key: 'approvals',
     lead: { kind: 'people', names },
-    title: `${USER_COUNTS.pending} new users awaiting approval`,
+    // The prototype only words two ("2 new users"); one left after a decision reads "1 new user".
+    title: `${n} new user${n === 1 ? '' : 's'} awaiting approval`,
     meta: names.join(', '),
     body: {
       text: 'Approval cards are for Admins only. Once one Admin decides, the card disappears for all Admins.',
@@ -68,8 +71,11 @@ function approvals(): RespondCard {
   };
 }
 
-/** "Needs your response": Member and PM get three cards; Admin swaps the second for the approvals card, first. */
-export function respondCards(role: Role): RespondCard[] {
+/**
+ * "Needs your response": Member and PM get three cards; Admin swaps the second for the approvals card, first, which
+ * goes once no sign-up waits (`decided`: the Users decisions).
+ */
+export function respondCards(role: Role, decided: Decisions = getDecisions()): RespondCard[] {
   const [rv, second, mn] = INBOX_RESPOND[role];
   const review: RespondCard = {
     key: 'review',
@@ -90,7 +96,10 @@ export function respondCards(role: Role): RespondCard[] {
     action: mn.action,
     href: link(mn.title),
   };
-  if (role === 'admin') return [approvals(), review, mention];
+  if (role === 'admin') {
+    const waiting = waitingUsers(decided);
+    return waiting.length ? [approvals(waiting), review, mention] : [review, mention];
+  }
   const daily = eventsStore.get().list.find((e) => e.id === 'daily');
   const pmSecond = role === 'pm' && daily;
   return [
@@ -130,7 +139,11 @@ export function updateDays(role: Role, allRead: boolean): UpdateDay[] {
 }
 
 /** Both Inbox tabs for `role`. */
-export const getInbox = (role: Role, allRead: boolean): InboxData => ({
-  respond: respondCards(role),
+export const getInbox = (
+  role: Role,
+  allRead: boolean,
+  decided: Decisions = getDecisions(),
+): InboxData => ({
+  respond: respondCards(role, decided),
   updates: updateDays(role, allRead),
 });

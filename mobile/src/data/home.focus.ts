@@ -1,7 +1,7 @@
 import { daysToSunday } from './dates';
 import { type EventItem, eventHref } from './events.shared';
 import type { AgendaEvent, AgendaProject, FocusTask, HomeFocus } from './home.types';
-import { PROJECTS, type Role, TODAY, USER_COUNTS } from './sample';
+import { PROJECTS, type Role, TODAY } from './sample';
 import { dueIn, isOpen, type TaskItem } from './tasks.shared';
 import type { TasksState } from './tasks.state';
 
@@ -25,7 +25,7 @@ const focusTask = (s: TasksState, t: TaskItem): FocusTask => ({
 });
 
 /** My open tasks by Overdue / Today / This week (to Sunday); PM also gets others' tasks in review, Admin the approvals. */
-export function homeFocus(role: Role, s: TasksState, me: string): HomeFocus {
+export function homeFocus(role: Role, s: TasksState, me: string, waiting: number): HomeFocus {
   const open = s.tasks.filter((t) => t.who === me && isOpen(t));
   const weekLeft = daysToSunday(TODAY);
   const review =
@@ -37,7 +37,8 @@ export function homeFocus(role: Role, s: TasksState, me: string): HomeFocus {
     { key: 'thisWeek' as const, tasks: open.filter((t) => dueIn(t) > 0 && dueIn(t) <= weekLeft) },
   ].map((g) => ({ key: g.key, tasks: g.tasks.map(row) }));
   return {
-    pendingUsers: role === 'admin' ? USER_COUNTS.pending : null,
+    // Once every sign-up is decided the Admin has nothing to approve, so the row goes.
+    pendingUsers: role === 'admin' && waiting ? waiting : null,
     groups,
     review: review.map(row),
     openCount: open.length,

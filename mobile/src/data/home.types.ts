@@ -2,14 +2,15 @@ import type { EventHref } from './events.shared';
 import type { EventsState } from './events.store';
 import type { ProjectStatus, Role, TaskStatus } from './sample';
 import type { TasksState } from './tasks.state';
+import type { Decisions } from './users';
 
 /*
  * Shape of everything Home shows, built by getHome (src/data/home.ts). The data carries values, not copy: the screen
  * words them (src/screens/home/home.strings.ts), so the API can later return this same shape.
  */
 
-/** What Home is built from: the task and event state (Phase 2: the API's answer instead). */
-export type HomeSources = { tasks: TasksState; events: EventsState };
+/** What Home is built from: the task and event state and the Users decisions (Phase 2: the API's answer instead). */
+export type HomeSources = { tasks: TasksState; events: EventsState; decisions: Decisions };
 
 /** Prototype screen a Home element opens (riset-keano/prototype-react screen ids). */
 export type HomeTarget =
@@ -65,7 +66,7 @@ export type FocusTask = {
 export type FocusGroupKey = 'overdue' | 'today' | 'thisWeek';
 
 export type HomeFocus = {
-  /** Admin only: accounts waiting for approval. */
+  /** Admin only: accounts waiting for approval; null when none waits (or not an Admin). */
   pendingUsers: number | null;
   groups: { key: FocusGroupKey; tasks: FocusTask[] }[];
   /** PM only: other people's tasks in review. */

@@ -3,7 +3,8 @@ import type { Href } from 'expo-router';
 import { Archive, Inbox, type LucideIcon, Settings, UserCog, Users } from 'lucide-react-native';
 
 import { getProfile } from '@/data/profile';
-import { type Role, USER_COUNTS } from '@/data/sample';
+import type { Role } from '@/data/sample';
+import { type Decisions, getDecisions, waitingUsers } from '@/data/users';
 
 export const MORE_PANEL = { label: 'More' } as const;
 
@@ -23,15 +24,15 @@ export type MoreTile = {
 /** The profile card opens the profile overlay (prototype profile.me, a root modal). */
 export const PROFILE_PATH: Href = '/profile';
 
-/** The grid, in the prototype's order; Users is for Admin only. */
-export function moreTiles(role: Role): MoreTile[] {
+/** The grid, in the prototype's order; Users is for Admin only. `decided`: the Users decisions, for the counts. */
+export function moreTiles(role: Role, decided: Decisions = getDecisions()): MoreTile[] {
   const tiles: (MoreTile | false)[] = [
     {
       path: '/more/inbox',
       label: 'Inbox',
       Icon: Inbox,
       tone: 'blue',
-      badge: getProfile(role).inbox,
+      badge: getProfile(role, decided).inbox,
     },
     { path: '/more/team', label: 'Team', Icon: Users, tone: 'green' },
     role === 'admin' && {
@@ -39,7 +40,7 @@ export function moreTiles(role: Role): MoreTile[] {
       label: 'Users',
       Icon: UserCog,
       tone: 'orange',
-      badge: USER_COUNTS.pending,
+      badge: waitingUsers(decided).length,
     },
     { path: '/more/archive', label: 'Archive', Icon: Archive, tone: 'teal' },
     { path: '/more/settings', label: 'Settings', Icon: Settings, tone: 'gray' },

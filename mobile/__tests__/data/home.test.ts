@@ -1,11 +1,12 @@
 import { resetArchive } from '../../src/data/archive.store';
 import { daysBetween, daysToSunday, monthDay, weekdayMonthDay } from '../../src/data/dates';
 import { addEvent, archiveEvent, cancelEvent, resetEvents } from '../../src/data/events.store';
-import { getHome } from '../../src/data/home';
+import { getHome, homeSources } from '../../src/data/home';
 import { markFocusDone } from '../../src/data/home.actions';
 import type { HomeData, StatKey } from '../../src/data/home.types';
 import { getTasksState, taskInfo } from '../../src/data/tasks.state';
 import { archiveTask, moveTask, resetTasks } from '../../src/data/tasks.store';
+import type { Decisions } from '../../src/data/users';
 
 // Expected values are the prototype's Home on its sample "today" (Wed, Oct 7, 2026), per role.
 
@@ -130,6 +131,18 @@ describe('getHome · Admin (Ayu)', () => {
     expect(h.focus).toMatchObject({ pendingUsers: 2, openCount: 0, empty: true, review: [] });
     expect(h.agenda.next?.id).toBe('party');
     expect(h.agenda.projects).toHaveLength(5);
+  });
+
+  test('the approval counts follow the Users decisions in its sources', () => {
+    const decided = (decisions: Decisions) => getHome('admin', { ...homeSources(), decisions });
+    const one = decided({ sari: 'approved' });
+    expect(stat(one, 'awaiting')?.count).toBe(1);
+    expect(one.focus.pendingUsers).toBe(1);
+    const none = decided({ sari: 'approved', budi: 'rejected' });
+    expect(stat(none, 'awaiting')?.count).toBe(0);
+    // No approval row with no one waiting, and the approvals card leaves the Inbox count.
+    expect(none.focus.pendingUsers).toBeNull();
+    expect(stat(none, 'inbox')?.sub).toEqual({ kind: 'toRespond', n: 2 });
   });
 });
 

@@ -2,6 +2,7 @@
 // calendar's week and day. Phase 2 reads the API here.
 import type { EventHref, EventItem } from './events.shared';
 import { eventHref, eventWhere } from './events.shared';
+import { respondCards } from './inbox';
 import { me, type PersonInfo } from './people';
 import {
   type CalendarItem,
@@ -15,8 +16,8 @@ import {
   weekOf,
 } from './profile.calendar.dates';
 import type { Role } from './sample';
-import { INBOX_RESPOND } from './sample';
 import { TODAY } from './sample/today';
+import { type Decisions, getDecisions } from './users';
 
 export type ProfileData = {
   me: PersonInfo;
@@ -26,13 +27,13 @@ export type ProfileData = {
   inbox: number;
 };
 
-/** Profile ① for `role`. */
-export function getProfile(role: Role): ProfileData {
+/** Profile ① for `role`; `decided` (the Users decisions) sets the Admin's Inbox count. */
+export function getProfile(role: Role, decided: Decisions = getDecisions()): ProfileData {
   const p = me(role);
   return {
     me: p,
     line: `${p.title} · ${p.division}${role === 'admin' ? ' · Admin' : ''}`,
-    inbox: INBOX_RESPOND[role].length,
+    inbox: respondCards(role, decided).length,
   };
 }
 

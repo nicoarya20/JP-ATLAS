@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { actor, getInbox, link } from '../../src/data/inbox';
 import { getAllRead, markAllRead, resetInbox } from '../../src/data/inbox.store';
+import type { Decisions } from '../../src/data/users';
 import { InboxScreen } from '../../src/screens/inbox/inbox.screen';
 import { RespondTab } from '../../src/screens/inbox/respond.tab';
 import { setParams } from '../helpers/router-mock';
@@ -30,6 +31,16 @@ describe('inbox data', () => {
     const [approvals, review] = getInbox('admin', false).respond;
     expect(approvals).toMatchObject({ key: 'approvals', href: '/more/users' });
     expect(review.why).toBe("You're the task reviewer because the project has only one Manager");
+  });
+
+  test('Admin: the approvals card counts who still waits and goes once no one does', () => {
+    const keys = (decided: Decisions) =>
+      getInbox('admin', false, decided).respond.map((c) => c.key);
+    expect(getInbox('admin', false, { sari: 'approved' }).respond[0]).toMatchObject({
+      title: '1 new user awaiting approval',
+      meta: 'Budi Santoso',
+    });
+    expect(keys({ sari: 'approved', budi: 'rejected' })).toEqual(['review', 'mention']);
   });
 
   test('PM: the second card is the AI outcomes card', () => {

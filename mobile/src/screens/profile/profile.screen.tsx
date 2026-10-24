@@ -28,6 +28,7 @@ import { getProfile } from '@/data/profile';
 import { setProfile, useProfile } from '@/data/profile.store';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
+import { useDecisions } from '@/data/users';
 
 import { SignOutDialog } from '../auth/sign-out';
 import { EDIT_FROM_PROFILE } from '../settings/profile-edit.screen';
@@ -45,7 +46,7 @@ function leaveTo(href: Href) {
 export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const notice = useNotice();
   const { online, muted } = useProfile();
-  const d = getProfile(role);
+  const d = getProfile(role, useDecisions());
   const [signingOut, setSigningOut] = useState(false);
   const copyEmail = () =>
     Clipboard.setStringAsync(d.me.email).then(
