@@ -27,7 +27,7 @@ const avatarGroupStyle = tva({
 });
 
 const avatarBadgeStyle = tva({
-  base: 'absolute h-3 w-3 rounded-full border-2 border-background right-0 bottom-0 bg-green-500',
+  base: 'absolute h-3 w-3 rounded-full border-2 border-background right-0 bottom-0 bg-success',
 });
 
 const avatarImageStyle = tva({

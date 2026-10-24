@@ -48,7 +48,7 @@ export function HomeScreen({ role = SESSION_ROLE, onOpen = openTab }: HomeScreen
   };
 
   return (
-    <View className="flex-1 bg-card pt-safe">
+    <View testID="screen-home" className="flex-1 bg-card pt-safe">
       <HomeTitle greeting={data.greeting} me={data.me} />
       <ScrollView stickyHeaderIndices={[1]} className="flex-1">
         <HomeSearch onPress={() => open('home.search')} />

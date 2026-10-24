@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import type { Role } from '../../src/data/sample';
@@ -6,6 +6,19 @@ import { HomeScreen } from '../../src/screens/home/home.screen';
 import { tabFor } from '../../src/screens/home/home.targets';
 
 // Home is rendered on its own (the tab host mounts every tab, see tabs.test.tsx); expected values are the prototype's.
+
+// A gluestack toast hides itself with a setTimeout(duration) that nothing clears. Left pending when a test ends, it
+// outlives the test file and keeps the jest worker from exiting. Fake timers let every toast run out (3 s, then its
+// 150 ms exit animation) after each test. (Not a timer count: Reanimated keeps a frame timer under fake timers.)
+const TOAST_LIFETIME_MS = 4000;
+
+beforeEach(() => jest.useFakeTimers());
+
+afterEach(async () => {
+  await act(async () => jest.advanceTimersByTime(TOAST_LIFETIME_MS));
+  await act(async () => jest.advanceTimersByTime(TOAST_LIFETIME_MS));
+  jest.useRealTimers();
+});
 
 async function renderHome(role: Role) {
   const onOpen = jest.fn();
@@ -63,6 +76,18 @@ describe('HomeScreen · Project Manager', () => {
       'Completed 1, this week',
     ]);
     expect(screen.getByText('See all tasks (2) · 1 awaiting review')).toBeTruthy();
+  });
+
+  test('a toast closes by itself after 3 seconds', async () => {
+    await renderHome('pm');
+    await fireEvent.press(screen.getByRole('button', { name: 'Ask' }));
+    expect(await screen.findByText('Answer generated')).toBeTruthy();
+    await act(async () => jest.advanceTimersByTime(2900));
+    expect(screen.getByText('Answer generated')).toBeTruthy();
+    // At 3 s the toast starts hiding; its 150 ms exit animation is scheduled on that render, so a second step ends it.
+    await act(async () => jest.advanceTimersByTime(200));
+    await act(async () => jest.advanceTimersByTime(200));
+    expect(screen.queryByText('Answer generated')).toBeNull();
   });
 
   test('Ask confirms with a toast; a suggested question can be picked', async () => {

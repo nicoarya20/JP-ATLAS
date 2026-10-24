@@ -43,7 +43,7 @@ export function StatChip({ stat, first, onPress }: StatChipProps) {
       className={`gap-1 rounded-card p-3 pr-5 data-[active=true]:opacity-70 ${first ? 'bg-accent' : 'bg-card'}`}
     >
       <Box
-        className={`h-6 w-6 items-center justify-center rounded-md ${first ? 'bg-atlas' : 'bg-muted'}`}
+        className={`h-6 w-6 items-center justify-center rounded-control ${first ? 'bg-atlas' : 'bg-muted'}`}
       >
         <Icon
           as={STAT_ICON[stat.key]}

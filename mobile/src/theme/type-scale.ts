@@ -30,10 +30,3 @@ export const WEIGHT_FONTS = {
   semibold: 'Manrope-SemiBold',
   bold: 'Manrope-Bold',
 } as const;
-
-/** Family per gluestack font role: body text regular, headings semibold (Atlas titles are 600). */
-export const FONT_ROLES = {
-  sans: WEIGHT_FONTS.normal,
-  body: WEIGHT_FONTS.normal,
-  heading: WEIGHT_FONTS.semibold,
-} as const;

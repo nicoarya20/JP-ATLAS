@@ -74,6 +74,7 @@
 }
 
 @theme inline {
+  --color-*: initial;
   --color-background: rgb(var(--background));
   --color-foreground: rgb(var(--foreground));
   --color-card: rgb(var(--card));
@@ -107,14 +108,13 @@
 }
 
 @theme {
+  --font-*: initial;
+  --font-weight-*: initial;
   --spacing: 4px;
   --radius-control: 10px;
   --radius-card: 14px;
   --radius-modal: 16px;
   --radius-identity: 20px;
-  --font-sans: 'Manrope-Regular';
-  --font-body: 'Manrope-Regular';
-  --font-heading: 'Manrope-SemiBold';
   --text-page: 26px;
   --text-page--line-height: 31px;
   --text-section: 20px;
