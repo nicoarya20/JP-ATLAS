@@ -114,7 +114,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | G0d | Kit `ConfirmDialog` T2/T3, ekspor `toUtc` dari `dates.ts`, paritas `StackedScreen` (baris pinned memadat, fokus setelah reveal) | Sesi B | ✅ | G0c |
 | W3 | More + Auth + Profile | Sesi B | 🔄 | F1a, G0d |
 | H1 | Home membaca getter tasks/events store; target More → route `more/*`; stub `(auth)` di helper tes | Sesi A | 🔄 | F1e; route W3 untuk target More |
-| W2c | Undo snack Events setelah Delete forever: tangkap error → notice | Sesi C | 🔄 | W2b |
+| W2c | Undo snack Events setelah Delete forever: tangkap error → notice | Sesi C | ✅ | W2b |
 | W4 | Projects (list/create/overview/phases/members/extend/edit/archive dulu; tab Tasks + settings + task-filter setelah W1b) + projects store | Sesi C | 🔄 | W2c; W1b untuk tab Tasks |
 | F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
 | F1c | FAB + sheet Create (`router.replace` ke target) | Sesi A | ✅ | F1b |
@@ -155,3 +155,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — F1c (`c84ae33`) dan F1d (`939f351`) selesai (Sesi A): FAB + sheet Create, panel More; 190 tes navigasi. Typed routes (`.expo/types`) hanya dibuat ulang oleh `expo start`; tiap sesi regenerate di port sendiri (A 8194, B 8193, C 8191, D 8192), bukan 8081.
 - 2026-10-25 — W2b selesai (Sesi C, `ff8f10f`, 46 berkas): semua layar + route Events; route yang belum ada lewat `routeHref()` Sesi A. Cek HP dicatat: notice dari dalam modal/formSheet iOS, `dismissTo` setelah Create tasks, tinggi formSheet + keyboard Reason/Agenda, VoiceOver sel kalender. W4 Projects diberikan ke Sesi C.
 - 2026-10-25 — F1e selesai (Sesi A, `62c7142`, 202 tes navigasi): GlassView iOS 26 (fallback `bg-card/60`, solid saat Reduce Transparency), bar sembunyi saat keyboard, aksi screen reader "Next tab"/"Previous tab" (pengganti tombol panah; increment/decrement butuh elemen adjustable), hide-descendants Android. **Navigasi Fase 1 selesai**; QA perangkat dikumpulkan untuk user. H1 dipindah dari Sesi B ke Sesi A.
+- 2026-10-25 — W2c (`6fdf99d`): akar masalahnya, Undo memulihkan *langkah arsip terbaru* untuk id event, jadi setelah Delete forever, Undo bisa diam-diam memulihkan kemunculan lama. Sekarang Undo terikat ke key entrinya (`canRestoreEvent(id, key)`); kalau entri sudah hilang → notice "This event was deleted forever and can't be restored." Tes router kadang gagal acak saat mesin berat (4 sesi jest paralel); diagnosis diserahkan ke Sesi A.
