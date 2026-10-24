@@ -50,6 +50,8 @@ const PAIRS: Pair[] = [
   ['ring', 'background', NON_TEXT_MIN],
   ['atlas', 'muted', NON_TEXT_MIN],
   ['success', 'card', NON_TEXT_MIN],
+  ['snack-foreground', 'snack', TEXT_MIN],
+  ['snack-action', 'snack', TEXT_MIN],
 ];
 
 describe.each(['light', 'dark'] as const)('JP Atlas contrast pairs (%s)', (scheme) => {

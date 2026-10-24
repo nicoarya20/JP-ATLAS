@@ -1,7 +1,7 @@
 import { DARK, LIGHT, type SchemeTokens } from './tokens';
 
 /*
- * JP Atlas roles on gluestack-ui v5's semantic theme variables (plus our own: atlas, status pairs, veil). global.css
+ * JP Atlas roles on gluestack-ui v5's semantic theme variables (plus our own: atlas, status pairs, veil, snack). global.css
  * holds these as RGB triplets; `bun run theme:css` rewrites that block from here and theme-css.test.ts
  * fails when global.css drifts. Same role split as the web app (app/lib/theme-vars.ts): canvas behind the page,
  * surface for cards, menus and modals, lime fill with navy text for the main action, violet for interaction.
@@ -9,6 +9,12 @@ import { DARK, LIGHT, type SchemeTokens } from './tokens';
 
 /** Text on a filled destructive button. Derived (the handoff defines none): white on the light red, navy on the dark one. */
 const ON_DANGER = { light: LIGHT.surface, dark: DARK.onPrimary } as const;
+
+/**
+ * Snackbar (Undo) stays dark in both schemes, like the prototype's --snack-*: dark surface on the light canvas, dark
+ * raised on the dark canvas (the surface would vanish there), with the dark text and dark violet for its action.
+ */
+const SNACK = { light: DARK.surface, dark: DARK.raised } as const;
 
 type Scheme = 'light' | 'dark';
 type Source = keyof SchemeTokens | ((scheme: Scheme) => string);
@@ -45,6 +51,9 @@ export const THEME_ROLES: Record<string, Source> = {
   input: 'control',
   ring: 'focus',
   veil: 'veil',
+  snack: (scheme) => SNACK[scheme],
+  'snack-foreground': () => DARK.text,
+  'snack-action': () => DARK.violet,
 };
 
 /** `#rrggbb` → `"r g b"`, `#rrggbbaa` → `"r g b / a"` (alpha to two decimals), the form `rgb(var(--x))` expects. */
