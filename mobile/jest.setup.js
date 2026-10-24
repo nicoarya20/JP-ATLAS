@@ -1,3 +1,7 @@
+// First, like app/_layout.tsx: the Atlas tailwind-merge config must be on before any component's tva is defined
+// (__tests__/theme/tw-merge.button.test.tsx fails without it).
+require('@/theme/tw-merge');
+
 // react-aria (pulled in by gluestack-ui) polyfills window.screen.orientation when NODE_ENV=test and calls
 // Reflect.has(window.screen, …) at import time. The React Native jest environment defines `window` but not
 // `window.screen`, so that call throws. Give it the empty object a browser would have. Remove when react-aria

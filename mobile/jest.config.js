@@ -24,6 +24,8 @@ module.exports = {
   preset: 'jest-expo',
   resolver: '<rootDir>/jest.resolver.js',
   setupFiles: ['<rootDir>/jest.setup.js'],
+  // Shared test helpers live next to the tests but are not test files themselves.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/__tests__/helpers/'],
   transformIgnorePatterns: [
     `/node_modules/(?!(${ESM_PACKAGES.join('|')}))`,
     '/node_modules/react-native-reanimated/plugin/',

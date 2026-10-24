@@ -1,3 +1,7 @@
+// First, before any gluestack component: the Atlas tailwind-merge config only reaches tva styles defined after it
+// (src/theme/tw-merge.ts). Without it a Button label loses its colour to its text size.
+import '@/theme/tw-merge';
+
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
