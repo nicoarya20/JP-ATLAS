@@ -16,6 +16,9 @@ import type { DraftTask } from '@/data/sample/events.extra';
 import { SPOKEN } from '../events.strings.added';
 import { OUTCOMES } from '../events.strings.outcomes';
 
+/** "View" is a short link (about 36 pt wide): 8 pt each side reaches the 44 pt target without widening it. */
+const VIEW_SLOP = { left: 8, right: 8 } as const;
+
 const DUE_OPTIONS = [{ value: '', label: OUTCOMES.pickDue }, ...DUE_DATES];
 
 /** What a PM or Admin may do to the drafts; left out for a Member. */
@@ -95,7 +98,7 @@ export function Drafts({ drafts, decisions, info, edit }: DraftsProps) {
         <Text className="flex-1 text-subhead text-foreground">
           {OUTCOMES.summary(decisions, info)}
         </Text>
-        <Button variant="link" onPress={() => notice(OUTCOMES.viewNotice)}>
+        <Button variant="link" hitSlop={VIEW_SLOP} onPress={() => notice(OUTCOMES.viewNotice)}>
           <ButtonText>{OUTCOMES.view}</ButtonText>
         </Button>
       </HStack>

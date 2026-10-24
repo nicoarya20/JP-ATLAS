@@ -82,6 +82,11 @@ describe('recording and meeting outcomes', () => {
     expect(screen.getByText('Outcomes confirmed')).toBeOnTheScreen();
   });
 
+  it('Step 3’s short View link reaches 44 pt through its hitSlop, not a wider look', async () => {
+    await openEvents('/events/daily/outcomes/3');
+    expect(button('View').props.hitSlop).toEqual({ left: 8, right: 8 });
+  });
+
   it('an Admin discards instead of removing', async () => {
     await openEvents('/events/daily/outcomes/3', 'admin');
     expect(screen.getAllByRole('button', { name: /^Discard / })).toHaveLength(2);

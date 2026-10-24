@@ -264,4 +264,9 @@ describe('HomeScreen · stacked header', () => {
     await scrollTo(0);
     expect(sub()).toHaveAnimatedStyle({ height: LINE, opacity: 1 });
   });
+  test('a compact chip (8 + 21 + 8 = 37 px) reaches 44 px through a 3.5 px hitSlop above and below', async () => {
+    await renderLaidOut();
+    const chip = within(screen.getByTestId('stacked-pinned')).getAllByRole('button')[0];
+    expect(chip.props.hitSlop).toEqual({ top: 3.5, bottom: 3.5 });
+  });
 });

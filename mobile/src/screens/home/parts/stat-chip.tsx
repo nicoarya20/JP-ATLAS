@@ -41,6 +41,18 @@ const CHIP = {
   end: 20,
   endCompact: SPACING.md,
 } as const;
+/** The smallest touch target, in points (iOS HIG). */
+const MIN_TARGET = 44;
+
+/**
+ * Vertical hitSlop of a chip whose label line is `line` pt (0 = not measured yet, still tall). Compact, a chip is one
+ * line between two small paddings, under 44 pt: its touch area grows into the gaps above and below, its look stays.
+ */
+export const statSlop = (line: number) => {
+  const v = line ? Math.max(0, (MIN_TARGET - (2 * CHIP.compact + line)) / 2) : 0;
+  return { top: v, bottom: v };
+};
+
 /** Tall: the top padding makes room for the icon above the label. */
 const TALL_TOP = CHIP.pad + CHIP.icon + CHIP.iconGap;
 
@@ -96,6 +108,7 @@ export function StatChip({ stat, first, line, onLine, onPress }: StatChipProps) 
       accessibilityRole="button"
       accessibilityLabel={`${label}${stat.count === null ? '' : ` ${stat.count}`}, ${sub}`}
       onPress={onPress}
+      hitSlop={statSlop(line)}
       className={`rounded-card data-[active=true]:opacity-70 ${first ? 'bg-accent' : 'bg-card'}`}
     >
       <Animated.View testID="stat-chip-in" style={inner}>
