@@ -19,6 +19,8 @@ type SegProps = {
   kind?: 'tabs' | 'radio';
   /** Accessible name of the whole row ("Location"). */
   label?: string;
+  /** Lines a label may wrap to before it is cut with "…"; the row stretches every segment to the tallest one. */
+  lines?: 1 | 2;
   testID?: string;
 };
 
@@ -30,6 +32,7 @@ export function Seg({
   icons,
   kind = 'tabs',
   label: name,
+  lines = 1,
   testID,
 }: SegProps) {
   const radio = kind === 'radio';
@@ -50,7 +53,7 @@ export function Seg({
             accessibilityLabel={label}
             accessibilityState={radio ? { checked: on } : { selected: on }}
             onPress={() => onChange(i)}
-            className={`min-h-11 flex-1 items-center justify-center rounded-control px-2 ${on ? 'border border-border bg-card' : ''}`}
+            className={`min-h-11 flex-1 items-center justify-center rounded-control px-2 ${lines > 1 ? 'py-1' : ''} ${on ? 'border border-border bg-card' : ''}`}
           >
             {icon ? (
               <Icon
@@ -60,8 +63,8 @@ export function Seg({
               />
             ) : (
               <Text
-                numberOfLines={1}
-                className={`text-subhead font-semibold ${on ? 'text-foreground' : 'text-muted-foreground'}`}
+                numberOfLines={lines}
+                className={`text-center text-subhead font-semibold ${on ? 'text-foreground' : 'text-muted-foreground'}`}
               >
                 {label}
               </Text>

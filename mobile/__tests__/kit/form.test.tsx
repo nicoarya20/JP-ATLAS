@@ -113,6 +113,23 @@ describe('Chips, MultiChips and Seg', () => {
     await fireEvent.press(screen.getByRole('tab', { name: 'Kanban' }));
     expect(onChange).toHaveBeenCalledWith(1);
   });
+
+  test('Seg labels stay on one line unless lines lets a long one wrap to two', async () => {
+    const items = ['Needs your response (3)', 'Updates'];
+    await show(<Seg items={items} value={0} onChange={jest.fn()} />);
+    expect(
+      screen.getByText('Needs your response (3)', { includeHiddenElements: true }).props
+        .numberOfLines,
+    ).toBe(1);
+    await show(<Seg lines={2} items={items} value={0} onChange={jest.fn()} />);
+    expect(
+      screen.getByText('Needs your response (3)', { includeHiddenElements: true }).props
+        .numberOfLines,
+    ).toBe(2);
+    expect(screen.getByText('Updates', { includeHiddenElements: true }).props.numberOfLines).toBe(
+      2,
+    );
+  });
 });
 
 describe('Seg as radios, SelectField and FormError', () => {
