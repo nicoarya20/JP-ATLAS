@@ -17,7 +17,6 @@ import { SESSION_ROLE } from '@/data/session';
 import { useTasks } from '@/data/tasks.state';
 import type { TeamPersonData } from '@/data/team';
 import { getTeamPerson } from '@/data/team.person';
-import { routeHref } from '@/navigation/route-href';
 
 import { StatusText } from './person-row';
 import { PERSON, rowLabel } from './team.strings';
@@ -107,11 +106,7 @@ export function PersonScreen({ id, role = SESSION_ROLE }: { id: string; role?: R
         {d.projects.length ? (
           <Rows>
             {d.projects.map((pr) => (
-              <Row
-                key={pr.id}
-                title={pr.name}
-                onPress={() => router.push(routeHref(`/projects/${pr.id}`))}
-              />
+              <Row key={pr.id} title={pr.name} onPress={() => router.push(`/projects/${pr.id}`)} />
             ))}
           </Rows>
         ) : (

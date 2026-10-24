@@ -13,7 +13,6 @@ import {
   eventWhere,
   REPEATS,
 } from '@/data/events.shared';
-import { routeHref } from '@/navigation/route-href';
 
 import { DETAIL } from '../events.strings';
 
@@ -26,7 +25,7 @@ export function EventFacts({ event: e, project }: EventFactsProps) {
     <Pressable
       accessibilityRole="link"
       accessibilityLabel={project}
-      onPress={() => router.push(routeHref(`/projects/${e.project ?? DEFAULT_PROJECT}`))}
+      onPress={() => router.push(`/projects/${e.project ?? DEFAULT_PROJECT}`)}
       className="min-h-11 flex-row items-center gap-1 data-[active=true]:opacity-70"
     >
       <Text className="text-subhead font-semibold text-atlas">{project}</Text>

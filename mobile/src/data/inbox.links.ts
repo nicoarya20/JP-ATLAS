@@ -1,8 +1,6 @@
 // Where an inbox item leads and who is behind it (prototype inbox.shared.js), read from the live task and event lists.
 import type { Href } from 'expo-router';
 
-import { routeHref } from '@/navigation/route-href';
-
 import { eventHref } from './events.shared';
 import { eventsStore } from './events.store';
 import { person } from './people';
@@ -25,6 +23,5 @@ export function link(text: string): InboxHref {
   if (no) return getTask(Number(no)) ? `/tasks/${Number(no)}` : '/tasks?scope=all';
   const ev = eventsStore.get().list.find((e) => text.includes(e.title));
   if (ev) return eventHref(ev);
-  // The project route files arrive with the Projects module (W4); until then that one path is widened.
-  return text.includes(ATLAS) ? routeHref('/projects/atlas') : '/projects';
+  return text.includes(ATLAS) ? '/projects/atlas' : '/projects';
 }
