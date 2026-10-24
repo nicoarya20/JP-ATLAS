@@ -160,7 +160,8 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
 - [ ] **Members (T2)** `[keduanya]`
   - Ganti role Dodi menjadi Viewer → dialog "Change Dodi's role?" → Change role → "Role changed".
   - Remove Dodi → dialog "Remove Dodi from the project?" → Remove member → "Member removed".
-  - Pemilih role dan Remove milik Nico (Lead) nonaktif.
+  - Pemilih role dan Remove milik Nico (Lead) nonaktif, dengan catatan "The Lead stays Manager and can't be removed." di kartunya.
+  - Dialog Remove menyebut "Their tasks stay assigned to them."
 - [ ] **Move to Archive lalu Undo (T1)** `[keduanya]`
   - ⋯ → Move to Archive → kembali ke daftar, Atlas hilang, snack "Project moved to Archive" tampil di atas tab bar.
   - Undo (dalam 10 detik) → Atlas kembali di tempatnya, tugasnya muncul lagi di tab Tasks, dan "Project restored".
@@ -171,8 +172,24 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
   - ⋯ → Project settings → pengaturan tugas proyek (TasksSettings) terbuka; Back kembali ke detail Atlas.
 - [ ] **New project** `[keduanya]`
   - Tombol "+" → tiga tombol Choose dan hanya satu Cancel (chevron bawah).
-  - Tell us about the project → Build draft ✦ → hapus centang "1. Planning" → tugasnya tersembunyi → Create project → Atlas terbuka dengan "Project created". Back → daftar Projects.
-  - Fill in the form: Create project nonaktif sampai nama diisi; quick pick "1 wk" mengubah End date.
+  - Tell us about the project → Build draft ✦ → hapus centang "1. Planning" → tugasnya tersembunyi → Create project → Atlas terbuka dengan "Project created" (selama Atlas tidak di Archive). Back → daftar Projects.
+  - Fill in the form: Create project nonaktif sampai nama diisi; kosongkan nama lalu tinggalkan isian → "Enter a project name." tampil. Quick pick "1 wk" mengubah End date.
+- [ ] **Kartu dibaca sekali (W4e)** `[keduanya]` (VoiceOver/TalkBack)
+  - Daftar Projects: kartu Atlas terbaca satu kali, lengkap: "Atlas Project, Active, Lead: Nico, …, Progress 70%, Due Oct 31, 4 members".
+  - Tab Tasks Atlas: kartu tugas terbaca "#14 Write the API spec, To do, …" (nomor, judul, status, tipe, prioritas, penerima, tenggat); tombol aksinya terpisah.
+- [ ] **Langkah phase di Overview (W4e)** `[keduanya]`
+  - Tiap langkah terbaca "<nama>, done/current/upcoming", mis. "Development, current"; "✓" tidak ikut dibaca.
+  - Tanpa pembaca layar: phase yang berjalan berupa cincin dengan titik di tengah, bisa dibedakan dari yang belum mulai tanpa melihat warna.
+- [ ] **Progress bar satu elemen (W4e)** `[keduanya]` (VoiceOver/TalkBack)
+  - Overview → "Tasks done" terbaca sekali sebagai progress bar beserta persennya; label di atasnya tidak dibaca lagi.
+- [ ] **Nama proyek ganda (W4e)** `[keduanya]`
+  - ⋯ → Edit project → ganti nama menjadi "internal tools" → "A project with this name already exists." tampil di bawah nama, Save changes nonaktif dan pembaca layar menyebut alasannya.
+  - Kembalikan ke "atlas project" → pesan hilang, Save changes aktif.
+- [ ] **Proyek di Archive (W4e)** `[keduanya]`
+  - Move to Archive pada Atlas → buka /projects/atlas?tab=tasks lewat link (kartu Archive belum membuka proyeknya) → tab Tasks menampilkan "Tasks are in Archive with the project.", tanpa New task.
+  - Selama Atlas di Archive: New project → Fill in the form → isi nama → Create project → berakhir di daftar Projects dengan "Project created".
+- [ ] **Board kosong karena pencarian (W4e)** `[keduanya]`
+  - Tab Tasks Atlas → Kanban → cari "zzz" → "No tasks match these filters." dengan Reset filters; Reset filters → kolom kembali.
 - [ ] **Member tidak bisa mengelola** `[keduanya]` (Member)
   - Detail Atlas tanpa menu ⋯ dan tanpa Extend deadline.
   - Buka /projects/new, /projects/atlas/edit, /extend, /archive (mis. lewat link) → diarahkan ke Beranda.
