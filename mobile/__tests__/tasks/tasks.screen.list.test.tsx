@@ -128,6 +128,21 @@ describe('tasks filter', () => {
     }
   });
 
+  it('All tasks on Atlas, once Atlas is in Archive, names All projects in the sheet (W4g)', async () => {
+    // Before anything renders, so no act() is needed.
+    archiveProject('atlas', 'Ayu');
+    try {
+      await openTasks('/tasks?scope=all');
+      expect(filterOn()).toBe(false);
+      await fireEvent.press(filterButton());
+      expect(await screen.findByTestId('filter-project')).toHaveAccessibilityValue({
+        text: 'All projects',
+      });
+    } finally {
+      await act(async () => resetProjects());
+    }
+  });
+
   it('a draft left without Apply changes nothing', async () => {
     await openTasks('/tasks');
     await fireEvent.press(filterButton());

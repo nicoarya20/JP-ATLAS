@@ -12,14 +12,13 @@ import { SelectField } from '@/components/form/select-field';
 import { useProjectsState } from '@/data/projects.state';
 import {
   ASSIGNEES,
-  baseQuery,
   PRIORITIES,
   SORTS,
   STATUSES,
   type TaskQuery,
   type TaskScope,
 } from '@/data/tasks.query';
-import { getQuery, setQuery } from '@/data/tasks.query-state';
+import { defaultQuery, getQuery, setQuery } from '@/data/tasks.query-state';
 
 import { S } from '../tasks.strings';
 
@@ -51,7 +50,7 @@ export function TasksFilterPanel({
     onDone();
   };
   return (
-    <FilterSheet onReset={() => setDraft(baseQuery(scope))} onApply={apply}>
+    <FilterSheet onReset={() => setDraft(defaultQuery(scope))} onApply={apply}>
       <FilterField label={S.filter.status}>
         <Chips
           label={S.filter.status}

@@ -1,4 +1,4 @@
-import { findProject } from './projects.state';
+import { findProject, listProjects, type ProjectItem } from './projects.state';
 import {
   ATLAS_ID,
   assigned,
@@ -52,6 +52,21 @@ export const baseQuery = (scope: TaskScope): TaskQuery => ({
   sort: SORT_DUE,
   who: 0,
 });
+
+/**
+ * q with its project still listed: one moved to Archive gives way to the scope's default project, or to every project
+ * when that one is in Archive too (W4g). The other filters stay. `listed`: the projects store's list.
+ */
+export function withListedProject(
+  q: TaskQuery,
+  scope: TaskScope,
+  listed: readonly ProjectItem[] = listProjects(),
+): TaskQuery {
+  const isListed = (id: string) => !id || listed.some((p) => p.id === id);
+  if (isListed(q.project)) return q;
+  const base = baseQuery(scope).project;
+  return { ...q, project: isListed(base) ? base : '' };
+}
 
 /** True when the query narrows the list (the dot on the filter icon); the sort order alone does not count. */
 export const isFiltered = (q: TaskQuery) => !!(q.status || q.project || q.priority || q.who);

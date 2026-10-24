@@ -10,7 +10,8 @@ import {
 } from '../../src/data/projects.store';
 import { getQuickWrite, getTaskSettings, getTasksList } from '../../src/data/tasks';
 import { formProjects, getTaskForm } from '../../src/data/tasks.form';
-import { applyQuery, baseQuery } from '../../src/data/tasks.query';
+import { applyQuery, baseQuery, withListedProject } from '../../src/data/tasks.query';
+import { defaultQuery, getQuery, resetQueries, setQuery } from '../../src/data/tasks.query-state';
 import { getTask, getTasksState, taskInfo } from '../../src/data/tasks.state';
 import {
   forgetProjectTasks,
@@ -23,6 +24,7 @@ afterEach(() => {
   resetProjects();
   resetTasks();
   resetArchive();
+  resetQueries();
 });
 
 /** Save Edit project for sample project `id` with `change` over its fields. */
@@ -106,5 +108,26 @@ describe('forgetProjectTasks', () => {
       `Cannot forget task #${listed.no}: it is not out of the lists`,
     );
     expect(getTask(listed.no)).toBeDefined();
+  });
+});
+
+describe('a query on a project moved to Archive (W4g)', () => {
+  test('All tasks on Atlas falls back to the default project; the other filters stay', () => {
+    setQuery('all', { ...baseQuery('all'), status: 2, priority: 1, sort: 3 });
+    archiveProject('atlas', 'Ayu');
+    // Atlas is the default of All tasks too, so it falls back to every project.
+    expect(getQuery('all')).toEqual({ status: 2, project: '', priority: 1, sort: 3, who: 0 });
+    expect(defaultQuery('all').project).toBe('');
+  });
+
+  test('another archived project gives way to Atlas, the default of All tasks', () => {
+    setQuery('all', { ...baseQuery('all'), project: 'migration', priority: 2 });
+    archiveProject('migration', 'Ayu');
+    expect(getQuery('all')).toMatchObject({ project: 'atlas', priority: 2 });
+  });
+
+  test('a listed project is kept as is', () => {
+    const q = { ...baseQuery('mine'), project: 'migration' };
+    expect(withListedProject(q, 'mine')).toBe(q);
   });
 });
