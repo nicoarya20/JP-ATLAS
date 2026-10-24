@@ -43,6 +43,9 @@ const ROUTES = {
   '(tabs)/more/_layout': MoreStack,
   '(tabs)/more/index': MoreIndex,
   '(tabs)/more/inbox': stub('screen-inbox'),
+  '(tabs)/more/team': stub('screen-team'),
+  '(tabs)/more/users': stub('screen-users'),
+  '(tabs)/more/archive': stub('screen-archive'),
   '(tabs)/more/settings/index': stub('screen-settings'),
   create: CreateRoute,
   'tasks/new': stub('screen-task-new'),
@@ -50,6 +53,7 @@ const ROUTES = {
   'projects/new': stub('screen-project-new'),
   'events/new': stub('screen-event-new'),
   leave: stub('screen-leave'),
+  profile: stub('screen-profile'),
 };
 
 /** Render the app at `initialUrl`. */

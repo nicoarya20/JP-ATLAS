@@ -26,6 +26,37 @@ export const FAB = {
   fold: { opacityMs: 160, scaleMs: 260 },
 } as const;
 
+/** The More panel folding shut (Material standard curve): faster than it opens, no swell. */
+export const PANEL_CLOSE_EASE = Easing.bezier(0.4, 0, 0.2, 1);
+
+/** The More panel (kit/tabbar.css .tb-panel, .tb-rise, styles/app.css .glassbar-scrim). */
+export const PANEL = {
+  /** Height 0 → content: opening uses FAB_EASE, closing PANEL_CLOSE_EASE. */
+  openMs: 480,
+  closeMs: 300,
+  swellMs: 560,
+  scrimMs: 280,
+  /** Each child floats in after 90 + i × 28 ms. */
+  rise: {
+    delayMs: 90,
+    stepMs: 28,
+    opacityMs: 240,
+    moveMs: 460,
+    closeOpacityMs: 120,
+    closeMoveMs: 160,
+    y: 14,
+    scale: 0.88,
+  },
+} as const;
+
+/** [offset 0..1, scale x, scale y] of the shell's swell as the panel opens (prototype @keyframes tb-swell). */
+export const SWELL: readonly (readonly [number, number, number])[] = [
+  [0, 1, 1],
+  [0.35, 1.03, 0.98],
+  [0.65, 0.99, 1.01],
+  [1, 1, 1],
+];
+
 /** Bubble timings in ms. */
 export const BUBBLE_MS = {
   slide: 420,

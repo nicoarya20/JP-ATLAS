@@ -1,6 +1,7 @@
 // Where each create target lives in the route tree (registered in app/_layout.tsx, docs/phase1-navigation.md §4.5).
 import type { Href } from 'expo-router';
 
+import { routeHref } from './route-href';
 import type { ScreenId } from './screen-roles';
 
 /** The screens the "+" and the Create sheet open: prototype screen id → route. */
@@ -15,8 +16,5 @@ export const CREATE_ROUTES = {
 
 export type CreateGo = keyof typeof CREATE_ROUTES;
 
-/**
- * The route of a create target. Typed routes only know route files that exist, and the module workers add these files
- * in Phase 1 (the Stack already registers them), so the path is widened to Href here, once.
- */
-export const createHref = (go: CreateGo): Href => CREATE_ROUTES[go] as Href;
+/** The route of a create target (its file arrives with its module, see routeHref). */
+export const createHref = (go: CreateGo): Href => routeHref(CREATE_ROUTES[go]);

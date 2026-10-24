@@ -66,13 +66,13 @@ describe('tab bar', () => {
     expect(screen.getByTestId('screen-tasks')).toBeOnTheScreen();
   });
 
-  it('does not navigate from More (its panel arrives in F1d)', async () => {
+  it('opens the More panel from More instead of a screen (navigation/tab-bar.more.test.tsx)', async () => {
     await open('/projects');
 
     await pick('More');
 
     expect(screen).toHavePathname('/projects');
-    expect(tab('Projects')).toBeSelected();
+    expect(screen.getByTestId('tab-panel')).toHaveAccessibleName('More');
   });
 
   it('sends a link to /more home, since More has no screen of its own', async () => {

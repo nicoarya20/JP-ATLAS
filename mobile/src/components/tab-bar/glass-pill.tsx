@@ -17,7 +17,8 @@ type GlassPillProps = {
 
 /**
  * The pill of icon tabs (prototype kit/tabbar.jsx GlassTabs): a bubble behind the lit tab that a finger drags across
- * the tabs, labels for screen readers only (docs/phase1-navigation.md §2.3–2.4). The glass arrives in F1e.
+ * the tabs, labels for screen readers only (docs/phase1-navigation.md §2.3–2.4). Its surface is the shell around it
+ * (TabShell), which the More panel unfolds out of.
  */
 export function GlassPill({ tabs, active, onPick }: GlassPillProps) {
   const bubble = useBubble({
@@ -36,7 +37,7 @@ export function GlassPill({ tabs, active, onPick }: GlassPillProps) {
         accessibilityRole="tablist"
         accessibilityLabel="App navigation"
         onLayout={(e) => bubble.onWidth(e.nativeEvent.layout.width)}
-        className="h-[58px] flex-1 flex-row rounded-full border border-border bg-card p-1"
+        className="h-[58px] flex-row p-1"
       >
         <TabBubble n={tabs.length} values={bubble.values} />
         {tabs.map((tab, i) => (

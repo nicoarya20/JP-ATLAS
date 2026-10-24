@@ -19,6 +19,8 @@ import { BUBBLE_MS, EASE, FAB, FAB_EASE } from './tab-bar.motion';
 type CreateFabProps = {
   /** What the "+" creates on this tab; null folds it away (Member on Projects). */
   target: CreateTarget | null;
+  /** Runs before it opens its screen (the bar folds the More panel first). */
+  onOpen?: () => void;
 };
 
 /**
@@ -26,7 +28,7 @@ type CreateFabProps = {
  * when there is nothing to create, so it folds away and back (width and gap, then the pill takes the room) instead of
  * popping. Folded, it is hidden from touch and screen readers.
  */
-export function CreateFab({ target }: CreateFabProps) {
+export function CreateFab({ target, onOpen }: CreateFabProps) {
   const reduced = useReducedMotion();
   const shown = target !== null;
   // Folded, it keeps the last name it had (prototype: aria-label create?.label ?? 'Create').
@@ -87,7 +89,11 @@ export function CreateFab({ target }: CreateFabProps) {
         disabled={!shown}
         onPressIn={() => press(FAB.pressedScale)}
         onPressOut={() => press(1)}
-        onPress={() => target && router.push(createHref(target.go))}
+        onPress={() => {
+          if (!target) return;
+          onOpen?.();
+          router.push(createHref(target.go));
+        }}
         className="flex-1 items-center justify-center overflow-hidden rounded-full border border-border bg-card"
       >
         {/* 26 px: the prototype's TAB_ICON + 4 */}
