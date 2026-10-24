@@ -17,6 +17,8 @@ export type TasksState = {
   info: Readonly<Record<number, TaskInfo>>;
   /** List index each task archived on its own had, so Undo puts it back in place. */
   at: Readonly<Record<number, number>>;
+  /** Highest task number given out so far, deleted tasks included, so addTask never reuses one. */
+  top: number;
 };
 
 /** Where tasks taken by takeProjectTasks sat, for putTasksBack. */
@@ -48,6 +50,7 @@ const INITIAL: TasksState = {
     Object.entries(TASK_DETAIL).map(([no, x]) => [no, { ...x, reviewer: TASK_REVIEWERS[+no] }]),
   ),
   at: {},
+  top: Math.max(...TASKS.map((t) => t.no)),
 };
 
 /** The task state; written only by tasks.store and tasks.store.edit. */

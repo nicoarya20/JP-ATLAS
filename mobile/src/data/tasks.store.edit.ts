@@ -46,7 +46,7 @@ export function addTask(fields: NewTaskFields, extras: NewTaskExtras, creator: s
     );
   }
   const s = store.get();
-  const no = Math.max(...[...s.tasks, ...s.archived].map((t) => t.no), ...archivedNos()) + 1;
+  const no = Math.max(s.top, ...[...s.tasks, ...s.archived].map((t) => t.no), ...archivedNos()) + 1;
   const base: TaskItem = { no, status: 'To do', next: 'Start', updated: NOW, when: '', ...fields };
   const info: TaskInfo = {
     ...extras,
@@ -60,6 +60,7 @@ export function addTask(fields: NewTaskFields, extras: NewTaskExtras, creator: s
     ...s,
     tasks: [...s.tasks, { ...base, when: whenOfDue(base) }],
     info: { ...s.info, [no]: info },
+    top: no,
   });
   return no;
 }

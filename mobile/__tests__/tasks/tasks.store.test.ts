@@ -1,10 +1,11 @@
-import { findEntry, listEntries, resetArchive } from '../../src/data/archive.store';
+import { findEntry, listEntries, removeEntry, resetArchive } from '../../src/data/archive.store';
 import { me } from '../../src/data/people';
 import { getTasksState } from '../../src/data/tasks.state';
 import {
   addTask,
   archiveTask,
   editTask,
+  forgetArchivedTask,
   getTask,
   listArchivedTasks,
   moveOnBoard,
@@ -124,6 +125,36 @@ describe('Archive', () => {
   test('refuses tasks that are not listed / not archived', () => {
     expect(() => archiveTask(99, 'Nico')).toThrow('Cannot archive task #99: not in the task lists');
     expect(() => unarchiveTask(14)).toThrow('Cannot restore task #14: not in Archive');
+  });
+});
+
+describe('forgetArchivedTask (Archive › Delete forever)', () => {
+  test('a task archived on its own is gone for good, and Undo then throws', () => {
+    archiveTask(14, 'Nico');
+    forgetArchivedTask('task-14');
+    removeEntry('task-14');
+    expect(getTask(14)).toBeUndefined();
+    expect(listArchivedTasks()).toEqual([]);
+    expect(getTasksState().info[14]).toBeUndefined();
+    expect(getTasksState().at[14]).toBeUndefined();
+    expect(() => unarchiveTask(14)).toThrow('Cannot restore task #14: not in Archive');
+  });
+
+  test('keys the store does not hold are left alone', () => {
+    takeProjectTasks('Atlas Project');
+    const before = getTasksState();
+    forgetArchivedTask('task-21');
+    forgetArchivedTask('task-14');
+    forgetArchivedTask('event-3');
+    expect(getTasksState()).toBe(before);
+  });
+
+  test('the number of a deleted task is not given out again', () => {
+    const no = addTask(NEW, { desc: '' }, 'Nico');
+    archiveTask(no, 'Nico');
+    forgetArchivedTask(`task-${no}`);
+    removeEntry(`task-${no}`);
+    expect(addTask(NEW, { desc: '' }, 'Nico')).toBe(no + 1);
   });
 });
 

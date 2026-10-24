@@ -106,6 +106,7 @@ export function archiveTask(no: number, by: string) {
     ref: no,
   });
   store.set({
+    ...s,
     tasks: s.tasks.filter((x) => x.no !== no),
     archived: [...s.archived, t],
     info: record(s, no, `${by} moved this task to Archive`),
@@ -126,6 +127,20 @@ export function unarchiveTask(no: number) {
   tasks.splice(Math.min(s.at[no], tasks.length), 0, t);
   const { [no]: _, ...at } = s.at;
   store.set({ ...s, tasks, archived: s.archived.filter((x) => x !== t), at });
+}
+
+/**
+ * Archive › Delete forever of entry `key` (call before removeEntry): a task archived on its own is gone for good, so
+ * getTask() no longer finds it and unarchiveTask() throws "not in Archive". Its number is not given out again. A key
+ * this store does not hold (the sample entries, a task taken along by its project) is left alone.
+ */
+export function forgetArchivedTask(key: string): void {
+  const s = store.get();
+  const t = s.archived.find((x) => s.at[x.no] != null && entryKey('TASK', x.no) === key);
+  if (!t) return;
+  const { [t.no]: _at, ...at } = s.at;
+  const { [t.no]: _info, ...info } = s.info;
+  store.set({ ...s, archived: s.archived.filter((x) => x !== t), info, at });
 }
 
 /** Archived tasks: one by one or with their project. */
