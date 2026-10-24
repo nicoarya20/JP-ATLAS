@@ -137,7 +137,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W4f | `tasks-filter.screen.tsx:28` opsi Project dari store (tanpa proyek di Archive, nama baru) + `tasks.ts:118` | Sesi D | ✅ `d8d23f7` | W1e |
 | W4g | Query Tasks kembali ke default project bila proyeknya diarsipkan (Select tidak tanpa label) | Sesi D | 🔄 | W4f |
 | K3 | Sapu area sentuh ≥44pt (hitSlop/wrapper, visual tetap) di semua area kecuali Tasks/Projects | Sesi B | ✅ `6527e30` | W4c |
-| K4 | Satu `MIN_TARGET = 44` di `src/theme/tokens.ts` (day-grid slop + stat-chip) + isi cek HP Events W3c dan Switch | Sesi B | 🔄 | K3 |
+| K4 | Satu `MIN_TARGET = 44` di `src/theme/tokens.ts` (day-grid slop + stat-chip) + isi cek HP Events W3c dan Switch | Sesi B | 🔄 token `d31b8fc`; cek HP menunggu bagian Sesi A | K3 |
 | W4c | QA silang (read-only) Projects | Sesi B | 🔄 | W4 |
 | H2 | Home membaca projects store (proyek di Agenda, stat Admin) + lepas `projectHref`/`routeHref` `/projects/<id>` (Home, Team, event-facts, Inbox) | Sesi A | 🔄 (+ pindah `spoken()` ke kit) | W1e |
 | F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
