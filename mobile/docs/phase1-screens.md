@@ -23,7 +23,7 @@ Dokumen ini dipecah per modul agar tiap berkas ≤ 500 baris:
 | K4 | Panel filter ("Filter & sort") = route formSheet; **query disimpan di store modul per scope**, bukan dioper lewat param | `router.dismissTo(href)` belum terbukti meneruskan param (types SDK 58: "If the href is not found, it will instead replace the current screen"). Store menghindari ketidakpastian itu dan mudah dites |
 | K5 | `archive.undo` bukan layar: arsipkan → kembali ke list sumber (`router.dismissTo('/tasks')` dst.) → snack "X moved to Archive" + "Undo" dari host snack global | Prototipe merender list sumber + Snack; cocok dengan aturan T1 project (aksi langsung + Urungkan) |
 | K6 | State in-memory per modul (`src/data/<modul>.store.ts`, `useSyncExternalStore`, `reset<Modul>()` untuk tes); tiap layar membaca lewat satu `get<Modul>…()` di `src/data/<modul>.ts` | Port 1:1 `*.store.js` prototipe; titik tukar ke API Phase 2 seperti `getHome` Sesi B |
-| K7 | File sampel Sesi B (`src/data/sample/*.ts`) **tidak diubah** oleh worker modul. Field tambahan (detail tugas, health proyek, agenda event, email orang, dll.) masuk berkas baru (`src/data/sample/<modul>.extra.ts` untuk modul yang sudah punya sampel Sesi B, `src/data/sample/<modul>.ts` untuk yang belum) dan digabung di `src/data/<modul>.ts` | Wilayah Sesi B tetap utuh; bila orchestrator memindahkan kepemilikan berkas sampel ke worker modul setelah Home selesai, extras bisa dilebur |
+| K7 | Berkas sampel bersama (`src/data/sample/*.ts` buatan Sesi B) setelah Home selesai **dimiliki W0**, dan hanya W0 yang mengubahnya. W1–W4 menaruh field tambahan (detail tugas, health proyek, agenda event, dll.) di berkas sendiri `src/data/sample/<modul>.extra.ts` (modul tanpa sampel Sesi B: `src/data/sample/<modul>.ts`), lalu menggabungkannya di `src/data/<modul>.ts`. Perubahan berkas bersama diminta ke W0 lewat orchestrator | Ditetapkan orchestrator 2026-10-25; satu pemilik mencegah bentrok antar worker |
 | K8 | Copy diport **verbatim** dari file sumber ke `src/screens/<modul>/<modul>.strings.ts` (pola `home.strings.ts`). Dokumen ini hanya mengutip copy penting; file sumber tetap acuan | Menghindari salah ketik ganda; tes mencocokkan string penting |
 | K9 | Haptic `navigator.vibrate` di prototipe (radial, tab bar) **tidak** diport | Keputusan `reacttransition.md`: tanpa `expo-haptics` |
 | K10 | Rekaman suara, foto catatan, unggah/salin CSV, "Speak · coming soon" tetap **toast** seperti prototipe; tanpa `expo-audio`/`expo-image-picker`/`expo-document-picker` di Phase 1 | Prototipe tidak punya perilaku nyata di sana |
@@ -168,7 +168,7 @@ Paket Expo (`npx expo install`, versi dari `bundledNativeModules` SDK 58):
 | Paket | Versi SDK 58 | Untuk | Wajib? |
 |---|---|---|---|
 | `expo-clipboard` | ~58.0.4 | "Copy email" di profile.me | Ya |
-| `@react-native-community/datetimepicker` | 9.2.1 | Due date, Start date, leave From/To | Ya, kecuali gluestack `date-time-picker` (alpha) dipilih — cek dependensi manualnya saat `add` |
+| `@react-native-community/datetimepicker` | 9.2.1 (versi bundel SDK 58; cek dengan `npx expo install --check`) | Due date, Start date, leave From/To (`form/date-field.tsx` W0) | Ya. gluestack `date-time-picker` **tidak** dipakai (alpha tidak dipakai di stack ini) |
 | `react-native-keyboard-controller` | 1.22.7 | Form panjang (task form, event form, comment foot) | Opsional; coba `KeyboardAvoidingView` + `automaticallyAdjustKeyboardInsets` dulu (§7) |
 | `react-native-pager-view` | 9.0.7 | Pager pekan profile.calendar | Tidak; pan Reanimated cukup (lihat `phase1-screens.more.md`) |
 
@@ -178,7 +178,7 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 
 | Gelombang | Sesi | Wilayah (file yang boleh disentuh) | Selesai bila |
 |---|---|---|---|
-| G0 | **W0 Kit** | `src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`, `src/data/{store,archive.store,people}.ts`, `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts`, `__tests__/kit/**` | Komponen + tes; contoh pemakaian di tes |
+| G0 | **W0 Kit** | `src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`, `src/data/{store,archive.store,people}.ts`, `src/data/sample/*.ts` bersama (Sesi B, setelah Home selesai) + `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts`, `__tests__/kit/**` | Komponen + tes; contoh pemakaian di tes |
 | G1 | **W1 Tasks** | `app/(tabs)/tasks/**`, `app/tasks/**`, `src/screens/tasks/**`, `src/data/tasks*.ts`, `src/data/sample/tasks.*.ts` (baru), `__tests__/tasks/**` | Doc tasks §Tes lulus; ekspor `TaskList`, `TaskBoard` siap dipakai Projects |
 | G1 | **W2 Events** | `app/(tabs)/events/**`, `app/events/**`, `src/screens/events/**`, `src/data/events*.ts`, `src/data/sample/events.*.ts` (baru), `__tests__/events/**` | Doc events §Tes lulus |
 | G1 | **W3 More + Auth + Profile** | `app/(tabs)/more/{inbox,team,archive,users,settings}**`, `app/(auth)/**`, `app/leave.tsx`, `app/profile/**`, `src/screens/{inbox,team,users,archive,settings,auth,profile}/**`, `src/data/{inbox,team,users,settings,profile,auth}*.ts` + `src/data/archive.ts` (bukan `archive.store.ts` milik W0), `src/data/sample/{inbox.extra,team,users,archive,auth}.ts` (baru), `__tests__/{inbox,team,users,archive,settings,auth,profile}/**` | Doc more §Tes lulus |
@@ -188,7 +188,7 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 - Archive (W3) membaca entri dari `archive.store.ts` (W0). Store W1/W2/W4 menulis entri saat arsip dan menghapusnya saat Undo. Tombol Restore di Archive hanya notice di Phase 1 (§2).
 - Snack Undo setelah arsip dipanggil oleh W1/W2/W4 lewat `useSnack()` W0.
 - Placeholder T5 (`src/screens/{tasks,projects,events,more}/*.screen.tsx`) diganti oleh pemilik modul; `more.screen.tsx` + panel More tetap wilayah Sesi A.
-- Berkas bersama yang tidak dimiliki worker mana pun (`app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `*/_layout.tsx` Stack tab, `package.json`, `src/data/sample/*.ts` Sesi B) diubah hanya oleh orchestrator/Sesi A atas permintaan worker.
+- Berkas bersama yang tidak dimiliki worker mana pun (`app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `*/_layout.tsx` Stack tab, `package.json`) diubah hanya oleh orchestrator/Sesi A atas permintaan worker. Berkas sampel bersama `src/data/sample/*.ts` hanya diubah W0; worker lain mengajukan perubahan lewat orchestrator.
 - Stack `_layout.tsx` per tab dibuat Sesi A (F1a); worker hanya menambah screen options lewat `<Stack.Screen options>` di file layarnya sendiri, atau meminta Sesi A mendaftarkan presentasi formSheet/modal.
 
 ## 7. Risiko RN lintas modul
@@ -215,7 +215,9 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 - Unit murni wajib untuk semua `*.query.ts`, `*.store.ts`, `*.dates.ts` (tanpa render).
 - QA perangkat (orchestrator/user): Expo Go iOS + Android, VoiceOver/TalkBack untuk radial (aksi aksesibilitas), kalender, dan sheet.
 
-## 9. Pertanyaan terbuka
+## 9. Keputusan tambahan (orchestrator 2026-10-25)
 
-1. Kepemilikan `src/data/sample/*.ts` setelah Home selesai: tetap Sesi B (extras di file baru, rekomendasi) atau pindah ke worker modul?
-2. Date picker: `@react-native-community/datetimepicker` (rekomendasi, stabil) atau gluestack `date-time-picker` (alpha)?
+1. **Berkas sampel bersama `src/data/sample/*.ts`** dimiliki W0 setelah Home selesai, dan hanya W0 yang mengubahnya. W1–W4 menambah field di `src/data/sample/<modul>.extra.ts` milik sendiri; perubahan berkas bersama diminta ke W0 lewat orchestrator (K7).
+2. **Date picker = `@react-native-community/datetimepicker`** versi bundel SDK 58 (cek dengan `npx expo install --check`). gluestack `date-time-picker` tidak dipakai karena alpha tidak dipakai di stack ini.
+
+Tidak ada pertanyaan terbuka lagi dari dokumen ini.
