@@ -104,6 +104,7 @@ export const SHEETS = {
   archived: 'Event moved to Archive',
   undo: 'Undo',
   restored: 'Event restored',
+  goneForever: "This event was deleted forever and can't be restored.",
 } as const;
 
 export const FORM = {

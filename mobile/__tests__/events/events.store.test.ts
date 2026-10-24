@@ -4,6 +4,7 @@ import {
   addEvent,
   archiveEvent,
   cancelEvent,
+  canRestoreEvent,
   confirmOutcomes,
   type EventFields,
   editEvent,
@@ -184,6 +185,23 @@ describe('events store', () => {
     expect(findEvent('sprint')?.date).toBe('2026-10-09');
     expect(findEntry(first)).toBeUndefined();
     expect(() => restoreEvent('sprint')).toThrow('not in Archive');
+  });
+
+  test('Undo bound to its archive key: a deleted move is not undone through an older one', () => {
+    const first = archiveEvent('sprint', 'Nico', { once: true });
+    const second = archiveEvent('sprint', 'Nico', { once: true });
+    expect(canRestoreEvent('sprint', first)).toBe(false);
+    expect(canRestoreEvent('sprint', second)).toBe(true);
+    forgetArchivedEvent(second);
+    removeEntry(second);
+    expect(canRestoreEvent('sprint', second)).toBe(false);
+    expect(() => restoreEvent('sprint', second)).toThrow(
+      `Cannot restore event "sprint" (archive entry "${second}"): not in Archive`,
+    );
+    expect(findEvent('sprint')?.date).toBe('2026-11-06');
+    expect(canRestoreEvent('sprint', first)).toBe(true);
+    restoreEvent('sprint', first);
+    expect(findEvent('sprint')?.date).toBe('2026-10-09');
   });
 
   test('forgetting a key the store does not hold (a sample entry) changes nothing', () => {

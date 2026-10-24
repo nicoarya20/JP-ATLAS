@@ -1,6 +1,6 @@
 // Events ⑪ / ⑪b Move to Archive (prototype events.sheets.jsx ArchiveSheet / ArchiveRecurringSheet): the event (or, for
 // a recurring one, this occurrence or the whole series, the default) moves to Archive at once; the Events list comes
-// back with the snack "Event moved to Archive" and its Undo (T1, phase1-screens.md K5).
+// back with the snack "Event moved to Archive" and its Undo (T1, phase1-screens.md K5), unless Archive deleted it forever.
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
@@ -8,7 +8,7 @@ import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { showSnack } from '@/components/snack/use-snack';
 import { Text } from '@/components/ui/text';
-import { archiveEvent, findEvent, restoreEvent } from '@/data/events.store';
+import { archiveEvent, canRestoreEvent, findEvent, restoreEvent } from '@/data/events.store';
 import { me } from '@/data/people';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
@@ -29,13 +29,18 @@ export function ArchiveEventScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const e = findEvent(id);
   if (!e) return <SheetMissing />;
   const archive = () => {
-    archiveEvent(e.id, me(role).name, { once: !!e.repeat && which === ONLY_THIS });
+    const key = archiveEvent(e.id, me(role).name, { once: !!e.repeat && which === ONLY_THIS });
     router.dismissTo('/events');
     showSnack({
       message: SHEETS.archived,
       action: SHEETS.undo,
+      // The snack is already closed here. Deleted forever in Archive within the Undo window → say so, restore nothing.
       onAction: () => {
-        restoreEvent(e.id);
+        if (!canRestoreEvent(e.id, key)) {
+          notice(SHEETS.goneForever);
+          return;
+        }
+        restoreEvent(e.id, key);
         notice(SHEETS.restored);
       },
     });

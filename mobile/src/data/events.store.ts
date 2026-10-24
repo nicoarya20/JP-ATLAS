@@ -162,11 +162,30 @@ export function archiveEvent(id: string, by: string, { once = false } = {}): str
   return key;
 }
 
-/** Undo of the latest archive move of event id: back in the list (an archived occurrence puts the series back on its date). */
-export function restoreEvent(id: string): void {
-  const s = eventsStore.get();
+/** The latest archive move of event id still held, and when `key` is given only if it is that move. */
+function latestMove(s: EventsState, id: string, key?: string) {
   const t = s.taken.find((x) => x.id === id);
-  if (!t) throw new Error(`Cannot restore event "${id}": not in Archive`);
+  return t && (key === undefined || t.key === key) ? t : undefined;
+}
+
+/**
+ * True while archive move `key` of event id can be undone: Delete forever in Archive ends it, and so does a later move
+ * of the same event. The snack's Undo checks this, so it never restores an older move in place of its own.
+ */
+export const canRestoreEvent = (id: string, key: string) =>
+  !!latestMove(eventsStore.get(), id, key);
+
+/**
+ * Undo of the latest archive move of event id (only if it is move `key`, when given): back in the list (an archived
+ * occurrence puts the series back on its date).
+ */
+export function restoreEvent(id: string, key?: string): void {
+  const s = eventsStore.get();
+  const t = latestMove(s, id, key);
+  if (!t) {
+    const which = key ? ` (archive entry "${key}")` : '';
+    throw new Error(`Cannot restore event "${id}"${which}: not in Archive`);
+  }
   const e = s.archived.find((x) => x.id === id) ?? listed(id, 'restore');
   removeEntry(t.key);
   const back = t.from ? { ...e, date: t.from } : e;

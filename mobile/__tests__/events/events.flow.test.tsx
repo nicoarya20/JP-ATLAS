@@ -1,8 +1,10 @@
 // Events ⑤–⑨ (port of prototype events.items.test, plus the flow of spec §10): recording needs consent, the three
 // outcome steps, Create tasks → confirmed results; a Member only reads Step 3; Cancel needs a reason; Move to Archive
 // goes back to the list with Undo.
-import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
+import { deleteForever } from '../../src/data/archive';
+import { listEntries } from '../../src/data/archive.store';
 import { findEvent } from '../../src/data/events.store';
 import { getTasksState } from '../../src/data/tasks.store';
 import { openEvents, resetEventStores } from '../helpers/events-router';
@@ -135,5 +137,24 @@ describe('cancel and archive', () => {
     await press('Undo');
     expect(screen.getByTestId('event-card-sinar')).toBeOnTheScreen();
     expect(screen.getByText('Event restored')).toBeOnTheScreen();
+  });
+
+  it('Undo after Archive deleted the event forever says so and restores nothing', async () => {
+    await openEvents('/events/sinar');
+    await fireEvent.press(screen.getByTestId('event-actions'));
+    await fireEvent.press(await screen.findByText('Move to Archive'));
+    const sheet = within(screen.getByTestId('event-archive'));
+    await fireEvent.press(sheet.getByRole('button', { name: 'Move to Archive' }));
+    await waitFor(() => expect(screen).toHavePathname('/events'));
+    const entry = listEntries().find((x) => x.ref === 'sinar');
+    if (!entry) throw new Error('archiving sinar wrote no Archive entry');
+    await act(async () => deleteForever(entry.key));
+    await press('Undo');
+    expect(
+      screen.getByText("This event was deleted forever and can't be restored."),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('snack')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('event-card-sinar')).not.toBeOnTheScreen();
+    expect(findEvent('sinar')).toBeUndefined();
   });
 });
