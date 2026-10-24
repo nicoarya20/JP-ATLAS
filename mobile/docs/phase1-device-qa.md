@@ -120,14 +120,32 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
 - [ ] **Agenda di atas keyboard** `[keduanya]`
   - Form New event → ketik di Agenda (multiline) sampai beberapa baris → kolom tetap terlihat di atas keyboard.
 - [ ] **VoiceOver/TalkBack di Events** `[keduanya]`
-  - Kalender: tiap sel tanggal terbaca "Wed, Oct 7" + status terpilih.
-  - Kartu event: tombol "View results"/"Check results" di dalam kartu bisa difokus dan diaktifkan sendiri.
+  - Kalender: tiap sel tanggal terbaca "Wed, Oct 7" + jumlah event bila ada ("Thu, Oct 8, 2 events") + status terpilih.
+  - Kartu event: satu perhentian per kartu (lihat item "Kartu dan agenda: satu perhentian"); "View results"/"Check results" adalah aksi kartu, bukan tombol terpisah.
   - Outcomes Step 1: tombol Play terbaca dan bisa diaktifkan.
 - [ ] **Recording tanpa geser balik** `[iOS]`
   - Di layar Recording, geser dari tepi kiri → layar **tidak** kembali (NO_SWIPE); keluar hanya lewat Stop recording.
   - Timer statis seperti prototipe (bukan bug).
 
-(item W3c menyusul dari Sesi B)
+- [ ] **Kartu dan agenda: satu perhentian** `[keduanya]`
+  - VoiceOver/TalkBack di kartu event → terbaca sekali dan lengkap: judul, tanggal, jam, tempat, ulangan, tipe, status.
+  - Kartu yang punya hasil: rotor Actions (iOS) / menu Actions TalkBack → "Check results" atau "View results" membuka hasil; ketuk dua kali tetap membuka detail event.
+  - Baris agenda di tab Calendar juga satu perhentian, dengan isi yang sama.
+- [ ] **Form event: wajib, error, Location** `[keduanya]`
+  - New event → kolom Title terbaca "Title, required", Date terbaca "Date, required"; label di atasnya (dan bintangnya) tidak dibaca lagi.
+  - Isi Title lalu hapus dan tinggalkan kolom → "Enter a title." muncul di bawahnya dan dibacakan; Save tetap nonaktif.
+  - Pilih End lebih awal dari Start → pesan merah "The end time must be after the start time." dibacakan; tombol End membawa pesan itu sebagai petunjuk.
+  - Location terbaca sebagai grup radio "In person" / "Online" dengan yang terpilih tercentang; Online memunculkan Meeting link.
+- [ ] **Calendar: tampilan dan filter** `[keduanya]`
+  - Month/Week di tab Calendar terbaca sebagai grup radio "Calendar view", tidak bertumpuk dengan tab List/Calendar di atasnya.
+  - Filter & sort yang menyembunyikan semua event bulan itu → "No events match these filters." dengan Reset filters; pencarian tanpa hasil → "No events match this search."
+- [ ] **Archive event: jalan ke Cancel** `[keduanya]`
+  - Detail → ⋯ → Move to Archive pada event yang belum dibatalkan → kalimat petunjuk dengan tautan Cancel adalah satu perhentian bernama "Cancel this event instead", terpisah dari tombol Cancel (tutup) sheet.
+  - Ketuk → sheet Cancel event terbuka.
+- [ ] **Outcomes Step 3** `[keduanya]`
+  - Tombol tiap draf terbaca bersama judul tugasnya ("Edit <judul>", "Remove <judul>"; Admin "Discard <judul>").
+  - Catatan AI terbaca sebagai satu elemen, tanpa "=" di depannya.
+  - Ketuk sedikit di kiri/kanan link "View" di baris ringkasan → tetap terbuka (area sentuh ±44 pt, tampilan sama).
 
 ## Projects
 
@@ -188,6 +206,9 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
 - [ ] **My calendar: blok event pendek** `[keduanya]`
   - Profil › My calendar, hari 7 Okt → ketuk tepat di atas atau di bawah blok pendek "Daily" (tampak 28 pt) → event tetap terbuka (area sentuh ±44 pt).
   - Area sentuh tidak mengambil ketukan untuk blok di sebelahnya.
+- [ ] **Switch di Profile mudah diketuk** `[keduanya]`
+  - Profil → Mute notifications dan Show me as online → ketuk Switch tepat di tepi atas/bawahnya → tetap berubah, tidak perlu mengenai tengahnya.
+  - Switch adalah kontrol sistem (iOS 51×31 pt, di bawah 44 pt); kalau tepinya sering meleset, catat untuk diperluas dengan wrapper.
 - [ ] **My calendar: jam 12 AM** `[keduanya]`
   - Gulir grid ke paling atas → label "12 AM" tampil utuh, tidak terpotong.
 - [ ] **My calendar: geser pekan** `[keduanya]`
