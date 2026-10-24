@@ -127,6 +127,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W3d | Perbaikan 14 temuan D2 (label week strip/baris orang/tugas, Approval jadi daftar + empty state + Reject dengan alasan, tombol bernama, nama terbaca dobel, "View roles and permissions", Mark all disabled, hitSlop blok event, "12 AM", Seg Inbox + label tablist, Full name wajib, kembali ke profil); wilayah W3 kecuali auth dan kit dipinjam Sesi D | Sesi D | ✅ `db9899c` | D2 |
 | W3e | Badge/hitungan approval (Home, More, Inbox) membaca store keputusan `users.ts`, bukan `USER_COUNTS` statis; wilayah home/more/navigation dipinjam Sesi D | Sesi D | 🔄 | W3d |
 | K1 | Kit `Seg lines?: 1\|2`; Inbox `lines={2}` agar "Needs your response (3)" tidak terpotong | Sesi B | ✅ | W3d |
+| K2 | Kit `Seg names?: readonly string[]` (nama yang dibacakan per segmen; panjang beda → diabaikan) untuk W1e #11 | Sesi B | ✅ | W1e |
 | W4 | Projects (list/create/overview/phases/members/extend/edit/archive dulu; tab Tasks + settings + task-filter setelah W1b) + projects store | Sesi C | 🔄 | W2c; W1b untuk tab Tasks |
 | F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
 | F1c | FAB + sheet Create (`router.replace` ke target) | Sesi A | ✅ | F1b |
