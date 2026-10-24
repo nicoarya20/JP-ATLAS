@@ -23,7 +23,11 @@ const ESM_PACKAGES = [
 module.exports = {
   preset: 'jest-expo',
   resolver: '<rootDir>/jest.resolver.js',
-  setupFiles: ['<rootDir>/jest.setup.js'],
+  // Gesture Handler's official mocks (native module, buttons, v3 gesture detector), then ours.
+  setupFiles: [
+    '<rootDir>/node_modules/react-native-gesture-handler/jestSetup.js',
+    '<rootDir>/jest.setup.js',
+  ],
   // Shared test helpers live next to the tests but are not test files themselves.
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/__tests__/helpers/'],
   transformIgnorePatterns: [

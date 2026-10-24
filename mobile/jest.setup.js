@@ -30,3 +30,7 @@ jest.mock(
   'react-native-safe-area-context',
   () => require('react-native-safe-area-context/jest/mock').default,
 );
+
+// app/_layout.tsx imports the Tailwind entry for Uniwind (Metro compiles it); jest cannot parse CSS and the tests do not
+// need it: class names resolve through Uniwind's runtime, not this file.
+jest.mock('./global.css', () => ({}));

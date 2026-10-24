@@ -12,10 +12,14 @@ import { SafeAreaListener } from 'react-native-safe-area-context';
 import { Uniwind } from 'uniwind';
 
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import { MODAL, NO_SWIPE, SHEET } from '@/navigation/stack-presentation';
 import { FONT_FILES } from '@/theme/fonts';
 import '../global.css';
 
 export { ErrorBoundary } from 'expo-router';
+
+// A sheet or modal opened by a link (e.g. /create) still has the tabs under it to close back to.
+export const unstable_settings = { anchor: '(tabs)' };
 
 // Keep the splash up until Manrope is ready, so the first frame is not drawn in the system font.
 SplashScreen.preventAutoHideAsync().catch((e) =>
@@ -41,7 +45,18 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <GluestackUIProvider mode="system">
           <StatusBar style="auto" />
-          <Stack screenOptions={{ headerShown: false }} />
+          {/* Screens over the tabs; their routes: docs/phase1-screens.md §3.1 */}
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(auth)" options={NO_SWIPE} />
+            <Stack.Screen name="create" options={SHEET} />
+            <Stack.Screen name="leave" options={SHEET} />
+            <Stack.Screen name="tasks/new" options={MODAL} />
+            <Stack.Screen name="tasks/csv" options={MODAL} />
+            <Stack.Screen name="projects/new" options={MODAL} />
+            <Stack.Screen name="events/new" options={MODAL} />
+            <Stack.Screen name="profile" options={MODAL} />
+          </Stack>
         </GluestackUIProvider>
       </GestureHandlerRootView>
     </SafeAreaListener>

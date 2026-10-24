@@ -1,27 +1,34 @@
-import { NativeTabs } from 'expo-router/native-tabs';
+import { Tabs } from 'expo-router/js-tabs';
+
+import { GlassTabBar } from '@/components/tab-bar/glass-tab-bar';
+import { MORE_ID, TABS } from '@/navigation/tabs.config';
 
 /**
- * Bottom tabs, same order and labels as the prototype tab bar (riset-keano/prototype-react/src/kit/layout.jsx).
- * Icons: SF Symbols on iOS, Material Symbols on Android, closest to the prototype's lucide icons.
- * More is a plain screen for now; the prototype's fold-out More panel comes in Phase 1.
+ * Bottom tabs, each its own Stack (app/(tabs)/<tab>/_layout.tsx), under the app's own tab bar (docs/phase1-navigation.md
+ * §4.1). Leaving a tab pops it back to its root, as the prototype's tab jump resets that tab's history.
  */
-const TABS = [
-  { name: 'index', label: 'Home', icon: { sf: 'house', md: 'home' } },
-  { name: 'tasks', label: 'Tasks', icon: { sf: 'checkmark.circle', md: 'check_circle' } },
-  { name: 'projects', label: 'Projects', icon: { sf: 'folder', md: 'folder' } },
-  { name: 'events', label: 'Events', icon: { sf: 'calendar', md: 'calendar_month' } },
-  { name: 'more', label: 'More', icon: { sf: 'ellipsis', md: 'more_horiz' } },
-] as const;
-
 export default function TabsLayout() {
   return (
-    <NativeTabs>
-      {TABS.map(({ name, label, icon }) => (
-        <NativeTabs.Trigger key={name} name={name}>
-          <NativeTabs.Trigger.Label>{label}</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf={icon.sf} md={icon.md} />
-        </NativeTabs.Trigger>
+    <Tabs
+      tabBar={(props) => <GlassTabBar {...props} />}
+      screenOptions={{ headerShown: false, popToTopOnBlur: true }}
+    >
+      {TABS.map((tab) => (
+        <Tabs.Screen
+          key={tab.id}
+          name={tab.route}
+          options={{ title: tab.label }}
+          listeners={
+            tab.id === MORE_ID
+              ? {
+                  // More opens a panel instead of a screen.
+                  // TODO(F1d): unfold the More panel here (docs/phase1-navigation.md §2.5); until then the tap does nothing.
+                  tabPress: (e) => e.preventDefault(),
+                }
+              : undefined
+          }
+        />
       ))}
-    </NativeTabs>
+    </Tabs>
   );
 }
