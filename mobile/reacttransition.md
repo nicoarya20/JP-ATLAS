@@ -113,3 +113,4 @@ Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sud
 - 2026-10-25 — C1 selesai (Sesi C): 1 temuan sedang (kelas `font-semibold/bold` bawaan Tailwind menimpa bobot Manrope), 5 rendah, beberapa nit; semua dibagi ke Sesi A/B. Sesi C memverifikasi ulang setelah perbaikan.
 - 2026-10-25 — D1 selesai (Sesi D): `docs/phase1-screens*.md` (5 berkas, 813 baris), commit `95ef6f2`. Keputusan penyimpangan dicatat di §1.
 - 2026-10-25 — C2 (Sesi C): semua temuan C1 tertutup, tanpa regresi. Commit `2af2785` (config/deps Sesi A) dan `5757e60` (bobot font, palet, tailwind-merge Sesi B; termasuk 2 bug tambahan: font-family menimpa bobot, tailwind-merge 1.x membuang ukuran/warna teks). Sisa RM1: urutan pemuatan `tw-merge.ts` belum dijamin, dikerjakan Sesi A.
+- 2026-10-25 — RM1 selesai (`4d53981` Sesi A, `ae3d2a1` Sesi B); C3 (Sesi C): bersih, 95/95, tanpa regresi. **Fase 0 tertutup secara kode**; tinggal T9 (cek di HP oleh user).
