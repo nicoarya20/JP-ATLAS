@@ -174,12 +174,12 @@ describe('HomeScreen · Member', () => {
 });
 
 describe('HomeScreen · Admin', () => {
-  test('workspace chips with Overdue 3, approvals first, empty own focus', async () => {
+  test('workspace chips with the live Overdue count, approvals first, empty own focus', async () => {
     const onOpen = await renderHome('admin');
     expect(screen.getByRole('header', { name: 'Good morning, Ayu' })).toBeTruthy();
     expect(chipLabels()).toEqual([
       'Active 3, projects',
-      'Overdue 3, tasks',
+      'Overdue 1, tasks',
       'Awaiting 2, users',
       'Upcoming, 1 item',
       'Inbox, 3 to respond',

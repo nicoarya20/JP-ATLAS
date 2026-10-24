@@ -1,7 +1,8 @@
 import { daysToSunday } from './dates';
 import { type EventItem, eventHref } from './events.shared';
 import type { AgendaEvent, AgendaProject, FocusTask, HomeFocus } from './home.types';
-import { PROJECTS, type Role, TODAY } from './sample';
+import type { ProjectItem } from './projects.state';
+import { type Role, TODAY } from './sample';
 import { dueIn, isOpen, type TaskItem } from './tasks.shared';
 import type { TasksState } from './tasks.state';
 
@@ -46,14 +47,18 @@ export function homeFocus(role: Role, s: TasksState, me: string, waiting: number
   };
 }
 
-/** My next listed event that is not done or canceled, then my projects that are not closed (Admin: every such one). */
+/**
+ * My next listed event that is not done or canceled, then my listed projects that are not closed (Admin: every such
+ * one). Projects come from the Projects state, so an edit or an archive there shows here.
+ */
 export function homeAgenda(
   role: Role,
   events: readonly EventItem[],
+  listed: readonly ProjectItem[],
   me: string,
 ): { next: AgendaEvent | null; projects: AgendaProject[] } {
   const e = events.find((x) => x.attendees.includes(me) && x.status !== 'Done' && !x.canceled);
-  const projects = PROJECTS.filter(
+  const projects = listed.filter(
     (p) => !CLOSED_PROJECT.includes(p.status) && (role === 'admin' || p.members.includes(me)),
   );
   return {

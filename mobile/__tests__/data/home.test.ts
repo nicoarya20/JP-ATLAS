@@ -4,6 +4,12 @@ import { addEvent, archiveEvent, cancelEvent, resetEvents } from '../../src/data
 import { getHome, homeSources } from '../../src/data/home';
 import { markFocusDone } from '../../src/data/home.actions';
 import type { HomeData, StatKey } from '../../src/data/home.types';
+import {
+  archiveProject,
+  editProject,
+  findProject,
+  resetProjects,
+} from '../../src/data/projects.store';
 import { getTasksState, taskInfo } from '../../src/data/tasks.state';
 import { archiveTask, moveTask, resetTasks } from '../../src/data/tasks.store';
 import type { Decisions } from '../../src/data/users';
@@ -111,10 +117,10 @@ describe('getHome · Member (Dodi)', () => {
 describe('getHome · Admin (Ayu)', () => {
   const h = getHome('admin');
 
-  test('workspace chips: Overdue shows the prototype value 3', () => {
+  test('workspace chips: Overdue counts the live open tasks past due (only #12 in the sample)', () => {
     expect(h.stats.map((s) => [s.key, s.count])).toEqual([
       ['active', 3],
-      ['overdue', 3],
+      ['overdue', 1],
       ['awaiting', 2],
       ['upcoming', null],
       ['inbox', null],
@@ -217,5 +223,41 @@ describe('getHome on the live stores', () => {
     );
     expect(upcoming(getHome('pm'))).toEqual({ kind: 'items', n: 8 });
     expect(upcoming(getHome('member'))).toEqual({ kind: 'items', n: 5 });
+  });
+});
+
+// Agenda and the Admin chips read the Projects state: an edit or an archive in Projects shows on the next getHome.
+describe('getHome on the projects state', () => {
+  afterEach(() => {
+    resetProjects();
+    resetTasks();
+    resetArchive();
+  });
+
+  test('a renamed project shows under its new name; an archived one leaves Agenda and Active', () => {
+    const atlas = findProject('atlas');
+    if (!atlas) throw new Error('test-only: no sample project atlas');
+    editProject('atlas', { ...atlas, name: 'Atlas v2' }, 'Nico');
+    archiveProject('migration', 'Ayu');
+    const pm = getHome('pm');
+    expect(pm.agenda.projects.map((p) => [p.id, p.name])).toEqual([
+      ['atlas', 'Atlas v2'],
+      ['sinar', 'PT Sinar Client Portal'],
+      ['tools', 'Internal Tools'],
+      ['attendance', 'Attendance App'],
+    ]);
+    expect(stat(getHome('admin'), 'active')?.count).toBe(2);
+  });
+
+  test('projects passed in its sources replace the store', () => {
+    const src = homeSources();
+    const h = getHome('admin', { ...src, projects: { ...src.projects, list: [] } });
+    expect(h.agenda.projects).toEqual([]);
+    expect(stat(h, 'active')?.count).toBe(0);
+  });
+
+  test('Overdue follows the tasks: #12 done leaves none past due', () => {
+    moveTask(12, 'Done');
+    expect(stat(getHome('admin'), 'overdue')?.count).toBe(0);
   });
 });

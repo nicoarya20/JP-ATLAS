@@ -1,15 +1,16 @@
 import { daysBetween, daysSinceMonday, sameMonth } from './dates';
 import type { EventItem } from './events.shared';
 import { doneOn } from './home.tasks';
-import type { HomeTarget, StatChip, StatKey, StatSub } from './home.types';
+import type { HomeSources, HomeTarget, StatChip, StatKey, StatSub } from './home.types';
 import { respondCards } from './inbox';
-import { ADMIN_OVERDUE_TASKS, PROJECTS, type Role, TODAY } from './sample';
+import type { ProjectItem } from './projects.state';
+import { type Role, TODAY } from './sample';
 import { assigned, dueIn, isOpen, type TaskItem } from './tasks.shared';
 import { type Decisions, waitingUsers } from './users';
 
 /*
- * Home stat chips per role, ported from the prototype (home.stats.js, home.roles.js) on the live tasks and events,
- * against the sample "today".
+ * Home stat chips per role, ported from the prototype (home.stats.js, home.roles.js) on the live tasks, events,
+ * projects and Users decisions, against the sample "today".
  */
 
 type Tasks = readonly TaskItem[];
@@ -94,24 +95,26 @@ function aheadChips(
   ];
 }
 
-/** Admin: workspace health (active projects, overdue tasks, users awaiting approval). */
-const adminChips = (decided: Decisions): StatChip[] => [
-  chip('active', PROJECTS.filter((p) => p.status === 'Active').length, {
+/**
+ * Admin: workspace health (listed projects that are Active, open tasks past due anywhere, users awaiting approval).
+ * Overdue counts the live tasks, so it matches All tasks; the prototype's fixed 3 counted tasks its sample lacks.
+ */
+const adminChips = (projects: readonly ProjectItem[], tasks: Tasks, decided: Decisions) => [
+  chip('active', projects.filter((p) => p.status === 'Active').length, {
     kind: 'unit',
     unit: 'projects',
   }),
-  chip('overdue', ADMIN_OVERDUE_TASKS, { kind: 'unit', unit: 'tasks' }),
+  chip('overdue', tasks.filter((t) => isOpen(t) && dueIn(t) < 0).length, {
+    kind: 'unit',
+    unit: 'tasks',
+  }),
   chip('awaiting', waitingUsers(decided).length, { kind: 'unit', unit: 'users' }),
 ];
 
-/** Stat chips of a role, in the prototype's order; `decided` (the Users decisions) sets the approval counts. */
-export function homeStats(
-  role: Role,
-  tasks: Tasks,
-  events: readonly EventItem[],
-  me: string,
-  decided: Decisions,
-): StatChip[] {
-  const first = role === 'admin' ? adminChips(decided) : taskChips(tasks, me);
-  return [...first, ...aheadChips(tasks, events, me, role, decided)];
+/** Stat chips of a role, in the prototype's order, for `me` (the signed-in person's first name). */
+export function homeStats(role: Role, src: HomeSources, me: string): StatChip[] {
+  const tasks = src.tasks.tasks;
+  const first =
+    role === 'admin' ? adminChips(src.projects.list, tasks, src.decisions) : taskChips(tasks, me);
+  return [...first, ...aheadChips(tasks, src.events.list, me, role, src.decisions)];
 }

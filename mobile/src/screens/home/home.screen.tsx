@@ -7,6 +7,7 @@ import { StackedScreen } from '@/components/screen/stacked-screen';
 import { useEventsState } from '@/data/events.store';
 import { getHome } from '@/data/home';
 import { markFocusDone } from '@/data/home.actions';
+import { useProjectsState } from '@/data/projects.state';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { useTasks } from '@/data/tasks.state';
@@ -41,8 +42,9 @@ export function HomeScreen({ role = SESSION_ROLE, onOpen = go }: HomeScreenProps
   const events = useEventsState();
   const [line, setLine] = useState(0);
   const notice = useNotice();
+  const projects = useProjectsState();
   const decisions = useDecisions();
-  const data = getHome(role, { tasks, events, decisions });
+  const data = getHome(role, { tasks, events, projects, decisions });
 
   const search = () => notice(S.searchLater);
   const markDone = (no: number) => {

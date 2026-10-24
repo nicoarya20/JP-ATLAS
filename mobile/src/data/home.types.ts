@@ -1,5 +1,6 @@
 import type { EventHref } from './events.shared';
 import type { EventsState } from './events.store';
+import type { ProjectsState } from './projects.state';
 import type { ProjectStatus, Role, TaskStatus } from './sample';
 import type { TasksState } from './tasks.state';
 import type { Decisions } from './users';
@@ -9,8 +10,16 @@ import type { Decisions } from './users';
  * words them (src/screens/home/home.strings.ts), so the API can later return this same shape.
  */
 
-/** What Home is built from: the task and event state and the Users decisions (Phase 2: the API's answer instead). */
-export type HomeSources = { tasks: TasksState; events: EventsState; decisions: Decisions };
+/**
+ * What Home is built from: the task, event and project state and the Users decisions (Phase 2: the API's answer
+ * instead).
+ */
+export type HomeSources = {
+  tasks: TasksState;
+  events: EventsState;
+  projects: ProjectsState;
+  decisions: Decisions;
+};
 
 /** Prototype screen a Home element opens (riset-keano/prototype-react screen ids). */
 export type HomeTarget =
