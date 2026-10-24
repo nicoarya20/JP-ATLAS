@@ -83,7 +83,7 @@ Branch: `feature/mobile-expo-spike` (dari `main`). Pekerja **tidak** commit/chec
 | T6 | Terapkan token JP Atlas ke config gluestack/Tailwind + font Manrope (expo-font) | Sesi B | ✅ | T2, B0 |
 | T7 | Modul data contoh `src/data/` (data Nico untuk Home) | Sesi B | ✅ | T1, B0 |
 | T8 | Layar Home (`src/screens/home/**`) + tes | Sesi B | ✅ | T5, T6, T7 |
-| T9 | Verifikasi di HP via Expo Go | User | ⏳ | T8 |
+| T9 | Verifikasi di HP via Expo Go | User | ✅ | T8 |
 | T10 | Linter mobile: biome (versi sama dengan root), `mobile/biome.json` | Sesi A | ✅ | install Sesi B selesai |
 | C1 | Review kode independen Fase 0 + `bun audit` + doctor (read-only) | Sesi C | ✅ | — |
 | C2 | Perbaikan temuan C1: B = #1 bobot font, #2 worker jest bocor, #4 reset palet; A = #5 app.config splash, #6 dependency tak terpakai, nit | Sesi A, B | ✅ | C1 |
@@ -91,6 +91,28 @@ Branch: `feature/mobile-expo-spike` (dari `main`). Pekerja **tidak** commit/chec
 | A1 | Spesifikasi (read-only) tab bar/navigasi Fase 1 persis prototipe: pil kaca, gelembung, "+", panel More | Sesi A | ✅ | — |
 
 Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sudah di-commit).
+
+## 6b. Papan Task — Fase 1
+
+Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-screens*.md` (layar, gelombang G0–G2, wilayah file §6). Aturan kerja sama dengan Fase 0. Tambahan:
+- **Hanya Sesi B yang mengubah `package.json`/`bun.lock`** selama Fase 1. Sesi lain yang butuh paket minta lewat orchestrator.
+- `jest.setup.js`, `jest.config.js`, `app/_layout.tsx`, `app/(tabs)/_layout.tsx`, dan `_layout.tsx` Stack per tab = milik Sesi A. Worker minta presentasi/route lewat orchestrator.
+- `src/data/sample/*.ts` bersama = milik Sesi B (W0). Worker lain menulis `src/data/sample/<modul>.extra.ts`.
+- Sebelum lapor: tes wilayah sendiri lulus, `bun run typecheck` dan `bun run lint` 0. Kalau suite penuh merah karena berkas sesi lain yang sedang dikerjakan, sebut berkasnya saja, jangan diperbaiki.
+
+| ID | Task | Pemilik | Status | Bergantung |
+|---|---|---|---|---|
+| F1a | Pohon route §6.1 nav + registrasi presentasi semua route `phase1-screens.md` §3.1/§3.2, JS Tabs + bar polos, `src/navigation/{tabs.config,tab-create,tab-bar.visibility,bubble.math}.ts`, setup jest RNGH, tes T5 ditulis ulang | Sesi A | 🔄 | — |
+| G0a | Modul bersama murni: `src/data/{store,archive.store,people}.ts`, `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts` + tes | Sesi B | 🔄 | — |
+| G0b | Install: komponen gluestack `phase1-screens.md` §5 + `expo-clipboard` + `@react-native-community/datetimepicker` | Sesi B | ⏳ | G0a |
+| G0c | Kit komponen `phase1-screens.md` §4 (`src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`) + tes | Sesi B | ⏳ | G0b |
+| W1a | Tasks lapisan data murni (sampel, query, kolom, matematika radial, store) + tes unit | Sesi D | 🔄 | G0a (store) |
+| W2a | Events lapisan data murni (sampel, query, `events.dates.ts` kalender, store) + tes unit | Sesi C | 🔄 | G0a (store) |
+| W1b | Tasks layar + route | Sesi D | ⏳ | F1a, G0c, W1a |
+| W2b | Events layar + route | Sesi C | ⏳ | F1a, G0c, W2a |
+| W3 | More + Auth + Profile | Sesi B | ⏳ | F1a, G0c |
+| W4 | Projects | (menyusul) | ⏳ | W1b (TaskBoard) |
+| F1b–F1e | Gelembung, FAB + Create, panel More, kaca/a11y/QA | Sesi A | ⏳ | F1a |
 
 ## 7. Pertanyaan Terbuka
 
@@ -114,3 +136,4 @@ Status: ⏳ belum · 🔄 dikerjakan · 👀 menunggu review · ✅ selesai (sud
 - 2026-10-25 — D1 selesai (Sesi D): `docs/phase1-screens*.md` (5 berkas, 813 baris), commit `95ef6f2`. Keputusan penyimpangan dicatat di §1.
 - 2026-10-25 — C2 (Sesi C): semua temuan C1 tertutup, tanpa regresi. Commit `2af2785` (config/deps Sesi A) dan `5757e60` (bobot font, palet, tailwind-merge Sesi B; termasuk 2 bug tambahan: font-family menimpa bobot, tailwind-merge 1.x membuang ukuran/warna teks). Sisa RM1: urutan pemuatan `tw-merge.ts` belum dijamin, dikerjakan Sesi A.
 - 2026-10-25 — RM1 selesai (`4d53981` Sesi A, `ae3d2a1` Sesi B); C3 (Sesi C): bersih, 95/95, tanpa regresi. **Fase 0 tertutup secara kode**; tinggal T9 (cek di HP oleh user).
+- 2026-10-25 — T9 selesai: user sudah cek di HP lewat Expo Go. **Fase 1 mulai**: F1a (Sesi A), G0a→G0b→G0c (Sesi B), W1a Tasks data (Sesi D), W2a Events data (Sesi C). Konteks keempat sesi di-clear user, jadi brief ditulis mandiri.
