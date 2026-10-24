@@ -7,6 +7,7 @@ import {
   daysToSunday,
   monthDay,
   sameMonth,
+  toUtc,
   weekdayMonthDay,
 } from './dates';
 import { type EventItem, eventStart, eventStatus, REPEAT_DAYS } from './events.shared';
@@ -31,35 +32,28 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** Weekday heads of the calendar grid, Monday first. */
 export const WEEKDAY_HEADS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
 
-// TODO(events): pakai toUtc dari dates.ts setelah diekspor Sesi B
-/** [year, month 1–12, day] of an ISO date. */
-function partsOf(iso: string): [number, number, number] {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (!m) throw new Error(`Not an ISO date (YYYY-MM-DD): ${iso}`);
-  return [Number(m[1]), Number(m[2]), Number(m[3])];
-}
-
 /** ISO date of a UTC year, month (0-based, may overflow) and day (may overflow), like Date.UTC. */
 const isoOf = (year: number, month0: number, day: number) =>
   new Date(Date.UTC(year, month0, day)).toISOString().slice(0, 10);
 
 /** The date n days after iso (before it when n < 0). */
 export function addDays(iso: string, n: number): string {
-  const [y, m, d] = partsOf(iso);
-  return isoOf(y, m - 1, d + n);
+  const d = toUtc(iso);
+  return isoOf(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + n);
 }
 
 /** Day of the month (the number in a grid cell). */
-export const dayOfMonth = (iso: string) => partsOf(iso)[2];
+export const dayOfMonth = (iso: string) => toUtc(iso).getUTCDate();
 
 /** Column of a date in a Monday-first week, Mon = 0. */
 export const col = daysSinceMonday;
 
 /** Every date of iso's month. */
 export function monthOf(iso: string): string[] {
-  const [y, m] = partsOf(iso);
-  const length = dayOfMonth(isoOf(y, m, 0));
-  return Array.from({ length }, (_, i) => isoOf(y, m - 1, i + 1));
+  const d = toUtc(iso);
+  const [y, m0] = [d.getUTCFullYear(), d.getUTCMonth()];
+  const length = dayOfMonth(isoOf(y, m0 + 1, 0));
+  return Array.from({ length }, (_, i) => isoOf(y, m0, i + 1));
 }
 
 /** The Mon–Sun week holding iso (it may run into the next or previous month). */
@@ -68,8 +62,8 @@ export const weekOf = (iso: string) =>
 
 /** Month arrow: the 1st of the month `by` months away, or today when that is today's month. */
 export function stepMonth(iso: string, by: number): string {
-  const [y, m] = partsOf(iso);
-  const first = isoOf(y, m - 1 + by, 1);
+  const d = toUtc(iso);
+  const first = isoOf(d.getUTCFullYear(), d.getUTCMonth() + by, 1);
   return sameMonth(first, TODAY) ? TODAY : first;
 }
 
@@ -78,8 +72,8 @@ export const dateLabel = weekdayMonthDay;
 
 /** "October 2026". */
 export function monthTitle(iso: string): string {
-  const [y, m] = partsOf(iso);
-  return `${MONTH_NAMES[m - 1]} ${y}`;
+  const d = toUtc(iso);
+  return `${MONTH_NAMES[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 /** Title of a week's dates: "Oct 5 – 11", or "Oct 26 – Nov 1" when it crosses into the next month. */
@@ -93,8 +87,8 @@ export function weekTitle(days: readonly string[]): string {
 /** Short day of an event's date in a card: "Today", else "Thu 8". */
 export function dayLabel(iso: string): string {
   if (iso === TODAY) return 'Today';
-  const [y, m, d] = partsOf(iso);
-  return `${WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${d}`;
+  const d = toUtc(iso);
+  return `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()}`;
 }
 
 /** List group of a date: Earlier · / Today · / Tomorrow · <date>, This week (up to Sunday), else Later. */

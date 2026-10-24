@@ -1,3 +1,3 @@
-import { EventsScreen } from '@/screens/events/events.screen';
+import { EventsScreen } from '@/screens/events/list/events.screen';
 
 export default EventsScreen;
