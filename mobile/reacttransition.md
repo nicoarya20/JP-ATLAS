@@ -117,8 +117,9 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W3c | Perbaikan 11 temuan W3b (label kartu/hari, tautan Cancel inline, error form, required, Seg radio, label per draf, AiNote, jamak, empty state kalender + search); wilayah Events dipinjam Sesi B | Sesi B | 🔄 | W3b |
 | H1 | Home membaca getter tasks/events store; target More → route `more/*`; stub `(auth)` di helper tes | Sesi A | 🔄 | F1e; route W3 untuk target More |
 | W2c | Undo snack Events setelah Delete forever: tangkap error → notice | Sesi C | ✅ | W2b |
-| W1c | Tangani rejection `measureStack` di menu radial | Sesi D | 🔄 | W1b |
-| D2 | QA silang (read-only) W3: copy, a11y, T2/T3, empty state | Sesi D | ⏳ | W1c |
+| W1c | Tangani rejection `measureStack` di menu radial | Sesi D | ✅ `64d734e` | W1b |
+| D2 | QA silang (read-only) W3: copy, a11y, T2/T3, empty state | Sesi D | ✅ | W1c |
+| W3d | Perbaikan 14 temuan D2 (label week strip/baris orang/tugas, Approval jadi daftar + empty state + Reject dengan alasan, tombol bernama, nama terbaca dobel, "View roles and permissions", Mark all disabled, hitSlop blok event, "12 AM", Seg Inbox + label tablist, Full name wajib, kembali ke profil); wilayah W3 kecuali auth dan kit dipinjam Sesi D | Sesi D | 🔄 | D2 |
 | W4 | Projects (list/create/overview/phases/members/extend/edit/archive dulu; tab Tasks + settings + task-filter setelah W1b) + projects store | Sesi C | 🔄 | W2c; W1b untuk tab Tasks |
 | F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
 | F1c | FAB + sheet Create (`router.replace` ke target) | Sesi A | ✅ | F1b |
@@ -163,3 +164,5 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — W3 selesai (Sesi B, `11d1876`, 90 berkas, 87 tes baru): route `more/*`, `(auth)`, `/leave`, `/profile(/calendar)`; T2 dialog Users, T3 Delete forever di sheet, sign out T2. Copy karangan untuk keadaan yang tidak ada di prototipe (orang/entri tidak ditemukan, gagal hapus, dialog Users). Kit: `Field readOnly` (gluestack menyembunyikan input disabled dari screen reader), `CountChips`, `PersonAvatar`, `DetailPage`, helper `router-mock`.
 - 2026-10-25 — W3b (Sesi B): copy Events cocok dengan prototipe; 8 celah a11y/kit dan 3 edge case bawaan prototipe. Penyimpangan disengaja: jamak "1 task"; "Outcomes confirmed" bila 0 tugas; empty state + Reset di view Calendar (UX §4 mengalahkan prototipe).
 - 2026-10-25 — W1b selesai (Sesi D, `2a143b8`, 61 berkas, 117 tes): list/filter/board/detail/sheet/edit/form/write/CSV/settings. Menu radial dirender lewat gluestack `Portal` (tanpa RN Modal, supaya sentuhan yang ditahan tidak batal); keputusan lepas-jari dipindah ke ref JS (shared value tidak terbaca konsisten setelah re-render). Ekspor W4 siap di `src/screens/tasks/index.ts`.
+- 2026-10-25 — W1c selesai (Sesi D, `64d734e`): kalau `measureStack` gagal, menu radial ditutup dengan warning ber-konteks (nomor tugas + ukuran grup), bukan rejection yang tak tertangani.
+- 2026-10-25 — D2 (Sesi D, QA read-only W3): 15 temuan, 6 di antaranya bawaan prototipe. Penyimpangan yang disetujui: Reject di kartu pending meminta alasan (di prototipe, Reject Sari buntu), Approval jadi daftar dengan empty state, "Mark all as read" disabled bila tidak ada yang belum dibaca, Full name kosong ditolak, area sentuh blok event pendek diperluas. #14 (TypeToConfirm `disabled` saat busy) dan tes auth yang rusak akibat label "Full name, required" ikut W3c Sesi B. Sisanya jadi W3d (Sesi D).
