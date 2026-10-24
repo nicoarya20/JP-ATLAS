@@ -17,6 +17,7 @@ export type StartLocalS3Options = {
 const DEFAULT_START_TIMEOUT_MS = 30_000;
 const STOP_TIMEOUT_MS = 10_000;
 const POLL_MS = 100;
+const DRAIN_GRACE_MS = 1_000;
 const OUTPUT_TAIL = 8_192;
 const PID_FILE = 'rustfs.pid';
 
@@ -146,8 +147,7 @@ export async function boot(opts: StartLocalS3Options = {}): Promise<LocalS3> {
       else tail = (tail + text).slice(-OUTPUT_TAIL);
     }
   };
-  void drain(proc.stdout);
-  void drain(proc.stderr);
+  const drained = Promise.all([drain(proc.stdout), drain(proc.stderr)]);
 
   const stop = async () => {
     if (proc.exitCode === null && proc.signalCode === null) {
@@ -167,9 +167,13 @@ export async function boot(opts: StartLocalS3Options = {}): Promise<LocalS3> {
   const endpoint = localS3Endpoint(port);
   const deadline = Date.now() + timeoutMs;
   while (!(await s3Healthy(endpoint))) {
-    if (proc.exitCode !== null) {
+    // A crash before main() (e.g. dyld missing a dylib) dies by signal: exitCode stays null.
+    if (proc.exitCode !== null || proc.signalCode !== null) {
       await fs.rm(pidFile, { force: true });
-      throw new Error(`RustFS berhenti saat start (exit ${proc.exitCode}): ${tail.trim()}`);
+      // Let the pipes flush so the crash reason (written just before dying) lands in `tail`.
+      await Promise.race([drained, Bun.sleep(DRAIN_GRACE_MS)]);
+      const how = proc.exitCode !== null ? `exit ${proc.exitCode}` : proc.signalCode;
+      throw new Error(`RustFS berhenti saat start (${how}): ${tail.trim()}`);
     }
     if (Date.now() > deadline) {
       await stop();
