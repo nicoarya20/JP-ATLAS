@@ -13,7 +13,6 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { InboxLead, RespondCard } from '@/data/inbox';
-import { routeHref } from '@/navigation/route-href';
 
 import { INBOX } from './inbox.strings';
 
@@ -59,7 +58,7 @@ export function InboxCard({ card }: { card: RespondCard }) {
           size="sm"
           variant="outline"
           accessibilityLabel={`${card.action}: ${card.title}`}
-          onPress={() => router.push(routeHref(card.href))}
+          onPress={() => router.push(card.href)}
         >
           <ButtonText>{card.action}</ButtonText>
         </Button>

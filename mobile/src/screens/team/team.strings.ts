@@ -15,6 +15,10 @@ export const TEAM = {
   overdue: (n: number) => `${n} overdue`,
 } as const;
 
+/** A row's name for screen readers: every line it shows, in order ("Rina Wulandari, Designer, Available, 3 active"). */
+export const rowLabel = (parts: readonly (string | false | undefined)[]) =>
+  parts.filter(Boolean).join(', ');
+
 export const TEAM_EMPTY = {
   icon: 'No team',
   title: 'No team yet',

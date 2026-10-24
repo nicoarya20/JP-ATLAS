@@ -1,9 +1,11 @@
 // Copy of the Users screens (Admin), verbatim from the prototype (users.approve.jsx, users.roles.jsx, users.parts.jsx);
-// the confirmation dialogs (docs/phase1-screens.more.md §5) name the person and the role.
+// the confirmation dialogs (docs/phase1-screens.more.md §5) and the buttons name the person and the role.
 
 export const USERS = {
   title: 'Users',
   tabs: ['Approval', 'Roles'],
+  // Not in the prototype: the tab row's own name for screen readers.
+  tabsLabel: 'Users sections',
   search: 'Search name or email…',
   noMatch: 'No one matches this search.',
 } as const;
@@ -23,6 +25,15 @@ export const APPROVAL = {
   canceled: 'Rejection canceled',
   rejectUser: 'Reject user',
   rejected: 'User rejected',
+  /** Buttons name the person, so a screen reader can tell the cards' buttons apart. */
+  approveWho: (name: string) => `Approve ${name}`,
+  rejectWho: (name: string) => `Reject ${name}`,
+  cancelWho: (name: string) => `Cancel rejecting ${name}`,
+  // Not in the prototype, which always shows its two sample sign-ups.
+  empty: {
+    title: 'No one is waiting for approval.',
+    text: 'New sign-ins with Google show up here for an Admin to approve.',
+  },
   infoTitle: 'After approval',
   info: [
     'Approved users become Members right away; their next sign-in goes straight to Home.',

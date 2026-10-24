@@ -24,6 +24,8 @@ export function InboxScreen({ role = SESSION_ROLE }: { role?: Role }) {
   return (
     <DetailPage testID="screen-inbox" title={INBOX.title} tabBar>
       <Seg
+        testID="inbox-tabs"
+        label={INBOX.tabs}
         items={[INBOX.respondTab(data.respond.length), INBOX.updatesTab]}
         value={TABS.indexOf(tab)}
         onChange={(i) => show(TABS[i] ?? 'respond')}

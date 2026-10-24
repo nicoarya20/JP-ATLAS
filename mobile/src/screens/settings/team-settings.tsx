@@ -1,4 +1,5 @@
 // Settings groups and rows (prototype settings.main.jsx Group / Setting), and the Admin-only Team settings group.
+import { ChevronRight } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
@@ -7,7 +8,7 @@ import { SelectField } from '@/components/form/select-field';
 import { SwitchRow } from '@/components/form/switch-row';
 import { useNotice } from '@/components/notice/use-notice';
 import { SectionCard } from '@/components/screen/detail-page';
-import { Button, ButtonText } from '@/components/ui/button';
+import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
@@ -92,8 +93,14 @@ export function TeamSettings() {
         onChange={setApproval}
       />
       <Setting title={T.roles} hint={T.rolesHint}>
-        <Button size="sm" variant="link" onPress={() => notice(T.rolesNotice)}>
+        <Button
+          size="sm"
+          variant="link"
+          accessibilityLabel={T.rolesViewLabel}
+          onPress={() => notice(T.rolesNotice)}
+        >
           <ButtonText>{T.rolesView}</ButtonText>
+          <ButtonIcon as={ChevronRight} />
         </Button>
       </Setting>
     </Group>

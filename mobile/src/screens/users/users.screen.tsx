@@ -23,6 +23,8 @@ export function UsersScreen({ role = SESSION_ROLE }: { role?: Role }) {
   return (
     <DetailPage testID="screen-users" title={USERS.title} tabBar>
       <Seg
+        testID="users-tabs"
+        label={USERS.tabsLabel}
         items={USERS.tabs}
         value={TABS.indexOf(tab)}
         onChange={(i) => router.setParams({ tab: TABS[i] ?? 'approval' })}

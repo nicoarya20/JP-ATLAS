@@ -22,16 +22,27 @@ describe('TeamScreen', () => {
     expect(
       screen.getByText('Projects you manage · 3 people · 6 active tasks · 1 overdue'),
     ).toBeOnTheScreen();
-    expect(screen.getByLabelText('Nico Pratama (You)')).toBeOnTheScreen();
+    expect(screen.getByTestId('team-row-nico')).toHaveAccessibleName(/^Nico Pratama \(You\), /);
     expect(screen.getByText('1 overdue')).toBeOnTheScreen();
     expect(screen.getByText('Leave planned Oct 12–14')).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('team-row-rina'));
     expect(router.push).toHaveBeenCalledWith('/more/team/rina');
   });
 
+  test('a row reads every line it shows: role, status, extra and the counts', async () => {
+    await showTeam('pm');
+    expect(screen.getByTestId('team-row-rina')).toHaveAccessibleName(
+      'Rina Wulandari, Member · Atlas Project, Available, Also on other projects, 1 active',
+    );
+    // The red overdue count is read too, not only seen.
+    expect(screen.getByLabelText(/, \d+ active, 1 overdue$/)).toBeOnTheScreen();
+  });
+
   test('Admin: everyone and the Users note', async () => {
     await showTeam('admin');
-    expect(screen.getByLabelText('Ayu Lestari (You)')).toBeOnTheScreen();
+    expect(screen.getByTestId('team-row-ayu')).toHaveAccessibleName(
+      'Ayu Lestari (You), Admin · No project, Available',
+    );
     expect(screen.getByTestId('team-row-sri')).toBeOnTheScreen();
     expect(
       screen.getByText('Approving new users and changing roles happens in More › Users.'),
@@ -76,6 +87,9 @@ describe('PersonScreen', () => {
     await showPerson('rina', 'pm');
     expect(screen.getByText('Rina Wulandari')).toBeOnTheScreen();
     expect(screen.getByText('rina@kantor.id')).toBeOnTheScreen();
+    expect(screen.getByLabelText(/^#15 Review the onboarding page design, /)).toHaveAccessibleName(
+      '#15 Review the onboarding page design, To do, Atlas Project · This week',
+    );
     await fireEvent.press(screen.getByText('#15 Review the onboarding page design'));
     expect(router.push).toHaveBeenCalledWith('/tasks/15');
     await fireEvent.press(screen.getByText('Atlas Project'));

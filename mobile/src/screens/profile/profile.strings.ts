@@ -33,7 +33,6 @@ export const NOTE = {
 
 export const CALENDAR = {
   title: 'My calendar',
-  week: 'Week',
   previous: 'Previous week',
   next: 'Next week',
 } as const;

@@ -1,6 +1,6 @@
 // Settings ② Edit profile (prototype settings.profile.jsx): name, nickname, job and division; Role (set by an Admin)
 // and Email (from Google) are read-only. Phase 1 saves nothing yet, only says so.
-import { router } from 'expo-router';
+import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { PersonAvatar } from '@/components/avatar/person-avatar';
@@ -15,21 +15,37 @@ import { getProfileEdit } from '@/data/settings';
 
 import { PROFILE_EDIT as P } from './settings.strings';
 
+/** Edit profile opened from the profile modal, which closes on the way here (it sits over the tabs). */
+export const EDIT_FROM_PROFILE = {
+  pathname: '/more/settings/profile',
+  params: { from: 'profile' },
+} as const satisfies Href;
+
 /** Edit my profile. role: who is signed in (K12). */
 export function ProfileEditScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const notice = useNotice();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  // Back alone would land on a tab, not where Edit profile was opened: reopen the profile modal then.
+  const close = () => {
+    router.back();
+    if (from === EDIT_FROM_PROFILE.params.from) router.navigate('/profile');
+  };
   const start = getProfileEdit(role);
   const [full, setFull] = useState(start.full);
   const [nickname, setNickname] = useState<string>(start.nickname);
   const [title, setTitle] = useState<string>(start.title);
   const [division, setDivision] = useState<string>(start.division);
+  const [missing, setMissing] = useState(false);
   const save = () => {
+    const blank = !full.trim();
+    setMissing(blank);
+    if (blank) return;
     notice(P.saved);
-    router.back();
+    close();
   };
   const foot = (
     <>
-      <Button size="lg" variant="outline" className="flex-1" onPress={() => router.back()}>
+      <Button size="lg" variant="outline" className="flex-1" onPress={close}>
         <ButtonText>{P.cancel}</ButtonText>
       </Button>
       <Button size="lg" className="flex-1" onPress={save}>
@@ -45,7 +61,13 @@ export function ProfileEditScreen({ role = SESSION_ROLE }: { role?: Role }) {
           <ButtonText>{P.changePhoto}</ButtonText>
         </Button>
       </VStack>
-      <Field label={P.full} value={full} onChangeText={setFull} />
+      <Field
+        label={P.full}
+        required
+        value={full}
+        onChangeText={setFull}
+        error={missing ? P.fullMissing : undefined}
+      />
       <Field label={P.nickname} value={nickname} onChangeText={setNickname} />
       <Field label={P.job} value={title} onChangeText={setTitle} />
       <Field label={P.division} value={division} onChangeText={setDivision} />

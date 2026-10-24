@@ -1,6 +1,7 @@
 // My calendar week strip (prototype profile.calendar.jsx WeekStrip + profile.calendar.swipe.js): seven day buttons,
 // Sunday first. A sideways drag follows the finger; a long enough drag or a flick slides the week out and pages it,
-// anything shorter springs back. Screen readers page with the adjustable actions instead.
+// anything shorter springs back. Screen readers page with a Previous week / Next week action on each day: an adjustable
+// strip would group the days into one element, and each day must stay reachable on its own.
 import { useState } from 'react';
 import { View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
@@ -26,13 +27,26 @@ const SLIDE_MS = 220;
 /** A vertical move this long hands the touch to the day grid. */
 const FAIL_Y_PX = 10;
 
-function Day({ d, onPick }: { d: CalendarDay; onPick: (iso: string) => void }) {
+/** The paging actions each day offers a screen reader. */
+const PAGE_ACTIONS = [
+  { name: 'previous-week', label: CALENDAR.previous },
+  { name: 'next-week', label: CALENDAR.next },
+];
+
+type DayProps = { d: CalendarDay; onPick: (iso: string) => void; onPage: (step: -1 | 1) => void };
+
+function Day({ d, onPick, onPage }: DayProps) {
   return (
     <Pressable
       testID={`week-day-${d.iso}`}
       accessibilityRole="button"
       accessibilityLabel={d.label}
       accessibilityState={{ selected: d.picked }}
+      accessibilityActions={PAGE_ACTIONS}
+      onAccessibilityAction={(e) => {
+        if (e.nativeEvent.actionName === 'next-week') onPage(1);
+        else if (e.nativeEvent.actionName === 'previous-week') onPage(-1);
+      }}
       onPress={() => onPick(d.iso)}
       className="min-h-11 flex-1 items-center gap-1 py-1"
     >
@@ -95,21 +109,13 @@ export function WeekStrip({ week, onPick, onPage }: WeekStripProps) {
     <GestureDetector gesture={pan}>
       <View
         testID="week-strip"
-        accessible
-        accessibilityRole="adjustable"
-        accessibilityLabel={CALENDAR.week}
-        accessibilityActions={[
-          { name: 'increment', label: CALENDAR.next },
-          { name: 'decrement', label: CALENDAR.previous },
-        ]}
-        onAccessibilityAction={(e) => onPage(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
         className="overflow-hidden"
       >
         <Animated.View style={slide}>
           <HStack>
             {week.map((d) => (
-              <Day key={d.iso} d={d} onPick={onPick} />
+              <Day key={d.iso} d={d} onPick={onPick} onPage={onPage} />
             ))}
           </HStack>
         </Animated.View>

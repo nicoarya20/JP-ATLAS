@@ -7,6 +7,7 @@ import { getLeave, getSettings, LEAVE } from '../../src/data/settings';
 import { LeaveScreen } from '../../src/screens/settings/leave.screen';
 import { ProfileEditScreen } from '../../src/screens/settings/profile-edit.screen';
 import { SettingsScreen } from '../../src/screens/settings/settings.screen';
+import { setParams } from '../helpers/router-mock';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
@@ -17,7 +18,10 @@ const PM: Role = 'pm';
 
 drainToastTimers();
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  setParams({});
+});
 
 const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvider });
 
@@ -50,7 +54,8 @@ describe('SettingsScreen', () => {
   test('Admin: the team settings group', async () => {
     await show(<SettingsScreen role={ADMIN} />);
     expect(screen.getByText('Team settings (Admin only)')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('View ›'));
+    // Named after what it opens; the chevron is an icon, not a "›" read aloud.
+    await fireEvent.press(screen.getByRole('button', { name: 'View roles and permissions' }));
     expect(screen.getByText('Roles and permissions — not in the prototype yet')).toBeOnTheScreen();
   });
 
@@ -70,7 +75,7 @@ describe('SettingsScreen', () => {
 describe('ProfileEditScreen', () => {
   test('role and email are read-only with the reason; Save says so and closes', async () => {
     await show(<ProfileEditScreen role={PM} />);
-    expect(screen.getByLabelText('Full name')).toHaveDisplayValue('Nico Pratama');
+    expect(screen.getByLabelText(/^Full name/)).toHaveDisplayValue('Nico Pratama');
     // Read-only, yet still read out by a screen reader (a disabled gluestack input is hidden from it).
     expect(screen.getByLabelText('Role')).toHaveProp('readOnly', true);
     expect(screen.getByLabelText('Email')).toHaveProp('readOnly', true);
@@ -83,12 +88,33 @@ describe('ProfileEditScreen', () => {
     expect(router.back).toHaveBeenCalledTimes(1);
   });
 
+  test('a blank full name is refused with the reason, as on the sign-up screen', async () => {
+    await show(<ProfileEditScreen role={PM} />);
+    await fireEvent.changeText(screen.getByLabelText(/^Full name/), '   ');
+    await fireEvent.press(screen.getByText('Save'));
+    expect(screen.getByText('Enter your full name.')).toBeOnTheScreen();
+    expect(screen.queryByText('Profile saved')).not.toBeOnTheScreen();
+    expect(router.back).not.toHaveBeenCalled();
+  });
+
   test('Cancel closes without saving', async () => {
     await show(<ProfileEditScreen role={PM} />);
     await fireEvent.press(screen.getByText('Cancel'));
     expect(router.back).toHaveBeenCalledTimes(1);
+    expect(router.navigate).not.toHaveBeenCalled();
     expect(screen.queryByText('Profile saved')).not.toBeOnTheScreen();
   });
+
+  test.each(['Cancel', 'Save'])(
+    'opened from the profile modal, %s goes back to it',
+    async (button) => {
+      setParams({ from: 'profile' });
+      await show(<ProfileEditScreen role={PM} />);
+      await fireEvent.press(screen.getByText(button));
+      expect(router.back).toHaveBeenCalledTimes(1);
+      expect(router.navigate).toHaveBeenCalledWith('/profile');
+    },
+  );
 });
 
 describe('LeaveScreen', () => {
@@ -101,6 +127,9 @@ describe('LeaveScreen', () => {
     expect(screen.getByRole('header', { name: title })).toBeOnTheScreen();
     expect(screen.getByText(LEAVE[role].hint)).toBeOnTheScreen();
     expect(screen.getByTestId('leave-from')).toBeOnTheScreen();
+    // The dates are named by their buttons; the labels above them are not read again as headers.
+    expect(screen.getAllByLabelText('From date')).toHaveLength(1);
+    expect(screen.queryByRole('header', { name: 'From date' })).not.toBeOnTheScreen();
     await fireEvent.press(screen.getByText(save));
     expect(screen.getByText(notice)).toBeOnTheScreen();
     expect(router.back).toHaveBeenCalledTimes(1);

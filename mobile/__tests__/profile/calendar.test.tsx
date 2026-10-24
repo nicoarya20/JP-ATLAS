@@ -80,6 +80,21 @@ describe('My calendar', () => {
     expect(screen.queryByTestId('now-line', { includeHiddenElements: true })).not.toBeOnTheScreen();
   });
 
+  test('the hours run from 12 AM, which is shown too', async () => {
+    await open();
+    expect(screen.getByText('12 AM')).toBeOnTheScreen();
+    expect(screen.getByText('1 AM')).toBeOnTheScreen();
+  });
+
+  test('every event block reaches a 44 pt touch target', async () => {
+    await open();
+    for (const block of screen.getAllByTestId(/^calendar-block-/)) {
+      const { height } = block.props.style;
+      const slop = block.props.hitSlop ?? { top: 0, bottom: 0 };
+      expect(height + slop.top + slop.bottom).toBeGreaterThanOrEqual(44);
+    }
+  });
+
   test('an event block opens the event', async () => {
     await open();
     await fireEvent.press(screen.getByTestId('calendar-block-review'));
@@ -103,12 +118,23 @@ describe('My calendar', () => {
     expect(dayText()).toHaveTextContent(/^Wednesday, Oct 14, 2026/);
   });
 
-  test('screen readers page with the adjustable actions', async () => {
+  test('each day stays its own button, and pages with a named action', async () => {
     await open();
-    const strip = screen.getByRole('adjustable', { name: 'Week' });
-    await fireEvent(strip, 'accessibilityAction', { nativeEvent: { actionName: 'decrement' } });
+    expect(screen.queryByRole('adjustable')).not.toBeOnTheScreen();
+    const days = screen.getAllByTestId(/^week-day-/);
+    expect(days).toHaveLength(7);
+    for (const day of days) expect(day).toHaveProp('accessibilityRole', 'button');
+    expect(days[0].props.accessibilityActions.map((a: { label: string }) => a.label)).toEqual([
+      'Previous week',
+      'Next week',
+    ]);
+    const page = (iso: string, actionName: string) =>
+      fireEvent(screen.getByTestId(`week-day-${iso}`), 'accessibilityAction', {
+        nativeEvent: { actionName },
+      });
+    await page('2026-10-07', 'previous-week');
     expect(dayText()).toHaveTextContent(/^Wednesday, Sep 30, 2026/);
-    await fireEvent(strip, 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
+    await page('2026-09-30', 'next-week');
     expect(dayText()).toHaveTextContent(/^Wednesday, Oct 7, 2026/);
   });
 });

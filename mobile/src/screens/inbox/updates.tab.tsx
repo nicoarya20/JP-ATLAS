@@ -12,7 +12,6 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { UpdateDay, UpdateRow } from '@/data/inbox';
 import { markAllRead } from '@/data/inbox.store';
-import { routeHref } from '@/navigation/route-href';
 
 import { UPDATES } from './inbox.strings';
 
@@ -31,7 +30,7 @@ function Update({ u }: { u: UpdateRow }) {
           size="sm"
           variant="ghost"
           accessibilityLabel={`${UPDATES.view}: ${u.title}`}
-          onPress={() => router.push(routeHref(u.href))}
+          onPress={() => router.push(u.href)}
         >
           <ButtonText>{UPDATES.view}</ButtonText>
         </Button>
@@ -48,9 +47,32 @@ function Update({ u }: { u: UpdateRow }) {
   );
 }
 
+/** "Mark all as read", off with the reason once nothing is unread. */
+function MarkAll({ unread, onPress }: { unread: boolean; onPress: () => void }) {
+  return (
+    <HStack className="items-center gap-2">
+      {!unread && (
+        <Text testID="all-read" className="text-footnote text-muted-foreground">
+          {UPDATES.allRead}
+        </Text>
+      )}
+      <Button
+        size="sm"
+        variant="link"
+        isDisabled={!unread}
+        accessibilityState={{ disabled: !unread }}
+        onPress={onPress}
+      >
+        <ButtonText>{UPDATES.markAll}</ButtonText>
+      </Button>
+    </HStack>
+  );
+}
+
 /** Both days; "Mark all as read" sits next to Today. */
 export function UpdatesTab({ days }: { days: readonly UpdateDay[] }) {
   const notice = useNotice();
+  const unread = days.some((d) => d.rows.some((u) => u.unread));
   const readAll = () => {
     markAllRead();
     notice(UPDATES.marked);
@@ -59,11 +81,7 @@ export function UpdatesTab({ days }: { days: readonly UpdateDay[] }) {
     <VStack key={d.day} className="gap-2">
       <HStack className="min-h-11 items-center justify-between">
         <SectionLabel>{d.day}</SectionLabel>
-        {d.day === 'Today' && (
-          <Button size="sm" variant="link" onPress={readAll}>
-            <ButtonText>{UPDATES.markAll}</ButtonText>
-          </Button>
-        )}
+        {d.day === 'Today' && <MarkAll unread={unread} onPress={readAll} />}
       </HStack>
       <Rows>
         {d.rows.map((u) => (

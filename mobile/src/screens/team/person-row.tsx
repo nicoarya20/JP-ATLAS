@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { TeamRow } from '@/data/team';
 
-import { TEAM } from './team.strings';
+import { rowLabel, TEAM } from './team.strings';
 
 /** Green when available, muted for a leave note. */
 export function StatusText({ status, available }: { status: string; available: boolean }) {
@@ -19,14 +19,22 @@ export function StatusText({ status, available }: { status: string; available: b
   );
 }
 
-/** One person; the counts show only where the viewer may see them. */
+/** One person; the counts show only where the viewer may see them. Its name reads every line. */
 export function PersonRow({ o }: { o: TeamRow }) {
   const name = o.you ? `${o.full} ${TEAM.you}` : o.full;
+  const label = rowLabel([
+    name,
+    o.role,
+    o.status,
+    o.extra,
+    o.load && TEAM.active(o.load.active),
+    o.load && o.load.overdue > 0 && TEAM.overdue(o.load.overdue),
+  ]);
   return (
     <Pressable
       testID={`team-row-${o.key}`}
       accessibilityRole="button"
-      accessibilityLabel={name}
+      accessibilityLabel={label}
       onPress={() => router.push(`/more/team/${o.key}`)}
       className="data-[active=true]:bg-muted"
     >

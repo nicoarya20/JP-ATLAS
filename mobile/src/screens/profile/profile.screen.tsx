@@ -30,6 +30,7 @@ import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 
 import { SignOutDialog } from '../auth/sign-out';
+import { EDIT_FROM_PROFILE } from '../settings/profile-edit.screen';
 import { PROFILE as P } from './profile.strings';
 import { Tile } from './profile.tiles';
 import { PresenceDot, ProfileHero } from './profile-hero';
@@ -54,7 +55,7 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
   return (
     <DetailPage testID="screen-profile" title="" modal>
       <ProfileHero d={d} online={online} />
-      <Button size="lg" onPress={() => leaveTo('/more/settings/profile')}>
+      <Button size="lg" onPress={() => leaveTo(EDIT_FROM_PROFILE)}>
         <ButtonIcon as={Pencil} />
         <ButtonText>{P.editProfile}</ButtonText>
       </Button>

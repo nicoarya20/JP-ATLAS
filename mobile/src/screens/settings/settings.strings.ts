@@ -33,7 +33,9 @@ export const TEAM_SETTINGS = {
     'Leave requests must be approved by the project Manager or Admin first. If off, leave applies immediately.',
   roles: 'Roles and permissions',
   rolesHint: 'See who can do what (read-only)',
-  rolesView: 'View ›',
+  // The prototype draws "View" with a chevron icon; the name says what it opens.
+  rolesView: 'View',
+  rolesViewLabel: 'View roles and permissions',
   rolesNotice: 'Roles and permissions — not in the prototype yet',
 } as const;
 
@@ -42,6 +44,8 @@ export const PROFILE_EDIT = {
   changePhoto: 'Change photo',
   changePhotoNotice: 'Change photo — not in the prototype yet',
   full: 'Full name',
+  // Not in the prototype, which saves a blank name: the same check as the sign-up screen.
+  fullMissing: 'Enter your full name.',
   nickname: 'Nickname (for greetings)',
   job: 'Job title',
   division: 'Division',

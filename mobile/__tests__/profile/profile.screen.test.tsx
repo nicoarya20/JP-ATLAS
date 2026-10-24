@@ -37,7 +37,10 @@ describe('ProfileScreen', () => {
     await show();
     await fireEvent.press(screen.getByText('Edit profile'));
     expect(router.dismiss).toHaveBeenCalledTimes(1);
-    expect(router.navigate).toHaveBeenCalledWith('/more/settings/profile');
+    expect(router.navigate).toHaveBeenCalledWith({
+      pathname: '/more/settings/profile',
+      params: { from: 'profile' },
+    });
     await fireEvent.press(screen.getByLabelText('My tasks'));
     expect(router.navigate).toHaveBeenCalledWith('/tasks');
     await fireEvent.press(screen.getByLabelText('Inbox, 3'));

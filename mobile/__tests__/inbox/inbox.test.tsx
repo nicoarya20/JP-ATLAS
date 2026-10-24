@@ -75,6 +75,22 @@ describe('InboxScreen', () => {
     expect(getAllRead()).toBe(true);
   });
 
+  test('once everything is read, Mark all as read is off and says why', async () => {
+    setParams({ tab: 'updates' });
+    await show();
+    expect(screen.getByRole('button', { name: 'Mark all as read' })).toBeEnabled();
+    expect(screen.queryByTestId('all-read')).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Mark all as read'));
+    expect(screen.getByRole('button', { name: 'Mark all as read' })).toBeDisabled();
+    expect(screen.getByTestId('all-read')).toHaveTextContent('Everything here is read');
+  });
+
+  test('the tab row is named for screen readers', async () => {
+    await show();
+    // A tablist container is not an accessibility element itself, so it is found by testID.
+    expect(screen.getByTestId('inbox-tabs')).toHaveAccessibleName('Inbox sections');
+  });
+
   test('an update row opens its item', async () => {
     setParams({ tab: 'updates' });
     await show();

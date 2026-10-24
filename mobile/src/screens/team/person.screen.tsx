@@ -20,7 +20,7 @@ import { getTeamPerson } from '@/data/team.person';
 import { routeHref } from '@/navigation/route-href';
 
 import { StatusText } from './person-row';
-import { PERSON } from './team.strings';
+import { PERSON, rowLabel } from './team.strings';
 
 const Heading = ({ title, right }: { title: string; right?: string }) => (
   <HStack className="items-center justify-between gap-2">
@@ -51,6 +51,7 @@ function Tasks({ d }: { d: TeamPersonData }) {
               key={t.no}
               title={t.title}
               sub={t.sub}
+              accessibilityLabel={rowLabel([t.title, t.pill, t.sub])}
               right={<StatusPill status={t.pill} />}
               onPress={() => router.push(`/tasks/${t.no}`)}
             />

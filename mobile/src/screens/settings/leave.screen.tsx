@@ -2,6 +2,7 @@
 // Phase 1 sends nothing yet, only says so.
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { View } from 'react-native';
 
 import { DateField } from '@/components/form/date-field';
 import { Field } from '@/components/form/field';
@@ -16,6 +17,15 @@ import { SESSION_ROLE } from '@/data/session';
 import { getLeave } from '@/data/settings';
 
 import { LEAVE_SHEET as L } from './settings.strings';
+
+/** Visible label over a date button that already carries it as its name, so it is read once (not as a header). */
+function SeenLabel({ children }: { children: string }) {
+  return (
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <SectionLabel>{children}</SectionLabel>
+    </View>
+  );
+}
 
 /** The leave sheet. role: who is signed in (K12). */
 export function LeaveScreen({ role = SESSION_ROLE }: { role?: Role }) {
@@ -50,7 +60,7 @@ export function LeaveScreen({ role = SESSION_ROLE }: { role?: Role }) {
     >
       <HStack className="gap-3">
         <VStack className="flex-1 gap-2">
-          <SectionLabel>{L.from}</SectionLabel>
+          <SeenLabel>{L.from}</SeenLabel>
           <DateField
             label={L.from}
             value={from}
@@ -60,7 +70,7 @@ export function LeaveScreen({ role = SESSION_ROLE }: { role?: Role }) {
           />
         </VStack>
         <VStack className="flex-1 gap-2">
-          <SectionLabel>{L.to}</SectionLabel>
+          <SeenLabel>{L.to}</SeenLabel>
           <DateField
             label={L.to}
             value={to}
