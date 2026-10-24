@@ -1,18 +1,18 @@
 // Tasks ⑧–⑩ shared detail layout: header block, key/value facts, sections, history, and a pinned comment bar.
-import { Avatar, Media, Menu, Pill, Section, StatusPill } from '../../kit';
+import { Avatar, Btn, Media, Menu, Pill, Section, StatusPill } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { Foot, FootScreen, Sec, Tick } from './tasks.parts';
 import { assigned, assignees, days, detailOf, info } from './tasks.shared';
-import { moveTask, useTaskMoves } from './tasks.store';
+import { archiveTask, moveTask, useTaskMoves } from './tasks.store';
 
 const dueLabel = t => {
   const d = days(t.due);
-  return t.status === 'Done' ? t.when : d < 0 ? `Overdue ${-d} days` : d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : `Due ${t.due}`;
+  return t.status === 'Done' || t.status === 'Canceled' ? t.when : d < 0 ? `Overdue ${-d} days` : d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : `Due ${t.due}`;
 };
 const dueNote = t => {
   const d = days(t.due);
-  return t.status === 'Done' ? '' : d < 0 ? `(${-d} days late)` : d === 0 ? '(today)' : d === 1 ? '(tomorrow)' : '';
+  return t.status === 'Done' || t.status === 'Canceled' ? '' : d < 0 ? `(${-d} days late)` : d === 0 ? '(today)' : d === 1 ? '(tomorrow)' : '';
 };
 
 /** Step checklist title: "Steps 2/3", or "Steps" when there are none. */
@@ -68,6 +68,26 @@ export function useMayChange(t) {
   return !useApp().is('member') || assigned(t, D.me().name);
 }
 
+/** Move to Archive: Managers and Admins for any task, a Member only for tasks they created. */
+export function useMayArchive(t) {
+  return !useApp().is('member') || info(t.no).by.split(' ')[0] === D.me().name;
+}
+
+/** In place of the actions on a canceled task: why it was canceled, and Restore for whoever may change it. */
+function Canceled({ no, mine }) {
+  const act = useStatusAction(no);
+  const c = info(no).canceled;
+  const restore = () => act('To do', 'Task restored', 'restored this task', { canceled: undefined });
+  return (
+    <Section className="tk-soft">
+      <div className="stack sm">
+        <span className="t-footnote">{c ? `Canceled by ${c.by}: ${c.reason}` : 'This task was canceled.'}</span>
+        {mine && <div><Btn sm onClick={restore}>Restore</Btn></div>}
+      </div>
+    </Section>
+  );
+}
+
 /** Who a Member asks instead, in place of the actions on someone else's task. */
 function NotYours({ t }) {
   return (
@@ -91,17 +111,27 @@ export function useStatusAction(no) {
 }
 
 /**
- * Detail page for task no. The ⋯ menu has Edit task and Cancel task. A Member edits, cancels and moves only their own
- * tasks (in any status), so someone else's task has no ⋯ and a note in place of the actions; a canceled task has neither.
+ * Detail page for task no. The ⋯ menu has Edit task, Cancel task and Move to Archive. A Member edits, cancels and moves
+ * only their own tasks (in any status), so someone else's task has a note in place of the actions, and archives only tasks
+ * they created. A canceled task keeps only Move to Archive and shows Restore instead of the actions; an archived one has
+ * neither. Move to Archive needs no dialog: the task lands in Archive and the next screen offers Undo.
  * banner, actions, facts, after and children fill the slots. Re-renders when the task is edited or moved.
  */
 export function TaskDetail({ no, banner, actions, facts, after, children }) {
   useTaskMoves();
+  const { go } = useApp();
   const t = D.task(no), x = info(no);
-  const mine = useMayChange(t);
-  const archived = D.archivedTasks.includes(t);
-  const items = [{ label: 'Edit task', go: 'tasks.edit', task: no }, { label: 'Cancel task', sheet: 'tasks.cancel', task: no, danger: true }];
-  const right = mine && !archived ? <Menu items={items} label="Task actions" /> : undefined;
+  const mine = useMayChange(t), mayArchive = useMayArchive(t);
+  const archived = D.archivedTasks.includes(t), canceled = t.status === 'Canceled';
+  const toArchive = () => {
+    archiveTask(no, D.me().name);
+    go('archive.undo', { top: true, params: { task: no } });
+  };
+  const items = [
+    ...(mine && !canceled ? [{ label: 'Edit task', go: 'tasks.edit', task: no }, { label: 'Cancel task', sheet: 'tasks.cancel', task: no }] : []),
+    ...(mayArchive ? [{ label: 'Move to Archive', onClick: toArchive, danger: true }] : []),
+  ];
+  const right = items.length && !archived ? <Menu items={items} label="Task actions" /> : undefined;
   const foot = <Foot><input className="tk-comment" placeholder="Write a comment… (@name to mention)" aria-label="Comment" /></Foot>;
   return (
     <FootScreen title="Task detail" right={right} foot={foot}>
@@ -114,7 +144,8 @@ export function TaskDetail({ no, banner, actions, facts, after, children }) {
         <span className="t-footnote bold">{dueLabel(t)}</span>
         <div><StatusPill status={t.status} /></div>
       </div>
-      {archived ? <p className="t-footnote muted">Canceled · this task is in Archive.</p> : mine ? actions : <NotYours t={t} />}
+      {archived ? <p className="t-footnote muted">This task is in Archive.</p>
+        : canceled ? <Canceled no={no} mine={mine} /> : mine ? actions : <NotYours t={t} />}
       <dl className="tk-kv">
         {facts.map(([k, v]) => [<dt key={`${k}-k`}>{k}</dt>, <dd key={`${k}-v`}>{v}</dd>])}
       </dl>

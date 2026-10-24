@@ -1,8 +1,9 @@
 // Projects ⑧: project detail frame (header + tabs) and the Overview tab. Every project card opens Atlas (the only project with full data).
 import { CalendarClock, CircleAlert, Clock } from 'lucide-react';
-import { Btn, Link, Progress, Row, Rows, Screen, Section, StatusPill, Tabs } from '../../kit';
+import { Btn, Link, Menu, Progress, Row, Rows, Screen, Section, StatusPill, Tabs } from '../../kit';
 import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
+import { useProjectChanges } from './projects.store';
 
 const TAB_IDS = ['projects.overview', 'projects.tasks', 'projects.phases', 'projects.members'];
 export const atlas = () => D.project('atlas');
@@ -20,15 +21,24 @@ export function useNote() {
   return t => (t.status === 'In review' && !is('pm') ? `Awaiting review by ${reviewer}` : t.when);
 }
 
-/** Shared detail header (status, attention reason, lead/deadline, extend button) + tabs; on = active tab index. */
+/** Shared detail header (status, attention reason, lead/deadline, extend button) + tabs; on = active tab index.
+ *  Re-renders after Edit project; a project in Archive says so and offers no changes. */
 export function DetailScreen({ on, children }) {
-  const P = atlas(), canEdit = useCanEdit();
-  // ⋯ is not drawn on the ⑧–⑪ app bar in Penpot; "⋯ › Project settings" comes from Tasks ⑬, so ⋯ links straight there.
-  // Members can't change project settings, so they get no ⋯ at all.
-  const more = canEdit && <Btn kind="ghost" sm go="tasks.settings" aria-label="Project settings">⋯</Btn>;
+  useProjectChanges();
+  const P = atlas(), archived = D.archivedProjects.includes(P), canEdit = useCanEdit() && !archived;
+  // ⋯ is not drawn on the ⑧–⑪ app bar in Penpot; Edit project and Move to Archive follow the app, Project settings
+  // comes from Tasks ⑬. Members can't change the project, so they get no ⋯ at all.
+  const params = { project: P.id };
+  const items = [
+    { label: 'Edit project', go: 'projects.edit', params },
+    { label: 'Project settings', go: 'tasks.settings' },
+    { label: 'Move to Archive', sheet: 'projects.archive', params, danger: true },
+  ];
+  const more = canEdit && <Menu items={items} label="Project actions" />;
   return (
     <Screen title={P.name} back right={more || undefined} tab="projects">
       <div className="stack sm">
+        {archived && <p className="t-footnote muted">This project is in Archive.</p>}
         <div className="row-flex"><StatusPill status={P.status} /><StatusPill status={P.health} /></div>
         <span className="t-subhead">Why: {P.why}</span>
         <span className="t-subhead bold mt-1">Lead: {P.lead} · Due: {P.dueLong}</span>

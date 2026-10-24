@@ -105,7 +105,7 @@ export function PhoneApp() {
     [def.modal, pushed, under, app.closing]);
   return (
     <div className="phone-app">
-      <div className="statusbar" aria-hidden="true"><span>9:41</span></div>
+      <div className="statusbar" aria-hidden="true" />
       {under && <ScreenSlot key={under.id} entry={under} under closing={app.closing} />}
       <ScreenSlot key={top.id} entry={top} setTab={setTab} modal={modal} />
       {tab && <AppTabBar active={tab} />}

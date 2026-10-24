@@ -15,7 +15,7 @@ input::placeholder, textarea::placeholder { color: var(--label-2); opacity: 1; }
 p { margin: 0; line-height: var(--lh-body); }
 h1, h2, h3 { margin: 0; }
 
-/* ---- Shell: status bar, then one screen = nav bar + scrolling content (+ fixed tab bar) ---- */
+/* ---- Shell: top band (notch space), then one screen = nav bar + scrolling content (+ fixed tab bar) ---- */
 .phone-app { position: relative; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 .statusbar { flex: none; height: var(--statusbar-h); padding: 0 var(--sp-6); display: flex; align-items: center; justify-content: space-between;
   font-size: var(--fs-subhead); font-weight: 600; background: var(--bg); }

@@ -9,6 +9,7 @@ import { D } from '../../data/sample';
 import { ProjectsSearch } from './projects.filter';
 import { PeopleRow, ofWho } from './projects.people';
 import { applyQuery, isFiltered, queryOf, withoutQuery } from './projects.query';
+import { useProjectChanges } from './projects.store';
 
 function ProjectCard({ p }) {
   return (
@@ -42,7 +43,9 @@ function whoLabel(who, member) {
   return member ? `Projects with ${who}` : `${who}'s projects`;
 }
 
-export default function ProjectsList({ params }) {
+/** overlay renders inside the screen (Archive ③ puts its Undo <Snack> there). */
+export default function ProjectsList({ params, overlay }) {
+  useProjectChanges();
   const { is, go } = useApp();
   const member = is('member'), who = params?.who, q = queryOf(params);
   const visible = member ? D.projects.filter(p => p.members.includes(D.me().name)) : D.projects;
@@ -59,6 +62,7 @@ export default function ProjectsList({ params }) {
       )}
       {list.length ? list.map(p => <ProjectCard key={p.id} p={p} />)
         : isFiltered(q) ? <NoMatch /> : <Empty icon={<FolderOpen size={28} />} title="You're not in any project yet." />}
+      {overlay}
     </StackedScreen>
   );
 }

@@ -2,11 +2,9 @@
 import { useState } from 'react';
 import { Radio } from '@react-cupertino-ui/radio';
 import { Btn, Chips, Field, Label, Sheet } from '../../kit';
-import { useApp } from '../../core/app.context';
 import { D } from '../../data/sample';
 import { useStatusAction } from './tasks.detail';
 import { info, pick } from './tasks.shared';
-import { cancelTask } from './tasks.store';
 
 const sub = no => `#${no} ${D.task(no).title}`;
 // kind: 'primary' (lime) for the sheet's main action, 'danger' when that action cancels the task.
@@ -41,19 +39,18 @@ export function TasksReturn({ params }) {
 const REASONS = ['Duplicate / already exists', 'No longer needed', 'Outside the project scope', 'Created by mistake', 'Other'];
 const OTHER = REASONS.length - 1;
 
-/** ⑫ Cancel — reason required (note required for Other); the task moves to Archive and the detail closes. Task comes from the ⋯ button. */
+/** ⑫ Cancel — reason required (note required for Other); the task stays in its project marked Canceled, and its detail
+ *  shows why with Restore. Task comes from the ⋯ button. */
 export function TasksCancel({ params }) {
-  const { toast, closeSheet, back } = useApp();
   const no = D.task(params.task) ? params.task : 17;
+  const act = useStatusAction(no);
   const [why, setWhy] = useState(-1);
   const [text, setText] = useState('');
   const extra = text.trim();
   const ok = why >= 0 && (why !== OTHER || extra);
   const send = () => {
-    cancelTask(no, why === OTHER ? extra : `${REASONS[why]}${extra ? ` (${extra})` : ''}`, D.me().name);
-    toast('Task moved to Archive');
-    closeSheet();
-    back({ skipSheet: true });
+    const reason = why === OTHER ? extra : `${REASONS[why]}${extra ? ` (${extra})` : ''}`;
+    act('Canceled', 'Task canceled', `canceled this task: ${reason}`, { canceled: { reason, by: D.me().name } });
   };
   return (
     <Sheet title="Cancel task" sub={sub(no)} actions={pair('Back', 'Cancel task', ok, send, 'danger')}>
@@ -65,7 +62,7 @@ export function TasksCancel({ params }) {
         </div>
       </div>
       <Field label="Note * (required for Other)" area placeholder="Add a note…" value={text} onChange={setText} />
-      <p className="t-footnote muted">The task moves to Archive. Anyone can restore it from there.</p>
+      <p className="t-footnote muted">The task stays in the project, marked Canceled, and can be restored from its detail.</p>
     </Sheet>
   );
 }
