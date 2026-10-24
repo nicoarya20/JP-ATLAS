@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { showSnack } from '@/components/snack/use-snack';
+import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { archiveEvent, canRestoreEvent, findEvent, restoreEvent } from '@/data/events.store';
 import { me } from '@/data/people';
@@ -14,6 +15,7 @@ import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 
 import { SHEETS } from '../events.strings';
+import { SPOKEN } from '../events.strings.added';
 import { Box } from '../parts/event-parts';
 import { SheetMissing, SheetPair } from './sheet-pair';
 import { WhichOne } from './which-one';
@@ -58,19 +60,23 @@ export function ArchiveEventScreen({ role = SESSION_ROLE }: { role?: Role }) {
         <>
           <Text className="text-subhead text-foreground">{SHEETS.archiveLead}</Text>
           {!e.canceled && (
-            <Box>
-              <Text className="text-subhead text-foreground">
-                {SHEETS.archiveHintBefore}
-                <Text
-                  accessibilityRole="link"
-                  onPress={() => router.replace(`/events/${e.id}/cancel`)}
-                  className="font-bold text-atlas"
-                >
-                  {SHEETS.archiveHintLink}
+            // The whole hint is the way to Cancel (one stop, ≥ 44 pt), named apart from the sheet's Cancel (close).
+            <Pressable
+              testID="archive-cancel-instead"
+              accessibilityRole="link"
+              accessibilityLabel={SPOKEN.cancelInstead}
+              accessibilityHint={`${SHEETS.archiveHintBefore}${SHEETS.archiveHintLink}${SHEETS.archiveHintAfter}`}
+              onPress={() => router.replace(`/events/${e.id}/cancel`)}
+              className="min-h-11 data-[active=true]:opacity-70"
+            >
+              <Box>
+                <Text className="text-subhead text-foreground">
+                  {SHEETS.archiveHintBefore}
+                  <Text className="font-bold text-atlas">{SHEETS.archiveHintLink}</Text>
+                  {SHEETS.archiveHintAfter}
                 </Text>
-                {SHEETS.archiveHintAfter}
-              </Text>
-            </Box>
+              </Box>
+            </Pressable>
           )}
         </>
       )}

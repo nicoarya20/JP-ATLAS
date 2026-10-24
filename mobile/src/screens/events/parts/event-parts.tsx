@@ -1,5 +1,6 @@
 // Small layout pieces shared by the events screens (prototype events.parts.jsx): title + pills head, untinted section,
-// bullets, muted note, grey box, the AI-assisted mark, two buttons side by side, a labelled checkbox.
+// bullets, muted note, grey box, the AI-assisted mark, two buttons side by side, a labelled checkbox. Form groups:
+// event-field.tsx.
 import { Check, Sparkles } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
@@ -88,10 +89,14 @@ export function Ai() {
   );
 }
 
-/** A note led by the AI mark: "✦ = AI-assisted. …". */
+/** A note led by the AI mark: "✦ = AI-assisted. …". One stop for screen readers, "AI-assisted. …", without the mark or "=". */
 export function AiNote({ children }: { children: string }) {
   return (
-    <HStack className="items-center gap-1">
+    <HStack
+      accessible
+      accessibilityLabel={children.replace(/^\s*=\s*/, '')}
+      className="items-center gap-1"
+    >
       <Ai />
       <View className="flex-1">
         <Note>{children}</Note>
@@ -129,18 +134,5 @@ export function CheckRow({ label, value, onChange }: CheckRowProps) {
       </CheckboxIndicator>
       <CheckboxLabel className="flex-1 text-body">{label}</CheckboxLabel>
     </Checkbox>
-  );
-}
-
-type EvFieldProps = { label: string; hint?: string; children: ReactNode };
-
-/** Form group with a small label above a non-text control (Seg, Chips, a select), like the kit Field's label. */
-export function EvField({ label, hint, children }: EvFieldProps) {
-  return (
-    <VStack className="gap-2">
-      <Text className="text-footnote text-muted-foreground">{label}</Text>
-      {children}
-      {hint && <Note>{hint}</Note>}
-    </VStack>
   );
 }

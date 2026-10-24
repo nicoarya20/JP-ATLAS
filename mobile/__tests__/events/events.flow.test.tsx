@@ -36,6 +36,10 @@ describe('recording and meeting outcomes', () => {
     await openEvents('/events/daily/outcomes/1');
     expect(screen.getByText('Step 1 of 3')).toBeOnTheScreen();
     // the AI mark is part of the button's name
+    // the AI note is one stop, read without its mark or "="
+    expect(
+      screen.getByLabelText('AI-assisted. You can check and edit the text in the next step.'),
+    ).toBeOnTheScreen();
     await press(/^Turn into text/);
     expect(screen.getByText('Step 2 of 3')).toBeOnTheScreen();
     expect(screen.getByTestId('minutes-text').props.value).toContain('SSO login still errors');
@@ -67,17 +71,22 @@ describe('recording and meeting outcomes', () => {
 
   it('Remove drops a draft; with none left Step 3 confirms without tasks', async () => {
     await openEvents('/events/daily/outcomes/3');
-    const remove = screen.getAllByRole('button', { name: 'Remove' });
-    await fireEvent.press(remove[1] ?? remove[0]);
-    await press('Remove');
+    expect(screen.getByText(/^AI found 2 tasks\./)).toBeOnTheScreen();
+    // each draft's buttons name the task they act on
+    expect(button('Edit Prepare test data once SSO is fixed')).toBeOnTheScreen();
+    await press('Remove Prepare test data once SSO is fixed');
+    expect(screen.getAllByTestId('draft-task')).toHaveLength(1);
+    await press(/^Remove /);
     expect(screen.queryAllByTestId('draft-task')).toHaveLength(0);
-    expect(button('Confirm without tasks')).toBeEnabled();
+    await press('Confirm without tasks');
+    expect(screen.getByText('Outcomes confirmed')).toBeOnTheScreen();
   });
 
   it('an Admin discards instead of removing', async () => {
     await openEvents('/events/daily/outcomes/3', 'admin');
-    expect(screen.getAllByRole('button', { name: 'Discard' })).toHaveLength(2);
-    expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeOnTheScreen();
+    expect(screen.getAllByRole('button', { name: /^Discard / })).toHaveLength(2);
+    expect(button('Discard Prepare test data once SSO is fixed')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: /^Remove / })).not.toBeOnTheScreen();
   });
 
   it('a Member only reads Step 3 and waits for the creator', async () => {
@@ -86,7 +95,7 @@ describe('recording and meeting outcomes', () => {
     expect(screen.getByText('You can only read these meeting outcomes.')).toBeOnTheScreen();
     expect(screen.getAllByTestId('draft-task')).toHaveLength(2);
     expect(screen.queryByRole('button', { name: /^Create/ })).not.toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: /^Remove / })).not.toBeOnTheScreen();
   });
 
   it('the kickoff’s results list its tasks; a task opens in Tasks', async () => {
@@ -137,6 +146,20 @@ describe('cancel and archive', () => {
     await press('Undo');
     expect(screen.getByTestId('event-card-sinar')).toBeOnTheScreen();
     expect(screen.getByText('Event restored')).toBeOnTheScreen();
+  });
+
+  it('the archive sheet’s way to Cancel is its own link, named apart from the sheet’s Cancel', async () => {
+    await openEvents('/events/sinar');
+    await fireEvent.press(screen.getByTestId('event-actions'));
+    await fireEvent.press(await screen.findByText('Move to Archive'));
+    const sheet = within(screen.getByTestId('event-archive'));
+    const link = sheet.getByRole('link', { name: 'Cancel this event instead' });
+    expect(link.props.accessibilityHint).toBe(
+      'Meeting not happening? Use Cancel so attendees know why.',
+    );
+    expect(sheet.getByRole('button', { name: 'Cancel' })).toBeOnTheScreen();
+    await fireEvent.press(link);
+    await waitFor(() => expect(screen).toHavePathname('/events/sinar/cancel'));
   });
 
   it('Undo after Archive deleted the event forever says so and restores nothing', async () => {

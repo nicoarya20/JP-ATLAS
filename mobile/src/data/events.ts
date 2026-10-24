@@ -91,7 +91,7 @@ export type CalendarView = 'month' | 'week';
 export type CalendarDay = {
   date: string;
   day: number;
-  /** Accessibility label, "Thu, Oct 8". */
+  /** Accessibility label with the count the dots stand for: "Thu, Oct 8, 2 events" ("Thu, Oct 8" without events). */
   label: string;
   /** Dots under the number: none, one for one event, two for two or more. */
   dots: 0 | 1 | 2;
@@ -111,6 +111,8 @@ export type EventsCalendarData = {
   /** Events of the picked date by start time. */
   agenda: AgendaItem[];
   filtered: boolean;
+  /** The type / project filters hide every event of the shown month or week (it has some without them). */
+  hiddenByFilters: boolean;
 };
 
 /** Picked date after an arrow: a week moves 7 days, a month picks its 1st (today back in today's month). */
@@ -122,14 +124,16 @@ export function getEventsCalendar(
   role: Role,
   { view, picked = TODAY, query }: { view: CalendarView; picked?: string; query: EventsQuery },
 ): EventsCalendarData {
-  const events = applyQuery(eventsFor(role, eventsStore.get().list), { ...query, when: null });
+  const mine = eventsFor(role, eventsStore.get().list);
+  const events = applyQuery(mine, { ...query, when: null });
   const dates = view === 'week' ? weekOf(picked) : monthOf(picked);
+  const filtered = isFiltered({ ...query, when: 0 });
   const days = dates.map((date): CalendarDay => {
     const n = eventsOn(events, date).length;
     return {
       date,
       day: dayOfMonth(date),
-      label: dateLabel(date),
+      label: n ? `${dateLabel(date)}, ${n} event${n === 1 ? '' : 's'}` : dateLabel(date),
       dots: n > 1 ? 2 : n ? 1 : 0,
       selected: date === picked,
     };
@@ -143,7 +147,11 @@ export function getEventsCalendar(
     days,
     agendaDate: dateLabel(picked),
     agenda,
-    filtered: isFiltered({ ...query, when: 0 }),
+    filtered,
+    hiddenByFilters:
+      filtered &&
+      days.every((d) => !d.dots) &&
+      dates.some((date) => eventsOn(mine, date).length > 0),
   };
 }
 

@@ -1,5 +1,6 @@
 // Events ② calendar (port of prototype events.calendar.test / the calendar half of events.filter.test): Month opens on
 // today, a tapped date shows its agenda, the arrows step months and weeks across month ends, dots follow the query.
+// Plus the W3c screen-reader names (day counts, agenda cards, Month / Week radios) and the filtered-out month's Reset.
 import { fireEvent, screen, within } from '@testing-library/react-native';
 
 import { openEvents, resetEventStores } from '../helpers/events-router';
@@ -20,16 +21,23 @@ const dotted = () =>
     .map((b) => Number(within(b).getByText(/^\d+$/).props.children));
 const dots = (iso: string) =>
   within(screen.getByTestId(`cal-${iso}`)).queryAllByTestId('cal-dot').length;
-const day = (name: string) => screen.getByRole('button', { name });
+/** A date by its spoken name, with or without its ", 2 events" count. */
+const day = (name: string) => screen.getByRole('button', { name: new RegExp(`^${name}(, |$)`) });
 const agendaHead = () => screen.getByTestId('agenda-head').props.children;
 const tap = (name: string) => fireEvent.press(screen.getByRole('button', { name }));
-const tab = (name: string) => fireEvent.press(screen.getByRole('tab', { name }));
+const radio = (name: string) => fireEvent.press(screen.getByRole('radio', { name }));
+const filterBy = async (type: string) => {
+  await fireEvent.press(screen.getByRole('button', { name: 'Filter and sort' }));
+  const sheet = within(screen.getByTestId('filter-sheet'));
+  await fireEvent.press(sheet.getByRole('button', { name: type }));
+  await fireEvent.press(sheet.getByText('Apply'));
+};
 
 describe('events calendar', () => {
   it('opens on Month with today picked and its agenda', async () => {
     await openEvents('/events?view=calendar');
     expect(screen.getByRole('tab', { name: 'Calendar' })).toBeSelected();
-    expect(screen.getByRole('tab', { name: 'Month' })).toBeSelected();
+    expect(screen.getByRole('radio', { name: 'Month' })).toBeChecked();
     expect(screen.queryByRole('button', { name: 'Today' })).not.toBeOnTheScreen();
     expect(screen.getByText('October 2026')).toBeOnTheScreen();
     expect(dates()).toEqual(Array.from({ length: 31 }, (_, i) => i + 1));
@@ -67,12 +75,12 @@ describe('events calendar', () => {
 
   it('Week shows only the picked date’s Mon–Sun row', async () => {
     await openEvents('/events?view=calendar');
-    await tab('Week');
+    await radio('Week');
     expect(dates()).toEqual([5, 6, 7, 8, 9, 10, 11]);
     expect(screen.getByText('Oct 5 – 11')).toBeOnTheScreen();
     expect(screen.queryByText('October 2026')).not.toBeOnTheScreen();
     expect(day('Wed, Oct 7')).toBeSelected();
-    await tab('Month');
+    await radio('Month');
     expect(dates()).toHaveLength(31);
   });
 
@@ -93,7 +101,7 @@ describe('events calendar', () => {
 
   it('week arrows step a week into the next and previous months', async () => {
     await openEvents('/events?view=calendar');
-    await tab('Week');
+    await radio('Week');
     await tap('Next week');
     expect(dates()).toEqual([12, 13, 14, 15, 16, 17, 18]);
     expect(agendaHead()).toBe('Wed, Oct 14 · 0 events');
@@ -110,16 +118,13 @@ describe('events calendar', () => {
     await openEvents('/events?view=calendar');
     await fireEvent.press(day('Thu, Oct 1'));
     expect(agendaHead()).toBe('Thu, Oct 1 · 1 event');
-    await fireEvent.press(screen.getByRole('button', { name: 'Atlas kickoff' }));
+    await fireEvent.press(screen.getByRole('button', { name: /^Atlas kickoff, / }));
     expect(screen).toHavePathname('/events/kickoff/results');
   });
 
   it('keeps the query: a Review filter leaves only the reviews’ dots and agenda', async () => {
     await openEvents('/events?view=calendar');
-    await fireEvent.press(screen.getByRole('button', { name: 'Filter and sort' }));
-    const sheet = within(screen.getByTestId('filter-sheet'));
-    await fireEvent.press(sheet.getByRole('button', { name: 'Review' }));
-    await fireEvent.press(sheet.getByText('Apply'));
+    await filterBy('Review');
     expect(
       screen.getByRole('button', { name: 'Filter and sort' }).props.accessibilityValue,
     ).toEqual({
@@ -134,5 +139,51 @@ describe('events calendar', () => {
     await openEvents('/events?view=calendar', 'member');
     await fireEvent.press(day('Thu, Oct 8'));
     expect(screen.queryByText('Progress presentation to PT Sinar')).not.toBeOnTheScreen();
+  });
+
+  it('names each date with its event count and each agenda card with all it shows', async () => {
+    await openEvents('/events?view=calendar');
+    expect(screen.getByRole('button', { name: 'Wed, Oct 7, 2 events' })).toBeSelected();
+    expect(screen.getByRole('button', { name: 'Thu, Oct 8, 1 event' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Fri, Oct 2' })).toBeOnTheScreen();
+    const review = screen.getByRole('button', { name: /^Onboarding design review, / });
+    expect(review.props.accessibilityLabel).toMatch(
+      /^Onboarding design review, Wed, Oct 7, .+, .+, Review, (Upcoming|Today|Done)$/,
+    );
+  });
+
+  it('keeps List / Calendar as tabs and makes Month / Week a radio group', async () => {
+    await openEvents('/events?view=calendar');
+    expect(screen.getByTestId('events-view').props.accessibilityRole).toBe('tablist');
+    const views = screen.getByTestId('calendar-view').props;
+    expect([views.accessibilityRole, views.accessibilityLabel]).toEqual([
+      'radiogroup',
+      'Calendar view',
+    ]);
+    expect(screen.queryByRole('tab', { name: 'Month' })).not.toBeOnTheScreen();
+    await radio('Week');
+    expect(screen.getByRole('radio', { name: 'Week' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Month' })).not.toBeChecked();
+  });
+
+  it('offers Reset filters when the filters hide every event of the shown month', async () => {
+    await openEvents('/events?view=calendar');
+    await filterBy('Important');
+    expect(dotted()).toEqual([8]);
+    expect(screen.queryByTestId('no-match')).not.toBeOnTheScreen();
+    await tap('Next month');
+    expect(dotted()).toEqual([]);
+    expect(screen.getByText('No events match these filters.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Reset filters' }));
+    expect(dotted()).toEqual([6, 20]);
+    expect(screen.queryByTestId('no-match')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('agenda-head')).toBeOnTheScreen();
+  });
+
+  it('an empty month without filters shows no Reset', async () => {
+    await openEvents('/events?view=calendar');
+    await tap('Previous month');
+    expect(dotted()).toEqual([]);
+    expect(screen.queryByTestId('no-match')).not.toBeOnTheScreen();
   });
 });

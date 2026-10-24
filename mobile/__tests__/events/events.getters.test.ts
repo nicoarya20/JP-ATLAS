@@ -89,7 +89,11 @@ describe('events calendar', () => {
       31,
       'Wed, Oct 7',
     ]);
-    expect(c.days.find((d) => d.selected)?.label).toBe('Wed, Oct 7');
+    // a date's label carries the count its dots stand for
+    expect(c.days.find((d) => d.selected)?.label).toBe('Wed, Oct 7, 2 events');
+    expect(c.days.find((d) => d.date === '2026-10-08')?.label).toBe('Thu, Oct 8, 1 event');
+    expect(c.days.find((d) => d.date === '2026-10-02')?.label).toBe('Fri, Oct 2');
+    expect(c.hiddenByFilters).toBe(false);
     expect(c.agenda.map((a) => [a.event.id, a.status])).toEqual([
       ['daily', 'Done'],
       ['review', 'Today'],
@@ -102,6 +106,12 @@ describe('events calendar', () => {
     });
     expect(typed.agenda.map((a) => a.event.id)).toEqual(['review']);
     expect(typed.filtered).toBe(true);
+    expect(typed.hiddenByFilters).toBe(false);
+    const important = { ...BASE_QUERY, type: TYPE_FILTERS.indexOf('Important') };
+    const nov = { view: 'month', picked: '2026-11-01', query: important } as const;
+    expect(getEventsCalendar('pm', nov).hiddenByFilters).toBe(true);
+    // nothing to hide: September has no events with or without filters
+    expect(getEventsCalendar('pm', { ...nov, picked: '2026-09-01' }).hiddenByFilters).toBe(false);
   });
 
   test('week view and the arrows', () => {

@@ -1,5 +1,6 @@
 // Agenda of the picked date (prototype events.calendar.jsx Agenda): "Thu, Oct 8 · 1 event", then a card per event by
-// start time (time, title, type · status); none → "No events on this day."
+// start time (time, title, type · status); none → "No events on this day." Each card is one button whose name adds
+// the date, time range and place.
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
@@ -7,6 +8,7 @@ import { VStack } from '@/components/ui/vstack';
 import type { AgendaItem } from '@/data/events';
 
 import { CALENDAR } from '../events.strings';
+import { spoken } from '../events.strings.added';
 
 type AgendaListProps = {
   date: string;
@@ -32,7 +34,14 @@ export function AgendaList({ date, items, onOpen }: AgendaListProps) {
         <Pressable
           key={item.event.id}
           accessibilityRole="button"
-          accessibilityLabel={item.event.title}
+          accessibilityLabel={spoken(
+            item.event.title,
+            date,
+            item.event.range,
+            item.event.place,
+            item.event.type,
+            item.status,
+          )}
           onPress={() => onOpen(item)}
           className="rounded-card border border-border bg-card p-3 data-[active=true]:bg-muted"
         >

@@ -61,7 +61,7 @@ export function EventsScreen({ role = SESSION_ROLE }: { role?: Role }) {
         onChange={(i) => router.setParams({ view: VIEWS[i] })}
       />
       {view === 'calendar' ? (
-        <EventsCalendar role={role} query={query} onOpen={open} />
+        <EventsCalendar role={role} query={query} onOpen={open} onReset={reset} />
       ) : data.empty ? (
         <EmptyState
           testID="events-empty"
@@ -76,7 +76,12 @@ export function EventsScreen({ role = SESSION_ROLE }: { role?: Role }) {
           }
         />
       ) : (
-        <EventGroups groups={data.groups} onOpen={open} onReset={reset} />
+        <EventGroups
+          groups={data.groups}
+          searchOnly={!on && !!search.trim()}
+          onOpen={open}
+          onReset={reset}
+        />
       )}
     </StackedScreen>
   );

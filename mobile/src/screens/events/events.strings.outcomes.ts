@@ -48,7 +48,8 @@ export const OUTCOMES = {
   waitingPill: (creator: string) => `Waiting for ${creator} to review`,
   waitingTitle: (creator: string) => `Waiting for ${creator} to confirm`,
   readOnly: 'You can only read these meeting outcomes.',
-  found: (n: number) => `AI found ${n} tasks. Nothing is created until you tap the button below.`,
+  found: (n: number) =>
+    `AI found ${plural(n, 'task')}. Nothing is created until you tap the button below.`,
   forWho: (who: string, due: string) => `For ${who} · ${due ? `Due ${due}` : 'No due date'}`,
   fillDue: 'Fill in the due date first',
   dueLabel: (title: string) => `Due date of ${title}`,
@@ -63,7 +64,9 @@ export const OUTCOMES = {
   viewNotice: 'Decisions, info and questions',
   create: (n: number) => (n ? `Create ${plural(n, 'task')}` : 'Confirm without tasks'),
   goesInto: (project: string) => `Tasks go into ${project} and assignees are notified.`,
-  created: (n: number) => `${plural(n, 'task')} created · outcomes confirmed`,
+  /** Nothing to create ("Confirm without tasks") → only the confirmation. */
+  created: (n: number) =>
+    n ? `${plural(n, 'task')} created · outcomes confirmed` : 'Outcomes confirmed',
 } as const;
 
 export const RESULTS = {

@@ -13,6 +13,7 @@ import { monthDay } from '@/data/dates';
 import { DUE_DATES } from '@/data/events.form';
 import type { DraftTask } from '@/data/sample/events.extra';
 
+import { SPOKEN } from '../events.strings.added';
 import { OUTCOMES } from '../events.strings.outcomes';
 
 const DUE_OPTIONS = [{ value: '', label: OUTCOMES.pickDue }, ...DUE_DATES];
@@ -33,6 +34,7 @@ type DraftsProps = {
 
 function Draft({ t, i, edit }: { t: DraftTask; i: number; edit?: DraftEdit }) {
   const notice = useNotice();
+  const drop = edit?.discard ? OUTCOMES.discard : OUTCOMES.remove;
   return (
     <VStack testID="draft-task" className="gap-2 rounded-card bg-card p-3">
       <Text className="text-headline font-semibold text-foreground">{t.title}</Text>
@@ -59,11 +61,21 @@ function Draft({ t, i, edit }: { t: DraftTask; i: number; edit?: DraftEdit }) {
       )}
       {edit && (
         <HStack className="gap-2">
-          <Button size="sm" variant="outline" onPress={() => notice(OUTCOMES.editNotice)}>
+          <Button
+            size="sm"
+            variant="outline"
+            accessibilityLabel={SPOKEN.draftAction(OUTCOMES.editTask, t.title)}
+            onPress={() => notice(OUTCOMES.editNotice)}
+          >
             <ButtonText>{OUTCOMES.editTask}</ButtonText>
           </Button>
-          <Button size="sm" variant="ghost" onPress={() => edit.remove(i)}>
-            <ButtonText>{edit.discard ? OUTCOMES.discard : OUTCOMES.remove}</ButtonText>
+          <Button
+            size="sm"
+            variant="ghost"
+            accessibilityLabel={SPOKEN.draftAction(drop, t.title)}
+            onPress={() => edit.remove(i)}
+          >
+            <ButtonText>{drop}</ButtonText>
           </Button>
         </HStack>
       )}

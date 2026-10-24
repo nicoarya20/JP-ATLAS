@@ -16,7 +16,7 @@ import { SESSION_ROLE } from '@/data/session';
 
 import { FORM } from '../events.strings';
 import { EventMissing, EventPage } from '../parts/event-page';
-import { Box, Note, Two } from '../parts/event-parts';
+import { Box, Two } from '../parts/event-parts';
 import { EventBasics } from './event-basics';
 import { EventDetails } from './event-details';
 
@@ -30,7 +30,7 @@ export function EventFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const notice = useNotice();
   if (!form || !f) return <EventMissing />;
   const set = (patch: Partial<EventFields>) => setF((x) => x && { ...x, ...patch });
-  const { ok, timeOk } = validateEvent(f);
+  const { ok } = validateEvent(f);
   const name = me(role).name;
   const save = () => {
     const fields = savedFields({ ...f, agenda: agendaLines(agenda) });
@@ -57,7 +57,6 @@ export function EventFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
   return (
     <EventPage testID="event-form" modal title={event ? FORM.editTitle : FORM.newTitle} foot={foot}>
       <EventBasics f={f} set={set} creator={form.creator} />
-      {!timeOk && <Note>{FORM.timeError}</Note>}
       {more ? (
         <>
           <Button variant="link" className="self-start" onPress={() => setMore(false)}>

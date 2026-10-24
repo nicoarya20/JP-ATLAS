@@ -1,5 +1,6 @@
 // Event card of the list (prototype events.list.jsx EventCard): time tile, title with its repeat badge, range and
-// place, type and status pills, and View / Check results on a Done event. Tap opens eventHref.
+// place, type and status pills, and View / Check results on a Done event. Tap opens eventHref. A screen reader hears the
+// card as one button naming all of that; View / Check results is the card's named action, since both open one screen.
 import { Repeat } from 'lucide-react-native';
 
 import { StatusPill } from '@/components/status/status-pill';
@@ -11,8 +12,12 @@ import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { EventCard as Card } from '@/data/events';
+import { eventDate } from '@/data/events.shared';
 
 import { LIST } from '../events.strings';
+import { spoken } from '../events.strings.added';
+
+const RESULTS_ACTION = 'results';
 
 type EventCardProps = { card: Card; onOpen: (card: Card) => void };
 
@@ -20,11 +25,24 @@ type EventCardProps = { card: Card; onOpen: (card: Card) => void };
 export function EventCard({ card, onOpen }: EventCardProps) {
   const e = card.event;
   const open = () => onOpen(card);
+  const results = card.results && (card.results === 'view' ? LIST.viewResults : LIST.checkResults);
   return (
     <Pressable
       testID={`event-card-${e.id}`}
       accessibilityRole="button"
-      accessibilityLabel={e.title}
+      accessibilityLabel={spoken(
+        e.title,
+        eventDate(e),
+        e.range,
+        e.place,
+        e.repeat,
+        e.type,
+        card.status,
+      )}
+      accessibilityActions={
+        results ? [{ name: 'activate' }, { name: RESULTS_ACTION, label: results }] : undefined
+      }
+      onAccessibilityAction={open}
       onPress={open}
       className="rounded-card border border-border bg-card p-3 data-[active=true]:bg-muted"
     >
@@ -50,11 +68,16 @@ export function EventCard({ card, onOpen }: EventCardProps) {
               </Badge>
               <StatusPill status={card.status} />
             </HStack>
-            {card.results && (
-              <Button size="sm" variant="outline" onPress={open}>
-                <ButtonText>
-                  {card.results === 'view' ? LIST.viewResults : LIST.checkResults}
-                </ButtonText>
+            {results && (
+              // Not a second stop for screen readers: the card offers it as its named action.
+              <Button
+                size="sm"
+                variant="outline"
+                onPress={open}
+                accessible={false}
+                focusable={false}
+              >
+                <ButtonText>{results}</ButtonText>
               </Button>
             )}
           </HStack>

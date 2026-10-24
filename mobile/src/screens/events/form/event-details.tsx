@@ -14,7 +14,8 @@ import { PROJECTS } from '@/data/sample';
 import type { Repeat } from '@/data/sample/events.extra';
 
 import { FORM } from '../events.strings';
-import { EvField, Note, Two } from '../parts/event-parts';
+import { EvField } from '../parts/event-field';
+import { Note, Two } from '../parts/event-parts';
 import type { FormProps } from './event-basics';
 
 const PROJECT_OPTIONS = PROJECTS.map((p) => ({ value: p.id, label: p.name }));
@@ -27,7 +28,7 @@ export function EventDetails({ f, set, agenda, onAgenda }: EventDetailsProps) {
   const notice = useNotice();
   return (
     <>
-      <EvField label={FORM.type}>
+      <EvField label={FORM.type} named>
         <Chips
           label={FORM.type}
           items={TYPES}
@@ -35,7 +36,7 @@ export function EventDetails({ f, set, agenda, onAgenda }: EventDetailsProps) {
           onChange={(i) => set({ type: TYPES[i] ?? TYPES[0] })}
         />
       </EvField>
-      <EvField label={FORM.project} hint={FORM.projectHint}>
+      <EvField label={FORM.project} hint={FORM.projectHint} named>
         <SelectField
           label={FORM.project}
           options={PROJECT_OPTIONS}
@@ -45,7 +46,7 @@ export function EventDetails({ f, set, agenda, onAgenda }: EventDetailsProps) {
       </EvField>
       <Field label={FORM.agenda} multiline value={agenda} onChangeText={onAgenda} />
       <Two>
-        <EvField label={FORM.repeat}>
+        <EvField label={FORM.repeat} named>
           <SelectField<Repeat | ''>
             label={FORM.repeat}
             options={REPEAT_OPTIONS}
@@ -53,7 +54,7 @@ export function EventDetails({ f, set, agenda, onAgenda }: EventDetailsProps) {
             onChange={(repeat) => set({ repeat })}
           />
         </EvField>
-        <EvField label={FORM.reminder}>
+        <EvField label={FORM.reminder} named>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={FORM.reminder}

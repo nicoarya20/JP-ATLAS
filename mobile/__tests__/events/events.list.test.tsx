@@ -89,6 +89,20 @@ describe('events results buttons', () => {
     expect(kickoff && within(kickoff).getByText('View results')).toBeOnTheScreen();
     expect(daily && within(daily).getByText('Check results')).toBeOnTheScreen();
     expect(filterOn()).toBe(true);
+    // one stop per card: the results button is the card's named action, not a second element
+    expect(daily?.props.accessibilityActions).toEqual([
+      { name: 'activate' },
+      { name: 'results', label: 'Check results' },
+    ]);
+    expect(screen.queryByRole('button', { name: 'Check results' })).not.toBeOnTheScreen();
+    await fireEvent(daily as never, 'accessibilityAction', {
+      nativeEvent: { actionName: 'results' },
+    });
+    expect(screen).toHavePathname('/events/daily/outcomes/3');
+  });
+
+  it('PM: the visible Check results button opens the same screen', async () => {
+    await pastList('pm');
     await fireEvent.press(screen.getByText('Check results'));
     expect(screen).toHavePathname('/events/daily/outcomes/3');
   });
@@ -130,12 +144,30 @@ describe('events filter & sort', () => {
     expect(filterOn()).toBe(false);
   });
 
-  it('offers Reset filters when no event matches', async () => {
+  it('offers Reset filters when no event matches; the search alone says so', async () => {
     await openEvents('/events');
     await fireEvent.changeText(screen.getByLabelText('Search title or location…'), 'nothing here');
-    expect(screen.getByText('No events match these filters.')).toBeOnTheScreen();
+    expect(screen.getByText('No events match this search.')).toBeOnTheScreen();
     await fireEvent.press(screen.getByRole('button', { name: 'Reset filters' }));
     expect(shown()).toEqual(UPCOMING.map((e) => e.id));
+  });
+
+  it('says "these filters" once a filter is on, search or not', async () => {
+    await openEvents('/events');
+    await openFilter();
+    await press('Important');
+    await apply();
+    await fireEvent.changeText(screen.getByLabelText('Search title or location…'), 'nothing here');
+    expect(screen.getByText('No events match these filters.')).toBeOnTheScreen();
+    expect(screen.queryByText('No events match this search.')).not.toBeOnTheScreen();
+  });
+
+  it('names a card by everything it shows', async () => {
+    await openEvents('/events');
+    expect(card('sinar')?.props.accessibilityLabel).toMatch(
+      /^Progress presentation to PT Sinar, Thu, Oct 8, .+–.+, .+, Important, (Upcoming|Today)$/,
+    );
+    expect(card('sinar')?.props.accessibilityActions).toBeUndefined();
   });
 
   it('Reset puts the draft back to upcoming, every type, by schedule', async () => {
