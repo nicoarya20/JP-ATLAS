@@ -12,7 +12,8 @@
       "!riset-keano",
       "!prototype-pm",
       "!.agents",
-      "!JP-Atlas-Design-System-2026-10-21"
+      "!JP-Atlas-Design-System-2026-10-21",
+      "!mobile"
     ]
   },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
