@@ -58,11 +58,56 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
 
 ## Events
 
-(diisi Sesi B)
+- [ ] **Notifikasi di atas modal/sheet** `[iOS]`
+  - Di form New event (modal), pasang Reminder lalu Save → "Event saved" tampil **di atas** modal, tidak tertutup.
+  - Ulangi Edit event → "Event updated".
+  - Cancel event dari sheet → "Event canceled" tampil di atas sheet.
+- [ ] **dismissTo setelah Create tasks dan Archive** `[keduanya]`
+  - Outcomes Step 3 → Create tasks → hasil terbuka. Back → detail event, Back lagi → daftar Events.
+  - Detail → ⋯ → Move to Archive → kembali ke daftar. Daftar dan snack Undo tampil di atas tab bar, tidak tertutup.
+- [ ] **Tinggi sheet dan keyboard** `[keduanya]`
+  - Filter & sort, Cancel event, dan Move to Archive → tinggi sheet pas dengan isinya (tidak terpotong, tidak menyisakan ruang kosong besar).
+  - Cancel event: ketuk kolom Reason → keyboard tidak menutupi kolom maupun tombol.
+- [ ] **Agenda di atas keyboard** `[keduanya]`
+  - Form New event → ketik di Agenda (multiline) sampai beberapa baris → kolom tetap terlihat di atas keyboard.
+- [ ] **VoiceOver/TalkBack di Events** `[keduanya]`
+  - Kalender: tiap sel tanggal terbaca "Wed, Oct 7" + status terpilih.
+  - Kartu event: tombol "View results"/"Check results" di dalam kartu bisa difokus dan diaktifkan sendiri.
+  - Outcomes Step 1: tombol Play terbaca dan bisa diaktifkan.
+- [ ] **Recording tanpa geser balik** `[iOS]`
+  - Di layar Recording, geser dari tepi kiri → layar **tidak** kembali (NO_SWIPE); keluar hanya lewat Stop recording.
+  - Timer statis seperti prototipe (bukan bug).
+
+(item W3c menyusul dari Sesi B)
 
 ## Projects
 
-(diisi Sesi C)
+- [ ] **Baris orang dan filter** `[keduanya]`
+  - Tab Projects → ketuk Lea di baris orang → "Lea's projects · 2" dan hanya 2 kartu. Clear → semua kartu kembali.
+  - Filter & sort → Active + Name (A–Z) → Apply → urutan Atlas, Legacy Data Migration, PT Sinar, dan titik muncul di ikon filter.
+- [ ] **Detail Atlas** `[keduanya]`
+  - Overview → ketuk "Overdue: #12 Fix SSO login" → detail tugas #12 terbuka.
+  - Ganti tab Overview/Tasks/Phases/Members → berganti di tempat, Back langsung kembali ke daftar (bukan ke tab sebelumnya).
+  - Tasks: pindah List ↔ Kanban; Start working di #14 → "Task started"; ikon filter membuka sheet filter tugas proyek.
+- [ ] **Members (T2)** `[keduanya]`
+  - Ganti role Dodi menjadi Viewer → dialog "Change Dodi's role?" → Change role → "Role changed".
+  - Remove Dodi → dialog "Remove Dodi from the project?" → Remove member → "Member removed".
+  - Pemilih role dan Remove milik Nico (Lead) nonaktif.
+- [ ] **Move to Archive lalu Undo (T1)** `[keduanya]`
+  - ⋯ → Move to Archive → kembali ke daftar, Atlas hilang, snack "Project moved to Archive" tampil di atas tab bar.
+  - Undo (dalam 10 detik) → Atlas kembali di tempatnya, tugasnya muncul lagi di tab Tasks, dan "Project restored".
+- [ ] **Delete forever proyek, lalu Undo** `[keduanya]` (Admin)
+  - Move to Archive pada Atlas → buka More › Archive → Delete forever Atlas (ketik namanya) → "Deleted forever".
+  - Kembali dan ketuk Undo di snack (bila masih tampil) → "This project was deleted forever and can't be restored.", Atlas tidak kembali.
+- [ ] **Project settings** `[keduanya]`
+  - ⋯ → Project settings → pengaturan tugas proyek (TasksSettings) terbuka; Back kembali ke detail Atlas.
+- [ ] **New project** `[keduanya]`
+  - Tombol "+" → tiga tombol Choose dan hanya satu Cancel (chevron bawah).
+  - Tell us about the project → Build draft ✦ → hapus centang "1. Planning" → tugasnya tersembunyi → Create project → Atlas terbuka dengan "Project created". Back → daftar Projects.
+  - Fill in the form: Create project nonaktif sampai nama diisi; quick pick "1 wk" mengubah End date.
+- [ ] **Member tidak bisa mengelola** `[keduanya]` (Member)
+  - Detail Atlas tanpa menu ⋯ dan tanpa Extend deadline.
+  - Buka /projects/new, /projects/atlas/edit, /extend, /archive (mis. lewat link) → diarahkan ke Beranda.
 
 ## More/W3 (Inbox, Team, Users, Archive, Settings, Profil)
 
