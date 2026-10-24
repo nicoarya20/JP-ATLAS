@@ -73,6 +73,12 @@ describe('Members tab', () => {
   it('Remove asks first; Cancel keeps the member, Remove member takes them out', async () => {
     await openProjects('/projects/atlas?tab=members');
     expect(button('Remove Nico')).toBeDisabled();
+    // the Lead's role select is off too, and says why
+    expect(button('Project role of Nico')).toBeDisabled();
+    expect(button('Project role of Nico').props.accessibilityHint).toBe(
+      "The Lead stays Manager and can't be removed.",
+    );
+    expect(button('Project role of Dodi').props.accessibilityHint).toBeUndefined();
     await press('Remove Dodi');
     const dialog = within(await screen.findByTestId('member-confirm'));
     expect(dialog.getByText('Remove Dodi from the project?')).toBeOnTheScreen();

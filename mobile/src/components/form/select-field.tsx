@@ -29,6 +29,8 @@ type SelectFieldProps<V extends string> = {
   required?: boolean;
   /** Marks it invalid: red border, and the message read as its hint (the form shows the message itself). */
   error?: string;
+  /** Read after the error, also while disabled: why it can't change ("The Lead stays Manager…"). */
+  hint?: string;
   testID?: string;
 };
 
@@ -53,7 +55,7 @@ export function SelectField<V extends string>(p: SelectFieldProps<V>) {
         // The input showing the label is hidden from screen readers (gluestack), so the trigger carries the value
         accessibilityLabel={fieldName(p.label, p.required)}
         accessibilityValue={{ text: picked?.label ?? '' }}
-        accessibilityHint={p.error}
+        accessibilityHint={[p.error, p.hint].filter(Boolean).join(' ') || undefined}
         size="lg"
         className={`min-h-11 rounded-control bg-card pr-3 ${p.error ? 'border-destructive' : 'border-input'}`}
       >

@@ -196,6 +196,36 @@ describe('Seg as radios, SelectField and FormError', () => {
     expect(end.props.accessibilityValue).toEqual({ text: '9:00 AM' });
   });
 
+  test('SelectField reads its hint after the error, and still while disabled', async () => {
+    const options = [{ value: 'm', label: 'Manager' }];
+    const role = () => screen.getByRole('button', { name: 'Role' });
+    await show(
+      <SelectField
+        label="Role"
+        options={options}
+        value="m"
+        onChange={jest.fn()}
+        disabled
+        hint="The Lead stays Manager."
+      />,
+    );
+    expect(role()).toBeDisabled();
+    expect(role().props.accessibilityHint).toBe('The Lead stays Manager.');
+    await show(
+      <SelectField
+        label="Role"
+        options={options}
+        value="m"
+        onChange={jest.fn()}
+        error="Pick a role."
+        hint="The Lead stays Manager."
+      />,
+    );
+    expect(role().props.accessibilityHint).toBe('Pick a role. The Lead stays Manager.');
+    await show(<SelectField label="Role" options={options} value="m" onChange={jest.fn()} />);
+    expect(role().props.accessibilityHint).toBeUndefined();
+  });
+
   test('FormError is a polite live alert', async () => {
     await show(<FormError testID="err">Pick a later end.</FormError>);
     expect(screen.getByTestId('err').props).toMatchObject({

@@ -68,6 +68,7 @@ function MemberCard({
                 options={ROLE_OPTIONS}
                 value={m.role}
                 disabled={m.lead}
+                hint={m.lead ? ADDED.leadStays : undefined}
                 onChange={(role) => role !== m.role && onAsk({ name: m.name, role })}
               />
             </VStack>
