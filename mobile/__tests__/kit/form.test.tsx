@@ -132,6 +132,33 @@ describe('Chips, MultiChips and Seg', () => {
   });
 });
 
+describe('Seg names', () => {
+  test('names replace the spoken labels one by one; the visible text stays', async () => {
+    await show(
+      <Seg
+        items={['Just write ✦', 'Fill form']}
+        names={['Just write', 'Fill form']}
+        value={0}
+        onChange={jest.fn()}
+      />,
+    );
+    expect(screen.getByRole('tab', { name: 'Just write' })).toBeOnTheScreen();
+    expect(screen.queryByRole('tab', { name: 'Just write ✦' })).not.toBeOnTheScreen();
+    expect(screen.getByText('Just write ✦', { includeHiddenElements: true })).toBeOnTheScreen();
+  });
+
+  test('without names, or with a names list of another length, the visible text is the name', async () => {
+    await show(<Seg items={['List', 'Board']} value={0} onChange={jest.fn()} />);
+    expect(screen.getByRole('tab', { name: 'List' })).toBeOnTheScreen();
+    await show(
+      <Seg items={['List', 'Board']} names={['My list']} value={0} onChange={jest.fn()} />,
+    );
+    expect(screen.getByRole('tab', { name: 'List' })).toBeOnTheScreen();
+    expect(screen.getByRole('tab', { name: 'Board' })).toBeOnTheScreen();
+    expect(screen.queryByRole('tab', { name: 'My list' })).not.toBeOnTheScreen();
+  });
+});
+
 describe('Seg as radios, SelectField and FormError', () => {
   test('Seg kind radio is a named radio group with the picked radio checked', async () => {
     const onChange = jest.fn();

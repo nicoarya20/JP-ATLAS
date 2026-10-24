@@ -15,6 +15,8 @@ type SegProps = {
   onChange: (index: number) => void;
   /** Draw these icons instead of the labels; the labels stay as the segments' accessible names. */
   icons?: readonly LucideIcon[];
+  /** Spoken names in place of the labels ("Just write" for "Just write ✦"); ignored unless one per item. */
+  names?: readonly string[];
   /** 'tabs' (default) switches what the screen shows; 'radio' picks one value of a form or of a view inside a tab. */
   kind?: 'tabs' | 'radio';
   /** Accessible name of the whole row ("Location"). */
@@ -30,12 +32,14 @@ export function Seg({
   value,
   onChange,
   icons,
+  names,
   kind = 'tabs',
   label: name,
   lines = 1,
   testID,
 }: SegProps) {
   const radio = kind === 'radio';
+  const spoken = names?.length === items.length ? names : undefined;
   return (
     <HStack
       testID={testID}
@@ -50,7 +54,7 @@ export function Seg({
           <Pressable
             key={label}
             accessibilityRole={radio ? 'radio' : 'tab'}
-            accessibilityLabel={label}
+            accessibilityLabel={spoken?.[i] ?? label}
             accessibilityState={radio ? { checked: on } : { selected: on }}
             onPress={() => onChange(i)}
             className={`min-h-11 flex-1 items-center justify-center rounded-control px-2 ${lines > 1 ? 'py-1' : ''} ${on ? 'border border-border bg-card' : ''}`}
