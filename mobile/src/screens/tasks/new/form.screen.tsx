@@ -22,11 +22,15 @@ import {
   shownReviewer,
 } from '@/data/tasks.form';
 import { fullName } from '@/data/tasks.shared';
+import { Labelled } from '../parts/labelled';
 import { TaskPage } from '../parts/task-page';
 import { Act, Foot } from '../parts/task-parts';
 import { F } from '../tasks.strings';
+import { MODE_NAMES } from '../tasks.strings.added';
 import { DateEdit, MoreToggle, PriorityEdit, TypePhaseEdit, useTaskForm } from './form-choices';
-import { AssigneeEdit, Labelled, ReviewEdit, TagsEdit } from './form-fields';
+import { AssigneeEdit, ReviewEdit } from './form-fields';
+import { TagsEdit } from './tags-edit';
+import { saveHint, TitleField } from './title-field';
 
 /** New task · Fill form for `role`, on the project in the route (`/tasks/new/form?project=<id>`) when allowed. */
 export function TaskFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
@@ -58,6 +62,7 @@ export function TaskFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
         kind="primary"
         label={F.save}
         disabled={!canSave(f)}
+        hint={saveHint(f)}
         onPress={save}
         testID="form-save"
       />
@@ -67,12 +72,14 @@ export function TaskFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
     <TaskPage modal title={F.newTitle} foot={foot} testID="screen-task-form">
       <Seg
         items={F.modes}
+        names={MODE_NAMES}
         value={1}
         onChange={(i) => i === 0 && router.replace('/tasks/new')}
         testID="new-mode"
       />
-      <Labelled label={F.projectRequired}>
+      <Labelled required label={F.project}>
         <SelectField
+          required
           label={F.project}
           options={start.projects.map((p) => ({ value: p.id, label: p.name }))}
           value={project.id}
@@ -80,13 +87,7 @@ export function TaskFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
           testID="form-project"
         />
       </Labelled>
-      <Field
-        required
-        label={F.title}
-        value={f.title}
-        onChangeText={set('title')}
-        testID="field-title"
-      />
+      <TitleField value={f.title} onChange={set('title')} />
       <AssigneeEdit
         people={project.members.map((n) => ({ value: n, label: fullName(n) }))}
         who={f.who}

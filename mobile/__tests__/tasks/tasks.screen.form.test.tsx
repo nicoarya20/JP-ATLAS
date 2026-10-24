@@ -38,16 +38,22 @@ describe('edit task', () => {
     expect(await screen.findByText('Task updated')).toBeOnTheScreen();
   });
 
-  it('Save needs a title and an assignee', async () => {
+  it('Save needs a title and an assignee, and says which is missing', async () => {
     await openTasks('/tasks/14/edit');
+    expect(screen.queryByText('Enter a title to save.')).not.toBeOnTheScreen();
     await fireEvent.changeText(screen.getByTestId('field-title'), '  ');
     expect(screen.getByTestId('edit-save')).toBeDisabled();
+    expect(screen.getByText('Enter a title to save.')).toBeOnTheScreen();
+    expect(screen.getByTestId('edit-save').props.accessibilityHint).toBe('Enter a title to save.');
+    await fireEvent.changeText(screen.getByTestId('field-title'), 'Write the API spec');
+    expect(screen.queryByText('Enter a title to save.')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('edit-save').props.accessibilityHint).toBeUndefined();
   });
 
   it('adds and removes steps', async () => {
     await openEdit(14);
-    await fireEvent.press(button('+ Add step'));
-    await fireEvent.press(button('+ Add step'));
+    await fireEvent.press(button('Add step'));
+    await fireEvent.press(button('Add step'));
     await fireEvent.changeText(screen.getByLabelText('Step 1'), 'Draft the endpoints');
     await fireEvent.press(button('Remove step 2'));
     expect(screen.queryByLabelText('Step 2')).not.toBeOnTheScreen();
@@ -89,6 +95,27 @@ describe('new task', () => {
     expect(screen.getByTestId('form-more')).toBeCollapsed();
   });
 
+  it('names its controls once, without the stars and the ✦', async () => {
+    await openTasks('/tasks/new/form');
+    const mode = within(screen.getByTestId('new-mode'));
+    expect(mode.getByRole('tab', { name: 'Just write' })).toBeOnTheScreen();
+    expect(screen.getByTestId('form-project')).toHaveAccessibleName('Project, required');
+    expect(screen.queryByText('Project *')).not.toBeOnTheScreen();
+    expect(screen.getByText('Project *', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(screen.getByRole('switch', { name: 'Needs review' })).toBeOnTheScreen();
+    expect(screen.queryByText('Needs review')).not.toBeOnTheScreen();
+  });
+
+  it('Just write ✦ names each draft’s tick after it and reads the ask once', async () => {
+    await openTasks('/tasks/new');
+    expect(screen.getByRole('checkbox', { name: 'Include Fix the login page' })).toBeOnTheScreen();
+    expect(button('Compose')).toBeOnTheScreen();
+    // The ask's chips carry its question; the ✦ headline above them is skipped.
+    expect(screen.queryByText(/^Which /)).not.toBeOnTheScreen();
+    expect(screen.getByText(/^Which /, { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(screen.getByLabelText(/^Which /)).toBeOnTheScreen();
+  });
+
   it('Save adds a To do task and opens its detail', async () => {
     const before = getTasksState().tasks.length;
     await openTasks('/tasks/new/form');
@@ -104,6 +131,8 @@ describe('new task', () => {
     await openTasks('/tasks/csv');
     expect(screen.getByText('4 ready (1 with a note) · 1 error')).toBeOnTheScreen();
     expect(screen.getAllByTestId(/^csv-row-/)).toHaveLength(5);
+    expect(screen.getByTestId('csv-mode')).toHaveAccessibleName('Source');
+    expect(screen.getByRole('radio', { name: 'Upload file' })).toBeChecked();
     await fireEvent.press(screen.getByTestId('csv-import'));
     await waitFor(() => expect(screen).toHavePathname('/tasks'));
     expect(await screen.findByText('Tasks imported')).toBeOnTheScreen();

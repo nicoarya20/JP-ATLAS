@@ -9,7 +9,6 @@ export const W = {
   composed: 'AI drafted the tasks',
   draftNote: 'Draft from AI. Check before saving.',
   count: (n: number) => `${n} tasks`,
-  include: 'Include',
   pill: { who: 'Assignee', due: 'Due', priority: 'Priority', type: 'Type' },
   askNote: 'Example when a name is ambiguous, AI asks one thing:',
   editText: 'Edit text',

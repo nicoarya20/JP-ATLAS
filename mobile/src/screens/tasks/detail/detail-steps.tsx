@@ -11,6 +11,7 @@ import type { TaskStep } from '@/data/tasks.shared';
 
 import { Act, Sec } from '../parts/task-parts';
 import { S } from '../tasks.strings';
+import { SPOKEN } from '../tasks.strings.added';
 
 function Step({ step }: { step: TaskStep }) {
   const [on, setOn] = useState(step.done);
@@ -41,7 +42,12 @@ export function DetailSteps({ steps }: { steps: TaskDetailView['steps'] }) {
       ))}
       {steps.empty && <Text className="text-footnote text-muted-foreground">{steps.empty}</Text>}
       {steps.addStep && (
-        <Act kind="link" label={S.detail.addStep} onPress={() => notice(S.detail.stepAdded)} />
+        <Act
+          kind="link"
+          label={S.detail.addStep}
+          name={SPOKEN.addStep}
+          onPress={() => notice(S.detail.stepAdded)}
+        />
       )}
     </Sec>
   );

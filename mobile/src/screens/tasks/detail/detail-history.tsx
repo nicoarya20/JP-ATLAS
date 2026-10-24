@@ -9,6 +9,7 @@ import type { TaskDetailView } from '@/data/tasks.detail';
 
 import { Sec } from '../parts/task-parts';
 import { S } from '../tasks.strings';
+import { spoken } from '../tasks.strings.added';
 
 /** Description section. */
 export function DetailDescription({ view }: { view: TaskDetailView }) {
@@ -28,7 +29,13 @@ export function DetailHistory({ history }: { history: TaskDetailView['history'] 
   return (
     <Sec title={S.detail.history}>
       {history.map((e) => (
-        <HStack key={`${e.text}-${e.when}`} className="items-center gap-3">
+        // One stop per line; its text starts with the person the avatar shows.
+        <HStack
+          key={`${e.text}-${e.when}`}
+          accessible
+          accessibilityLabel={spoken(e.text, e.when)}
+          className="items-center gap-3"
+        >
           {e.who ? (
             <AvatarStack names={[e.who]} />
           ) : (

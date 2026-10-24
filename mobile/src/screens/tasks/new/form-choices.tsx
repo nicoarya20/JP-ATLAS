@@ -14,8 +14,8 @@ import { TODAY } from '@/data/sample';
 import type { Option, TaskForm } from '@/data/tasks.form';
 import { PRIORITIES, type TaskPriority, type TaskType, TYPES } from '@/data/tasks.shared';
 
+import { Labelled } from '../parts/labelled';
 import { F } from '../tasks.strings';
-import { Labelled } from './form-fields';
 
 const TYPE_OPTIONS = TYPES.map(([value, label]) => ({ value, label }));
 

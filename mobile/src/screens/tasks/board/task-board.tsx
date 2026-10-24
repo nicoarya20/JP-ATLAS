@@ -12,7 +12,13 @@ import { me } from '@/data/people';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import type { TaskCard } from '@/data/tasks';
-import { type BoardStatus, COLUMNS, selectionHint } from '@/data/tasks.columns';
+import {
+  type BoardStatus,
+  COLUMNS,
+  holdGroup,
+  selectionHint,
+  sharedStatus,
+} from '@/data/tasks.columns';
 import { deniedNotice } from '@/data/tasks.shared';
 import { getTask } from '@/data/tasks.state';
 import { moveOnBoard } from '@/data/tasks.store';
@@ -63,9 +69,17 @@ export function TaskBoard({ tasks, role = SESSION_ROLE, mine }: TaskBoardProps) 
     setPicked((old) =>
       all ? old.filter((n) => !nos.includes(n)) : [...new Set([...old, ...nos])],
     );
+  const groupOf = (no: number) => holdGroup(no, chosen);
+  const moveSet = (no: number) => {
+    const nos = groupOf(no);
+    return { n: nos.length, from: sharedStatus(tasks.filter((t) => nos.includes(t.no))) };
+  };
+  /** A named "Move to …": the same group and store call as releasing the move menu (useMoveMenu.pick). */
   const move = (no: number, status: BoardStatus) => {
-    const { notice: text } = moveOnBoard(me(role), [no], status);
+    const nos = groupOf(no);
+    const { notice: text } = moveOnBoard(me(role), nos, status);
     if (text) notice(text);
+    if (nos.length > 1) endSelect();
   };
   return (
     <>
@@ -94,6 +108,7 @@ export function TaskBoard({ tasks, role = SESSION_ROLE, mine }: TaskBoardProps) 
             onToggle={toggle}
             onAll={pickAll}
             onOpen={(no) => router.push(`/tasks/${no}`)}
+            moveSet={moveSet}
             onMove={move}
             onAdd={() => router.push('/tasks/new/form')}
           />

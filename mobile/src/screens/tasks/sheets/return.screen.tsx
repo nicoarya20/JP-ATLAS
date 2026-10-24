@@ -1,5 +1,6 @@
 // Tasks ⑪ Return (review detail › Return, prototype tasks.sheets.jsx TasksReturn): a reason is required, a quick pick
-// fills it; the task goes back to In progress and the count is logged. Managers and Admins only.
+// fills it; the task goes back to In progress and the count is logged. Managers and Admins only. Return stays disabled
+// without a reason and says so (UX §5): as its hint, and under the reason once it was touched.
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
@@ -14,8 +15,9 @@ import { getTaskDetail } from '@/data/tasks';
 import { nextReturnCount, RETURN_QUICK, returnTask } from '@/data/tasks.actions';
 import { allowedScreen } from '@/navigation/screen-roles';
 
-import { Labelled } from '../new/form-fields';
+import { Labelled } from '../parts/labelled';
 import { S } from '../tasks.strings';
+import { MISSING } from '../tasks.strings.added';
 import { SheetPair, taskLine } from './sheet-parts';
 
 /** Return sheet of the task in the route (`/tasks/<no>/return`); anyone else, or a task not in review, goes home. */
@@ -27,6 +29,8 @@ export function ReturnScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const [view] = useState(() => getTaskDetail(role, no));
   const [n] = useState(() => nextReturnCount(no));
   const [reason, setReason] = useState('');
+  const [touched, setTouched] = useState(false);
+  const missing = reason.trim() ? undefined : MISSING.reason;
   if (!view?.canReturn || !allowedScreen('tasks.return', role)) return <Redirect href="/" />;
   const send = () => {
     notice(returnTask(role, no, reason));
@@ -36,7 +40,8 @@ export function ReturnScreen({ role = SESSION_ROLE }: { role?: Role }) {
     <SheetPair
       cancel={S.sheet.cancel}
       primary={S.sheet.returnAction}
-      ok={!!reason.trim()}
+      ok={!missing}
+      hint={missing}
       onPress={send}
       testID="return-send"
     />
@@ -62,7 +67,12 @@ export function ReturnScreen({ role = SESSION_ROLE }: { role?: Role }) {
         label={S.sheet.reason}
         placeholder={S.sheet.reasonHint}
         value={reason}
-        onChangeText={setReason}
+        onChangeText={(text) => {
+          setTouched(true);
+          setReason(text);
+        }}
+        onBlur={() => setTouched(true)}
+        error={touched ? missing : undefined}
         testID="return-reason"
       />
       <Text className="text-footnote text-muted-foreground">

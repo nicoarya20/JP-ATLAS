@@ -16,6 +16,7 @@ import { getQuery } from './tasks.query-state';
 import {
   assigned,
   assignees,
+  daysLate,
   dueIn,
   fullName,
   mayChange,
@@ -50,6 +51,8 @@ export type TaskCard = Pick<
   /** Lists: past due. Board: past due and not Done. */
   late: boolean;
   lateOnBoard: boolean;
+  /** "2 days late" when past due, shown with the red date so lateness is not told by colour alone. */
+  lateBy: string | null;
   /** "2/3", or null without steps. */
   steps: string | null;
   /** The viewer may move, edit and cancel it (a Member only their own). */
@@ -86,7 +89,8 @@ const FALLBACK_REVIEWER = TASK_REVIEWERS[17]?.split(' ')[0] ?? '';
 /** Card view of task t for `role`. */
 export function taskCard(s: TasksState, role: Role, t: TaskItem): TaskCard {
   const viewer = me(role);
-  const late = dueIn(t) < 0;
+  const days = dueIn(t);
+  const late = days < 0;
   return {
     no: t.no,
     title: t.title,
@@ -100,6 +104,7 @@ export function taskCard(s: TasksState, role: Role, t: TaskItem): TaskCard {
     due: monthDay(t.due),
     late,
     lateOnBoard: late && t.status !== 'Done',
+    lateBy: late ? daysLate(-days) : null,
     steps: stepsDone(s.info[t.no]?.steps ?? []),
     mayChange: mayChange(viewer, t),
   };
@@ -132,7 +137,8 @@ export function getTasksList(
     const source = searchTasks(sourceOf(s, scope, name), search);
     const tasks = applyQuery(source, query, { board: true, me: name });
     const columns = boardColumns(tasks).map((c) => ({ ...c, cards: c.tasks.map(card) }));
-    return { ...base, view, columns, empty: null };
+    // An empty board without filters keeps its empty columns (prototype); a narrowed one says so, with Reset (UX §4).
+    return { ...base, view, columns, empty: !tasks.length && narrowed ? 'noMatch' : null };
   }
   // My tasks reads every task: its review queue spans the team, myGroups picks the viewer's own.
   const groups: TaskCardGroup[] =

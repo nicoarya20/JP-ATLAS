@@ -68,6 +68,10 @@ export function Foot({ children }: { children: ReactNode }) {
 
 type ActProps = {
   label: string;
+  /** Accessible name when the visible label has a symbol ("+ Add step" → "Add step"). */
+  name?: string;
+  /** Why it is disabled ("Enter a title to save."), read after the name (UX §5). */
+  hint?: string;
   onPress: () => void;
   /** lime main action (default), outline, danger, or a violet text link. */
   kind?: 'primary' | 'outline' | 'danger' | 'link';
@@ -90,6 +94,8 @@ const VARIANT = {
 /** One button of a Tasks screen. */
 export function Act({
   label,
+  name,
+  hint,
   onPress,
   kind = 'outline',
   disabled,
@@ -105,6 +111,8 @@ export function Act({
       variant={VARIANT[kind]}
       isDisabled={disabled || loading}
       onPress={onPress}
+      accessibilityLabel={name}
+      accessibilityHint={hint}
       accessibilityState={{ busy: !!loading, disabled: !!(disabled || loading) }}
       className={`${flex} ${kind === 'link' ? 'self-start' : ''}`}
     >

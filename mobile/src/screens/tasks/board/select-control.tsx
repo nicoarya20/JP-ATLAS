@@ -17,6 +17,7 @@ import { MOTION } from '@/data/tasks.radial';
 import { SPACING } from '@/theme/tokens';
 
 import { S } from '../tasks.strings';
+import { SPOKEN } from '../tasks.strings.added';
 
 /** Select-all sits this far right (on top of Select: its 44 px target plus the gap) while hidden. */
 const HIDDEN_SHIFT = 44 + SPACING.xs;
@@ -80,7 +81,7 @@ export function SelectControl({ on, status, all, canAll, onToggle, onAll }: Sele
       <Pressable
         testID={`select-${status}`}
         accessibilityRole="button"
-        accessibilityLabel={on ? S.board.cancel : S.board.select}
+        accessibilityLabel={on ? SPOKEN.stopIn(status) : SPOKEN.selectIn(status)}
         onPress={onToggle}
         className="z-10 min-h-11 justify-center"
       >

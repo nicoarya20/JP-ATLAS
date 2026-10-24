@@ -13,16 +13,18 @@ import type { TaskProof } from '@/data/tasks.shared';
 
 import { Act, Sec } from '../parts/task-parts';
 import { S } from '../tasks.strings';
+import { SPOKEN, spoken } from '../tasks.strings.added';
 
 function Evidence({ proof, half }: { proof: TaskProof; half: boolean }) {
   return (
-    <VStack className={`gap-1 ${half ? 'w-[48%]' : ''}`}>
-      <View
-        accessible
-        accessibilityRole="image"
-        accessibilityLabel={S.detail.photo}
-        className="h-20 w-28 items-center justify-center rounded-control bg-muted"
-      >
+    // One stop per evidence: "Photo, photo-1.jpg, <caption>".
+    <VStack
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={spoken(S.detail.photo, proof.file, proof.caption)}
+      className={`gap-1 ${half ? 'w-[48%]' : ''}`}
+    >
+      <View className="h-20 w-28 items-center justify-center rounded-control bg-muted">
         <Icon as={Image} size="xl" className="text-muted-foreground" />
       </View>
       <Text className="text-footnote font-semibold text-foreground">{proof.file}</Text>
@@ -49,7 +51,12 @@ export function DetailEvidence({
         ))}
       </HStack>
       {evidence.attach && (
-        <Act kind="link" label={S.detail.attach} onPress={() => notice(S.detail.attached)} />
+        <Act
+          kind="link"
+          label={S.detail.attach}
+          name={SPOKEN.attach}
+          onPress={() => notice(S.detail.attached)}
+        />
       )}
     </Sec>
   );

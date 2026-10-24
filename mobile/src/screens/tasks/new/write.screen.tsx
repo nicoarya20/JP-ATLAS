@@ -19,6 +19,7 @@ import { getQuickWrite } from '@/data/tasks';
 import { TaskPage } from '../parts/task-page';
 import { Act, Foot, Soft } from '../parts/task-parts';
 import { F } from '../tasks.strings';
+import { MODE_NAMES, SPOKEN } from '../tasks.strings.added';
 import { W } from '../tasks.strings.more';
 
 type Draft = ReturnType<typeof getQuickWrite>['drafts'][number];
@@ -35,7 +36,7 @@ function DraftCard({ d }: { d: Draft }) {
     <HStack className="items-start gap-3 rounded-card bg-card p-4" testID="write-draft">
       <Checkbox
         value={d.title}
-        aria-label={W.include}
+        aria-label={SPOKEN.include(d.title)}
         isChecked={on}
         onChange={setOn}
         className="min-h-11 min-w-11"
@@ -58,8 +59,13 @@ function DraftCard({ d }: { d: Draft }) {
   );
 }
 
-const AiHead = ({ children }: { children: string }) => (
-  <HStack className="min-w-0 flex-1 items-center gap-1">
+/** ✦ headline of an AI part; `named`: the control under it carries the same words, so screen readers skip it. */
+const AiHead = ({ children, named }: { children: string; named?: boolean }) => (
+  <HStack
+    accessibilityElementsHidden={named}
+    importantForAccessibility={named ? 'no-hide-descendants' : 'auto'}
+    className="min-w-0 flex-1 items-center gap-1"
+  >
     <Icon as={Sparkles} size="sm" className="text-atlas" />
     <Text className="text-footnote font-bold text-foreground">{children}</Text>
   </HStack>
@@ -86,6 +92,7 @@ export function TaskWriteScreen() {
     <TaskPage modal title={F.newTitle} foot={foot} testID="screen-task-write">
       <Seg
         items={F.modes}
+        names={MODE_NAMES}
         value={0}
         onChange={(i) => i === 1 && router.replace('/tasks/new/form')}
         testID="new-mode"
@@ -102,7 +109,12 @@ export function TaskWriteScreen() {
       </Textarea>
       <HStack className="items-center justify-between gap-3">
         <Text className="text-footnote text-muted-foreground">{W.speak}</Text>
-        <Act label={W.compose} onPress={() => notice(W.composed)} testID="write-compose" />
+        <Act
+          label={W.compose}
+          name={SPOKEN.compose}
+          onPress={() => notice(W.composed)}
+          testID="write-compose"
+        />
       </HStack>
       <Soft>
         <HStack className="items-center justify-between gap-2">
@@ -115,7 +127,7 @@ export function TaskWriteScreen() {
       ))}
       <Text className="text-footnote text-muted-foreground">{W.askNote}</Text>
       <Soft>
-        <AiHead>{qw.askTitle}</AiHead>
+        <AiHead named>{qw.askTitle}</AiHead>
         <Chips label={qw.askTitle} items={qw.ask} value={asked} onChange={setAsked} />
       </Soft>
     </TaskPage>

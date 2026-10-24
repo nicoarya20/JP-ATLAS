@@ -12,6 +12,7 @@ import { getCsvImport } from '@/data/tasks';
 import type { CsvPreviewRow } from '@/data/tasks.write';
 import { TaskPage } from '../parts/task-page';
 import { Act, Foot, Soft } from '../parts/task-parts';
+import { SPOKEN } from '../tasks.strings.added';
 import { C } from '../tasks.strings.more';
 
 /** One preview row as a card (the prototype's five columns would not fit a phone as a table). */
@@ -71,7 +72,14 @@ export function CsvScreen() {
         </Text>
         <Act kind="link" label={C.sample} onPress={() => notice(C.sampleDone)} />
       </HStack>
-      <Seg items={C.modes} value={mode} onChange={setMode} testID="csv-mode" />
+      <Seg
+        kind="radio"
+        label={SPOKEN.source}
+        items={C.modes}
+        value={mode}
+        onChange={setMode}
+        testID="csv-mode"
+      />
       <Soft>
         <HStack className="flex-wrap items-center justify-between gap-2">
           <Text className="text-subhead text-foreground">{csv.file}</Text>

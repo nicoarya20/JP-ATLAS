@@ -1,5 +1,6 @@
 // Copy of the Tasks screens, verbatim from the prototype (screens/tasks/*.jsx). Copy that depends on data (notes, facts,
 // notices after an action) comes from src/data/tasks*.ts instead.
+import { tasksCount } from '@/data/tasks.columns';
 
 export const S = {
   title: 'Tasks',
@@ -7,7 +8,6 @@ export const S = {
   scopes: ['My tasks', 'All tasks'],
   views: ['List', 'Kanban'],
   due: (date: string) => `Due ${date}`,
-  select: 'Select',
   empty: {
     icon: 'No tasks',
     title: 'No tasks for you yet.',
@@ -28,13 +28,12 @@ export const S = {
   },
   board: {
     label: 'Kanban board',
-    column: (status: string, n: number) => `${status}, ${n} tasks`,
+    column: (status: string, n: number) => `${status}, ${tasksCount(n)}`,
     select: 'Select',
     cancel: 'Cancel',
     selectAll: (all: boolean, status: string) =>
       `${all ? 'Deselect' : 'Select'} all ${status} tasks`,
     addTask: 'Add task',
-    moveTo: (status: string) => `Move to ${status}`,
   },
   radial: {
     close: 'Close',
@@ -76,9 +75,10 @@ export const S = {
     cancel: 'Cancel',
     returnAction: 'Return',
     cancelTitle: 'Cancel task',
-    why: 'Why cancel? *',
-    whyLabel: 'Why cancel?',
-    note: 'Note * (required for Other)',
+    /** Labelled adds the star of 'Why cancel? *'. */
+    why: 'Why cancel?',
+    /** 'Note * (required for Other)'; Field adds the star (at the end) once Other is picked. */
+    note: 'Note (required for Other)',
     noteHint: 'Add a note…',
     cancelNote:
       'The task stays in the project, marked Canceled, and can be restored from its detail.',
@@ -100,7 +100,6 @@ export const F = {
   type: 'Type',
   phase: 'Phase',
   project: 'Project',
-  projectRequired: 'Project *',
   description: 'Description',
   descHint: 'What needs to be done…',
   start: 'Start date',

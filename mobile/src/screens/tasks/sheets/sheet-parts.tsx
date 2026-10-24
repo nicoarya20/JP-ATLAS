@@ -15,16 +15,34 @@ type PairProps = {
   primary: string;
   /** The main action is allowed (its required fields are filled). */
   ok: boolean;
+  /** What is still missing while it is not allowed, read as the main action's hint. */
+  hint?: string;
   onPress: () => void;
   kind?: 'primary' | 'danger';
   testID?: string;
 };
 
-export function SheetPair({ cancel, primary, ok, onPress, kind = 'primary', testID }: PairProps) {
+export function SheetPair({
+  cancel,
+  primary,
+  ok,
+  hint,
+  onPress,
+  kind = 'primary',
+  testID,
+}: PairProps) {
   return (
     <HStack className="gap-3">
       <Act grow label={cancel} onPress={() => router.back()} />
-      <Act wide kind={kind} label={primary} disabled={!ok} onPress={onPress} testID={testID} />
+      <Act
+        wide
+        kind={kind}
+        label={primary}
+        disabled={!ok}
+        hint={ok ? undefined : hint}
+        onPress={onPress}
+        testID={testID}
+      />
     </HStack>
   );
 }

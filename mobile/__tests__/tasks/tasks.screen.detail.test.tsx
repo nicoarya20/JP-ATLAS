@@ -83,6 +83,51 @@ describe('task detail', () => {
   });
 });
 
+describe('task detail accessibility', () => {
+  it('reads an assignee, an evidence and a history line once each', async () => {
+    await openTasks('/tasks/17');
+    const facts = within(screen.getByTestId('task-facts'));
+    expect(facts.queryAllByLabelText('Dodi Hartono')).toHaveLength(0);
+    expect(facts.getAllByText('Dodi Hartono')).toHaveLength(1);
+    expect(screen.getAllByRole('image', { name: /^Photo, / }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('image', { name: 'Photo' })).not.toBeOnTheScreen();
+    expect(screen.getByLabelText('Dodi started working, Oct 6')).toBeOnTheScreen();
+  });
+
+  it('reads the empty tag list as No tags', async () => {
+    // #9 has no tags in the sample.
+    await openTasks('/tasks/9');
+    expect(within(screen.getByTestId('task-facts')).getByLabelText('No tags')).toBeOnTheScreen();
+  });
+});
+
+describe('task sheets say what is missing', () => {
+  it('Return names the missing reason as its hint, and under the reason once touched', async () => {
+    await openTasks('/tasks/17/return');
+    const send = screen.getByTestId('return-send');
+    expect(send.props.accessibilityHint).toBe('Enter a reason to return the task.');
+    expect(screen.queryByText('Enter a reason to return the task.')).not.toBeOnTheScreen();
+    await fireEvent(screen.getByTestId('return-reason'), 'blur');
+    expect(screen.getByText('Enter a reason to return the task.')).toBeOnTheScreen();
+    await fireEvent.changeText(screen.getByTestId('return-reason'), 'Needs a screenshot');
+    expect(send.props.accessibilityHint).toBeUndefined();
+  });
+
+  it('Cancel names Why cancel? as required, and asks for the note once Other is picked', async () => {
+    await openTasks('/tasks/14/cancel');
+    const send = screen.getByTestId('cancel-send');
+    expect(screen.getByLabelText('Why cancel?, required')).toBeOnTheScreen();
+    expect(send.props.accessibilityHint).toBe('Pick why to cancel the task.');
+    await fireEvent.press(screen.getByRole('radio', { name: 'Other' }));
+    expect(send.props.accessibilityHint).toBe('Add a note to cancel for Other.');
+    expect(screen.getByTestId('cancel-note')).toHaveAccessibleName(
+      'Note (required for Other), required',
+    );
+    await fireEvent(screen.getByTestId('cancel-note'), 'blur');
+    expect(screen.getByText('Add a note to cancel for Other.')).toBeOnTheScreen();
+  });
+});
+
 describe('task sheets turn away', () => {
   it('a Member opening Return goes home', async () => {
     await openTasks('/tasks/17/return', 'member');

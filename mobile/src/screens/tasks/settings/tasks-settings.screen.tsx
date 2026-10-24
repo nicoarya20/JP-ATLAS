@@ -14,6 +14,7 @@ import { getTaskSettings } from '@/data/tasks';
 import { useTasks } from '@/data/tasks.state';
 import { TaskPage } from '../parts/task-page';
 import { Act, Sec, Soft } from '../parts/task-parts';
+import { SPOKEN } from '../tasks.strings.added';
 import { P } from '../tasks.strings.more';
 import { TagRow, TypeCard } from './settings-parts';
 
@@ -58,7 +59,10 @@ export function TasksSettings({
         <Text className="text-footnote text-foreground">{P.reviewText}</Text>
         <Text className="text-footnote text-muted-foreground">{P.reviewNote}</Text>
       </Soft>
-      <Sec title={P.types} right={<Act label={P.addType} onPress={() => notice(P.newType)} />}>
+      <Sec
+        title={P.types}
+        right={<Act label={P.addType} name={SPOKEN.addType} onPress={() => notice(P.newType)} />}
+      >
         <Text className="text-footnote text-muted-foreground">{view.typeLimit}</Text>
         {view.types.map((t) => (
           <TypeCard key={t.name} {...t} />

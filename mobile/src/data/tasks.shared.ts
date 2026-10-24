@@ -119,11 +119,14 @@ export function dueLabel(t: Pick<TaskItem, 'status' | 'due' | 'when'>): string {
   return d === 1 ? 'Tomorrow' : `Due ${monthDay(t.due)}`;
 }
 
+/** "1 day late", "3 days late": the facts' due note, and the text a late card shows beside its red date. */
+export const daysLate = (n: number) => `${n} ${n === 1 ? 'day' : 'days'} late`;
+
 /** Note after the due date in the facts: "(2 days late)", "(today)", "(tomorrow)" or none. */
 export function dueNote(t: Pick<TaskItem, 'status' | 'due'>): string {
   if (!isOpen(t)) return '';
   const d = dueIn(t);
-  if (d < 0) return `(${-d} days late)`;
+  if (d < 0) return `(${daysLate(-d)})`;
   if (d === 0) return '(today)';
   return d === 1 ? '(tomorrow)' : '';
 }

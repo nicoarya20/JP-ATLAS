@@ -1,5 +1,6 @@
 // The list view of My tasks and All tasks (prototype tasks.list.jsx TasksMy, TasksAll, TasksEmpty): group headings
-// with their count, then the cards; "No tasks for you yet." with New task, or "No tasks match these filters."
+// with their count (one stop: "Overdue, 2 tasks"), then the cards; "No tasks for you yet." with New task, or "No tasks
+// match these filters."
 import { ListChecks, Plus } from 'lucide-react-native';
 
 import { EmptyState } from '@/components/state/empty-state';
@@ -9,6 +10,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { TaskCardGroup, TasksEmpty } from '@/data/tasks';
+import { tasksCount } from '@/data/tasks.columns';
 
 import { S } from '../tasks.strings';
 import { AllCard } from './all-card';
@@ -48,10 +50,13 @@ export function TaskList({ mine, groups, empty, onOpen, onNew, onReset }: TaskLi
   return groups.map((g) => (
     <VStack key={g.title ?? 'all'} className="gap-3">
       {g.title && (
-        <HStack className="items-baseline gap-2 pt-2">
-          <Text accessibilityRole="header" className="text-headline font-semibold text-foreground">
-            {g.title}
-          </Text>
+        <HStack
+          accessible
+          accessibilityRole="header"
+          accessibilityLabel={`${g.title}, ${tasksCount(g.tasks.length)}`}
+          className="items-baseline gap-2 pt-2"
+        >
+          <Text className="text-headline font-semibold text-foreground">{g.title}</Text>
           <Text className="text-headline text-muted-foreground">{g.tasks.length}</Text>
         </HStack>
       )}

@@ -11,8 +11,9 @@ import type { TaskCard } from '@/data/tasks';
 import type { BoardStatus, BoardColumn as Column } from '@/data/tasks.columns';
 
 import { S } from '../tasks.strings';
+import { SPOKEN } from '../tasks.strings.added';
 import { STATUS_ICON, TONE_SOFT } from './board.tones';
-import { BoardCard } from './board-card';
+import { BoardCard, type MoveSet } from './board-card';
 import { SelectControl } from './select-control';
 import type { MoveMenu } from './use-move-menu';
 
@@ -31,6 +32,8 @@ type BoardColumnProps = {
   /** Pick (or drop, when all are picked) the cards the viewer may change. */
   onAll: (nos: number[], all: boolean) => void;
   onOpen: (no: number) => void;
+  /** What a named move of card `no` carries. */
+  moveSet: (no: number) => MoveSet;
   onMove: (no: number, status: BoardStatus) => void;
   onAdd: () => void;
 };
@@ -78,6 +81,7 @@ export function BoardColumn(p: BoardColumnProps) {
           mine={p.mine}
           menu={menu}
           lifted={menu.lifted.includes(c.no)}
+          moveSet={p.moveSet(c.no)}
           select={
             p.selecting ? { on: p.picked.includes(c.no), toggle: () => p.onToggle(c) } : undefined
           }
@@ -86,7 +90,13 @@ export function BoardColumn(p: BoardColumnProps) {
         />
       ))}
       <View className="items-start">
-        <Button testID={`add-task-${column.status}`} variant="link" size="sm" onPress={p.onAdd}>
+        <Button
+          testID={`add-task-${column.status}`}
+          variant="link"
+          size="sm"
+          accessibilityLabel={SPOKEN.addTo(column.status)}
+          onPress={p.onAdd}
+        >
           <ButtonIcon as={Plus} />
           <ButtonText>{S.board.addTask}</ButtonText>
         </Button>

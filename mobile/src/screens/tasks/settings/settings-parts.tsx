@@ -1,6 +1,10 @@
 // Rows of Project settings (prototype tasks.settings.jsx TypeCard, TagRow): a task type with its base category, and a
-// tag with its task count. Their links only toast in Phase 1.
+// tag with its task count. Their links only toast in Phase 1; Delete asks first (T2, UX §1; the prototype toasts at
+// once).
 import { ChevronDown } from 'lucide-react-native';
+import { useState } from 'react';
+
+import { ConfirmDialog } from '@/components/confirm/confirm-dialog';
 
 import { useNotice } from '@/components/notice/use-notice';
 import { Badge, BadgeText } from '@/components/ui/badge';
@@ -10,21 +14,21 @@ import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
+import { DELETE_TAG } from '../tasks.strings.added';
 import { P } from '../tasks.strings.more';
 
-type Links = readonly (readonly [label: string, toast: string])[];
+type Links = readonly (readonly [label: string, run: () => void])[];
 
-/** Violet text links, each showing its toast. */
+/** Violet text links, each running its action. */
 function LinkRow({ links, of }: { links: Links; of: string }) {
-  const notice = useNotice();
   return (
     <HStack className="gap-1">
-      {links.map(([label, toast]) => (
+      {links.map(([label, run]) => (
         <Pressable
           key={label}
           accessibilityRole="button"
           accessibilityLabel={`${label} ${of}`}
-          onPress={() => notice(toast)}
+          onPress={run}
           className="min-h-11 justify-center px-2"
         >
           <Text className="text-footnote font-semibold text-atlas">{label}</Text>
@@ -33,16 +37,6 @@ function LinkRow({ links, of }: { links: Links; of: string }) {
     </HStack>
   );
 }
-
-const TYPE_LINKS: Links = [
-  [P.rename, P.renameType],
-  [P.archive, P.archived],
-];
-const TAG_LINKS: Links = [
-  [P.rename, P.renameTag],
-  [P.merge, P.mergeTags],
-  [P.delete, P.deleted],
-];
 
 export function TypeCard({
   name,
@@ -72,13 +66,26 @@ export function TypeCard({
       </Pressable>
       <HStack className="items-center justify-between gap-2">
         <Text className="text-footnote text-muted-foreground">{P.category}</Text>
-        <LinkRow links={TYPE_LINKS} of={name} />
+        <LinkRow
+          links={[
+            [P.rename, () => notice(P.renameType)],
+            [P.archive, () => notice(P.archived)],
+          ]}
+          of={name}
+        />
       </HStack>
     </VStack>
   );
 }
 
 export function TagRow({ tag, count }: { tag: string; count: string }) {
+  const notice = useNotice();
+  const [asking, setAsking] = useState(false);
+  const links: Links = [
+    [P.rename, () => notice(P.renameTag)],
+    [P.merge, () => notice(P.mergeTags)],
+    [P.delete, () => setAsking(true)],
+  ];
   return (
     <HStack
       className="min-h-11 flex-wrap items-center justify-between gap-2 py-2"
@@ -89,8 +96,20 @@ export function TagRow({ tag, count }: { tag: string; count: string }) {
       </Badge>
       <HStack className="items-center gap-1">
         <Text className="text-footnote text-muted-foreground">{count}</Text>
-        <LinkRow links={TAG_LINKS} of={tag} />
+        <LinkRow links={links} of={tag} />
       </HStack>
+      <ConfirmDialog
+        open={asking}
+        onClose={() => setAsking(false)}
+        title={DELETE_TAG.title(tag)}
+        message={DELETE_TAG.message}
+        confirmLabel={DELETE_TAG.confirm}
+        danger
+        onConfirm={() => {
+          notice(P.deleted);
+        }}
+        testID="delete-tag-dialog"
+      />
     </HStack>
   );
 }

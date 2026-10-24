@@ -15,6 +15,7 @@ import type { TaskProof, TaskStep } from '@/data/tasks.shared';
 
 import { Act, Sec } from '../parts/task-parts';
 import { F, S } from '../tasks.strings';
+import { SPOKEN } from '../tasks.strings.added';
 
 const without = <T,>(list: readonly T[], i: number) => list.filter((_, j) => j !== i);
 const swap = <T,>(list: readonly T[], i: number, item: T) =>
@@ -88,6 +89,7 @@ export function StepsEdit({
       <Act
         kind="link"
         label={F.steps.add}
+        name={SPOKEN.addStep}
         onPress={() => onChange([...steps, { text: '', done: false }])}
       />
     </Sec>
@@ -131,7 +133,7 @@ export function EvidenceEdit({
           <Remove label={F.evidence.remove(p.file)} onPress={() => onChange(without(proof, i))} />
         </HStack>
       ))}
-      <Act kind="link" label={F.evidence.attach} onPress={attach} />
+      <Act kind="link" label={F.evidence.attach} name={SPOKEN.attach} onPress={attach} />
     </Sec>
   );
 }

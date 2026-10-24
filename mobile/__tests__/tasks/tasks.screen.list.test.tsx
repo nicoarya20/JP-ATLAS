@@ -1,5 +1,6 @@
 // Tasks list and Filter & sort screens (port of prototype tasks.list.test / tasks.filter.test): the My tasks groups,
-// My / All, opening a card, NoMatch + Reset, and the filter sheet's draft, Reset, Apply and dot.
+// My / All, opening a card, NoMatch + Reset, what a screen reader hears of the cards and heads, and the filter sheet's
+// draft, Reset, Apply and dot.
 import { fireEvent, screen, within } from '@testing-library/react-native';
 
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
@@ -48,6 +49,31 @@ describe('tasks list', () => {
     expect(screen.getByTestId('no-match')).toBeOnTheScreen();
     await fireEvent.press(within(screen.getByTestId('no-match')).getByRole('button'));
     expect(shown([17, 12])).toEqual([17, 12]);
+  });
+});
+
+describe('tasks list accessibility', () => {
+  it('names the switches, a group head with its count and a late card with how late', async () => {
+    await openTasks('/tasks');
+    expect(screen.getByTestId('tasks-scope')).toHaveAccessibleName('Scope');
+    expect(screen.getByTestId('tasks-view')).toHaveAccessibleName('View');
+    expect(screen.getByRole('header', { name: 'Overdue, 1 task' })).toBeOnTheScreen();
+    expect(card(12)).toHaveAccessibleName(
+      '#12 Fix SSO login, Atlas Project, High, In progress, 2 days overdue, Due Oct 5, 2 days late, ' +
+        'Nico Pratama, Steps 2/3',
+    );
+    expect(
+      within(screen.getByTestId('task-card-12')).getByText(/ · \d+ days? late$/),
+    ).toBeOnTheScreen();
+  });
+
+  it('names an All tasks card and its Select tick after the task', async () => {
+    await openTasks('/tasks?scope=all');
+    expect(card(17)).toHaveAccessibleName(
+      '#17 Fix the save button on the profile page, Bug, Medium, In review, Waiting for my review, Due Oct 8, ' +
+        'Dodi Hartono, Steps 2/2',
+    );
+    expect(screen.getByRole('checkbox', { name: /^Select #17 / })).toBeOnTheScreen();
   });
 });
 

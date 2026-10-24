@@ -3,6 +3,7 @@ import { TASKS } from '../../src/data/sample';
 import { GROUPS, groupOf, myGroups } from '../../src/data/tasks.groups';
 import { baseQuery } from '../../src/data/tasks.query';
 import {
+  daysLate,
   deniedNotice,
   detailVariant,
   dueLabel,
@@ -100,6 +101,7 @@ describe('notes and labels', () => {
       '(tomorrow)',
       '',
     ]);
+    expect([daysLate(1), daysLate(3)]).toEqual(['1 day late', '3 days late']);
   });
 
   test('who label, detail variant and steps title', () => {

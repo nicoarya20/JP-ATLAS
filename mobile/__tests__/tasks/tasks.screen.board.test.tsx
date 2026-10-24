@@ -1,8 +1,9 @@
 // Kanban moves (port of prototype tasks.board.move.test / tasks.board.select.test): hold a card for HOLD_MS to open the
 // move menu, slide toward a status and let go; back to the centre cancels; a still release leaves it open for a tap; a
 // Member may not move someone else's card; Select picks cards and a held pick moves the whole group; the screen reader
-// action "Move to …" moves a card without the gesture.
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+// action "Move to …" moves a card (or, on a picked card, its group) without the gesture; a board the search empties
+// shows NoMatch with Reset.
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 import { createGestureController } from 'react-native-gesture-handler/jest-utils';
 import { HOLD_MS } from '../../src/data/tasks.radial';
 import { getTask } from '../../src/data/tasks.state';
@@ -71,7 +72,7 @@ describe('kanban move menu', () => {
     await lift(pan);
     expect(menu()).toBeOnTheScreen();
     expect(screen.getByText('Tap a status to move the task')).toBeOnTheScreen();
-    expect(screen.getByTestId('radial-To do')).toHaveAccessibleName('To do Now');
+    expect(screen.getByTestId('radial-To do')).toHaveAccessibleName('To do, current status');
     await fireEvent.press(screen.getByTestId('radial-Done'));
     expect(status(14)).toBe('Done');
   });
@@ -167,5 +168,58 @@ describe('kanban accessibility', () => {
     ]);
     await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'Done' } });
     await waitFor(() => expect(status(14)).toBe('Done'));
+  });
+
+  it('names a card with what it shows, a late one with how late, and a column head with its count', async () => {
+    await openTasks('/tasks?view=board');
+    expect(screen.getByTestId('board-card-14')).toHaveAccessibleName(
+      '#14 Write the API spec, Atlas Project, Medium, To do, Due Oct 7, Nico Pratama',
+    );
+    expect(
+      within(screen.getByTestId('board-card-12')).getByText(/ · \d+ days? late$/),
+    ).toBeOnTheScreen();
+    expect(
+      ['To do', 'In progress', 'In review', 'Done'].map(
+        (c) =>
+          within(screen.getByTestId(`column-${c}`)).getByRole('header').props.accessibilityLabel,
+      ),
+    ).toEqual(['To do, 2 tasks', 'In progress, 1 task', 'In review, 0 tasks', 'Done, 1 task']);
+  });
+
+  it('a picked card’s named move carries its whole group, as holding it does, and ends Select', async () => {
+    await openTasks('/tasks?view=board');
+    await fireEvent.press(screen.getByTestId('select-To do'));
+    await fireEvent.press(screen.getByTestId('board-card-14'));
+    await fireEvent.press(screen.getByTestId('board-card-9'));
+    const card = screen.getByTestId('board-card-14');
+    expect(card.props.accessibilityActions.map((a: { label: string }) => a.label)).toEqual([
+      'Move 2 tasks to In progress',
+      'Move 2 tasks to In review',
+      'Move 2 tasks to Done',
+    ]);
+    await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'Done' } });
+    expect([status(14), status(9)]).toEqual(['Done', 'Done']);
+    expect(await screen.findByText('Moved 2 tasks to Done')).toBeOnTheScreen();
+    expect(screen.getByTestId('select-To do')).toHaveAccessibleName('Select tasks in To do');
+  });
+
+  it('names Select, its Cancel and Add task by their column', async () => {
+    await openTasks('/tasks?view=board');
+    const select = screen.getByTestId('select-Done');
+    expect(select).toHaveAccessibleName('Select tasks in Done');
+    await fireEvent.press(select);
+    expect(select).toHaveAccessibleName('Stop selecting in Done');
+    expect(screen.getByTestId('add-task-Done')).toHaveAccessibleName('Add task to Done');
+  });
+});
+
+describe('kanban no match', () => {
+  it('a search that empties every column shows NoMatch, and Reset brings the board back', async () => {
+    await openTasks('/tasks?view=board');
+    await fireEvent.changeText(screen.getByLabelText('Search title, #number, or tag…'), 'zzz');
+    expect(screen.queryByTestId('task-board')).not.toBeOnTheScreen();
+    expect(screen.getByText('No tasks match these filters.')).toBeOnTheScreen();
+    await fireEvent.press(within(screen.getByTestId('no-match')).getByRole('button'));
+    expect(screen.getByTestId('board-card-14')).toBeOnTheScreen();
   });
 });

@@ -76,6 +76,25 @@ describe('getTasksList · list', () => {
     expect(getTasksList('pm', { scope: 'all', view: 'list', search: 'zzz' }).empty).toBe('noMatch');
   });
 
+  test('a board stays as empty columns unless a filter or search empties it (then noMatch)', () => {
+    archiveTask(17, 'Nico');
+    archiveTask(16, 'Nico');
+    expect(getTasksList('member', { scope: 'mine', view: 'board' }).empty).toBeNull();
+    resetTasks();
+    expect(getTasksList('pm', { scope: 'mine', view: 'board', search: 'zzz' }).empty).toBe(
+      'noMatch',
+    );
+    expect(getTasksList('pm', { scope: 'mine', view: 'board', search: 'sso' }).empty).toBeNull();
+  });
+
+  test('a past-due card says how late, beside its red date', () => {
+    const list = getTasksList('pm', { scope: 'mine', view: 'list' });
+    const cards = list.view === 'list' ? list.groups.flatMap((g) => g.tasks) : [];
+    const late = cards.find((c) => c.no === 12);
+    expect(late).toMatchObject({ late: true, lateOnBoard: true, lateBy: '2 days late' });
+    expect(cards.find((c) => c.no === 14)).toMatchObject({ late: false, lateBy: null });
+  });
+
   test('a canceled task leaves the default lists; the Canceled filter shows it', () => {
     moveTask(14, 'Canceled');
     expect(

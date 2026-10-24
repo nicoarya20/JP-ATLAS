@@ -12,6 +12,7 @@ import type { BoardColumn } from '@/data/tasks.columns';
 import { MOTION, OPTION_RADIUS } from '@/data/tasks.radial';
 
 import { S } from '../tasks.strings';
+import { SPOKEN } from '../tasks.strings.added';
 import { STATUS_ICON, TONE_FILL, TONE_SOFT } from './board.tones';
 
 const ORDER = { up: 0, right: 1, down: 2, left: 3 } as const;
@@ -79,7 +80,7 @@ export function RadialOption({
         <Pressable
           testID={`radial-${column.status}`}
           accessibilityRole="button"
-          accessibilityLabel={now ? `${column.status} ${S.radial.now}` : column.status}
+          accessibilityLabel={now ? SPOKEN.current(column.status) : column.status}
           accessibilityState={{ disabled: now, selected: now }}
           disabled={now}
           onPress={onPick}

@@ -12,6 +12,8 @@ import { VStack } from '@/components/ui/vstack';
 import type { TaskCard } from '@/data/tasks';
 
 import { S } from '../tasks.strings';
+import { SPOKEN } from '../tasks.strings.added';
+import { cardName } from './card-name';
 import { CardTitle } from './card-title';
 
 type AllCardProps = { card: TaskCard; onOpen: (no: number) => void };
@@ -24,7 +26,7 @@ export function AllCard({ card: t, onOpen }: AllCardProps) {
       <Checkbox
         value={String(t.no)}
         // aria-label: gluestack names the checkbox itself and overrides accessibilityLabel
-        aria-label={S.select}
+        aria-label={SPOKEN.selectTask(t.no, t.title)}
         isChecked={picked}
         onChange={setPicked}
         className="min-h-11 min-w-11 items-start"
@@ -36,7 +38,7 @@ export function AllCard({ card: t, onOpen }: AllCardProps) {
       <Pressable
         testID={`task-card-${t.no}`}
         accessibilityRole="button"
-        accessibilityLabel={`#${t.no} ${t.title}`}
+        accessibilityLabel={cardName(t, { place: t.type, late: false, note: true })}
         onPress={() => onOpen(t.no)}
         className="min-w-0 flex-1"
       >

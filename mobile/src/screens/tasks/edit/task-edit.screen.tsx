@@ -19,7 +19,9 @@ import {
 } from '@/data/tasks.form';
 
 import { DateEdit, PriorityEdit, TypePhaseEdit, useTaskForm } from '../new/form-choices';
-import { AssigneeEdit, ReviewEdit, TagsEdit } from '../new/form-fields';
+import { AssigneeEdit, ReviewEdit } from '../new/form-fields';
+import { TagsEdit } from '../new/tags-edit';
+import { saveHint, TitleField } from '../new/title-field';
 import { TaskPage } from '../parts/task-page';
 import { Act, Foot } from '../parts/task-parts';
 import { F, S } from '../tasks.strings';
@@ -69,6 +71,7 @@ function EditForm({ role, no, view }: { role: Role; no: number; view: EditView }
         kind="primary"
         label={F.save}
         disabled={!canSave(f)}
+        hint={saveHint(f)}
         onPress={save}
         testID="edit-save"
       />
@@ -77,13 +80,7 @@ function EditForm({ role, no, view }: { role: Role; no: number; view: EditView }
   return (
     <TaskPage title={F.editTitle} foot={foot} testID="screen-task-edit">
       <Text className="text-footnote text-muted-foreground">{view.meta}</Text>
-      <Field
-        required
-        label={F.title}
-        value={f.title}
-        onChangeText={set('title')}
-        testID="field-title"
-      />
+      <TitleField value={f.title} onChange={set('title')} />
       <AssigneeEdit people={view.people} who={f.who} onChange={set('who')} />
       <DateEdit label={F.due} value={f.due} onChange={set('due')} />
       <PriorityEdit value={f.priority} onChange={set('priority')} />
