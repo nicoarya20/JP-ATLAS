@@ -14,7 +14,9 @@ import '../global.css';
 export { ErrorBoundary } from 'expo-router';
 
 // Keep the splash up until Manrope is ready, so the first frame is not drawn in the system font.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch((e) =>
+  console.warn(`Splash keep-up failed: ${e.message}`),
+);
 
 /** Root: Manrope, safe-area insets for Uniwind, gesture root, gluestack provider (follows the phone's scheme). */
 export default function RootLayout() {
@@ -25,7 +27,8 @@ export default function RootLayout() {
     // A failed font is not fatal: the app falls back to the system font, but say so instead of hiding it.
     if (fontError)
       console.warn(`Manrope failed to load, using the system font: ${fontError.message}`);
-    if (ready) SplashScreen.hideAsync();
+    if (ready)
+      SplashScreen.hideAsync().catch((e) => console.warn(`Splash hide failed: ${e.message}`));
   }, [ready, fontError]);
 
   if (!ready) return null;

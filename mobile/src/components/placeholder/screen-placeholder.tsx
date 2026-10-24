@@ -2,12 +2,13 @@ import { Center } from '@/components/ui/center';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 
-type ScreenPlaceholderProps = { title: string };
+/** testID: `screen-<tab>`, the same handle the real screen will carry, so tab tests survive the port. */
+type ScreenPlaceholderProps = { title: string; testID: string };
 
 /** Stand-in for a tab screen that is not ported from the prototype yet (Phase 1). */
-export function ScreenPlaceholder({ title }: ScreenPlaceholderProps) {
+export function ScreenPlaceholder({ title, testID }: ScreenPlaceholderProps) {
   return (
-    <Center className="flex-1 gap-2 bg-background px-6">
+    <Center testID={testID} className="flex-1 gap-2 bg-background px-6">
       <Heading size="2xl" accessibilityRole="header">
         {title}
       </Heading>

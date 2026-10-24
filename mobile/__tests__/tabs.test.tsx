@@ -54,17 +54,18 @@ describe('tab routes', () => {
     ]);
   });
 
+  // Each tab screen carries testID `screen-<tab>`, so the check does not depend on its copy.
   it.each([
-    ['/', 'index', 'Good morning, Nico'], // Home's header is the greeting (prototype), not the tab name
-    ['/tasks', 'tasks', 'Tasks'],
-    ['/projects', 'projects', 'Projects'],
-    ['/events', 'events', 'Events'],
-    ['/more', 'more', 'More'],
-  ])('%s selects the %s tab and renders its %s screen', async (path, key, title) => {
+    ['/', 'index', 'screen-home'],
+    ['/tasks', 'tasks', 'screen-tasks'],
+    ['/projects', 'projects', 'screen-projects'],
+    ['/events', 'events', 'screen-events'],
+    ['/more', 'more', 'screen-more'],
+  ])('%s selects the %s tab and renders %s', async (path, key, testID) => {
     await renderRouter(routes, { initialUrl: path, wrapper: GluestackUIProvider });
 
     expect(screen).toHavePathname(path);
     expect(tabHost().host.props.navStateRequest).toMatchObject({ selectedScreenKey: key });
-    expect(tabKeyOf(screen.getByRole('header', { name: title }))).toBe(key);
+    expect(tabKeyOf(screen.getByTestId(testID))).toBe(key);
   });
 });
