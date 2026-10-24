@@ -10,6 +10,7 @@ import {
   canRestoreProject,
   listArchivedProjects,
   resetProjects,
+  restoreProject,
 } from '../../src/data/projects.store';
 import type { Role } from '../../src/data/sample';
 import * as tasks from '../../src/data/tasks.store';
@@ -58,12 +59,17 @@ describe('archive data', () => {
     expect(findEntry('event-test-meeting')).toBeUndefined();
   });
 
-  test('deleteForever: an archived project is forgotten, so its Undo is over', () => {
+  test('deleteForever: an archived project and its tasks are forgotten, so its Undo is over', () => {
+    const atlas = tasks.getTasksState().tasks.filter((t) => t.project === 'Atlas Project');
+    expect(atlas.length).toBeGreaterThan(0);
     const key = archiveProject('atlas', 'Nico');
     deleteForever(key);
     expect(findEntry(key)).toBeUndefined();
     expect(listArchivedProjects().map((p) => p.id)).not.toContain('atlas');
     expect(canRestoreProject('atlas', key)).toBe(false);
+    for (const t of atlas) expect(tasks.getTask(t.no)).toBeUndefined();
+    expect(tasks.getTasksState().tasks.some((t) => t.project === 'Atlas Project')).toBe(false);
+    expect(() => restoreProject('atlas', key)).toThrow('not in Archive');
   });
 
   test('deleteForever: a sample project only leaves Archive; an unknown key throws with context', () => {

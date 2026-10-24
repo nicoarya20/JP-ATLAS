@@ -1,7 +1,7 @@
 // Projects ① people row: whose projects the list shows — My projects, or one teammate's. Ported from the prototype's
 // projects.people.jsx; the pick lives in the list's route param `who` ('me' or a first name), so Back keeps it.
 import { listPeople } from './people';
-import type { ProjectItem } from './projects.store';
+import type { ProjectItem } from './projects.state';
 
 /** The `who` param of My projects. */
 export const WHO_ME = 'me';

@@ -1,6 +1,6 @@
 // Projects Filter & sort: its options, applying a query to the projects, and the search field. Ported from the
 // prototype's projects.query.js; the query itself lives in the projects query store (phase1-screens.md K4).
-import type { ProjectItem } from './projects.store';
+import type { ProjectItem } from './projects.state';
 
 /** Filter options; index 0 (All) is the default. */
 export const STATUSES = ['All', 'Active', 'On hold', 'Done', 'Draft', 'Canceled'] as const;

@@ -4,33 +4,30 @@
 // other modules (Tasks, Home) read projects through the getters here, so a renamed or archived project shows as such.
 import { addEntry, findEntry, removeEntry } from './archive.store';
 import { BASE_QUERY, type ProjectsQuery } from './projects.query';
-import { PROJECTS, type Project, TODAY } from './sample';
-import {
-  type ActivityLine,
-  PROJECT_DETAIL,
-  PROJECT_EXTRA,
-  PROJECT_ROLES,
-  type ProjectExtra,
-  type ProjectRole,
-} from './sample/projects.extra';
+import { findProject, type ProjectItem, projectsStore as store } from './projects.state';
+import { TODAY } from './sample';
+import type { ProjectRole } from './sample/projects.extra';
 import { createStore, useStore } from './store';
-import type { TaskPriority } from './tasks.shared';
 import {
+  forgetProjectTasks,
   getTasksState,
   putTasksBack,
   renameProjectTasks,
-  type TakenTasks,
   takeProjectTasks,
 } from './tasks.store';
 
-/** A project as the module keeps it: the shared sample row, its health, description, priority and member roles. */
-export type ProjectItem = Project &
-  ProjectExtra & {
-    desc: string;
-    priority: TaskPriority;
-    /** Role of every member, by first name. */
-    roles: Readonly<Record<string, ProjectRole>>;
-  };
+// Callers keep importing the reads from here; they live in projects.state so Tasks can read them without a cycle.
+export {
+  findProject,
+  getProjectByName,
+  getProjectsState,
+  isArchivedProject,
+  listArchivedProjects,
+  listProjects,
+  type ProjectItem,
+  type ProjectsState,
+  useProjectsState,
+} from './projects.state';
 
 /** What the Edit project form saves; `due` and `started` are ISO dates. */
 export type ProjectFields = Pick<
@@ -39,64 +36,11 @@ export type ProjectFields = Pick<
 > &
   Partial<Pick<ProjectItem, 'started'>>;
 
-/** An archived project Undo can take back: its Archive entry, list place and the tasks it took along. */
-type Held = { key: string; id: string; at: number; taken: TakenTasks };
-
-export type ProjectsState = {
-  /** Listed projects, in the sample's order. */
-  list: readonly ProjectItem[];
-  /** Projects in Archive: out of every list, still found by id. */
-  archived: readonly ProjectItem[];
-  held: readonly Held[];
-  /** Recent activity per project id, newest first. */
-  activity: Readonly<Record<string, readonly ActivityLine[]>>;
-};
-
-const DEFAULT_PRIORITY: TaskPriority = 'Medium';
-
-function fromSample(p: Project): ProjectItem {
-  const extra = PROJECT_EXTRA[p.id];
-  if (!extra) throw new Error(`Sample project "${p.id}" has no entry in sample/projects.extra.ts`);
-  const set = PROJECT_ROLES[p.id] ?? {};
-  const roles = Object.fromEntries(
-    p.members.map((n) => [n, set[n] ?? (n === p.lead ? 'Manager' : 'Member')]),
-  );
-  return { ...p, ...extra, desc: '', priority: DEFAULT_PRIORITY, roles };
-}
-
-const INITIAL: ProjectsState = {
-  list: PROJECTS.map(fromSample),
-  archived: [],
-  held: [],
-  activity: Object.fromEntries(Object.entries(PROJECT_DETAIL).map(([id, d]) => [id, d.activity])),
-};
-
-const store = createStore<ProjectsState>(INITIAL);
 /** The list's Filter & sort query (phase1-screens.md K4). */
 const queryStore = createStore<ProjectsQuery>(BASE_QUERY);
 
 /** "1 task", "8 tasks". */
 export const taskCount = (n: number) => `${n} task${n === 1 ? '' : 's'}`;
-
-/** Project id, listed or archived. */
-export function findProject(id: string, s: ProjectsState = store.get()): ProjectItem | undefined {
-  return s.list.find((p) => p.id === id) ?? s.archived.find((p) => p.id === id);
-}
-
-/** Project by its current name, listed or archived (a task names its project). */
-export function getProjectByName(name: string): ProjectItem | undefined {
-  const s = store.get();
-  return s.list.find((p) => p.name === name) ?? s.archived.find((p) => p.name === name);
-}
-
-/** Listed projects, in the sample's order; archived ones are left out. */
-export const listProjects = () => store.get().list;
-
-/** Projects in Archive. */
-export const listArchivedProjects = () => store.get().archived;
-
-/** True while project id waits in Archive. */
-export const isArchivedProject = (id: string) => store.get().archived.some((p) => p.id === id);
 
 /** Listed project id, or throw saying what could not be done to it. */
 function listed(id: string, action: string): ProjectItem {
@@ -210,7 +154,7 @@ export function restoreProject(id: string, key?: string): void {
 
 /**
  * Archive › Delete forever of entry `key` (call before removeEntry): the project is gone for good, findProject no
- * longer finds it and restoreProject throws "not in Archive". The tasks it took along stay out of every list. A key
+ * longer finds it and restoreProject throws "not in Archive", and the tasks it took along are forgotten too. A key
  * this store does not hold (the sample entries, which no list ever had) is left alone.
  */
 export function forgetArchivedProject(key: string): void {
@@ -218,6 +162,7 @@ export function forgetArchivedProject(key: string): void {
   const h = s.held.find((x) => x.key === key);
   // An entry that came with the Archive sample (no project of the store behind it) has nothing to forget here.
   if (!h) return;
+  forgetProjectTasks(h.taken);
   const { [h.id]: _, ...activity } = s.activity;
   store.set({
     ...s,
@@ -233,14 +178,8 @@ export function resetProjects(): void {
   queryStore.reset();
 }
 
-/** Current state (the getters in projects.ts). */
-export const getProjectsState = () => store.get();
-
 /** Save the Filter & sort query (Apply / Reset filters). */
 export const setProjectsQuery = (q: ProjectsQuery) => queryStore.set(q);
 
 /** The query in a component. */
 export const useProjectsQuery = () => useStore(queryStore);
-
-/** Project state in a component, re-rendered after every change. */
-export const useProjectsState = () => useStore(store);
