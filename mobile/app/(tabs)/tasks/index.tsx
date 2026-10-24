@@ -1,3 +1,3 @@
-import { TasksScreen } from '@/screens/tasks/tasks.screen';
+import { TasksScreen } from '@/screens/tasks/list/tasks.screen';
 
 export default TasksScreen;

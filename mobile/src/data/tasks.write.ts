@@ -8,10 +8,18 @@ import { ATLAS_ID } from './tasks.shared';
  * tasks and no file is read; saving or importing only shows a toast.
  */
 
-/** "Just write ✦": the text, the AI drafts with their due labels ("Oct 8 (tomorrow)") and the ambiguous-name ask. */
+/** The project both screens add to: Atlas, as in the prototype. */
+function atlasName(what: string): string {
+  const project = PROJECTS.find((p) => p.id === ATLAS_ID);
+  if (!project) throw new Error(`Cannot open ${what}: no project "${ATLAS_ID}"`);
+  return project.name;
+}
+
+/** "Just write ✦": the project, the text, the AI drafts with their due labels ("Oct 8 (tomorrow)") and the ambiguous-name ask. */
 export function getQuickWrite() {
   const { text, drafts, ask } = QUICK_WRITE;
   return {
+    project: atlasName('Just write'),
     text,
     drafts: drafts.map((d) => ({ ...d, dueLabel: `${monthDay(d.due)} (${d.dueHint})` })),
     ask,
@@ -36,11 +44,9 @@ export function getCsvImport() {
   const errors = rows.filter((r) => r.state === 'error').length;
   const notes = rows.filter((r) => r.state === 'note').length;
   const ok = rows.length - errors;
-  const project = PROJECTS.find((p) => p.id === ATLAS_ID);
-  if (!project) throw new Error(`Cannot open Import CSV: no project "${ATLAS_ID}"`);
   return {
     file: `${file} · ${rows.length} rows`,
-    project: project.name,
+    project: atlasName('Import CSV'),
     summary: `${ok} ready (${notes} with a note) · ${errors} error${errors === 1 ? '' : 's'}`,
     rows: rows.map(
       (r): CsvPreviewRow => ({
