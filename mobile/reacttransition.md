@@ -23,6 +23,7 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 | 2026-10-25 | **Fase 1 tab bar = custom `tabBar` di atas JS `Tabs` expo-router** (bukan NativeTabs, bukan `expo-router/ui`); Reanimated 4 + RNGH 3 + `expo-glass-effect`; Create = route `formSheet`; tanpa expo-haptics | NativeTabs tidak bisa membuat pil + FAB + panel More prototipe. Konsekuensi: kehilangan perilaku bar sistem iOS 26 (minimize-on-scroll, Large Content Viewer). Spesifikasi lengkap: `mobile/docs/phase1-navigation.md` |
 | 2026-10-25 | Fase 1 layar: spesifikasi di `docs/phase1-screens*.md` (64 id → route); gelombang G0 kit → G1 Tasks/Events/More+Auth paralel → G2 Projects | Wilayah file per gelombang tidak tumpang tindih |
 | 2026-10-25 | Penyimpangan prototipe yang disengaja: (1) konfirmasi `AlertDialog` gluestack untuk sign out, hapus anggota, aksi Users (T2) dan hapus permanen dengan ketik nama (T3); (2) snack Urungkan hilang otomatis 10 detik (T1) | Standar UX project (blocker) mengalahkan "ikuti prototipe" untuk aksi destruktif |
+| 2026-10-25 | Penyimpangan Fase 1 (RN/produk): (1) stack tab tasks/projects/events memakai `anchor: 'index'`, sehingga back dari detail yang dibuka dari Home kembali ke list tab itu, bukan ke Home; tanpa anchor, stack hanya berisi detail (tanpa swipe-back, `popToTopOnBlur` tidak bisa kembali ke list). (2) Search di list Events/Tasks benar-benar memfilter; di prototipe hanya dekoratif | (1) batasan navigator bersarang RN; (2) search yang tidak bekerja di app nyata termasuk bug |
 | 2026-10-25 | Ikuti prototipe: layar awal = `(tabs)` (auth ada sebagai route, gerbang login di Fase 2); detail proyek selain Atlas = header + empty state; `profile.me` = modal penuh; Restore di Archive = toast seperti prototipe (pemulihan nyata di Fase 2 bersama API) | Aturan user: ikuti prototipe 1:1 |
 | 2026-10-25 | Linter mobile = biome (bukan ESLint expo) | Konsisten dengan root; biome root mengecualikan `mobile/` |
 | 2026-10-25 | Fase 0: Tabs Expo Router standar; gelembung, drag, panel More, dan sheet Create menyusul | Butuh Reanimated + Gesture Handler; di luar tujuan spike |
@@ -102,17 +103,17 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 
 | ID | Task | Pemilik | Status | Bergantung |
 |---|---|---|---|---|
-| F1a | Pohon route §6.1 nav + registrasi presentasi semua route `phase1-screens.md` §3.1/§3.2, JS Tabs + bar polos, `src/navigation/{tabs.config,tab-create,tab-bar.visibility,bubble.math}.ts`, setup jest RNGH, tes T5 ditulis ulang | Sesi A | 🔄 | — |
+| F1a | Pohon route §6.1 nav + registrasi presentasi semua route `phase1-screens.md` §3.1/§3.2, JS Tabs + bar polos, `src/navigation/{tabs.config,tab-create,tab-bar.visibility,bubble.math}.ts`, setup jest RNGH, tes T5 ditulis ulang | Sesi A | ✅ | — |
 | G0a | Modul bersama murni: `src/data/{store,archive.store,people}.ts`, `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts` + tes | Sesi B | ✅ | — |
 | G0b | Install: komponen gluestack `phase1-screens.md` §5 + `expo-clipboard` + `@react-native-community/datetimepicker` | Sesi B | ✅ | G0a |
 | G0c | Kit komponen `phase1-screens.md` §4 (`src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`) + tes | Sesi B | 🔄 | G0b |
 | W1a | Tasks lapisan data murni (sampel, query, kolom, matematika radial, store) + tes unit | Sesi D | 🔄 | G0a (store) |
-| W2a | Events lapisan data murni (sampel, query, `events.dates.ts` kalender, store) + tes unit | Sesi C | 🔄 | G0a (store) |
+| W2a | Events lapisan data murni (sampel, query, `events.dates.ts` kalender, store) + tes unit | Sesi C | 👀 | G0a (store) |
 | W1b | Tasks layar + route | Sesi D | ⏳ | F1a, G0c, W1a |
 | W2b | Events layar + route | Sesi C | ⏳ | F1a, G0c, W2a |
 | W3 | More + Auth + Profile | Sesi B | ⏳ | F1a, G0c |
 | W4 | Projects | (menyusul) | ⏳ | W1b (TaskBoard) |
-| F1b–F1e | Gelembung, FAB + Create, panel More, kaca/a11y/QA | Sesi A | ⏳ | F1a |
+| F1b–F1e | Gelembung, FAB + Create, panel More, kaca/a11y/QA | Sesi A | 🔄 | F1a |
 
 ## 7. Pertanyaan Terbuka
 
@@ -140,3 +141,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — RM1 selesai (`4d53981` Sesi A, `ae3d2a1` Sesi B); C3 (Sesi C): bersih, 95/95, tanpa regresi. **Fase 0 tertutup secara kode**; tinggal T9 (cek di HP oleh user).
 - 2026-10-25 — T9 selesai: user sudah cek di HP lewat Expo Go. **Fase 1 mulai**: F1a (Sesi A), G0a→G0b→G0c (Sesi B), W1a Tasks data (Sesi D), W2a Events data (Sesi C). Konteks keempat sesi di-clear user, jadi brief ditulis mandiri.
 - 2026-10-25 — G0a (`8991fea`) dan G0b selesai (Sesi B): 13 komponen gluestack + `@legendapp/motion`, `expo-clipboard`, datetimepicker 9.2.1; doctor 20/20, audit tanpa temuan baru, berkas vendored lama tanpa diff. Overlay portal ada di belakang formSheet/modal native iOS, jadi kit memakai `useRNModal`; perlu QA di HP. `sample/archive.ts` pindah dari W3 ke W0.
+- 2026-10-25 — F1a selesai (Sesi A, `5ec4098`): `expo-router/js-tabs` + bar polos, pohon route + presentasi semua route (`src/navigation/stack-presentation.ts`), `useTabBarInset`; 284/284. W2a selesai (Sesi C), commit menunggu W1a karena `events.store` mengimpor `tasks.store`. Draft tugas rapat tanpa due: ikut prototipe (Create diblokir sampai semua due terisi).
