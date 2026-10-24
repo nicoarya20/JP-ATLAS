@@ -109,7 +109,7 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | G0c | Kit komponen `phase1-screens.md` §4 (`src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`) + tes | Sesi B | ✅ | G0b |
 | W1a | Tasks lapisan data murni (sampel, query, kolom, matematika radial, store) + tes unit | Sesi D | ✅ | G0a (store) |
 | W2a | Events lapisan data murni (sampel, query, `events.dates.ts` kalender, store) + tes unit | Sesi C | ✅ | G0a (store) |
-| W1b | Tasks layar + route | Sesi D | 🔄 | F1a, G0c, W1a |
+| W1b | Tasks layar + route | Sesi D | ✅ | F1a, G0c, W1a |
 | W2b | Events layar + route | Sesi C | ✅ | F1a, G0c, W2a |
 | G0d | Kit `ConfirmDialog` T2/T3, ekspor `toUtc` dari `dates.ts`, paritas `StackedScreen` (baris pinned memadat, fokus setelah reveal) | Sesi B | ✅ | G0c |
 | W3 | More + Auth + Profile | Sesi B | ✅ | F1a, G0d |
@@ -117,6 +117,8 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | W3c | Perbaikan 11 temuan W3b (label kartu/hari, tautan Cancel inline, error form, required, Seg radio, label per draf, AiNote, jamak, empty state kalender + search); wilayah Events dipinjam Sesi B | Sesi B | 🔄 | W3b |
 | H1 | Home membaca getter tasks/events store; target More → route `more/*`; stub `(auth)` di helper tes | Sesi A | 🔄 | F1e; route W3 untuk target More |
 | W2c | Undo snack Events setelah Delete forever: tangkap error → notice | Sesi C | ✅ | W2b |
+| W1c | Tangani rejection `measureStack` di menu radial | Sesi D | 🔄 | W1b |
+| D2 | QA silang (read-only) W3: copy, a11y, T2/T3, empty state | Sesi D | ⏳ | W1c |
 | W4 | Projects (list/create/overview/phases/members/extend/edit/archive dulu; tab Tasks + settings + task-filter setelah W1b) + projects store | Sesi C | 🔄 | W2c; W1b untuk tab Tasks |
 | F1b | Gelembung + gesture + SnackHost di `(tabs)/_layout` | Sesi A | ✅ | F1a |
 | F1c | FAB + sheet Create (`router.replace` ke target) | Sesi A | ✅ | F1b |
@@ -160,3 +162,4 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 - 2026-10-25 — W2c (`6fdf99d`): akar masalahnya, Undo memulihkan *langkah arsip terbaru* untuk id event, jadi setelah Delete forever, Undo bisa diam-diam memulihkan kemunculan lama. Sekarang Undo terikat ke key entrinya (`canRestoreEvent(id, key)`); kalau entri sudah hilang → notice "This event was deleted forever and can't be restored." Tes router kadang gagal acak saat mesin berat (4 sesi jest paralel); diagnosis diserahkan ke Sesi A.
 - 2026-10-25 — W3 selesai (Sesi B, `11d1876`, 90 berkas, 87 tes baru): route `more/*`, `(auth)`, `/leave`, `/profile(/calendar)`; T2 dialog Users, T3 Delete forever di sheet, sign out T2. Copy karangan untuk keadaan yang tidak ada di prototipe (orang/entri tidak ditemukan, gagal hapus, dialog Users). Kit: `Field readOnly` (gluestack menyembunyikan input disabled dari screen reader), `CountChips`, `PersonAvatar`, `DetailPage`, helper `router-mock`.
 - 2026-10-25 — W3b (Sesi B): copy Events cocok dengan prototipe; 8 celah a11y/kit dan 3 edge case bawaan prototipe. Penyimpangan disengaja: jamak "1 task"; "Outcomes confirmed" bila 0 tugas; empty state + Reset di view Calendar (UX §4 mengalahkan prototipe).
+- 2026-10-25 — W1b selesai (Sesi D, `2a143b8`, 61 berkas, 117 tes): list/filter/board/detail/sheet/edit/form/write/CSV/settings. Menu radial dirender lewat gluestack `Portal` (tanpa RN Modal, supaya sentuhan yang ditahan tidak batal); keputusan lepas-jari dipindah ke ref JS (shared value tidak terbaca konsisten setelah re-render). Ekspor W4 siap di `src/screens/tasks/index.ts`.
