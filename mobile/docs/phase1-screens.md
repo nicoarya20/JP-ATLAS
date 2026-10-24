@@ -1,6 +1,8 @@
 # Phase 1 — Spesifikasi porting layar (di luar Home, tab bar, panel More, sheet Create)
 
-Status: draf D1 (Sesi D), 2026-10-25. Pelengkap `phase1-navigation.md` (Sesi A) dan pola data Home (Sesi B).
+Status: diimplementasikan di Fase 1 (2026-10-25). Penyimpangan dari prototipe dan log: reacttransition.md §1 dan §8.
+
+Ditulis sebagai draf D1 (Sesi D), 2026-10-25. Pelengkap `phase1-navigation.md` (Sesi A) dan pola data Home (Sesi B).
 Sumber kebenaran: `riset-keano/prototype-react/` (`BRIEF.md`, `src/screens/<modul>/*`, `src/kit/*`, `src/data/sample*.js`, `src/test/*`). UI bahasa Inggris, 1:1 dengan prototipe.
 
 Dokumen ini dipecah per modul agar tiap berkas ≤ 500 baris:
@@ -19,7 +21,7 @@ Dokumen ini dipecah per modul agar tiap berkas ≤ 500 baris:
 |---|---|---|
 | K1 | Satu route per **keluarga** layar; varian prototipe (`tasks.my`/`tasks.all`/`tasks.board`, `tasks.detail-*`, `events.detail-*`) = satu layar yang membaca param/status | Prototipe juga merender varian dari satu komponen (`TasksList`, `TaskDetail`, `EventDetail`) |
 | K2 | Varian "empty" (`tasks.empty`, `events.empty`, `team.empty`, `inbox.empty`, `archive.empty`) **bukan** route; muncul otomatis saat data kosong | Di prototipe id empty hanya demo galeri; di app nyata kosong = keadaan data |
-| K3 | Sheet prototipe (`sheet(...)` di `index.js`) = route `presentation: 'formSheet'` (`sheetAllowedDetents: 'fitToContents'`, `sheetGrabberVisible: true`, `sheetCornerRadius: 16`) — sama dengan sheet Create Sesi A | Swipe-down, dim, dan escape aksesibilitas native; satu pola untuk semua sheet |
+| K3 | Sheet prototipe (`sheet(...)` di `index.js`) = route `presentation: 'formSheet'` (`sheetAllowedDetents: 'fitToContents'`, `sheetGrabberVisible: true`, `sheetCornerRadius: 16`) — konstanta `SHEET` di `src/navigation/stack-presentation.ts`, sama dengan sheet Create | Swipe-down, dim, dan escape aksesibilitas native; satu pola untuk semua sheet |
 | K4 | Panel filter ("Filter & sort") = route formSheet; **query disimpan di store modul per scope**, bukan dioper lewat param | `router.dismissTo(href)` belum terbukti meneruskan param (types SDK 58: "If the href is not found, it will instead replace the current screen"). Store menghindari ketidakpastian itu dan mudah dites |
 | K5 | `archive.undo` bukan layar: arsipkan → kembali ke list sumber (`router.dismissTo('/tasks')` dst.) → snack "X moved to Archive" + "Undo" dari host snack global | Prototipe merender list sumber + Snack; cocok dengan aturan T1 project (aksi langsung + Urungkan) |
 | K6 | State in-memory per modul (`src/data/<modul>.store.ts`, `useSyncExternalStore`, `reset<Modul>()` untuk tes); tiap layar membaca lewat satu `get<Modul>…()` di `src/data/<modul>.ts` | Port 1:1 `*.store.js` prototipe; titik tukar ke API Phase 2 seperti `getHome` Sesi B |
@@ -32,14 +34,14 @@ Dokumen ini dipecah per modul agar tiap berkas ≤ 500 baris:
 
 ## 2. Keputusan orchestrator (2026-10-25, dicatat di `reacttransition.md` §1)
 
-Aturan UX project (`CLAUDE.md` UX §1) **mengalahkan** prototipe untuk aksi destruktif. Pakai `AlertDialog` gluestack:
+Aturan UX project (`CLAUDE.md` UX §1) **mengalahkan** prototipe untuk aksi destruktif. Pakai kit `ConfirmDialog` (gluestack `AlertDialog` dalam modal native, `useRNModal`, agar tampil di atas formSheet/modal):
 
 | Tempat | Prototipe | Ditetapkan |
 |---|---|---|
 | Sign out (`settings.main`, `profile.me`, `auth.pending`) | Langsung ke login | **T2** AlertDialog "Sign out?" / "You'll be signed out of this account." / Cancel · Sign out |
-| Archive "Delete forever" (`archive.delete`) | Sheet konfirmasi saja | **T3**: sheet + Input "Type the item name to confirm"; tombol disabled sampai cocok |
+| Archive "Delete forever" (`archive.delete`) | Sheet konfirmasi saja | **T3** di dalam formSheet itu sendiri (bukan dialog di atas sheet): `TypeToConfirm` "Type the item name to confirm"; tombol disabled sampai cocok |
 | Remove member (`projects.members`) | Toast saja | **T2** AlertDialog sebelum notice |
-| Users: Approve / Reject / Deactivate / ubah role (`users.*`), ubah role anggota proyek | Toast saja | **T2** AlertDialog per aksi; copy menyebut nama + role tujuan |
+| Users: Approve / Reject / Deactivate / ubah role (`users.*`), ubah role anggota proyek | Toast saja | **T2** AlertDialog per aksi; copy menyebut nama + role tujuan. Reject meminta alasan dulu |
 | Undo snack | Tanpa batas waktu (`kit/form.jsx`), hilang saat navigasi | Hilang otomatis **10 detik** (T1) |
 | Restore di Archive | Notice "Restored" saja | **Tetap notice** seperti prototipe; pemulihan nyata menyusul di Phase 2 bersama API. Undo di snack tetap benar-benar memulihkan |
 | Archive vs Sampah 30 hari | "Move to Archive", restore kapan saja | Phase 1 ikut prototipe (Archive + Undo); pertanyaan Sampah tetap terbuka di `reacttransition.md` |
@@ -57,15 +59,15 @@ Route tipis: file `app/**` hanya me-render layar dari `src/screens/<modul>/` (po
 
 | Route | Presentasi | Layar prototipe |
 |---|---|---|
-| `app/(auth)/_layout.tsx` + `login`, `account`, `pending`, `denied` | Stack, `headerShown: false`, `gestureEnabled: false` di login | `auth.*` |
-| `app/tasks/new/_layout.tsx` (`index`, `form`) | modal (sudah direncanakan Sesi A) | `tasks.write`, `tasks.form` |
+| `app/(auth)/_layout.tsx` + `login`, `account`, `pending`, `denied` | Grup `NO_SWIPE` di root; Stack `headerShown: false`, `gestureEnabled: false` di login | `auth.*` |
+| `app/tasks/new/_layout.tsx` (`index`, `form`) | modal; `index` ↔ `form` saling `router.replace` | `tasks.write`, `tasks.form` |
 | `app/tasks/csv.tsx` | modal | `tasks.csv` (dibuka dari Create sheet, bukan dari tab) |
 | `app/projects/new/_layout.tsx` (`index`, `form`, `story`, `draft`, `template`) | modal; langkah berikutnya push di Stack modal | `projects.new/form/story/draft/template` |
 | `app/events/new.tsx` (param `event?`, `details?`) | modal | `events.new`, `events.new-details` |
 | `app/leave.tsx` | formSheet | `settings.leave` (dibuka dari Create dan Settings) |
 | `app/profile/_layout.tsx` (`index`, `calendar`) | modal; `calendar` push di dalamnya | `profile.me`, `profile.calendar` |
 
-Catatan: `/tasks/new` (statis, root) dan `/(tabs)/tasks/[id]` sama-sama cocok dengan `/tasks/new`; Expo Router memilih rute statis. Id tugas selalu angka, jadi aman. Tes `renderRouter` wajib memastikan `/tasks/new` membuka modal dan `/tasks/12` membuka detail.
+Catatan: `/tasks/new` (statis, root) dan `/(tabs)/tasks/[id]` sama-sama cocok dengan `/tasks/new`; Expo Router memilih rute statis. Id tugas selalu angka, jadi aman. Dijaga tes `renderRouter`: `/tasks/new` membuka modal (`__tests__/tasks/tasks.screen.form.test.tsx`), `/tasks/12` membuka detail (tes `__tests__/tasks/`).
 
 ### 3.2 Per tab
 
@@ -97,6 +99,7 @@ app/(tabs)/events/
   [id]/cancel.tsx        formSheet  events.cancel | events.cancel-recurring
   [id]/archive.tsx       formSheet  events.archive | events.archive-recurring
 app/(tabs)/more/
+  index.tsx              <Redirect href="/" /> (More tanpa layar; tab-nya membuka panel)
   inbox.tsx              inbox.respond | inbox.updates (param tab); empty bila kosong
   team/index.tsx         team.list; empty (member tanpa tim)
   team/[id].tsx          team.person
@@ -107,41 +110,58 @@ app/(tabs)/more/
   settings/profile.tsx   settings.profile
 ```
 
-Daftar Stack `more/_layout.tsx` Sesi A (`inbox, team, team/[id], archive, users, settings`) perlu ditambah `archive/[key]/delete` dan `settings/profile`. Tab bar: `settings.*`, `tasks/[id]/*`, `projects/[id]/edit|settings`, `events/[id]/*` tanpa bar (sesuai §2.6 Sesi A); `projects/[id]/index` dengan bar.
+Semua route di atas terdaftar di `_layout.tsx` Stack masing-masing tab; formSheet memakai `SHEET`, `recording` memakai `NO_SWIPE`. Tab bar (`tabBarVisibleFor`, `phase1-navigation.md` §4.1): `settings.*`, `tasks/[id]/*`, `projects/[id]/edit|settings`, `events/[id]/*` tanpa bar; `projects/[id]/index`, `more/inbox|team|team/[id]|archive|users` dengan bar; sheet di atas layar ber-bar (`*/filter`, `projects/[id]/extend|archive|task-filter`, `more/archive/[key]/delete`) tetap menggambar bar di bawahnya.
 
 ### 3.3 Guard role (Phase 1 = UI, tanpa server)
 
-Prototipe menyembunyikan entri yang tidak boleh dibuka (`allowed(id, role)` dari `core/registry.js`). Port ke `src/navigation/screen-roles.ts` (fungsi murni `allowedScreen(id, role)`, wilayah W0):
+Prototipe menyembunyikan entri yang tidak boleh dibuka (`allowed(id, role)` dari `core/registry.js`). Port ke `src/navigation/screen-roles.ts` (`SCREEN_IDS` 71 id, `ScreenId`, fungsi murni `allowedScreen(id, role)`; id tak dikenal selalu ditolak):
 
 | Hanya pm/admin | Hanya admin | Hanya member |
 |---|---|---|
 | `tasks.return`, `projects.new/form/story/draft/template/extend/edit/archive` | `users.*`, `archive.delete` | `events.empty`, `team.empty` (varian) |
 
-Route yang dibuka role terlarang (deep link) → `<Redirect href="/" />`. Tes `roles.gating` diport.
+Route yang dibuka role terlarang (deep link) → `<Redirect href="/" />` di komponen layarnya (mis. `users.screen.tsx`, `projects/new/*`, `projects/sheets/*`, `tasks/sheets/return.screen.tsx`, `archive/delete.screen.tsx`). Tes `roles.gating` diport.
 
 ## 4. Kit bersama (gelombang 0, satu sesi)
 
 Dipakai oleh ≥ 2 modul. Port dari `src/kit/*` prototipe. Tiap berkas ≤ 150 baris, komponen di `src/components/<nama>/`.
 
-| Berkas | Port dari | Isi |
+| Berkas | Port dari | Isi (ekspor) |
 |---|---|---|
-| `screen/stacked-screen.tsx` | `kit/layout.jsx` (StackedScreen) | Judul besar 32 px + blok cari yang terlipat ke header saat scroll (Reanimated `useAnimatedScrollHandler`, `interpolate`); slot kanan (ikon filter dengan titik); `useTabBarInset()` di padding bawah |
-| `screen/detail-header.tsx` | `kit/layout.jsx` | Header detail: chevron back (`headerBackButtonDisplayMode: 'minimal'`), judul, tombol ⋯ |
-| `search/search-field.tsx` | `kit/form.jsx` (Search) | Input + ikon, tombol hapus, kosong saat blur bila tanpa isi |
-| `filter/filter-sheet.tsx`, `filter/filter-field.tsx` | `kit/filter.jsx` | Kerangka "Filter & sort": judul, field Select/Radio, footer **Reset** / **Apply** |
-| `sheet/sheet-frame.tsx` | `kit/sheet.jsx` | Isi formSheet: judul, sub, X kiri atas (label "Close"), slot aksi di bawah, `KeyboardAvoidingView` |
-| `menu/action-menu.tsx` | `kit/menu.jsx` | ⋯ → gluestack `Menu`; item `danger` merah; label aksesibilitas ("Task actions", "Project actions", "Event actions") |
-| `form/field.tsx`, `form/select-field.tsx`, `form/chips.tsx`, `form/seg.tsx`, `form/switch-row.tsx`, `form/date-field.tsx` | `kit/form.jsx`, `kit/controls.jsx` | Label + bintang wajib, hint, error; Seg = segmented control (gluestack belum punya; dibuat dari `Pressable` + `HStack`) |
-| `list/rows.tsx`, `list/facts.tsx` | `kit/controls.jsx` | Baris bertingkat (lead, title, sub, chevron), daftar fakta label–nilai |
-| `state/empty-state.tsx`, `state/no-match.tsx` | `kit/controls.jsx` | Ikon + judul + teks + tombol opsional (UX §4) |
-| `snack/snack-host.tsx`, `snack/use-snack.ts` | `kit/form.jsx` (Snack) | Snack gelap (`--snack-bg`) dengan aksi violet (`--snack-action`), di atas tab bar (`useTabBarInset`), auto-hilang 10 detik, satu snack sekaligus; host dipasang sekali di `app/(tabs)/_layout.tsx` (minta Sesi A) |
-| `avatar/avatar-stack.tsx` | `kit/controls.jsx` | Avatar bertumpuk + "+n" |
-| `src/data/store.ts` | `*.store.js` | `createStore(initial)` → `{ get, set, subscribe, reset }` + `useStore(store, select)` via `useSyncExternalStore` |
-| `src/navigation/screen-roles.ts` | `core/registry.js` | `allowedScreen(id, role)` |
-| `src/data/archive.store.ts` | `sample.js` `archive` + `*.store.js` | Entri Archive bersama (ditulis store tasks/projects/events, dibaca W3): `addEntry`, `removeEntry`, `listEntries`, `reset` |
-| `src/data/people.ts`, `src/data/sample/people.extra.ts` | `sample.js` `people[].email/role`, `D.person`, `D.me` | `person(keyOrName)`, `me(role)`, `ROLE_TAG`; email + peran akun (dipakai Tasks, Team, Users, Settings, Profile) |
+| `screen/stacked-screen.tsx`, `stacked-pinned.tsx`, `use-search-collapse.ts`, `stacked-context.ts` | `kit/layout.jsx` (StackedScreen), `kit/stacked.collapse.js` | `StackedScreen`: judul besar + blok cari yang terlipat ke header saat scroll (UI thread), slot kanan, baris pinned yang memadat (`pinnedShrink`, `StackedPinned`, `usePinnedProgress`); `useTabBarInset()` di padding bawah |
+| `screen/detail-header.tsx`, `screen/detail-page.tsx` | `kit/layout.jsx` | `DetailHeader`: header sendiri dengan chevron berlabel "Back" (atau "Cancel" di modal), judul, slot kanan; `DetailPage` (header + scroll + footer, jauh dari keyboard dan tab bar), `SectionCard` |
+| `search/search-field.tsx` | `kit/form.jsx` (Search) | `SearchField`: input + ikon, tombol hapus; dikosongkan saat blur kecuali `keep` |
+| `filter/filter-sheet.tsx`, `filter-field.tsx`, `filter-button.tsx` | `kit/filter.jsx`, SearchFilter | `FilterSheet` "Filter & sort" (footer **Reset** / **Apply**), `FilterField`, `FilterButton` (titik saat filter aktif), `SearchFilter` |
+| `sheet/sheet-frame.tsx` | `kit/sheet.jsx` | `SheetFrame`: isi formSheet, judul, sub, X kiri atas ("Close"), slot aksi di bawah, `KeyboardAvoidingView` |
+| `menu/action-menu.tsx` | `kit/menu.jsx` | `ActionMenu`: ⋯ → gluestack `Menu`; item `danger` merah; label aksesibilitas ("Task actions", dst.) |
+| `form/field.tsx`, `select-field.tsx`, `seg.tsx`, `chips.tsx`, `radio-list.tsx`, `switch-row.tsx`, `date-field.tsx`, `section-label.tsx`, `form-error.tsx`, `field-name.ts` | `kit/form.jsx`, `kit/controls.jsx` | `Field`, `SelectField`, `Seg` (dari `Pressable` + `HStack`; gluestack tidak punya), `Chips`/`MultiChips`/`CountChips`, `RadioList`, `SwitchRow`, `DateField` (datetimepicker, ISO UTC), `SectionLabel`, `FormError`, `fieldName` |
+| `confirm/confirm-dialog.tsx`, `type-to-confirm.tsx`, `use-confirm-action.ts` | — (UX §1) | `ConfirmDialog` T2/T3 (loading + error), `TypeToConfirm`/`nameMatches`, `useConfirmAction` (dipakai juga sheet Delete forever) |
+| `list/rows.tsx`, `list/facts.tsx` | `kit/controls.jsx` | `Rows`/`Row` (lead, title, sub, chevron), `Facts` label–nilai |
+| `state/empty-state.tsx`, `state/no-match.tsx` | `kit/controls.jsx` | `EmptyState` (ikon + judul + teks + tombol opsional, UX §4), `NoMatch` + "Reset filters" |
+| `snack/snack-host.tsx`, `snack/use-snack.ts` | `kit/form.jsx` (Snack) | Snack gelap dengan aksi violet, di atas tab bar (`useTabBarInset`), hilang sendiri setelah `SNACK_MS` 10 detik, satu snack sekaligus; `showSnack`/`hideSnack`/`useSnack`/`resetSnack`. `SnackHost` dipasang sekali di `app/(tabs)/_layout.tsx` |
+| `avatar/avatar-stack.tsx`, `avatar/person-avatar.tsx` | `kit/controls.jsx` | `AvatarStack` (bertumpuk + "+n"), `PersonAvatar` (inisial, dekoratif) |
+| `a11y/spoken.ts` | — | `spoken(...parts)`: satu nama aksesibilitas untuk kartu/baris berisi beberapa fakta |
+| `notice/use-notice.tsx` | — (Sesi B) | `useNotice()`: toast atas, 3000 ms, untuk semua "toast" prototipe |
+| `src/data/store.ts` | `*.store.js` | `createStore(initial)` → `{ get, set, subscribe, reset }` + `useStore(store, select?)` via `useSyncExternalStore` |
+| `src/navigation/screen-roles.ts` | `core/registry.js` | `allowedScreen(id, role)` (§3.3) |
+| `src/data/archive.store.ts` | `sample.js` `archive` + `*.store.js` | Entri Archive bersama (ditulis store tasks/projects/events, dibaca W3): `entryKey`, `addEntry`, `removeEntry`, `listEntries`, `findEntry`, `useArchiveEntries`, `resetArchive` |
+| `src/data/people.ts`, `src/data/sample/people.extra.ts` | `sample.js` `people[].email/role`, `D.person`, `D.me` | `person(keyOrName)`, `me(role)`, `listPeople()`, `ROLE_TAG`, `ROLE_LABEL`; email + peran akun |
+| `src/theme/tokens.ts` `MIN_TARGET` | — | Area sentuh minimum 44 pt |
 
-Badge status memakai `src/components/status/status-pill.tsx` Sesi B yang sudah ada. Notifikasi pakai `use-notice.tsx` Sesi B (toast atas, 3000 ms) untuk semua "toast" prototipe.
+Badge status memakai `src/components/status/status-pill.tsx` Sesi B.
+
+### 4.1 Aturan kit (kontrak untuk layar)
+
+- **Nama aksesibilitas input:** beri nama input gluestack dengan `aria-label` (Input/Textarea/RadioGroup menimpa `accessibilityLabel`). `Field` dan `SelectField` sudah melakukannya.
+- **Wajib:** `required` membuat nama "<label>, required" (`fieldName`); bintang dan label terlihat disembunyikan dari screen reader agar tidak terbaca dua kali.
+- **`Field`:** `hint`, `error` (di bawah field, live region, menandai invalid), `onBlur` (form menampilkan error "required" setelah field disentuh), `readOnly` (kotak muted dan tetap terbaca; jangan pakai `disabled` untuk nilai baca-saja karena gluestack menyembunyikan input disabled dari screen reader), `disabled`, `multiline`, `right`.
+- **`SelectField`:** `label` = nama aksesibilitas (label terlihat lewat `SectionLabel`), `required`, `error` (border merah; pesan dibaca sebagai hint, form menampilkan pesannya sendiri), `hint` (dibaca setelah error, juga saat disabled: alasan nilai tidak bisa diubah). Opsi dibuka di modal native (`useRNModal`).
+- **`Seg`:** `kind` `'tabs'` (default, ganti isi layar; `tablist`/`tab` + selected) atau `'radio'` (pilihan form/tampilan; `radiogroup`/`radio` + checked), supaya satu layar tidak punya dua tablist; `label` = nama baris; `lines` 1 | 2 (label boleh 2 baris, mis. Inbox); `names` = nama yang dibacakan per segmen (diabaikan bila panjangnya beda); `icons`.
+- **`FormError`:** error di bawah sekelompok kontrol yang tidak dijangkau error `Field` (rentang waktu, picker); live region di Android, `announceForAccessibility` di iOS.
+- **`spoken()`:** kartu/baris yang menampilkan beberapa fakta memakai satu nama gabungan di elemen yang bisa ditekan, dan bagian-bagiannya dikeluarkan dari urutan baca.
+- **`MIN_TARGET` (44 pt):** target sentuh buatan sendiri yang digambar lebih kecil mencapai 44 pt lewat `hitSlop`, tampilan tetap. Button kit sudah `min-h-11`; kontrol Seg/Field/Select juga `min-h-11`.
+- **Kaca:** hanya permukaan tab bar (pil, panel, FAB) yang memakai `GlassSurface` (`phase1-navigation.md` §4.3); layar tidak memakai `GlassView`.
+- **`useTabBarInset()`:** semua layar ber-bar dan `SnackHost` memakai padding bawah ini (`DetailPage`/`StackedScreen` sudah).
 
 ## 5. Daftar install gabungan (dijalankan orchestrator, bukan worker)
 
@@ -159,7 +179,9 @@ Komponen gluestack v5 (`npx gluestack-ui@latest add <nama>`), di luar yang sudah
 | `spinner` | Tombol loading |
 | `link` | "Help · Privacy Policy", tautan teks |
 | `portal` | Menu radial Kanban di atas tab bar tanpa jendela native baru (RN `Modal` membatalkan sentuhan yang sedang ditahan) — verifikasi saat `add` bahwa host Portal ada di dalam `GestureHandlerRootView` |
-| `skeleton` (opsional) | Belum ada di prototipe; tidak wajib |
+| `skeleton` (opsional) | Belum ada di prototipe; tidak dipasang |
+
+Semua yang wajib terpasang di G0b, ditambah `@legendapp/motion` (dipakai actionsheet/select). Overlay `portal` gluestack berada di belakang formSheet/modal native iOS, jadi `ConfirmDialog` dan `SelectField` memakai `useRNModal`; `Portal` dipakai menu radial Kanban.
 
 Tidak dipakai: `tabs` (alpha; tab Inbox/Project/Users dibuat dengan Seg kit), `calendar` (alpha; grid kalender dibuat sendiri seperti web), `bottomsheet` (diganti formSheet native; `actionsheet` hanya sebagai isi Select), `modal` (diganti route modal).
 
@@ -169,8 +191,8 @@ Paket Expo (`npx expo install`, versi dari `bundledNativeModules` SDK 58):
 |---|---|---|---|
 | `expo-clipboard` | ~58.0.4 | "Copy email" di profile.me | Ya |
 | `@react-native-community/datetimepicker` | 9.2.1 (versi bundel SDK 58; cek dengan `npx expo install --check`) | Due date, Start date, leave From/To (`form/date-field.tsx` W0) | Ya. gluestack `date-time-picker` **tidak** dipakai (alpha tidak dipakai di stack ini) |
-| `react-native-keyboard-controller` | 1.22.7 | Form panjang (task form, event form, comment foot) | Opsional; coba `KeyboardAvoidingView` + `automaticallyAdjustKeyboardInsets` dulu (§7) |
-| `react-native-pager-view` | 9.0.7 | Pager pekan profile.calendar | Tidak; pan Reanimated cukup (lihat `phase1-screens.more.md`) |
+| `react-native-keyboard-controller` | 1.22.7 | Form panjang (task form, event form, comment foot) | Opsional, **belum dipasang**: `DetailPage`/`SheetFrame` memakai `KeyboardAvoidingView` + `automaticallyAdjustKeyboardInsets` (§7) |
+| `react-native-pager-view` | 9.0.7 | Pager pekan profile.calendar | Tidak dipasang; pan Reanimated cukup (lihat `phase1-screens.more.md`) |
 
 Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sudah terpasang.
 
@@ -187,17 +209,18 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 - W4 boleh mulai di G1 untuk list/create/overview/phases/members; tab **Tasks** proyek dan `projects/[id]/settings` menunggu ekspor `TaskBoard`/`TasksSearchField`/`TasksFilterPanel`/`TasksSettings` dari W1 (kontrak di `phase1-screens.tasks.md` §9).
 - Archive (W3) membaca entri dari `archive.store.ts` (W0). Store W1/W2/W4 menulis entri saat arsip dan menghapusnya saat Undo. Tombol Restore di Archive hanya notice di Phase 1 (§2).
 - Snack Undo setelah arsip dipanggil oleh W1/W2/W4 lewat `useSnack()` W0.
-- Placeholder T5 (`src/screens/{tasks,projects,events,more}/*.screen.tsx`) diganti oleh pemilik modul; `more.screen.tsx` + panel More tetap wilayah Sesi A.
+- Placeholder T5 (`src/screens/{tasks,projects,events,more}/*.screen.tsx`) sudah diganti oleh pemilik modul. More tidak punya layar (`more/index` redirect ke `/`); panel More = `src/screens/more/more-panel.tsx` (Sesi A).
+- Semua gelombang selesai. Pemilik sebenarnya per task (mis. W3 dikerjakan Sesi B, W4 Sesi C) dan commit-nya: `reacttransition.md` §6b.
 - Berkas bersama yang tidak dimiliki worker mana pun (`app/_layout.tsx`, `app/(tabs)/_layout.tsx`, `*/_layout.tsx` Stack tab, `package.json`) diubah hanya oleh orchestrator/Sesi A atas permintaan worker. Berkas sampel bersama `src/data/sample/*.ts` hanya diubah W0; worker lain mengajukan perubahan lewat orchestrator.
-- Stack `_layout.tsx` per tab dibuat Sesi A (F1a); worker hanya menambah screen options lewat `<Stack.Screen options>` di file layarnya sendiri, atau meminta Sesi A mendaftarkan presentasi formSheet/modal.
+- Stack `_layout.tsx` per tab dibuat Sesi A (F1a) dan mendaftarkan presentasi semua route secara terpusat dengan `SHEET`/`MODAL`/`NO_SWIPE` dari `src/navigation/stack-presentation.ts`.
 
 ## 7. Risiko RN lintas modul
 
 | Risiko | Mitigasi |
 |---|---|
 | Keyboard menutupi form panjang dan comment foot | `ScrollView` dengan `automaticallyAdjustKeyboardInsets` (iOS) + `KeyboardAvoidingView behavior="padding"` di sheet; bila Android tetap bermasalah di QA → `react-native-keyboard-controller` (`KeyboardAwareScrollView`, `KeyboardStickyView` untuk comment foot) |
-| Tab bar menutupi konten | Semua list pakai `useTabBarInset()` Sesi A; snack di atas inset |
-| formSheet `fitToContents` + konten scroll (filter panjang) | Filter memakai detents `[0.6, 1]` bila tinggi > layar; dites di perangkat kecil (iPhone SE) |
+| Tab bar menutupi konten | Semua layar ber-bar pakai `useTabBarInset()`; snack di atas inset; bar sembunyi saat keyboard terbuka |
+| formSheet `fitToContents` + konten scroll (filter panjang) | Semua sheet memakai `SHEET` (`fitToContents`) dengan `ScrollView` di `SheetFrame`; detents `[0.6, 1]` tidak dipakai. Tinggi sheet dicek di HP 375 pt (`docs/phase1-device-qa.md`) |
 | Gesture radial vs scroll horizontal papan vs scroll vertikal kolom | Lihat `phase1-screens.tasks.md` §6 (Pan `activateAfterLongPress: 350`, fail di luar slop) |
 | Kalender: kinerja grid dan swipe pekan | Grid sebagai `View` statis (≤ 42 sel), dihitung murni di `*.dates.ts`; swipe dengan Pan + Reanimated |
 | Daftar panjang | Data Phase 1 kecil (≤ 20 item); `FlatList`/`SectionList` cukup. `@shopify/flash-list` baru dipertimbangkan bila data API besar |
@@ -206,7 +229,8 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 
 ## 8. Tes lintas modul
 
-- Jest-expo + RNTL; route dengan `renderRouter` dari `expo-router/testing-library`; gesture dengan `fireGestureHandler`/`getByGestureTestId` dari `react-native-gesture-handler/jest-utils`; animasi dengan timer Reanimated.
+- Jest-expo + RNTL; route dengan `renderRouter` dari `expo-router/testing-library` (helper `__tests__/helpers/*-router.tsx`, `router-mock.tsx`); gesture dengan `createGestureController` dari `react-native-gesture-handler/jest-utils`; animasi dengan timer Reanimated.
+- Mitigasi sementara tes flaky (`maxWorkers: '50%'`, `testTimeout` 15 s, `asyncUtilTimeout` 3 s; `phase1-navigation.md` §6.5). Suite penuh hanya dijalankan orkestrator; sesi menjalankan foldernya sendiri dengan `--maxWorkers=2`.
 - Port tes prototipe (`src/test/*.test.jsx`) per modul; daftar ada di tiap doc modul. Tes lintas modul:
   - `roles.gating` → `__tests__/navigation/screen-roles.test.ts` (W0): tiap id + role.
   - `items.open` → tiap modul: menekan kartu membuka route detail yang benar.
