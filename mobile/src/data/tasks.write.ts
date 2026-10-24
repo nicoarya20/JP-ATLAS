@@ -1,5 +1,5 @@
 import { monthDay } from './dates';
-import { PROJECTS } from './sample';
+import { findProject } from './projects.store';
 import { CSV_PREVIEW, CSV_STATE_LABEL, type CsvRow, QUICK_WRITE } from './sample/tasks.extra';
 import { ATLAS_ID } from './tasks.shared';
 
@@ -10,7 +10,7 @@ import { ATLAS_ID } from './tasks.shared';
 
 /** The project both screens add to: Atlas, as in the prototype. */
 function atlasName(what: string): string {
-  const project = PROJECTS.find((p) => p.id === ATLAS_ID);
+  const project = findProject(ATLAS_ID);
   if (!project) throw new Error(`Cannot open ${what}: no project "${ATLAS_ID}"`);
   return project.name;
 }

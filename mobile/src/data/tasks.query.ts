@@ -1,4 +1,4 @@
-import { PROJECTS } from './sample';
+import { findProject } from './projects.store';
 import {
   ATLAS_ID,
   assigned,
@@ -77,7 +77,8 @@ export function applyQuery(
   q: TaskQuery,
   { board = false, me }: { board?: boolean; me: string },
 ): TaskItem[] {
-  const name = q.project && PROJECTS.find((p) => p.id === q.project)?.name;
+  // By id in the projects store, so a renamed project still filters to its tasks.
+  const name = q.project && findProject(q.project)?.name;
   const status = STATUSES[q.status];
   const priority = PRIORITIES[q.priority];
   const compare = COMPARE[q.sort];

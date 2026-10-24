@@ -1,5 +1,6 @@
 import { listPeople, me, ROLE_TAG } from './people';
-import { PROJECTS, type Project, type Role, TODAY } from './sample';
+import { getProjectByName, listProjects } from './projects.store';
+import { type Project, type Role, TODAY } from './sample';
 import { FORM_DESC, QUICK_WRITE } from './sample/tasks.extra';
 import { TASK_PHASES } from './sample/tasks.settings';
 import {
@@ -84,8 +85,6 @@ export function addTag(tags: readonly string[], text: string): string[] {
 /** Save is allowed once there is a title and at least one assignee. */
 export const canSave = (f: Pick<TaskForm, 'title' | 'who'>) => !!f.title.trim() && f.who.length > 0;
 
-const projectOf = (name: string) => PROJECTS.find((p) => p.name === name);
-
 export type TaskEditView =
   | { allowed: false; title: string; text: string }
   | {
@@ -113,7 +112,7 @@ export function getTaskEdit(role: Role, no: number): TaskEditView | null {
     return { allowed: false, title: "You can't edit this task", text };
   }
   const x = taskInfo(s, no);
-  const project = projectOf(t.project);
+  const project = getProjectByName(t.project);
   const members = project?.members ?? [];
   const names = [...new Set([...members, ...assignees(t)])];
   return {
@@ -178,10 +177,11 @@ export function saveTaskEdit(role: Role, no: number, f: TaskForm): string {
   return 'Task updated';
 }
 
-/** Projects `role` may add tasks to: every one for an Admin, else those the viewer is a member of. */
+/** Projects `role` may add tasks to: every listed one for an Admin, else those the viewer is a member of. */
 export function formProjects(role: Role): Project[] {
   const name = me(role).name;
-  return PROJECTS.filter((p) => role === 'admin' || p.members.includes(name));
+  // Listed only: a project in Archive takes no new tasks.
+  return listProjects().filter((p) => role === 'admin' || p.members.includes(name));
 }
 
 /** Fill form values for `project`, from the first AI draft. */

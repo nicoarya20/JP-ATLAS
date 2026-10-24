@@ -175,6 +175,19 @@ export function putTasksBack(taken: TakenTasks) {
   store.set({ ...s, tasks, archived: s.archived.filter((t) => !nos.has(t.no)) });
 }
 
+/**
+ * Archive › Delete forever of a project: the tasks takeProjectTasks took along are gone for good, like a task deleted
+ * on its own (getTask no longer finds them, putTasksBack throws, their numbers are not given out again).
+ */
+export function forgetProjectTasks(taken: TakenTasks): void {
+  const s = store.get();
+  const nos = new Set(taken.map((x) => x.no));
+  const missing = taken.find(({ no }) => !s.archived.some((t) => t.no === no));
+  if (missing) throw new Error(`Cannot forget task #${missing.no}: it is not out of the lists`);
+  const info = Object.fromEntries(Object.entries(s.info).filter(([no]) => !nos.has(Number(no))));
+  store.set({ ...s, archived: s.archived.filter((t) => !nos.has(t.no)), info });
+}
+
 /** A project was renamed: its tasks, listed and archived, follow the new name. */
 export function renameProjectTasks(from: string, to: string) {
   const rename = (list: readonly TaskItem[]) =>

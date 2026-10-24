@@ -1,4 +1,5 @@
-import { PROJECTS, type Role } from './sample';
+import { findProject } from './projects.store';
+import type { Role } from './sample';
 import { NEEDS_REVIEW, TASK_TYPE_MAX } from './sample/tasks.settings';
 import { TYPES } from './tasks.shared';
 import { getTasksState } from './tasks.state';
@@ -26,7 +27,7 @@ export type TaskSettingsView =
 /** Settings of project `projectId` for `role`; listed tasks only (archived ones are not counted). */
 export function getTaskSettings(role: Role, projectId: string): TaskSettingsView {
   if (role === 'member') return { allowed: false };
-  const project = PROJECTS.find((p) => p.id === projectId);
+  const project = findProject(projectId);
   if (!project) throw new Error(`Cannot open project settings: no project "${projectId}"`);
   const tasks = getTasksState().tasks.filter((t) => t.project === project.name);
   const tags = new Map<string, number>();
