@@ -27,6 +27,11 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 | 2026-10-25 | Ikuti prototipe: layar awal = `(tabs)` (auth ada sebagai route, gerbang login di Fase 2); detail proyek selain Atlas = header + empty state; `profile.me` = modal penuh; Restore di Archive = toast seperti prototipe (pemulihan nyata di Fase 2 bersama API) | Aturan user: ikuti prototipe 1:1 |
 | 2026-10-25 | Linter mobile = biome (bukan ESLint expo) | Konsisten dengan root; biome root mengecualikan `mobile/` |
 | 2026-10-25 | Fase 0: Tabs Expo Router standar; gelembung, drag, panel More, dan sheet Create menyusul | Butuh Reanimated + Gesture Handler; di luar tujuan spike |
+| 2026-10-26 | **Login dari RN = plugin Expo Better Auth** (`@better-auth/expo` + `expo()` di `server/auth.ts`), sesi di SecureStore — menjawab pertanyaan terbuka §7 lama | Keputusan user. Plugin menerjemahkan header `expo-origin` menjadi `origin`, jadi tidak perlu CORS; cookie sesi diputar ulang dari SecureStore karena RN tidak punya cookie jar |
+| 2026-10-26 | **Client API = `fetch` biasa + tipe sendiri, bukan Eden** | Keputusan user: `mobile/` tetap proyek mandiri tanpa workspaces root, jadi tipe tidak dibagi lewat paket. Satu pintu di `src/api/client.ts`, bentuk galat mencerminkan kontrak server |
+| 2026-10-26 | Target uji = **HP fisik lewat Expo Go**; Expo Web tidak dipakai → **tanpa CORS** di server | Keputusan user |
+| 2026-10-26 | Mobile memakai **`/api/app/*` yang sama dengan web**; dilarang membuat endpoint khusus mobile | Keputusan user: "datanya sama dengan web, hanya tampilannya beda" |
+| 2026-10-26 | Tanpa react-query dan tanpa pustaka HTTP di `mobile/` untuk sekarang | `fetch` bawaan cukup untuk fondasi; cache dipilih saat layar pertama benar-benar disambungkan |
 
 ## 2. Batas Wilayah
 
@@ -66,7 +71,7 @@ mobile/
 
 - **Fase 0 — Spike (sekarang):** buktikan Expo + gluestack + token JP Atlas + satu layar Home jalan dan bisa dicek di HP lewat Expo Go.
 - **Fase 1 — Porting layar:** pindahkan layar prototipe per modul (auth, home, projects, tasks, events, inbox, team, settings).
-- **Fase 2 — Sambung API:** login (Better Auth dari RN, disepakati dengan rekan), client API, ganti data contoh.
+- **Fase 2 — Sambung API:** Tahap 1 fondasi (✅ 26 Okt 2026, §6c), lalu gerbang login, lalu ganti data contoh per layar.
 - **Fase 3 — Rilis:** EAS Build, ikon/splash, distribusi.
 
 ## 6. Papan Task — Fase 0
@@ -147,15 +152,30 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | F1d | Panel More (scrim, Escape a11y, Android back) | Sesi A | ✅ | F1c |
 | F1e | Kaca, reduced motion, a11y (+ aksi increment/decrement, bar sembunyi saat keyboard, hide-descendants Android), QA | Sesi A | ✅ | F1d |
 
+## 6c. Papan Task — Fase 2 (Sambung API)
+
+Branch induk: `feature/mobile-api`. Serah-terima Tahap 1: `/tmp/sp-mobile-handover/tahap-1.md`.
+
+| ID | Task | Pemilik | Status | Bergantung |
+|---|---|---|---|---|
+| P2-1 | Fondasi: `bun install`, plugin `expo()` + `MOBILE_TRUSTED_ORIGINS` di server, `src/api/{client,errors,auth}.ts`, `.env.example` di dua tempat, skrip `dev:all` | Tahap 1 | ✅ `247cc65` `9cf3397` `dddea9b` | — |
+| P2-2 | Gerbang login: layar `(auth)` memakai `getAuthClient()`, `connectSessionToApi()` saat app start, redirect sesuai status akun (`pending`/`rejected`/`banned`) | ⏳ | ⏳ | P2-1 |
+| P2-3 | Ganti data contoh per layar, mulai dari Home (`GET /api/app/home`), lewat titik tukar di `src/data/*` | ⏳ | ⏳ | P2-2 |
+
+**Catatan untuk tahap berikutnya**
+- `cd mobile && bun run test` **harus** dijalankan dengan `--watchman=false` di mesin ini: watchman Homebrew-nya rusak (`libboost_iostreams-mt.dylib` hilang), dan jest keluar dengan kode **0 tanpa menjalankan satu tes pun** — "hijau" yang menipu. Perbaikan sebenarnya: `brew reinstall watchman` (atau `brew unlink watchman`).
+- `bun run typecheck` di `mobile/` **sudah merah sebelum Tahap 1**: 5 galat tipe Reanimated di `src/screens/tasks/board/radial-menu.tsx` (3), `radial-option.tsx` (1), dan `src/components/ui/switch/index.tsx` (1). Dibuktikan dengan menjalankan typecheck tanpa berkas dan dependensi Tahap 1 — galatnya persis sama. Belum ada pemiliknya.
+
 ## 7. Pertanyaan Terbuka
 
-- Login dari RN dengan Better Auth (token atau cookie), disepakati dengan rekan sebelum Fase 2.
 - Archive (prototipe) vs Sampah 30 hari (app web).
 - `bun audit`: 2 high transitif lewat `expo > @expo/cli` (node-forge ≤1.4.0 GHSA-86w9-cpqp-85rv, zod <4.6.6 GHSA-mrhx-c7xc-m3w5). Hanya di tool CLI dev, tidak masuk bundle app. Tunggu patch Expo; cek ulang tiap naik versi Expo.
 - `@legendapp/motion` (dipakai actionsheet/select v5) menarik peer `nativewind` 4.2.7 + `react-native-css-interop` ke `bun.lock`/`node_modules` (tidak di `package.json`, tidak diimpor/dikonfigurasi; sama seperti init Fase 0). Diterima; buang bila gluestack melepas legendapp.
 - Plugin config `@react-native-community/datetimepicker` (tema Android) belum dipasang; tidak perlu untuk Expo Go, dipasang di Fase 3 (EAS).
 - **Warna tile More/Create (keputusan user):** prototipe memakai tile solid hue iOS + glyph putih (`home.css:49`), tapi kontras glyph putih di green/orange/teal ±2,2–2,6:1 (< 3:1 non-teks). Sementara memakai soft tile Atlas (lulus kontras).
-- Client API: Eden (berbagi tipe dengan `server/`) atau fetch biasa.
+- **Login sosial (Google) di Expo Go tidak bisa dipakai** (temuan Tahap 1; jangan diperbaiki di Fase 2 tahap awal). Dua sebabnya berdiri sendiri: (1) `expo-linking` sendiri menulis bahwa `createURL` di Expo Go "neither stable nor predictable" dan callback otorisasi butuh build sungguhan — karena kita memberi `scheme: 'simplepm'` eksplisit, `openAuthSessionAsync` menunggu redirect ke `simplepm://`, padahal OS tidak punya aplikasi yang mendaftarkan skema itu (Expo Go mendaftarkan `exp://`); (2) redirect URI Google harus `https` (kecuali `http://localhost`), jadi `BETTER_AUTH_URL=http://<IP LAN>:<port>` tidak bisa didaftarkan di Google Console. Jalan keluarnya nanti: tunnel https (`expo start --tunnel`) atau sign-in ID-token dengan dev build, keduanya di luar Tahap 1. **Masuk dengan email + sandi tidak terkena** ini (tanpa putaran browser).
+- Plugin config `expo-secure-store` dan `expo-web-browser` belum dimasukkan ke `app.config.ts` meski `expo install` menyarankannya; `expo-doctor` 20/20 tetap lulus dan Expo Go tidak membutuhkannya. Dipasang bersama datetimepicker di Fase 3 (EAS).
+- `mobile/bun.lock` ikut membawa paket adapter Better Auth yang tidak kita pakai (prisma/mongo/kysely/drizzle) karena semuanya dependensi `better-auth` sendiri. Tidak diimpor, jadi tidak masuk bundle Metro.
 
 ## 8. Log
 

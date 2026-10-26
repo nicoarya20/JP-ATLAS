@@ -122,9 +122,14 @@ describe('Better Auth config', () => {
   });
 
   test('the scheme is not read from the environment', () => {
-    // Deep link scheme belongs to the app (mobile/app.config.ts), so an empty env still trusts it.
-    expect(env.MOBILE_TRUSTED_ORIGINS).toEqual([]);
-    expect(mobileTrustedOrigins).toEqual([MOBILE_APP_ORIGIN]);
+    // The scheme belongs to the app (mobile/app.config.ts), so it leads the list whatever a
+    // developer put in .env — including nothing at all. Asserting the env value itself would
+    // make this test depend on the machine it runs on.
+    expect(env.MOBILE_TRUSTED_ORIGINS).not.toContain(MOBILE_APP_ORIGIN);
+    expect(mobileTrustedOrigins[0]).toBe(MOBILE_APP_ORIGIN);
+    expect(mobileTrustedOrigins).toEqual(
+      buildMobileTrustedOrigins(env.MOBILE_TRUSTED_ORIGINS) as string[],
+    );
   });
 });
 
