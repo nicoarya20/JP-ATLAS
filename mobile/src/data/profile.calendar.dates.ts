@@ -4,6 +4,7 @@ import { toUtc } from './dates';
 import { addDays, clockMinutes, monthTitle } from './events.dates';
 import { type EventItem, eventEnd, eventStart } from './events.shared';
 import { CLOCK } from './tasks.shared';
+import { type PersonIdentity, someSamePerson } from './viewer';
 
 /** Height of one hour row, in points. */
 export const HOUR_PX = 56;
@@ -64,10 +65,10 @@ function repeatDays(repeat: string | undefined): number {
   return m ? Number(m[1] ?? 1) * 7 : 0;
 }
 
-/** Events `name` attends, placed on their first date with their start and end minute. */
-export const eventsFor = (events: readonly EventItem[], name: string): CalendarItem[] =>
+/** Events a person attends, placed on their first date with their start and end minute. */
+export const eventsFor = (events: readonly EventItem[], who: PersonIdentity): CalendarItem[] =>
   events
-    .filter((e) => e.attendees.includes(name))
+    .filter((e) => someSamePerson(e.attendees, who))
     .map((e) => ({
       e,
       date: e.date,

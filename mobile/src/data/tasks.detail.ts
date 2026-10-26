@@ -1,5 +1,5 @@
 import { monthDay } from './dates';
-import { me, type PersonInfo, person } from './people';
+import { person } from './people';
 import type { Role } from './sample';
 import {
   assignees,
@@ -17,6 +17,7 @@ import {
   type TaskStep,
 } from './tasks.shared';
 import { findTask, type TasksState, taskInfo } from './tasks.state';
+import { viewer as signedIn, type Viewer } from './viewer';
 
 /*
  * Task detail in one call (prototype tasks.detail.jsx, tasks.detail.screens.jsx): which variant, which actions and
@@ -100,17 +101,18 @@ const act = (key: TaskActionKey, primary = false): TaskAction => ({
 const firstName = (s: string | undefined) => s?.split(' ')[0];
 
 /** Buttons per variant (Canceled tasks show Restore in their note instead). */
-function actionsOf(v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: PersonInfo): TaskAction[] {
+function actionsOf(v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: Viewer): TaskAction[] {
   if (v === 'todo') return [act('start', true), ...(x.reviewer ? [] : [act('markDone')])];
   if (v === 'progress') {
     if (t.status === 'Done') return [act('reopen')];
     return [x.reviewer ? act('requestReview', true) : act('markDone', true)];
   }
-  return viewer.role === 'Member' ? [] : [act('approve', true)];
+  return viewer.sample.role === 'Member' ? [] : [act('approve', true)];
 }
 
-function factsOf(s: TasksState, v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: PersonInfo) {
-  const off = viewer.role === 'Member' ? 'Off · you may turn it on' : 'Off · Mark done directly';
+function factsOf(s: TasksState, v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: Viewer) {
+  const off =
+    viewer.sample.role === 'Member' ? 'Off · you may turn it on' : 'Off · Mark done directly';
   const review =
     v === 'review'
       ? 'Yes · locked while in review'
@@ -136,7 +138,7 @@ function factsOf(s: TasksState, v: DetailVariant, t: TaskItem, x: TaskInfo, view
   return facts;
 }
 
-function stateNoteOf(s: TasksState, t: TaskItem, x: TaskInfo, viewer: PersonInfo, mine: boolean) {
+function stateNoteOf(s: TasksState, t: TaskItem, x: TaskInfo, viewer: Viewer, mine: boolean) {
   if (s.archived.includes(t))
     return { kind: 'archived', text: 'This task is in Archive.' } as const;
   if (t.status === 'Canceled') {
@@ -148,7 +150,7 @@ function stateNoteOf(s: TasksState, t: TaskItem, x: TaskInfo, viewer: PersonInfo
     const text = `Only ${assignees(t).join(', ')}, the project Manager or an Admin can change this task.`;
     return { kind: 'notYours', text } as const;
   }
-  if (t.status === 'In review' && viewer.role === 'Member') {
+  if (t.status === 'In review' && viewer.sample.role === 'Member') {
     const text =
       "Waiting for a Manager or Admin. You'll be notified when it's approved or returned.";
     return { kind: 'waiting', text } as const;
@@ -157,7 +159,7 @@ function stateNoteOf(s: TasksState, t: TaskItem, x: TaskInfo, viewer: PersonInfo
 }
 
 /** "Dodi asked you to review this task" from the viewer's side; null without a request or reviewer. */
-function bannerOf(x: TaskInfo, viewer: PersonInfo) {
+function bannerOf(x: TaskInfo, viewer: Viewer) {
   const by = firstName(x.reviewer);
   if (!x.asked || !by) return null;
   const asker = x.asked.by;
@@ -176,7 +178,7 @@ function stepsOf(v: DetailVariant, x: TaskInfo): TaskDetailView['steps'] {
   return { title: `${stepsTitle(x.steps)}${all}`, items: x.steps, empty: null, addStep: false };
 }
 
-function evidenceOf(v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: PersonInfo) {
+function evidenceOf(v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: Viewer) {
   if (v === 'todo' || !x.proof.length) return null;
   const n = x.proof.length;
   if (v === 'progress') return { title: `Evidence ${n}`, items: x.proof, attach: true };
@@ -189,7 +191,7 @@ export function buildTaskDetail(s: TasksState, role: Role, no: number): TaskDeta
   const t = findTask(s, no);
   if (!t) return null;
   const x = taskInfo(s, no);
-  const viewer = me(role);
+  const viewer = signedIn(role);
   const v = detailVariant(t);
   const mine = mayChange(viewer, t);
   const archives = mayArchive(viewer, x);
@@ -203,7 +205,7 @@ export function buildTaskDetail(s: TasksState, role: Role, no: number): TaskDeta
         ...(mine && !canceled ? (['edit', 'cancel'] as const) : []),
         ...(archives ? (['archive'] as const) : []),
       ];
-  const reviewing = showActions && v === 'review' && viewer.role !== 'Member';
+  const reviewing = showActions && v === 'review' && viewer.sample.role !== 'Member';
   return {
     task: t,
     variant: v,

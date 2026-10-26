@@ -3,6 +3,7 @@ import { daysToSunday } from './dates';
 import type { Role } from './sample';
 import { applyQuery, SORT_DUE, SORTS, type TaskQuery } from './tasks.query';
 import { assigned, dueIn, type TaskItem } from './tasks.shared';
+import type { Viewer } from './viewer';
 
 /*
  * My tasks grouping (prototype tasks.list.jsx TasksMy): a review queue on top for Managers and Admins, then the
@@ -45,7 +46,7 @@ export function myGroups(
   role: Role,
   tasks: readonly TaskItem[],
   q: TaskQuery,
-  me: string,
+  me: Viewer,
 ): TaskGroup[] {
   const title = REVIEW_GROUP[role];
   const review = title

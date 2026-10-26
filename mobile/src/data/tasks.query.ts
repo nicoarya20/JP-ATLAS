@@ -7,6 +7,7 @@ import {
   type TaskItem,
   type TaskPriority,
 } from './tasks.shared';
+import type { Viewer } from './viewer';
 
 /*
  * Filter & sort of the task lists (prototype tasks.query.js): the options, the default query per scope, and applying a
@@ -85,12 +86,12 @@ const COMPARE: Compare[] = [
 
 /**
  * Filter and sort tasks by a query. All active hides Done and Canceled on the lists; the board keeps every column
- * (board = true). `me` = first name of the signed-in person, for the Assignee filter.
+ * (board = true). `me` = the signed-in person, for the Assignee filter: matched by identity, not by name (K4).
  */
 export function applyQuery(
   tasks: readonly TaskItem[],
   q: TaskQuery,
-  { board = false, me }: { board?: boolean; me: string },
+  { board = false, me }: { board?: boolean; me: Viewer },
 ): TaskItem[] {
   // By id in the projects store, so a renamed project still filters to its tasks.
   const name = q.project && findProject(q.project)?.name;

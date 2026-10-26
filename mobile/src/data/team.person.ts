@@ -1,11 +1,12 @@
 // Team ② (prototype team.person.jsx): one person as the viewer's role may see them — shared projects, and their
 // active tasks unless a Member is looking at someone else.
-import { me, person } from './people';
+import { person } from './people';
 import { PROJECTS, type Role } from './sample';
 import { AVAILABLE, TEAM_LIST } from './sample/team';
 import { getTasksState } from './tasks.state';
 import type { TeamPersonData, TeamSource } from './team';
 import { activeOf, isOverdue, loadOf } from './team.load';
+import { viewer as signedIn, someSamePerson } from './viewer';
 
 /** Team ② for person `key` as `role` sees them; null when `key` is nobody in the sample. */
 export function getTeamPerson(
@@ -18,11 +19,11 @@ export function getTeamPerson(
   const tasks = src.tasks ?? getTasksState().tasks;
   const projects = src.projects ?? PROJECTS;
   const status = TEAM_LIST.find((o) => o.key === key)?.status ?? AVAILABLE;
-  const viewer = me(role);
+  const viewer = signedIn(role);
   const theirs = projects.filter((pr) => pr.members.includes(p.name));
-  const shared = theirs.filter((pr) => role === 'admin' || pr.members.includes(viewer.name));
+  const shared = theirs.filter((pr) => role === 'admin' || someSamePerson(pr.members, viewer));
   const hidden = theirs.filter((pr) => !shared.includes(pr)).map((pr) => pr.name);
-  const seesTasks = role !== 'member' || viewer.key === p.key;
+  const seesTasks = role !== 'member' || viewer.sample.key === p.key;
   return {
     person: p,
     status,

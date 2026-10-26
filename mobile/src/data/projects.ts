@@ -21,6 +21,7 @@ import {
   PROJECT_TEMPLATES,
   TEMPLATE_PROJECT,
 } from './sample/projects.extra';
+import { viewer as signedIn, someSamePerson } from './viewer';
 
 export {
   getProjectMembers,
@@ -111,7 +112,7 @@ export type ProjectHeader = Pick<
 /** Detail header of project id for `role`; null when no such project (an old link) or a Member is not in it. */
 export function getProjectHeader(role: Role, id: string): ProjectHeader | null {
   const p = findProject(id);
-  if (!p || (role === 'member' && !p.members.includes(me(role).name))) return null;
+  if (!p || (role === 'member' && !someSamePerson(p.members, signedIn(role)))) return null;
   const archived = isArchivedProject(id);
   return {
     id: p.id,

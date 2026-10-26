@@ -4,6 +4,7 @@ import type { Role, TaskStatus } from './sample';
 import { buildTaskDetail, type TaskActionKey, type TaskMenuKey } from './tasks.detail';
 import { getTasksState, taskInfo } from './tasks.state';
 import { archiveTask, moveTask, unarchiveTask } from './tasks.store';
+import { viewer as signedIn } from './viewer';
 
 /*
  * Detail actions and the Return / Cancel sheets (prototype useStatusAction, tasks.sheets.jsx): each writes the new
@@ -50,7 +51,7 @@ export function runTaskAction(role: Role, no: number, key: TaskActionKey): strin
       ? d.stateNote?.kind === 'canceled' && d.stateNote.restore
       : d.actions.some((a) => a.key === key);
   if (!offered) throw refuse(key, no, role);
-  const viewer = me(role);
+  const viewer = signedIn(role);
   const a = STATUS_ACTION[key];
   const by = taskInfo(getTasksState(), no).reviewer?.split(' ')[0] ?? '';
   const log = key === 'requestReview' ? `${a.log} · reviewer: ${by}` : a.log;

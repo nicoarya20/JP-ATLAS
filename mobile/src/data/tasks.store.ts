@@ -12,6 +12,7 @@ import {
   type TaskExtras,
   taskOrThrow,
 } from './tasks.state';
+import { viewerOf } from './viewer';
 
 /*
  * Task changes (prototype tasks.store.js): a Kanban move or a detail action writes the new status, Edit task writes its
@@ -83,7 +84,9 @@ export function moveOnBoard(
   status: TaskStatus,
 ): { moved: number[]; notice: string | null } {
   const s = store.get();
-  const refused = nos.find((no) => !mayChange(viewer, taskOrThrow(s, no, 'move')));
+  // The board hands over the sample person it already had; the identity behind it is the session's.
+  const who = viewerOf(viewer);
+  const refused = nos.find((no) => !mayChange(who, taskOrThrow(s, no, 'move')));
   if (refused != null) {
     throw new Error(`Cannot move task #${refused}: ${viewer.name} may not change it`);
   }

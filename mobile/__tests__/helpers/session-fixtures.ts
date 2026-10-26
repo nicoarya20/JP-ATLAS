@@ -1,8 +1,10 @@
 // Session states a test can start from. Imported from src/session/session.state only, never the
 // barrel: the state module pulls in nothing but the store, while the barrel would drag Better Auth
 // into every suite jest.setup-after-env.js touches.
+import { person } from '@/data/people';
 import { forgetAllResources } from '@/data/resource';
 import { TODAY } from '@/data/sample/today';
+import { type Viewer, viewerOf } from '@/data/viewer';
 import {
   INITIAL_SESSION,
   type SessionClock,
@@ -69,4 +71,14 @@ export function seedSession(user: SessionUser = APPROVED_USER): void {
 /** A signed-in account with no clock yet: what the app looks like between the gate and home. */
 export function seedSessionWithoutClock(user: SessionUser = APPROVED_USER): void {
   setSessionUser(user);
+}
+
+/**
+ * The signed-in person a data module expects, from a sample first name or key ("Nico", "dodi").
+ * The tests used to pass the bare name, which is exactly the matching K4 replaced.
+ */
+export function viewerNamed(nameOrKey: string): Viewer {
+  const who = person(nameOrKey);
+  if (!who) throw new Error(`No sample person named ${nameOrKey}`);
+  return viewerOf(who);
 }

@@ -18,6 +18,7 @@ import {
 } from './profile.calendar.dates';
 import type { Role } from './sample';
 import { type Decisions, getDecisions } from './users';
+import { viewer as signedIn } from './viewer';
 
 export type ProfileData = {
   me: PersonInfo;
@@ -114,7 +115,7 @@ export function getMyCalendar(
   day: string,
   events: readonly EventItem[],
 ): MyCalendarData {
-  const items = eventsFor(events, me(role).name);
+  const items = eventsFor(events, signedIn(role));
   const todays = itemsOn(items, day);
   const n = todays.length;
   return {

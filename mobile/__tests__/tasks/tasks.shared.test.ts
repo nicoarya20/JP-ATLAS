@@ -16,6 +16,8 @@ import {
   whoLabel,
 } from '../../src/data/tasks.shared';
 import { getTasksState } from '../../src/data/tasks.state';
+import { viewerOf } from '../../src/data/viewer';
+import { viewerNamed } from '../helpers/session-fixtures';
 
 // "Today" is Wednesday, Oct 7, 2026, so This week runs to Sunday, Oct 11.
 
@@ -42,10 +44,9 @@ describe('groupOf', () => {
 
 describe('myGroups per role', () => {
   const titles = (role: 'member' | 'pm' | 'admin') =>
-    myGroups(role, getTasksState().tasks, baseQuery('mine'), me(role).name).map((g) => [
-      g.title,
-      g.tasks.map((t) => t.no),
-    ]);
+    myGroups(role, getTasksState().tasks, baseQuery('mine'), viewerNamed(me(role).name)).map(
+      (g) => [g.title, g.tasks.map((t) => t.no)],
+    );
 
   test('a Manager sees the review queue first, then their tasks by urgency', () => {
     expect(titles('pm')).toEqual([
@@ -66,7 +67,7 @@ describe('myGroups per role', () => {
 
   test('any other sort is one list titled by the sort, review queue first', () => {
     const q = { ...baseQuery('mine'), sort: 3 };
-    const groups = myGroups('pm', getTasksState().tasks, q, 'Nico');
+    const groups = myGroups('pm', getTasksState().tasks, q, viewerNamed('Nico'));
     expect(groups.map((g) => g.title)).toEqual(['Waiting for my review', 'Title (A–Z)']);
     expect(groups[1].tasks.map((t) => t.no)).toEqual([12, 9, 14]);
   });
@@ -76,17 +77,17 @@ describe('notes and labels', () => {
   const x17 = () => getTasksState().info[17];
 
   test('an In review note names the reviewer unless that is the viewer', () => {
-    expect(note(task(17), x17(), me('pm'), 'Nico')).toBe('Waiting for my review');
-    expect(note(task(17), x17(), me('member'), 'Nico')).toBe('Awaiting review by Nico');
-    expect(note(task(17), x17(), me('admin'), 'Nico')).toBe('Awaiting review by Nico');
+    expect(note(task(17), x17(), viewerNamed('Nico'), 'Nico')).toBe('Waiting for my review');
+    expect(note(task(17), x17(), viewerNamed('Dodi'), 'Nico')).toBe('Awaiting review by Nico');
+    expect(note(task(17), x17(), viewerNamed('Ayu'), 'Nico')).toBe('Awaiting review by Nico');
     const review12 = { ...task(12), status: 'In review' as const };
     const x12 = getTasksState().info[12];
-    expect(note(review12, x12, me('admin'), 'Nico')).toBe('Waiting for my review');
-    expect(note(review12, x12, me('pm'), 'Nico')).toBe('Awaiting review by Admin');
-    expect(note({ ...task(9), status: 'In review' }, undefined, me('pm'), 'Nico')).toBe(
+    expect(note(review12, x12, viewerNamed('Ayu'), 'Nico')).toBe('Waiting for my review');
+    expect(note(review12, x12, viewerNamed('Nico'), 'Nico')).toBe('Awaiting review by Admin');
+    expect(note({ ...task(9), status: 'In review' }, undefined, viewerNamed('Nico'), 'Nico')).toBe(
       'Waiting for my review',
     );
-    expect(note(task(12), x12, me('pm'), 'Nico')).toBe('2 days overdue');
+    expect(note(task(12), x12, viewerNamed('Nico'), 'Nico')).toBe('2 days overdue');
   });
 
   test('due label and note from the sample today', () => {
@@ -119,20 +120,20 @@ describe('notes and labels', () => {
 
 describe('who may change and archive', () => {
   test('a Member changes only tasks assigned to them; Managers and Admins any', () => {
-    expect(mayChange(me('member'), task(16))).toBe(true);
-    expect(mayChange(me('member'), task(12))).toBe(false);
-    expect(mayChange(me('member'), { who: 'Rina', also: ['Dodi'] })).toBe(true);
-    expect(mayChange(me('pm'), task(15))).toBe(true);
-    expect(mayChange(me('admin'), task(15))).toBe(true);
+    expect(mayChange(viewerOf(me('member')), task(16))).toBe(true);
+    expect(mayChange(viewerOf(me('member')), task(12))).toBe(false);
+    expect(mayChange(viewerOf(me('member')), { who: 'Rina', also: ['Dodi'] })).toBe(true);
+    expect(mayChange(viewerOf(me('pm')), task(15))).toBe(true);
+    expect(mayChange(viewerOf(me('admin')), task(15))).toBe(true);
     expect(deniedNotice({ who: 'Nico', also: ['Rina'] })).toBe(
       'Only Nico or Rina can change this task',
     );
   });
 
   test('a Member archives only tasks they created', () => {
-    expect(mayArchive(me('member'), { by: 'Dodi' })).toBe(true);
-    expect(mayArchive(me('member'), { by: 'Nico' })).toBe(false);
-    expect(mayArchive(me('pm'), { by: 'Rina' })).toBe(true);
+    expect(mayArchive(viewerOf(me('member')), { by: 'Dodi' })).toBe(true);
+    expect(mayArchive(viewerOf(me('member')), { by: 'Nico' })).toBe(false);
+    expect(mayArchive(viewerOf(me('pm')), { by: 'Rina' })).toBe(true);
   });
 });
 
