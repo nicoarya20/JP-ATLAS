@@ -6,7 +6,7 @@ import { Box, Group, Stack } from '@mantine/core';
 import { StatusBadge } from '~/components/pm/StatusBadge';
 import type { TaskListItem } from '~/lib/tasks-api';
 import { NextStepButton } from './NextStepButton';
-import { TaskBadges, TaskFacts, TaskRowLink, TaskTitle } from './TaskRow';
+import { TaskBadges, TaskFacts, TaskMeta, TaskRowLink, TaskTitle } from './TaskRow';
 import { TaskRowMenu } from './TaskRowMenu';
 
 export function TaskCard({ task }: { task: TaskListItem }) {
@@ -15,6 +15,7 @@ export function TaskCard({ task }: { task: TaskListItem }) {
       <TaskRowLink task={task} />
       <Stack gap="xs">
         <TaskTitle task={task} />
+        <TaskMeta task={task} />
         <Group gap="xs" wrap="wrap">
           <StatusBadge status={task.status} />
           <TaskBadges task={task} />

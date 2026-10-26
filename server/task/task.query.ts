@@ -9,7 +9,7 @@ import { atLeast, levelOf } from '../access/level';
 import { projectListScope } from '../access/project.policy';
 import type { Principal } from '../access/types';
 import { db } from '../db';
-import { project, projectMember, task } from '../db/schema';
+import { project, projectMember, projectPhase, task } from '../db/schema';
 import { SCHEDULE_GROUPS, type ScheduleGroup, scheduleBounds } from '../metrics/schedule';
 import { TASK_STATUSES, type TaskStatus } from '../pm/enums';
 import { decodeCursor, encodeCursor } from '../pm/keyset';
@@ -32,12 +32,13 @@ import {
   groupCase,
   inGroup,
   liveTask,
+  onTaskPhase,
   orderBy,
   SORTS,
   taskSearch,
   visibleTo,
 } from './task.sql';
-import { viewOf } from './task.view';
+import { phaseOf, viewOf } from './task.view';
 
 const clampLimit = (n: number | undefined) =>
   Math.min(Math.max(Math.trunc(n ?? PAGE_LIMIT_DEFAULT), 1), PAGE_LIMIT_MAX);
@@ -128,6 +129,7 @@ export async function listTasks(
     .select({ ...cardColumns, sortKey: SORTS[sort].key })
     .from(task)
     .innerJoin(project, eq(project.id, task.projectId))
+    .leftJoin(projectPhase, onTaskPhase)
     .where(
       and(liveTask, visibleTo(projectListScope(p)), ...filtersOf(p, input, clock.today), after),
     )
@@ -166,6 +168,7 @@ export async function listTasks(
       dueDate: r.dueDate,
       assignee: r.assigneeId ? (people.get(r.assigneeId) ?? null) : null,
       project: { id: r.projectId, name: r.projectName, status: r.projectStatus },
+      phase: phaseOf(r),
       labels,
       checklist: { done: r.checklistDone, total: r.checklistTotal },
       primary,

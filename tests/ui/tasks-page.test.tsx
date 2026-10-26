@@ -74,6 +74,7 @@ const task = (over: Partial<TaskListItem> = {}): TaskListItem => ({
   dueDate: '2026-10-09',
   assignee: { id: 'u-2', name: 'Dodi' },
   project: { id: 'p-1', name: 'Renovasi Dapur', status: 'active' },
+  phase: null,
   labels: [],
   checklist: { done: 0, total: 0 },
   primary: 'start',
@@ -181,6 +182,14 @@ describe('Semua tugas — table', () => {
     ]);
     // Once in the table and once in the mobile card.
     expect(html.split('Pasang keramik dapur').length - 1).toBe(2);
+  });
+
+  it('puts the number and the phase under the title, in the row and in the card', async () => {
+    const items = [task({ phase: { id: 'ph-1', name: 'Persiapan' } })];
+    const html = await render('?lingkup=semua', data('lingkup=semua', { items }));
+    // Once in the table and once in the mobile card, both times.
+    expect(html.split(LIST_COPY.taskNumber(42)).length - 1).toBe(2);
+    expect(html.split(`aria-label="${LIST_COPY.inPhase('Persiapan')}"`).length - 1).toBe(2);
   });
 
   it('says nothing matches a filter and offers to clear it', async () => {

@@ -11,7 +11,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
 import { TaskCard } from '../../app/components/tasks/TaskCard';
 import { TaskRow } from '../../app/components/tasks/TaskRow';
-import { NEXT_STEP_LABELS } from '../../app/components/tasks/tasks.copy';
+import { LIST_COPY, NEXT_STEP_LABELS } from '../../app/components/tasks/tasks.copy';
 import { TASK_LABEL_LABELS } from '../../app/lib/pm-labels';
 import type { TaskListItem } from '../../app/lib/tasks-api';
 
@@ -43,6 +43,7 @@ const task = (over: Partial<TaskListItem> = {}): TaskListItem => ({
   dueDate: '2026-10-05',
   assignee: { id: 'u-1', name: 'Dodi' },
   project: { id: 'p-1', name: 'Renovasi Dapur', status: 'active' },
+  phase: null,
   labels: [],
   checklist: { done: 0, total: 0 },
   primary: 'start',
@@ -87,6 +88,21 @@ describe('TaskRow', () => {
     expect(stale).not.toContain(TASK_LABEL_LABELS.reopened.label);
   });
 
+  it('shows the task number, the handle people read aloud and search as #42', async () => {
+    const html = await row();
+    expect(html).toContain(LIST_COPY.taskNumber(42));
+  });
+
+  it('shows the phase of the task as a badge, and nothing at all when it has none', async () => {
+    const withPhase = await row({ phase: { id: 'ph-1', name: 'Persiapan' } });
+    expect(withPhase).toContain('Persiapan');
+    expect(withPhase).toContain(`aria-label="${LIST_COPY.inPhase('Persiapan')}"`);
+    // No phase means no badge and no placeholder dash.
+    const without = await row({ phase: null });
+    expect(without).not.toContain('Tahapan');
+    expect(without).not.toContain('—');
+  });
+
   it('leaves out labels that arrive with review and dependencies (S4)', async () => {
     const html = await row({ labels: ['awaiting_my_review', 'blocked'] });
     expect(html).not.toContain(TASK_LABEL_LABELS.awaiting_my_review.label);
@@ -125,6 +141,12 @@ describe('TaskCard', () => {
     expect(html).toContain('Dodi');
     expect(html).toContain(NEXT_STEP_LABELS.complete);
     expect(html).toMatch(/<button[^>]*data-block="true"/);
+  });
+
+  it('carries the number and the phase too, so a phone shows the same handle', async () => {
+    const html = await card({ phase: { id: 'ph-1', name: 'Persiapan' } });
+    expect(html).toContain(LIST_COPY.taskNumber(42));
+    expect(html).toContain('Persiapan');
   });
 
   it('hides the button for requestReview and for no step', async () => {
