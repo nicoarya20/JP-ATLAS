@@ -3,6 +3,8 @@
 > 21 Okt 2026 · tahap 2 · **Gelombang 1 sudah dikerjakan** (AD-01 dan AD-02 selesai dan ter-merge ke `plan/p11-area-admin` @ `97a578b`, 21 Okt 2026); AD-03..AD-19 masih rencana. Cabang induk lajur ini `plan/p11-area-admin`. Mengikat: `../KEPUTUSAN-MVP-INTI.md` > `../JADWAL-S3-S8.md` > dokumen ini. Lahir dari diskusi user 21 Okt 2026 (pertanyaan: "menu apa saja di area Admin, dan kenapa"). Fondasi kode menang atas desain; kutipan `path:baris` adalah yang dibaca di worktree `feature/project-management` pada tanggal itu. Tanda **ASUMSI** = belum diverifikasi.
 >
 > **Dikoreksi 23 Okt 2026 oleh `P14-cuti-status-admin.md`:** AD-07 (tab Kebijakan kerja) **dicoret** dan tab Pengaturan turun **6 → 5**. Sebabnya persetujuan cuti keluar dari aplikasi, sehingga saklar "Cuti perlu persetujuan" — satu-satunya isi AD-07 yang punya backend nyata — ikut hilang; hari kerja dan hari libur ditunda sampai ada yang benar-benar menghitungnya. Nomor migrasi juga berpindah tangan — final: `0022_admin_policy.sql` (§5). Tiap butir yang terdampak ditandai di tempatnya masing-masing.
+>
+> **P14 mendarat 26 Okt 2026** (CU-01..CU-08 di `nicoarya20/sp-p14-cuti`), jadi koreksi di atas bukan rencana lagi: berkas `settings/kebijakan-kerja.tsx` sudah dihapus, Pengaturan admin benar-benar lima tab (`tests/admin-settings-tabs.test.ts`), alur persetujuan cuti sudah tidak ada di kode, dan cuti kini disetel Admin dari `/dashboard/users`. Hari kerja dan hari libur tercatat sebagai `HUTANG.md` **H-E15** dengan konsumennya disebut (kalkulator tenggat).
 
 ## 1. Ringkasan
 

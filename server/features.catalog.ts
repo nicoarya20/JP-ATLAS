@@ -38,12 +38,11 @@ export const FEATURE_CATALOG: readonly FeatureCatalogEntry[] = [
     description:
       'Catatan cuti anggota, dipakai menu Tim untuk menandai siapa sedang tidak tersedia.',
     // Rewritten per plan §3 D7: leave approval leaves the app with P14, so "anggota tidak bisa
-    // mengajukan cuti" would be wrong. The plan also names the "Setel cuti" menu in
-    // /dashboard/users — that screen is P14's and does not exist in the code yet, so it is left
-    // out rather than promised here. What is named below is on screen today:
-    // `AvailabilityBadge` in /app/team and the Cuti card in /app/settings.
+    // mengajukan cuti" would be wrong. The third place landed with P14 CU-04, so it is named too:
+    // everything below is on screen today (`AvailabilityBadge` in /app/team, the Cuti card in
+    // /app/settings, and the Ketersediaan controls in /dashboard/users).
     whenOff:
-      'Lencana Ketersediaan di menu Tim dan bagian Cuti di Pengaturan › Ketersediaan tidak lagi ditampilkan.',
+      'Lencana Ketersediaan di menu Tim, bagian Cuti di Pengaturan › Ketersediaan, dan kontrol Setel cuti di menu Pengguna tidak lagi ditampilkan.',
     defaultEnabled: true,
   },
   {
