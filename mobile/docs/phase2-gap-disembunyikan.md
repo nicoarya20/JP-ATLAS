@@ -64,8 +64,19 @@ kelompok A yang dibangun. Begitu juga opsi form tugas (Tasks A12), rute hapus pe
 | Sort "Lowest progress" | Projects filter | Projects A-4 | `PROJECT_SORTS` tidak punya progress; progress dihitung, bukan kolom | rencana |
 | Cari pada **deskripsi** proyek | Projects daftar | Projects A-6 | `q` server hanya nama; `description` hanya ada di detail. Placeholder perlu diubah jadi "Search project name…" | rencana |
 | Persen fase berjalan ("Now: Development · 60%") | Project detail plan | Projects A-11 | Server tidak punya "persen fase". Angkanya akan berubah dari sampel, jadi perlu keputusan | rencana |
-| Kartu Inbox "Meeting outcomes need your confirmation" + lead AI | Inbox | Home A-14 | Tidak ada `kind` seperti itu di katalog notifikasi | rencana |
-| `why` (alasan Admin jadi reviewer) di kartu review | Inbox | Home A-15 | Kartu review masih `shipped: false`; ikut S4 | rencana |
+| Kartu Inbox "Meeting outcomes need your confirmation" + lead AI | Inbox | Home A-14 | Tidak ada `kind` seperti itu di katalog notifikasi | **disembunyikan** (`src/data/inbox.ts`: tidak ada lagi lead `ai`; satu kartu = satu kartu server) |
+| `why` (alasan Admin jadi reviewer) di kartu review | Inbox | Home A-15 | Kartu review masih `shipped: false`; ikut S4 | **disembunyikan** (`src/data/inbox.ts`, `src/screens/inbox/inbox-card.tsx`: bidang `why` dicabut) |
+| Kartu Approvals agregat ("2 new users awaiting approval") + tumpukan avatar | Inbox | Home A-13 | Server mengirim **satu kartu per akun**. Merangkumnya di klien berarti menulis kalimat kedua di samping `sentence` server — dua sumber kalimat yang pasti melenceng (K5) | **disembunyikan** (`src/data/inbox.ts`, `inbox-card.tsx`: `AvatarStack` tidak dipakai lagi di Inbox) |
+| Chip **In Progress** dan sub-barisnya `next due` | Beranda | Home A-4 | `counters.inProgress` dihitung atas **proyek yang saya kelola**, bukan tugas saya, dan `nextDue` tidak ada di payload mana pun | **disembunyikan** (`src/data/home.stats.ts`, `src/data/home.types.ts`: `StatKey` tinggal dua) |
+| Chip **Completed · this week** | Beranda | Home A-5 | `done.total` menghitung seluruh proyek saya, bukan tugas saya; `tasks/counts` tidak punya batas minggu | **disembunyikan** (sama) |
+| Chip **Upcoming · N items** | Beranda | Home A-6 | "Sisa bulan ini" tidak ada definisinya di server; menjumlahkan tugas + acara di klien adalah angka karangan | **disembunyikan** (sama) |
+| Chip Admin **Active · projects** | Beranda | Home A-7 | `counters` tidak memfilter status proyek | **disembunyikan** (sama) |
+| Chip Admin **Overdue · tasks** (se-workspace) | Beranda | Home A-8 | Beranda sengaja berlingkup "proyek saya" (`home.scope.ts`); angka se-workspace tidak ada | **disembunyikan** (sama) |
+| Chip Admin **Awaiting · users** dan baris "Approve N new users" di My Focus | Beranda | Home A-9 | Server mengirimnya sebagai kartu Inbox `user_pending`; tidak ada hitungan terpisah | **disembunyikan** (`src/data/home.stats.ts`, `src/data/home.focus.ts`, `src/screens/home/sections/focus.section.tsx`) |
+| Teks lokasi acara ("Meeting Room 2") di kartu agenda | Beranda | Home A-10 | `HomeAgendaItem` hanya punya `locationType`; lokasinya tidak di kabel | **disembunyikan** (`src/data/home.types.ts`: `AgendaEvent.place` dicabut) |
+| **Lead** proyek di baris agenda ("Lead Nico · Due Oct 31") | Beranda | Home A-11 | `HomeProject` tidak punya lead | **disembunyikan** (`src/data/home.focus.ts`, `src/screens/home/sections/agenda.section.tsx`) |
+| Pil **status siklus hidup** proyek ("Active"/"Done") di baris agenda | Beranda | Home A-12 | Payload home mengirim `condition` + `reason` (kesehatan), bukan status. Diganti pil `condition` + alasannya, bukan dihilangkan | **diganti** (`src/screens/home/parts/condition-pill.tsx`) |
+| Kolom tanya bebas Ask Data ("Type or say a question…") + tombol **Ask** | Beranda | — (bukan GAP yang ditunda: `server/home/home.ask.ts` memang hanya menjawab 3 pertanyaan tetap, tanpa LLM) | Kolom yang tampak bisa ditanyai apa saja adalah janji yang tidak ada yang menepati | **disembunyikan** (`src/screens/home/sections/ask.section.tsx`: tiga pil pertanyaan + jawabannya) |
 | Catatan gelembung di Profil (`note`) | Profil | Home A-21 | Tidak ada kolom maupun bidang di `ProfileView` | rencana |
 | Presence **Online/Offline** dan klaim "Teammates see you as Online" | Profil | Home A-22 | Tidak ada presence di server. Menampilkannya sebagai lokal = klaim palsu | rencana |
 | Satu switch "Mute notifications" | Profil | Home A-23 | Server punya **dua** switch dan kartu `action` tidak bisa dibisukan; satu switch akan bohong | rencana |
@@ -104,9 +115,34 @@ Begitu salah satunya ada, `viewer()` mengisi `role` dari situ dan parameternya b
 `me(role)`. Identitasnya diselesaikan di dalam (`viewerOf()`), jadi hasilnya benar — tapi layar
 seharusnya tidak perlu mengoper orang sama sekali. Dibereskan bersama 4.1, oleh worker Tasks.
 
-### 4.3 Greeting Beranda masih teks mati
+### 4.3 Greeting Beranda masih teks mati — SELESAI (Gelombang 1)
 
-`GREETING = 'Good morning'` (`src/data/sample/today.ts`) dipakai `src/data/home.ts`. Server mengirim
-`now.greeting` (`pagi｜siang｜sore｜malam`) di payload home yang **sudah diambil** — jadi ini bukan
-GAP server, hanya belum dipakai. Worker Beranda Gelombang 1 mengambilnya dari
-`homeResource.current()`. Perhatikan K5: kata sapaannya bahasa Indonesia dari server.
+`GREETING = 'Good morning'` sudah dicabut dari `src/data/sample/today.ts`. Beranda memakai
+`now.greeting` dari payload home dan memetakan enumnya ke kalimat Inggris (`src/data/home.ts`):
+`pagi` → Good morning, `siang`/`sore` → Good afternoon, `malam` → Good evening. Ini **enum yang
+dipetakan**, bukan kalimat server yang diterjemahkan, jadi tidak melanggar K5.
+
+### 4.4 Inbox hanya memuat halaman pertama tiap lajur
+
+**Keadaan:** `src/data/inbox.api.ts` meminta `GET /api/app/inbox?lane=…` tanpa `cursor`, jadi yang
+tampil adalah 25 kartu teratas (default server). `nextCursor` **dipakai**: kalau masih ada lanjutan,
+daftarnya menulis "Only the newest cards/updates are loaded." — bukan diam-diam berhenti.
+
+**Kenapa belum ada "muat lebih banyak":** `resource()` di fondasi bersama menyimpan **satu** nilai
+dan `load` tidak menerima argumen, jadi menambah halaman berarti mengubah kontrak fondasi — yang
+dilarang dikerjakan satu worker sendirian (dua worker lain menulis di atas pola yang sama).
+Keputusannya milik koordinator; sampai itu, batas ini tertulis di layar.
+
+**Efek samping yang perlu diketahui:** lencana Inbox di panel More dan baris Inbox di Profil
+membaca `respondCards().length` (lewat `getProfile`, berkas milik Gelombang 2), bukan
+`inbox/count.action`. Untuk >25 kartu terbuka angkanya jadi kurang. Satu baris di
+`src/data/profile.ts` (`inbox: inboxActionCount() ?? 0`) membereskannya; tidak saya kerjakan karena
+berkas itu di luar wilayah saya.
+
+### 4.5 `role` sudah tidak dipakai Beranda dan Inbox
+
+`HomeScreen` dan `InboxScreen` tidak lagi menerima prop `role`, dan `getHome()`/`getInbox()` tidak
+menerima argumen: apa yang boleh tampil adalah jawaban server, bukan terkaan layar. Dua berkas layar
+hilang dari daftar ~40 di §4.1. `respondCards(_role?, _decided?)` **masih** menerima dua parameter
+yang diabaikan, semata agar `src/data/profile.ts` dan `src/screens/more/more.tiles.ts` (wilayah
+Gelombang 2) tetap ter-compile; keduanya dicabut bersama §4.1.
