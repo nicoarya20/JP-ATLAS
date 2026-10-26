@@ -1,74 +1,72 @@
 import type { Href } from 'expo-router';
 
-import { Button, ButtonText } from '@/components/ui/button';
 import { VStack } from '@/components/ui/vstack';
-import type { HomeFocus } from '@/data/home.types';
+import type { FocusTask, HomeData } from '@/data/home.types';
 
 import { FOCUS_GROUP, S } from '../home.strings';
 import { TARGET_HREF, taskHref } from '../home.targets';
-import { ListRow } from '../parts/list-row';
 import { SectionCard } from '../parts/section-card';
 import { EmptyLine, GroupLabel, SeeAll } from '../parts/small-parts';
-import { FocusRow } from './focus.row';
+import { WidgetPart } from '../parts/widget-card';
+import { FocusRow, ReviewRow } from './focus.row';
 
 type FocusSectionProps = {
-  focus: HomeFocus;
+  focus: HomeData['focus'];
   onOpen: (href: Href) => void;
-  onDone: (no: number) => void;
+  onAction: (task: FocusTask) => void;
+  /** The task whose button is working, so only that row shows a spinner. */
+  busyId?: string | null;
+  onRetry: () => void;
 };
 
 /**
- * My Focus: Admin first gets the accounts awaiting approval; then my open tasks by Overdue / Today / This week; a PM
- * also gets other people's tasks in review. Only the first Review (or Admin's Open) is lime: one lime per view.
+ * My Focus: my open tasks in the server's own urgency order, bucketed by when they are due, then the
+ * tasks waiting for my review. The approvals row the Admin used to get is gone with GAP A-9 — the
+ * server sends those as Inbox cards, not as a number of its own.
  */
-export function FocusSection({ focus, onOpen, onDone }: FocusSectionProps) {
+export function FocusSection({ focus, onOpen, onAction, busyId, onRetry }: FocusSectionProps) {
   return (
     <SectionCard title={S.focus.title} sub={S.focus.sub}>
-      {focus.pendingUsers !== null && (
-        <VStack className="gap-2">
-          <GroupLabel>{S.focus.needsAction}</GroupLabel>
-          <ListRow
-            soft
-            title={S.focus.approve(focus.pendingUsers)}
-            sub={S.focus.approveSub}
-            onPress={() => onOpen(TARGET_HREF['users.approve'])}
-            right={
-              <Button size="sm" onPress={() => onOpen(TARGET_HREF['users.approve'])}>
-                <ButtonText>{S.focus.open}</ButtonText>
-              </Button>
-            }
-          />
-        </VStack>
-      )}
-      {focus.groups
-        .filter((g) => g.tasks.length)
-        .map((g) => (
-          <VStack key={g.key} className="gap-2">
-            <GroupLabel>{FOCUS_GROUP[g.key]}</GroupLabel>
-            {g.tasks.map((t) => (
-              <FocusRow key={t.no} task={t} onOpen={() => onOpen(taskHref(t.no))} onDone={onDone} />
-            ))}
-          </VStack>
-        ))}
-      {focus.review.length > 0 && (
-        <VStack className="gap-2">
-          <GroupLabel>{S.focus.awaitingReview}</GroupLabel>
-          {focus.review.map((t, i) => (
-            <FocusRow
-              key={t.no}
-              task={t}
-              onOpen={() => onOpen(taskHref(t.no))}
-              onDone={onDone}
-              action={{ label: S.focus.review, primary: i === 0 }}
+      <WidgetPart section={focus} onRetry={onRetry} testID="focus-failed">
+        {(data) => (
+          <>
+            {data.groups
+              .filter((g) => g.tasks.length)
+              .map((g) => (
+                <VStack key={g.key} className="gap-2">
+                  <GroupLabel>{FOCUS_GROUP[g.key]}</GroupLabel>
+                  {g.tasks.map((t) => (
+                    <FocusRow
+                      key={t.id}
+                      task={t}
+                      busy={busyId === t.id}
+                      onOpen={() => onOpen(taskHref(t.no))}
+                      onAction={onAction}
+                    />
+                  ))}
+                </VStack>
+              ))}
+            {data.review.length > 0 && (
+              <VStack className="gap-2">
+                <GroupLabel>{S.focus.awaitingReview}</GroupLabel>
+                {data.review.map((t, i) => (
+                  <ReviewRow
+                    key={t.id}
+                    task={t}
+                    primary={i === 0}
+                    onOpen={() => onOpen(taskHref(t.no))}
+                  />
+                ))}
+              </VStack>
+            )}
+            {data.empty && <EmptyLine>{S.focus.empty}</EmptyLine>}
+            <SeeAll
+              label={S.focus.seeAll(data.openCount, data.reviewCount)}
+              onPress={() => onOpen(TARGET_HREF['tasks.my'])}
             />
-          ))}
-        </VStack>
-      )}
-      {focus.empty && <EmptyLine>{S.focus.empty}</EmptyLine>}
-      <SeeAll
-        label={S.focus.seeAll(focus.openCount, focus.review.length)}
-        onPress={() => onOpen(TARGET_HREF['tasks.my'])}
-      />
+          </>
+        )}
+      </WidgetPart>
     </SectionCard>
   );
 }

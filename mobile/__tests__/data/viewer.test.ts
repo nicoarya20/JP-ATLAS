@@ -8,6 +8,8 @@ import { getHome } from '@/data/home';
 import { me, person } from '@/data/people';
 import { identityOf, samePerson, someSamePerson, viewer, viewerOf } from '@/data/viewer';
 import { setSessionClock, setSessionUser } from '@/session/session.state';
+import { serveAuth } from '../helpers/auth-server';
+import { homeRoutes, loadHome } from '../helpers/home-fixtures';
 import {
   APPROVED_USER,
   resetSessionForTest,
@@ -116,18 +118,24 @@ describe('the identity of someone else', () => {
 });
 
 describe('what the screens get', () => {
-  it('still reports the same Home as before: identity changed, the data did not', () => {
-    const home = getHome('pm');
+  /*
+   * Home stopped resolving people itself in Fase 2: GET /api/app/home is already scoped to the
+   * caller by the server, so there is no client-side matching left to get wrong there. What this
+   * still pins down is the other half of K4 — the person Home greets is the signed-in account, not
+   * a sample row.
+   */
+  it('greets the signed-in account', async () => {
+    const server = serveAuth(homeRoutes());
+    try {
+      await loadHome();
+      expect(getHome()?.me.name).toBe('Nico');
 
-    expect(home.me.name).toBe('Nico');
-    expect(home.focus.openCount).toBeGreaterThan(0);
-  });
+      setSessionUser({ ...APPROVED_USER, name: 'Ayu Lestari' });
+      setSessionClock(TEST_CLOCK);
 
-  it('counts the same tasks when the account id changes but the person does not', () => {
-    const before = getHome('pm').focus.openCount;
-    setSessionUser({ ...APPROVED_USER, id: 'u-nico-renamed' });
-    setSessionClock(TEST_CLOCK);
-
-    expect(getHome('pm').focus.openCount).toBe(before);
+      expect(getHome()?.me.name).toBe('Ayu');
+    } finally {
+      server.restore();
+    }
   });
 });

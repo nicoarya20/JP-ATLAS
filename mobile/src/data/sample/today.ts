@@ -10,6 +10,3 @@
  * end up disagreeing about which day a task is due.
  */
 export const TODAY = '2026-10-07';
-
-/** Greeting in the Home header, from the prototype's sample day (morning). */
-export const GREETING = 'Good morning';

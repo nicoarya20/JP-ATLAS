@@ -10,6 +10,7 @@ import { getProfileState, resetProfile } from '../../src/data/profile.store';
 import type { Role } from '../../src/data/sample';
 import { ProfileScreen } from '../../src/screens/profile/profile.screen';
 import { serveAuth } from '../helpers/auth-server';
+import { inboxRoutes, loadInbox } from '../helpers/inbox-fixtures';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
@@ -47,6 +48,9 @@ describe('ProfileScreen', () => {
   });
 
   test('rows into the tabs close the modal first; My calendar opens inside it', async () => {
+    // The Inbox row counts the cards the server sent (Fase 2), so the Inbox is read first.
+    server = serveAuth(inboxRoutes());
+    await loadInbox();
     await show();
     await fireEvent.press(screen.getByText('Edit profile'));
     expect(router.dismiss).toHaveBeenCalledTimes(1);

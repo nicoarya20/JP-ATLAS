@@ -1,14 +1,4 @@
-import {
-  CalendarDays,
-  CircleCheck,
-  Clock,
-  FolderOpen,
-  Hourglass,
-  Inbox,
-  type LucideIcon,
-  TriangleAlert,
-  UserCheck,
-} from 'lucide-react-native';
+import { Inbox, type LucideIcon, UserCheck } from 'lucide-react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { usePinnedProgress } from '@/components/screen/stacked-context';
@@ -22,13 +12,7 @@ import { STAT_LABEL, statSub } from '../home.strings';
 
 const STAT_ICON: Record<StatKey, LucideIcon> = {
   assigned: UserCheck,
-  inProgress: Clock,
-  completed: CircleCheck,
-  upcoming: CalendarDays,
   inbox: Inbox,
-  active: FolderOpen,
-  overdue: TriangleAlert,
-  awaiting: Hourglass,
 };
 
 /** Chip geometry (prototype .hm-stat-in): the icon box (h-6), padding tall → compact, and the gaps that fold away. */

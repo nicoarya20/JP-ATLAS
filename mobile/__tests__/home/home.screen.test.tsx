@@ -3,28 +3,34 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
-import { resetArchive } from '../../src/data/archive.store';
-import { cancelEvent, resetEvents } from '../../src/data/events.store';
-import type { Role } from '../../src/data/sample';
-import { archiveTask, getTask, moveTask, resetTasks } from '../../src/data/tasks.store';
+import { ensureInboxCount } from '../../src/data/inbox.api';
 import { HomeScreen } from '../../src/screens/home/home.screen';
 import { TARGET_HREF } from '../../src/screens/home/home.targets';
+import { serveAuth } from '../helpers/auth-server';
+import { HOME_WIRE, homeRoutes, homeWithout, loadHome } from '../helpers/home-fixtures';
+import { inboxRoutes } from '../helpers/inbox-fixtures';
 import { drainToastTimers } from '../helpers/toast-timers';
 
-// Home is rendered on its own (the tab host mounts every tab, see tabs.test.tsx); expected values are the prototype's.
+// Home is rendered on its own (the tab host mounts every tab, see tabs.test.tsx) on the fixture
+// payload of GET /api/app/home.
 
-// Home shows toasts (Done, Ask, Search): every test lets them run out so no toast timer outlives the file.
+// Home shows toasts (Done, Search): every test lets them run out so no toast timer outlives the file.
 drainToastTimers();
-// Home reads the live task and event stores; each test starts from the sample.
-afterEach(() => {
-  resetTasks();
-  resetEvents();
-  resetArchive();
-});
 
-async function renderHome(role: Role) {
+let server: ReturnType<typeof serveAuth>;
+const serve = (routes = { ...homeRoutes(), ...inboxRoutes() }) => {
+  server = serveAuth(routes);
+  return server;
+};
+afterEach(() => server?.restore());
+
+/** Home with the payload already in the store, as the session gate's own call leaves it. */
+async function renderHome(routes?: Parameters<typeof serve>[0]) {
+  serve(routes);
+  await loadHome();
+  await ensureInboxCount();
   const onOpen = jest.fn();
-  await render(<HomeScreen role={role} onOpen={onOpen} />, { wrapper: GluestackUIProvider });
+  await render(<HomeScreen onOpen={onOpen} />, { wrapper: GluestackUIProvider });
   return onOpen;
 }
 
@@ -34,17 +40,11 @@ const chipLabels = () =>
     .map((b) => b.props.accessibilityLabel as string | undefined)
     .filter((l) => l?.includes(', '));
 
-describe('HomeScreen · Project Manager', () => {
-  test('greeting, stat chips and the six sections', async () => {
-    await renderHome('pm');
+describe('HomeScreen', () => {
+  test('greeting, the two chips it can stand behind, and the six sections', async () => {
+    await renderHome();
     expect(screen.getByRole('header', { name: 'Good morning, Nico' })).toBeTruthy();
-    expect(chipLabels()).toEqual([
-      'Assigned 3, 1 overdue',
-      'In Progress 1, 1 overdue',
-      'Completed 0, this week',
-      'Upcoming, 7 items',
-      'Inbox, 3 to respond',
-    ]);
+    expect(chipLabels()).toEqual(['Assigned 7, 1 overdue', 'Inbox, 3 to respond']);
     for (const title of [
       'Daily Briefing',
       'My Focus',
@@ -57,78 +57,100 @@ describe('HomeScreen · Project Manager', () => {
     }
   });
 
-  test('My Focus groups my tasks and shows status where Done is not allowed', async () => {
-    await renderHome('pm');
-    expect(screen.getByText('#12 Fix SSO login')).toBeTruthy();
-    expect(screen.getByText('In progress')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Done: Write the API spec' })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Done: Fix SSO login' })).toBeNull();
-    expect(screen.getByText('Awaiting your review')).toBeTruthy();
-    expect(screen.getByText('See all tasks (3) · 1 awaiting review')).toBeTruthy();
-  });
-
-  test('Done moves the task to Done in the store, updates the chips and confirms with a toast', async () => {
-    await renderHome('pm');
-    await fireEvent.press(screen.getByRole('button', { name: 'Done: Write the API spec' }));
-    expect(await screen.findByText('Task marked done')).toBeTruthy();
-    expect(getTask(14)?.status).toBe('Done');
-    expect(screen.queryByText('#14 Write the API spec')).toBeNull();
-    expect(chipLabels().slice(0, 3)).toEqual([
-      'Assigned 2, 1 overdue',
-      'In Progress 1, 1 overdue',
-      'Completed 1, this week',
-    ]);
-    expect(screen.getByText('See all tasks (2) · 1 awaiting review')).toBeTruthy();
-  });
-
-  test('re-renders when Tasks or Events change the stores', async () => {
-    await renderHome('pm');
-    await act(() => moveTask(9, 'Canceled'));
-    await act(() => archiveTask(14, 'Nico'));
-    expect(screen.queryByText('#9 Prepare the sprint demo')).toBeNull();
-    expect(screen.queryByText('#14 Write the API spec')).toBeNull();
-    expect(chipLabels()[0]).toBe('Assigned 1, 1 overdue');
-    await act(() => cancelEvent('review', 'Moved', 'Nico'));
-    expect(screen.queryByRole('button', { name: 'Onboarding design review' })).toBeNull();
-    expect(chipLabels()[3]).toBe('Upcoming, 4 items');
-  });
-
-  test('a toast closes by itself after 3 seconds', async () => {
-    await renderHome('pm');
-    await fireEvent.press(screen.getByRole('button', { name: 'Ask' }));
-    expect(await screen.findByText('Answer generated')).toBeTruthy();
-    await act(async () => jest.advanceTimersByTime(2900));
-    expect(screen.getByText('Answer generated')).toBeTruthy();
-    // At 3 s the toast starts hiding; its 150 ms exit animation is scheduled on that render, so a second step ends it.
-    await act(async () => jest.advanceTimersByTime(200));
-    await act(async () => jest.advanceTimersByTime(200));
-    expect(screen.queryByText('Answer generated')).toBeNull();
-  });
-
-  test('Ask confirms with a toast; a suggested question can be picked', async () => {
-    await renderHome('pm');
-    const question = screen.getByRole('button', { name: 'Who has the most tasks?' });
-    expect(question.props.accessibilityState).toMatchObject({ selected: false });
-    await fireEvent.press(question);
+  test("the briefing shows the server's lines and when it was built", async () => {
+    await renderHome();
     expect(
-      screen.getByRole('button', { name: 'Who has the most tasks?' }).props.accessibilityState,
-    ).toMatchObject({ selected: true });
-    await fireEvent.press(screen.getByRole('button', { name: 'Ask' }));
-    expect(await screen.findByText('Answer generated')).toBeTruthy();
+      screen.getByText('Ada 1 tugas yang terlambat: "Fix SSO login" sudah lewat 2 hari.'),
+    ).toBeTruthy();
+    expect(
+      screen.getByText('✦ Built automatically from project data · updated 07.30'),
+    ).toBeTruthy();
+  });
+
+  test('My Focus groups my tasks and offers only the step the server allowed', async () => {
+    await renderHome();
+    for (const group of ['Overdue', 'Today', 'This week']) {
+      expect(screen.getByText(group)).toBeTruthy();
+    }
+    // "No due date" labels both the undated focus bucket and a project without one.
+    expect(screen.getAllByText('No due date').length).toBeGreaterThan(1);
+    expect(screen.getByText('#12 Fix SSO login')).toBeTruthy();
+    expect(screen.getByText('Atlas Project · 2 days late')).toBeTruthy();
+    // The overdue row is in review: the server offered neither step, so it has no button.
+    expect(screen.queryByRole('button', { name: /: Fix SSO login$/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Done: Write the API spec' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Start: Prepare the sprint demo' })).toBeTruthy();
+    expect(screen.getByText('Awaiting your review')).toBeTruthy();
+    expect(screen.getByText('See all tasks (7) · 2 awaiting review')).toBeTruthy();
+  });
+
+  test('Done posts the step, says so, and re-reads Home', async () => {
+    await renderHome({
+      ...homeRoutes(),
+      ...inboxRoutes(),
+      '/api/app/tasks/t-14/complete': { body: { task: {}, can: {} } },
+    });
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Done: Write the API spec' }));
+
+    expect(await screen.findByText('Task marked done')).toBeTruthy();
+    expect(server.calls.filter((u) => u.includes('/t-14/complete'))).toHaveLength(1);
+    expect(server.calls.filter((u) => u.includes('/api/app/home')).length).toBeGreaterThan(1);
+  });
+
+  test("a refused step says why in the server's own words", async () => {
+    await renderHome({
+      ...homeRoutes(),
+      ...inboxRoutes(),
+      '/api/app/tasks/t-14/complete': {
+        status: 409,
+        body: { error: 'Tugas ini perlu diperiksa dulu.', code: 'REVIEW_REQUIRED' },
+      },
+    });
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Done: Write the API spec' }));
+
+    expect(await screen.findByText('Tugas ini perlu diperiksa dulu.')).toBeTruthy();
+    expect(screen.getByText('#14 Write the API spec')).toBeTruthy();
+  });
+
+  test('agenda shows the next meeting in the team zone and the projects with their condition', async () => {
+    await renderHome();
+    expect(screen.getByText('Wed, Oct 7 · In person')).toBeTruthy();
+    expect(screen.getByText('06:00')).toBeTruthy();
+    expect(screen.getByText('At risk')).toBeTruthy();
+    expect(screen.getByText('baru 4 dari 10 tugas selesai')).toBeTruthy();
+    // A project with no tasks says so instead of showing a 0 % bar.
+    expect(screen.getByText('No tasks yet')).toBeTruthy();
+  });
+
+  test("the lists keep the server's words for who, when and what happened", async () => {
+    await renderHome();
+    expect(screen.getByText('Anda · hari ini')).toBeTruthy();
+    expect(screen.getByText('Anda menyelesaikan "Tile price survey"')).toBeTruthy();
+    expect(screen.getByText('Kitchen Renovation · 09:00')).toBeTruthy();
+  });
+
+  test('Ask Data offers the three questions it can answer, and no field it cannot', async () => {
+    await renderHome();
+    const questions = screen.getAllByRole('button', { name: /\?$/ });
+    expect(questions).toHaveLength(3);
+    expect(questions[0].props.accessibilityState).toMatchObject({ selected: true });
+    await fireEvent.press(questions[2]);
+    expect(screen.getByText('Dodi Pratama memegang 5 tugas aktif.')).toBeTruthy();
+    expect(screen.queryByText('Type or say a question…')).toBeNull();
   });
 
   test('chips and links open their routes; search says it comes later', async () => {
-    const onOpen = await renderHome('pm');
-    await fireEvent.press(screen.getByRole('button', { name: 'Assigned 3, 1 overdue' }));
-    await fireEvent.press(screen.getByRole('button', { name: 'Upcoming, 7 items' }));
+    const onOpen = await renderHome();
+    await fireEvent.press(screen.getByRole('button', { name: 'Assigned 7, 1 overdue' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Inbox, 3 to respond' }));
-    await fireEvent.press(screen.getByText('See all tasks (3) · 1 awaiting review'));
+    await fireEvent.press(screen.getByText('See all tasks (7) · 2 awaiting review'));
     await fireEvent.press(screen.getByRole('button', { name: '#14 Write the API spec' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Onboarding design review' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Atlas Project' }));
     expect(onOpen.mock.calls.map(([href]) => href)).toEqual([
       '/tasks?scope=all',
-      '/events?view=calendar',
       '/more/inbox',
       '/tasks?scope=mine',
       '/tasks/14',
@@ -137,68 +159,63 @@ describe('HomeScreen · Project Manager', () => {
     ]);
     await fireEvent.press(screen.getByRole('search', { name: 'Search or ask anything…' }));
     expect(await screen.findByText('Search is coming soon.')).toBeTruthy();
-    expect(onOpen).toHaveBeenCalledTimes(7);
-  });
-
-  test('agenda shows the next meeting and my four projects', async () => {
-    await renderHome('pm');
-    expect(screen.getByText('Wed, Oct 7 · In person · Meeting Room 2')).toBeTruthy();
-    for (const name of [
-      'Atlas Project',
-      'PT Sinar Client Portal',
-      'Internal Tools',
-      'Attendance App',
-    ]) {
-      expect(screen.getByRole('button', { name })).toBeTruthy();
-    }
   });
 });
 
-describe('HomeScreen · Member', () => {
-  test('on-track chips, one task in review without Done, shorter lists', async () => {
-    await renderHome('member');
-    expect(screen.getByRole('header', { name: 'Good morning, Dodi' })).toBeTruthy();
-    expect(chipLabels()).toEqual([
-      'Assigned 2, on track',
-      'In Progress 0, none started',
-      'Completed 0, this week',
-      'Upcoming, 5 items',
-      'Inbox, 3 to respond',
-    ]);
-    expect(screen.getByText('#17 Fix the save button on the profile page')).toBeTruthy();
-    expect(screen.getByText('In review')).toBeTruthy();
-    expect(screen.queryByText(/^Done: /)).toBeNull();
-    expect(screen.queryByText('Awaiting your review')).toBeNull();
-    expect(screen.getAllByRole('button', { name: /\?$/ })).toHaveLength(2);
-  });
-});
+describe('HomeScreen · a section that did not load', () => {
+  test('offers Try again on its own card and leaves the rest of Home alone', async () => {
+    await renderHome({ ...homeRoutes(homeWithout('focus')), ...inboxRoutes() });
 
-describe('HomeScreen · Admin', () => {
-  test('workspace chips with the live Overdue count, approvals first, empty own focus', async () => {
-    const onOpen = await renderHome('admin');
-    expect(screen.getByRole('header', { name: 'Good morning, Ayu' })).toBeTruthy();
-    expect(chipLabels()).toEqual([
-      'Active 3, projects',
-      'Overdue 1, tasks',
-      'Awaiting 2, users',
-      'Upcoming, 1 item',
-      'Inbox, 3 to respond',
-    ]);
-    expect(screen.getByText('Nothing due this week.')).toBeTruthy();
-    const approval = screen.getByRole('button', { name: 'Approve 2 new users' });
-    await fireEvent.press(within(approval).getByRole('button', { name: 'Open' }));
-    expect(onOpen).toHaveBeenCalledWith('/more/users');
+    expect(screen.getByTestId('focus-failed')).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Daily Briefing' })).toBeTruthy();
+    expect(screen.getByText('Anda menyelesaikan "Tile price survey"')).toBeTruthy();
+
+    server.use({ ...homeRoutes(), ...inboxRoutes() });
+    await fireEvent.press(screen.getByText('Try again'));
+
+    expect(await screen.findByText('#14 Write the API spec')).toBeTruthy();
+  });
+
+  test('a payload that never arrived replaces the screen, and the retry brings it back', async () => {
+    serve({
+      ...homeRoutes(),
+      '/api/app/home': { throws: new TypeError('Network request failed') },
+    });
+    await render(<HomeScreen onOpen={jest.fn()} />, { wrapper: GluestackUIProvider });
+
+    expect(await screen.findByTestId('home-failed')).toBeOnTheScreen();
+    expect(screen.getByText(/Cannot reach the server/)).toBeTruthy();
+
+    server.use(homeRoutes());
+    await fireEvent.press(screen.getByText('Try again'));
+
+    expect(await screen.findByRole('header', { name: 'Good morning, Nico' })).toBeTruthy();
+  });
+
+  test('says it is loading while the payload is out', async () => {
+    let release = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = () => resolve();
+    });
+    serve({ '/api/app/home': { body: HOME_WIRE, wait: held } });
+    await render(<HomeScreen onOpen={jest.fn()} />, { wrapper: GluestackUIProvider });
+
+    expect(screen.getByTestId('home-loading')).toBeOnTheScreen();
+
+    await act(async () => {
+      release();
+      await held;
+    });
+    expect(await screen.findByRole('header', { name: 'Good morning, Nico' })).toBeTruthy();
   });
 });
 
 describe('TARGET_HREF', () => {
-  test('each prototype screen id lands on its route', () => {
+  test('each screen a Home link names lands on its route', () => {
     expect(TARGET_HREF).toEqual({
       'tasks.all': '/tasks?scope=all',
       'tasks.my': '/tasks?scope=mine',
       'projects.list': '/projects',
-      'users.approve': '/more/users',
-      'events.calendar': '/events?view=calendar',
       'inbox.respond': '/more/inbox',
     });
   });
@@ -226,23 +243,23 @@ describe('HomeScreen · stacked header', () => {
   const FRAME_MS = 16;
 
   async function renderLaidOut() {
-    await renderHome('pm');
+    await renderHome();
     await fireEvent(screen.getByTestId('stacked-find-block'), 'layout', {
       nativeEvent: { layout: { x: 0, y: 0, width: 375, height: BLOCK } },
     });
-    await fireEvent(screen.getByText('Assigned 3'), 'layout', {
+    await fireEvent(screen.getByText('Assigned 7'), 'layout', {
       nativeEvent: { layout: { x: 0, y: 0, width: 80, height: LINE } },
     });
     await frame();
   }
 
   test('greeting title, search block and the chips pinned under the header', async () => {
-    await renderHome('pm');
+    await renderHome();
     expect(screen.getByTestId('screen-home')).toBeOnTheScreen();
     expect(screen.getByTestId('stacked-find-block')).toHaveTextContent('Search or ask anything…', {
       exact: false,
     });
-    expect(within(screen.getByTestId('stacked-pinned')).getAllByRole('button')).toHaveLength(5);
+    expect(within(screen.getByTestId('stacked-pinned')).getAllByRole('button')).toHaveLength(2);
   });
 
   test('the chips compact to one line as the row sticks: the sub line folds and fades, the icon moves left', async () => {
@@ -264,6 +281,7 @@ describe('HomeScreen · stacked header', () => {
     await scrollTo(0);
     expect(sub()).toHaveAnimatedStyle({ height: LINE, opacity: 1 });
   });
+
   test('a compact chip (8 + 21 + 8 = 37 px) reaches 44 px through a 3.5 px hitSlop above and below', async () => {
     await renderLaidOut();
     const chip = within(screen.getByTestId('stacked-pinned')).getAllByRole('button')[0];

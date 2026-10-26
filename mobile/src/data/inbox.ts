@@ -82,10 +82,13 @@ const leadOf = (item: InboxItemWire): InboxLead =>
     : { kind: 'system' };
 
 /**
- * When the card is from: its clock time today, its date before that. Not "10 minutes ago": the app
+ * When something is from: its clock time today, its date before that. Not "10 minutes ago": the app
  * has no live clock of its own, and a relative label frozen at the last request would be a lie.
+ *
+ * Exported because Home's activity rows label their instants the same way, and one rule for "when"
+ * in one place beats two that drift.
  */
-const whenLabel = (instant: string): string =>
+export const whenLabel = (instant: string): string =>
   instantIsOn(instant, today()) ? instantTime(instant) : monthDay(instantDate(instant));
 
 /** "#17 · Atlas Project · 10:05", skipping whatever the card does not carry. */
