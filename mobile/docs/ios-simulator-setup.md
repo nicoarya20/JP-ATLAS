@@ -6,7 +6,7 @@ Tujuan: memperbaiki app mobile tanpa bolak-balik ke HP. User cukup klik app di j
 
 ## Prasyarat (sekali saja)
 
-Terpasang per 26 Okt 2026: macOS 26.7.1, Xcode 27.1, runtime Simulator iOS 27.0 dan 27.1.
+Terpasang per 26 Okt 2026: macOS 26.7.1, Xcode 27.1, runtime Simulator iOS 27.0 (sekitar 7,5 GB). Cukup satu runtime: iOS 27.0 memuat semua iPhone, termasuk iPhone 18 Pro. Runtime iOS 27.1 (build `24A94425`) hanya untuk iPhone Duo, jadi sudah dihapus untuk menghemat 7,3 GB. Unduh lagi lewat Xcode → Settings → Components bila perlu tes layar lipat.
 
 1. Pasang **Xcode** dari App Store (minimal macOS 26.6). Buka sekali, lalu centang platform **iOS** agar runtime Simulator ikut terunduh.
 2. Arahkan developer tools ke Xcode:
@@ -37,7 +37,7 @@ Claude menjalankan perintah ini di background, lalu membaca `.logs/metro.log` un
 | Lihat layar | `xcrun simctl io booted screenshot .logs/sim.png` |
 | Buka layar tertentu | `xcrun simctl openurl booted "exp://$(ipconfig getifaddr en0):8081/--/events"` (path expo-router setelah `/--/`) |
 | Crash native | `xcrun simctl spawn booted log stream --style compact --predicate 'process == "Expo Go"'` |
-| Matikan Simulator | `xcrun simctl shutdown booted` |
+| Matikan Simulator | `xcrun simctl shutdown all` (sekitar 1 GB RAM kembali; hentikan juga `ios:sim`) |
 
 Deep link memakai skema `exp://` milik Expo Go, bukan `simplepm://`, karena app berjalan di dalam Expo Go. Skema `simplepm` baru berlaku di development build.
 
