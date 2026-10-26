@@ -14,7 +14,7 @@
 import { apiGet } from '@/api/client';
 
 import { type Resource, resource } from './resource';
-import { forgetTaskLists, taskLists } from './tasks.api.lists';
+import { forgetTaskLists } from './tasks.api.lists';
 import { type Paged, paged } from './tasks.api.paging';
 import type {
   WireFormOptions,
@@ -34,7 +34,7 @@ export {
   taskListQuery,
   taskLists,
 } from './tasks.api.lists';
-export { type Paged } from './tasks.api.paging';
+export type { Paged } from './tasks.api.paging';
 
 /** My tasks per schedule group and per status, so a group title or an empty state needs no full list. */
 export const taskCounts = resource<WireTaskCounts>('tasks.counts', () =>

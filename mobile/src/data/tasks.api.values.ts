@@ -11,19 +11,20 @@
  * what day it is is the clock's (`clock.ts`). Only types are imported from the modules that will
  * import this one back, so there is no cycle to reason about at load time.
  */
-import type { BoardStatus } from './tasks.columns';
-import { GROUPS } from './tasks.groups';
-import { SORT_DUE, STATUSES } from './tasks.query';
-import type { TaskActionKey } from './tasks.detail';
-import type { TaskPriority, TaskStatus } from './tasks.shared';
+
 import type {
   WireCancelCategory,
-  WirePriority,
   WirePrimaryAction,
+  WirePriority,
   WireScheduleGroup,
   WireTaskCapKey,
   WireTaskStatus,
 } from './tasks.api.types';
+import type { BoardStatus } from './tasks.columns';
+import type { TaskActionKey } from './tasks.detail';
+import { GROUPS } from './tasks.groups';
+import { SORT_DUE, STATUSES } from './tasks.query';
+import type { TaskPriority, TaskStatus } from './tasks.shared';
 
 /** Thrown for a value neither side knows: a server that grew a case this app has not learnt. */
 const unknownValue = (what: string, value: unknown) =>
@@ -200,5 +201,5 @@ export const moveCapKey = (from: TaskStatus, to: BoardStatus): WireTaskCapKey | 
 /** The path a move from `from` to `to` posts to, or null when there is no such transition. */
 export function moveStep(from: TaskStatus, to: BoardStatus): string | null {
   const cap = moveCapKey(from, to);
-  return cap ? STEP_OF_CAP[cap] ?? null : null;
+  return cap ? (STEP_OF_CAP[cap] ?? null) : null;
 }

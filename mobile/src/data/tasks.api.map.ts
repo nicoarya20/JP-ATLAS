@@ -24,13 +24,7 @@ import type {
   WireTaskListItem,
 } from './tasks.api.types';
 import { priorityWord, statusWord } from './tasks.api.values';
-import {
-  daysLate,
-  dueIn,
-  type TaskPriority,
-  type TaskStatus,
-  whenFromDue,
-} from './tasks.shared';
+import { daysLate, dueIn, type TaskPriority, type TaskStatus, whenFromDue } from './tasks.shared';
 
 /** What the server allows for one control: shown enabled, shown disabled, or not shown at all. */
 export type CapState = 'on' | 'off' | 'hidden';

@@ -9,9 +9,9 @@
 import { capOn, capShown, capState, cardOf } from '@/data/tasks.api.map';
 import {
   ACTIVE_STATUSES,
+  CLOSED_GROUPS,
   cancelCategoryOf,
   cancelPickOf,
-  CLOSED_GROUPS,
   moveCapKey,
   moveStep,
   primaryActionKey,
