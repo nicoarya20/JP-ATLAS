@@ -26,4 +26,4 @@ export {
   getEventForm,
 } from './events.detail';
 export { type EventCard, type EventsListData, getEventsList } from './events.list';
-export { type ServerEvent, type ServerEventDetail } from './events.map';
+export type { ServerEvent, ServerEventDetail } from './events.map';
