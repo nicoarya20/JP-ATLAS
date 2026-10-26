@@ -13,6 +13,8 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
 
 **HP acuan:** layar lebar 375 pt (iPhone SE / 13 mini), ditambah satu HP Android.
 
+**Sudah dicek di iOS Simulator (26 Okt 2026, Expo Go, iPhone 18 Pro iOS 27.0, lewat Maestro):** ketuk tab, geser pil, panel More (isi tampil, tertutup saat pindah tab), sheet Create dan saringan Tasks (isi tampil). Empat bug yang ditemukan sudah diperbaiki (lihat `reacttransition.md` §8, 26 Okt). Kotak di bawah tetap untuk HP: rasa gestur, haptics, dan performa hanya bisa dinilai di sana.
+
 ## Navigasi & tab bar
 
 - [ ] **Kaca di iOS 26** `[iOS]`

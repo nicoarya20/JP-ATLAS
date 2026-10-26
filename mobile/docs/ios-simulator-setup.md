@@ -43,11 +43,23 @@ Claude menjalankan perintah ini di background, lalu membaca `.logs/metro.log` un
 
 Deep link memakai skema `exp://` milik Expo Go, bukan `simplepm://`, karena app berjalan di dalam Expo Go. Skema `simplepm` baru berlaku di development build.
 
-`simctl` tidak bisa menyentuh layar, jadi tap dan gestur (mis. geser pil tab bar) tetap dilakukan user di jendela Simulator. Setelah itu Claude membaca log dan screenshot.
+`simctl` tidak bisa menyentuh layar. Tap dan geser dijalankan Claude lewat Maestro (bagian berikut); user cukup mencoba rasa gestur di jendela Simulator bila perlu.
 
-## Opsional berikutnya
+## Maestro (tap dan geser otomatis)
 
-- **Maestro** untuk alur UI otomatis (mis. tap Tasks → geser pil → buka detail) dalam bentuk YAML, dijalankan Claude di Simulator setelah tiap perubahan. Java sudah terpasang.
+Terpasang per 26 Okt 2026: Maestro 2.11.0 dan `openjdk@21` lewat Homebrew. JDK dari Homebrew tidak didaftarkan ke macOS (`/usr/libexec/java_home` tidak menemukannya), jadi setiap perintah Maestro butuh `JAVA_HOME`:
+
+```
+export JAVA_HOME=$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home MAESTRO_CLI_NO_ANALYTICS=1
+maestro --device <UDID> test .logs/maestro/regress.yaml   # UDID dari `xcrun simctl list devices booted`
+maestro --device <UDID> hierarchy --compact                # testID dan label yang terlihat Maestro
+```
+
+- `appId` di flow adalah `host.exp.Exponent` (Expo Go). Buka layar dulu lewat deep link, tunggu bundle siap, baru jalankan flow.
+- Pilih elemen lewat `id:` (= `testID`, mis. `tab-tasks`, `tab-more`, `create-fab`) atau label aksesibilitas. Label FAB berganti per tab ("Create" hanya di Home; Events = "New event").
+- Geser pil: `swipe` dengan koordinat titik, mis. `start: 166, 794` → `end: 50, 794` (iPhone 18 Pro; ambil koordinat dari `hierarchy`).
+- Flow disimpan di `.logs/maestro/` (lokal, di-ignore git). `regress.yaml` mengetuk tab, menggeser pil, membuka More, lalu membuka sheet Create.
+- Setelah flow, cek `.logs/metro.log` dan crash report baru di `~/Library/Logs/DiagnosticReports/Expo Go-*.ips`. Error JS di worklet (UI thread) membuat app abort tanpa redbox, dan pesannya tidak masuk Metro. Untuk melihatnya, bungkus sementara pemanggilan di worklet dengan `try/catch` + `console.log`; log dari UI runtime masuk ke Metro.
 
 ## Yang tetap perlu HP
 
