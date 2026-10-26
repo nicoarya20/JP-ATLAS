@@ -57,6 +57,9 @@ export const AUDIT_ACTIONS = {
   LEAVE_CLEAR: 'leave.clear',
   // CSV export from Pengaturan (P11 AD-10); the entry records the kind and the row count, never a row.
   DATA_EXPORT: 'data.export',
+  // A Google-born account gives itself an email+password login for the first time. The entry records
+  // who and when and whether the other devices were signed out — never the password, nor its length.
+  USER_PASSWORD_SET: 'user.password.set',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

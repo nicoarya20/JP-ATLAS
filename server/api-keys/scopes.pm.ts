@@ -24,6 +24,14 @@ export const PM_KEY_DENY: readonly Deny[] = [
     method: 'GET',
     path: /^\/api\/app\/profile\/delete-check(?:\/.*)?$/i,
   },
+  // Setting the first password mints a second, permanent way into the account: the sharpest
+  // escalation in `/api/app`, so no key reaches it whatever its scopes. Every method, not just POST —
+  // a method must never be the way in if this route ever grows a PUT.
+  {
+    id: '* profile/password',
+    method: '*',
+    path: /^\/api\/app\/profile\/password(?:\/.*)?$/i,
+  },
   { id: '* avatar', method: '*', path: /^\/api\/app\/avatar(?:\/.*)?$/i },
   // Restoring undoes a delete and brings data back for everyone: as sensitive as the delete (S1-05).
   { id: 'POST trash/*', method: 'POST', path: /^\/api\/app\/trash\/.+/i },
@@ -90,6 +98,7 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'PATCH profile': 'app-profile.ts',
   'PUT profile/notifications': 'app-profile.notifications.ts',
   'GET profile/delete-check': 'app-profile.delete-check.ts',
+  '* profile/password': 'app-profile.password.ts',
   '* avatar': 'app.ts', // avatar routes are legacy and still live in app.ts
   'POST trash/*': 'app-trash.ts',
   'DELETE trash/*': 'app-trash.ts',

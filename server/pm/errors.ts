@@ -26,6 +26,11 @@ export const PM_API_CODES = [
   'ACCOUNT_REJECTED',
   'SORT_NOT_ALLOWED', // sorting by someone else's numbers: only for managers and Admin (S6 D10)
   'LEAVE_OVERLAP', // a recorded leave period that shares a day with another one of the same person
+  // Setting the first password (`POST /api/app/profile/password`). They are API codes, not
+  // `DENY_CODES`: no `server/access/*` policy returns them, so they need no `DENY_UI` twin.
+  'PASSWORD_ALREADY_SET',
+  'EMAIL_AUTH_DISABLED',
+  'SESSION_ONLY',
 ] as const;
 
 /**
@@ -114,6 +119,23 @@ export const PM_ERRORS: Record<PmCode, PmErrorEntry> = {
     message: 'Terlalu banyak perubahan dalam waktu singkat. Tunggu sebentar, lalu coba lagi.',
   },
   STORAGE_DISABLED: { http: 503, message: 'Penyimpanan file belum aktif. Hubungi admin.' },
+  // 409, not 403: the account is allowed to have a password, it just already has one. The way on is
+  // "Ganti password", which asks for the old one — this route never replaces a password it cannot verify.
+  PASSWORD_ALREADY_SET: {
+    http: 409,
+    message: 'Akun ini sudah punya password. Pakai "Ganti password" dan masukkan password lamamu.',
+  },
+  // 409, not 503: nothing is broken and nothing is temporary — an operator switched email sign-in
+  // off, so a new password could not be used to sign in. The message says that instead of "hubungi admin".
+  EMAIL_AUTH_DISABLED: {
+    http: 409,
+    message:
+      'Masuk dengan email dan password sedang dimatikan, jadi password baru belum bisa dipakai. Minta admin menyalakannya dulu.',
+  },
+  SESSION_ONLY: {
+    http: 403,
+    message: 'Aksi ini hanya bisa dilakukan dari sesi login di browser, bukan dengan kunci API.',
+  },
   ACCOUNT_PENDING: { http: 403, message: 'Akunmu belum disetujui admin.' },
   ACCOUNT_REJECTED: {
     http: 403,

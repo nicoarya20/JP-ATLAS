@@ -171,6 +171,8 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('DELETE', '/api/app/projects/p1')).toBeNull();
     expect(requiredScope('POST', '/api/app/projects/p1/members')).toBeNull();
     expect(requiredScope('PATCH', '/api/app/profile')).toBeNull();
+    // Minting the first email+password login is session only (SET): no scope reaches it.
+    expect(requiredScope('POST', '/api/app/profile/password')).toBeNull();
     expect(requiredScope('POST', '/api/app/avatar')).toBeNull();
     expect(requiredScope('delete', '/api/app/projects/p1/members/u1')).toBeNull();
     expect(requiredScope('GET', '/api/app/projects/p1/members')).toBeNull();

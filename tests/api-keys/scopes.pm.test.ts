@@ -237,6 +237,34 @@ describe('delete-account check (SET)', () => {
   });
 });
 
+describe('first password (SET)', () => {
+  test('no key reaches it, whatever its scopes and whatever method it tries', () => {
+    for (const m of ['POST', 'post', 'PUT', 'PATCH', 'GET', 'DELETE'])
+      for (const p of [
+        '/api/app/profile/password',
+        '/api/app/profile/password/',
+        '/api/app/PROFILE/PASSWORD',
+      ]) {
+        expect(isPmKeyDenied(m, p)).toBe(true);
+        expect(requiredScope(m, p)).toBeNull();
+      }
+  });
+
+  test('the pattern does not swallow the profile routes beside it', () => {
+    expect(isPmKeyDenied('GET', '/api/app/profile')).toBe(false);
+    expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');
+    expect(isPmKeyDenied('GET', '/api/app/profile/passwords-of-others')).toBe(false);
+  });
+
+  test('the route really exists, so the deny pattern is not guarding thin air', () => {
+    expect(PM_DENY_OWNER['* profile/password']).toBe('app-profile.password.ts');
+    // Registered with the trailing slash, like its `/profile/*` siblings.
+    expect(
+      appRoutes.some((r) => r.method === 'POST' && r.path === '/api/app/profile/password/'),
+    ).toBe(true);
+  });
+});
+
 describe('PM_KEY_DENY patterns', () => {
   test('each pattern has an owner plugin that exists', () => {
     const files = new Set(readdirSync(API_DIR));

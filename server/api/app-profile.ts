@@ -1,4 +1,4 @@
-/** Own-profile routes (`/api/app/profile`): read, edit contact details and the text size; notification switches and the delete-account check live in `app-profile.*.ts`. */
+/** Own-profile routes (`/api/app/profile`): read, edit contact details and the text size; notification switches, the delete-account check and the first-password route live in `app-profile.*.ts`. */
 import { Elysia, t } from 'elysia';
 import { TEXT_SIZES } from '../pm/enums';
 import { fail } from '../pm/respond';
@@ -16,6 +16,7 @@ import { textSizeCookie } from '../text-size';
 import { appContext } from './app-context';
 import { deleteCheckApi } from './app-profile.delete-check';
 import { notificationPrefsApi } from './app-profile.notifications';
+import { passwordApi } from './app-profile.password';
 
 const text = (maxLength: number) => t.Optional(t.Nullable(t.String({ maxLength })));
 
@@ -34,6 +35,7 @@ export const profileApi = new Elysia({ prefix: '/profile' })
   .use(appContext)
   .use(notificationPrefsApi)
   .use(deleteCheckApi)
+  .use(passwordApi)
   .get('/', async ({ actor, status }) => {
     const view = await getProfile(actor.user.id);
     return view ?? fail(status, 'NOT_FOUND');

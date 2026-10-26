@@ -128,6 +128,7 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'leave.set': { label: 'Catat cuti', color: 'indigo' },
   'leave.clear': { label: 'Akhiri cuti', color: 'orange' },
   'data.export': { label: 'Ekspor data ke CSV', color: 'orange' },
+  'user.password.set': { label: 'Buat password sendiri', color: 'grape' },
 };
 
 export function actionMeta(action: string): { label: string; color: string } {
