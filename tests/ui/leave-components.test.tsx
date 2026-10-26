@@ -1,13 +1,9 @@
 /**
- * Leave UI since P14: Ketersediaan on /app/settings is read-only (CU-05) and the Inbox rejection
- * dialog is the last piece of the old approval flow still standing (it leaves in CU-06).
+ * Leave UI since P14: Ketersediaan on /app/settings is read-only (CU-05), and with the Inbox
+ * rejection dialog gone too (CU-06) nothing in the leave UI writes any more.
  */
 import { describe, expect, it } from 'bun:test';
 import { LeaveCard } from '../../app/components/leave/LeaveCard';
-import {
-  type LeaveRejectTarget,
-  LeaveRejectView,
-} from '../../app/components/leave/LeaveRejectModal';
 import { LeaveSections } from '../../app/components/leave/LeaveSections';
 import type { LeavePageData } from '../../app/lib/leave-api';
 import { render } from './project-fixtures';
@@ -35,54 +31,10 @@ describe('LeaveCard is read-only', () => {
     // Without this sentence the Member only sees a button that disappeared.
     for (const until of [null, '2026-10-16']) {
       const html = await card(until);
-      expect(html).toContain('Pengajuan cuti diurus lewat HRD atau atasanmu, bukan di aplikasi ini.');
+      expect(html).toContain(
+        'Pengajuan cuti diurus lewat HRD atau atasanmu, bukan di aplikasi ini.',
+      );
     }
-  });
-});
-
-const target = (over: Partial<LeaveRejectTarget> = {}): LeaveRejectTarget => ({
-  id: 'l-9',
-  name: 'Dodi',
-  startDate: '2026-10-14',
-  endDate: '2026-10-16',
-  ...over,
-});
-
-describe('LeaveRejectView', () => {
-  it('names the requester, explains the impact and has an optional reason', async () => {
-    const html = await render(
-      <LeaveRejectView
-        item={target()}
-        reason="Ada tenggat"
-        error={null}
-        loading={false}
-        onReason={() => {}}
-        onSubmit={() => {}}
-        onCancel={() => {}}
-      />,
-    );
-    expect(html).toContain('Dodi, 14–16 Okt 2026.');
-    expect(html).toContain('Pemohon dikabari');
-    expect(html).toContain('Alasan (boleh kosong)');
-    expect(html).toContain('Ada tenggat');
-    expect(html).toContain('Tolak pengajuan');
-    expect(html).toContain('>Batal<');
-  });
-
-  it('keeps a refusal such as ALREADY_DECIDED inside the dialog', async () => {
-    const html = await render(
-      <LeaveRejectView
-        item={target()}
-        reason=""
-        error="Pengajuan ini sudah diputuskan."
-        loading={false}
-        onReason={() => {}}
-        onSubmit={() => {}}
-        onCancel={() => {}}
-      />,
-    );
-    expect(html).toContain('role="alert"');
-    expect(html).toContain('Pengajuan ini sudah diputuskan.');
   });
 });
 

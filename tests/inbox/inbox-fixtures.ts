@@ -29,15 +29,34 @@ export function taskCard(over: Partial<InboxItem> = {}): InboxItem {
     href: '/app/tasks/14',
     sentence: 'Nico menunjuk Anda mengerjakan #14',
     button: 'Lihat tugas',
-    secondaryButton: null,
     ...over,
   };
 }
 
-/** The two-button leave approval card of a request for 14–16 Oct. */
-export function leaveRequestCard(over: Partial<InboxItem> = {}): InboxItem {
+/** The leave card an Admin's record produces (P14 D5): news, one button to Ketersediaan. */
+export function leaveRecordedCard(over: Partial<InboxItem> = {}): InboxItem {
   return taskCard({
     id: 'n-leave',
+    kind: 'leave_recorded',
+    lane: 'info',
+    actor: { id: 'u-ayu', name: 'Ayu', image: null },
+    ref: { type: 'leave', id: 'p-9', number: null },
+    payload: { startDate: '2026-10-14', endDate: '2026-10-16', days: 3, change: 'set' },
+    href: '/app/settings',
+    sentence: 'Cuti Anda dicatat oleh Ayu',
+    button: 'Lihat ketersediaan',
+    ...over,
+  });
+}
+
+/**
+ * A row of the retired approval flow still sitting in the table (P14 §8 R3): the kind is one this
+ * build no longer knows, so the server sends it without a sentence and without a button, and the
+ * payload still has the old `dueTasks` / `decision` / `excerpt` fields in it.
+ */
+export function legacyLeaveCard(over: Partial<InboxItem> = {}): InboxItem {
+  return taskCard({
+    id: 'n-old-leave',
     kind: 'leave_requested',
     actor: { id: 'u-dodi', name: 'Dodi', image: null },
     ref: { type: 'leave', id: 'l-9', number: null },
@@ -49,9 +68,8 @@ export function leaveRequestCard(over: Partial<InboxItem> = {}): InboxItem {
       dueTasks: 2,
     },
     href: '/app/settings',
-    sentence: 'Dodi mengajukan cuti',
-    button: 'Setujui',
-    secondaryButton: 'Tolak',
+    sentence: null,
+    button: null,
     ...over,
   });
 }
