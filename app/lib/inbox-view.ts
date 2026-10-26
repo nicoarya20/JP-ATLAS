@@ -6,7 +6,7 @@
 import { GROUP_HEADINGS, INBOX_COPY } from '~/components/inbox/inbox.copy';
 import { formatEventTime } from './events-format';
 import type { InboxGroup, InboxItem, InboxLane } from './inbox-api';
-import { dueTasksLabel, formatLeaveRange, leaveDaysLabel } from './leave-view';
+import { formatLeaveRange, leaveDaysLabel } from './leave-view';
 
 /** "Now" as the loader saw it, and the team zone every clock time is shown in. */
 export type InboxClock = { now: number; timeZone: string };
@@ -77,13 +77,6 @@ function leaveLine(p: Payload): string | null {
   return days === null ? range : `${range} · ${leaveDaysLabel(days)}`;
 }
 
-/** What the approver needs to decide: the range and how many of the requester's tasks fall inside it. */
-export function leaveRangeOf(item: InboxItem): string | null {
-  const start = str(item.payload, 'startDate');
-  const end = str(item.payload, 'endDate');
-  return start && end ? formatLeaveRange(start, end) : null;
-}
-
 /**
  * The lines between the sentence and the "Proyek · waktu" line: the task or event the card is about,
  * its excerpt, the leave range. Only what the payload snapshot holds, so no extra request per card.
@@ -105,8 +98,6 @@ export function detailLines(item: InboxItem, clock: InboxClock): string[] {
   } else if (item.ref.type === 'leave') {
     const range = leaveLine(p);
     if (range) lines.push(range);
-    const due = num(p, 'dueTasks');
-    if (item.kind === 'leave_requested' && due !== null) lines.push(dueTasksLabel(due));
   }
   const excerpt = str(p, 'excerpt');
   if (excerpt) lines.push(`"${excerpt}"`);
@@ -123,7 +114,3 @@ export function contextLine(item: InboxItem, clock: InboxClock): string {
   const project = str(item.payload, 'projectName');
   return project ? `${project} · ${at}` : at;
 }
-
-/** The two-button leave approval card; every other kind has one button. */
-export const isLeaveApproval = (item: InboxItem) =>
-  item.kind === 'leave_requested' && item.secondaryButton !== null;

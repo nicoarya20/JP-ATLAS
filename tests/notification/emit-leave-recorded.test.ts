@@ -67,10 +67,11 @@ describe('leave_recorded', () => {
       kind: 'leave_recorded',
       sentence: 'Cuti Anda dicatat oleh Ayu',
       button: 'Lihat ketersediaan',
-      secondaryButton: null,
       href: '/app/settings',
       actor: { id: w.ayu.id, name: 'Ayu' },
     });
+    // One button and nothing else: the second-button path left with the approval card (CU-06).
+    expect(await newsOf(row.id)).not.toHaveProperty('secondaryButton');
   });
 
   it('says "diakhiri" when the leave under way was ended', async () => {

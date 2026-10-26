@@ -1,4 +1,4 @@
-/** Indonesian copy of the Inbox page, bell and card actions. Card sentences and button labels come from the server catalog. */
+/** Indonesian copy of the Inbox page and the bell. Card sentences and button labels come from the server catalog. */
 
 export const INBOX_COPY = {
   title: 'Inbox',
@@ -29,16 +29,6 @@ export const GROUP_HEADINGS = {
   today: 'Hari ini',
   yesterday: 'Kemarin',
   older: 'Lebih lama',
-} as const;
-
-/** The leave approval card (two buttons) and the confirm dialog of "Setujui". */
-export const INBOX_LEAVE_COPY = {
-  approveTitle: (name: string) => `Setujui cuti ${name}?`,
-  approveBody: (range: string) =>
-    `Cuti ${range} mulai berlaku dan rekan melihat pemohon sebagai Cuti pada tanggal itu. Pemohon dikabari lewat Inbox.`,
-  approveConfirm: 'Setujui cuti',
-  approved: (name: string) => `Cuti ${name} disetujui.`,
-  approveFailed: 'Gagal menyetujui',
 } as const;
 
 /** The bell and the menu badge; `n` is the number of open "Perlu Anda tanggapi" cards. */

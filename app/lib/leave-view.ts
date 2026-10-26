@@ -11,8 +11,3 @@
 export { formatLeaveDay, formatLeaveRange } from '@server/leave/leave.format';
 
 export const leaveDaysLabel = (days: number) => `${days} hari`;
-
-/** "3 tugas jatuh tempo selama cuti", or the sentence for none. */
-export function dueTasksLabel(count: number): string {
-  return count > 0 ? `${count} tugas jatuh tempo selama cuti` : 'Tidak ada tugas jatuh tempo';
-}
