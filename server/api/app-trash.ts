@@ -1,8 +1,9 @@
 /**
  * Trash routes (`/api/app/trash`). The list merges trashed projects, tasks and events (`kind`
- * item field, `?kind=all|project|task|event`, `counts` per kind); restore is one route per kind. Restores
- * are session only (`PM_KEY_DENY`) and audited; the list is a read (`app:read`). The 30-day purge is
- * a scheduled job (`server/trash/trash.purge.ts`), not a route; a manual permanent delete does not exist.
+ * item field, `?kind=all|project|task|event`, `counts` per kind); restore is one route per kind, and
+ * `DELETE /:kind/:id` deletes one item for good (S6 Z-04). Restores and the permanent delete are
+ * session only (`PM_KEY_DENY`) and audited; the list is a read (`app:read`). The 30-day retention
+ * sweep (`server/trash/trash.purge.ts`) does the same deletion on a schedule, with no actor.
  */
 import { Elysia, t } from 'elysia';
 import { maskEmail } from '../account/mask-email';
@@ -15,10 +16,19 @@ import { toPrincipal } from '../project/membership.query';
 import { restoreProject } from '../project/project-trash.service';
 import { restoreTask } from '../task/task-trash.service';
 import { listTrash, TRASH_KINDS } from '../trash/trash.list.query';
+import { PURGE_KINDS, purgeItem } from '../trash/trash.purge-item.service';
 import { IdParam, oneOf, PageQuery } from './app-common';
 import { appContext } from './app-context';
 
 const TrashQuery = t.Object({ ...PageQuery.properties, kind: t.Optional(oneOf(TRASH_KINDS)) });
+/** `kind` is validated against the three real kinds, so a typo answers 422 instead of 404. */
+const PurgeParams = t.Object({ ...IdParam.properties, kind: oneOf(PURGE_KINDS) });
+/** How the audit summary names each kind, in Indonesian like the rest of the log. */
+const PURGE_LABEL: Record<(typeof PURGE_KINDS)[number], string> = {
+  project: 'Proyek',
+  task: 'Tugas',
+  event: 'Acara',
+};
 
 export const trashApi = new Elysia({ prefix: '/trash' })
   .use(appContext)
@@ -101,4 +111,32 @@ export const trashApi = new Elysia({ prefix: '/trash' })
       return { id };
     },
     { params: IdParam },
+  )
+  /**
+   * Deletes one Trash item for good: `{ kind, id, purged: { projects, tasks, events } }`. Admin and
+   * Super-admin only, which is exactly what the item's `can.purge` already told the client, so no
+   * client ever has to branch on a role to find the button. Session only (`PM_KEY_DENY`).
+   */
+  .delete(
+    '/:kind/:id',
+    async ({ actor, params, request, status }) => {
+      const result = await purgeItem(toPrincipal(actor), params.kind, params.id);
+      if (!result.ok) return fail(status, result.code);
+      const { kind, id, purged } = result.value;
+      void audit({
+        actor: { id: actor.user.id, email: maskEmail(actor.user.email) },
+        headers: request.headers,
+        action: AUDIT_ACTIONS.TRASH_PURGE,
+        targetType: kind,
+        targetId: id,
+        // Ids and counts only: a title can name a person or a client, and the log outlives the row.
+        summary:
+          kind === 'project'
+            ? `${PURGE_LABEL[kind]} dihapus permanen dari Sampah bersama ${purged.tasks} tugas dan ${purged.events} acara`
+            : `${PURGE_LABEL[kind]} dihapus permanen dari Sampah`,
+        meta: { kind, ...purged },
+      });
+      return { kind, id, purged };
+    },
+    { params: PurgeParams },
   );

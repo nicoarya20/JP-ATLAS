@@ -201,6 +201,16 @@ describe('Trash delete routes (S6, P8 Q2)', () => {
     expect(requiredScope('PATCH', '/api/app/tasks/t1')).toBe('app:write');
   });
 
+  // Z-04 registered the permanent delete, which was the last entry of `PM_DENY_PENDING` (H-E1):
+  // the sweep below now asserts the pattern for real instead of reporting it as skipped.
+  test('the permanent delete route exists, so the deny pattern is not guarding thin air', () => {
+    expect(PM_DENY_OWNER['DELETE trash/*']).toBe('app-trash.ts');
+    expect(
+      appRoutes.some((r) => r.method === 'DELETE' && r.path === '/api/app/trash/:kind/:id'),
+    ).toBe(true);
+    expect(PM_DENY_PENDING).toEqual([]);
+  });
+
   test('the delete patterns do not reach the collection or a lookalike path', () => {
     expect(isPmKeyDenied('DELETE', '/api/app/tasks')).toBe(false);
     expect(isPmKeyDenied('DELETE', '/api/app/trash')).toBe(false);

@@ -18,6 +18,7 @@ import { purgeBefore } from '../metrics/trash.metrics';
 import type { MetricsConfig } from '../metrics/types';
 import { getMetrics } from '../pm/metrics-env';
 import { inTx, type Tx } from '../pm/tx';
+import { clearItemCards } from './trash.refs';
 
 /** Rows per transaction, so a big backlog is cleared in steps and never holds one long lock. */
 export const TRASH_PURGE_BATCH = 200;
@@ -67,12 +68,11 @@ async function purgeOwnBatch(tx: Tx, cutoff: Date, kind: 'task' | 'event'): Prom
     .limit(TRASH_PURGE_BATCH)
     .for('update', { skipLocked: true });
   if (rows.length === 0) return 0;
-  await tx.delete(table).where(
-    inArray(
-      table.id,
-      rows.map((r) => r.id),
-    ),
-  );
+  const ids = rows.map((r) => r.id);
+  // Their Inbox cards point at them by free text, so no cascade reaches those: same cleanup the
+  // manual permanent delete does (`trash.refs.ts`), so both purge paths leave the Inbox alike.
+  await clearItemCards(tx, kind, ids);
+  await tx.delete(table).where(inArray(table.id, ids));
   return rows.length;
 }
 
