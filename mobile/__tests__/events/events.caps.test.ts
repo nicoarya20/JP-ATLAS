@@ -1,8 +1,5 @@
 // Reading the server's `can{}`: three states and nothing else, and the deny messages kept the same
 // as the server's own (map GAP-A12).
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
 import {
   capAllows,
   capReason,
@@ -13,6 +10,8 @@ import {
   eventCapReason,
   eventCapShown,
 } from '@/data/events.caps';
+
+import { readServerFile } from '../helpers/read-server-file';
 
 describe('one capability value', () => {
   test('absent hides, true enables, a known code disables with its reason', () => {
@@ -53,10 +52,7 @@ describe('the deny messages', () => {
   test("are word for word the server's own", () => {
     // Read as text rather than imported: mobile cannot import `server/`, and a copy that drifts
     // would show one sentence in the app and another in the API answer for the same refusal.
-    const source = readFileSync(
-      join(__dirname, '..', '..', '..', 'server', 'access', 'decision.ts'),
-      'utf8',
-    );
+    const source = readServerFile('access', 'decision.ts');
     for (const [code, message] of Object.entries(EVENT_DENY_MESSAGES)) {
       const entry = new RegExp(
         `${code}:\\s*\\{[^}]*?message:\\s*(?:'([^']*)'|\\n\\s*'([^']*)')`,

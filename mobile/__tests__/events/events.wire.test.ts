@@ -4,9 +4,6 @@
 // limits. Read as text here: a limit raised on the server and not here means the form would accept
 // what the API refuses, and an enum value added there and not here means an event arrives with a
 // `kind` nothing maps.
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
 import {
   EVENT_AGENDA_MAX,
   EVENT_CANCEL_REASON_MAX,
@@ -22,8 +19,7 @@ import {
   EVENT_TITLE_MAX,
 } from '@/data/events.wire';
 
-const SERVER = join(__dirname, '..', '..', '..', 'server');
-const read = (...parts: string[]) => readFileSync(join(SERVER, ...parts), 'utf8');
+import { readServerFile as read } from '../helpers/read-server-file';
 
 /** `export const NAME = 1_234;` → 1234, underscores and all. */
 function numberOf(source: string, name: string): number {

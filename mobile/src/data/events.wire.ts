@@ -86,13 +86,11 @@ export type PickerPersonWire = { id: string; name: string; jobTitle: string | nu
 /** What `DELETE /events/:id` answers: the Trash entry the Undo of the snack restores. */
 export type TrashedEventWire = { trash: { kind: string; id: string; label: string } };
 
-/** Body of `POST /events`; `projectId: null` makes it a personal event. */
-export type CreateEventBody = {
+/** The fields create and update share; the three at the top are what create insists on. */
+type EventWriteFields = {
   title: string;
   startsAt: string;
   endsAt: string;
-  projectId?: string | null;
-  participantIds?: string[];
   kind?: EventKind;
   locationType?: EventLocationType | null;
   locationText?: string | null;
@@ -101,11 +99,18 @@ export type CreateEventBody = {
   remindersMinutes?: number[];
 };
 
+/** Body of `POST /events`; `projectId: null` makes it a personal event. */
+export type CreateEventBody = EventWriteFields & {
+  projectId?: string | null;
+  participantIds?: string[];
+};
+
 /**
- * Body of `PATCH /events/:id`. `projectId` and `participantIds` are refused by the server
- * (`t.Never()`): an event cannot change project, and the guest list has routes of its own.
+ * Body of `PATCH /events/:id`: every field optional, a key left out stays as it is. `projectId` and
+ * `participantIds` are refused by the server (`t.Never()`) — an event cannot change project, and
+ * the guest list has routes of its own — so neither is in this type at all.
  */
-export type UpdateEventBody = Omit<CreateEventBody, 'projectId' | 'participantIds'>;
+export type UpdateEventBody = Partial<EventWriteFields>;
 
 // Limits of the write bodies, from `server/event/events.dto.ts`. Kept here so the form can refuse
 // what the server would refuse, in the form, rather than sending it and showing a 422.

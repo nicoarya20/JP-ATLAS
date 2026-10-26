@@ -123,7 +123,9 @@ export const savedFields = (f: EventFormFields): EventFormFields => ({
 });
 
 /** The fields every write shares: the instants, the kind, where it is, and the agenda. */
-function commonBody(f: EventFormFields): UpdateEventBody {
+function commonBody(
+  f: EventFormFields,
+): Required<Pick<UpdateEventBody, 'title' | 'startsAt' | 'endsAt'>> & UpdateEventBody {
   const saved = savedFields(f);
   return {
     title: saved.title,
