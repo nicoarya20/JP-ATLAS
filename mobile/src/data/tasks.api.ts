@@ -69,6 +69,18 @@ export function taskListQuery(p: TaskListParams): string {
 }
 
 /**
+ * Waits out a load already in flight.
+ *
+ * `reload()` joins a request that is already out instead of starting a second one (that is rule 1),
+ * so a caller that first sets up what the *next* load should do would have its intent read by
+ * nobody and left behind to mislead a later load. Waiting until the resource settles makes the load
+ * this caller starts the one that reads its intent.
+ */
+async function settled(r: Resource<unknown>): Promise<void> {
+  while (r.peek().phase === 'loading') await r.reload();
+}
+
+/**
  * A resource over a keyset-paged endpoint. `fetchPage(cursor)` does one request; the resource keeps
  * the pages it has as one `items` list.
  */
@@ -82,7 +94,12 @@ function paged<P extends { items: unknown[]; nextCursor: string | null }>(
 
   const self: Paged<P> = {
     ...resource<P>(name, async () => {
-      const cursor = from;
+      // `forget()` (sign out, tests) empties the store but cannot reach the pages held here, so
+      // they are dropped whenever the store has nothing: otherwise a cursor left over from a
+      // `more()` would append the next session's rows to the last one's.
+      const held = self.peek().data !== null;
+      const cursor = held ? from : null;
+      if (!held) items = [];
       from = null;
       let page: P;
       try {
@@ -91,13 +108,15 @@ function paged<P extends { items: unknown[]; nextCursor: string | null }>(
         // "Halaman daftar tidak dikenali. Muat ulang daftar dari awal." — so do exactly that,
         // rather than showing the user a page number they never chose.
         if (!cursor || !isApiError(cause) || cause.code !== 'BAD_CURSOR') throw cause;
-        items = [];
         page = await fetchPage(null);
+        items = page.items;
+        return { ...page, items };
       }
       items = cursor ? [...items, ...page.items] : page.items;
       return { ...page, items };
     }),
     more: async () => {
+      await settled(self);
       const next = self.current()?.nextCursor;
       if (!next) return;
       from = next;
