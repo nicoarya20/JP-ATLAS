@@ -28,8 +28,8 @@ import { getMetrics } from '../pm/metrics-env';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
 import { TASK_ACTIVITY } from './task.limits';
-import { resolveTaskRef } from './task-detail.query';
 import { loadPeople } from './task.lookup.query';
+import { resolveTaskRef } from './task-detail.query';
 
 /** The task that moved, as the route and the audit entry name it. */
 export type TrashedTask = { id: string; number: number; title: string; projectId: string };
