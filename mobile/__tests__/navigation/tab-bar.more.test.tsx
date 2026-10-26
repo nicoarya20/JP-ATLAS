@@ -5,7 +5,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { AccessibilityInfo, BackHandler } from 'react-native';
 
 import { getProfile } from '../../src/data/profile';
-import { INBOX_RESPOND, USER_COUNTS } from '../../src/data/sample';
+import { USER_COUNTS } from '../../src/data/sample';
 import type { Role } from '../../src/data/sample/people';
 import { decide, resetDecisions } from '../../src/data/users';
 import { openApp } from '../helpers/app-router';
@@ -52,7 +52,8 @@ describe('More panel', () => {
     expect(tab('More')).toBeSelected(); // the bubble sits on More while it is open
     expect(tab('Home')).not.toBeSelected();
     expect(button('Close More')).toBeOnTheScreen(); // the dim
-    expect(button(`Inbox, ${INBOX_RESPOND.member.length} new`)).toBeOnTheScreen();
+    // The Inbox badge is the server's count now, and nothing is loaded here: no badge, just the tile.
+    expect(button('Inbox')).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeOnTheScreen(); // Settings only
   });
 
@@ -191,17 +192,17 @@ describe('More panel', () => {
     expect(await screen.findByTestId('screen-users')).toBeOnTheScreen();
   });
 
-  it('counts down Users and Inbox as sign-ups are decided', async () => {
+  // The Inbox badge left this test with Fase 2: it is the server's count now, not a count of the
+  // sample sign-ups (__tests__/data/inbox.test.ts owns it).
+  it('counts down Users as sign-ups are decided', async () => {
     await open('/', 'admin');
     await act(() => decide('sari', 'approved'));
     await pick('More');
     expect(button('Users, 1 new')).toBeOnTheScreen();
-    expect(button('Inbox, 3 new')).toBeOnTheScreen();
 
-    // The panel stays open: the last decision takes the badge off Users and the approvals card out of Inbox.
+    // The panel stays open: the last decision takes the badge off Users.
     await act(() => decide('budi', 'rejected'));
     expect(button('Users')).toBeOnTheScreen();
-    expect(button('Inbox, 2 new')).toBeOnTheScreen();
   });
 
   it.each(['member', 'pm'] as const)('has no Users for %s', async (role) => {
@@ -209,6 +210,6 @@ describe('More panel', () => {
     await pick('More');
 
     expect(screen.queryByRole('button', { name: /^Users/ })).not.toBeOnTheScreen();
-    expect(button(`Inbox, ${INBOX_RESPOND[role].length} new`)).toBeOnTheScreen();
+    expect(button('Inbox')).toBeOnTheScreen();
   });
 });

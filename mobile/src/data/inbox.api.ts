@@ -87,11 +87,10 @@ async function post(path: string): Promise<void> {
  * either, and the bell's `infoUnread` changes with it.
  */
 export const markCardRead = (id: string): Promise<void> =>
-  write(() => post(`/api/app/inbox/${id}/read`), [
-    inboxInfoResource,
-    inboxActionResource,
-    inboxCountResource,
-  ]);
+  write(
+    () => post(`/api/app/inbox/${id}/read`),
+    [inboxInfoResource, inboxActionResource, inboxCountResource],
+  );
 
 /** Marks every unread news card read. The work queue is untouched, so it is not named. */
 export const markAllNewsRead = (): Promise<void> =>
@@ -109,5 +108,4 @@ export const ensureInbox = (): Promise<unknown> =>
 export const ensureInboxCount = (): Promise<unknown> => inboxCountResource.ensure();
 
 /** Cards waiting for a response, or null while the count has not arrived. */
-export const inboxActionCount = (): number | null =>
-  inboxCountResource.current()?.action ?? null;
+export const inboxActionCount = (): number | null => inboxCountResource.current()?.action ?? null;
