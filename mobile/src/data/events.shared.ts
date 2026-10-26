@@ -1,7 +1,8 @@
 // Events helpers shared by the events screens, Home and Inbox: the wide event type, its status, times and place, and
 // which route an event opens. Ported from the prototype's events.shared.js.
+import { today } from './clock';
 import { weekdayMonthDay } from './dates';
-import { PROJECTS, type SampleEvent, TODAY } from './sample';
+import { PROJECTS, type SampleEvent } from './sample';
 import { EVENT_RESULTS, type EventExtra, type Repeat } from './sample/events.extra';
 
 /** Event types offered by the new-event form, in form order. */
@@ -52,7 +53,13 @@ export type EventStatusLabel = 'Canceled' | 'Done' | 'Today' | 'Upcoming';
 
 /** Status pill text: Canceled, Done, Today, or Upcoming. */
 export const eventStatus = (e: EventItem): EventStatusLabel =>
-  e.canceled ? 'Canceled' : e.status === 'Done' ? 'Done' : e.date === TODAY ? 'Today' : 'Upcoming';
+  e.canceled
+    ? 'Canceled'
+    : e.status === 'Done'
+      ? 'Done'
+      : e.date === today()
+        ? 'Today'
+        : 'Upcoming';
 
 /** Project name of an event: the one picked in its form, else Atlas. */
 export function eventProject(e: EventItem): string {

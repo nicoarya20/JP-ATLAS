@@ -1,10 +1,14 @@
 // Session states a test can start from. Imported from src/session/session.state only, never the
 // barrel: the state module pulls in nothing but the store, while the barrel would drag Better Auth
 // into every suite jest.setup-after-env.js touches.
+import { forgetAllResources } from '@/data/resource';
+import { TODAY } from '@/data/sample/today';
 import {
   INITIAL_SESSION,
+  type SessionClock,
   type SessionUser,
   sessionStore,
+  setSessionClock,
   setSessionUser,
 } from '@/session/session.state';
 
@@ -37,9 +41,19 @@ export const REJECTED_USER: SessionUser = {
   approvalReason: 'Bukan akun kantor.',
 };
 
+/**
+ * The clock the sample rows were written against: the prototype's Wednesday, in the team's zone
+ * (`server/metrics/config.ts`). Seeded instead of left to the device, exactly as in the app — the
+ * difference is only that here the day is known rather than fetched.
+ */
+export const TEST_CLOCK: SessionClock = { today: TODAY, timeZone: 'Asia/Jakarta' };
+
 /** Back to the state the app starts in, before anything has been read. */
 export function resetSessionForTest(): void {
   sessionStore.set(INITIAL_SESSION);
+  // Nothing unmounts in this router, so a resource left loaded would leak into the next test the
+  // same way it would leak into the next account (src/data/resource.ts).
+  forgetAllResources();
 }
 
 /**
@@ -48,5 +62,11 @@ export function resetSessionForTest(): void {
  * gate itself calls `resetSessionForTest()` and lets the real read run against a stubbed fetch.
  */
 export function seedSession(user: SessionUser = APPROVED_USER): void {
+  setSessionUser(user);
+  setSessionClock(TEST_CLOCK);
+}
+
+/** A signed-in account with no clock yet: what the app looks like between the gate and home. */
+export function seedSessionWithoutClock(user: SessionUser = APPROVED_USER): void {
   setSessionUser(user);
 }

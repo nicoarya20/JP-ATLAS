@@ -1,8 +1,9 @@
+import { today } from './clock';
 import { daysToSunday } from './dates';
 import { type EventItem, eventHref } from './events.shared';
 import type { AgendaEvent, AgendaProject, FocusTask, HomeFocus } from './home.types';
 import type { ProjectItem } from './projects.state';
-import { type Role, TODAY } from './sample';
+import type { Role } from './sample';
 import { dueIn, isOpen, type TaskItem } from './tasks.shared';
 import type { TasksState } from './tasks.state';
 
@@ -28,7 +29,7 @@ const focusTask = (s: TasksState, t: TaskItem): FocusTask => ({
 /** My open tasks by Overdue / Today / This week (to Sunday); PM also gets others' tasks in review, Admin the approvals. */
 export function homeFocus(role: Role, s: TasksState, me: string, waiting: number): HomeFocus {
   const open = s.tasks.filter((t) => t.who === me && isOpen(t));
-  const weekLeft = daysToSunday(TODAY);
+  const weekLeft = daysToSunday(today());
   const review =
     role === 'pm' ? s.tasks.filter((t) => t.status === 'In review' && t.who !== me) : [];
   const row = (t: TaskItem) => focusTask(s, t);

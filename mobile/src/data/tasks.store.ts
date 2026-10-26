@@ -1,8 +1,9 @@
 import { addEntry, entryKey, findEntry, removeEntry } from './archive.store';
+import { today } from './clock';
 import type { PersonInfo } from './people';
-import { TASKS, type TaskStatus, TODAY } from './sample';
+import { TASKS, type TaskStatus } from './sample';
 import { movedNotice } from './tasks.columns';
-import { mayChange, NOW, type TaskItem, TODAY_LABEL, whenFromDue } from './tasks.shared';
+import { mayChange, now, type TaskItem, todayLabel, whenFromDue } from './tasks.shared';
 import {
   put,
   record,
@@ -37,8 +38,8 @@ const ORIGINAL = new Map(TASKS.map((t) => [t.no, t]));
 
 /** Due note after a move: Done or Canceled today, else the sample note, or one from the due date. */
 function whenOf(t: TaskItem, status: TaskStatus): string {
-  if (status === 'Done') return `Done ${TODAY_LABEL}`;
-  if (status === 'Canceled') return `Canceled ${TODAY_LABEL}`;
+  if (status === 'Done') return `Done ${todayLabel()}`;
+  if (status === 'Canceled') return `Canceled ${todayLabel()}`;
   const o = ORIGINAL.get(t.no);
   return o && o.status !== 'Done' ? o.when : whenFromDue(t.due, false);
 }
@@ -55,7 +56,7 @@ export function moveTask(
   const s = store.get();
   const t = taskOrThrow(s, no, 'move');
   if (t.status === status) return;
-  const next = { ...t, status, when: whenOf(t, status), updated: NOW };
+  const next = { ...t, status, when: whenOf(t, status), updated: now() };
   store.set({ ...s, ...put(s, next), info: log || extras ? record(s, no, log, extras) : s.info });
 }
 
@@ -102,7 +103,7 @@ export function archiveTask(no: number, by: string) {
     title: `#${no} ${t.title}`,
     where: t.project,
     by,
-    date: TODAY,
+    date: today(),
     ref: no,
   });
   store.set({

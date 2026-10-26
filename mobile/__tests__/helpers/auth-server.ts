@@ -49,6 +49,12 @@ export const sessionPayload = (user: SessionUser) => ({
   },
 });
 
+/**
+ * A `GET /api/app/home` body carrying the clock the app start waits for (K1). Only `now` is here:
+ * that is all `src/data/home.api.ts` reads of it so far.
+ */
+export const homePayload = (clock: { today: string; timeZone: string }) => ({ now: clock });
+
 const urlOf = (input: unknown): string => {
   if (typeof input === 'string') return input;
   if (input instanceof URL) return input.href;

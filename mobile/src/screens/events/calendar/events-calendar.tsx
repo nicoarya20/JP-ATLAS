@@ -7,9 +7,10 @@ import { View } from 'react-native';
 
 import { Seg } from '@/components/form/seg';
 import { NoMatch } from '@/components/state/no-match';
+import { today } from '@/data/clock';
 import { type AgendaItem, type CalendarView, getEventsCalendar, stepCalendar } from '@/data/events';
 import type { EventsQuery } from '@/data/events.query';
-import { type Role, TODAY } from '@/data/sample';
+import type { Role } from '@/data/sample';
 
 import { CALENDAR, LIST } from '../events.strings';
 import { SPOKEN } from '../events.strings.added';
@@ -30,7 +31,7 @@ type EventsCalendarProps = {
 /** The calendar body of the Events tab; the screen around it keeps the search and the List / Calendar switch. */
 export function EventsCalendar({ role, query, onOpen, onReset }: EventsCalendarProps) {
   const [view, setView] = useState<CalendarView>('month');
-  const [picked, setPicked] = useState(TODAY);
+  const [picked, setPicked] = useState(today());
   const data = getEventsCalendar(role, { view, picked, query });
   return (
     <>

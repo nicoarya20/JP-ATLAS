@@ -1,5 +1,6 @@
 // Events ③ detail and form getters (prototype events.detail.jsx / events.new.jsx): who may change an event, its
 // attendees, and the initial New event / Edit form. Re-exported by events.ts.
+import { today } from './clock';
 import { addDays } from './events.dates';
 import {
   DEFAULT_PROJECT,
@@ -13,7 +14,7 @@ import {
 } from './events.shared';
 import { type EventFields, findEvent } from './events.store';
 import { me } from './people';
-import { type Role, TODAY } from './sample';
+import type { Role } from './sample';
 
 export type EventAttendee = { name: string; creator: boolean; noteTaker: boolean };
 
@@ -72,7 +73,7 @@ export function getEventForm(
       creator: name,
       fields: {
         title: '',
-        date: addDays(TODAY, 1),
+        date: addDays(today(), 1),
         start: '10:00 AM',
         end: '11:00 AM',
         mode: 'In person',

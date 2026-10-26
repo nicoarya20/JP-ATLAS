@@ -2,10 +2,11 @@
 // event Canceled (one occurrence or the series), ⋯ › Move to Archive moves it (or one occurrence) to Archive until Undo
 // restores it, and Step 3 › Create tasks confirms its outcomes as tasks. Screens read through src/data/events.ts.
 import { addEntry, removeEntry } from './archive.store';
+import { today } from './clock';
 import { addDays, dateLabel } from './events.dates';
 import { BASE_QUERY, type EventsQuery } from './events.query';
 import { type EventItem, type EventType, eventProject, REPEAT_DAYS } from './events.shared';
-import { EVENTS, type SampleEvent, TODAY } from './sample';
+import { EVENTS, type SampleEvent } from './sample';
 import { type DraftTask, EVENT_EXTRA, type Repeat } from './sample/events.extra';
 import { createStore, useStore } from './store';
 import { addTask } from './tasks.store';
@@ -105,7 +106,7 @@ export function addEvent(fields: EventFields, creator: string): string {
     status: 'Upcoming',
     attendees: [],
     creator,
-    updated: TODAY,
+    updated: today(),
   };
   const e = write(blank, fields);
   const added = { ...e, attendees: [creator, ...e.attendees.filter((n) => n !== creator)] };
@@ -115,7 +116,7 @@ export function addEvent(fields: EventFields, creator: string): string {
 
 /** Save the Edit form of event id (same fields as addEvent); the event moves if its date changed. */
 export function editEvent(id: string, fields: EventFields, editor: string): void {
-  const e = { ...write(listed(id, 'edit'), fields), updated: TODAY, editor };
+  const e = { ...write(listed(id, 'edit'), fields), updated: today(), editor };
   eventsStore.set((s) => ({ ...s, list: insert(without(s.list, id), e) }));
 }
 
@@ -134,7 +135,7 @@ export function cancelEvent(id: string, reason: string, by: string, { once = fal
  */
 export function archiveEvent(id: string, by: string, { once = false } = {}): string {
   const e = listed(id, 'archive');
-  const entry = { kind: 'EVENT' as const, where: eventProject(e), by, date: TODAY };
+  const entry = { kind: 'EVENT' as const, where: eventProject(e), by, date: today() };
   const s = eventsStore.get();
   if (once && e.repeat) {
     const from = e.date;
@@ -228,7 +229,7 @@ export function confirmOutcomes(id: string, drafts: readonly DraftTask[], by: st
       by,
     ),
   );
-  const done: EventItem = { ...e, status: 'Done', outcomes: { tasks, by, date: TODAY } };
+  const done: EventItem = { ...e, status: 'Done', outcomes: { tasks, by, date: today() } };
   const swap = (list: readonly EventItem[]) => list.map((x) => (x.id === id ? done : x));
   eventsStore.set((s) => ({ ...s, list: swap(s.list), archived: swap(s.archived) }));
   return tasks;

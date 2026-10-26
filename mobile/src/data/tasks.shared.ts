@@ -1,7 +1,7 @@
+import { today } from './clock';
 import { daysBetween, monthDay } from './dates';
 import { type PersonInfo, person } from './people';
 import type { Task, TaskStatus } from './sample';
-import { TODAY } from './sample';
 
 /*
  * Tasks module shared types and logic, ported from the prototype (tasks.shared.js): the wide task the module keeps,
@@ -54,9 +54,10 @@ export type DetailVariant = 'todo' | 'progress' | 'review';
 
 /** The prototype's clock, so a change counts as "recently updated" today. */
 export const CLOCK = '09:41';
-export const NOW = `${TODAY}T${CLOCK}`;
+/** The moment a write is stamped with: today, from the server's clock, at the prototype's hour. */
+export const now = () => `${today()}T${CLOCK}`;
 /** "Oct 7", for history lines and notes. */
-export const TODAY_LABEL = monthDay(TODAY);
+export const todayLabel = () => monthDay(today());
 /** Id of the sample project All tasks starts on. */
 export const ATLAS_ID = 'atlas';
 
@@ -70,7 +71,7 @@ export const TYPES: readonly (readonly [TaskType, string])[] = [
 ];
 
 /** Days from today to the due date (negative = overdue). */
-export const dueIn = (t: Pick<TaskItem, 'due'>) => daysBetween(TODAY, t.due);
+export const dueIn = (t: Pick<TaskItem, 'due'>) => daysBetween(today(), t.due);
 
 /** Everyone assigned to a task: `who` first, then `also`. */
 export const assignees = (t: Pick<TaskItem, 'who' | 'also'>) => [t.who, ...(t.also ?? [])];
@@ -166,7 +167,7 @@ export const stepsTitle = (steps: readonly TaskStep[]) => {
 
 /** Due note from a due date: "N days overdue", "Today", "Tomorrow" (when `tomorrow`) or "Due X". */
 export function whenFromDue(due: string, tomorrow: boolean): string {
-  const d = daysBetween(TODAY, due);
+  const d = daysBetween(today(), due);
   if (d < 0) return `${-d} days overdue`;
   if (d === 0) return 'Today';
   return d === 1 && tomorrow ? 'Tomorrow' : `Due ${monthDay(due)}`;
