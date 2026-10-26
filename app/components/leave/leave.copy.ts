@@ -1,4 +1,4 @@
-/** Indonesian copy for the leave UI: Ketersediaan on /app/settings and the Inbox rejection dialog. */
+/** Indonesian copy for the leave UI: the read-only Ketersediaan card on /app/settings. */
 
 export const LEAVE_COPY = {
   availabilityTitle: 'Ketersediaan',
@@ -12,24 +12,4 @@ export const LEAVE_COPY = {
    */
   whereToApply: 'Pengajuan cuti diurus lewat HRD atau atasanmu, bukan di aplikasi ini.',
   seenByTeam: 'Rekan satu tim melihat status ini di menu Tim.',
-} as const;
-
-/**
- * The Inbox rejection dialog below is the last piece of the old approval flow still standing; it
- * leaves with the `leave_requested` notification kind in P14 CU-06. Its limit used to be validated
- * on the server; with that route gone it is only the counter under the field.
- */
-export const LEAVE_REJECT_REASON_MAX = 300;
-
-export const LEAVE_REJECT_COPY = {
-  title: (name: string) => `Tolak cuti ${name}?`,
-  impact:
-    'Pemohon dikabari bahwa pengajuannya ditolak, lengkap dengan alasan bila Anda menulisnya.',
-  reason: 'Alasan (boleh kosong)',
-  reasonPlaceholder: 'Mis. tenggat proyek jatuh di tanggal itu',
-  counter: (used: number, max: number) => `${used}/${max}`,
-  tooLong: (max: number) => `Alasan paling banyak ${max} karakter.`,
-  submit: 'Tolak pengajuan',
-  cancel: 'Batal',
-  done: (name: string) => `Cuti ${name} ditolak.`,
 } as const;

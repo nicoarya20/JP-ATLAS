@@ -1,27 +1,17 @@
-/** One Inbox card: unread dot, who did it, the sentence, what it is about, and one button (two for a leave approval). */
+/** One Inbox card: unread dot, who did it, the sentence, what it is about, and its one button. */
 import { Avatar, Button, Group, Paper, Stack, Text } from '@mantine/core';
 import { FiBell } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { MemberAvatar } from '~/components/ui/MemberAvatar';
 import type { InboxItem } from '~/lib/inbox-api';
-import {
-  contextLine,
-  detailLines,
-  headlineOf,
-  type InboxClock,
-  isLeaveApproval,
-} from '~/lib/inbox-view';
+import { contextLine, detailLines, headlineOf, type InboxClock } from '~/lib/inbox-view';
 import { INBOX_COPY } from './inbox.copy';
 
 export type InboxCardProps = {
   item: InboxItem;
   clock: InboxClock;
-  /** True while this card's leave approval is being sent; its "Setujui" spins. */
-  busy?: boolean;
   /** The card's link was used: the page marks it read. */
   onOpen: (item: InboxItem) => void;
-  onApprove: (item: InboxItem) => void;
-  onReject: (item: InboxItem) => void;
 };
 
 /** A dot with a spoken label, so "unread" is not carried by colour alone. */
@@ -41,21 +31,7 @@ function UnreadDot({ unread }: { unread: boolean }) {
   );
 }
 
-function CardButtons({ item, busy, onOpen, onApprove, onReject }: InboxCardProps) {
-  // Mobile: buttons share the full width under the text; desktop: they sit at the right edge.
-  const grow = { base: 1, sm: 'none' } as const;
-  if (isLeaveApproval(item)) {
-    return (
-      <>
-        <Button variant="default" flex={grow} disabled={busy} onClick={() => onReject(item)}>
-          {item.secondaryButton}
-        </Button>
-        <Button flex={grow} loading={busy} onClick={() => onApprove(item)}>
-          {item.button}
-        </Button>
-      </>
-    );
-  }
+function CardButtons({ item, onOpen }: InboxCardProps) {
   // An unknown kind has no label and nowhere to go, so it gets no button instead of a dead one.
   if (!item.button) return null;
   return (
@@ -63,7 +39,8 @@ function CardButtons({ item, busy, onOpen, onApprove, onReject }: InboxCardProps
       component={Link}
       to={item.href}
       prefetch="intent"
-      flex={grow}
+      // Mobile: the button takes the full width under the text; desktop: it sits at the right edge.
+      flex={{ base: 1, sm: 'none' }}
       variant={item.lane === 'action' ? 'filled' : 'default'}
       onClick={() => onOpen(item)}
     >
