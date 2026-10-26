@@ -78,6 +78,20 @@ kelompok A yang dibangun. Begitu juga opsi form tugas (Tasks A12), rute hapus pe
 
 ## 4. Hutang yang bukan GAP server
 
+### 4.0 "Move to Archive" di detail tugas disembunyikan
+
+**Berkas:** `src/screens/tasks/detail/task-detail.screen.tsx` (entri `archive` dihapus dari `MENU`).
+
+**Kenapa:** daftar tugas sudah membaca server, sementara tulisan Archive masih menulis store
+contoh. Akibatnya baris tetap tampil setelah menu bilang tugasnya sudah pindah ke Archive —
+kontrol yang melaporkan pekerjaan yang tidak ia lakukan lebih buruk daripada kontrol yang tidak
+ada. Ini **bukan GAP server**: endpointnya sudah ada (`DELETE /api/app/tasks/:ref` + Undo lewat
+`POST /api/app/trash/task/:id/restore`).
+
+**Kapan dibuka lagi:** langkah 7 `phase2-map-tasks.md` §6, bersama Sampah/Undo di gelombang
+berikutnya. Tesnya (`__tests__/tasks/tasks.screen.detail.test.tsx`) sekarang menegaskan kontrolnya
+**tidak** ditawarkan, jadi membukanya kembali akan menabrak tes itu — itu disengaja.
+
 ### 4.1 Parameter `role` masih dioper ke seluruh modul data
 
 **Keadaan:** setiap `get<Module>()` menerima `role: Role`, dan ~40 berkas di `src/screens/`

@@ -1,5 +1,5 @@
 // Task detail and its sheets (port of prototype tasks.detail.actions.test, items.open): a status button changes the
-// task in place, Return and Cancel take a reason in their sheet, Move to Archive goes to All tasks with an Undo snack,
+// task in place, Return and Cancel take a reason in their sheet, Move to Archive is hidden for now (see below),
 // and the sheets turn away who may not use them.
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
@@ -60,22 +60,15 @@ describe('task detail', () => {
     expect(status(14)).toBe('To do');
   });
 
-  it('Move to Archive opens All tasks with an Undo snack', async () => {
+  it('does not offer Move to Archive while the write still goes to the sample store', async () => {
+    // The list reads the server, the Archive write does not yet, so the row would stay on screen
+    // after the menu said it had gone. A control that reports work it did not do is worse than a
+    // missing one, so it is hidden until step 7 of docs/phase2-map-tasks.md §6 wires
+    // DELETE /tasks/:ref + Undo. Recorded in docs/phase2-gap-disembunyikan.md.
     await openTasks('/tasks/14');
-    await menuItem('Move to Archive');
-    await waitFor(() => expect(screen).toHavePathname('/tasks'));
-    // The anchor list under a deep-linked task also carries its id, so only the scope is checked.
-    expect(
-      within(screen.getByTestId('tasks-scope')).getByRole('tab', { name: 'All tasks' }),
-    ).toBeSelected();
-    // Whether the card is still listed is not asserted here any more: the list reads the server
-    // while Move to Archive still writes the sample store, so the row it serves does not change.
-    // That seam closes with step 7 of docs/phase2-map-tasks.md §6 (DELETE /tasks/:ref + Undo);
-    // until then it is in the Gelombang 1 handover as unfinished, not as working.
-    const snack = within(screen.getByTestId('snack'));
-    expect(snack.getByText('Task moved to Archive')).toBeOnTheScreen();
-    await fireEvent.press(snack.getByRole('button', { name: 'Undo' }));
-    expect(await screen.findByText('Task restored')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('task-menu'));
+    expect(await screen.findByText('Edit task')).toBeOnTheScreen();
+    expect(screen.queryByText('Move to Archive')).toBeNull();
   });
 
   it('a task that is gone says so', async () => {

@@ -7,7 +7,6 @@ import { ListX } from 'lucide-react-native';
 
 import { ActionMenu } from '@/components/menu/action-menu';
 import { useNotice } from '@/components/notice/use-notice';
-import { showSnack } from '@/components/snack/use-snack';
 import { EmptyState } from '@/components/state/empty-state';
 import { StatusPill } from '@/components/status/status-pill';
 import { Input, InputField } from '@/components/ui/input';
@@ -16,7 +15,7 @@ import { VStack } from '@/components/ui/vstack';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { getTaskDetail } from '@/data/tasks';
-import { archiveFromDetail, runTaskAction, undoArchive } from '@/data/tasks.actions';
+import { runTaskAction } from '@/data/tasks.actions';
 import type { TaskActionKey, TaskMenuKey } from '@/data/tasks.detail';
 import { useTasks } from '@/data/tasks.state';
 import { TaskPage } from '../parts/task-page';
@@ -48,18 +47,18 @@ export function TaskDetailScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const t = view.task;
   const review = view.variant === 'review';
   const act = (key: TaskActionKey) => notice(runTaskAction(role, no, key));
-  const archive = () => {
-    const message = archiveFromDetail(role, no);
-    router.dismissTo({ pathname: '/tasks', params: { scope: 'all' } });
-    showSnack({ message, action: S.detail.undo, onAction: () => notice(undoArchive(no)) });
-  };
-  const MENU: Record<TaskMenuKey, { label: string; onPress: () => void; danger?: boolean }> = {
-    edit: { label: S.detail.menuItem.edit, onPress: () => router.push(`/tasks/${no}/edit`) },
-    cancel: { label: S.detail.menuItem.cancel, onPress: () => router.push(`/tasks/${no}/cancel`) },
-    archive: { label: S.detail.menuItem.archive, onPress: archive, danger: true },
-  };
-  const right = view.menu.length ? (
-    <ActionMenu testID="task-menu" label={S.detail.menu} items={view.menu.map((k) => MENU[k])} />
+  // A key with no entry here is hidden. `archive` has none on purpose: the list already reads the
+  // server while the Archive write still goes to the sample store, so the row would stay on screen
+  // after "Move to Archive" said it had gone. A control that reports work it did not do is worse
+  // than a missing one, so it is hidden until the Trash write is wired (phase2-gap-disembunyikan).
+  const MENU: Partial<Record<TaskMenuKey, { label: string; onPress: () => void; danger?: boolean }>> =
+    {
+      edit: { label: S.detail.menuItem.edit, onPress: () => router.push(`/tasks/${no}/edit`) },
+      cancel: { label: S.detail.menuItem.cancel, onPress: () => router.push(`/tasks/${no}/cancel`) },
+    };
+  const items = view.menu.flatMap((k) => MENU[k] ?? []);
+  const right = items.length ? (
+    <ActionMenu testID="task-menu" label={S.detail.menu} items={items} />
   ) : undefined;
   const foot = (
     <Foot>
