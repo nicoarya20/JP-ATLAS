@@ -9,6 +9,7 @@ import {
   findProject,
   resetProjects,
 } from '../../src/data/projects.store';
+import { sheetGone } from '../helpers/sheet-gone';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
 
 resetTaskStores();
@@ -99,6 +100,7 @@ describe('tasks filter', () => {
     expect(await screen.findByTestId('filter-sheet')).toBeOnTheScreen();
     await fireEvent.press(sheet().getByRole('button', { name: 'High' }));
     await fireEvent.press(sheet().getByText('Apply'));
+    await sheetGone();
     expect(screen).toHavePathname('/tasks');
     expect(filterOn()).toBe(true);
     expect(shown([17, 12, 14, 9])).not.toEqual([17, 12, 14, 9]);
@@ -106,6 +108,7 @@ describe('tasks filter', () => {
     await fireEvent.press(filterButton());
     await fireEvent.press(await screen.findByText('Reset'));
     await fireEvent.press(sheet().getByText('Apply'));
+    await sheetGone();
     expect(filterOn()).toBe(false);
   });
 
@@ -149,6 +152,7 @@ describe('tasks filter', () => {
     await screen.findByTestId('filter-sheet');
     await fireEvent.press(sheet().getByRole('button', { name: 'High' }));
     await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    await sheetGone();
     expect(filterOn()).toBe(false);
   });
 });

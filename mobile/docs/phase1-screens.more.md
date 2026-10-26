@@ -16,12 +16,12 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 | `team.list`, `team.empty` (member) | `app/(tabs)/more/team/index.tsx` | push | ya |
 | `team.person` | `app/(tabs)/more/team/[id].tsx` (`id` = kunci orang, mis. `rina`) | push | ya |
 | `archive.list`, `archive.empty` | `app/(tabs)/more/archive/index.tsx` | push | ya |
-| `archive.delete` (admin) | `app/(tabs)/more/archive/[key]/delete.tsx` (`key` = kunci entri arsip) | formSheet | — |
+| `archive.delete` (admin) | `app/(tabs)/more/archive/[key]/delete.tsx` (`key` = kunci entri arsip) | SHEET | — |
 | `archive.undo` | bukan route — snack di list sumber (K5) | — | — |
 | `users.approve`, `users.roles` (admin) | `app/(tabs)/more/users.tsx` — param `tab=approval\|roles` | push | ya |
 | `settings.main` | `app/(tabs)/more/settings/index.tsx` | push | tidak |
 | `settings.profile` | `app/(tabs)/more/settings/profile.tsx` | push | tidak |
-| `settings.leave` | `app/leave.tsx` (root, juga dari sheet Create) | formSheet | — |
+| `settings.leave` | `app/leave.tsx` (root, juga dari sheet Create) | SHEET | — |
 | `profile.me` | `app/profile/index.tsx` | modal setinggi penuh (§2 main doc) | — |
 | `profile.calendar` | `app/profile/calendar.tsx` | push di Stack modal | — |
 
@@ -87,7 +87,7 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 - **Empty**: ikon `Archive`, **"Archive is empty"** / "What you archive shows up here."
 - **Undo setelah arsip** (dari Tasks/Projects/Events): snack (hilang otomatis 10 detik) **"Task/Project/Event moved to Archive"** + **Undo** → restore + notice "… restored". Tugas mendarat di **All tasks** (`/tasks?scope=all`, seperti `archive.undo.jsx`), proyek di Projects, event di Events.
 - Event dan proyek: Undo terikat ke key entri Archive-nya; bila entri sudah dihapus selamanya dalam jendela Undo, notice ("This event was deleted forever and can't be restored.") dan tidak ada yang dipulihkan.
-- Data: `src/data/archive.store.ts` (W0, karena ditulis tiga modul): entri `{ key, kind, title, where, by, date, includes?, ref }` + `entryKey`, `addEntry`, `removeEntry`, `listEntries`, `findEntry`, `useArchiveEntries`, `resetArchive`; sampel awal dari `sample/archive.ts`. Store tugas/proyek/event menambah/menghapus entri saat arsip/restore. **Delete forever** = `deleteForever(key)` di `archive.ts`: `forgetArchived{Task,Event,Project}(key)` lalu `removeEntry(key)` (proyek ikut membuang tugasnya). T3 ada di dalam formSheet itu sendiri, bukan dialog di atas sheet.
+- Data: `src/data/archive.store.ts` (W0, karena ditulis tiga modul): entri `{ key, kind, title, where, by, date, includes?, ref }` + `entryKey`, `addEntry`, `removeEntry`, `listEntries`, `findEntry`, `useArchiveEntries`, `resetArchive`; sampel awal dari `sample/archive.ts`. Store tugas/proyek/event menambah/menghapus entri saat arsip/restore. **Delete forever** = `deleteForever(key)` di `archive.ts`: `forgetArchived{Task,Event,Project}(key)` lalu `removeEntry(key)` (proyek ikut membuang tugasnya). T3 ada di dalam sheet itu sendiri, bukan dialog di atas sheet.
 
 ## 7. Settings
 

@@ -21,8 +21,8 @@ Dokumen ini dipecah per modul agar tiap berkas ≤ 500 baris:
 |---|---|---|
 | K1 | Satu route per **keluarga** layar; varian prototipe (`tasks.my`/`tasks.all`/`tasks.board`, `tasks.detail-*`, `events.detail-*`) = satu layar yang membaca param/status | Prototipe juga merender varian dari satu komponen (`TasksList`, `TaskDetail`, `EventDetail`) |
 | K2 | Varian "empty" (`tasks.empty`, `events.empty`, `team.empty`, `inbox.empty`, `archive.empty`) **bukan** route; muncul otomatis saat data kosong | Di prototipe id empty hanya demo galeri; di app nyata kosong = keadaan data |
-| K3 | Sheet prototipe (`sheet(...)` di `index.js`) = route `presentation: 'formSheet'` (`sheetAllowedDetents: 'fitToContents'`, `sheetGrabberVisible: true`, `sheetCornerRadius: 16`) — konstanta `SHEET` di `src/navigation/stack-presentation.ts`, sama dengan sheet Create | Swipe-down, dim, dan escape aksesibilitas native; satu pola untuk semua sheet |
-| K4 | Panel filter ("Filter & sort") = route formSheet; **query disimpan di store modul per scope**, bukan dioper lewat param | `router.dismissTo(href)` belum terbukti meneruskan param (types SDK 58: "If the href is not found, it will instead replace the current screen"). Store menghindari ketidakpastian itu dan mudah dites |
+| K3 | Sheet prototipe (`sheet(...)` di `index.js`) = route ber-konstanta `SHEET` (`src/navigation/stack-presentation.ts`), sama dengan sheet Create: di iOS route `transparentModal` dan `SheetFrame` menggambar panel sendiri (`OwnSheet`), di Android formSheet native (`fitToContents`, grabber, radius 16) | formSheet iOS 26+ melayang ±8 pt dari tepi tanpa opsi mematikan; panel sendiri tetap edge-to-edge seperti prototipe. Swipe-down, dim, dan escape aksesibilitas tetap ada; satu pola untuk semua sheet (`phase1-navigation.md` §4.5) |
+| K4 | Panel filter ("Filter & sort") = route `SHEET`; **query disimpan di store modul per scope**, bukan dioper lewat param | `router.dismissTo(href)` belum terbukti meneruskan param (types SDK 58: "If the href is not found, it will instead replace the current screen"). Store menghindari ketidakpastian itu dan mudah dites |
 | K5 | `archive.undo` bukan layar: arsipkan → kembali ke list sumber (`router.dismissTo('/tasks')` dst.) → snack "X moved to Archive" + "Undo" dari host snack global | Prototipe merender list sumber + Snack; cocok dengan aturan T1 project (aksi langsung + Urungkan) |
 | K6 | State in-memory per modul (`src/data/<modul>.store.ts`, `useSyncExternalStore`, `reset<Modul>()` untuk tes); tiap layar membaca lewat satu `get<Modul>…()` di `src/data/<modul>.ts` | Port 1:1 `*.store.js` prototipe; titik tukar ke API Phase 2 seperti `getHome` Sesi B |
 | K7 | Berkas sampel bersama (`src/data/sample/*.ts` buatan Sesi B) setelah Home selesai **dimiliki W0**, dan hanya W0 yang mengubahnya. W1–W4 menaruh field tambahan (detail tugas, health proyek, agenda event, dll.) di berkas sendiri `src/data/sample/<modul>.extra.ts` (modul tanpa sampel Sesi B: `src/data/sample/<modul>.ts`), lalu menggabungkannya di `src/data/<modul>.ts`. Perubahan berkas bersama diminta ke W0 lewat orchestrator | Ditetapkan orchestrator 2026-10-25; satu pemilik mencegah bentrok antar worker |
@@ -34,12 +34,12 @@ Dokumen ini dipecah per modul agar tiap berkas ≤ 500 baris:
 
 ## 2. Keputusan orchestrator (2026-10-25, dicatat di `reacttransition.md` §1)
 
-Aturan UX project (`CLAUDE.md` UX §1) **mengalahkan** prototipe untuk aksi destruktif. Pakai kit `ConfirmDialog` (gluestack `AlertDialog` dalam modal native, `useRNModal`, agar tampil di atas formSheet/modal):
+Aturan UX project (`CLAUDE.md` UX §1) **mengalahkan** prototipe untuk aksi destruktif. Pakai kit `ConfirmDialog` (gluestack `AlertDialog` dalam modal native, `useRNModal`, agar tampil di atas sheet/modal):
 
 | Tempat | Prototipe | Ditetapkan |
 |---|---|---|
 | Sign out (`settings.main`, `profile.me`, `auth.pending`) | Langsung ke login | **T2** AlertDialog "Sign out?" / "You'll be signed out of this account." / Cancel · Sign out |
-| Archive "Delete forever" (`archive.delete`) | Sheet konfirmasi saja | **T3** di dalam formSheet itu sendiri (bukan dialog di atas sheet): `TypeToConfirm` "Type the item name to confirm"; tombol disabled sampai cocok |
+| Archive "Delete forever" (`archive.delete`) | Sheet konfirmasi saja | **T3** di dalam sheet itu sendiri (bukan dialog di atas sheet): `TypeToConfirm` "Type the item name to confirm"; tombol disabled sampai cocok |
 | Remove member (`projects.members`) | Toast saja | **T2** AlertDialog sebelum notice |
 | Users: Approve / Reject / Deactivate / ubah role (`users.*`), ubah role anggota proyek | Toast saja | **T2** AlertDialog per aksi; copy menyebut nama + role tujuan. Reject meminta alasan dulu |
 | Undo snack | Tanpa batas waktu (`kit/form.jsx`), hilang saat navigasi | Hilang otomatis **10 detik** (T1) |
@@ -64,7 +64,7 @@ Route tipis: file `app/**` hanya me-render layar dari `src/screens/<modul>/` (po
 | `app/tasks/csv.tsx` | modal | `tasks.csv` (dibuka dari Create sheet, bukan dari tab) |
 | `app/projects/new/_layout.tsx` (`index`, `form`, `story`, `draft`, `template`) | modal; langkah berikutnya push di Stack modal | `projects.new/form/story/draft/template` |
 | `app/events/new.tsx` (param `event?`, `details?`) | modal | `events.new`, `events.new-details` |
-| `app/leave.tsx` | formSheet | `settings.leave` (dibuka dari Create dan Settings) |
+| `app/leave.tsx` | SHEET | `settings.leave` (dibuka dari Create dan Settings) |
 | `app/profile/_layout.tsx` (`index`, `calendar`) | modal; `calendar` push di dalamnya | `profile.me`, `profile.calendar` |
 
 Catatan: `/tasks/new` (statis, root) dan `/(tabs)/tasks/[id]` sama-sama cocok dengan `/tasks/new`; Expo Router memilih rute statis. Id tugas selalu angka, jadi aman. Dijaga tes `renderRouter`: `/tasks/new` membuka modal (`__tests__/tasks/tasks.screen.form.test.tsx`), `/tasks/12` membuka detail (tes `__tests__/tasks/`).
@@ -74,43 +74,43 @@ Catatan: `/tasks/new` (statis, root) dan `/(tabs)/tasks/[id]` sama-sama cocok de
 ```
 app/(tabs)/tasks/
   index.tsx              tasks.my | tasks.all | tasks.board (param scope=mine|all, view=list|board); empty bila kosong
-  filter.tsx             formSheet  tasks.filter (param scope)
+  filter.tsx             SHEET      tasks.filter (param scope)
   [id]/index.tsx         tasks.detail-todo|progress|review (dipilih dari status)
   [id]/edit.tsx          tasks.edit (push, tanpa tab bar)
-  [id]/return.tsx        formSheet  tasks.return (pm/admin)
-  [id]/cancel.tsx        formSheet  tasks.cancel
+  [id]/return.tsx        SHEET      tasks.return (pm/admin)
+  [id]/cancel.tsx        SHEET      tasks.cancel
 app/(tabs)/projects/
   index.tsx              projects.list (param who?)
-  filter.tsx             formSheet  projects.filter
+  filter.tsx             SHEET      projects.filter
   [id]/index.tsx         projects.overview|tasks|phases|members (param tab, view untuk board)
   [id]/edit.tsx          projects.edit
   [id]/settings.tsx      tasks.settings ("Project settings")
-  [id]/extend.tsx        formSheet  projects.extend
-  [id]/archive.tsx       formSheet  projects.archive
-  [id]/task-filter.tsx   formSheet  tasks.filter (scope project:<id>, Assignee)
+  [id]/extend.tsx        SHEET      projects.extend
+  [id]/archive.tsx       SHEET      projects.archive
+  [id]/task-filter.tsx   SHEET      tasks.filter (scope project:<id>, Assignee)
 app/(tabs)/events/
   index.tsx              events.list | events.calendar (param view=list|calendar); empty bila kosong
-  filter.tsx             formSheet  events.filter (param view)
+  filter.tsx             SHEET      events.filter (param view)
   [id]/index.tsx         events.detail-upcoming|recurring (dari event.repeat)
   [id]/results.tsx       events.detail-confirmed
   [id]/record.tsx        events.record-ready
   [id]/recording.tsx     events.recording (gestureEnabled false)
   [id]/outcomes/[step].tsx  events.step1|2|3
-  [id]/cancel.tsx        formSheet  events.cancel | events.cancel-recurring
-  [id]/archive.tsx       formSheet  events.archive | events.archive-recurring
+  [id]/cancel.tsx        SHEET      events.cancel | events.cancel-recurring
+  [id]/archive.tsx       SHEET      events.archive | events.archive-recurring
 app/(tabs)/more/
   index.tsx              <Redirect href="/" /> (More tanpa layar; tab-nya membuka panel)
   inbox.tsx              inbox.respond | inbox.updates (param tab); empty bila kosong
   team/index.tsx         team.list; empty (member tanpa tim)
   team/[id].tsx          team.person
   archive/index.tsx      archive.list; empty bila kosong
-  archive/[key]/delete.tsx  formSheet archive.delete (admin)
+  archive/[key]/delete.tsx  SHEET     archive.delete (admin)
   users.tsx              users.approve | users.roles (param tab; admin)
   settings/index.tsx     settings.main
   settings/profile.tsx   settings.profile
 ```
 
-Semua route di atas terdaftar di `_layout.tsx` Stack masing-masing tab; formSheet memakai `SHEET`, `recording` memakai `NO_SWIPE`. Tab bar (`tabBarVisibleFor`, `phase1-navigation.md` §4.1): `settings.*`, `tasks/[id]/*`, `projects/[id]/edit|settings`, `events/[id]/*` tanpa bar; `projects/[id]/index`, `more/inbox|team|team/[id]|archive|users` dengan bar; sheet di atas layar ber-bar (`*/filter`, `projects/[id]/extend|archive|task-filter`, `more/archive/[key]/delete`) tetap menggambar bar di bawahnya.
+Semua route di atas terdaftar di `_layout.tsx` Stack masing-masing tab; sheet memakai `SHEET`, `recording` memakai `NO_SWIPE`. Tab bar (`tabBarVisibleFor`, `phase1-navigation.md` §4.1): `settings.*`, `tasks/[id]/*`, `projects/[id]/edit|settings`, `events/[id]/*` tanpa bar; `projects/[id]/index`, `more/inbox|team|team/[id]|archive|users` dengan bar; sheet di atas layar ber-bar (`*/filter`, `projects/[id]/extend|archive|task-filter`, `more/archive/[key]/delete`) tetap menggambar bar di bawahnya.
 
 ### 3.3 Guard role (Phase 1 = UI, tanpa server)
 
@@ -132,7 +132,7 @@ Dipakai oleh ≥ 2 modul. Port dari `src/kit/*` prototipe. Tiap berkas ≤ 150 b
 | `screen/detail-header.tsx`, `screen/detail-page.tsx` | `kit/layout.jsx` | `DetailHeader`: header sendiri dengan chevron berlabel "Back" (atau "Cancel" di modal), judul, slot kanan; `DetailPage` (header + scroll + footer, jauh dari keyboard dan tab bar), `SectionCard` |
 | `search/search-field.tsx` | `kit/form.jsx` (Search) | `SearchField`: input + ikon, tombol hapus; dikosongkan saat blur kecuali `keep` |
 | `filter/filter-sheet.tsx`, `filter-field.tsx`, `filter-button.tsx` | `kit/filter.jsx`, SearchFilter | `FilterSheet` "Filter & sort" (footer **Reset** / **Apply**), `FilterField`, `FilterButton` (titik saat filter aktif), `SearchFilter` |
-| `sheet/sheet-frame.tsx` | `kit/sheet.jsx` | `SheetFrame`: isi formSheet, judul, sub, X kiri atas ("Close"), slot aksi di bawah, `KeyboardAvoidingView` |
+| `sheet/sheet-frame.tsx` | `kit/sheet.jsx` | `SheetFrame`: isi sheet, judul, sub, X kiri atas ("Close"), slot aksi di bawah. iOS: `OwnSheet` (dim + panel edge-to-edge, seret untuk tutup, naik di atas keyboard); Android: `NativeSheetBody` (ScrollView root dengan inset keyboard) |
 | `menu/action-menu.tsx` | `kit/menu.jsx` | `ActionMenu`: ⋯ → gluestack `Menu`; item `danger` merah; label aksesibilitas ("Task actions", dst.) |
 | `form/field.tsx`, `select-field.tsx`, `seg.tsx`, `chips.tsx`, `radio-list.tsx`, `switch-row.tsx`, `date-field.tsx`, `section-label.tsx`, `form-error.tsx`, `field-name.ts` | `kit/form.jsx`, `kit/controls.jsx` | `Field`, `SelectField`, `Seg` (dari `Pressable` + `HStack`; gluestack tidak punya), `Chips`/`MultiChips`/`CountChips`, `RadioList`, `SwitchRow`, `DateField` (datetimepicker, ISO UTC), `SectionLabel`, `FormError`, `fieldName` |
 | `confirm/confirm-dialog.tsx`, `type-to-confirm.tsx`, `use-confirm-action.ts` | — (UX §1) | `ConfirmDialog` T2/T3 (loading + error), `TypeToConfirm`/`nameMatches`, `useConfirmAction` (dipakai juga sheet Delete forever) |
@@ -181,9 +181,9 @@ Komponen gluestack v5 (`npx gluestack-ui@latest add <nama>`), di luar yang sudah
 | `portal` | Menu radial Kanban di atas tab bar tanpa jendela native baru (RN `Modal` membatalkan sentuhan yang sedang ditahan) — verifikasi saat `add` bahwa host Portal ada di dalam `GestureHandlerRootView` |
 | `skeleton` (opsional) | Belum ada di prototipe; tidak dipasang |
 
-Semua yang wajib terpasang di G0b, ditambah `@legendapp/motion` (dipakai actionsheet/select). Overlay `portal` gluestack berada di belakang formSheet/modal native iOS, jadi `ConfirmDialog` dan `SelectField` memakai `useRNModal`; `Portal` dipakai menu radial Kanban.
+Semua yang wajib terpasang di G0b, ditambah `@legendapp/motion` (dipakai actionsheet/select). Overlay `portal` gluestack berada di belakang route sheet/modal native iOS (layar modal yang terpisah), jadi `ConfirmDialog` dan `SelectField` memakai `useRNModal`; `Portal` dipakai menu radial Kanban.
 
-Tidak dipakai: `tabs` (alpha; tab Inbox/Project/Users dibuat dengan Seg kit), `calendar` (alpha; grid kalender dibuat sendiri seperti web), `bottomsheet` (diganti formSheet native; `actionsheet` hanya sebagai isi Select), `modal` (diganti route modal).
+Tidak dipakai: `tabs` (alpha; tab Inbox/Project/Users dibuat dengan Seg kit), `calendar` (alpha; grid kalender dibuat sendiri seperti web), `bottomsheet` (diganti `SHEET`: panel sendiri di iOS, formSheet native di Android; `actionsheet` hanya sebagai isi Select), `modal` (diganti route modal).
 
 Paket Expo (`npx expo install`, versi dari `bundledNativeModules` SDK 58):
 
@@ -220,7 +220,7 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 |---|---|
 | Keyboard menutupi form panjang dan comment foot | `ScrollView` dengan `automaticallyAdjustKeyboardInsets` (iOS) + `KeyboardAvoidingView behavior="padding"` di sheet; bila Android tetap bermasalah di QA → `react-native-keyboard-controller` (`KeyboardAwareScrollView`, `KeyboardStickyView` untuk comment foot) |
 | Tab bar menutupi konten | Semua layar ber-bar pakai `useTabBarInset()`; snack di atas inset; bar sembunyi saat keyboard terbuka |
-| formSheet `fitToContents` + konten scroll (filter panjang) | Semua sheet memakai `SHEET` (`fitToContents`) dengan `ScrollView` di `SheetFrame`; detents `[0.6, 1]` tidak dipakai. Tinggi sheet dicek di HP 375 pt (`docs/phase1-device-qa.md`) |
+| Sheet setinggi isi + konten scroll (filter panjang) | Semua sheet memakai `SHEET` dengan `ScrollView` di `SheetFrame`: di iOS panel tumbuh sesuai isi sampai di bawah status bar (`maxHeight`, header tetap, isi bergulir), di Android formSheet `fitToContents`; detents `[0.6, 1]` tidak dipakai. Tinggi sheet dicek di HP 375 pt (`docs/phase1-device-qa.md`) |
 | Gesture radial vs scroll horizontal papan vs scroll vertikal kolom | Lihat `phase1-screens.tasks.md` §6 (Pan `activateAfterLongPress: 350`, fail di luar slop) |
 | Kalender: kinerja grid dan swipe pekan | Grid sebagai `View` statis (≤ 42 sel), dihitung murni di `*.dates.ts`; swipe dengan Pan + Reanimated |
 | Daftar panjang | Data Phase 1 kecil (≤ 20 item); `FlatList`/`SectionList` cukup. `@shopify/flash-list` baru dipertimbangkan bila data API besar |

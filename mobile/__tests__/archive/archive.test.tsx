@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { deleteForever, getArchive, getArchiveDelete } from '../../src/data/archive';
 import { findEntry, listEntries, removeEntry, resetArchive } from '../../src/data/archive.store';
 import * as events from '../../src/data/events.store';
@@ -16,6 +15,7 @@ import type { Role } from '../../src/data/sample';
 import * as tasks from '../../src/data/tasks.store';
 import { ArchiveScreen } from '../../src/screens/archive/archive.screen';
 import { DeleteScreen } from '../../src/screens/archive/delete.screen';
+import { Providers } from '../helpers/providers';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
@@ -82,8 +82,7 @@ describe('archive data', () => {
 });
 
 describe('ArchiveScreen', () => {
-  const show = (role: Role) =>
-    render(<ArchiveScreen role={role} />, { wrapper: GluestackUIProvider });
+  const show = (role: Role) => render(<ArchiveScreen role={role} />, { wrapper: Providers });
 
   test('PM: cards with Restore, no Delete forever', async () => {
     await show('pm');
@@ -118,7 +117,7 @@ describe('ArchiveScreen', () => {
 
 describe('DeleteScreen · T3', () => {
   const show = (key: string, role: Role = 'admin') =>
-    render(<DeleteScreen entryKey={key} role={role} />, { wrapper: GluestackUIProvider });
+    render(<DeleteScreen entryKey={key} role={role} />, { wrapper: Providers });
   const action = () => screen.getByTestId('confirm-action');
 
   test('locked until the exact title is typed; then it deletes, says so and closes', async () => {

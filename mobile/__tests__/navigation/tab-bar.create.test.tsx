@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import type { Role } from '../../src/data/sample/people';
 import { CREATE_ROUTES, type CreateGo, createHref } from '../../src/navigation/create-href';
 import { openApp as open } from '../helpers/app-router';
+import { sheetGone } from '../helpers/sheet-gone';
 
 // The signed-in role, per test (the app reads it from src/data/session until Phase 2 signs in).
 let mockRole: Role = 'pm';
@@ -122,16 +123,16 @@ describe('Create sheet', () => {
 
     await fireEvent.press(within(sheet).getByRole('button', { name: 'Close' }));
 
+    await sheetGone('screen-create');
     expect(screen).toHavePathname('/');
-    expect(screen.queryByTestId('screen-create')).not.toBeOnTheScreen();
   });
 
   it('swaps itself for the picked screen, so leaving that screen lands back where "+" was', async () => {
     const sheet = await openCreate('pm');
 
     await fireEvent.press(within(sheet).getByRole('button', { name: 'Event' }));
+    await sheetGone('screen-create');
     expect(screen).toHavePathname('/events/new');
-    expect(screen.queryByTestId('screen-create')).not.toBeOnTheScreen();
 
     await act(() => router.back());
     expect(screen).toHavePathname('/');

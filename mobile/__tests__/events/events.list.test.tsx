@@ -5,6 +5,7 @@ import { fireEvent, screen, within } from '@testing-library/react-native';
 import { archiveEvent } from '../../src/data/events.store';
 import { EVENTS } from '../../src/data/sample/events';
 import { openEvents, resetEventStores } from '../helpers/events-router';
+import { sheetGone } from '../helpers/sheet-gone';
 
 resetEventStores();
 
@@ -27,7 +28,10 @@ async function openFilter() {
   await fireEvent.press(filterButton());
   expect(screen.getByRole('header', { name: 'Filter & sort' })).toBeOnTheScreen();
 }
-const apply = () => fireEvent.press(sheet().getByText('Apply'));
+const apply = async () => {
+  await fireEvent.press(sheet().getByText('Apply'));
+  await sheetGone();
+};
 
 describe('events list', () => {
   it('opens on the upcoming events by schedule, without the filter dot', async () => {

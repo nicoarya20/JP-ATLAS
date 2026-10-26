@@ -25,6 +25,7 @@ export function routerMock() {
       setParams: jest.fn(),
     },
     useLocalSearchParams: () => params,
+    usePreventRemove: jest.fn(),
     Redirect: ({ href }: { href: string }) => <Text testID="redirect">{href}</Text>,
   };
 }

@@ -8,8 +8,6 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { DetailHeader } from '../../src/components/screen/detail-header';
 import { usePinnedProgress, useRegisterFind } from '../../src/components/screen/stacked-context';
 import { StackedScreen } from '../../src/components/screen/stacked-screen';
-import { SheetFrame } from '../../src/components/sheet/sheet-frame';
-import { Button, ButtonText } from '../../src/components/ui/button';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { Text } from '../../src/components/ui/text';
 
@@ -18,55 +16,6 @@ jest.mock('expo-router', () => ({ router: { back: jest.fn() } }));
 const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvider });
 
 beforeEach(() => jest.mocked(router.back).mockClear());
-
-describe('SheetFrame', () => {
-  test('title, sub, body and actions; Close pops the route by default', async () => {
-    await show(
-      <SheetFrame
-        title="Move task"
-        sub="#21 Fix login"
-        actions={
-          <Button>
-            <ButtonText>Move</ButtonText>
-          </Button>
-        }
-      >
-        <Text>Pick a column</Text>
-      </SheetFrame>,
-    );
-    expect(screen.getByRole('header', { name: 'Move task' })).toBeOnTheScreen();
-    expect(screen.getByText('#21 Fix login')).toBeOnTheScreen();
-    expect(screen.getByText('Pick a column')).toBeOnTheScreen();
-    expect(screen.getByText('Move')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
-    expect(router.back).toHaveBeenCalledTimes(1);
-  });
-
-  // react-native-screens keeps a formSheet's scroll view in place only when it is the screen's first view; wrapped (it
-  // was in a KeyboardAvoidingView), it took the sheet's offset on screen and the sheet looked empty on device.
-  test('is the scroll view itself, which keeps its inputs above the keyboard', async () => {
-    await show(
-      <SheetFrame testID="frame" title="Sort">
-        <Text>Body</Text>
-      </SheetFrame>,
-    );
-    const frame = screen.getByTestId('frame');
-    expect(frame.type).toBe('RCTScrollView');
-    expect(frame.props.automaticallyAdjustKeyboardInsets).toBe(true);
-  });
-
-  test('a given onClose replaces the pop', async () => {
-    const onClose = jest.fn();
-    await show(
-      <SheetFrame title="Sort" onClose={onClose}>
-        <Text>Body</Text>
-      </SheetFrame>,
-    );
-    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(router.back).not.toHaveBeenCalled();
-  });
-});
 
 describe('DetailHeader', () => {
   test('Back pops the route; the title is a header and the right slot shows', async () => {
