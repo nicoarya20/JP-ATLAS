@@ -96,6 +96,7 @@ bun run start
 | Script | Fungsi |
 |---|---|
 | `bun run dev` | Dev server satu port (Elysia + Vite HMR + RR SSR) |
+| `bun run dev:all` | `bun run dev` + Metro (`mobile/`) bersamaan, keluaran diberi awalan `[api]`/`[metro]`; Ctrl-C mematikan keduanya |
 | `bun run build` | Build client + server bundle |
 | `bun run start` | Production server (`server/prod.ts`, NODE_ENV=production) |
 | `bun run smoke:prod` | Build lalu boot `server/prod.ts` di port bebas dan jalankan 23 pemeriksaan black-box (`scripts/smoke-server.ts`) |
@@ -323,6 +324,8 @@ Endpoint admin (`/api/admin`, hanya Admin dan Super-admin; galat berbentuk `{ er
 | `GET /export/:kind` (`members`, `projects`, `tasks`) | Unduh CSV (`text/csv`, BOM UTF-8, RFC 4180). Di-stream per halaman, tanpa kolom rahasia, item di Sampah tidak ikut. Dibatasi 10 unduhan / 5 menit per akun dan tercatat di audit sebagai `data.export` (jenis + jumlah baris saja) |
 
 Google OAuth: set `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`. Authorized redirect URI di Google Console: `${BETTER_AUTH_URL}/api/auth/callback/google`.
+
+**Aplikasi mobile (`mobile/`).** Aplikasi React Native memakai `/api/auth/*` dan `/api/app/*` yang sama dengan web — tidak ada endpoint khusus mobile. Plugin `expo()` Better Auth menerjemahkan header `expo-origin` menjadi `origin`, jadi tidak perlu CORS. Origin yang dipercaya: skema `simplepm://` sudah bawaan kode (`server/mobile-origins.ts`), `exp://` ditambahkan plugin selama `NODE_ENV=development`, dan sisanya — IP LAN laptop, host tunnel, origin staging — lewat `MOBILE_TRUSTED_ORIGINS` (dipisah koma, setiap entri `<skema>://<host>`, entri salah menggagalkan boot). Origin `BETTER_AUTH_URL` selalu dipercaya, jadi sesi cookie web tidak berubah.
 
 **Hapus akun sendiri** (`POST /api/auth/delete-user`, tombol di Pengaturan › Keamanan dan perangkat): hanya Super-admin (selain itu `403 DELETE_ACCOUNT_FORBIDDEN`), tidak saat menyamar, dan tidak selama ia satu-satunya pengelola proyek aktif (`409 SOLE_MANAGER`, pesannya menyebut nama proyek). Penjagaan ada di server (`server/account/delete-guard.ts`), bukan hanya di layar.
 

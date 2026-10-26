@@ -1,4 +1,5 @@
 import { apiKey } from '@better-auth/api-key';
+import { expo } from '@better-auth/expo';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, multiSession } from 'better-auth/plugins';
@@ -9,7 +10,7 @@ import { deleteAvatarObject } from './api/app-avatar';
 import { AUDIT_ACTIONS, audit } from './audit';
 import { db } from './db';
 import * as schema from './db/schema';
-import { env, hasGoogleAuth, isProd } from './env';
+import { env, hasGoogleAuth, isProd, mobileTrustedOrigins } from './env';
 import { logger } from './logger';
 import { CLIENT_IP_HEADER, normalizeIp, resolveClientIp } from './middleware/client-ip';
 import { describeClient, loginMethodFromPath } from './middleware/request-meta';
@@ -33,7 +34,15 @@ export const auth = betterAuth({
       apikey: schema.apikey,
     },
   }),
+  // Origins that may drive /api/auth/*: Better Auth always adds the baseURL origin, so the web
+  // app is unaffected; these only add the React Native app (server/mobile-origins.ts).
+  trustedOrigins: [...mobileTrustedOrigins],
   plugins: [
+    // React Native (mobile/): rewrites the `expo-origin` header to `origin` so the origin check
+    // sees the app's scheme, and appends the session cookie to the deep link a social callback
+    // redirects to. Listed first so the rewrite happens before any other plugin reads `origin`.
+    // Pure server code — its expo-* peers are optional and never imported here.
+    expo(),
     admin({
       ac,
       roles,
