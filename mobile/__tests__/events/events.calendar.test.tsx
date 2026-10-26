@@ -4,6 +4,7 @@
 import { fireEvent, screen, within } from '@testing-library/react-native';
 
 import { openEvents, resetEventStores } from '../helpers/events-router';
+import { sheetGone } from '../helpers/sheet-gone';
 
 resetEventStores();
 
@@ -31,6 +32,7 @@ const filterBy = async (type: string) => {
   const sheet = within(screen.getByTestId('filter-sheet'));
   await fireEvent.press(sheet.getByRole('button', { name: type }));
   await fireEvent.press(sheet.getByText('Apply'));
+  await sheetGone();
 };
 
 describe('events calendar', () => {

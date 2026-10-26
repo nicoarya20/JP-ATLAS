@@ -1,4 +1,4 @@
-import { schemeVars, THEME_ROLES } from './theme-roles';
+import { colorRef, schemeVars, THEME_ROLES } from './theme-roles';
 import { RADIUS } from './tokens';
 import { TEXT_SCALE, WEIGHT_FONTS } from './type-scale';
 
@@ -30,7 +30,7 @@ function themeLayer(): string[] {
 
 /** Only the Atlas roles are colours: Tailwind's own palette is reset, so no bg-green-500 can slip a hex past the tokens. */
 function colorMappings(): string[] {
-  const lines = Object.keys(THEME_ROLES).map((name) => `--color-${name}: rgb(var(--${name}));`);
+  const lines = Object.keys(THEME_ROLES).map((name) => `--color-${name}: ${colorRef(name)};`);
   return ['@theme inline {', ...indent(['--color-*: initial;', ...lines], 1), '}'];
 }
 

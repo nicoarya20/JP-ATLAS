@@ -15,7 +15,7 @@ const BAR_SCREENS = new Set([
 ]);
 
 /**
- * Sheets (formSheet routes) presented over a screen with the bar. The bar stays drawn under them, as in the prototype,
+ * Sheets (SHEET routes) presented over a screen with the bar. The bar stays drawn under them, as in the prototype,
  * instead of dropping out behind the sheet while it slides up.
  */
 const BAR_SHEETS = new Set([

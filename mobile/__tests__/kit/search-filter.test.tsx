@@ -5,12 +5,12 @@ import { FilterField } from '../../src/components/filter/filter-field';
 import { FilterSheet } from '../../src/components/filter/filter-sheet';
 import { FindFieldContext } from '../../src/components/screen/stacked-context';
 import { SearchField } from '../../src/components/search/search-field';
-import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { Text } from '../../src/components/ui/text';
+import { Providers } from '../helpers/providers';
 
-jest.mock('expo-router', () => ({ router: { back: jest.fn() } }));
+jest.mock('expo-router', () => ({ router: { back: jest.fn() }, usePreventRemove: jest.fn() }));
 
-const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvider });
+const show = (ui: React.ReactElement) => render(ui, { wrapper: Providers });
 
 describe('SearchField', () => {
   test('a clear button shows while there is text; leaving the field empties it', async () => {

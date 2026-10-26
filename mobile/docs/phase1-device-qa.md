@@ -43,8 +43,9 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
   - Badge merah (Inbox, Users untuk Admin) bulat utuh dengan cincin, tidak terpotong tepi ubin.
   - Memilih ubin → panel tertutup dulu, lalu layar terbuka dengan tab More terpilih.
 - [ ] **Sheet Create** `[iOS]`
-  - "+" di Home → sheet setinggi isinya dengan grabber dan sudut 16; ditutup lewat X, geser ke bawah, atau ketuk latar.
-  - Tab bar tetap terlihat di bawah sheet dengan tab yang sama terpilih.
+  - "+" di Home → sheet setinggi isinya dengan grabber dan sudut 16, menempel ke tepi kiri, kanan, dan bawah layar (tanpa celah; iOS memakai panel sendiri, bukan formSheet yang melayang di iOS 26+). Naik dari bawah sambil latar meredup.
+  - Ditutup lewat X, seret grabber/judul ke bawah (lewat sepertiga tinggi atau sentakan cepat), atau ketuk latar → panel turun dulu, baru route hilang. Seret pendek → panel kembali ke tempatnya.
+  - Layar dan tab bar terlihat redup di belakang sheet, dengan tab yang sama terpilih.
 - [ ] **Keyboard** `[keduanya]`
   - Ketik di kolom pencarian Tasks → tab bar menyingkir selama keyboard terbuka dan kembali saat keyboard tutup.
 - [ ] **VoiceOver/TalkBack di tab bar** `[keduanya]`

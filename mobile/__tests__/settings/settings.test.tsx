@@ -1,12 +1,12 @@
 import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import type { Role } from '../../src/data/sample';
 import { getLeave, getSettings, LEAVE } from '../../src/data/settings';
 import { LeaveScreen } from '../../src/screens/settings/leave.screen';
 import { ProfileEditScreen } from '../../src/screens/settings/profile-edit.screen';
 import { SettingsScreen } from '../../src/screens/settings/settings.screen';
+import { Providers } from '../helpers/providers';
 import { setParams } from '../helpers/router-mock';
 import { drainToastTimers } from '../helpers/toast-timers';
 
@@ -23,7 +23,7 @@ beforeEach(() => {
   setParams({});
 });
 
-const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvider });
+const show = (ui: React.ReactElement) => render(ui, { wrapper: Providers });
 
 describe('settings data', () => {
   test('only an Admin gets the team settings', () => {

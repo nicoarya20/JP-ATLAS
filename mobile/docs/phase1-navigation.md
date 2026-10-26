@@ -127,7 +127,7 @@ Bar tampil di layar yang memakai prop `tab`:
 | `events.list` | events |
 | `inbox.respond` (inbox.parts), `team.list`, `team.person`, `archive.list`, `users.*` (users.parts) | more |
 
-Layar lain (detail tugas, form, flow modal) tidak menampilkan bar. Jadi tiap tab punya stack bersarang, dan sebagian layar detail tetap memperlihatkan bar. Di RN, sheet formSheet di atas layar ber-bar (filter, extend/archive proyek, task-filter, delete Archive) tetap menggambar bar di bawahnya (§4.1).
+Layar lain (detail tugas, form, flow modal) tidak menampilkan bar. Jadi tiap tab punya stack bersarang, dan sebagian layar detail tetap memperlihatkan bar. Di RN, sheet (`SHEET`) di atas layar ber-bar (filter, extend/archive proyek, task-filter, delete Archive) tetap menggambar bar di bawahnya (§4.1).
 
 ### 2.7 Sheet Create
 
@@ -223,7 +223,9 @@ Diverifikasi di docs Expo dan types SDK 58 terpasang (`expo-router` 58.0.26):
 ### 4.5 Sheet dan modal
 
 - Opsi bersama di `src/navigation/stack-presentation.ts`:
-  - `SHEET`: `presentation: 'formSheet'`, `sheetAllowedDetents: 'fitToContents'`, `sheetGrabberVisible: true`, `sheetCornerRadius: 16` (radius modal JP Atlas `lg`). Swipe-down, tap dim, dan escape aksesibilitas didapat secara native; tombol X kiri atas dibuat sendiri (`SheetFrame`).
+  - `SHEET` (per platform, `OWN_SHEET`):
+    - **iOS:** `presentation: 'transparentModal'`, `animation: 'none'`, `gestureEnabled: false`, latar transparan. `SheetFrame` → `OwnSheet` (`src/components/sheet/own-sheet.tsx`, gerak di `use-own-sheet.ts`) menggambar dim + panel edge-to-edge (`rounded-t-modal`, grabber, X kiri atas, judul tetap; isi bergulir), slide-up saat dibuka, ikut seret ke bawah (lewat 30% tinggi panel atau flick > 900 pt/s = tutup), naik di atas keyboard. Tap dim, X, dan escape aksesibilitas menutup. Penghapusan route ditahan `usePreventRemove` sampai panel selesai turun, apa pun penyebabnya (X, `router.back()`, `router.replace()`). Alasan: iOS 26+ menggambar formSheet di bawah detent penuh sebagai kartu Liquid Glass yang melayang ±8 pt dari tepi kiri, kanan, dan bawah, dan react-native-screens 4.30 tak punya opsi untuk mematikannya, jadi isi sheet tampak terpotong.
+    - **Android:** `presentation: 'formSheet'`, `sheetAllowedDetents: 'fitToContents'`, `sheetGrabberVisible: true`, `sheetCornerRadius: 16` (radius modal JP Atlas `lg`); sudah edge-to-edge. Swipe-down, tap dim, dan escape native; isi = `NativeSheetBody` (ScrollView sebagai root). transparentModal tidak dipakai di sini karena di stack tab ia tergambar di bawah tab bar.
   - `MODAL`: `presentation: 'modal'`.
   - `NO_SWIPE`: `gestureEnabled: false` (grup `(auth)`, rekaman event).
 - Create (`app/create.tsx`) dan Leave (`app/leave.tsx`) = `SHEET` di root Stack.
@@ -241,11 +243,11 @@ Semua terpasang dan cocok dengan SDK 58 (`bundledNativeModules.json` sdk-58):
 | `react-native-worklets` | 0.13.0 | `scheduleOnRN` |
 | `react-native-gesture-handler` | 3.3.0 | Seret gelembung; `jest-utils` untuk tes |
 | `expo-glass-effect` | 58.0.5 | Kaca iOS 26 |
-| `react-native-screens` | 4.30.0 | formSheet/modal |
+| `react-native-screens` | 4.30.0 | transparentModal (sheet iOS)/formSheet (sheet Android)/modal |
 | `react-native-svg` | 15.16.0 | Ikon lucide |
 | `lucide-react-native` | ^1.61.0 | Ikon tab, sama dengan prototipe |
 
-Tidak dipakai: `expo-haptics` (keputusan §1), `expo-blur`, `@gorhom/bottom-sheet` (diganti formSheet native), `expo-router/ui`.
+Tidak dipakai: `expo-haptics` (keputusan §1), `expo-blur`, `@gorhom/bottom-sheet` (diganti `OwnSheet` di iOS dan formSheet native di Android), `expo-router/ui`.
 
 ## 6. Pembagian file dan urutan kerja
 
