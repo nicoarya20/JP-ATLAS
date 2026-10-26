@@ -16,12 +16,7 @@ import { PAGE_LIMIT_DEFAULT, PAGE_LIMIT_MAX } from '../pm/limits';
 import type { Executor } from '../pm/tx';
 import { displayNameSql } from '../profile/profile.name';
 import { refNotTrashed } from './notification.alive';
-import {
-  cardButton,
-  cardSecondaryButton,
-  cardSentence,
-  isNotificationKind,
-} from './notification.catalog';
+import { cardButton, cardSentence, isNotificationKind } from './notification.catalog';
 import type { NotificationLane } from './notification.types';
 
 /** Day bucket of a card, decided by the server from `METRICS.TIME_ZONE`, never by the browser. */
@@ -45,8 +40,6 @@ export type InboxItem = {
   href: string;
   sentence: string | null;
   button: string | null;
-  /** Label of the second button; only the leave approval card has one. */
-  secondaryButton: string | null;
 };
 
 export type ListInboxInput = { lane: NotificationLane; limit?: number; cursor?: string };
@@ -106,13 +99,11 @@ const text = (p: Payload, key: string) =>
   typeof p[key] === 'string' ? (p[key] as string) : undefined;
 
 /**
- * The word a leave sentence uses for what happened: the stored `decision` of a `leave_decided`
- * card, or the `change` an Admin's `leave_recorded` card carries (P14 D5). One map, because the
- * two fields never appear on the same card and both fill the same `{outcome}` placeholder.
+ * The word a `leave_recorded` sentence uses for what an Admin did, from the stored `change`
+ * (P14 D5). A row of the retired approval flow carries `decision` instead and is no longer a known
+ * kind, so it never reaches this map: it reads as plain news without a sentence of its own.
  */
 const LEAVE_OUTCOMES: Readonly<Record<string, string>> = {
-  approved: 'disetujui',
-  rejected: 'ditolak',
   set: 'dicatat',
   cleared: 'diakhiri',
 };
@@ -124,7 +115,7 @@ function copyOf(
   actor: string | null,
   count: number,
 ) {
-  if (!isNotificationKind(kind)) return { sentence: null, button: null, secondaryButton: null };
+  if (!isNotificationKind(kind)) return { sentence: null, button: null };
   const vars = {
     actor,
     count,
@@ -133,13 +124,9 @@ function copyOf(
     project: text(payload, 'projectName'),
     name: text(payload, 'name'),
     role: text(payload, 'role'),
-    outcome: LEAVE_OUTCOMES[text(payload, 'decision') ?? text(payload, 'change') ?? ''],
+    outcome: LEAVE_OUTCOMES[text(payload, 'change') ?? ''],
   };
-  return {
-    sentence: cardSentence(kind, vars),
-    button: cardButton(kind),
-    secondaryButton: cardSecondaryButton(kind),
-  };
+  return { sentence: cardSentence(kind, vars), button: cardButton(kind) };
 }
 
 /** One keyset page of the caller's cards in `lane`, newest first, in one query (actor joined in). */
