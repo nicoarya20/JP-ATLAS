@@ -20,6 +20,8 @@ expo-env.d.ts
 
 # Metro
 .metro-health-check*
+# Metro output teed by `bun run ios:sim`
+.logs/
 
 # debug
 npm-debug.*
