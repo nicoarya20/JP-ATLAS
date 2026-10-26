@@ -163,6 +163,9 @@ export function requiredScope(method: string, pathname: string): Scope | null {
     p.startsWith('/api/me/api-keys')
   )
     return null;
+  // The deny list first (D10): session-only routes are refused before any prefix rule can hand them
+  // a scope. It has to come before the generic `/api/admin/users` rule, not only before `app:*`.
+  if (isPmKeyDenied(m, p)) return null;
   // MCP is a JSON-RPC endpoint: every method needs the mcp scope.
   if (p.startsWith('/api/mcp')) return 'mcp';
   if (p === '/api/settings' || p === '/api/settings/')
@@ -186,7 +189,6 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/ops/reset')) return null;
   if (p.startsWith('/api/ops')) return read ? 'ops:read' : null;
   if (p.startsWith('/api/me')) return read ? 'me:read' : null;
-  if (isPmKeyDenied(m, p)) return null; // D10: session-only PM routes, before the generic app:* rule
   // POST /api/app/tasks/draft (AI draft, A1) lands here on purpose: it saves nothing but spends the
   // provider quota, so a read-only key must not reach it. Its per-user rate limit applies to keys too.
   if (p.startsWith('/api/app/') || p === '/api/app') return read ? 'app:read' : 'app:write';

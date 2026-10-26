@@ -1,4 +1,7 @@
-/** API-key deny list for PM routes (D10): destructive or identity-changing calls stay session-only. */
+/**
+ * API-key deny list (D10): destructive or identity-changing calls stay session-only. Mostly PM
+ * routes under `/api/app`, plus the admin routes that change what the app says about a person.
+ */
 
 type Deny = { id: string; method: string | '*'; path: RegExp };
 
@@ -70,8 +73,13 @@ export const PM_KEY_DENY: readonly Deny[] = [
     path: /^\/api\/app\/projects\/.*\/extend-deadline(?:\/.*)?$/i,
   },
   // Leave had three entries here until P14 CU-02 took the /api/app/leave routes away with the
-  // approval flow. Recording somebody's leave is just as privileged, so the two admin routes that
-  // replace them (PUT and DELETE /api/admin/users/:id/leave) are denied again in CU-03.
+  // approval flow. What replaced them is an admin route, and recording somebody else's
+  // availability is as privileged as changing their role (P14 §6): every method, session only.
+  {
+    id: '* admin users/*/leave',
+    method: '*',
+    path: /^\/api\/admin\/users\/.*\/leave(?:\/.*)?$/i,
+  },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -93,6 +101,7 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'DELETE events/*': 'app-events.write.ts', // guest removal; `DELETE /events/:id` (E-07) is in app-events.trash.ts
   'POST projects/*/condition-override': 'app-projects.deadline.ts',
   'POST projects/*/extend-deadline': 'app-projects.deadline.ts',
+  '* admin users/*/leave': 'admin-leave.ts',
 };
 
 /**

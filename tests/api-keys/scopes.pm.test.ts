@@ -3,6 +3,7 @@ import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { toOpenAPISchema } from '@elysia/openapi';
 import { type AnyElysia, Elysia } from 'elysia';
+import { adminApi } from '../../server/api/admin';
 import { appApi } from '../../server/api/app';
 import { specForKey } from '../../server/api/openapi';
 import type { ApiKeyIdentity } from '../../server/api-keys/identity';
@@ -17,6 +18,10 @@ import {
 const API_DIR = path.join(import.meta.dir, '../../server/api');
 const api = new Elysia({ prefix: '/api' }).use(appApi);
 const appRoutes = api.routes.filter((r) => r.path.startsWith('/api/app/'));
+// Deny patterns are not all under /api/app any more: P14 CU-03 denies two admin routes, so the
+// sweep that proves a pattern guards a real route has to see the admin table as well.
+const adminRoutes = new Elysia({ prefix: '/api' }).use(adminApi).routes;
+const denyableRoutes = [...appRoutes, ...adminRoutes];
 
 /** Number of routes a plugin file defines itself (a stub defines none). */
 async function ownRoutes(file: string): Promise<number> {
@@ -122,10 +127,35 @@ describe('Event Trash routes (S7 E-07)', () => {
 });
 
 describe('Leave routes', () => {
-  // P14 CU-02 removed /api/app/leave/* with the approval flow; the deny patterns went with it, and
-  // CU-03 denies the two admin routes that replace them. Until then nothing under this prefix exists.
+  // P14 CU-02 removed /api/app/leave/* with the approval flow; CU-03 replaced them with two admin
+  // routes, which are denied to every key because recording availability is privileged (§6).
   test('no /api/app/leave route is registered any more', () => {
     expect(appRoutes.filter((r) => r.path.startsWith('/api/app/leave'))).toEqual([]);
+  });
+
+  test.each([
+    ['PUT', '/api/admin/users/u1/leave'],
+    ['DELETE', '/api/admin/users/u1/leave'],
+    ['DELETE', '/api/admin/USERS/u1/LEAVE'],
+    ['POST', '/api/admin/users/u1/leave'], // no such route, but a method may never be the way in
+    ['GET', '/api/admin/users/u1/leave/'],
+  ])('%s %s is session only, whatever scopes the key holds', (m, p) => {
+    expect(isPmKeyDenied(m, p)).toBe(true);
+    expect(requiredScope(m, p)).toBeNull();
+  });
+
+  test('the leave pattern does not swallow the directory it sits in', () => {
+    expect(isPmKeyDenied('GET', '/api/admin/users')).toBe(false);
+    expect(isPmKeyDenied('GET', '/api/admin/users/u1')).toBe(false);
+    expect(isPmKeyDenied('GET', '/api/admin/users/u1/leaves')).toBe(false);
+  });
+
+  test('both admin routes really exist, so the deny pattern is not guarding thin air', () => {
+    expect(PM_DENY_OWNER['* admin users/*/leave']).toBe('admin-leave.ts');
+    for (const method of ['PUT', 'DELETE'])
+      expect(
+        adminRoutes.some((r) => r.method === method && r.path === '/api/admin/users/:id/leave'),
+      ).toBe(true);
   });
 });
 
@@ -218,7 +248,7 @@ describe('PM_KEY_DENY patterns', () => {
         ? `"${d.id}" matches a real route (SKIPPED: ${owner} is still a stub with no routes)`
         : `"${d.id}" matches a real route`;
     test.skipIf(skip)(title, () => {
-      const hit = appRoutes.some(
+      const hit = denyableRoutes.some(
         (r) => (d.method === '*' || d.method === r.method) && d.path.test(r.path),
       );
       expect(hit).toBe(true);

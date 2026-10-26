@@ -44,6 +44,17 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/admin/users/stats')).toBe('users:read');
     expect(requiredScope('GET', '/api/admin/invitationsx')).toBeNull();
   });
+  it('never lets an API key record or end somebody leave (P14 CU-03)', () => {
+    for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/users/u1/leave')).toBeNull();
+      expect(requiredScope(method, '/api/admin/users/u1/leave/')).toBeNull();
+      // An odd id segment must not fall through to the generic users rule either.
+      expect(requiredScope(method, '/api/admin/users/a/b/leave')).toBeNull();
+    }
+    // Lookalike neighbours keep the directory scope: only `/leave` itself is cut off.
+    expect(requiredScope('GET', '/api/admin/users/u1/leaves')).toBe('users:read');
+    expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
+  });
   it('lets a key read the role matrix with settings:read, and never write it (AD-09)', () => {
     expect(requiredScope('GET', '/api/admin/permissions-matrix')).toBe('settings:read');
     expect(requiredScope('HEAD', '/api/admin/permissions-matrix')).toBe('settings:read');
