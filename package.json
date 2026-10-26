@@ -9,6 +9,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot server/dev-entry.ts",
+    "dev:all": "bun scripts/dev-all.ts",
     "test": "NODE_ENV=test bun test ./tests/",
     "test:pm": "NODE_ENV=test bun test tests/access tests/account",
     "build": "react-router build",
