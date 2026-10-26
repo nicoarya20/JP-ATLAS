@@ -216,7 +216,7 @@ describe('kanban accessibility', () => {
 describe('kanban no match', () => {
   it('a search that empties every column shows NoMatch, and Reset brings the board back', async () => {
     await openTasks('/tasks?view=board');
-    await fireEvent.changeText(screen.getByLabelText('Search title, #number, or tag…'), 'zzz');
+    await fireEvent.changeText(screen.getByLabelText('Search title or exact #number…'), 'zzz');
     expect(screen.queryByTestId('task-board')).not.toBeOnTheScreen();
     expect(screen.getByText('No tasks match these filters.')).toBeOnTheScreen();
     await fireEvent.press(within(screen.getByTestId('no-match')).getByRole('button'));

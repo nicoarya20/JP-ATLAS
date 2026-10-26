@@ -11,7 +11,9 @@ import NewTaskStack from '../../app/tasks/new/_layout';
 import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { resetArchive } from '../../src/data/archive.store';
+import { forgetAllResources } from '../../src/data/resource';
 import type { Role } from '../../src/data/sample';
+import { forgetTaskResources } from '../../src/data/tasks.api';
 import { resetQueries } from '../../src/data/tasks.query-state';
 import { resetTasks } from '../../src/data/tasks.store';
 import { CsvScreen } from '../../src/screens/tasks/csv/csv.screen';
@@ -23,6 +25,9 @@ import { TaskFormScreen } from '../../src/screens/tasks/new/form.screen';
 import { TaskWriteScreen } from '../../src/screens/tasks/new/write.screen';
 import { CancelScreen } from '../../src/screens/tasks/sheets/cancel.screen';
 import { ReturnScreen } from '../../src/screens/tasks/sheets/return.screen';
+import { serveAuth } from './auth-server';
+import { resetSessionForTest, seedSession } from './session-fixtures';
+import { SAMPLE_ROWS, taskApiRoutes, taskListRoute } from './tasks-api-server';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
 jest.mock('expo-font', () => ({
@@ -53,12 +58,45 @@ function routes(role: Role) {
   };
 }
 
+/**
+ * The task API, stubbed for a screen test. The lists read `/api/app/tasks` now, so a test that does
+ * not serve it sees the honest "couldn't load" state instead of the screen it meant to look at.
+ * Rows are the fixture in `tasks-api-server.ts`; a test that cares about other rows installs its
+ * own with `serveTasks()`.
+ */
+let server: ReturnType<typeof serveAuth> | null = null;
+
+export function serveTasks(rows = SAMPLE_ROWS) {
+  server?.restore();
+  server = serveAuth({ ...taskApiRoutes(rows), ...taskListRoute(rows) });
+  return server;
+}
+
 /** Render the app at `url` as `role` (default: the session's Project Manager). */
-export const openTasks = (url: string, role: Role = 'pm'): Promise<RenderRouterResult> =>
-  renderRouter(routes(role), { initialUrl: url, wrapper: GluestackUIProvider });
+export async function openTasks(url: string, role: Role = 'pm'): Promise<RenderRouterResult> {
+  if (!server) serveTasks();
+  const rendered = await renderRouter(routes(role), {
+    initialUrl: url,
+    wrapper: GluestackUIProvider,
+  });
+  // The list asks for its rows in a mount effect, so the render is not finished until that request
+  // is: without this a test looks at the state the screen shows while a request is still out.
+  await settleTasks();
+  return rendered;
+}
+
+/** Let a request the screen just made settle; for a search or a filter applied mid-test. */
+export const settleTasks = () => act(async () => {});
 
 /** Every store a Tasks screen writes, back to the sample after each test. */
 export function resetTaskStores() {
+  beforeEach(() => {
+    resetSessionForTest();
+    seedSession();
+    forgetAllResources();
+    forgetTaskResources();
+    serveTasks();
+  });
   afterEach(async () => {
     await act(async () => {
       resetTasks();
@@ -66,5 +104,7 @@ export function resetTaskStores() {
       resetQueries();
       resetSnack();
     });
+    server?.restore();
+    server = null;
   });
 }

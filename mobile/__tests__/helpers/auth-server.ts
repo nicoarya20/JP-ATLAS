@@ -62,7 +62,12 @@ const urlOf = (input: unknown): string => {
   return typeof request.url === 'string' ? request.url : String(input);
 };
 
-export type AuthRoutes = Record<string, AuthReply | (() => AuthReply)>;
+/**
+ * A route answers with a fixed reply, or with a function of the URL that was asked for. The URL
+ * matters for the list endpoints, where two requests differ only by their query string: a stub that
+ * answers the same rows whatever it was asked proves nothing about the request a screen made.
+ */
+export type AuthRoutes = Record<string, AuthReply | ((url: string) => AuthReply)>;
 
 /**
  * Replaces `fetch` with one that answers the given `/api/auth/*` paths. Routes are matched by the
@@ -82,8 +87,8 @@ export function serveAuth(initial: AuthRoutes) {
     const path = Object.keys(routes).find((candidate) => url.includes(candidate));
     // The same failure a phone with no network produces, naming the gap so the test can be fixed.
     if (!path) throw new TypeError(`Network request failed: no stub for ${url}`);
-    const entry = routes[path] as AuthReply | (() => AuthReply);
-    const reply = typeof entry === 'function' ? entry() : entry;
+    const entry = routes[path] as AuthReply | ((url: string) => AuthReply);
+    const reply = typeof entry === 'function' ? entry(url) : entry;
     if ('throws' in reply) throw reply.throws;
     if (reply.wait) await reply.wait;
     const headers: Record<string, string> = { 'content-type': 'application/json' };

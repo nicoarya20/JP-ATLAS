@@ -71,7 +71,12 @@ export function wireDetail(over: Partial<WireTaskDetail> = {}): WireTaskDetail {
 }
 
 /** Counts with every group at zero, plus whatever the test sets. */
-export function wireCounts(over: Partial<WireTaskCounts> = {}): WireTaskCounts {
+export function wireCounts(
+  over: {
+    mine?: Partial<WireTaskCounts['mine']>;
+    byStatus?: Partial<WireTaskCounts['byStatus']>;
+  } = {},
+): WireTaskCounts {
   return {
     mine: { overdue: 0, today: 0, tomorrow: 0, week: 0, later: 0, none: 0, ...over.mine },
     byStatus: { todo: 0, in_progress: 0, in_review: 0, done: 0, canceled: 0, ...over.byStatus },
