@@ -217,6 +217,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 - Halaman `/dev/db-schema` kini menampilkan tipe kolom baru dengan benar (`smallint`, `bigint`, `date`, `numeric`, `timestamptz`), menandai kolom identity, menuliskan index berbasis ekspresi seperti `lower(name)` (sebelumnya tampil sebagai `[object Object]`), dan menyertakan kondisi `where` pada index parsial.
 
 ### Removed
+- Tab **Kebijakan kerja** dihapus dari **Pengaturan** Admin (`/dashboard/settings`), jadi tabnya tinggal lima: **Identitas**, **Pengumuman**, **Akses masuk**, **Pemberitahuan**, dan **Fitur**. Isi tab itu masih berupa pratinjau dan belum pernah menyetel apa pun: tidak ada satu pun bagian aplikasi yang membaca hari kerja atau hari libur. Pengaturan **hari kerja** dan **daftar hari libur** akan dibangun kembali bersama perhitungan tenggat yang memakainya; **pengingat acara bawaan** sudah punya rumah di tab **Pemberitahuan**. Tautan lama `?tab=kebijakan-kerja` kini membuka tab **Identitas**, bukan halaman kosong.
 - Mode demo dicabut seluruhnya: tombol **Coba Demo** (login dan landing), banner demo, tab **Mode demo** di `/dev/settings`, endpoint `/api/demo` dan `PUT /api/settings/demo`, serta login anonim Better Auth. Akun demo anonim yang masih tersisa dihapus otomatis sekali saat server menyala. Kolom `user.is_anonymous` dan `app_setting.demo_enabled`/`demo_ttl_hours` sengaja dibiarkan sampai rilis berikutnya, dan baris audit `settings.demo.update` lama tetap terbaca.
 
 ## [0.2.0] - 2026-10-06

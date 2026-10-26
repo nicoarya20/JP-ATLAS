@@ -1,10 +1,11 @@
 /**
  * /dashboard/settings (P11 AD-02): the page guards itself — React Router runs the layout and page
  * loaders in parallel, so a Member must be turned away here, not only by the layout — and the tab
- * shell renders the six tabs of P11 §4 that really are settings (AD-20 moved the report and the
- * tool out) with the panel of `?tab=` and a list that scrolls sideways instead of wrapping (six
- * tabs fit a laptop but never 375px). A tab resolves in three steps — registered panel, else the
- * preview that shows its shape with sample content, else the bare placeholder.
+ * shell renders the five tabs of P11 §4 that really are settings (AD-20 moved the report and the
+ * tool out, P14 D1 dropped Kebijakan kerja) with the panel of `?tab=` and a list that scrolls
+ * sideways instead of wrapping (five tabs fit a laptop but never 375px). A tab resolves in three
+ * steps — registered panel, else the preview that shows its shape with sample content, else the
+ * bare placeholder.
  *
  * Since P13 RD-03 the first tab is a real panel fed by the page loader, so the harness below hands
  * the static route the loader data the page gets in the app. Which tab is open is read from the
