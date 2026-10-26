@@ -2,6 +2,7 @@
 import type { IconType } from 'react-icons';
 import {
   FiActivity,
+  FiBookOpen,
   FiCheckCircle,
   FiClipboard,
   FiCode,
@@ -117,6 +118,12 @@ export const CONSOLE_PAGES: ConsolePage[] = [
     icon: FiDatabase,
     label: 'DB Schema',
     desc: 'ERD interaktif, jumlah baris nyata, status migrasi.',
+    group: 'Kelola',
+  },
+  {
+    icon: FiBookOpen,
+    label: 'Spec OpenAPI',
+    desc: 'Penampil spec OpenAPI yang disaring per API key, lengkap dengan scope tiap operasi.',
     group: 'Kelola',
   },
   {

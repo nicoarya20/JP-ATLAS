@@ -5,6 +5,7 @@ import { ROLES } from '@server/permissions';
 import { getSidebarCollapsed } from '@server/sidebar';
 import { devSidebarBadges } from '@server/sidebar-badges';
 import {
+  FiBookOpen,
   FiClipboard,
   FiDatabase,
   FiEdit3,
@@ -34,7 +35,7 @@ export function meta(_: Route.MetaArgs) {
   return [{ title: 'Dev Console — Simple PM' }];
 }
 
-const NAV: NavGroup[] = [
+export const NAV: NavGroup[] = [
   {
     items: [
       { to: '/dev', label: 'Overview', icon: FiGrid, description: 'Ringkasan kondisi aplikasi' },
@@ -72,6 +73,12 @@ const NAV: NavGroup[] = [
         label: 'DB Schema',
         icon: FiDatabase,
         description: 'Diagram tabel dan relasi',
+      },
+      {
+        to: '/dev/openapi',
+        label: 'Spec OpenAPI',
+        icon: FiBookOpen,
+        description: 'Endpoint yang bisa dipanggil tiap API key',
       },
     ],
   },
