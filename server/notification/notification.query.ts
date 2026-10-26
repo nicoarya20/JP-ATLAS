@@ -105,10 +105,16 @@ const numberOf = (p: Payload) => (typeof p.number === 'number' ? p.number : null
 const text = (p: Payload, key: string) =>
   typeof p[key] === 'string' ? (p[key] as string) : undefined;
 
-/** The word a `leave_decided` sentence uses for each stored decision. */
+/**
+ * The word a leave sentence uses for what happened: the stored `decision` of a `leave_decided`
+ * card, or the `change` an Admin's `leave_recorded` card carries (P14 D5). One map, because the
+ * two fields never appear on the same card and both fill the same `{outcome}` placeholder.
+ */
 const LEAVE_OUTCOMES: Readonly<Record<string, string>> = {
   approved: 'disetujui',
   rejected: 'ditolak',
+  set: 'dicatat',
+  cleared: 'diakhiri',
 };
 
 /** Copy for a stored kind; a kind this build does not know renders without a sentence, not with a crash. */
@@ -127,7 +133,7 @@ function copyOf(
     project: text(payload, 'projectName'),
     name: text(payload, 'name'),
     role: text(payload, 'role'),
-    outcome: LEAVE_OUTCOMES[text(payload, 'decision') ?? ''],
+    outcome: LEAVE_OUTCOMES[text(payload, 'decision') ?? text(payload, 'change') ?? ''],
   };
   return {
     sentence: cardSentence(kind, vars),

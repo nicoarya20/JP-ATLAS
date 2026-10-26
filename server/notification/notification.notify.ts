@@ -50,6 +50,8 @@ const PAYLOAD_FIELDS: Readonly<Record<string, number | null>> = Object.freeze({
   days: null,
   dueTasks: null,
   decision: null,
+  // `leave_recorded` (P14 D5): which of the two things an Admin did to the period.
+  change: null,
 });
 
 export type NotifyInput<K extends NotificationKind = NotificationKind> = {

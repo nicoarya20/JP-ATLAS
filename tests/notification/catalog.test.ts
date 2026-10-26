@@ -17,8 +17,9 @@ import {
 } from '../../server/notification/notification.catalog';
 import type { NotificationKind } from '../../server/notification/notification.types';
 
-// The kinds really emitted: S3's (P5 §5.2 "Katalog yang dikirim di S3", user_pending since I14), S7's four event cards
-// and the two leave cards (emit.leave.ts).
+// The kinds really emitted: S3's (P5 §5.2 "Katalog yang dikirim di S3", user_pending since I14), S7's four event cards,
+// the two leave cards of the approval flow (emit.leave.ts, out in P14 CU-06) and what replaced them
+// (emit.leave.recorded.ts, P14 D5).
 const SHIPPED: NotificationKind[] = [
   'task_assigned',
   'task_unassigned',
@@ -34,6 +35,7 @@ const SHIPPED: NotificationKind[] = [
   'event_canceled',
   'leave_requested',
   'leave_decided',
+  'leave_recorded',
 ];
 // Reserved on purpose: the feature behind them lands in S4 (Periksa, mention).
 const RESERVED: NotificationKind[] = [
@@ -217,6 +219,20 @@ describe('leave cards', () => {
     expect(cardSecondaryButton('leave_requested')).toBe('Tolak');
     const others = EVERY_KIND.filter((kind) => kind !== 'leave_requested');
     expect(others.filter((kind) => cardSecondaryButton(kind) !== null)).toEqual([]);
+  });
+
+  it('files what an Admin recorded under news: there is nothing to answer (P14 D5)', () => {
+    expect(NOTIFICATION_KINDS.leave_recorded).toMatchObject({ lane: 'info', shipped: true });
+    expect(prefCategoryOf('leave_recorded')).toBe('news');
+    expect(cardButton('leave_recorded')).toBe('Lihat ketersediaan');
+    expect(cardSecondaryButton('leave_recorded')).toBeNull();
+  });
+
+  it('says which of the two things an Admin did, naming them when it is known', () => {
+    expect(cardSentence('leave_recorded', { actor: 'Ayu', outcome: 'dicatat' })).toBe(
+      'Cuti Anda dicatat oleh Ayu',
+    );
+    expect(cardSentence('leave_recorded', { outcome: 'diakhiri' })).toBe('Cuti Anda diakhiri');
   });
 
   it('names the requester on the approval card and the outcome on the answer', () => {

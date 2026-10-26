@@ -55,6 +55,19 @@ export type LeaveCardPayload = {
 };
 
 /**
+ * The card an Admin's record produces (P14 D5): the range that was written down or ended, and
+ * which of the two happened. The note is absent on purpose — it is Admin-only (P14 D6) — and so is
+ * the name, because this card only ever reaches the person it is about.
+ */
+export type LeaveRecordedCardPayload = {
+  startDate: string;
+  endDate: string;
+  days: number;
+  /** `set` = the period was recorded or corrected, `cleared` = the leave under way was ended. */
+  change: 'set' | 'cleared';
+};
+
+/**
  * Every kind the Inbox knows, with the payload it carries. This map is the list of kinds:
  * `NOTIFICATION_KINDS` in the catalog is typed against it, so a new kind cannot be added
  * without giving it a lane, a category and its Indonesian copy.
@@ -81,8 +94,10 @@ export type NotificationPayloadByKind = {
   event_changed: EventCardPayload;
   event_canceled: EventCardPayload;
   // Shipped with the leave module: the approval card (two buttons) and the news of the outcome.
+  // Both leave with the approval flow in P14 CU-06; `leave_recorded` is what replaces them (D5).
   leave_requested: LeaveCardPayload;
   leave_decided: LeaveCardPayload;
+  leave_recorded: LeaveRecordedCardPayload;
 };
 
 export type NotificationKind = keyof NotificationPayloadByKind;

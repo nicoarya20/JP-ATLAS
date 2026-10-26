@@ -62,6 +62,8 @@ export const NOTIFICATION_KINDS: Readonly<Record<NotificationKind, KindMeta>> = 
   // Leave. The request is work for the approver (the only card with two buttons); the outcome is news.
   leave_requested: { lane: 'action', category: 'action', shipped: true },
   leave_decided: { lane: 'info', category: 'news', shipped: true },
+  // What Admin recorded is news, not work: there is nothing for the person to answer (P14 D5).
+  leave_recorded: { lane: 'info', category: 'news', shipped: true },
 });
 
 export type KindCopy = {
@@ -173,6 +175,13 @@ export const NOTIFICATION_COPY: Readonly<Record<NotificationKind, KindCopy>> = O
     sentence: 'Pengajuan cuti Anda {outcome} oleh {actor}',
     system: 'Pengajuan cuti Anda {outcome}',
     button: 'Lihat cuti',
+  },
+  // Here `{outcome}` is "dicatat" or "diakhiri", filled from the stored `change` (P14 D5). One
+  // button: the card says what an Admin did, and the person reads their state in Pengaturan.
+  leave_recorded: {
+    sentence: 'Cuti Anda {outcome} oleh {actor}',
+    system: 'Cuti Anda {outcome}',
+    button: 'Lihat ketersediaan',
   },
 });
 
