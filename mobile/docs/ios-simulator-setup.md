@@ -22,9 +22,11 @@ Terpasang per 26 Okt 2026: macOS 26.7.1, Xcode 27.1, runtime Simulator iOS 27.0 
 Dari `mobile/`:
 
 ```
-xcrun simctl boot "iPhone 18 Pro"   # sekali per sesi; abaikan error "already booted"
+xcrun simctl bootstatus "iPhone 18 Pro" -b   # nyalakan bila mati, tunggu sampai siap
 bun run ios:sim
 ```
+
+Tunggu `bootstatus` selesai sebelum `ios:sim`. Kalau Simulator masih booting, Expo gagal membuka app (`simctl openurl` timeout, kode 60) lalu berhenti.
 
 `ios:sim` menjalankan `expo start --ios` dan menyalin output Metro ke `.logs/metro.log` (di-ignore git). Pertama kali, Expo CLI mengunduh dan memasang Expo Go SDK 58 di Simulator sendiri. Bundle pertama butuh sekitar 40 detik.
 
