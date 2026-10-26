@@ -25,6 +25,9 @@ export const LEAVE_MESSAGES = {
   endBeforeStart: 'Tanggal sampai tidak boleh sebelum tanggal mulai.',
   tooLong: `Cuti paling lama ${LEAVE_MAX_DAYS} hari sekali catat. Pecah menjadi beberapa periode.`,
   noteTooLong: `Catatan paling banyak ${LEAVE_NOTE_MAX} karakter. Persingkat catatanmu.`,
+  /** The 409 names the period that clashes, so the Admin can fix it without hunting for it (P14 §10 T2). */
+  overlap: (range: string) =>
+    `Tanggal ini beririsan dengan cuti ${range} yang sudah tercatat. Pilih tanggal lain atau akhiri cuti itu dulu.`,
 } as const;
 
 const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;

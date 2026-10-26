@@ -42,8 +42,10 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'TrashItemCapKey TrashItemCaps TrashListScope canPurge canRestoreTask canTrashTask canViewTrashItem trashItemCaps trashListScope',
   'server/access/types.ts':
     'EventSubject Membership Principal ProjectRole ProjectSubject TaskSubject',
+  // P14 CU-03 addition (contract-v1 §2 "menambah"): who may record somebody's leave. Its own rule
+  // because every target is fair game (D3) while `canActOnUser` protects Admins from each other.
   'server/access/user.policy.ts':
-    'Principal UserTarget canActOnUser canInviteWithRole canManageUsers canSetUserRole',
+    'Principal UserTarget canActOnUser canInviteWithRole canManageUsers canRecordUserLeave canSetUserRole',
   'server/metrics/condition.ts':
     'ConditionInput ConditionMilestone ConditionOverride ConditionReason ConditionResult ConditionTask activeOverride computeCondition formatConditionReason',
   'server/metrics/config.ts': 'METRICS',
