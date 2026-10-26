@@ -51,8 +51,11 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/metrics/config.ts': 'METRICS',
   // PD-01 addition (contract-v1 §2 "menambah"): the sane calendar range both the write services and
   // every date input read, so a mistyped year cannot reach the project timeline. Nothing renamed.
+  // A9 addition: `shiftDate` and `zonedDayStart` moved here from `trash.metrics.ts`, which kept
+  // them private, so the event calendar window and the Trash purge draw a day boundary the same
+  // way. Nothing renamed and nothing removed; `trash.metrics.ts` now imports them.
   'server/metrics/dates.ts':
-    'CALENDAR_DATE_MAX CALENDAR_DATE_MIN CALENDAR_YEAR_MAX CALENDAR_YEAR_MIN IsoDate diffDays isInCalendarRange isoDateIn',
+    'CALENDAR_DATE_MAX CALENDAR_DATE_MIN CALENDAR_YEAR_MAX CALENDAR_YEAR_MIN IsoDate diffDays isInCalendarRange isoDateIn shiftDate zonedDayStart',
   'server/metrics/project.metrics.ts':
     'ElapsedResult MilestoneState ProgressResult elapsed milestoneState progress',
   'server/metrics/schedule.ts':

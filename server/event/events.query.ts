@@ -36,6 +36,7 @@ import {
   afterCursor,
   eventColumns,
   filtersOf,
+  inRange,
   instant,
   inTab,
   iso,
@@ -82,7 +83,17 @@ export async function listEvents(
     .leftJoin(project, onProject)
     // The minutes are one row per event (unique index), so this join cannot duplicate a page row.
     .leftJoin(eventNote, eq(eventNote.eventId, event.id))
-    .where(and(listable, visibleEventsWhere(p), inTab(tab, clock.now), ...filtersOf(input), after))
+    .where(
+      and(
+        listable,
+        visibleEventsWhere(p),
+        // A calendar window replaces the tab's cut on `now`: the month grid needs the whole month,
+        // past days included. Without one, nothing about the list changes (A9).
+        input.range ? inRange(input.range, clock.timeZone) : inTab(tab, clock.now),
+        ...filtersOf(input),
+        after,
+      ),
+    )
     .orderBy(...orderFor(tab))
     .limit(limit + 1);
 

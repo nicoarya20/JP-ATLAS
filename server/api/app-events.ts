@@ -14,6 +14,7 @@ import { Elysia } from 'elysia';
 import { appCaps } from '../access/capabilities';
 import { requestEventClock } from '../event/events.clock';
 import { agendaFor, getEvent, listEvents } from '../event/events.query';
+import { parseEventRange } from '../event/events.range';
 import { fail } from '../pm/respond';
 import { toPrincipal } from '../project/membership.query';
 import { pickPeople } from '../team/picker.query';
@@ -30,15 +31,21 @@ export const eventsApi = new Elysia({ prefix: '/events' })
   /**
    * One page of the events the caller may see: `{ items, nextCursor, caps }`. The tab defaults to
    * `upcoming`; a malformed or foreign cursor answers 400 `BAD_CURSOR` instead of an empty page.
+   *
+   * `?from=&to=` is the calendar window of A9: the events that touch those days, past ones
+   * included, in place of the tab's cut on `now`. Left out, the answer is exactly what it was.
    */
   .get(
     '/',
     async ({ actor, query, status }) => {
       const principal = toPrincipal(actor);
+      const range = parseEventRange(query.from, query.to);
+      if (!range.ok) return fail(status, 'VALIDATION', { error: range.error });
       const result = await listEvents(
         principal,
         {
           tab: query.tab,
+          range: range.range,
           kind: asList(query.kind),
           projectId: query.projectId,
           q: query.q?.trim() || undefined,

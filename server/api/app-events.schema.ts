@@ -40,6 +40,9 @@ export const ParticipantParams = t.Object({ id: Id, userId: Id });
 /** An ISO instant from the client; the service parses it and refuses an unusable one with 422. */
 const Instant = t.String({ format: 'date-time', minLength: 1 });
 
+/** Length of a `YYYY-MM-DD` day, so a huge `?from=` is dropped before it reaches the parser. */
+const ISO_DAY_LENGTH = 10;
+
 const Title = t.String({ minLength: 1, maxLength: EVENT_TITLE_MAX });
 const Kind = oneOf(EVENT_KINDS);
 const LocationType = t.Nullable(oneOf(EVENT_LOCATION_TYPES));
@@ -68,13 +71,19 @@ const DETAILS = {
   remindersMinutes: t.Optional(Reminders),
 };
 
-/** Query of `GET /events`. */
+/**
+ * Query of `GET /events`. `from`/`to` are the optional calendar window of A9: both or neither, and
+ * `parseEventRange` in the handler decides their width and order, so the message a too-wide range
+ * gets is the uniform 422 the rest of the API speaks rather than a schema hint.
+ */
 export const ListQuery = t.Object({
   ...CursorQuery.properties,
   tab: t.Optional(oneOf(EVENT_TABS)),
   kind: many(EVENT_KINDS),
   projectId: t.Optional(Id),
   q: t.Optional(t.String({ maxLength: EVENT_SEARCH_MAX })),
+  from: t.Optional(t.String({ maxLength: ISO_DAY_LENGTH })),
+  to: t.Optional(t.String({ maxLength: ISO_DAY_LENGTH })),
 });
 
 /** Query of `GET /events/people`, the guest picker; same shape as the team picker it delegates to. */

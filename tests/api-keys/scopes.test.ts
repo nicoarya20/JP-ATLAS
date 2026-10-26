@@ -183,6 +183,11 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('post', '/api/app/tasks/draft/')).toBe('app:write');
     expect(requiredScope('GET', '/api/app/projects')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/tasks')).toBe('app:read');
+    // Form options (A12) are a plain read of the kinds and phases the caller may already see, so
+    // they need no entry of their own in `scopes.pm.ts`: nothing here changes data or reaches a
+    // person. Only the deny list below holds `DELETE /api/app/tasks/*`.
+    expect(requiredScope('GET', '/api/app/tasks/form-options')).toBe('app:read');
+    expect(requiredScope('get', '/api/app/tasks/form-options/')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');
     // Team is read-only, so both routes stay on app:read (S6 M03/M04).
     expect(requiredScope('GET', '/api/app/team')).toBe('app:read');
@@ -218,6 +223,7 @@ describe('PM routes denied to API keys (D10)', () => {
 
   it('keeps the event reads, writes and minutes on app:read / app:write', () => {
     expect(requiredScope('GET', '/api/app/events')).toBe('app:read');
+    // The calendar window (A9) is a query filter on the same read, not a route of its own.
     expect(requiredScope('GET', '/api/app/events/agenda')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/events/people')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/events/e1')).toBe('app:read');
