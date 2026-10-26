@@ -106,14 +106,14 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
 
 /**
  * Deny ids whose route is not registered yet: the denial is in place first (Z-01) and the route
- * lands later in the same S6 slice, so the sweep that asserts "this pattern matches a real route"
+ * lands later in the same slice, so the sweep that asserts "this pattern matches a real route"
  * reports them as skipped instead of failing.
  *
- * TODO(trash): scaffolding, agreed with the S6 coordinator as temporary debt — `DELETE trash/*`
- * must be removed from this list by Z-04 (`DELETE /api/app/trash/:kind/:id`, the task that
- * registers the route), and at the latest by the Z-08 gate, which fails if the list is not empty.
+ * Empty since Z-04 registered `DELETE /api/app/trash/:kind/:id`, which was the last entry
+ * (`DELETE trash/*`). Keep it empty: a new deny pattern should land with its route, and the Z-08
+ * gate fails if this list is not empty.
  */
-export const PM_DENY_PENDING: readonly string[] = ['DELETE trash/*'];
+export const PM_DENY_PENDING: readonly string[] = [];
 
 /** True when an API key may not call this route, whatever scopes it holds. */
 export function isPmKeyDenied(method: string, pathname: string): boolean {
