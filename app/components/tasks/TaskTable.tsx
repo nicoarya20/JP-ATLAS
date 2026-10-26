@@ -1,6 +1,7 @@
 /**
  * "Semua tugas" table (P3 §2 Tugas ②): five columns from `sm` up — Tugas · Status+langkah ·
- * Mengerjakan · Tenggat · Prioritas (K15) — and a card per task below it. No #, kind, tag or CSV.
+ * Mengerjakan · Tenggat · Prioritas (K15) — and a card per task below it. The number and the
+ * phase ride under the title instead of taking columns of their own (H-C12). No kind, tag or CSV.
  */
 import { Button, Group, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
@@ -10,7 +11,7 @@ import { type ResponsiveColumn, ResponsiveTable } from '~/components/ui/Responsi
 import type { TaskListItem } from '~/lib/tasks-api';
 import { NextStepButton } from './NextStepButton';
 import { TaskCard } from './TaskCard';
-import { TaskBadges, TaskTitle } from './TaskRow';
+import { TaskBadges, TaskMeta, TaskTitle } from './TaskRow';
 import { TaskRowMenu } from './TaskRowMenu';
 import { LIST_COPY } from './tasks.copy';
 
@@ -22,6 +23,7 @@ export const TASK_COLUMNS: ResponsiveColumn<TaskListItem>[] = [
       <Group gap="xs" wrap="nowrap" justify="space-between">
         <Stack gap={4} style={{ minWidth: 0 }}>
           <TaskTitle task={t} />
+          <TaskMeta task={t} />
           <Text size="sm" c="dimmed" truncate>
             {t.project.name}
           </Text>

@@ -3,8 +3,9 @@
  * task (`/app/tasks/:number`) through a covering link, so the next-step button stays a real button
  * instead of an interactive element nested inside a link.
  */
-import { Anchor, Box, Group, Paper, Stack, Text } from '@mantine/core';
+import { Anchor, Badge, Box, Group, Paper, Stack, Text } from '@mantine/core';
 import type { TaskLabel } from '@server/metrics/types';
+import { FiLayers } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { PriorityBadge } from '~/components/pm/PriorityBadge';
 import { TaskLabelChip } from '~/components/pm/TaskLabelChip';
@@ -56,6 +57,38 @@ export function TaskTitle({ task }: { task: TaskListItem }) {
   );
 }
 
+// A long phase name is cut with an ellipsis instead of pushing the row sideways on a phone.
+const PHASE_MAX_WIDTH = 160;
+
+/**
+ * The small line under the title: the task number people read aloud ("tolong cek tugas 42",
+ * searchable as `#42`) and, when the task sits in one, the phase of its project (H-C12, H-B5).
+ * A task without a phase shows the number alone, never a placeholder.
+ */
+export function TaskMeta({ task }: { task: TaskListItem }) {
+  return (
+    <Group gap="xs" wrap="wrap" style={{ minWidth: 0 }}>
+      <Text size="xs" c="dimmed">
+        {LIST_COPY.taskNumber(task.number)}
+      </Text>
+      {task.phase && (
+        <Badge
+          variant="light"
+          color="gray"
+          size="sm"
+          // Phase names are ordinary words ("Persiapan"), so no forced uppercase.
+          tt="none"
+          maw={PHASE_MAX_WIDTH}
+          leftSection={<FiLayers size="1.25em" aria-hidden />}
+          aria-label={LIST_COPY.inPhase(task.phase.name)}
+        >
+          {task.phase.name}
+        </Badge>
+      )}
+    </Group>
+  );
+}
+
 /**
  * Priority and the one label of the row, icon plus text (WCAG 1.4.1). A task that is late and stale
  * and reopened shows only the most urgent (03-tugas §4.3); the detail page lists them all.
@@ -101,6 +134,7 @@ export function TaskRow({ task }: { task: TaskListItem }) {
       <Group justify="space-between" align="center" wrap="wrap" gap="xs">
         <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
           <TaskTitle task={task} />
+          <TaskMeta task={task} />
           <TaskBadges task={task} />
           <TaskFacts task={task} withAssignee={false} />
         </Stack>

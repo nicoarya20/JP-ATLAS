@@ -184,6 +184,14 @@ describe('Semua tugas — table', () => {
     expect(html.split('Pasang keramik dapur').length - 1).toBe(2);
   });
 
+  it('puts the number and the phase under the title, in the row and in the card', async () => {
+    const items = [task({ phase: { id: 'ph-1', name: 'Persiapan' } })];
+    const html = await render('?lingkup=semua', data('lingkup=semua', { items }));
+    // Once in the table and once in the mobile card, both times.
+    expect(html.split(LIST_COPY.taskNumber(42)).length - 1).toBe(2);
+    expect(html.split(`aria-label="${LIST_COPY.inPhase('Persiapan')}"`).length - 1).toBe(2);
+  });
+
   it('says nothing matches a filter and offers to clear it', async () => {
     const search = 'lingkup=semua&prioritas=kritis';
     const html = await render(`?${search}`, data(search, { items: [] }));

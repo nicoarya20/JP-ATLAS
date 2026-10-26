@@ -39,6 +39,10 @@ export const LIST_COPY = {
   loadMoreFailed: 'Tugas berikutnya gagal dimuat.',
   retry: 'Coba lagi',
   groupCount: (label: string, n: number | string) => `${label} (${n})`,
+  /** The handle people read aloud ("tugas 42") and type into the search box as `#42` (M16). */
+  taskNumber: (n: number) => `#${n}`,
+  /** Read out instead of the bare phase name, so the badge says what kind of word it is. */
+  inPhase: (name: string) => `Tahapan: ${name}`,
 } as const;
 
 /** Empty states (K8): first use vs. a filter that matches nothing. */
