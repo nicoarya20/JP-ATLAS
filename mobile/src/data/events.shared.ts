@@ -9,14 +9,9 @@ import { EVENT_RESULTS, type EventExtra, type Repeat } from './sample/events.ext
 export const TYPES = ['Meeting', 'Review', 'Important', 'Team event', 'Other'] as const;
 export type EventType = (typeof TYPES)[number];
 
-/** Repeat options of the form as [label, repeat value]; index 0 = does not repeat. */
-export const REPEATS: readonly (readonly [string, Repeat | ''])[] = [
-  ['No', ''],
-  ['Daily', 'daily'],
-  ['Every week', 'every week'],
-  ['Every 2 weeks', 'every 2 weeks'],
-];
-
+// `REPEATS` (the form's repeat picker options) is gone with the picker itself: recurrence is refused
+// by the API (GAP-A4), and a list of options nothing offers is dead code. `REPEAT_DAYS` stays — the
+// sample calendar still walks a series with it until the Profile calendar is ported.
 /** How many days apart a recurring event's next dates are, per repeat option. */
 export const REPEAT_DAYS: Record<Repeat, number> = {
   daily: 1,
