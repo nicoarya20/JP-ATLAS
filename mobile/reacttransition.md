@@ -164,7 +164,7 @@ Branch induk: `feature/mobile-api`. Serah-terima Tahap 1: `/tmp/sp-mobile-handov
 
 **Catatan untuk tahap berikutnya**
 - `cd mobile && bun run test` **harus** dijalankan dengan `--watchman=false` di mesin ini: watchman Homebrew-nya rusak (`libboost_iostreams-mt.dylib` hilang), dan jest keluar dengan kode **0 tanpa menjalankan satu tes pun** — "hijau" yang menipu. Perbaikan sebenarnya: `brew reinstall watchman` (atau `brew unlink watchman`).
-- `bun run typecheck` di `mobile/` **sudah merah sebelum Tahap 1**: 5 galat tipe Reanimated di `src/screens/tasks/board/radial-menu.tsx` (3), `radial-option.tsx` (1), dan `src/components/ui/switch/index.tsx` (1). Dibuktikan dengan menjalankan typecheck tanpa berkas dan dependensi Tahap 1 — galatnya persis sama. Belum ada pemiliknya.
+- `bun run typecheck` di `mobile/` **nol galat** dari `node_modules` bersih (`rm -rf node_modules && bun install --frozen-lockfile`). Catatan: `bun x expo install` dan `bun x expo-doctor` mengubah `node_modules`/`bun.lock` sambil jalan, dan setelah itu typecheck sempat menunjukkan 5 galat tipe Reanimated di `src/screens/tasks/board/radial-*.tsx` dan `src/components/ui/switch/index.tsx`. Galat itu **hilang setelah `bun install` bersih** — jadi kalau muncul, pasang ulang dependensi dulu sebelum menduga ada regresi di kode.
 
 ## 7. Pertanyaan Terbuka
 
