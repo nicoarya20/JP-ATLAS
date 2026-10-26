@@ -46,7 +46,7 @@ export function AgendaList({ date, items, onOpen }: AgendaListProps) {
           className="rounded-card border border-border bg-card p-3 data-[active=true]:bg-muted"
         >
           <HStack className="gap-3">
-            <Text className="w-12 text-subhead font-semibold text-foreground">
+            <Text className="min-w-12 text-subhead font-semibold text-foreground">
               {item.event.time}
             </Text>
             <VStack className="min-w-0 flex-1 gap-1">

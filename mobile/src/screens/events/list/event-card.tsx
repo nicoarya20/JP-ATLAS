@@ -47,7 +47,7 @@ export function EventCard({ card, onOpen }: EventCardProps) {
       className="rounded-card border border-border bg-card p-3 data-[active=true]:bg-muted"
     >
       <HStack className="gap-3">
-        <Text className="w-12 text-subhead font-semibold text-foreground">{card.when}</Text>
+        <Text className="min-w-12 text-subhead font-semibold text-foreground">{card.when}</Text>
         <VStack className="min-w-0 flex-1 gap-2">
           <VStack className="gap-1">
             <Text className="text-headline font-semibold text-foreground">{e.title}</Text>
