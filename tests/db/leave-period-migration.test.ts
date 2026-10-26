@@ -238,3 +238,128 @@ describe('migration 0023 leave_period', () => {
     });
   });
 });
+
+// The notification sweep, added to 0023 on 26 Okt 2026: the leftover approval cards must stop asking
+// for an answer without becoming unreadable. Same rolled-back transaction as the rest of this file.
+const RECIPIENT = APPLICANT;
+/** Pinned in the past: the news lane is ordered by `updated_at`, so the sweep must not move it. */
+const SEEDED_AT = '2026-09-20 03:00:00+00';
+
+/** One row per case the sweep has to tell apart; `resolved` is NULL for a row still waiting. */
+const NOTIFICATIONS = [
+  { id: 'stuck-request', kind: 'leave_requested', lane: 'action', resolved: null },
+  // Closed by the old emit.leave.ts before 0023; the sweep must leave its reason alone.
+  { id: 'already-closed', kind: 'leave_requested', lane: 'action', resolved: 'acted' },
+  { id: 'old-decided', kind: 'leave_decided', lane: 'info', resolved: null },
+  // Scope guards: a live work card and the kind that replaced the two above.
+  { id: 'live-task', kind: 'task_assigned', lane: 'action', resolved: null },
+  { id: 'recorded', kind: 'leave_recorded', lane: 'info', resolved: null },
+] as const;
+
+async function seedNotifications(tx: Tx): Promise<void> {
+  for (const n of NOTIFICATIONS) {
+    const resolvedAt = n.resolved ? `'${SEEDED_AT}'` : 'NULL';
+    const reason = n.resolved ? `'${n.resolved}'` : 'NULL';
+    await exec(
+      tx,
+      `INSERT INTO "notification"
+         ("id","recipient_id","actor_id","project_id","lane","kind","ref_type","ref_id","dedupe_key",
+          "bundle_count","payload","resolved_at","resolved_reason","created_at","updated_at")
+       VALUES ('${n.id}','${RECIPIENT}','${DECIDER}',NULL,'${n.lane}','${n.kind}','leave','${n.id}',
+               '${n.kind}:leave:${n.id}',1,'{}'::jsonb,${resolvedAt},${reason},
+               '${SEEDED_AT}','${SEEDED_AT}')`,
+    );
+  }
+}
+
+interface NotifRow {
+  id: string;
+  lane: string;
+  resolved_reason: string | null;
+  resolved: boolean;
+  moved: boolean;
+}
+
+/** Pre-0023 state + the seeded cards + 0023 run `runs` times, then the cards read back; always rolled back. */
+async function sweptRows(runs: number): Promise<Map<string, NotifRow>> {
+  const byId = new Map<string, NotifRow>();
+  await inRolledBackTx(async (tx) => {
+    await resetToPre0023(tx);
+    await seedLegacyRequests(tx);
+    await seedNotifications(tx);
+    for (let i = 0; i < runs; i++) await runMigration(tx);
+    const read = await rows<NotifRow>(
+      tx,
+      `SELECT "id","lane","resolved_reason",
+              ("resolved_at" IS NOT NULL) AS resolved,
+              ("updated_at" <> '${SEEDED_AT}') AS moved
+       FROM "notification" WHERE "recipient_id" = '${RECIPIENT}' ORDER BY "id"`,
+    );
+    for (const r of read) byId.set(r.id, r);
+  });
+  return byId;
+}
+
+describe('migration 0023 sweeps the retired leave notifications', () => {
+  test('canary: the stuck approval card really is open work before the sweep runs', async () => {
+    await inRolledBackTx(async (tx) => {
+      await resetToPre0023(tx);
+      await seedLegacyRequests(tx);
+      await seedNotifications(tx);
+      const open = await rows<{ n: number }>(
+        tx,
+        `SELECT count(*)::int AS n FROM "notification"
+         WHERE "recipient_id" = '${RECIPIENT}' AND "lane" = 'action' AND "resolved_at" IS NULL`,
+      );
+      // 'stuck-request' and 'live-task'; 'already-closed' is resolved already.
+      expect(open[0].n).toBe(2);
+    });
+  });
+
+  test('the leftover approval card is resolved and moves to the news lane', async () => {
+    const byId = await sweptRows(1);
+    const stuck = byId.get('stuck-request');
+    expect(stuck?.resolved).toBe(true);
+    expect(stuck?.resolved_reason).toBe('elsewhere');
+    // Resolved alone would hide it from both tabs; as news it still reads as a card (CU-06 R3).
+    expect(stuck?.lane).toBe('info');
+  });
+
+  test('an old outcome card is resolved too and stays in the news lane', async () => {
+    const byId = await sweptRows(1);
+    expect(byId.get('old-decided')?.resolved).toBe(true);
+    expect(byId.get('old-decided')?.resolved_reason).toBe('elsewhere');
+    expect(byId.get('old-decided')?.lane).toBe('info');
+  });
+
+  test('updated_at is left alone, so a swept card does not jump to the top of the news lane', async () => {
+    const byId = await sweptRows(1);
+    expect(byId.get('stuck-request')?.moved).toBe(false);
+    expect(byId.get('old-decided')?.moved).toBe(false);
+  });
+
+  test('cards of other kinds are untouched: live work stays work, leave_recorded stays open', async () => {
+    const byId = await sweptRows(1);
+    expect(byId.get('live-task')?.resolved).toBe(false);
+    expect(byId.get('live-task')?.lane).toBe('action');
+    expect(byId.get('recorded')?.resolved).toBe(false);
+  });
+
+  test('a leave card the app had already closed keeps its own reason', async () => {
+    const byId = await sweptRows(1);
+    expect(byId.get('already-closed')?.resolved_reason).toBe('acted');
+    expect(byId.get('already-closed')?.lane).toBe('action');
+  });
+
+  test('running the sweep twice changes nothing the first run did not', async () => {
+    const once = await sweptRows(1);
+    const twice = await sweptRows(2);
+    expect([...twice.values()]).toEqual([...once.values()]);
+  });
+
+  test('nothing is left waiting for an answer on a retired leave kind', async () => {
+    const byId = await sweptRows(1);
+    const stillWaiting = [...byId.values()].filter((r) => r.lane === 'action' && !r.resolved);
+    expect(stillWaiting.map((r) => r.id)).toEqual(['live-task']);
+  });
+});

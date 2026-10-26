@@ -32,3 +32,16 @@ DO $$ BEGIN
 END $$;--> statement-breakpoint
 DROP TABLE IF EXISTS "leave_request" CASCADE;--> statement-breakpoint
 ALTER TABLE "app_setting" DROP COLUMN IF EXISTS "leave_requires_approval";
+--> statement-breakpoint
+-- Why (decided 26 Okt 2026, after this file first landed): the approval flow left the app with
+-- CU-02/CU-06, so an unresolved `leave_requested` row is work nobody can finish — its two buttons are
+-- gone, and the "Perlu Anda tanggapi" counter would hold it until retention (~30 days) deletes it.
+-- `lane` moves to 'info' in the same statement on purpose: resolving an `action` row alone hides it
+-- from both Inbox tabs (the work queue skips resolved rows; the news tab reads `lane = 'info'`), and
+-- the decision was to stop these rows asking for an answer, not to make them unreadable. In the news
+-- lane they render through the unknown-kind fallback that CU-06 proved with tests. `updated_at` is
+-- left untouched because it orders the news lane — bumping it would lift month-old cards to the top.
+-- Re-runnable: once swept, `resolved_at IS NULL` no longer matches.
+UPDATE "notification"
+SET "resolved_at" = now(), "resolved_reason" = 'elsewhere', "lane" = 'info'
+WHERE "kind" IN ('leave_requested', 'leave_decided') AND "resolved_at" IS NULL;

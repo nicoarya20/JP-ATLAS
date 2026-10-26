@@ -6,6 +6,11 @@
 -- good — 0023 never copied them. It then destroys every leave period, including the ones Admin recorded
 -- after 0023. Take a backup first (R14 L2); restoring one is the only faithful way back.
 -- Order matters: the table and the column come back before the rows are copied, and leave_period goes last.
+-- NOT REVERSED: the sweep added on 26 Okt 2026 (last statement of 0023) closed the leftover
+-- leave_requested/leave_decided Inbox rows and moved them to the news lane. It is one-way, because
+-- emit.leave.ts used to close the very same kind with the very same reason ('elsewhere'), so a swept
+-- row cannot be told apart from one the app had already closed. Un-resolving by reason would reopen
+-- both. Those rows read as plain news either way, and retention deletes them after NOTIF_RETENTION_DAYS.
 -- After running this, remove the journal row so db:migrate can re-apply 0023:
 --   DELETE FROM drizzle.__drizzle_migrations WHERE created_at = 1792975942619;
 CREATE TABLE IF NOT EXISTS "leave_request" (
