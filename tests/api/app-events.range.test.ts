@@ -6,7 +6,7 @@
  *
  * Split from `app-events.test.ts`, which is already at the 400-line test cap.
  */
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { EVENT_RANGE_DAYS_MAX } from '../../server/event/events.range';
 import { createEventFactory } from '../event/factory.event';
 import { call, expectApiError, type Json, resetApiLimiters } from '../support/api';
@@ -77,7 +77,10 @@ describe('GET /app/events without the window', () => {
 describe('GET /app/events with the window', () => {
   it('takes the events that touch it, including ones already over', async () => {
     auth.as(lead);
-    const res = await call('GET', `${BASE}?projectId=${project.id}&from=${day(-45)}&to=${day(-35)}`);
+    const res = await call(
+      'GET',
+      `${BASE}?projectId=${project.id}&from=${day(-45)}&to=${day(-35)}`,
+    );
     expect(res.status).toBe(200);
     expect(ids(res)).toEqual([longPast.id]);
     expect(res.body.caps).toEqual({ createEvent: true });

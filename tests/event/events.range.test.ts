@@ -4,7 +4,7 @@
  * with a UTC boundary a 06.00 WIB event belongs to the previous day and falls off the first day of
  * the window, which is exactly how a month grid loses its rows.
  */
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { Principal } from '../../server/access/types';
 import type { EventClock, ListEventsResult } from '../../server/event/events.dto';
 import { listEvents } from '../../server/event/events.query';

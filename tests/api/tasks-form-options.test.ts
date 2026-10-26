@@ -8,7 +8,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import { db } from '../../server/db';
-import { project as projectTable, projectPhase } from '../../server/db/schema';
+import { projectPhase, project as projectTable } from '../../server/db/schema';
 import { DEFAULT_TASK_KINDS } from '../../server/pm/limits';
 import { call, expectApiError, type Json, resetApiLimiters } from '../support/api';
 import { installAuthSpies } from '../support/auth';
