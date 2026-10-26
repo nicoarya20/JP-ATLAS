@@ -1,6 +1,7 @@
 /**
  * Somebody's availability under `/api/admin/users/:id/leave` (P14 CU-03): `PUT` records the period
- * or replaces the one under way, `DELETE` ends it. Admin and Super-admin only — leave is applied
+ * or replaces the one under way, `DELETE` ends it. The matching read (`GET`, the running period plus
+ * the recorded history) is nested from `admin-leave.read.ts`. Admin and Super-admin only — leave is applied
  * for outside the app and only recorded here (P14 D3) — and never with an API key, whatever its
  * scopes (`PM_KEY_DENY`). Nested in `adminApi`, which carries the gate.
  *
@@ -16,6 +17,7 @@ import { clearLeavePeriod, setLeavePeriod } from '../leave/leave.service';
 import { fail } from '../pm/respond';
 import { requestClock } from '../task/task.clock';
 import { adminContext, callerOf } from './admin-context';
+import { adminLeaveReadApi } from './admin-leave.read';
 import { findUserTarget } from './admin-users.query';
 
 const Params = t.Object({ id: t.String() });
@@ -35,6 +37,7 @@ const SetBody = t.Object(
 
 export const adminLeaveApi = new Elysia()
   .use(adminContext)
+  .use(adminLeaveReadApi)
   /** Records the period, or replaces the one under way. 409 names the period that clashes. */
   .put(
     '/users/:id/leave',

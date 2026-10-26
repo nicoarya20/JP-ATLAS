@@ -75,6 +75,7 @@ describe('every /admin route carries the gate', () => {
         'POST /admin/users/:id/ban',
         'POST /admin/users/:id/unban',
         'DELETE /admin/users/:id',
+        'GET /admin/users/:id/leave',
         'PUT /admin/users/:id/leave',
         'DELETE /admin/users/:id/leave',
       ]),
