@@ -57,6 +57,8 @@ export type EventCalendarKey = {
 /** One consistent read of the list: the pages fetched so far and whether the server has more. */
 export type EventsList = {
   items: EventListItemWire[];
+  /** Which half the server cut to for these rows; it, not the client, decides what is past. */
+  tab: EventTab;
   /** The server's `caps.createEvent` for this page — the "New event" button (B1). */
   createEvent: boolean;
   /** A further page exists; `loadMoreEvents()` fetches it. */
@@ -144,6 +146,7 @@ async function loadList(): Promise<EventsList> {
   }
   return {
     items: answer.items,
+    tab: key.tab,
     createEvent: answer.createEvent,
     more: answer.more,
     unfiltered: key.tab === 'upcoming' && !key.kind && !key.projectId && !key.q,

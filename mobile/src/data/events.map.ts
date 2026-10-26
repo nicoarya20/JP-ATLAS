@@ -22,7 +22,7 @@ import type {
   EventNoteStatus,
   PersonRefWire,
 } from './events.wire';
-import { instantDate, instantTime } from './instant';
+import { instantDate, instantParts, instantTime } from './instant';
 import type { EventStatus } from './sample/events';
 import { type PersonIdentity, someSamePerson } from './viewer';
 
@@ -50,6 +50,9 @@ export type ServerEvent = EventItem & {
   creatorId: string | null;
   /** `userId` per guest, in the same order as `attendees`. */
   attendeeIds: string[];
+  /** The instants as the server sent them; kept so sorting never goes through a label. */
+  startsAt: string;
+  endsAt: string;
 };
 
 /** The detail adds the minutes body, the reminders and the full timestamps. */
@@ -174,6 +177,8 @@ export function toServerEvent(dto: EventListItemWire, options: MapOptions = {}):
   return {
     id: dto.id,
     title: dto.title,
+    startsAt: dto.startsAt,
+    endsAt: dto.endsAt,
     date: instantDate(dto.startsAt, timeZone),
     time: hour12(start),
     range: rangeLabel(start, end),
@@ -230,6 +235,45 @@ export function toServerEventDetail(
     updatedAt: dto.updatedAt,
     canceledAt: dto.canceledAt,
   };
+}
+
+/**
+ * The instant a wall-clock day and time in the team zone stands for — the inverse of
+ * `instantTime`/`instantDate`, which the form needs to send `startsAt`/`endsAt`.
+ *
+ * Two passes, not one: the offset of a zone depends on the instant, so the wanted wall time is
+ * first read as if it were UTC, the real zone offset of that guess is measured, and the guess is
+ * moved by the difference. A second pass settles the case where the correction itself crosses an
+ * offset change. Done this way there is no table of zone rules here and no `new Date()` of the
+ * device's own: every value comes from the day, the time and the server's zone.
+ *
+ * Belongs in `src/data/instant.ts` with the rest of the instant helpers; it is here because that
+ * file is shared foundation this wave may not change (see the hand-over).
+ */
+export function instantOfLocal(date: string, time24: string, timeZone?: string): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hour, minute] = time24.split(':').map(Number);
+  if ([year, month, day, hour, minute].some((n) => n === undefined || Number.isNaN(n))) {
+    throw new Error(`Not a date and a 24-hour time: ${date} ${time24}`);
+  }
+  const wanted = Date.UTC(year as number, (month as number) - 1, day, hour, minute);
+  let guess = wanted;
+  for (let pass = 0; pass < 2; pass += 1) {
+    const got = instantParts(new Date(guess).toISOString(), timeZone);
+    const reads = Date.UTC(got.year, got.month - 1, got.day, got.hour, got.minute);
+    if (reads === wanted) break;
+    guess += wanted - reads;
+  }
+  return new Date(guess).toISOString();
+}
+
+/** "2:00 PM" (as the form's pickers hold it) back to the 24-hour time the conversion takes. */
+export function time24(label: string): string {
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(label.trim());
+  if (!m) throw new Error(`Not a clock time (h:mm AM/PM): ${label}`);
+  const base = Number(m[1]) % 12;
+  const hour = m[3]?.toUpperCase() === 'PM' ? base + 12 : base;
+  return `${pad(hour)}:${m[2]}`;
 }
 
 /** Reminder offsets as one line: "1 day & 30 min before", "No reminder" for an empty list (B7). */
