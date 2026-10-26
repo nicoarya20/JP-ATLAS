@@ -1,149 +1,40 @@
 /**
- * Everything the Tasks module reads from `/api/app/tasks*`: one `resource` per thing asked for,
- * and the rule from `docs/phase2-pola-data.md` §1 that a second asker joins the request in flight.
+ * Everything the Tasks module reads from `/api/app/tasks*` that is one object rather than a list:
+ * one `resource` per thing asked for, and the rule from `docs/phase2-pola-data.md` §1 that a
+ * second asker joins the request in flight instead of starting another.
  *
- * Why there is a resource *family* and not a single store per screen: the server pages by keyset
- * and filters server-side, so "My tasks" is not one list but one request per schedule group, and
- * the board is one request per column. Each distinct query is its own thing to have on hand, so
- * each gets its own resource, keyed by the query string. `taskLists()` hands the live ones to a
- * write so it can say what it made stale (§2) — a write must never guess which pages exist.
+ * The lists are their own module (`tasks.api.lists.ts`) because a list on screen is several
+ * requests; they are re-exported from here so a write has one place to ask what exists.
  *
- * Paging is inside the resource rather than in a screen: `more()` asks for the next cursor and
- * appends, while `ensure()`/`reload()` start again from the first page. A cursor the server will
- * not take (`BAD_CURSOR`, after a sort or filter change) is not an error to show — the server's own
- * answer is "load the list from the start", so that is what happens, once, automatically.
+ * Why a resource *family* and not one store each: a task detail, a timeline and the form options
+ * are all "one per ref", and two screens asking for the same ref must share one request. So each
+ * is keyed, and `taskDetails()` / `taskTimelines()` hand the live ones to a write so it can say
+ * what it made stale (§2) — a write must never guess which refs are loaded.
  */
 import { apiGet } from '@/api/client';
-import { isApiError } from '@/api/errors';
 
 import { type Resource, resource } from './resource';
+import { forgetTaskLists, taskLists } from './tasks.api.lists';
+import { type Paged, paged } from './tasks.api.paging';
 import type {
   WireFormOptions,
-  WirePriority,
-  WireScheduleGroup,
   WireTaskCounts,
   WireTaskDetail,
-  WireTaskPage,
-  WireTaskStatus,
+  WireTimelineEntry,
   WireTimelinePage,
 } from './tasks.api.types';
 
-/** What `GET /api/app/tasks` is asked for. Everything optional is left out of the request entirely. */
-export type TaskListParams = {
-  scope: 'mine' | 'all' | 'project';
-  /** Required by the server when `scope` is `project` (422 otherwise); allowed in any scope. */
-  projectId?: string;
-  status?: readonly WireTaskStatus[];
-  assigneeId?: string;
-  priority?: readonly WirePriority[];
-  /** Free text; the server matches the title or an exact number (A15). */
-  q?: string;
-  /** One schedule group. Only open tasks are in one. */
-  due?: WireScheduleGroup;
-  sort?: string;
-  limit?: number;
-};
-
-/** A paged resource: the pages fetched so far as one list, plus a way to ask for the next. */
-export type Paged<T> = Resource<T> & {
-  /** Fetch the next page and append it; a no-op on the last page. */
-  more: () => Promise<void>;
-};
-
-/**
- * The query string of a list request, in a fixed field order so the same request is the same key.
- * Repeated `status`/`priority` is how the server takes a list (`asList`).
- */
-export function taskListQuery(p: TaskListParams): string {
-  const q = new URLSearchParams();
-  q.set('scope', p.scope);
-  if (p.projectId) q.set('projectId', p.projectId);
-  for (const s of p.status ?? []) q.append('status', s);
-  for (const x of p.priority ?? []) q.append('priority', x);
-  if (p.assigneeId) q.set('assigneeId', p.assigneeId);
-  if (p.q) q.set('q', p.q);
-  if (p.due) q.set('due', p.due);
-  if (p.sort) q.set('sort', p.sort);
-  if (p.limit) q.set('limit', String(p.limit));
-  return q.toString();
-}
-
-/**
- * Waits out a load already in flight.
- *
- * `reload()` joins a request that is already out instead of starting a second one (that is rule 1),
- * so a caller that first sets up what the *next* load should do would have its intent read by
- * nobody and left behind to mislead a later load. Waiting until the resource settles makes the load
- * this caller starts the one that reads its intent.
- */
-async function settled(r: Resource<unknown>): Promise<void> {
-  while (r.peek().phase === 'loading') await r.reload();
-}
-
-/**
- * A resource over a keyset-paged endpoint. `fetchPage(cursor)` does one request; the resource keeps
- * the pages it has as one `items` list.
- */
-function paged<P extends { items: unknown[]; nextCursor: string | null }>(
-  name: string,
-  fetchPage: (cursor: string | null) => Promise<P>,
-): Paged<P> {
-  let items: P['items'] = [];
-  /** The cursor the next load should continue from; null = start again from the first page. */
-  let from: string | null = null;
-
-  const self: Paged<P> = {
-    ...resource<P>(name, async () => {
-      // `forget()` (sign out, tests) empties the store but cannot reach the pages held here, so
-      // they are dropped whenever the store has nothing: otherwise a cursor left over from a
-      // `more()` would append the next session's rows to the last one's.
-      const held = self.peek().data !== null;
-      const cursor = held ? from : null;
-      if (!held) items = [];
-      from = null;
-      let page: P;
-      try {
-        page = await fetchPage(cursor);
-      } catch (cause) {
-        // "Halaman daftar tidak dikenali. Muat ulang daftar dari awal." — so do exactly that,
-        // rather than showing the user a page number they never chose.
-        if (!cursor || !isApiError(cause) || cause.code !== 'BAD_CURSOR') throw cause;
-        page = await fetchPage(null);
-        items = page.items;
-        return { ...page, items };
-      }
-      items = cursor ? [...items, ...page.items] : page.items;
-      return { ...page, items };
-    }),
-    more: async () => {
-      await settled(self);
-      const next = self.current()?.nextCursor;
-      if (!next) return;
-      from = next;
-      await self.reload();
-    },
-  };
-  return self;
-}
-
-// One resource per distinct query, so two screens asking the same thing share one request, and a
-// write can be told which ones it made stale.
-const lists = new Map<string, Paged<WireTaskPage>>();
-
-/** The list for these parameters; the same parameters always give the same resource. */
-export function taskList(params: TaskListParams): Paged<WireTaskPage> {
-  const query = taskListQuery(params);
-  const found = lists.get(query);
-  if (found) return found;
-  const made = paged<WireTaskPage>(`tasks?${query}`, (cursor) =>
-    apiGet<WireTaskPage>(`/api/app/tasks?${query}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`),
-  );
-  lists.set(query, made);
-  return made;
-}
-
-/** Every list asked for so far, for a write to invalidate (§2: name everything that may change). */
-export const taskLists = (): Paged<WireTaskPage>[] => [...lists.values()];
+export {
+  type TaskGroupPage,
+  type TaskGroupSpec,
+  type TaskListData,
+  type TaskListParams,
+  type TaskListResource,
+  taskList,
+  taskListQuery,
+  taskLists,
+} from './tasks.api.lists';
+export { type Paged } from './tasks.api.paging';
 
 /** My tasks per schedule group and per status, so a group title or an empty state needs no full list. */
 export const taskCounts = resource<WireTaskCounts>('tasks.counts', () =>
@@ -175,7 +66,7 @@ export function taskTimeline(ref: string | number): Paged<WireTimelinePage> {
   const found = timelines.get(key);
   if (found) return found;
   const path = `/api/app/tasks/${encodeURIComponent(key)}/timeline`;
-  const made = paged<WireTimelinePage>(`tasks/${key}/timeline`, (cursor) =>
+  const made = paged<WireTimelineEntry, WireTimelinePage>(`tasks/${key}/timeline`, (cursor) =>
     apiGet<WireTimelinePage>(`${path}${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`),
   );
   timelines.set(key, made);
@@ -213,10 +104,9 @@ export const taskFormOptionsAll = (): Resource<WireFormOptions>[] => [...formOpt
  * only ever needs `forgetAllResources()` on sign out, which empties these without removing them.
  */
 export function forgetTaskResources(): void {
-  for (const r of [...taskLists(), ...taskDetails(), ...taskTimelines(), ...taskFormOptionsAll()])
-    r.forget();
+  for (const r of [...taskDetails(), ...taskTimelines(), ...taskFormOptionsAll()]) r.forget();
+  forgetTaskLists();
   taskCounts.forget();
-  lists.clear();
   details.clear();
   timelines.clear();
   formOptions.clear();
