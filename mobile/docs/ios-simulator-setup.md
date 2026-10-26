@@ -1,0 +1,52 @@
+# Debug di iOS Simulator — cara pakai
+
+Tujuan: memperbaiki app mobile tanpa bolak-balik ke HP. User cukup klik app di jendela Simulator di Mac, sedangkan Claude membaca log Metro dan screenshot layar sendiri, tanpa user menyalin log.
+
+**Kenapa Simulator, bukan Jest atau Expo web:** crash tab bar (commit `a27fd21`) hanya muncul di runtime iOS sungguhan. Jest menjalankan worklet sebagai JS biasa, dan di Expo web gesture handler, Reanimated, dan Liquid Glass berbeda dari native. Simulator memakai Hermes dan UI runtime Reanimated yang sama dengan HP.
+
+## Prasyarat (sekali saja)
+
+Terpasang per 26 Okt 2026: macOS 26.7.1, Xcode 27.1, runtime Simulator iOS 27.0 dan 27.1.
+
+1. Pasang **Xcode** dari App Store (minimal macOS 26.6). Buka sekali, lalu centang platform **iOS** agar runtime Simulator ikut terunduh.
+2. Arahkan developer tools ke Xcode:
+   ```
+   sudo xcode-select -s /Applications/Xcode.app && xcodebuild -runFirstLaunch
+   ```
+3. Cek: `xcode-select -p` berakhir di `Xcode.app/Contents/Developer`, dan `xcrun simctl list devices available` menampilkan iPhone.
+
+**Xcode 27 tidak lagi punya `Simulator.app`.** Jendela Simulator ada di `Xcode.app/Contents/Applications/DeviceHub.app`, jadi `open -a Simulator` gagal. Kalau jendelanya tidak muncul sendiri, buka DeviceHub.
+
+## Menjalankan
+
+Dari `mobile/`:
+
+```
+xcrun simctl boot "iPhone 18 Pro"   # sekali per sesi; abaikan error "already booted"
+bun run ios:sim
+```
+
+`ios:sim` menjalankan `expo start --ios` dan menyalin output Metro ke `.logs/metro.log` (di-ignore git). Pertama kali, Expo CLI mengunduh dan memasang Expo Go SDK 58 di Simulator sendiri. Bundle pertama butuh sekitar 40 detik.
+
+Claude menjalankan perintah ini di background, lalu membaca `.logs/metro.log` untuk `console.log`, error JS, dan redbox.
+
+## Alat Claude
+
+| Kebutuhan | Perintah |
+| --- | --- |
+| Lihat layar | `xcrun simctl io booted screenshot .logs/sim.png` |
+| Buka layar tertentu | `xcrun simctl openurl booted "exp://$(ipconfig getifaddr en0):8081/--/events"` (path expo-router setelah `/--/`) |
+| Crash native | `xcrun simctl spawn booted log stream --style compact --predicate 'process == "Expo Go"'` |
+| Matikan Simulator | `xcrun simctl shutdown booted` |
+
+Deep link memakai skema `exp://` milik Expo Go, bukan `simplepm://`, karena app berjalan di dalam Expo Go. Skema `simplepm` baru berlaku di development build.
+
+`simctl` tidak bisa menyentuh layar, jadi tap dan gestur (mis. geser pil tab bar) tetap dilakukan user di jendela Simulator. Setelah itu Claude membaca log dan screenshot.
+
+## Opsional berikutnya
+
+- **Maestro** untuk alur UI otomatis (mis. tap Tasks → geser pil → buka detail) dalam bentuk YAML, dijalankan Claude di Simulator setelah tiap perubahan. Java sudah terpasang.
+
+## Yang tetap perlu HP
+
+Haptics, rasa gestur di jari, dan performa nyata. Cek di HP cukup di akhir (lihat `phase1-device-qa.md`), tidak perlu tiap iterasi.
