@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
+import { CreatePasswordCard } from '../../app/components/profile/CreatePasswordCard';
 import { LinkedAccountsCard } from '../../app/components/profile/LinkedAccountsCard';
 import { PasswordCard } from '../../app/components/profile/PasswordCard';
 import { SessionsCard } from '../../app/components/profile/SessionsCard';
@@ -84,19 +85,48 @@ describe('SessionsCard', () => {
 });
 
 describe('PasswordCard', () => {
-  it('does not claim the account has no password while linked accounts are loading', async () => {
+  it('offers neither form while linked accounts are loading, so it claims nothing yet', async () => {
     const html = await render(<PasswordCard hasPassword={false} loading onChanged={noop} />);
     expect(html).toContain('Memuat…');
     expect(html).not.toContain('belum punya password');
+    expect(html).not.toContain('Password baru');
   });
 
-  it('explains the missing password once it is known, and shows the form for password accounts', async () => {
-    expect(await render(<PasswordCard hasPassword={false} onChanged={noop} />)).toContain(
-      'belum punya password',
-    );
-    const form = await render(<PasswordCard hasPassword onChanged={noop} />);
-    expect(form).toContain('Password saat ini');
-    expect(form).toContain('Ganti password');
+  it('offers "Buat password" when there is none, and the change form once there is', async () => {
+    const create = await render(<PasswordCard hasPassword={false} onChanged={noop} />);
+    expect(create).toContain('belum punya password');
+    expect(create).toContain('Buat password');
+    expect(create).toContain('Password baru');
+    expect(create).toContain('Ulangi password baru');
+    // The dead end is gone: nothing sends the owner to an admin who has no way to help (SET).
+    expect(create).not.toContain('hubungi admin');
+    expect(create).not.toContain('Password saat ini');
+
+    const change = await render(<PasswordCard hasPassword onChanged={noop} />);
+    expect(change).toContain('Password saat ini');
+    expect(change).toContain('Ganti password');
+    expect(change).not.toContain('Buat password');
+  });
+});
+
+describe('CreatePasswordCard', () => {
+  it('says why the account has no password and what the new one unlocks', async () => {
+    const html = await render(<CreatePasswordCard onCreated={noop} />);
+    expect(html).toContain('masuk lewat Google dan belum punya password');
+    expect(html).toContain('aplikasi mobile');
+    expect(html).toContain('Minimal 8 karakter');
+  });
+
+  it('warns that the other devices are signed out, and that Google keeps working', async () => {
+    const html = await render(<CreatePasswordCard onCreated={noop} />);
+    expect(html).toContain('Perangkat lain akan');
+    expect(html).toContain('perangkat ini tetap masuk');
+    expect(html).toContain('Masuk dengan Google tetap bisa dipakai');
+  });
+
+  it('keeps the button disabled until both fields are filled', async () => {
+    const html = await render(<CreatePasswordCard onCreated={noop} />);
+    expect(html).toMatch(/<button[^>]*disabled[^>]*>[\s\S]*?Buat password/);
   });
 });
 

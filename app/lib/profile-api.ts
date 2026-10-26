@@ -58,6 +58,27 @@ export async function putNotificationPrefs(
   return res.json();
 }
 
+/** POST /api/app/profile/password: the first password for an account that has only ever used Google. */
+export type CreatePasswordResult = { ok: true; otherSessionsRevoked: boolean };
+
+/**
+ * Creates the caller's first email+password login. The server always signs the other devices out,
+ * and says so in `otherSessionsRevoked` (false when the credential was created but the revoke
+ * failed), so the card can tell the owner what actually happened.
+ */
+export async function createMyPassword(newPassword: string): Promise<CreatePasswordResult> {
+  const res = await fetch(`${PROFILE_URL}/password`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ newPassword }),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error ?? `Gagal membuat password (${res.status}). Coba lagi.`);
+  }
+  return res.json();
+}
+
 /** GET /api/app/profile/delete-check: the active projects only the caller manages (they block the deletion). */
 export type DeleteCheck = {
   canDelete: boolean;

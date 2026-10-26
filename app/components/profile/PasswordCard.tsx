@@ -1,14 +1,21 @@
-import { Alert, Button, Checkbox, Group, PasswordInput, Stack, Text } from '@mantine/core';
+import { Button, Checkbox, Group, PasswordInput, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { PASSWORD_MIN_LEN } from '@server/account/password-rules';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
-import { FiInfo } from 'react-icons/fi';
 import { authClient } from '~/lib/auth-client';
 import { SettingsCard } from '../settings/SettingsParts';
+import { CreatePasswordCard } from './CreatePasswordCard';
 
-const MIN_LEN = 8;
+// One floor for both forms, shared with the server rule so the two can never drift apart.
+const MIN_LEN = PASSWORD_MIN_LEN;
 
-/** Change password (credential accounts only); optionally sign out other devices. */
+/**
+ * The password half of "Keamanan dan perangkat". An account with a password gets the change form
+ * (old password required); an account that only has Google gets `CreatePasswordCard` instead of the
+ * dead end this card used to show. `onChanged` must refresh the linked accounts, so the card swaps
+ * itself for the change form as soon as the credential exists — no page reload.
+ */
 export function PasswordCard({
   hasPassword,
   loading = false,
@@ -67,19 +74,13 @@ export function PasswordCard({
     );
   }
 
-  if (!hasPassword) {
-    return (
-      <SettingsCard title="Password" description="Keamanan masuk dengan email dan password.">
-        <Alert color="blue" variant="light" icon={<FiInfo size="1.25em" />}>
-          Akun ini masuk lewat provider eksternal dan belum punya password. Untuk menambahkan
-          password, hubungi admin.
-        </Alert>
-      </SettingsCard>
-    );
-  }
+  if (!hasPassword) return <CreatePasswordCard onCreated={onChanged} />;
 
   return (
-    <SettingsCard title="Password" description="Ganti password secara berkala. Minimal 8 karakter.">
+    <SettingsCard
+      title="Password"
+      description={`Ganti password secara berkala. Minimal ${MIN_LEN} karakter.`}
+    >
       <Stack gap="sm" maw={420}>
         <PasswordInput
           label="Password saat ini"

@@ -79,7 +79,12 @@ export function AdvancedCards({ email, role, logins, currentToken, flags }: Adva
           <PasswordCard
             hasPassword={hasPassword}
             loading={accounts.isPending}
-            onChanged={() => sessions.refetch()}
+            // Both queries: changing a password signs other devices out, and creating the first one
+            // adds the `credential` account that makes the card swap itself for the change form.
+            onChanged={() => {
+              void sessions.refetch();
+              void accounts.refetch();
+            }}
           />
           <LinkedAccountsCard
             accounts={accounts.data ?? []}
