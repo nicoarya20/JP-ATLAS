@@ -1,4 +1,5 @@
 import { BUBBLE_PAD, clamp, nearest, posAt } from '../../src/navigation/bubble.math';
+import { runOnWorkletRuntime } from '../helpers/worklet-runtime';
 
 // A 5-tab pill 300 px wide: with the 4 px padding each tab is (300 − 8) / 5 = 58.4 px.
 const WIDTH = 300;
@@ -23,6 +24,12 @@ describe('posAt', () => {
 
   it('returns the fallback while the pill has no width', () => {
     expect(posAt(120, 0, N, 3)).toBe(3);
+  });
+
+  // The tab bar's pan calls it on the UI thread from the first touch; a value it fails to capture aborts the app there.
+  it('runs on the worklet runtime with only what it captured', () => {
+    expect(runOnWorkletRuntime(posAt, centre(2), WIDTH, N, -1)).toBeCloseTo(2);
+    expect(runOnWorkletRuntime(posAt, 120, 0, N, 3)).toBe(3);
   });
 });
 

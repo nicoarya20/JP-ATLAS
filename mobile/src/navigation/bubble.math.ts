@@ -11,17 +11,15 @@ export function clamp(v: number, lo: number, hi: number): number {
 /**
  * Bubble position as a fractional tab index whose centre is at `x` (px from the pill's left edge), clamped to
  * [0, n − 1]. `fallback` when the pill has no width yet (not laid out).
+ *
+ * No default parameters here (or in any worklet): the worklets plugin unpacks captured values at the top of the body,
+ * after the parameters, so a default reading BUBBLE_PAD throws a ReferenceError on the UI thread, which aborts the app
+ * from the pan gesture's first touch. Jest runs worklets as plain JS and cannot see it (worklet-runtime helper can).
  */
-export function posAt(
-  x: number,
-  width: number,
-  n: number,
-  fallback: number,
-  pad = BUBBLE_PAD,
-): number {
+export function posAt(x: number, width: number, n: number, fallback: number): number {
   'worklet';
   if (width <= 0 || n <= 0) return fallback;
-  return clamp((x - pad) / ((width - 2 * pad) / n) - 0.5, 0, n - 1);
+  return clamp((x - BUBBLE_PAD) / ((width - 2 * BUBBLE_PAD) / n) - 0.5, 0, n - 1);
 }
 
 /** The tab a bubble at `pos` settles on when released. */
