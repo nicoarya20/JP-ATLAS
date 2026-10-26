@@ -74,7 +74,8 @@ export type TaskBoardColumnView = BoardColumn & {
 /** none = there is nothing to show at all (New task); noMatch = the filters or search leave nothing. */
 export type TasksEmpty = 'none' | 'noMatch' | null;
 
-export type TasksListView = {
+/** What every list view carries, whichever way it is shown. */
+type TasksViewBase = {
   scope: TaskScope;
   query: TaskQuery;
   /** The dot on the filter icon; only the filters that are actually sent count. */
@@ -84,10 +85,13 @@ export type TasksListView = {
   empty: TasksEmpty;
   /** How the New task button must be drawn, from `caps.createTask` (B5). */
   createTask: CapState;
-} & (
-  | { view: 'list'; groups: TaskListGroupView[] }
-  | { view: 'board'; columns: TaskBoardColumnView[] }
-);
+};
+
+/** My tasks / All tasks / a project's tab as rows. */
+export type TasksRowsView = TasksViewBase & { view: 'list'; groups: TaskListGroupView[] };
+
+/** The same list as the board's four columns. */
+export type TasksBoardView = TasksViewBase & { view: 'board'; columns: TaskBoardColumnView[] };
 
 /** The priority a filter index asks for, or none for "All". */
 const priorityFilter = (index: number) => {
@@ -193,47 +197,71 @@ function groupViews(data: TaskListData | null, counts: WireTaskCounts | null): T
   );
 }
 
-/**
- * The list as the screen renders it. Synchronous: it reads the stores and nothing else, so a screen
- * that has data keeps showing it while the next request is out.
- */
-export function getTaskListView(o: TaskListOptions): TasksListView {
+/** Everything both ways of showing a list share; `empty` is filled in by each. */
+function viewBase(o: TaskListOptions): Omit<TasksViewBase, 'empty'> & { narrowed: boolean } {
   const list = taskListOf(o).peek();
-  const counts = taskCounts.peek().data;
   const filtered = isApiFiltered(o.query);
-  const narrowed = filtered || !!o.search?.trim();
-  const base = {
+  return {
     scope: o.scope,
     query: o.query,
     filtered,
     phase: list.phase,
     error: list.error,
     createTask: capStateOf(list.data?.caps.createTask),
+    narrowed: filtered || !!o.search?.trim(),
   };
-  if (o.view === 'board') {
-    const byKey = new Map((list.data?.groups ?? []).map((g) => [g.key, g]));
-    const columns = COLUMNS.map((c) => {
-      const group = byKey.get(c.status);
-      return {
-        ...c,
-        key: c.status,
-        cards: (group?.items ?? []).map(cardOf),
-        hasMore: group?.nextCursor != null,
-      };
-    });
-    const any = columns.some((c) => c.cards.length > 0);
-    // An unfiltered board keeps its empty columns, as the prototype did; a narrowed one says so.
-    return { ...base, view: 'board', columns, empty: !any && narrowed ? 'noMatch' : null };
-  }
-  const groups = groupViews(list.data, counts);
-  const empty: TasksEmpty =
-    groups.length > 0 ? null : !list.data ? null : narrowed ? 'noMatch' : 'none';
+}
+
+/**
+ * The list as rows. Synchronous: it reads the stores and nothing else, so a screen that has data
+ * keeps showing it while the next request is out.
+ *
+ * `empty` stays null until a list has actually arrived — before that there is nothing to be empty
+ * about, and saying "no tasks" while the request is still out would be a lie the screen then has to
+ * take back.
+ */
+export function getTaskRowsView(o: TaskListOptions): TasksRowsView {
+  const { narrowed, ...base } = viewBase(o);
+  const list = taskListOf(o).peek();
+  const groups = groupViews(list.data, taskCounts.peek().data);
+  const empty: TasksEmpty = groups.length > 0 || !list.data ? null : narrowed ? 'noMatch' : 'none';
   return { ...base, view: 'list', groups, empty };
 }
 
-/** The list in a component, re-rendering when its store or the counts change. */
-export function useTaskListView(o: TaskListOptions): TasksListView {
+/** The same list as the board's columns; a column the server has nothing for is kept, and empty. */
+export function getTaskBoardView(o: TaskListOptions): TasksBoardView {
+  const { narrowed, ...base } = viewBase(o);
+  const data = taskListOf(o).peek().data;
+  const byKey = new Map((data?.groups ?? []).map((g) => [g.key, g]));
+  const columns = COLUMNS.map((c) => {
+    const group = byKey.get(c.status);
+    return {
+      ...c,
+      key: c.status,
+      cards: (group?.items ?? []).map(cardOf),
+      hasMore: group?.nextCursor != null,
+    };
+  });
+  const any = columns.some((c) => c.cards.length > 0);
+  // An unfiltered board keeps its empty columns, as the prototype did; a narrowed one says so.
+  const empty: TasksEmpty = any || !data ? null : narrowed ? 'noMatch' : 'none';
+  return { ...base, view: 'board', columns, empty };
+}
+
+/** Subscribe to everything a list view reads; one hook count, whatever the filter is. */
+function subscribe(o: TaskListOptions): void {
   taskListOf(o).use();
   taskCounts.use();
-  return getTaskListView(o);
+}
+
+/** The rows in a component, re-rendering when its store or the counts change. */
+export function useTaskRowsView(o: TaskListOptions): TasksRowsView {
+  subscribe(o);
+  return getTaskRowsView(o);
+}
+
+/** The board in a component, re-rendering when its store changes. */
+export function useTaskBoardView(o: TaskListOptions): TasksBoardView {
+  subscribe(o);
+  return getTaskBoardView(o);
 }
