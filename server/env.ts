@@ -2,6 +2,18 @@ import { z } from 'zod';
 import { parseEmailDomains } from './account/signup-gate';
 import { assertSecretStrength } from './env-secret';
 import { invalidProxyEntries, splitProxyList } from './middleware/trusted-proxy';
+import { buildMobileTrustedOrigins, invalidOriginEntries, splitOriginList } from './mobile-origins';
+
+/** Extra origins the mobile app reaches the server as (LAN IP, tunnel, staging). Empty = none. */
+export const MobileTrustedOriginsSchema = z
+  .string()
+  .default('')
+  .transform(splitOriginList)
+  .superRefine((entries, ctx) => {
+    for (const bad of invalidOriginEntries(entries)) {
+      ctx.addIssue({ code: 'custom', message: `Bukan origin yang valid: "${bad}"` });
+    }
+  });
 
 /** Reverse proxies whose X-Forwarded-For is honoured (IPs/CIDRs). Empty = trust none. */
 export const TrustedProxiesSchema = z
@@ -36,6 +48,7 @@ const EnvSchema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   TRUSTED_PROXIES: TrustedProxiesSchema,
+  MOBILE_TRUSTED_ORIGINS: MobileTrustedOriginsSchema,
 });
 
 // `KEY=` in .env arrives as "", which `.optional()` would reject — treat it as unset.
@@ -66,4 +79,9 @@ export const superAdminEmails: ReadonlySet<string> = new Set(
 /** Lower-cased set of email domains allowed to sign up; empty means any domain. */
 export const allowedEmailDomains: ReadonlySet<string> = parseEmailDomains(
   env.ALLOWED_EMAIL_DOMAINS,
+);
+
+/** Origins Better Auth trusts for the mobile app: its deep-link scheme plus MOBILE_TRUSTED_ORIGINS. */
+export const mobileTrustedOrigins: readonly string[] = buildMobileTrustedOrigins(
+  env.MOBILE_TRUSTED_ORIGINS,
 );
