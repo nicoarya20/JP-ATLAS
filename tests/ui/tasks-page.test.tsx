@@ -74,6 +74,7 @@ const task = (over: Partial<TaskListItem> = {}): TaskListItem => ({
   dueDate: '2026-10-09',
   assignee: { id: 'u-2', name: 'Dodi' },
   project: { id: 'p-1', name: 'Renovasi Dapur', status: 'active' },
+  phase: null,
   labels: [],
   checklist: { done: 0, total: 0 },
   primary: 'start',

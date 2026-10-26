@@ -45,6 +45,9 @@ export type ListTasksInput = {
 
 export type ProjectRef = { id: string; name: string; status: ProjectStatus };
 
+/** The phase of a project a task belongs to; the same shape in the list and in the detail (H-B5). */
+export type PhaseRef = { id: string; name: string };
+
 export interface TaskListItem {
   id: string;
   /** Global task number, the human-friendly handle in `/app/tasks/:number`. */
@@ -56,6 +59,8 @@ export interface TaskListItem {
   dueDate: string | null;
   assignee: PersonRef | null;
   project: ProjectRef;
+  /** The phase of the task's project it belongs to (H-B5), or null. */
+  phase: PhaseRef | null;
   /** Every badge the task carries, most important first. */
   labels: TaskLabel[];
   checklist: { done: number; total: number };
@@ -93,8 +98,6 @@ export interface TaskDetail extends Omit<TaskListItem, 'checklist'> {
   description: string | null;
   startDate: string | null;
   kind: { id: string; name: string; baseKind: TaskBaseKind };
-  /** The phase of the task's project it belongs to (H-B5), or null. */
-  phase: { id: string; name: string } | null;
   creator: PersonRef | null;
   reviewer: PersonRef | null;
   needsReview: boolean;
@@ -121,6 +124,8 @@ export type TaskCardRow = {
   projectId: string;
   projectName: string;
   projectStatus: ProjectStatus;
+  phaseId: string | null;
+  phaseName: string | null;
   assigneeId: string | null;
   reviewerId: string | null;
   createdBy: string | null;

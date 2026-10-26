@@ -9,7 +9,7 @@ import type { Membership, Principal, TaskSubject } from '../access/types';
 import { taskLabels } from '../metrics/task.metrics';
 import type { TaskLabel } from '../metrics/types';
 import { getMetrics } from '../pm/metrics-env';
-import type { TaskCardRow, TaskClock } from './task.dto';
+import type { PhaseRef, TaskCardRow, TaskClock } from './task.dto';
 
 /** The slice of a live task the policies read; trashed rows never reach a read, so both trash stamps are null. */
 export function subjectOf(row: TaskCardRow): TaskSubject {
@@ -25,6 +25,11 @@ export function subjectOf(row: TaskCardRow): TaskSubject {
     deletedBy: null,
     projectDeletedAt: null,
   };
+}
+
+/** The row's phase as the one `PhaseRef` shape the list and the detail both return (H-B5). */
+export function phaseOf(row: Pick<TaskCardRow, 'phaseId' | 'phaseName'>): PhaseRef | null {
+  return row.phaseId && row.phaseName ? { id: row.phaseId, name: row.phaseName } : null;
 }
 
 export type TaskView = {

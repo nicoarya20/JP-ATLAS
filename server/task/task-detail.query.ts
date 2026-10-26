@@ -11,8 +11,8 @@ import type { Executor } from '../pm/tx';
 import { loadMembership, loadReviewerPool } from '../project/membership.query';
 import type { TaskClock, TaskDetail, TaskDetailResult } from './task.dto';
 import { loadPeople } from './task.lookup.query';
-import { cardColumns, liveTask } from './task.sql';
-import { subjectOf, viewOf } from './task.view';
+import { cardColumns, liveTask, onTaskPhase } from './task.sql';
+import { phaseOf, subjectOf, viewOf } from './task.view';
 
 // Task numbers are bigint identities read as JS numbers, so more digits than this cannot be exact.
 const MAX_REF_DIGITS = 15;
@@ -65,13 +65,11 @@ export async function getTaskDetail(
       kindId: taskKind.id,
       kindName: taskKind.name,
       kindBase: taskKind.baseKind,
-      phaseId: task.phaseId,
-      phaseName: projectPhase.name,
     })
     .from(task)
     .innerJoin(project, eq(project.id, task.projectId))
     .innerJoin(taskKind, eq(taskKind.id, task.kindId))
-    .leftJoin(projectPhase, eq(projectPhase.id, task.phaseId))
+    .leftJoin(projectPhase, onTaskPhase)
     .where(and(liveTask, byRef));
   if (!row) return notFound;
 
@@ -109,7 +107,7 @@ export async function getTaskDetail(
     description: row.description,
     startDate: row.startDate,
     kind: { id: row.kindId, name: row.kindName, baseKind: row.kindBase },
-    phase: row.phaseId && row.phaseName ? { id: row.phaseId, name: row.phaseName } : null,
+    phase: phaseOf(row),
     creator: person(row.createdBy),
     reviewer: person(row.reviewerId),
     needsReview: row.needsReview,
