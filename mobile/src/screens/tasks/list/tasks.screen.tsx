@@ -11,6 +11,7 @@ import { View } from 'react-native';
 import { Seg } from '@/components/form/seg';
 import { StackedScreen } from '@/components/screen/stacked-screen';
 import { NoMatch } from '@/components/state/no-match';
+import { FailedState, LoadingState } from '@/components/state/section-state';
 import { HStack } from '@/components/ui/hstack';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
@@ -27,7 +28,6 @@ import { useTasks } from '@/data/tasks.state';
 
 import { TaskBoard } from '../board/task-board';
 import { TasksSearchField } from '../filter/tasks-search';
-import { TasksFailed, TasksLoading } from '../parts/tasks-problem';
 import { S } from '../tasks.strings';
 import { SPOKEN } from '../tasks.strings.added';
 import { TaskList } from './task-list';
@@ -104,9 +104,17 @@ export function TasksScreen({ role = SESSION_ROLE }: { role?: Role }) {
           />
         ) : null
       ) : list.phase === 'failed' && list.groups.length === 0 ? (
-        <TasksFailed error={list.error} onRetry={() => void reloadTaskListView(options)} />
+        // The server's own sentence, shown as it came (K5): not translated, and not replaced by a
+        // guess of our own about what went wrong.
+        // No `busy`: a retry puts the list back into `loading`, which this branch no longer
+        // matches, so the loading state takes over rather than a button that says it is working.
+        <FailedState
+          testID="tasks-failed"
+          message={list.error?.message}
+          onRetry={() => void reloadTaskListView(options)}
+        />
       ) : list.groups.length === 0 && list.empty === null ? (
-        <TasksLoading />
+        <LoadingState testID="tasks-loading" />
       ) : (
         <TaskList
           mine={scope === 'mine'}
