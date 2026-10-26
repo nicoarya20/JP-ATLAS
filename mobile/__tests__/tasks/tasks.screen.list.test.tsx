@@ -1,15 +1,9 @@
 // Tasks list and Filter & sort screens (port of prototype tasks.list.test / tasks.filter.test): the My tasks groups,
 // My / All, opening a card, NoMatch + Reset, what a screen reader hears of the cards and heads, and the filter sheet's
 // draft, Reset, Apply and dot.
-import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 
-import {
-  archiveProject,
-  editProject,
-  findProject,
-  resetProjects,
-} from '../../src/data/projects.store';
-import { openTasks, resetTaskStores } from '../helpers/tasks-router';
+import { openTasks, resetTaskStores, settleTasks } from '../helpers/tasks-router';
 
 resetTaskStores();
 
@@ -19,16 +13,22 @@ const filterButton = () => screen.getByRole('button', { name: 'Filter and sort' 
 const filterOn = () => filterButton().props.accessibilityValue?.text === 'Filters on';
 const sheet = () => within(screen.getByTestId('filter-sheet'));
 const tab = (name: string) => within(screen.getByTestId('tasks-scope')).getByRole('tab', { name });
+const SEARCH = 'Search title or exact #number…';
 
 describe('tasks list', () => {
-  it('opens My tasks with the review queue and the urgency groups', async () => {
+  it('opens My tasks with the urgency groups the server put the rows in', async () => {
     await openTasks('/tasks');
     expect(screen.getByTestId('screen-tasks')).toBeOnTheScreen();
     expect(tab('My tasks')).toBeSelected();
-    for (const head of ['Waiting for my review', 'Overdue', 'Today', 'Tomorrow']) {
+    // No "Waiting for my review": the whole review flow waits on S4, so the group is hidden
+    // (A6, docs/phase2-gap-disembunyikan.md) rather than shown with nothing behind it.
+    expect(screen.queryByRole('header', { name: /^Waiting for my review/ })).not.toBeOnTheScreen();
+    for (const head of ['Overdue', 'Today', 'Tomorrow', 'This week']) {
       expect(screen.getByRole('header', { name: new RegExp(`^${head}`) })).toBeOnTheScreen();
     }
-    expect(shown([17, 12, 14, 9])).toEqual([17, 12, 14, 9]);
+    expect(shown([12, 14, 9, 17])).toEqual([12, 14, 9, 17]);
+    // #3 is done, and an "All active" list asks for the three open statuses by name.
+    expect(card(3)).toBeNull();
     expect(filterOn()).toBe(false);
   });
 
@@ -49,24 +49,26 @@ describe('tasks list', () => {
     expect(await screen.findByTestId('screen-task')).toBeOnTheScreen();
   });
 
-  it('shows NoMatch for a search with no hit, and Reset brings the list back', async () => {
+  it('shows NoMatch for a search the server has no hit for, and Reset brings the list back', async () => {
     await openTasks('/tasks');
-    await fireEvent.changeText(screen.getByLabelText('Search title, #number, or tag…'), 'zzz');
+    await fireEvent.changeText(screen.getByLabelText(SEARCH), 'zzz');
+    await settleTasks();
     expect(screen.getByTestId('no-match')).toBeOnTheScreen();
     await fireEvent.press(within(screen.getByTestId('no-match')).getByRole('button'));
-    expect(shown([17, 12])).toEqual([17, 12]);
+    await settleTasks();
+    expect(shown([12, 14])).toEqual([12, 14]);
   });
 });
 
 describe('tasks list accessibility', () => {
-  it('names the switches, a group head with its count and a late card with how late', async () => {
+  it('names the switches, a group head with the server’s count and a late card with how late', async () => {
     await openTasks('/tasks');
     expect(screen.getByTestId('tasks-scope')).toHaveAccessibleName('Scope');
     expect(screen.getByTestId('tasks-view')).toHaveAccessibleName('View');
+    // The count is the one `/tasks/counts` sent, not the number of rows this page happens to hold.
     expect(screen.getByRole('header', { name: 'Overdue, 1 task' })).toBeOnTheScreen();
     expect(card(12)).toHaveAccessibleName(
-      '#12 Fix SSO login, Atlas Project, High, In progress, 2 days overdue, Due Oct 5, 2 days late, ' +
-        'Nico Pratama, Steps 2/3',
+      '#12 Fix login layout, Atlas Project, High, To do, Due Oct 5, 2 days late, Nico Pratama',
     );
     expect(
       within(screen.getByTestId('task-card-12')).getByText(/ · \d+ days? late$/),
@@ -75,22 +77,37 @@ describe('tasks list accessibility', () => {
 
   it('names an All tasks card and its Select tick after the task', async () => {
     await openTasks('/tasks?scope=all');
+    // No kind in the name: a list row does not carry one (A3), so the segment is left out rather
+    // than spoken as an empty gap.
     expect(card(17)).toHaveAccessibleName(
-      '#17 Fix the save button on the profile page, Bug, Medium, In review, Waiting for my review, Due Oct 8, ' +
-        'Dodi Hartono, Steps 2/2',
+      '#17 Review the onboarding copy, High, In review, In review, Due Oct 9, Nico Pratama',
     );
     expect(screen.getByRole('checkbox', { name: /^Select #17 / })).toBeOnTheScreen();
   });
 });
 
 describe('tasks filter', () => {
-  it('scopes All tasks to Atlas inside the sheet, so its dot is on from the start', async () => {
+  it('does not offer a Project filter, and its dot is off until something is really sent', async () => {
+    // The project list is still the sample one, whose ids are not the server's: sending one would
+    // ask for a list that comes back empty for no reason the user can see. So the row is gone, and
+    // the dot counts only what is sent (docs/phase2-gap-disembunyikan.md).
     await openTasks('/tasks?scope=all');
-    expect(filterOn()).toBe(true);
+    expect(filterOn()).toBe(false);
     await fireEvent.press(filterButton());
-    expect(await screen.findByTestId('filter-project')).toHaveAccessibilityValue({
-      text: 'Atlas Project',
-    });
+    await screen.findByTestId('filter-sheet');
+    expect(screen.queryByTestId('filter-project')).not.toBeOnTheScreen();
+  });
+
+  it('does not offer the title sort, which the server has no sort for', async () => {
+    await openTasks('/tasks');
+    await fireEvent.press(filterButton());
+    await screen.findByTestId('filter-sheet');
+    // "Priority" is both a filter head and a sort, so the sorts are read as radios.
+    for (const sort of ['Due date', 'Priority', 'Recently updated']) {
+      expect(sheet().getByRole('radio', { name: sort })).toBeOnTheScreen();
+    }
+    // A16: sorting in the client would sort the page that happens to be loaded.
+    expect(sheet().queryByRole('radio', { name: 'Title (A–Z)' })).not.toBeOnTheScreen();
   });
 
   it('Apply narrows My tasks and lights the dot; Reset in the sheet goes back to the default', async () => {
@@ -99,48 +116,16 @@ describe('tasks filter', () => {
     expect(await screen.findByTestId('filter-sheet')).toBeOnTheScreen();
     await fireEvent.press(sheet().getByRole('button', { name: 'High' }));
     await fireEvent.press(sheet().getByText('Apply'));
+    await settleTasks();
     expect(screen).toHavePathname('/tasks');
     expect(filterOn()).toBe(true);
-    expect(shown([17, 12, 14, 9])).not.toEqual([17, 12, 14, 9]);
+    // Only the High rows came back, so the medium one is gone.
+    expect(card(14)).toBeNull();
 
     await fireEvent.press(filterButton());
     await fireEvent.press(await screen.findByText('Reset'));
     await fireEvent.press(sheet().getByText('Apply'));
     expect(filterOn()).toBe(false);
-  });
-
-  it('offers each listed project by its current name, and none from Archive', async () => {
-    const atlas = findProject('atlas');
-    if (!atlas) throw new Error('test-only: no sample project atlas');
-    // Before anything renders, so no act() is needed.
-    editProject('atlas', { ...atlas, name: 'Atlas v2' }, 'Nico');
-    archiveProject('migration', 'Ayu');
-    try {
-      await openTasks('/tasks?scope=all');
-      await fireEvent.press(filterButton());
-      const pick = await screen.findByTestId('filter-project');
-      expect(pick).toHaveAccessibilityValue({ text: 'Atlas v2' });
-      await fireEvent.press(pick);
-      expect(await screen.findByText('Internal Tools')).toBeOnTheScreen();
-      expect(screen.queryByText('Legacy Data Migration')).not.toBeOnTheScreen();
-    } finally {
-      await act(async () => resetProjects());
-    }
-  });
-
-  it('All tasks on Atlas, once Atlas is in Archive, names All projects in the sheet (W4g)', async () => {
-    // Before anything renders, so no act() is needed.
-    archiveProject('atlas', 'Ayu');
-    try {
-      await openTasks('/tasks?scope=all');
-      expect(filterOn()).toBe(false);
-      await fireEvent.press(filterButton());
-      expect(await screen.findByTestId('filter-project')).toHaveAccessibilityValue({
-        text: 'All projects',
-      });
-    } finally {
-      await act(async () => resetProjects());
-    }
   });
 
   it('a draft left without Apply changes nothing', async () => {

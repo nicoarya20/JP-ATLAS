@@ -5,6 +5,9 @@ import { tasksCount } from '@/data/tasks.columns';
 export const S = {
   title: 'Tasks',
   search: 'Search title, #number, or tag…',
+  /** The server matches the title or an exact number; prefixes and tags it cannot (A15). */
+  searchServer: 'Search title or exact #number…',
+  more: 'Load more',
   scopes: ['My tasks', 'All tasks'],
   views: ['List', 'Kanban'],
   due: (date: string) => `Due ${date}`,
