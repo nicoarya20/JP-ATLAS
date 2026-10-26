@@ -29,9 +29,14 @@ export const DEFAULT_PROJECT = 'atlas';
 
 export type Cancellation = {
   reason: string;
+  /** Name of whoever canceled it; the list DTO carries no canceller, so it is empty there. */
   by: string;
-  /** Only this occurrence of a recurring event; the next ones continue. */
-  once: boolean;
+  /**
+   * Only this occurrence of a recurring event; the next ones continue. Optional and never set from
+   * the server: cancelling one occurrence needs recurrence, which the API does not have
+   * (GAP-A4/A5). Only the sample path still writes it.
+   */
+  once?: boolean;
 };
 
 /** Step 3 › Create tasks: the task numbers it made, who confirmed and when (ISO). */
