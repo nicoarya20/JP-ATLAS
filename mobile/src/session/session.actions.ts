@@ -5,12 +5,7 @@
  * (a phone on a dead network would otherwise hang on the splash screen) and turns both of its
  * failure shapes into the one `ApiError` the screens handle.
  */
-import {
-  clearStoredSession,
-  connectSessionToApi,
-  getAuthClient,
-  REQUEST_TIMEOUT_MS,
-} from '@/api';
+import { clearStoredSession, connectSessionToApi, getAuthClient, REQUEST_TIMEOUT_MS } from '@/api';
 import { type AuthFailure, asApiError, authFailureError } from './session.errors';
 import {
   clearSession,
@@ -72,9 +67,7 @@ export function resetSessionConnection(): void {
  */
 export async function refreshSession(): Promise<SessionStatus> {
   try {
-    const payload = await authCall((fetchOptions) =>
-      getAuthClient().getSession({ fetchOptions }),
-    );
+    const payload = await authCall((fetchOptions) => getAuthClient().getSession({ fetchOptions }));
     return setSessionUser(toSessionUser(payload));
   } catch (cause) {
     const error = asApiError(cause);
@@ -104,11 +97,18 @@ export async function signInWithEmail(email: string, password: string): Promise<
 }
 
 /**
- * Ends the session on the server, then empties the phone's copy. The server call is not optional:
- * clearing only the phone would leave a session token the server still honours, so a failure is
- * raised for the caller to show and retry instead of claiming the account was signed out.
+ * Ends the session on the server, then empties the phone's copy.
  *
- * A 401 is the exception — the session was already gone, so there is nothing left to end.
+ * The server call is not optional: clearing only the phone would leave a session token the server
+ * still honours, so a failure is raised for the caller to show and retry instead of claiming the
+ * account was signed out. A 401 is the exception — the session was already gone, so there is
+ * nothing left to end.
+ *
+ * One thing is outside this app's hands: the Expo plugin empties the stored cookie in its `init`
+ * hook, before the request goes out (@better-auth/expo/dist/client.js, `/sign-out` in `init`). It
+ * does send the cookie first, so a request that arrives really does revoke the session — but after
+ * a request that never arrives the phone has no session left to prove, while the server's copy
+ * lives until it expires. Retrying then answers 401, which this treats as already signed out.
  */
 export async function signOutEverywhere(): Promise<void> {
   try {

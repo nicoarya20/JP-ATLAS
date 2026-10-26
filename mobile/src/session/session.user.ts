@@ -21,7 +21,9 @@ const isoDate = (value: unknown): string | null => {
 /** The `user` of a session payload, or null when there is no usable one (nobody is signed in). */
 export function toSessionUser(payload: unknown): SessionUser | null {
   const session = (typeof payload === 'object' && payload !== null ? payload : {}) as Raw;
-  const raw = (typeof session.user === 'object' && session.user !== null ? session.user : {}) as Raw;
+  const raw = (
+    typeof session.user === 'object' && session.user !== null ? session.user : {}
+  ) as Raw;
   const id = text(raw.id);
   const email = text(raw.email);
   // Without an id and an email there is nothing to act as; treat it as signed out.

@@ -77,9 +77,7 @@ export function GoogleUnavailable() {
         <GoogleMark />
         <ButtonText>{SIGN_IN.google}</ButtonText>
       </Button>
-      <Text className="text-footnote text-muted-foreground">
-        {SIGN_IN_FORM.googleUnavailable}
-      </Text>
+      <Text className="text-footnote text-muted-foreground">{SIGN_IN_FORM.googleUnavailable}</Text>
       <Text className="text-footnote text-muted-foreground">{SIGN_IN.note}</Text>
     </VStack>
   );

@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 
 import { connectSession, refreshSession } from './session.actions';
-import { type SessionState, useSession } from './session.state';
+import { type SessionState, sessionStore, useSession } from './session.state';
 
 export type SessionGate = SessionState & {
   /** Reads the session again; used by the "Try again" button on the unreachable screen. */
@@ -20,7 +20,9 @@ export function useSessionGate(): SessionGate {
 
   useEffect(() => {
     connectSession();
-    void refreshSession();
+    // Only the first read happens here. The session is already known after that, and a remount —
+    // a fast refresh, or the retry screen handing back to the navigator — must not ask again.
+    if (sessionStore.get().status === 'loading') void refreshSession();
   }, []);
 
   const retry = () => {
