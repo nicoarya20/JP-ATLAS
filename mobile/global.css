@@ -35,7 +35,7 @@
       --border: 199 210 223;
       --input: 105 125 146;
       --ring: 81 70 201;
-      --veil: 7 19 33 / 0.6;
+      --veil: rgb(7 19 33 / 0.6);
       --snack: 14 26 36;
       --snack-foreground: 243 246 251;
       --snack-action: 182 180 255;
@@ -71,7 +71,7 @@
       --border: 52 70 90;
       --input: 114 134 156;
       --ring: 200 249 4;
-      --veil: 7 19 33 / 0.73;
+      --veil: rgb(7 19 33 / 0.733);
       --snack: 22 38 56;
       --snack-foreground: 243 246 251;
       --snack-action: 182 180 255;
@@ -110,7 +110,7 @@
   --color-border: rgb(var(--border));
   --color-input: rgb(var(--input));
   --color-ring: rgb(var(--ring));
-  --color-veil: rgb(var(--veil));
+  --color-veil: var(--veil);
   --color-snack: rgb(var(--snack));
   --color-snack-foreground: rgb(var(--snack-foreground));
   --color-snack-action: rgb(var(--snack-action));

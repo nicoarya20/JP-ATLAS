@@ -7,7 +7,7 @@ import {
 } from '../../../app/lib/theme-tokens';
 import { statSlop } from '../../src/screens/home/parts/stat-chip';
 import { blockSlops } from '../../src/screens/profile/day-grid.slop';
-import { hexToRgb, roleHex, THEME_ROLES } from '../../src/theme/theme-roles';
+import { colorRef, hexToRgb, roleHex, schemeVars, THEME_ROLES } from '../../src/theme/theme-roles';
 import { DARK, LIGHT, MIN_TARGET, RADIUS, SPACING, TYPE } from '../../src/theme/tokens';
 
 // The mobile tokens are a copy of the web app's single source; this fails as soon as one side changes alone.
@@ -56,9 +56,27 @@ describe('theme roles', () => {
     }
   });
 
-  test('hexToRgb writes triplets and carries alpha', () => {
+  test('hexToRgb writes triplets, and a colour with alpha as a whole rgb() that keeps its alpha byte', () => {
     expect(hexToRgb('#c8f904')).toBe('200 249 4');
-    expect(hexToRgb('#07132199')).toBe('7 19 33 / 0.6');
+    expect(hexToRgb('#07132199')).toBe('rgb(7 19 33 / 0.6)');
+    expect(hexToRgb('#071321bb')).toBe('rgb(7 19 33 / 0.733)');
+    expect(Math.round(0.733 * 255).toString(16)).toBe('bb');
     expect(() => hexToRgb('red')).toThrow('Not a #rrggbb[aa] colour: red');
+  });
+
+  // Uniwind compiles a bare `33 / 0.6` in a custom property to a division: the veil came out opaque and the More panel
+  // hid the screen behind it.
+  test('no theme variable holds a bare "/": alpha lives inside rgb()', () => {
+    for (const scheme of ['light', 'dark'] as const) {
+      for (const line of schemeVars(scheme)) {
+        expect(line).toMatch(/^--[a-z-]+: (\d+ \d+ \d+|rgb\(\d+ \d+ \d+ \/ [\d.]+\));$/);
+      }
+    }
+  });
+
+  test('colorRef reads a triplet through rgb() and a colour with alpha as is', () => {
+    expect(colorRef('card')).toBe('rgb(var(--card))');
+    expect(colorRef('veil')).toBe('var(--veil)');
+    expect(() => colorRef('nope')).toThrow('Unknown theme role: nope');
   });
 });

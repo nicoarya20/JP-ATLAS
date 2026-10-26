@@ -71,5 +71,9 @@ describe('global.css', () => {
       expect(css).toContain('background-color: rgb(var(--success));');
       expect(css).toContain('background-color: rgb(var(--warning-soft));');
     });
+
+    test('a colour with alpha (the veil) is used whole, not through rgb()', () => {
+      expect(build(['bg-veil'])).toContain('background-color: var(--veil);');
+    });
   });
 });
