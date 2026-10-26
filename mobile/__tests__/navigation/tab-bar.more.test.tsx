@@ -17,6 +17,18 @@ jest.mock('../../src/data/session', () => ({
     return mockRole;
   },
 }));
+// Every tab the pill was rendered with, to see what the bubble was sent to on the way.
+const mockPillActive: number[] = [];
+jest.mock('../../src/components/tab-bar/glass-pill', () => {
+  const { createElement } = jest.requireActual('react');
+  const actual = jest.requireActual('../../src/components/tab-bar/glass-pill');
+  return {
+    GlassPill: (props: { active: number }) => {
+      mockPillActive.push(props.active);
+      return createElement(actual.GlassPill, props);
+    },
+  };
+});
 afterEach(() => {
   mockRole = 'member';
   resetDecisions();
@@ -158,6 +170,19 @@ describe('More panel', () => {
     expect(screen).toHavePathname('/events');
     expect(tab('Events')).toBeSelected();
     expect(panel()).not.toBeOnTheScreen();
+  });
+
+  // Folding first rendered the bar on the tab under the panel for a moment, and the bubble bounced there on its way.
+  it('goes straight from More to the new tab, never back to the tab under the panel', async () => {
+    await open('/');
+    await pick('More');
+    const from = mockPillActive.length;
+
+    await pick('Events');
+
+    expect(screen).toHavePathname('/events');
+    const HOME = 0;
+    expect(mockPillActive.slice(from)).not.toContain(HOME);
   });
 
   it('only folds when the tab under it is picked again', async () => {

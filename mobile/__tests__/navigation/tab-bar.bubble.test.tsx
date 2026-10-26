@@ -169,6 +169,33 @@ describe('tab bar bubble', () => {
     expect(bubble()).toEqual({ pos: 3, scaleX: 1, scaleY: 1 });
   });
 
+  // On a device the tab change comes back from JS only after the new screen has rendered (about 300 ms in a dev build);
+  // the bubble used to stand still until then.
+  it('settles on release without waiting for the tab change, and does not bounce again when it comes', async () => {
+    const TAB_CHANGE_MS = 300;
+    function SlowOwner() {
+      const [active, setActive] = useState<number>(TAB.home);
+      const pick = (i: number) => {
+        setTimeout(() => setActive(i), TAB_CHANGE_MS);
+        return true;
+      };
+      return <GlassPill tabs={TABS} active={active} onPick={pick} />;
+    }
+    await render(<SlowOwner />, { wrapper: Providers });
+    await layOut();
+
+    await tap(createGestureController('tab-pan'), over(TAB.events));
+    await advance(200); // the tab has not changed yet
+    expect(tab('Home')).toBeSelected();
+    expect(bubble().pos).toBeGreaterThan(1);
+    expect(bubble().scaleY).toBeLessThan(1);
+
+    // 700 ms after release: the bounce that started then is over; one started by the tab change would still run.
+    await advance(500);
+    expect(tab('Events')).toBeSelected();
+    expect(bubble()).toEqual({ pos: 3, scaleX: 1, scaleY: 1 });
+  });
+
   it('picks the tab under the finger even while the bubble is still sliding there', async () => {
     const { onPick, pan } = await open();
 

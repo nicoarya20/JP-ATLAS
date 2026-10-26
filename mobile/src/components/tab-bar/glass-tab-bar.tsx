@@ -49,14 +49,19 @@ export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTab
       more.toggle();
       return true;
     }
-    if (more.open) {
+    // The tab under the panel: only fold.
+    if (more.open && index === state.index) {
       more.close();
-      // The tab under the panel: only fold.
-      if (index === state.index) return true;
+      return true;
     }
     const route = state.routes[index];
     const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-    if (event.defaultPrevented) return false;
+    if (event.defaultPrevented) {
+      more.close();
+      return false;
+    }
+    // Another tab folds the panel through the new pathname (useMorePanel), in the same render as the tab change.
+    // Folding here first rendered the tab under the panel for a moment, and the bubble went there before the new tab.
     if (index !== state.index) navigateToTab(route.key);
     return true;
   };
