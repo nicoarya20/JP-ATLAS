@@ -38,6 +38,12 @@ export const ListQuery = t.Object({
   sort: t.Optional(oneOf(TASK_SORTS)),
 });
 
+/**
+ * Query of `GET /tasks/form-options`. `projectId` is optional: without it the answer carries every
+ * project the caller may add a task to, with it only that one.
+ */
+export const FormOptionsQuery = t.Object({ projectId: t.Optional(t.String({ minLength: 1 })) });
+
 const Title = t.String({ minLength: 1, maxLength: TASK_TITLE_MAX });
 const Description = t.Nullable(t.String({ maxLength: TASK_DESCRIPTION_MAX }));
 const Day = t.Nullable(t.String({ format: 'date' }));
