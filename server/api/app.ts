@@ -21,10 +21,12 @@ import { taskWorkflowApi } from './app-tasks.workflow';
 import { teamApi } from './app-team';
 import { teamPickerApi } from './app-team.picker';
 import { trashApi } from './app-trash';
+import { whoamiApi } from './app-whoami';
 
 export const appApi = new Elysia({ prefix: '/app' })
   // First on purpose: a parent's hooks only reach routes registered after them.
   .use(appContext)
+  .use(whoamiApi)
   .use(profileApi)
   .use(homeApi)
   .use(inboxApi)
@@ -40,12 +42,6 @@ export const appApi = new Elysia({ prefix: '/app' })
   .use(tasksApi)
   .use(taskWorkflowApi)
   .use(taskDetailApi)
-  /** Example endpoint: who is calling. Replace or extend with real features. */
-  .get('/whoami', ({ actor }) => ({
-    userId: actor.user.id,
-    name: actor.user.name,
-    role: actor.role,
-  }))
   /** Upload/replace the caller's profile photo (multipart field `file`, PNG/JPEG/WEBP/GIF ≤ 2 MB). */
   .post(
     '/avatar',

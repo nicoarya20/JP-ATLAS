@@ -17,6 +17,8 @@ const STUBS: { file: string; plugin: string; prefix: string }[] = [];
 
 /** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S3 I04 inbox, S3 B-06 home, S6 M03 team, S7 E-06 events, S7 E-07 event Trash): no longer stubs, still mounted by app.ts. `leaveApi` left the list with the leave routes in P14 CU-02. */
 const FILLED = [
+  // Left app.ts with GAP A-17: whoami answers `caps` now, so it is a feature route like the rest.
+  'whoamiApi',
   'profileApi',
   'inboxApi',
   'homeApi',
@@ -101,9 +103,7 @@ describe('module hygiene', () => {
 
   test('every module instance stays within the route budget', async () => {
     // app.ts and the schedule assembler only aggregate routers that each stay within the budget.
-    const modules = appFiles().filter(
-      (f) => !['app.ts', 'app-projects.schedule.ts'].includes(f),
-    );
+    const modules = appFiles().filter((f) => !['app.ts', 'app-projects.schedule.ts'].includes(f));
     for (const file of modules) {
       const mod = (await import(path.join(API_DIR, file))) as Record<string, unknown>;
       for (const value of Object.values(mod)) {
@@ -127,6 +127,7 @@ describe('module hygiene', () => {
     ['app-tasks.workflow.ts', 140],
     ['app-projects.trash.ts', 150],
     ['app-trash.ts', 150],
+    ['app-whoami.ts', 150],
     ['app-tasks.detail.ts', 150],
     ['app-events.ts', 150],
     ['app-events.write.ts', 150],
