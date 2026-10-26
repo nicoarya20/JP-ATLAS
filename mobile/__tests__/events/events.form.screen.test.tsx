@@ -1,10 +1,15 @@
-// Events ③a / ③b New event and Edit (port of prototype events.items.test): Save is off without a title, attendees are
-// removable except the creator, New opens the saved event, Edit updates it and goes back to its detail. W3c: required
-// fields say "required" once, Save says why it is off (title once touched, time range at once), Location is a radio.
+// Events ③a / ③b New event and Edit, against the fake `/api/app/events`: Save is off without a
+// title, guests are removable except the creator, New posts the event and opens it, Edit patches it
+// and goes back to its detail. W3c: required fields say "required" once, Save says why it is off
+// (title once touched, time range at once), Location is a radio.
+//
+// The form sends instants in the team zone and keeps the meeting link apart from the room (B3). An
+// edit never carries the project or the guest list — the server refuses both — so guest changes go
+// through the guest routes, which is asserted here.
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 
-import { eventsStore, findEvent } from '../../src/data/events.store';
-import { openEvents, resetEventStores } from '../helpers/events-router';
+import { detailFor } from '../helpers/events-api-fixtures';
+import { answerEvents, eventCalls, openEvents, resetEventStores } from '../helpers/events-router';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 resetEventStores();
@@ -12,24 +17,78 @@ drainToastTimers();
 
 const button = (name: string) => screen.getByRole('button', { name });
 const press = (name: string) => fireEvent.press(button(name));
+const wrote = (method: string) => eventCalls().filter((c) => c.method === method);
+/** The Edit form opens before its event is read; wait for the fields to arrive. */
+const filled = (title: string) =>
+  waitFor(() => expect(screen.getByTestId('event-title').props.value).toBe(title));
 
 describe('event form', () => {
-  it('Edit fills the form with the event; Save updates it and goes back to the detail', async () => {
+  it('Edit fills the form with the event and patches it, project and guests left out', async () => {
     await openEvents('/events/review');
+    await waitFor(() => expect(screen.queryByTestId('events-loading')).not.toBeOnTheScreen());
     await press('Edit');
     expect(screen).toHavePathname('/events/new');
     expect(screen.getByText('Edit event')).toBeOnTheScreen();
-    expect(screen.getByTestId('event-title').props.value).toBe('Onboarding design review');
+    await filled('Onboarding design review');
     expect(button('Hide details')).toBeOnTheScreen();
     await fireEvent.changeText(screen.getByTestId('event-title'), 'Onboarding review v2');
     await press('Save');
-    expect(screen.getByText('Event updated')).toBeOnTheScreen();
+    expect(await screen.findByText('Event updated')).toBeOnTheScreen();
     await waitFor(() => expect(screen).toHavePathname('/events/review'));
-    expect(screen.getByText('Onboarding review v2')).toBeOnTheScreen();
-    expect(findEvent('review')?.editor).toBe('Nico');
+    const patch = wrote('PATCH')[0];
+    expect(patch?.path).toBe('/api/app/events/review');
+    expect(patch?.body).toMatchObject({
+      title: 'Onboarding review v2',
+      // 14:00–15:00 in the team zone, as the server stores them (K2).
+      startsAt: '2026-10-07T07:00:00.000Z',
+      endsAt: '2026-10-07T08:00:00.000Z',
+      kind: 'review',
+      locationType: 'offline',
+      locationText: 'Meeting Room 2',
+    });
+    expect(patch?.body).not.toHaveProperty('projectId');
+    expect(patch?.body).not.toHaveProperty('participantIds');
   });
 
-  it('New event: Save stays off without a title; a removed attendee is gone; Save opens the new event', async () => {
+  it('Edit sends a guest change through the guest routes, not through the PATCH', async () => {
+    await openEvents('/events/review?event=review');
+    await openEvents('/events/new?event=review');
+    await filled('Onboarding design review');
+    await press('Remove Nico');
+    await press('Save');
+    await waitFor(() => expect(wrote('DELETE')).toHaveLength(1));
+    expect(wrote('DELETE')[0]?.path).toBe('/api/app/events/review/participants/u-nico');
+  });
+
+  it('Edit cannot change the project: the server refuses it, so the field is not offered', async () => {
+    await openEvents('/events/new?event=review');
+    await filled('Onboarding design review');
+    expect(screen.queryByLabelText('Project')).not.toBeOnTheScreen();
+  });
+
+  it('Edit shows the server’s reason and keeps Save off when update is denied', async () => {
+    answerEvents((call) =>
+      /^\/api\/app\/events\/review$/.test(call.path)
+        ? {
+            body: {
+              ...(detailFor('review') as { body: object }).body,
+              can: { update: 'PROJECT_IN_TRASH' },
+            },
+          }
+        : null,
+    );
+    await openEvents('/events/new?event=review');
+    await filled('Onboarding design review');
+    expect(screen.getByText('Proyeknya ada di Sampah. Pulihkan proyeknya dulu.')).toBeOnTheScreen();
+    expect(screen.getByTestId('event-save')).toBeDisabled();
+  });
+
+  it('says so when the event being edited is gone', async () => {
+    await openEvents('/events/new?event=nope');
+    expect(await screen.findByTestId('event-gone')).toBeOnTheScreen();
+  });
+
+  it('New event: Save stays off without a title; a removed guest is gone; Save opens the new event', async () => {
     await openEvents('/events/new');
     expect(screen.getByText('New event')).toBeOnTheScreen();
     expect(button('Save')).toBeDisabled();
@@ -40,32 +99,35 @@ describe('event form', () => {
     );
     expect(button('Save')).toBeEnabled();
 
+    // The picker asks the server; the creator's own pill cannot be removed.
     await press('Add person');
-    await fireEvent.press(await screen.findByText('Rina'));
-    await press('Remove Rina');
-    expect(screen.queryByRole('button', { name: 'Remove Rina' })).not.toBeOnTheScreen();
+    await fireEvent.press(await screen.findByText('Sri'));
+    await press('Remove Sri');
+    expect(screen.queryByRole('button', { name: 'Remove Sri' })).not.toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: 'Remove Nico' })).not.toBeOnTheScreen();
 
-    const before = eventsStore.get().list.length;
     await press('Save');
-    expect(screen.getByText('Event saved')).toBeOnTheScreen();
-    const added = eventsStore.get().list.find((e) => e.title === 'Design sync');
-    expect(eventsStore.get().list).toHaveLength(before + 1);
-    expect(added?.attendees).toEqual(['Nico']);
-    await waitFor(() => expect(screen).toHavePathname(`/events/${added?.id}`));
-    expect(screen.getByTestId('screen-event')).toBeOnTheScreen();
-    expect(screen.getByText('Design sync')).toBeOnTheScreen();
+    expect(await screen.findByText('Event saved')).toBeOnTheScreen();
+    const post = wrote('POST')[0];
+    expect(post?.path).toBe('/api/app/events');
+    expect(post?.body).toMatchObject({
+      title: 'Design sync',
+      kind: 'meeting',
+      // No project picked: a personal event, sent as null rather than left out (B4).
+      projectId: null,
+      participantIds: ['u-nico'],
+    });
+    await waitFor(() => expect(screen).toHavePathname('/events/review'));
   });
 
   it('Add more details opens the rest of the form; Cancel closes it without saving', async () => {
     await openEvents('/events/new');
     await press('Add more details');
     expect(screen.getByLabelText('Agenda · one item per line')).toBeOnTheScreen();
-    const before = eventsStore.get().list.length;
     // the header's down chevron is named Cancel too; this is the footer's button
     await fireEvent.press(screen.getByText('Cancel'));
     await waitFor(() => expect(screen.queryByTestId('event-form')).not.toBeOnTheScreen());
-    expect(eventsStore.get().list).toHaveLength(before);
+    expect(wrote('POST')).toHaveLength(0);
   });
 
   it('names required fields "<label>, required" and reads each label once', async () => {

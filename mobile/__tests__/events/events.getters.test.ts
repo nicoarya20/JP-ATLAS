@@ -1,232 +1,291 @@
-import { resetArchive } from '../../src/data/archive.store';
+// What each Events screen gets from the server's answer: the cards, the calendar grid, the detail's
+// capabilities, and the form the Edit screen opens with. The day is Wed, 7 Oct 2026 (K1).
+
 import {
   getEventDetail,
   getEventForm,
   getEventsCalendar,
   getEventsList,
   stepCalendar,
-} from '../../src/data/events';
-import { BASE_QUERY, GROUP_TYPE, TYPE_FILTERS } from '../../src/data/events.query';
-import { getEventResults, getOutcomes } from '../../src/data/events.results';
-import {
-  archiveEvent,
-  cancelEvent,
-  confirmOutcomes,
-  resetEvents,
-} from '../../src/data/events.store';
-import { moveTask, resetTasks } from '../../src/data/tasks.store';
+  windowKeyOf,
+} from '@/data/events';
+import { eventDetailResource, syncEventsList, syncEventsWindow } from '@/data/events.api';
+import { BASE_QUERY, GROUP_TYPE } from '@/data/events.query';
 
-// What each Events screen gets, per role, on the prototype's sample day (Wed, Oct 7, 2026).
+import { apiError, detailItem, listItem, page, serveEventsApi } from '../helpers/events-server';
 
-afterEach(() => {
-  resetEvents();
-  resetTasks();
-  resetArchive();
+let answer: (call: { path: string; search: URLSearchParams }) => unknown;
+
+const server = serveEventsApi((call) => {
+  const reply = answer(call);
+  return reply && typeof reply === 'object' && 'status' in (reply as object)
+    ? (reply as { status: number; body: unknown })
+    : { body: reply };
 });
 
-const cards = (role: 'member' | 'pm' | 'admin', query = BASE_QUERY, search = '') =>
-  getEventsList(role, { query, search }).groups.flatMap((g) => g.data);
-const dots = (role: 'member' | 'pm', picked = '2026-10-07', query = BASE_QUERY) =>
-  Object.fromEntries(
-    getEventsCalendar(role, { view: 'month', picked, query })
-      .days.filter((d) => d.dots)
-      .map((d) => [d.day, d.dots]),
-  );
+beforeEach(() => {
+  answer = () => page([listItem()]);
+});
 
-describe('events list', () => {
-  test('cards carry the time tile, status, route and results button', () => {
-    const past = { ...BASE_QUERY, when: 1 };
-    const [kickoff, daily] = cards('pm', past);
-    expect(kickoff).toMatchObject({
-      when: 'Thu 1',
-      status: 'Done',
-      results: 'view',
-      href: '/events/kickoff/results',
+const cards = (query = BASE_QUERY) => getEventsList('pm', { query }).groups.flatMap((g) => g.data);
+
+describe('the list', () => {
+  test('is empty and asks for nothing before the server has answered', () => {
+    expect(getEventsList('pm', { query: BASE_QUERY })).toEqual({
+      groups: [],
+      empty: false,
+      more: false,
+      createEvent: false,
     });
-    expect(daily).toMatchObject({
-      when: '9:00',
-      results: 'check',
-      href: '/events/daily/outcomes/3',
+    expect(server.calls()).toHaveLength(0);
+  });
+
+  test('cards carry the time tile, the status pill and the route to the detail', async () => {
+    answer = () =>
+      page([
+        listItem(),
+        listItem({
+          id: 'e-later',
+          startsAt: '2026-10-09T02:00:00.000Z',
+          endsAt: '2026-10-09T03:00:00.000Z',
+        }),
+      ]);
+    await syncEventsList({ tab: 'upcoming' });
+    expect(cards()[0]).toMatchObject({
+      when: '2:00', // the start time, because it is in the Today group
+      status: 'Today',
+      href: '/events/e-review',
     });
-    expect(cards('member', past)[1]?.results).toBe('view');
-    const sprint = cards('pm').find((c) => c.event.id === 'sprint');
-    expect(sprint).toMatchObject({
+    expect(cards()[1]).toMatchObject({
       when: 'Fri 9',
       status: 'Upcoming',
-      results: null,
-      href: '/events/sprint',
+      href: '/events/e-later',
     });
   });
 
-  test('applies query and search, and reports the filter dot', () => {
-    const list = getEventsList('pm', { query: { ...BASE_QUERY, group: GROUP_TYPE } });
-    expect(list.groups.map((g) => g.title)).toEqual([
-      'Meeting',
-      'Review',
-      'Important',
-      'Team event',
-    ]);
-    expect(list.filtered).toBe(false);
-    expect(list.empty).toBe(false);
-    const sinar = getEventsList('pm', { query: { ...BASE_QUERY, project: 'sinar' } });
-    expect([sinar.groups, sinar.filtered, sinar.empty]).toEqual([[], true, false]);
-    expect(cards('pm', BASE_QUERY, 'pantry').map((c) => c.event.id)).toEqual(['party']);
+  test('a past page is Done, because that is the cut the server made', async () => {
+    await syncEventsList({ tab: 'past' });
+    expect(cards({ ...BASE_QUERY, when: 1 })[0]?.status).toBe('Done');
+  });
+
+  test('a canceled event reads Canceled whichever tab it came in', async () => {
+    answer = () =>
+      page([listItem({ canceledAt: '2026-10-06T03:00:00.000Z', cancelReason: 'Ruang dipakai.' })]);
+    await syncEventsList({ tab: 'upcoming' });
+    expect(cards()[0]?.status).toBe('Canceled');
+  });
+
+  test('groups by type when the query says so', async () => {
+    answer = () => page([listItem(), listItem({ id: 'e-two', kind: 'team' })]);
+    await syncEventsList({ tab: 'upcoming' });
+    const data = getEventsList('pm', { query: { ...BASE_QUERY, group: GROUP_TYPE } });
+    expect(data.groups.map((g) => g.title)).toEqual(['Review', 'Team event']);
+  });
+
+  test('"nothing yet" is only concluded from an unfiltered first page', async () => {
+    answer = () => page([]);
+    await syncEventsList({ tab: 'upcoming' });
+    expect(getEventsList('pm', { query: BASE_QUERY }).empty).toBe(true);
+    await syncEventsList({ tab: 'upcoming', q: 'nothing' });
+    // A filtered page with no rows is "no match", a different screen; never "no events yet".
+    expect(getEventsList('pm', { query: BASE_QUERY }).empty).toBe(false);
+  });
+
+  test('passes through whether a further page exists and whether I may create events', async () => {
+    answer = () => page([listItem()], { nextCursor: 'c1', caps: { createEvent: false } });
+    await syncEventsList({ tab: 'upcoming' });
+    expect(getEventsList('pm', { query: BASE_QUERY })).toMatchObject({
+      more: true,
+      createEvent: false,
+    });
   });
 });
 
-describe('events calendar', () => {
-  test('month grid: dots for one or two-plus events, a recurring event on each date', () => {
-    expect(dots('pm')).toEqual({ 1: 1, 7: 2, 8: 1, 9: 1, 13: 1, 15: 1, 23: 1 });
-    expect(dots('member')).toEqual({ 1: 1, 7: 2, 9: 1, 15: 1, 23: 1 });
-    expect(dots('pm', '2026-11-01')).toEqual({ 6: 1, 20: 1 });
+describe('the calendar', () => {
+  test('asks for the whole shown month, both halves of today', () => {
+    expect(windowKeyOf('month', '2026-10-07', BASE_QUERY)).toEqual({
+      from: '2026-10-01',
+      to: '2026-10-31',
+      kind: undefined,
+      projectId: undefined,
+    });
+    expect(windowKeyOf('week', '2026-10-07', BASE_QUERY)).toMatchObject({
+      from: '2026-10-05',
+      to: '2026-10-11',
+    });
   });
 
-  test('opens on today with its agenda by start time; Show is ignored, type is kept', () => {
-    const c = getEventsCalendar('pm', { view: 'month', query: { ...BASE_QUERY, when: 1 } });
-    expect([c.title, c.lead, c.days.length, c.agendaDate]).toEqual([
-      'October 2026',
-      3,
-      31,
-      'Wed, Oct 7',
-    ]);
-    // a date's label carries the count its dots stand for
-    expect(c.days.find((d) => d.selected)?.label).toBe('Wed, Oct 7, 2 events');
-    expect(c.days.find((d) => d.date === '2026-10-08')?.label).toBe('Thu, Oct 8, 1 event');
-    expect(c.days.find((d) => d.date === '2026-10-02')?.label).toBe('Fri, Oct 2');
-    expect(c.hiddenByFilters).toBe(false);
-    expect(c.agenda.map((a) => [a.event.id, a.status])).toEqual([
-      ['daily', 'Done'],
-      ['review', 'Today'],
-    ]);
-    expect(c.filtered).toBe(false);
-    const review = TYPE_FILTERS.indexOf('Review');
-    const typed = getEventsCalendar('pm', {
+  test("draws dots and the picked day's agenda from the window", async () => {
+    answer = () =>
+      page([
+        listItem(),
+        listItem({
+          id: 'e-2',
+          startsAt: '2026-10-07T01:00:00.000Z',
+          endsAt: '2026-10-07T02:00:00.000Z',
+        }),
+        listItem({
+          id: 'e-3',
+          startsAt: '2026-10-09T07:00:00.000Z',
+          endsAt: '2026-10-09T08:00:00.000Z',
+        }),
+      ]);
+    await syncEventsWindow(windowKeyOf('month', '2026-10-07', BASE_QUERY));
+    const data = getEventsCalendar('pm', {
       view: 'month',
-      query: { ...BASE_QUERY, type: review },
+      picked: '2026-10-07',
+      query: BASE_QUERY,
     });
-    expect(typed.agenda.map((a) => a.event.id)).toEqual(['review']);
-    expect(typed.filtered).toBe(true);
-    expect(typed.hiddenByFilters).toBe(false);
-    const important = { ...BASE_QUERY, type: TYPE_FILTERS.indexOf('Important') };
-    const nov = { view: 'month', picked: '2026-11-01', query: important } as const;
-    expect(getEventsCalendar('pm', nov).hiddenByFilters).toBe(true);
-    // nothing to hide: September has no events with or without filters
-    expect(getEventsCalendar('pm', { ...nov, picked: '2026-09-01' }).hiddenByFilters).toBe(false);
+    expect(data.title).toBe('October 2026');
+    expect(data.days.filter((d) => d.dots).map((d) => [d.day, d.dots])).toEqual([
+      [7, 2],
+      [9, 1],
+    ]);
+    expect(data.days.find((d) => d.day === 9)?.label).toBe('Fri, Oct 9, 1 event');
+    // The agenda is ordered by the instant, so 08:00 comes before 14:00.
+    expect(data.agenda.map((a) => a.event.id)).toEqual(['e-2', 'e-review']);
+    expect(data.agenda[0]).toMatchObject({ href: '/events/e-2', status: 'Today' });
+    expect(data.agendaDate).toBe('Wed, Oct 7');
   });
 
-  test('week view and the arrows', () => {
-    const w = getEventsCalendar('pm', { view: 'week', picked: '2026-10-28', query: BASE_QUERY });
-    expect([w.title, w.lead, w.days.length]).toEqual(['Oct 26 – Nov 1', 0, 7]);
+  test('offers Reset filters when the filters leave the window empty', async () => {
+    answer = () => page([]);
+    const filtered = { ...BASE_QUERY, project: 'p-sinar' };
+    await syncEventsWindow(windowKeyOf('month', '2026-10-07', filtered));
+    const data = getEventsCalendar('pm', { view: 'month', picked: '2026-10-07', query: filtered });
+    expect(data).toMatchObject({ filtered: true, hiddenByFilters: true });
+    // Nothing is claimed before the answer arrives.
+    const unfiltered = getEventsCalendar('pm', { view: 'month', query: BASE_QUERY });
+    expect(unfiltered.hiddenByFilters).toBe(false);
+  });
+
+  test('the arrows move a week by 7 days and a month to its 1st', () => {
     expect(stepCalendar('week', '2026-10-07', 1)).toBe('2026-10-14');
-    expect(stepCalendar('month', '2026-10-07', -1)).toBe('2026-09-01');
-    expect(stepCalendar('month', '2026-09-01', 1)).toBe('2026-10-07');
-  });
-
-  test('one canceled occurrence keeps the later dates Upcoming', () => {
-    cancelEvent('sprint', 'Holiday', 'Nico', { once: true });
-    const on = (picked: string) =>
-      getEventsCalendar('pm', { view: 'month', picked, query: BASE_QUERY }).agenda[0]?.status;
-    expect([on('2026-10-09'), on('2026-10-23')]).toEqual(['Canceled', 'Upcoming']);
+    expect(stepCalendar('month', '2026-10-07', 1)).toBe('2026-11-01');
+    // Back into today's month puts today back, as the prototype does.
+    expect(stepCalendar('month', '2026-11-01', -1)).toBe('2026-10-07');
   });
 });
 
-describe('event detail and form', () => {
-  test('editor, ⋯ menu and access note per role', () => {
-    expect(getEventDetail('pm', 'review')).toMatchObject({
-      editor: true,
-      menu: ['cancel', 'archive'],
-      access: null,
-      status: 'Today',
-      project: 'Atlas Project',
-    });
-    expect(getEventDetail('admin', 'review')).toMatchObject({ editor: true, access: 'admin' });
-    expect(getEventDetail('member', 'review')).toMatchObject({
-      editor: false,
-      menu: [],
-      access: 'member',
-    });
-    expect(getEventDetail('pm', 'sprint')?.access).toBe('creator');
-    cancelEvent('review', 'Room taken', 'Rina');
-    expect(getEventDetail('pm', 'review')?.menu).toEqual(['archive']);
-    expect(getEventDetail('pm', 'nope')).toBeNull();
+describe('the detail', () => {
+  beforeEach(() => {
+    answer = () => detailItem();
   });
 
-  test('attendees start with the creator and mark the note-taker', () => {
-    expect(getEventDetail('pm', 'review')?.attendees).toEqual([
-      { name: 'Rina', creator: true, noteTaker: false },
-      { name: 'Nico', creator: false, noteTaker: false },
-      { name: 'Dodi', creator: false, noteTaker: true },
+  test('is null until the event has been read', () => {
+    expect(getEventDetail('pm', 'e-review')).toBeNull();
+  });
+
+  test('shows the facts, the guests creator-first, and the project', async () => {
+    await eventDetailResource('e-review').ensure();
+    const d = getEventDetail('pm', 'e-review');
+    expect(d).toMatchObject({ status: 'Today', project: 'Atlas' });
+    expect(d?.attendees).toEqual([
+      { name: 'Rina', userId: 'u-rina', creator: true },
+      { name: 'Nico', userId: 'u-nico', creator: false },
     ]);
+    expect(d?.event.remindersMinutes).toEqual([1440, 30]);
   });
 
-  test('an archived event still opens', () => {
-    archiveEvent('review', 'Rina');
-    expect(getEventDetail('pm', 'review')?.event.title).toBe('Onboarding design review');
+  test('a personal event has no project rather than a borrowed one', async () => {
+    answer = () => detailItem({ project: null });
+    await eventDetailResource('solo').ensure();
+    expect(getEventDetail('pm', 'solo')?.project).toBeNull();
   });
 
-  test('form: a blank meeting tomorrow, or the event filled in', () => {
-    expect(getEventForm('member')).toEqual({
-      creator: 'Dodi',
-      fields: {
-        title: '',
-        date: '2026-10-08',
-        start: '10:00 AM',
-        end: '11:00 AM',
-        mode: 'In person',
-        place: '',
-        attendees: ['Dodi'],
-        type: 'Meeting',
-        project: 'atlas',
-        agenda: [],
-        repeat: '',
-      },
-    });
-    expect(getEventForm('pm', 'sprint')?.fields).toMatchObject({
-      date: '2026-10-09',
-      start: '1:00 PM',
-      end: '2:00 PM',
-      repeat: 'every 2 weeks',
-      place: 'Meeting Room 1',
-    });
-    expect(getEventForm('pm', 'sinar')?.fields.place).toBe('');
-    expect(getEventForm('pm', 'nope')).toBeNull();
+  test('every control follows can{}: absent hides, a code disables with the reason', async () => {
+    answer = () => detailItem({ can: { update: 'IMPERSONATING', cancel: 'IMPERSONATING' } });
+    await eventDetailResource('e-review').ensure();
+    const d = getEventDetail('pm', 'e-review');
+    expect(d?.edit).toBe('disabled');
+    expect(d?.editReason).toMatch(/menyamar/);
+    // `trash` was not sent, so Move to Archive is not offered at all.
+    expect(d?.menu).toEqual([
+      { action: 'cancel', enabled: false, reason: expect.stringMatching(/menyamar/) },
+    ]);
+    expect(d?.writeNote).toBe('hidden');
+  });
+
+  test('no capabilities at all means no menu and no Edit', async () => {
+    answer = () => detailItem({ can: {} });
+    await eventDetailResource('e-review').ensure();
+    expect(getEventDetail('pm', 'e-review')).toMatchObject({ edit: 'hidden', menu: [] });
+  });
+
+  test('the permission sentence comes from can.update and the creator, not from a role', async () => {
+    // A guest: update was not sent, and the creator is someone else.
+    answer = () => detailItem({ can: { writeNote: true } });
+    await eventDetailResource('guest').ensure();
+    expect(getEventDetail('member', 'guest')?.access).toBe('guest');
+    // A manager who did not create it: update is allowed.
+    answer = () => detailItem({ id: 'managed' });
+    await eventDetailResource('managed').ensure();
+    expect(getEventDetail('member', 'managed')?.access).toBe('manager');
+    // Its creator, matched by userId and not by name (K4).
+    answer = () => detailItem({ creator: { id: 'u-nico', name: 'Nico' } });
+    await eventDetailResource('mine').ensure();
+    expect(getEventDetail('pm', 'mine')?.access).toBe('creator');
   });
 });
 
-describe('meeting outcomes', () => {
-  test('a Member only reads the stand-up drafts', () => {
-    expect(getOutcomes('member', 'daily')).toMatchObject({
-      readOnly: true,
-      project: 'Atlas Project',
+describe('the form', () => {
+  test('a new event opens blank, tomorrow, with me as its one guest', () => {
+    const form = getEventForm('pm');
+    expect(form).toMatchObject({ editing: false, save: 'enabled', creatorId: 'u-nico' });
+    expect(form?.fields).toMatchObject({
+      title: '',
+      date: '2026-10-08',
+      start: '10:00 AM',
+      end: '11:00 AM',
+      mode: 'In person',
+      project: null,
+      agenda: '',
     });
-    expect(getOutcomes('pm', 'daily')?.minutes.tasks.map((t) => t.due)).toEqual(['2026-10-09', '']);
-    expect(getOutcomes('pm', 'nope')).toBeNull();
+    expect(form?.fields.guests).toEqual([{ userId: 'u-nico', name: 'Nico' }]);
   });
 
-  test('the kickoff results read their tasks live from Tasks', () => {
-    const r = getEventResults('kickoff');
-    expect(r?.tasks.map((t) => [t.no, t.status])).toEqual([
-      [8, 'Done'],
-      [12, 'In progress'],
-      [14, 'To do'],
-    ]);
-    expect(r).toMatchObject({ done: 1, confirmed: 'Confirmed by Nico · Oct 1, 2026, 11:40 AM' });
-    moveTask(14, 'Done');
-    expect(getEventResults('kickoff')?.done).toBe(2);
-    expect(getEventResults('review')).toBeNull();
+  test('an edit fills in the event, its clock times and its guests by id', async () => {
+    answer = () => detailItem();
+    await eventDetailResource('e-review').ensure();
+    const form = getEventForm('pm', 'e-review');
+    expect(form).toMatchObject({ editing: true, save: 'enabled', creatorId: 'u-rina' });
+    expect(form?.fields).toMatchObject({
+      title: 'Onboarding design review',
+      date: '2026-10-07',
+      start: '2:00 PM',
+      end: '3:00 PM',
+      place: 'Meeting Room 2',
+      meetingUrl: '',
+      project: 'p-atlas',
+      agenda: 'New onboarding flow\nFeedback from the trial users',
+    });
+    expect(form?.fields.guests.map((g) => g.userId)).toEqual(['u-rina', 'u-nico']);
   });
 
-  test('Step 3 results list the tasks it created', () => {
-    const nos = confirmOutcomes(
-      'daily',
-      [{ title: 'Fix login', who: 'Rina', due: '2026-10-09' }],
-      'Nico',
-    );
-    expect(getEventResults('daily')).toMatchObject({
-      confirmed: 'Confirmed by Nico · Oct 7',
-      tasks: [{ no: nos[0], title: 'Fix login', status: 'To do', who: 'Rina', exists: true }],
-      done: 0,
-      source: ['Source: voice recording', 'Written by Dodi (note-taker) · last edited 9:20 AM'],
+  test('an online event fills the link, not the place', async () => {
+    answer = () =>
+      detailItem({ locationType: 'online', locationText: null, meetingUrl: 'https://meet/x' });
+    await eventDetailResource('online').ensure();
+    expect(getEventForm('pm', 'online')?.fields).toMatchObject({
+      mode: 'Online',
+      place: '',
+      meetingUrl: 'https://meet/x',
     });
+  });
+
+  test("Save is disabled with the server's reason when update is denied", async () => {
+    answer = () => detailItem({ can: { update: 'PROJECT_IN_TRASH' } });
+    await eventDetailResource('frozen').ensure();
+    expect(getEventForm('pm', 'frozen')).toMatchObject({
+      save: 'disabled',
+      saveReason: expect.stringMatching(/Sampah/),
+    });
+  });
+
+  test('is null while the event it edits has not been read, and after a 404', async () => {
+    expect(getEventForm('pm', 'unknown')).toBeNull();
+    answer = () => apiError('NOT_FOUND', 'Acara tidak ditemukan.', 404);
+    await eventDetailResource('gone').ensure();
+    expect(getEventForm('pm', 'gone')).toBeNull();
   });
 });

@@ -1,6 +1,16 @@
-// Event changes, ported from the prototype's events.store.js: New event / Edit save the form, ⋯ › Cancel marks the
-// event Canceled (one occurrence or the series), ⋯ › Move to Archive moves it (or one occurrence) to Archive until Undo
-// restores it, and Step 3 › Create tasks confirms its outcomes as tasks. Screens read through src/data/events.ts.
+// The sample events and the changes the prototype made to them, ported from events.store.js.
+//
+// SAMPLE ONLY since Phase 2. The Events screens read the server (`events.api.ts`) and write through
+// it; what is still here serves the modules that have not been ported yet and read `eventsStore`
+// directly — the Profile calendar, Archive, and the Home/Inbox widgets until their own wave — plus
+// the recording → outcomes → results screens, which have no server side at all (GAP-A8).
+//
+// Nothing here talks to the server, and the two names it shares with `events.api.ts`
+// (`cancelEvent`, `restoreEvent`) act on the sample, not on a real event. Do not add to this file:
+// when a module is ported, its reads move to a resource and its share of this one goes away.
+//
+// The query store below is *not* sample-only: `eventsQueryStore` is the live Filter & sort state
+// (phase1-screens.md K4) and `events.query.ts` turns it into what the server is asked for.
 import { addEntry, removeEntry } from './archive.store';
 import { today } from './clock';
 import { addDays, dateLabel } from './events.dates';

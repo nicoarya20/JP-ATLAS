@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { Button, ButtonText } from '@/components/ui/button';
 
-import { DETAIL } from '../events.strings';
+import { DETAIL, STATE } from '../events.strings';
 import { Two } from '../parts/event-parts';
 
 type SheetPairProps = { back: string; primary: string; ok?: boolean; onPress: () => void };
@@ -28,3 +28,6 @@ export function SheetPair({ back, primary, ok = true, onPress }: SheetPairProps)
 export const SheetMissing = () => (
   <SheetFrame title={DETAIL.missingTitle} sub={DETAIL.missingText} />
 );
+
+/** Sheet whose event is still being read; the confirm cannot be offered before it is known. */
+export const SheetBusy = () => <SheetFrame testID="sheet-busy" title={STATE.loading} />;

@@ -1,10 +1,13 @@
-// Events ⑤–⑨ (port of prototype events.items.test, plus the flow of spec §10): recording needs consent, the three
-// outcome steps, Create tasks → confirmed results; a Member only reads Step 3; Cancel needs a reason; Move to Archive
-// goes back to the list with Undo.
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+// Events ⑤–⑨ (port of prototype events.items.test, plus the flow of spec §10): recording needs
+// consent, the three outcome steps, Create tasks → confirmed results; a Member only reads Step 3.
+//
+// These screens still read the SAMPLE events, because the whole recording → outcomes → results flow
+// has no server side at all (GAP-A8, `mobile/docs/phase2-gap-disembunyikan.md` §2a). Nothing in the
+// Events module links to them any more; they are reached here by their own URL, which is also the
+// only way a person can reach them. Cancel and Move to Archive, which do have server routes, are
+// tested against the server in `events.writes.test.tsx`.
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 
-import { deleteForever } from '../../src/data/archive';
-import { listEntries } from '../../src/data/archive.store';
 import { findEvent } from '../../src/data/events.store';
 import { getTasksState } from '../../src/data/tasks.store';
 import { openEvents, resetEventStores } from '../helpers/events-router';
@@ -18,10 +21,9 @@ const press = (name: string | RegExp) => fireEvent.press(button(name));
 const CONSENT = 'Attendees have been told this meeting is recorded';
 
 describe('recording and meeting outcomes', () => {
-  it('opens Recording mode from the minutes; Start recording waits for the consent', async () => {
-    await openEvents('/events/daily');
-    await press('Voice · from 9:00 AM');
-    expect(screen).toHavePathname('/events/daily/record');
+  it('Start recording waits for the consent', async () => {
+    // Opened by URL: the minutes box no longer offers Voice (GAP-A8).
+    await openEvents('/events/daily/record');
     expect(button('Start recording')).toBeDisabled();
     await fireEvent.press(screen.getByLabelText(CONSENT));
     expect(button('Start recording')).toBeEnabled();
@@ -112,77 +114,5 @@ describe('recording and meeting outcomes', () => {
     if (!first) throw new Error('the kickoff results list no task');
     await fireEvent.press(first);
     expect(screen.getByTestId(/^screen-task/)).toBeOnTheScreen();
-  });
-});
-
-describe('cancel and archive', () => {
-  it('Cancel event needs a reason, then the detail shows it and keeps only Move to Archive', async () => {
-    await openEvents('/events/review');
-    await fireEvent.press(screen.getByTestId('event-actions'));
-    await fireEvent.press(await screen.findByText('Cancel event'));
-    expect(screen.getByTestId('event-cancel')).toBeOnTheScreen();
-    const confirm = () =>
-      within(screen.getByTestId('event-cancel')).getByRole('button', { name: 'Cancel event' });
-    expect(confirm()).toBeDisabled();
-    await fireEvent.changeText(
-      screen.getByPlaceholderText("Why isn't it happening?"),
-      'Client moved it',
-    );
-    await fireEvent.press(confirm());
-    expect(screen.getByText('Event canceled')).toBeOnTheScreen();
-    await waitFor(() => expect(screen).toHavePathname('/events/review'));
-    expect(screen.getByText('Canceled by Nico')).toBeOnTheScreen();
-    expect(screen.getByText('Client moved it')).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeOnTheScreen();
-    await fireEvent.press(screen.getByTestId('event-actions'));
-    expect(await screen.findByText('Move to Archive')).toBeOnTheScreen();
-    expect(screen.queryByText('Cancel event')).not.toBeOnTheScreen();
-  });
-
-  it('Move to Archive returns to the list with Undo, which brings the event back', async () => {
-    await openEvents('/events/sinar');
-    await fireEvent.press(screen.getByTestId('event-actions'));
-    await fireEvent.press(await screen.findByText('Move to Archive'));
-    const sheet = within(screen.getByTestId('event-archive'));
-    await fireEvent.press(sheet.getByRole('button', { name: 'Move to Archive' }));
-    await waitFor(() => expect(screen).toHavePathname('/events'));
-    expect(screen.queryByTestId('event-card-sinar')).not.toBeOnTheScreen();
-    expect(screen.getByText('Event moved to Archive')).toBeOnTheScreen();
-    await press('Undo');
-    expect(screen.getByTestId('event-card-sinar')).toBeOnTheScreen();
-    expect(screen.getByText('Event restored')).toBeOnTheScreen();
-  });
-
-  it('the archive sheet’s way to Cancel is its own link, named apart from the sheet’s Cancel', async () => {
-    await openEvents('/events/sinar');
-    await fireEvent.press(screen.getByTestId('event-actions'));
-    await fireEvent.press(await screen.findByText('Move to Archive'));
-    const sheet = within(screen.getByTestId('event-archive'));
-    const link = sheet.getByRole('link', { name: 'Cancel this event instead' });
-    expect(link.props.accessibilityHint).toBe(
-      'Meeting not happening? Use Cancel so attendees know why.',
-    );
-    expect(sheet.getByRole('button', { name: 'Cancel' })).toBeOnTheScreen();
-    await fireEvent.press(link);
-    await waitFor(() => expect(screen).toHavePathname('/events/sinar/cancel'));
-  });
-
-  it('Undo after Archive deleted the event forever says so and restores nothing', async () => {
-    await openEvents('/events/sinar');
-    await fireEvent.press(screen.getByTestId('event-actions'));
-    await fireEvent.press(await screen.findByText('Move to Archive'));
-    const sheet = within(screen.getByTestId('event-archive'));
-    await fireEvent.press(sheet.getByRole('button', { name: 'Move to Archive' }));
-    await waitFor(() => expect(screen).toHavePathname('/events'));
-    const entry = listEntries().find((x) => x.ref === 'sinar');
-    if (!entry) throw new Error('archiving sinar wrote no Archive entry');
-    await act(async () => deleteForever(entry.key));
-    await press('Undo');
-    expect(
-      screen.getByText("This event was deleted forever and can't be restored."),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId('snack')).not.toBeOnTheScreen();
-    expect(screen.queryByTestId('event-card-sinar')).not.toBeOnTheScreen();
-    expect(findEvent('sinar')).toBeUndefined();
   });
 });

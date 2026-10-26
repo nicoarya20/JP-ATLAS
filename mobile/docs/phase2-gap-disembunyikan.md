@@ -54,6 +54,45 @@ setiap baris di bawah berstatus `rencana`. Id GAP merujuk tabel di `phase2-map-*
 kelompok A yang dibangun. Begitu juga opsi form tugas (Tasks A12), rute hapus permanen Sampah
 (Home/Inbox/Team A-24), dan `caps.createProject` (Projects A-17).
 
+### 2a. Acara — yang benar-benar dihapus Gelombang 1 (26 Okt 2026)
+
+Baris di tabel §2 di atas berstatus `rencana` karena Gelombang 0 tidak menyentuh layar. Tabel ini
+mencatat penghapusannya yang sudah dikerjakan, dengan berkas layarnya. Satu baris §2 bisa jadi
+beberapa baris di sini, karena satu GAP menyentuh beberapa kontrol.
+
+| Kontrol / bidang yang dihapus | Berkas layar | GAP | Status |
+|---|---|---|---|
+| Badge **Repeat** di kartu daftar | `screens/events/list/event-card.tsx` | A4 | disembunyikan |
+| Pill **Repeats** di kepala detail | `screens/events/detail/event-detail.screen.tsx` | A4 | disembunyikan |
+| Baris fakta **Repeat** | `screens/events/detail/event-facts.tsx` | A4 | disembunyikan |
+| Pilihan **Repeat** di form (dan `REPEATS` yang hanya dipakai layar) | `screens/events/form/event-details.tsx` | A4 | disembunyikan |
+| Kemunculan berulang di kalender (dot & agenda hanya pada tanggal acara itu sendiri) | `data/events.calendar.ts` | A4 | disembunyikan |
+| **"Which one?"** di sheet Cancel dan Archive, beserta judul varian `-recurring` dan komponen `which-one.tsx` (dihapus) | `screens/events/sheets/{cancel,archive}.screen.tsx` | A5 | disembunyikan |
+| Catatan "Only this occurrence; the next ones continue." di kotak Canceled | `screens/events/detail/event-detail.screen.tsx` | A5 | disembunyikan |
+| Peran **Note-taker** di daftar hadir | `screens/events/detail/event-detail.screen.tsx` | A6 | disembunyikan |
+| Bagian "· by \<editor\>" di kaki detail (tanggal `Updated` tetap tampil) | `screens/events/detail/event-detail.screen.tsx` | A7 | disembunyikan |
+| Tombol **View results** / **Check results** di kartu, dan rutenya ke `/results` dan `/outcomes/3` | `screens/events/list/event-card.tsx`, `data/events.list.ts` | A8 | disembunyikan |
+| Tombol **Type**, **Photo**, **Voice** di kotak Minutes (dan tautan ke layar rekaman) | `screens/events/detail/event-minutes.tsx` | A8 | disembunyikan |
+| Cari berdasarkan **lokasi**: placeholder jadi "Search event title…", `q` dikirim ke server | `screens/events/events.strings.ts`, `data/events.query.ts` | A10 | disembunyikan |
+
+**Yang tidak disembunyikan tapi perlu dicatat:**
+
+- **Layar ⑤–⑨ (Record, Recording, Outcomes, Results) masih ada di pohon rute dan masih membaca data
+  contoh** (`data/events.results.ts`, `data/events.store.ts`). Modul Acara tidak lagi menautkannya
+  dari mana pun; keduanya hanya bisa dibuka lewat URL langsung, atau lewat `eventHref()` dari
+  Beranda/Inbox yang masih memakai data contoh sampai gelombangnya sendiri. Menghapus layarnya
+  berarti menyentuh `mobile/app/**`, di luar wilayah Gelombang 1 — jadi ditinggalkan utuh dan
+  dicatat di sini (A8).
+- **Notulensi bisa dibaca, tidak bisa ditulis.** `noteStatus` dan `note.body` dari server sudah
+  tampil; `PUT /events/:id/note` **ada** dan bukan GAP, tapi menulisnya butuh layar editor
+  notulensi tersendiri — yang ada sekarang adalah wizard Outcomes (A8). Kotak Minutes mengatakannya
+  apa adanya, bukan menampilkan tombol yang tidak bisa menyelesaikan pekerjaannya.
+- **Reminder bisa dibaca, tidak bisa diubah** (B7): detail menampilkan `remindersMinutes` yang
+  sungguhan; form memakai bawaan server dan tidak lagi menjanjikan pemilih yang tidak ada.
+- **Status `Done` bergranularitas hari** untuk pembacaan tanpa tab (kalender, detail): jam mobile
+  membawa `today`, bukan instan `now`, jadi acara yang berakhir tadi pagi masih terbaca "Today".
+  Untuk daftar, tab server yang memutuskan, jadi di sana granularitasnya persis seperti web.
+
 ## 3. Proyek, Beranda, Inbox, Tim, Profil
 
 | Kontrol / bidang | Layar | GAP | Kenapa ditunda | Status |

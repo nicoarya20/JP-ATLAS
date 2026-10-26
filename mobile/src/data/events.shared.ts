@@ -9,14 +9,9 @@ import { EVENT_RESULTS, type EventExtra, type Repeat } from './sample/events.ext
 export const TYPES = ['Meeting', 'Review', 'Important', 'Team event', 'Other'] as const;
 export type EventType = (typeof TYPES)[number];
 
-/** Repeat options of the form as [label, repeat value]; index 0 = does not repeat. */
-export const REPEATS: readonly (readonly [string, Repeat | ''])[] = [
-  ['No', ''],
-  ['Daily', 'daily'],
-  ['Every week', 'every week'],
-  ['Every 2 weeks', 'every 2 weeks'],
-];
-
+// `REPEATS` (the form's repeat picker options) is gone with the picker itself: recurrence is refused
+// by the API (GAP-A4), and a list of options nothing offers is dead code. `REPEAT_DAYS` stays — the
+// sample calendar still walks a series with it until the Profile calendar is ported.
 /** How many days apart a recurring event's next dates are, per repeat option. */
 export const REPEAT_DAYS: Record<Repeat, number> = {
   daily: 1,
@@ -29,9 +24,14 @@ export const DEFAULT_PROJECT = 'atlas';
 
 export type Cancellation = {
   reason: string;
+  /** Name of whoever canceled it; the list DTO carries no canceller, so it is empty there. */
   by: string;
-  /** Only this occurrence of a recurring event; the next ones continue. */
-  once: boolean;
+  /**
+   * Only this occurrence of a recurring event; the next ones continue. Optional and never set from
+   * the server: cancelling one occurrence needs recurrence, which the API does not have
+   * (GAP-A4/A5). Only the sample path still writes it.
+   */
+  once?: boolean;
 };
 
 /** Step 3 › Create tasks: the task numbers it made, who confirmed and when (ISO). */
