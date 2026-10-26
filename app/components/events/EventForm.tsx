@@ -1,7 +1,12 @@
 /**
- * Event form (S7 E-10): owns the values, the stage, the create request and the way out. After a save
- * it releases the unsaved-changes guard first and only then goes to the new event, as the task form
+ * Event form (S7 E-10): owns the values, the stage, the write and the way out. After a save
+ * it releases the unsaved-changes guard first and only then goes to the event, as the task form
  * does, or the leave would be asked about again.
+ *
+ * Two modes. Without `eventId` it creates (`POST /events`). With one it changes that event
+ * (`PATCH /events/:id`) and `locked` reads out the project and the guests the route refuses to
+ * take; stage 2 opens straight away then, because an edit is as likely to be about the agenda or
+ * the reminders as about the time.
  */
 import { useForm } from '@mantine/form';
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,8 +21,10 @@ import {
   validateEvent,
 } from '~/lib/event-form';
 import { EVENT_FORM_COPY as COPY } from '~/lib/event-form.copy';
+import { saveEventChanges } from '~/lib/event-form.edit';
 import { eventHref, eventKeys } from '~/lib/events-api';
 import { useUnsavedGuard } from '~/lib/use-unsaved-guard';
+import type { EventFormLocked } from './EventFormLocked';
 import { EventFormView } from './EventFormView';
 
 type Props = {
@@ -26,12 +33,16 @@ type Props = {
   /** The team zone (`APP_TIME_ZONE`) the typed date and times are read in. */
   timeZone: string;
   cancelTo: string;
+  /** Edit mode: the event being changed. Absent means a new event is being created. */
+  eventId?: string;
+  /** Edit mode: what to read out where the project select and the guest picker would be. */
+  locked?: EventFormLocked;
 };
 
-export function EventForm({ initial, projects, timeZone, cancelTo }: Props) {
+export function EventForm({ initial, projects, timeZone, cancelTo, eventId, locked }: Props) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [more, setMore] = useState(false);
+  const [more, setMore] = useState(eventId !== undefined);
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -52,10 +63,13 @@ export function EventForm({ initial, projects, timeZone, cancelTo }: Props) {
     async (values) => {
       setSaving(true);
       setServerError(null);
-      const res = await saveEvent(values, timeZone);
+      const res = eventId
+        ? await saveEventChanges(eventId, values, timeZone)
+        : await saveEvent(values, timeZone);
       if (res.ok) {
         // `saving` stays on until the page leaves, so the button cannot be pressed twice meanwhile.
-        notify.success(COPY.saved(values.title.trim()));
+        const title = values.title.trim();
+        notify.success(eventId ? COPY.savedEdit(title) : COPY.saved(title));
         void queryClient.invalidateQueries({ queryKey: eventKeys.all });
         setSavedId(res.id);
         return;
@@ -80,6 +94,7 @@ export function EventForm({ initial, projects, timeZone, cancelTo }: Props) {
       saving={saving}
       serverError={serverError}
       cancelTo={cancelTo}
+      locked={locked}
       onSubmit={submit}
     />
   );

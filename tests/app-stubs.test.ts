@@ -59,6 +59,7 @@ describe('page stubs', () => {
     const nonStubs = appFiles.filter((f) => !(f in ROUTE_STUBS)).sort();
     expect(nonStubs).toEqual([
       'app/routes/app/event-detail.tsx',
+      'app/routes/app/event-edit.tsx',
       'app/routes/app/event-new.tsx',
       'app/routes/app/events.tsx',
       'app/routes/app/home.tsx',

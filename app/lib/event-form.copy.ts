@@ -1,4 +1,4 @@
-/** Indonesian copy of the two-stage event form (S7 E-10). */
+/** Indonesian copy of the two-stage event form (S7 E-10) in both modes: event baru and ubah acara. */
 export const EVENT_FORM_COPY = {
   pageTitle: 'Event baru',
   pageDescription: 'Isi judul, waktu, lokasi, dan peserta. Rincian lain boleh menyusul.',
@@ -54,6 +54,16 @@ export const EVENT_FORM_COPY = {
   save: 'Simpan event',
   cancel: 'Batal',
   saved: (title: string) => `Event "${title}" tersimpan.`,
+  // Mode ubah: proyek dan daftar peserta dikunci karena rutenya menolak kedua kolom itu.
+  editTitle: 'Ubah acara',
+  editDescription: 'Ubah judul, waktu, lokasi, dan rincian acara ini.',
+  backToEvent: 'Kembali ke detail acara',
+  saveEdit: 'Simpan perubahan',
+  savedEdit: (title: string) => `Perubahan acara "${title}" tersimpan.`,
+  editForbidden: 'Kamu tidak bisa mengubah acara ini.',
+  projectLocked: 'Acara tidak bisa dipindah ke proyek lain.',
+  participantsLocked: 'Atur daftar peserta dari halaman detail acara.',
+  participantsEmpty: 'Belum ada peserta.',
   saveFailed: 'Event belum tersimpan.',
   notMember:
     'Kamu belum menjadi anggota proyek ini, jadi belum bisa membuat event di sana. Pilih proyek lain atau kosongkan pilihan proyek.',

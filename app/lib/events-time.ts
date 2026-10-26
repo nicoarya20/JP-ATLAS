@@ -77,3 +77,18 @@ export function zonedInstant(
   const first = wall - offsetAt(wall, timeZone);
   return new Date(wall - offsetAt(first, timeZone)).toISOString();
 }
+
+/**
+ * The wall clock of `timeZone` at `iso`, split the way the form holds it: a `YYYY-MM-DD` date and an
+ * `HH:mm` time. The inverse of `zonedInstant`, so an event opened for editing and saved again
+ * unchanged keeps exactly the instant it had.
+ */
+export function zonedParts(iso: string, timeZone: string): { date: string; time: string } {
+  const parts = clockIn(timeZone).formatToParts(new Date(iso));
+  const at = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  const pad = (value: string, width = 2) => value.padStart(width, '0');
+  return {
+    date: `${pad(at('year'), 4)}-${pad(at('month'))}-${pad(at('day'))}`,
+    time: `${pad(at('hour'))}:${pad(at('minute'))}`,
+  };
+}

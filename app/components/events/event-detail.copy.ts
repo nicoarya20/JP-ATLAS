@@ -24,8 +24,10 @@ export const DETAIL_COPY = {
   canceledBy: (name: string) => `Dibatalkan oleh ${name}`,
 } as const;
 
-/** The cancel dialog, the delete-with-undo flow and their toasts. */
+/** The ⋯ menu items, the cancel dialog, the delete-with-undo flow and their toasts. */
 export const ACTION_COPY = {
+  editItem: 'Ubah acara',
+  editHint: 'Ubah judul, waktu, lokasi, dan rincian lainnya.',
   cancelItem: 'Batalkan acara',
   cancelHint: 'Semua peserta akan diberi tahu.',
   cancelEnded: 'Acara yang sudah selesai tidak bisa dibatalkan.',

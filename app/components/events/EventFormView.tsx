@@ -2,6 +2,8 @@
  * The event form as drawn: stage 1 (judul, waktu, lokasi, peserta) always, stage 2 behind
  * "Tambahkan rincian", then Batal and Simpan. It holds no state of its own so a test can render any
  * moment of the form; `EventForm` owns the values, the stage, the request and the redirect.
+ * `locked` switches it to edit mode: the two fields the PATCH route refuses are read out instead
+ * of being offered (`EventFormLocked.tsx`), and the submit button says "Simpan perubahan".
  */
 import { Alert, Box, Button, Group, SimpleGrid, Stack, Text, TextInput } from '@mantine/core';
 import { DateInput, TimeInput } from '@mantine/dates';
@@ -17,6 +19,7 @@ import {
 import { EVENT_FORM_COPY as COPY } from '~/lib/event-form.copy';
 import { addMinutes } from '~/lib/events-time';
 import { EventFormDetails } from './EventFormDetails';
+import { type EventFormLocked, LockedParticipants } from './EventFormLocked';
 import { ParticipantPicker } from './ParticipantPicker';
 
 export const EVENT_DATE_FORMAT = 'D MMMM YYYY';
@@ -33,6 +36,8 @@ type Props = {
   /** The sentence for a refused save; field messages sit on their own fields. */
   serverError: string | null;
   cancelTo: string;
+  /** Set in edit mode: project and guests are read out, and the submit button changes its label. */
+  locked?: EventFormLocked;
   /** Called by the native submit; `EventForm` passes `form.onSubmit(...)`. */
   onSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
 };
@@ -45,6 +50,7 @@ export function EventFormView({
   saving,
   serverError,
   cancelTo,
+  locked,
   onSubmit,
 }: Props) {
   const startProps = form.getInputProps('startTime');
@@ -88,15 +94,19 @@ export function EventFormView({
           wrapperProps={field('location')}
           {...form.getInputProps('location')}
         />
-        <ParticipantPicker
-          value={form.values.participantIds}
-          onChange={(ids) => form.setFieldValue('participantIds', ids)}
-          projectId={form.values.projectId}
-          error={form.errors.participantIds as string | undefined}
-          wrapperProps={field('participants')}
-        />
+        {locked ? (
+          <LockedParticipants participants={locked.participants} />
+        ) : (
+          <ParticipantPicker
+            value={form.values.participantIds}
+            onChange={(ids) => form.setFieldValue('participantIds', ids)}
+            projectId={form.values.projectId}
+            error={form.errors.participantIds as string | undefined}
+            wrapperProps={field('participants')}
+          />
+        )}
         {more ? (
-          <EventFormDetails form={form} projects={projects} />
+          <EventFormDetails form={form} projects={projects} locked={locked} />
         ) : (
           <Text size="sm" c="dimmed">
             {COPY.autoDefaults}
@@ -130,7 +140,7 @@ export function EventFormView({
             {COPY.cancel}
           </Button>
           <Button type="submit" loading={saving}>
-            {COPY.save}
+            {locked ? COPY.saveEdit : COPY.save}
           </Button>
         </Group>
       </Stack>
