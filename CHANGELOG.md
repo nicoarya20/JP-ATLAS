@@ -191,6 +191,7 @@ Semua perubahan penting di project ini dicatat di sini. Format mengikuti
 
 ### Fixed
 - Di aplikasi mobile (pratinjau Fase 1), menyentuh atau menggeser pil tab bar di bawah layar tidak lagi membuat app tertutup sendiri di iPhone.
+- Di aplikasi mobile, tab **More** kini membuka panel berisi kartu profil dan ubin Inbox, Team, Archive, dan Settings; sebelumnya panel terbuka tanpa isi.
 - Bila storage lokal (RustFS) mati saat menyala, misalnya karena pustaka sistem yang dibutuhkannya tidak ada, server kini langsung berhenti dengan alasan kegagalannya. Sebelumnya server menunggu sampai batas waktu 30 detik habis lalu melapor tanpa keterangan, karena kegagalan lewat sinyal (bukan kode keluar) tidak terdeteksi dan pesan galatnya belum sempat terbaca.
 - Sidebar kini lebih lebar (296 px) sehingga nama aplikasi di header tidak lagi terpotong menjadi "Si…" di samping ikon lonceng, tema, dan ciutkan.
 - Agenda Beranda (`GET /api/app/events/agenda`) kini ikut menampilkan acara yang sedang berlangsung; sebelumnya acara hilang dari agenda begitu jam mulainya lewat.
