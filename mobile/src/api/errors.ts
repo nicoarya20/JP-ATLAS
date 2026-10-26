@@ -55,8 +55,12 @@ export class ApiError extends Error {
     issues?: readonly ApiIssue[];
     cause?: unknown;
   }) {
-    super(init.message, init.cause === undefined ? undefined : { cause: init.cause });
+    super(init.message);
     this.name = 'ApiError';
+    // Assigned rather than passed as `super`'s `cause` option, so it is kept whether or not the
+    // engine supports that option — Hermes and JSC differ, and a dropped cause is exactly the
+    // detail a bug report needs.
+    if (init.cause !== undefined) this.cause = init.cause;
     this.code = init.code;
     this.status = init.status;
     this.requestId = init.requestId ?? null;
@@ -88,6 +92,7 @@ export function apiErrorFromResponse(
   response: Response,
   body: unknown,
   fallbackMessage: string,
+  cause?: unknown,
 ): ApiError {
   const shape = (typeof body === 'object' && body !== null ? body : {}) as Partial<ApiErrorBody>;
   const issues = Array.isArray(shape.issues) ? shape.issues.filter(isIssue) : [];
@@ -99,5 +104,7 @@ export function apiErrorFromResponse(
       (typeof shape.requestId === 'string' ? shape.requestId : null) ??
       response.headers.get('x-request-id'),
     issues,
+    // Why the body could not be read, when that is why we fell back to the generic message.
+    cause,
   });
 }

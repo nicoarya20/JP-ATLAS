@@ -234,11 +234,22 @@ describe('a failed network is never swallowed', () => {
     expect(isApiError(err) && err.code).toBe(CLIENT_CODES.ABORTED);
   });
 
-  it('reports a 200 whose body is not JSON as BAD_RESPONSE', async () => {
+  it('reports a 200 whose body is not JSON as BAD_RESPONSE, keeping why it failed', async () => {
     mockFetch(async () => new Response('not json', { status: 200 }));
     const err = await apiGet('/api/app/home').catch((e: unknown) => e);
     expect(isApiError(err) && err.code).toBe(CLIENT_CODES.BAD_RESPONSE);
     expect(isApiError(err) && err.status).toBe(200);
+    // The parse error is carried, not swallowed, so a bug report can say what arrived.
+    // `instanceof Error` is avoided on purpose: the body parser throws from another realm here,
+    // which is also why ApiError assigns `cause` instead of trusting the engine's option.
+    expect(String((err as ApiError).cause)).toContain('JSON');
+  });
+
+  it('carries the parse error of an error response that is not JSON either', async () => {
+    mockFetch(async () => new Response('<html>502</html>', { status: 502 }));
+    const err = await apiGet('/api/app/home').catch((e: unknown) => e);
+    expect(isApiError(err) && err.code).toBe('HTTP_502');
+    expect(String((err as ApiError).cause)).toContain('JSON');
   });
 });
 

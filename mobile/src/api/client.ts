@@ -141,13 +141,18 @@ export async function apiRequest(path: string, options: ApiRequestOptions = {}):
   }
 }
 
-/** Reads a JSON body, or null when there is none (204) or it is unreadable. */
-async function readJson(response: Response): Promise<unknown> {
-  if (response.status === 204) return null;
+/**
+ * Reads a JSON body. A body that will not parse is reported, not swallowed (§11): the parse
+ * error comes back as `failure` so the caller can attach it as the ApiError's cause.
+ */
+async function readJson(
+  response: Response,
+): Promise<{ body: unknown; failure: unknown } | { body: unknown; failure?: never }> {
+  if (response.status === 204) return { body: null };
   try {
-    return await response.json();
-  } catch {
-    return null;
+    return { body: await response.json() };
+  } catch (failure) {
+    return { body: null, failure };
   }
 }
 
@@ -159,9 +164,9 @@ async function readJson(response: Response): Promise<unknown> {
  */
 export async function apiJson<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const response = await apiRequest(path, options);
-  const body = await readJson(response);
+  const { body, failure } = await readJson(response);
 
-  if (!response.ok) throw apiErrorFromResponse(response, body, CLIENT_MESSAGES.HTTP);
+  if (!response.ok) throw apiErrorFromResponse(response, body, CLIENT_MESSAGES.HTTP, failure);
   if (response.status === 204) return undefined as T;
   if (body === null) {
     throw new ApiError({
@@ -169,6 +174,7 @@ export async function apiJson<T>(path: string, options: ApiRequestOptions = {}):
       code: CLIENT_CODES.BAD_RESPONSE,
       status: response.status,
       requestId: response.headers.get('x-request-id'),
+      cause: failure,
     });
   }
   return body as T;
