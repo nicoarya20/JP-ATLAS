@@ -1,7 +1,7 @@
 import {
   agendaLines,
-  DATES,
-  DUE_DATES,
+  formDates,
+  formDueDates,
   MODES,
   savedFields,
   TIMES,
@@ -35,11 +35,11 @@ describe('events form', () => {
   });
 
   test('dates run from today to the end of October', () => {
-    expect(DATES).toHaveLength(25);
-    expect(DATES[0]).toEqual({ value: '2026-10-07', label: 'Wed, Oct 7' });
-    expect(DATES[1]).toEqual({ value: '2026-10-08', label: 'Thu, Oct 8' });
-    expect(DATES[24]).toEqual({ value: '2026-10-31', label: 'Sat, Oct 31' });
-    expect(DUE_DATES[2]).toEqual({ value: '2026-10-09', label: 'Oct 9' });
+    expect(formDates()).toHaveLength(25);
+    expect(formDates()[0]).toEqual({ value: '2026-10-07', label: 'Wed, Oct 7' });
+    expect(formDates()[1]).toEqual({ value: '2026-10-08', label: 'Thu, Oct 8' });
+    expect(formDates()[24]).toEqual({ value: '2026-10-31', label: 'Sat, Oct 31' });
+    expect(formDueDates()[2]).toEqual({ value: '2026-10-09', label: 'Oct 9' });
     expect(MODES).toEqual(['In person', 'Online']);
   });
 

@@ -14,6 +14,7 @@ import {
 } from '../../src/data/profile.calendar.dates';
 import { pageOf } from '../../src/data/profile.calendar.swipe';
 import { getProfileState, NOTE_MAX, resetProfile, setProfile } from '../../src/data/profile.store';
+import { viewerNamed } from '../helpers/session-fixtures';
 
 const events = () => eventsStore.get().list;
 
@@ -49,7 +50,7 @@ describe('profile.calendar.dates', () => {
   test('the grid opens an hour before now, the first event, or 8 AM', () => {
     const at = (min: number) => ((min - 60) / 60) * HOUR_PX;
     expect(initialScroll(true, [])).toBe(at(NOW_MIN));
-    const first = eventsFor(events(), 'Nico')[0];
+    const first = eventsFor(events(), viewerNamed('Nico'))[0];
     expect(initialScroll(false, [first])).toBe(at(first.start));
     expect(initialScroll(false, [])).toBe(at(FIRST_MIN));
   });

@@ -10,7 +10,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { monthDay } from '@/data/dates';
-import { DUE_DATES } from '@/data/events.form';
+import { formDueDates } from '@/data/events.form';
 import type { DraftTask } from '@/data/sample/events.extra';
 
 import { SPOKEN } from '../events.strings.added';
@@ -19,7 +19,7 @@ import { OUTCOMES } from '../events.strings.outcomes';
 /** "View" is a short link (about 36 pt wide): 8 pt each side reaches the 44 pt target without widening it. */
 const VIEW_SLOP = { left: 8, right: 8 } as const;
 
-const DUE_OPTIONS = [{ value: '', label: OUTCOMES.pickDue }, ...DUE_DATES];
+const dueOptions = () => [{ value: '', label: OUTCOMES.pickDue }, ...formDueDates()];
 
 /** What a PM or Admin may do to the drafts; left out for a Member. */
 export type DraftEdit = {
@@ -57,7 +57,7 @@ function Draft({ t, i, edit }: { t: DraftTask; i: number; edit?: DraftEdit }) {
       {!t.due && edit && (
         <SelectField
           label={OUTCOMES.dueLabel(t.title)}
-          options={DUE_OPTIONS}
+          options={dueOptions()}
           value=""
           onChange={(due) => due && edit.due(i, due)}
         />

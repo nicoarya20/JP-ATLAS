@@ -3,6 +3,7 @@
 // into Archive until Undo, and the Members tab changes roles or removes a member. Screens read through projects.ts;
 // other modules (Tasks, Home) read projects through the getters here, so a renamed or archived project shows as such.
 import { addEntry, findEntry, removeEntry } from './archive.store';
+import { today } from './clock';
 import { BASE_QUERY, type ProjectsQuery } from './projects.query';
 import {
   findProject,
@@ -10,7 +11,6 @@ import {
   projectNameTaken,
   projectsStore as store,
 } from './projects.state';
-import { TODAY } from './sample';
 import type { ProjectRole } from './sample/projects.extra';
 import { createStore, useStore } from './store';
 import {
@@ -64,7 +64,7 @@ function save(p: ProjectItem, log?: string) {
     ...s,
     list: swap(s.list, p),
     activity: log
-      ? { ...s.activity, [p.id]: [{ text: log, on: TODAY }, ...(s.activity[p.id] ?? [])] }
+      ? { ...s.activity, [p.id]: [{ text: log, on: today() }, ...(s.activity[p.id] ?? [])] }
       : s.activity,
   }));
 }
@@ -122,7 +122,7 @@ export function archiveProject(id: string, by: string): string {
     title: p.name,
     where: 'Project',
     by,
-    date: TODAY,
+    date: today(),
     includes: taskCount(taskCountOf(id)),
     ref: id,
   });

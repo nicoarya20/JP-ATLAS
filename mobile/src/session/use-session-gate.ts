@@ -3,8 +3,15 @@
 // app comes up — before that, every /api/app/* request would go out without the session cookie.
 import { useEffect, useState } from 'react';
 
+import { ensureClock } from '@/data/home.api';
+
 import { connectSession, refreshSession } from './session.actions';
-import { type SessionState, sessionStore, useSession } from './session.state';
+import {
+  type SessionState,
+  sessionStore,
+  setSessionUnreachable,
+  useSession,
+} from './session.state';
 
 export type SessionGate = SessionState & {
   /** Reads the session again; used by the "Try again" button on the unreachable screen. */
@@ -25,11 +32,35 @@ export function useSessionGate(): SessionGate {
     if (sessionStore.get().status === 'loading') void refreshSession();
   }, []);
 
+  // An approved account still has no date to show until the server's clock has arrived (K1), so
+  // fetch it here — at app start and again after a sign-in, which this effect sees as a status
+  // change. A failure that says nothing about the session gets the retry screen, the same as a
+  // session that could not be read: guessing a date is worse than asking again.
+  const needsClock = session.status === 'signed-in' && session.clock === null;
+  useEffect(() => {
+    if (!needsClock) return;
+    void ensureClock().then((state) => {
+      if (state.phase !== 'failed' || !state.error) return;
+      // A 401/403 has already moved the session on (applyApiError); only a failure that proved
+      // nothing about the account leaves an approved session with no clock, and that is the one
+      // worth offering a retry for.
+      const after = sessionStore.get();
+      if (after.status === 'signed-in' && after.clock === null) setSessionUnreachable(state.error);
+    });
+  }, [needsClock]);
+
   const retry = () => {
     if (retrying) return;
     setRetrying(true);
     void refreshSession().finally(() => setRetrying(false));
   };
 
-  return { ...session, retry, retrying };
+  return {
+    ...session,
+    // Held on `loading` until the clock is in: the root layout keeps the splash up for that, so no
+    // dated screen can draw a frame with a date the server has not given us.
+    status: needsClock ? 'loading' : session.status,
+    retry,
+    retrying,
+  };
 }

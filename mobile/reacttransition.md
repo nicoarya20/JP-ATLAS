@@ -160,13 +160,35 @@ Branch induk: `feature/mobile-api`. Serah-terima Tahap 1: `/tmp/sp-mobile-handov
 |---|---|---|---|---|
 | P2-1 | Fondasi: `bun install`, plugin `expo()` + `MOBILE_TRUSTED_ORIGINS` di server, `src/api/{client,errors,auth}.ts`, `.env.example` di dua tempat, skrip `dev:all` | Tahap 1 | ✅ `247cc65` `9cf3397` `dddea9b` | — |
 | P2-2 | Gerbang login: layar `(auth)` memakai `getAuthClient()`, `connectSessionToApi()` saat app start, redirect sesuai status akun (`pending`/`rejected`/`banned`) | Tahap 2 | ✅ `8e99384` `89645c4` `8c68315` `863f6f1` | P2-1 |
-| P2-3 | Ganti data contoh per layar, mulai dari Home (`GET /api/app/home`), lewat titik tukar di `src/data/*` | ⏳ | ⏳ | P2-2 |
+| P2-3a | **Gelombang 0 — fondasi data, nol layar:** store jam dari server (K1), cabut `TODAY` ambient, helper instan tunggal (K2), identitas `userId` (K4), pola `fetch → store → invalidate`, daftar GAP yang disembunyikan | Gelombang 0 | ✅ `70ebb9b` `e170ce5` `addc746` `0dfff4b` | P2-2 |
+| P2-3b | Ganti data contoh per layar (2–3 worker per modul), mengikuti `docs/phase2-pola-data.md` | ⏳ | ⏳ | P2-3a |
 
 **Yang sudah ada setelah P2-2** (serah-terima lengkap: `/tmp/sp-mobile-handover/tahap-2.md`)
 - Keadaan sesi di `mobile/src/session/*`: satu store (`status` = `loading` | `signed-out` | `pending` | `rejected` | `signed-in` | `unreachable`), `statusOfUser` meniru `heldKindOf` di `server/account/status.ts`, dan `applyApiError` membiarkan 401/403 dari `/api/app/*` mengoreksi keadaan itu. Slot `clock` (`today`/`timeZone`, K1) sudah ada dan **masih null** — P2-3 yang mengisinya dari `GET /api/app/home`.
 - Gerbang di `app/_layout.tsx` memakai `Stack.Protected`, jadi layar yang gurdanya `false` tidak pernah terdaftar dan tak ada frame data yang sempat tergambar. Splash ditahan sampai sesi terbaca.
 - Masuk hanya dengan **email + sandi**. Tombol Google tetap tampil tapi `isDisabled` dengan alasannya tertulis (bukan tooltip).
 - Pesan server ditampilkan apa adanya (K5); pesan buatan klien hanya untuk kegagalan yang tak pernah sampai ke server.
+
+**Yang sudah ada setelah Gelombang 0** (serah-terima lengkap: `/tmp/sp-mobile-handover/gelombang-0.md`)
+- **Jam dari server**, bukan dari perangkat. `src/data/clock.ts` membaca `today`/`timeZone` dari
+  `SessionState.clock`, yang diisi `GET /api/app/home` (K1). Gerbang **menahan splash** sampai jam itu
+  tiba, jadi di seluruh layar aplikasi `today()` dijamin ada — seperti `user`. `requireClock()`
+  **melempar** kalau jam belum ada: gagal keras jauh lebih baik daripada diam-diam memakai tanggal
+  perangkat atau tanggal mati.
+- **`TODAY = '2026-10-07'` tidak punya pembaca lagi di jalur produksi.** Tersisa sebagai fixture tes
+  (hari yang digambarkan data contoh), dan tidak lagi di-reekspor dari `src/data/sample/index.ts`.
+- **Satu helper instan** (`src/data/instant.ts`) untuk `createdAt`/`updatedAt`/`timeline.at`/
+  `startsAt`/`endsAt`/`canceledAt`, selalu dengan zona tim dari jam server (K2). Hitung
+  tanggal-ke-tanggal di `dates.ts`/`events.dates.ts` **tidak** diubah — jangkar UTC-nya sudah benar.
+- **Identitas orang dari sesi** (`src/data/viewer.ts`, K4): `viewer(role).userId`, dan satu
+  `samePerson()`/`someSamePerson()` menggantikan seluruh perbandingan nama depan. Nama hanya untuk
+  ditampilkan. Parameter `role` **masih** dioper (opsional, jatuh ke peran sesi) — hutang yang
+  tercatat di `docs/phase2-gap-disembunyikan.md` §4.1, karena mencabutnya menyentuh ~40 berkas layar.
+- **Pola data wajib** di `docs/phase2-pola-data.md`, dengan `src/data/resource.ts` sebagai
+  implementasinya dan `src/data/home.api.ts` sebagai contoh. Dua aturan pentingnya datang dari
+  pengukuran, bukan dugaan (lihat §7 dan `__tests__/data/router-store-contract.test.tsx`).
+- **Daftar kontrol yang disembunyikan** di `docs/phase2-gap-disembunyikan.md` — Gelombang 1
+  **menambahi baris** di berkas itu, bukan membuat berkas sendiri.
 
 **Catatan untuk tahap berikutnya**
 - `cd mobile && bun run test` **harus** dijalankan dengan `--watchman=false` di mesin ini: watchman Homebrew-nya rusak (`libboost_iostreams-mt.dylib` hilang), dan jest keluar dengan kode **0 tanpa menjalankan satu tes pun** — "hijau" yang menipu. Perbaikan sebenarnya: `brew reinstall watchman` (atau `brew unlink watchman`).
@@ -177,6 +199,22 @@ Branch induk: `feature/mobile-api`. Serah-terima Tahap 1: `/tmp/sp-mobile-handov
 
 ## 7. Pertanyaan Terbuka
 
+- **Bahasa campur, diterima sadar (K5, keputusan user 26 Okt 2026).** UI mobile tetap Inggris, tapi
+  kalimat yang dirangkai server — kartu Inbox, briefing Beranda, `reason` kondisi proyek, pesan error
+  dari `server/pm/errors.ts`, alasan penolakan akun — ditampilkan **apa adanya dalam bahasa
+  Indonesia**. Mobile **tidak** menerjemahkannya dan **tidak** menyimpan salinan keduanya; dua sumber
+  kalimat pasti melenceng. Ini **hutang yang disadari**, bukan kelalaian: user memilihnya agar Fase 2
+  tidak tertunda, dan akan ditinjau ulang setelah aplikasi dipakai.
+- ~~Apakah store sinkron global cocok dengan cara Expo Router memasang-melepas layar?~~
+  **Terjawab (Gelombang 0, diukur).** Layar yang ditinggalkan **tidak** unmount dan tetap berlangganan,
+  jadi satu tulisan ke store menggambar ulang semua layar yang masih hidup dan tidak ada data basi
+  saat kembali — **tidak perlu** pembungkus async atau refresh-on-focus. Dua konsekuensinya jadi
+  aturan di `docs/phase2-pola-data.md`: fetch wajib dedupe berdasarkan kesegaran (`useEffect([])`
+  jalan sekali per *instance* layar), dan store yang tidak di-invalidate salah di **semua** layar yang
+  hidup. Assertion-nya dijaga `__tests__/data/router-store-contract.test.tsx`.
+- **`Intl.DateTimeFormat` dengan `timeZone` belum diuji di Hermes/HP.** `src/data/instant.ts`
+  bergantung padanya; lulus di jest (Node, ICU penuh). Kalau Hermes mengabaikan `timeZone`, helper
+  itu melempar dengan pesan yang menyebutnya alih-alih diam-diam memakai UTC. Masuk daftar cek HP.
 - Archive (prototipe) vs Sampah 30 hari (app web).
 - `bun audit`: 2 high transitif lewat `expo > @expo/cli` (node-forge ≤1.4.0 GHSA-86w9-cpqp-85rv, zod <4.6.6 GHSA-mrhx-c7xc-m3w5). Hanya di tool CLI dev, tidak masuk bundle app. Tunggu patch Expo; cek ulang tiap naik versi Expo.
 - `@legendapp/motion` (dipakai actionsheet/select v5) menarik peer `nativewind` 4.2.7 + `react-native-css-interop` ke `bun.lock`/`node_modules` (tidak di `package.json`, tidak diimpor/dikonfigurasi; sama seperti init Fase 0). Diterima; buang bila gluestack melepas legendapp.
@@ -233,3 +271,4 @@ Branch induk: `feature/mobile-api`. Serah-terima Tahap 1: `/tmp/sp-mobile-handov
 - 2026-10-25 — K5 (Sesi B, `3347461`): `SelectField hint` (dibaca setelah error, juga saat disabled); select Role milik Lead menyebut "The Lead stays Manager and can't be removed." **Fase 1 selesai di kode.** Suite penuh 78 suite / 816 tes lulus, typecheck 0, lint bersih. Daftar cek HP lengkap di `docs/phase1-device-qa.md`. Masih menunggu user: cek di HP, warna tile More/Create, angka chip Overdue Admin (1 dari data vs 3 prototipe). Pantau: `__tests__/kit/screens.test.tsx` (pinned row compacts) sekali gagal di bawah beban, lulus saat diulang.
 - 2026-10-25 — Sinkronisasi dokumen (Sesi A–D): spec `docs/phase1-navigation.md`, `phase1-screens.md`, dan `phase1-screens.{tasks,events,more,projects}.md` disesuaikan dengan kode (signature getter, berkas, penyimpangan yang disetujui); tiap spec diberi baris status yang merujuk §1 dan §8. Komponen `screen-placeholder.tsx` yang tidak dipakai dihapus. Entri `[Unreleased]` di `CHANGELOG.md` root untuk aplikasi mobile. Verifikasi orkestrator: suite penuh 78 suite / 816 tes lulus, typecheck mobile dan root 0, lint bersih (469 berkas). Branch `feature/mobile-expo-spike` di-push ke origin (tidak di-merge ke `main`).
 - 2026-10-26 — **P2-2 (Tahap 2) selesai**: gerbang login. `src/session/*` (store + aksi + pemetaan galat), `Stack.Protected` di `app/_layout.tsx` dan `app/(auth)/_layout.tsx`, `SignInForm` email+sandi, tombol Google dimatikan dengan alasan, sign out sungguhan, layar **Cannot reach the server** + Try again. 84 suite / 900 tes mobile hijau (baseline 80/849; +4 suite, +51 tes), typecheck root 0, lint mobile bersih, lint root tetap 2 berkas baseline. Typecheck mobile tetap 5 galat warisan — **bukan artefak `node_modules`**, sudah dibuktikan terhadap pohon induk apa adanya (lihat §6c). Serah-terima: `/tmp/sp-mobile-handover/tahap-2.md`. Berikutnya P2-3 (ganti data contoh per layar, mulai `GET /api/app/home` yang juga mengisi `clock` K1).
+- 2026-10-26 — **Gelombang 0 (P2-3a) selesai: fondasi data, nol layar.** Jam dari server (`src/data/clock.ts`, gerbang menahan splash sampai `GET /api/app/home` menjawab); `TODAY` ambient dicabut dari 22 modul data dan jadi fixture tes; helper instan tunggal (`src/data/instant.ts`, zona tim, tes lintas tengah malam WIB); identitas `userId` + satu `samePerson()` (`src/data/viewer.ts`); pola `fetch → store → invalidate` (`src/data/resource.ts`) dengan `src/data/home.api.ts` sebagai contoh; dua dokumen baru (`docs/phase2-pola-data.md`, `docs/phase2-gap-disembunyikan.md`). **Risiko arsitektur ditutup dengan pengukuran, bukan dugaan:** probe pada router sungguhan membuktikan layar yang ditinggalkan tidak unmount dan tetap mengikuti store, jadi store sinkron aman tanpa pembungkus async (§7). **Enam baris layar** disentuh dengan izin koordinator, semuanya hanya menukar `TODAY` dengan jam server — tiga `useState`/`initial` dan tiga akibat `DATES`/`DUE_DATES` jadi fungsi (konstanta tingkat modul yang dihitung dari jam server **gagal saat import**, bukan sekadar salah). 89 suite / 954 tes hijau (baseline 84/900), typecheck root 0, typecheck mobile tetap 5 galat warisan yang sama, lint mobile bersih, lint root tetap 2 berkas baseline. Hutang yang dicatat, bukan disembunyikan: parameter `role` masih dioper ke ~40 berkas layar karena belum ada sumber peran (`AppCaps` K6 belum dibangun). Serah-terima: `/tmp/sp-mobile-handover/gelombang-0.md`.

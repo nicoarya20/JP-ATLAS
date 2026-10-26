@@ -1,7 +1,8 @@
+import { today } from './clock';
 import { daysBetween, monthDay } from './dates';
-import { type PersonInfo, person } from './people';
+import { person } from './people';
 import type { Task, TaskStatus } from './sample';
-import { TODAY } from './sample';
+import { samePerson, someSamePerson, type Viewer } from './viewer';
 
 /*
  * Tasks module shared types and logic, ported from the prototype (tasks.shared.js): the wide task the module keeps,
@@ -54,9 +55,10 @@ export type DetailVariant = 'todo' | 'progress' | 'review';
 
 /** The prototype's clock, so a change counts as "recently updated" today. */
 export const CLOCK = '09:41';
-export const NOW = `${TODAY}T${CLOCK}`;
+/** The moment a write is stamped with: today, from the server's clock, at the prototype's hour. */
+export const now = () => `${today()}T${CLOCK}`;
 /** "Oct 7", for history lines and notes. */
-export const TODAY_LABEL = monthDay(TODAY);
+export const todayLabel = () => monthDay(today());
 /** Id of the sample project All tasks starts on. */
 export const ATLAS_ID = 'atlas';
 
@@ -70,14 +72,16 @@ export const TYPES: readonly (readonly [TaskType, string])[] = [
 ];
 
 /** Days from today to the due date (negative = overdue). */
-export const dueIn = (t: Pick<TaskItem, 'due'>) => daysBetween(TODAY, t.due);
+export const dueIn = (t: Pick<TaskItem, 'due'>) => daysBetween(today(), t.due);
 
 /** Everyone assigned to a task: `who` first, then `also`. */
 export const assignees = (t: Pick<TaskItem, 'who' | 'also'>) => [t.who, ...(t.also ?? [])];
 
-/** True when `name` is one of the task's assignees. */
-export const assigned = (t: Pick<TaskItem, 'who' | 'also'>, name: string) =>
-  assignees(t).includes(name);
+/** True when the signed-in person is one of the task's assignees. Identity, not name (K4). */
+export const assigned = (
+  t: Pick<TaskItem, 'who' | 'also'>,
+  who: Pick<Viewer, 'userId' | 'sample'>,
+) => someSamePerson(assignees(t), who);
 
 /** Full name of a first name, or the name itself for someone outside the sample people. */
 export const fullName = (name: string) => person(name)?.full ?? name;
@@ -87,12 +91,12 @@ export const whoLabel = (t: Pick<TaskItem, 'who' | 'also'>) =>
   `${fullName(t.who)}${t.also?.length ? ` +${t.also.length}` : ''}`;
 
 /** A Member changes (moves, edits, cancels) only tasks assigned to them; Managers and Admins change any task. */
-export const mayChange = (me: PersonInfo, t: Pick<TaskItem, 'who' | 'also'>) =>
-  me.role !== 'Member' || assigned(t, me.name);
+export const mayChange = (me: Viewer, t: Pick<TaskItem, 'who' | 'also'>) =>
+  me.sample.role !== 'Member' || assigned(t, me);
 
 /** Move to Archive: Managers and Admins for any task, a Member only for tasks they created. */
-export const mayArchive = (me: PersonInfo, x: Pick<TaskInfo, 'by'>) =>
-  me.role !== 'Member' || x.by === me.name;
+export const mayArchive = (me: Viewer, x: Pick<TaskInfo, 'by'>) =>
+  me.sample.role !== 'Member' || samePerson(x.by, me);
 
 /** Notice when a Member may not change a task: "Only Nico or Rina can change this task". */
 export const deniedNotice = (t: Pick<TaskItem, 'who' | 'also'>) =>
@@ -135,9 +139,9 @@ export function dueNote(t: Pick<TaskItem, 'status' | 'due'>): string {
 const reviewerOf = (x: TaskInfo | undefined, fallback: string) =>
   x?.reviewer?.split(' ')[0] || fallback;
 
-/** True when `name` (a first name, or "Admin" for any Admin) is the signed-in person. */
-const isMe = (name: string, me: PersonInfo) =>
-  name === me.name || (name === 'Admin' && me.role === 'Admin');
+/** True when a reference (a person, or "Admin" for any Admin) is the signed-in person. */
+const isMe = (name: string, me: Viewer) =>
+  samePerson(name, me) || (name === 'Admin' && me.sample.role === 'Admin');
 
 /**
  * Card note for the signed-in person `me`: an In review note names the reviewer unless that is them; any other status
@@ -146,7 +150,7 @@ const isMe = (name: string, me: PersonInfo) =>
 export function note(
   t: Pick<TaskItem, 'status' | 'when'>,
   x: TaskInfo | undefined,
-  me: PersonInfo,
+  me: Viewer,
   fallback: string,
 ): string {
   if (t.status !== 'In review') return t.when;
@@ -166,7 +170,7 @@ export const stepsTitle = (steps: readonly TaskStep[]) => {
 
 /** Due note from a due date: "N days overdue", "Today", "Tomorrow" (when `tomorrow`) or "Due X". */
 export function whenFromDue(due: string, tomorrow: boolean): string {
-  const d = daysBetween(TODAY, due);
+  const d = daysBetween(today(), due);
   if (d < 0) return `${-d} days overdue`;
   if (d === 0) return 'Today';
   return d === 1 && tomorrow ? 'Tomorrow' : `Due ${monthDay(due)}`;

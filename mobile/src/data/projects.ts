@@ -1,5 +1,6 @@
 // Projects data in one call per screen, the swap point to the API: today built from the sample data in projects.store,
 // later a fetch of /api/app/projects returning the same shapes. The detail tabs are in projects.detail.ts.
+import { today } from './clock';
 import { monthDay } from './dates';
 import { me, person } from './people';
 import { addDays, longDate, weekdayLongDate } from './projects.dates';
@@ -13,13 +14,14 @@ import {
   taskCount,
   taskCountOf,
 } from './projects.store';
-import { type Role, TODAY } from './sample';
+import type { Role } from './sample';
 import {
   PROJECT_DETAIL,
   PROJECT_STORY,
   PROJECT_TEMPLATES,
   TEMPLATE_PROJECT,
 } from './sample/projects.extra';
+import { viewer as signedIn, someSamePerson } from './viewer';
 
 export {
   getProjectMembers,
@@ -110,7 +112,7 @@ export type ProjectHeader = Pick<
 /** Detail header of project id for `role`; null when no such project (an old link) or a Member is not in it. */
 export function getProjectHeader(role: Role, id: string): ProjectHeader | null {
   const p = findProject(id);
-  if (!p || (role === 'member' && !p.members.includes(me(role).name))) return null;
+  if (!p || (role === 'member' && !someSamePerson(p.members, signedIn(role)))) return null;
   const archived = isArchivedProject(id);
   return {
     id: p.id,
@@ -172,7 +174,7 @@ export function getProjectCreate(role: Role) {
   return {
     creator,
     helpers: helpers(role),
-    today: TODAY,
+    today: today(),
     story: s.text,
     draft: {
       name: draftName,

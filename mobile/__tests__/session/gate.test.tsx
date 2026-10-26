@@ -6,21 +6,25 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 
 import { resetAuthClient, setAuthHeaders } from '@/api';
-import { resetSessionConnection } from '@/session';
+import { resetSessionConnection, sessionStore } from '@/session';
 
 import { openApp } from '../helpers/app-router';
-import { type AuthRoutes, serveAuth, sessionPayload } from '../helpers/auth-server';
+import { type AuthRoutes, homePayload, serveAuth, sessionPayload } from '../helpers/auth-server';
 import {
   APPROVED_USER,
   PENDING_USER,
   REJECTED_USER,
   resetSessionForTest,
+  TEST_CLOCK,
 } from '../helpers/session-fixtures';
 
 let server: ReturnType<typeof serveAuth> | null = null;
 const serve = (routes: AuthRoutes) => {
-  if (server) server.use(routes);
-  else server = serveAuth(routes);
+  // An approved account also waits for the server's clock before any screen is drawn (K1), so every
+  // test that reaches the app needs home answered as well. A test about the clock overrides it.
+  const withClock: AuthRoutes = { '/api/app/home': { body: homePayload(TEST_CLOCK) }, ...routes };
+  if (server) server.use(withClock);
+  else server = serveAuth(withClock);
   return server;
 };
 
@@ -94,6 +98,57 @@ describe('opening the app', () => {
 
     expect(await screen.findByTestId('screen-pending')).toBeOnTheScreen();
     expect(screen.queryByTestId('screen-tasks')).not.toBeOnTheScreen();
+  });
+});
+
+describe("the server's clock", () => {
+  it('keeps the splash up until it arrives: no screen is drawn with a date of its own', async () => {
+    let answerHome = () => {};
+    const held = new Promise<void>((resolve) => {
+      answerHome = resolve;
+    });
+    serve({
+      '/get-session': { body: sessionPayload(APPROVED_USER) },
+      '/api/app/home': { body: homePayload(TEST_CLOCK), wait: held },
+    });
+
+    await openApp('/');
+
+    // The session is read and approved, but the clock is not in yet: the gate still reports
+    // `loading`, so the root layout renders nothing at all rather than a dated screen.
+    expect(sessionStore.get().user?.id).toBe(APPROVED_USER.id);
+    expect(sessionStore.get().clock).toBeNull();
+    expect(screen.queryByTestId('tab-bar')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('screen-login')).not.toBeOnTheScreen();
+
+    await act(async () => {
+      answerHome();
+    });
+
+    expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
+    expect(sessionStore.get().clock).toEqual(TEST_CLOCK);
+  });
+
+  it('offers a retry when it cannot be fetched, rather than letting a screen invent a date', async () => {
+    serve({
+      '/get-session': { body: sessionPayload(APPROVED_USER) },
+      '/api/app/home': { throws: new TypeError('Network request failed') },
+    });
+
+    await openApp('/');
+
+    expect(await screen.findByTestId('screen-unreachable')).toBeOnTheScreen();
+    expect(screen.queryByTestId('tab-bar')).not.toBeOnTheScreen();
+    expect(sessionStore.get().clock).toBeNull();
+  });
+
+  it('is asked for only once, however many screens want it', async () => {
+    const server = serve({ '/get-session': { body: sessionPayload(APPROVED_USER) } });
+
+    await openApp('/');
+    expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
+
+    expect(server.calls.filter((url) => url.includes('/api/app/home'))).toHaveLength(1);
   });
 });
 

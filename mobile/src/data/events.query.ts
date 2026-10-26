@@ -1,10 +1,11 @@
 // Events Filter & sort: its options, applying a query to the events, the search field, and grouping the list.
 // Ported from the prototype's events.query.js; the query itself lives in the events store (phase1-screens.md K4).
+import { today } from './clock';
 import { daysBetween } from './dates';
 import { groupLabel } from './events.dates';
 import { type EventItem, eventProject, TYPES } from './events.shared';
-import { me } from './people';
-import { PROJECTS, type Role, TODAY } from './sample';
+import { PROJECTS, type Role } from './sample';
+import { viewer as signedIn, someSamePerson } from './viewer';
 
 /** Show options; index 0 (Upcoming) is the default. */
 export const WHEN = ['Upcoming', 'Past'] as const;
@@ -42,13 +43,13 @@ export const projectOptions = () => [
 export const isFiltered = (q: EventsQuery) => !!(q.when || q.type || q.project);
 
 /** Past: already done, or its first date is before today; everything else is upcoming. */
-export const isPast = (e: EventItem) => e.status === 'Done' || daysBetween(TODAY, e.date) < 0;
+export const isPast = (e: EventItem) => e.status === 'Done' || daysBetween(today(), e.date) < 0;
 
 /** The events `role` sees: a Member only those they attend, everyone else all of them. */
 export function eventsFor(role: Role, events: readonly EventItem[]): EventItem[] {
   if (role !== 'member') return [...events];
-  const name = me(role).name;
-  return events.filter((e) => e.attendees.includes(name));
+  const who = signedIn(role);
+  return events.filter((e) => someSamePerson(e.attendees, who));
 }
 
 /** Events of the picked time (upcoming / past; when = null keeps both), type and project. */

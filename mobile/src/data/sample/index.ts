@@ -8,4 +8,6 @@ export * from './people';
 export * from './people.extra';
 export * from './projects';
 export * from './tasks';
-export * from './today';
+// Only the greeting: TODAY is the sample's own day and test-only now, so it is not re-exported
+// here — every date in the app comes from the server's clock (src/data/clock.ts, K1).
+export { GREETING } from './today';

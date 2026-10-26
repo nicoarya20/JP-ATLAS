@@ -1,10 +1,12 @@
+import { today } from './clock';
 import { daysToSunday } from './dates';
 import { type EventItem, eventHref } from './events.shared';
 import type { AgendaEvent, AgendaProject, FocusTask, HomeFocus } from './home.types';
 import type { ProjectItem } from './projects.state';
-import { type Role, TODAY } from './sample';
+import type { Role } from './sample';
 import { dueIn, isOpen, type TaskItem } from './tasks.shared';
 import type { TasksState } from './tasks.state';
+import { samePerson, someSamePerson, type Viewer } from './viewer';
 
 /* "My Focus" and "Agenda & Projects", ported from the prototype (home.focus.jsx) on the live tasks and events. */
 
@@ -26,11 +28,11 @@ const focusTask = (s: TasksState, t: TaskItem): FocusTask => ({
 });
 
 /** My open tasks by Overdue / Today / This week (to Sunday); PM also gets others' tasks in review, Admin the approvals. */
-export function homeFocus(role: Role, s: TasksState, me: string, waiting: number): HomeFocus {
-  const open = s.tasks.filter((t) => t.who === me && isOpen(t));
-  const weekLeft = daysToSunday(TODAY);
+export function homeFocus(role: Role, s: TasksState, me: Viewer, waiting: number): HomeFocus {
+  const open = s.tasks.filter((t) => samePerson(t.who, me) && isOpen(t));
+  const weekLeft = daysToSunday(today());
   const review =
-    role === 'pm' ? s.tasks.filter((t) => t.status === 'In review' && t.who !== me) : [];
+    role === 'pm' ? s.tasks.filter((t) => t.status === 'In review' && !samePerson(t.who, me)) : [];
   const row = (t: TaskItem) => focusTask(s, t);
   const groups = [
     { key: 'overdue' as const, tasks: open.filter((t) => dueIn(t) < 0) },
@@ -55,11 +57,14 @@ export function homeAgenda(
   role: Role,
   events: readonly EventItem[],
   listed: readonly ProjectItem[],
-  me: string,
+  me: Viewer,
 ): { next: AgendaEvent | null; projects: AgendaProject[] } {
-  const e = events.find((x) => x.attendees.includes(me) && x.status !== 'Done' && !x.canceled);
+  const e = events.find(
+    (x) => someSamePerson(x.attendees, me) && x.status !== 'Done' && !x.canceled,
+  );
   const projects = listed.filter(
-    (p) => !CLOSED_PROJECT.includes(p.status) && (role === 'admin' || p.members.includes(me)),
+    (p) =>
+      !CLOSED_PROJECT.includes(p.status) && (role === 'admin' || someSamePerson(p.members, me)),
   );
   return {
     next: e

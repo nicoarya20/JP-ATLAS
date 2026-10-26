@@ -1,5 +1,6 @@
 // Profile for the screens (prototype profile.main.jsx / profile.calendar.jsx): my hero line, the Inbox count, and my
 // calendar's week and day. Phase 2 reads the API here.
+import { today } from './clock';
 import type { EventHref, EventItem } from './events.shared';
 import { eventHref, eventWhere } from './events.shared';
 import { respondCards } from './inbox';
@@ -16,8 +17,8 @@ import {
   weekOf,
 } from './profile.calendar.dates';
 import type { Role } from './sample';
-import { TODAY } from './sample/today';
 import { type Decisions, getDecisions } from './users';
+import { viewer as signedIn } from './viewer';
 
 export type ProfileData = {
   me: PersonInfo;
@@ -101,9 +102,9 @@ export const weekDays = (items: readonly CalendarItem[], day: string): CalendarD
     iso,
     num: Number(iso.slice(8)),
     letter: WEEKDAYS[weekday(iso)].charAt(0),
-    label: `${dayLabel(iso)}${iso === TODAY ? ', today' : ''}`,
+    label: `${dayLabel(iso)}${iso === today() ? ', today' : ''}`,
     picked: iso === day,
-    today: iso === TODAY,
+    today: iso === today(),
     weekend: weekday(iso) % 6 === 0,
     marked: itemsOn(items, iso).length > 0,
   }));
@@ -114,7 +115,7 @@ export function getMyCalendar(
   day: string,
   events: readonly EventItem[],
 ): MyCalendarData {
-  const items = eventsFor(events, me(role).name);
+  const items = eventsFor(events, signedIn(role));
   const todays = itemsOn(items, day);
   const n = todays.length;
   return {
@@ -122,8 +123,8 @@ export function getMyCalendar(
     week: weekDays(items, day),
     dayLabel: dayLabel(day),
     count: n ? `${n} event${n > 1 ? 's' : ''}` : 'No events',
-    today: day === TODAY,
+    today: day === today(),
     blocks: todays.map(block),
-    scrollY: initialScroll(day === TODAY, todays),
+    scrollY: initialScroll(day === today(), todays),
   };
 }

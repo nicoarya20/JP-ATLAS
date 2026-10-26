@@ -1,12 +1,13 @@
 // Team for the screens (prototype team.list.jsx VARIANTS): who is on my team, their task load from the live task list,
 // and what each role may see of it; one person is team.person.ts. Phase 2 reads the API here.
 
-import { listPeople, me, type PersonInfo, type PersonKey, person } from './people';
+import { listPeople, type PersonInfo, type PersonKey, person } from './people';
 import { PROJECTS, type Project, type Role } from './sample';
 import { AVAILABLE, TEAM_LIST, type TeamEntry } from './sample/team';
 import type { TaskItem } from './tasks.shared';
 import { getTasksState } from './tasks.state';
 import { type Load, loadOf, totalOf } from './team.load';
+import { viewer as signedIn, someSamePerson } from './viewer';
 
 /** The live lists a team screen reads; tests pass their own. */
 export type TeamSource = { tasks?: readonly TaskItem[]; projects?: readonly Project[] };
@@ -104,7 +105,7 @@ export function getTeam(role: Role, src: TeamSource = {}): TeamData {
       note: 'Approving new users and changing roles happens in More › Users.',
     };
   }
-  const mine = projects.filter((p) => p.members.includes(me(role).name));
+  const mine = projects.filter((p) => someSamePerson(p.members, signedIn(role)));
   const atlas = mine.find((p) => p.id === 'atlas') ?? mine[0];
   if (!atlas) return { empty: true };
   const variants: Variant[] = [

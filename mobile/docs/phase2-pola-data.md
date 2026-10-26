@@ -1,0 +1,187 @@
+# Fase 2 — Pola data mobile: `fetch → store → invalidate`
+
+Dokumen ini adalah **aturan**, bukan saran. Ditulis Gelombang 0 karena 2–3 worker Gelombang 1
+mengerjakan modul berbeda secara paralel dan tidak bisa saling bertanya. Kalau modulmu menyimpang
+dari sini, yang rusak bukan modulmu — yang rusak adalah modul orang lain yang membaca store yang
+sama.
+
+Sumbernya: `mobile/src/data/resource.ts` (pola), `mobile/src/data/clock.ts` (jam),
+`mobile/src/data/instant.ts` (instan), `mobile/src/data/viewer.ts` (identitas),
+`mobile/src/data/home.api.ts` (contoh lengkap).
+
+---
+
+## 0. Keputusan yang mendasari semuanya
+
+**`get<Module>()` tetap SINKRON** (keputusan user, 26 Okt 2026). Satu lapisan fetch mengisi store;
+`get<Module>()` tetap membaca store seperti di Fase 1. Akibatnya seluruh pekerjaan Fase 2 jatuh di
+`src/data/`, dan `src/screens/` nyaris tidak tersentuh — itulah yang membuat Gelombang 1 bisa
+paralel tanpa enam dialek loading dalam satu aplikasi.
+
+Harga yang user terima **sadar**: invalidate harus eksplisit. Aturan 2 di bawah adalah harga itu.
+
+---
+
+## 1. Aturan: `ensure()` hanya mengambil yang belum segar
+
+`useEffect(…, [])` sebuah layar jalan **sekali per instance layar**, dan mendorong rute yang sama
+dua kali membuat dua instance — jadi dua kali fetch. Diukur dengan probe pada router sungguhan;
+assertion-nya ada di `mobile/__tests__/data/router-store-contract.test.tsx`.
+
+Karena itu permintaan data harus **idempoten**:
+
+```ts
+// Benar: dipanggil dari effect mana pun, sebanyak apa pun.
+useEffect(() => { void tasksResource.ensure(); }, []);
+```
+
+- `ensure()` — ambil **kecuali** data segar sudah ada. Pemanggil kedua ikut permintaan yang sedang
+  jalan, bukan memulai permintaan baru.
+- `reload()` — ambil sekarang apa pun isinya (pull-to-refresh, tombol "Try again"). Data lama tetap
+  tampil selama permintaan berjalan, jadi tidak ada frame kosong.
+
+**Jangan** memanggil `load`-mu langsung dari layar, dan jangan menulis penjaga "sudah pernah
+fetch?" sendiri — itu sudah ada di `ensure()`.
+
+---
+
+## 2. Aturan: setelah tulis berhasil, sebut semua store yang mungkin berubah
+
+**Tidak ada layar yang unmount saat kamu berpindah.** Layar yang kamu tinggalkan tetap terpasang
+dan tetap berlangganan store-nya; satu tulisan ke store langsung menggambar ulang **semua** layar
+yang masih hidup. Diukur dengan probe yang sama.
+
+Akibatnya: store yang tidak di-invalidate akan terus menampilkan **data lama di semua layar yang
+masih hidup**, bukan cuma di layar yang di depan. Tidak ada error, tidak ada log — layarnya cuma
+salah. **Ini risiko yang user terima sadar** sebagai ganti pembacaan sinkron; bukan kelalaian, dan
+bukan sesuatu yang boleh kamu perbaiki sendiri dengan pola lain.
+
+```ts
+// Benar: simpan tugas, lalu sebut siapa saja yang ikut berubah.
+await write(() => apiPatch(`/api/app/tasks/${ref}`, fields), [tasksResource, homeResource]);
+```
+
+- `write(run, invalidates)` — jalankan tulisan; **hanya kalau berhasil**, tandai daftarnya basi.
+  Tulisan yang gagal tidak mengubah apa pun di server, jadi tidak ada yang basi.
+- `invalidate()` — tandai basi **dan** ambil ulang di belakang (data lama tetap tampil sampai yang
+  baru datang). Mengambil ulang adalah bagian wajibnya: tanpa itu tidak ada yang akan mengambilnya,
+  karena tidak ada layar yang akan unmount dan memanggil `ensure()` lagi.
+
+**Cara memilih daftarnya:** tanya "kalau tulisan ini berhasil, layar mana yang jadi salah?" Simpan
+tugas → daftar tugas **dan** Beranda (chip, Focus, agenda). Hapus proyek → daftar proyek, Beranda,
+dan Sampah. Ragu → masukkan. Satu permintaan berlebih jauh lebih murah daripada angka yang salah.
+
+Dari aturan yang sama: **sign out wajib mengosongkan semua store.** Sudah terpasang
+(`forgetAllResources()` di `signOutEverywhere`); jangan dibongkar, dan resource baru otomatis ikut.
+
+---
+
+## 3. Aturan: kegagalan `/api/app/*` disalurkan ke `applyApiError`
+
+Sudah dikerjakan `resource.ts` untuk setiap `load`. Yang perlu kamu tahu:
+
+- `401` / `403 ACCOUNT_PENDING` / `403 ACCOUNT_REJECTED` → sesi dikoreksi, gerbang memindahkan
+  layar. Persetujuan yang dicabut (atau diberikan) di tengah sesi mendarat di permintaan berikutnya,
+  bukan setelah aplikasi dibuka ulang.
+- Kegagalan transport (`status: 0`) tidak membuktikan apa-apa soal sesi → sesi dibiarkan,
+  `state.error.isTransport` true, tawarkan "Try again".
+- Galat yang **bukan** `ApiError` (biasanya bug pemetaan DTO → bentuk layar) disimpan sebagai
+  `BAD_RESPONSE` dengan galat aslinya di `cause` — tidak ditelan, tidak jadi unhandled rejection.
+
+Kalau kamu menulis panggilan API **di luar** sebuah `resource` (mis. tulisan), salurkan sendiri:
+
+```ts
+try { await apiPost(…); } catch (e) { if (isApiError(e)) applyApiError(e); throw e; }
+```
+
+---
+
+## 4. Aturan: tanggal dari jam server, instan lewat satu helper
+
+- **Hari ini** = `today()` dari `src/data/clock.ts` (K1). **Jangan** `new Date()`, jangan
+  `TODAY` (sudah dicabut; sisanya fixture tes saja).
+- **Nilai instan** dari server (`createdAt`, `updatedAt`, `timeline.at`, `startsAt`, `endsAt`,
+  `canceledAt`) wajib lewat `src/data/instant.ts` — `instantDate()`, `instantTime()`,
+  `instantParts()`. Zonanya otomatis zona tim dari jam server. **Bukan** UTC, **bukan** zona
+  perangkat: acara 06.00 WIB jatuh ke tanggal kemarin kalau dibaca UTC.
+- Untuk melabeli instan dengan helper tanggal, **ubah dulu jadi tanggal**:
+  `monthDay(instantDate(t.createdAt))`.
+- **Jangan ubah** hitung tanggal-ke-tanggal di `dates.ts` / `events.dates.ts`. Jangkar UTC-nya
+  saling meniadakan dan hasilnya sudah benar (K2).
+
+### Bom waktu yang wajib kamu kenali
+
+Konstanta **tingkat modul** yang dihitung dari jam server akan jalan **saat import** — sebelum jam
+tiba — dan `requireClock()` melempar di situ. Akibatnya bukan tanggal salah, tapi **aplikasi gagal
+boot**. Gelombang 0 sudah menyapu modul yang ada; modulmu mungkin punya yang baru.
+
+```ts
+const AHEAD = monthOf(today());        // ❌ jalan saat import → melempar
+const ahead = () => monthOf(today());  // ✅ jalan saat dipanggil
+```
+
+Kalau menemukan bentuk ini, ubah jadi fungsi. Jangan membungkusnya jadi array malas lewat Proxy:
+nilai yang tampak konstanta tapi berperilaku fungsi adalah jebakan untuk worker berikutnya.
+
+---
+
+## 5. Aturan: orang dicocokkan lewat `samePerson()`, titik
+
+Identitas orang datang dari sesi (`user.id`), nama hanya untuk ditampilkan (K4).
+
+```ts
+const who = viewer(role);
+tasks.filter((t) => samePerson(t.who, who));       // satu orang
+events.filter((e) => someSamePerson(e.attendees, who));  // daftar orang
+```
+
+- **Jangan** membandingkan nama (`t.who === 'Nico'`, `members.includes(name)`). Begitu ada dua
+  "Budi", pekerjaan menempel ke orang yang salah — dan itu kerusakan senyap, bukan error.
+- **Jangan** membandingkan `userId` dengan tangan sendiri. Saat modulmu pindah ke DTO server,
+  `samePerson` adalah satu-satunya tempat yang perlu tahu.
+- Orang **selain** yang login (rekan yang beban tugasnya dihitung): `identityOf(person)` /
+  `identityRef(ref)`, bukan `viewer()`.
+- `role` masih parameter opsional yang jatuh ke peran sesi. Itu **hutang yang tercatat**
+  (`phase2-gap-disembunyikan.md` §4), bukan pola untuk ditiru: payload sesi belum membawa peran dan
+  `AppCaps` belum dibangun.
+
+---
+
+## 6. Bentuk sebuah modul (contoh lengkap: `src/data/home.api.ts`)
+
+```ts
+// 1. load: permintaan, dan tidak lain.
+async function loadTasks(): Promise<TasksResponse> {
+  return apiGet<TasksResponse>('/api/app/tasks?scope=mine');
+}
+
+// 2. satu resource per hal yang diambil.
+export const tasksResource = resource<TasksResponse>('tasks', loadTasks);
+
+// 3. get<Module>() tetap sinkron: baca store, jangan await apa pun.
+export function getTasks(role: Role): TasksList {
+  const data = tasksResource.current();
+  if (!data) return EMPTY_TASKS;          // layar menampilkan keadaan memuat dari `use()`
+  return mapToScreenShape(data, viewer(role));
+}
+
+// 4. tulisan menyebut yang ikut basi.
+export const saveTask = (ref: string, fields: TaskFields) =>
+  write(() => apiPatch(`/api/app/tasks/${ref}`, fields), [tasksResource, homeResource]);
+```
+
+Layar: `tasksResource.use()` untuk `phase`/`error`, `getTasks(role)` untuk datanya,
+`void tasksResource.ensure()` di satu `useEffect`.
+
+---
+
+## 7. Yang Gelombang 1 boleh berasumsikan
+
+1. Jam server **selalu ada** di layar aplikasi mana pun: gerbang menahan splash sampai
+   `GET /api/app/home` menjawab, jadi `today()` dan `teamTimeZone()` tidak akan melempar di sana.
+   (Di luar gerbang — layar `(auth)` — pakai `useClock()` dan tangani `null`.)
+2. `viewer(role).userId` adalah id akun sungguhan dari sesi.
+3. Satu permintaan home dipakai bersama jam dan layar Beranda; `homeResource.ensure()` tidak
+   menambah permintaan.
+4. Sign out sudah mengosongkan semua resource.
+5. Kegagalan `/api/app/*` di dalam `resource` sudah disalurkan ke `applyApiError`.

@@ -15,6 +15,7 @@ import {
 } from './sample';
 import { getTasksState } from './tasks.state';
 import { getDecisions, waitingUsers } from './users';
+import { viewer } from './viewer';
 
 /*
  * Home data in one call, the swap point to the API: today it is built from the live task, event and project stores (so
@@ -46,6 +47,7 @@ export const homeSources = (): HomeSources => ({
 /** Everything Home shows for `role`. */
 export function getHome(role: Role, src: HomeSources = homeSources()): HomeData {
   const person = PEOPLE[ME_BY_ROLE[role]];
+  const who = viewer(role);
   const n = LENGTHS[role];
   const events = src.events.list;
   const waiting = waitingUsers(src.decisions).length;
@@ -53,11 +55,11 @@ export function getHome(role: Role, src: HomeSources = homeSources()): HomeData 
     role,
     me: { name: person.name, full: person.full },
     greeting: GREETING,
-    stats: homeStats(role, src, person.name),
+    stats: homeStats(role, src, who),
     briefing: BRIEFING,
-    focus: homeFocus(role, src.tasks, person.name, waiting),
+    focus: homeFocus(role, src.tasks, who, waiting),
     ask: { ...ASK, questions: ASK.questions.slice(0, n.asks) },
-    agenda: homeAgenda(role, events, src.projects.list, person.name),
+    agenda: homeAgenda(role, events, src.projects.list, who),
     done: DONE_THIS_WEEK.slice(0, n.done),
     activity: ACTIVITY.slice(0, n.activity),
   };

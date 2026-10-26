@@ -19,6 +19,7 @@ import {
   resetTasks,
   takeProjectTasks,
 } from '../../src/data/tasks.store';
+import { viewerNamed } from '../helpers/session-fixtures';
 
 afterEach(() => {
   resetProjects();
@@ -42,10 +43,12 @@ const listed = (l: ReturnType<typeof projectTab>) =>
 
 describe('a renamed project', () => {
   test('its tasks still show under the project filter, by id', () => {
-    const before = applyQuery(getTasksState().tasks, baseQuery('all'), { me: 'Nico' }).length;
+    const before = applyQuery(getTasksState().tasks, baseQuery('all'), {
+      me: viewerNamed('Nico'),
+    }).length;
     expect(before).toBeGreaterThan(0);
     rename('atlas', 'Atlas v2');
-    const after = applyQuery(getTasksState().tasks, baseQuery('all'), { me: 'Nico' });
+    const after = applyQuery(getTasksState().tasks, baseQuery('all'), { me: viewerNamed('Nico') });
     expect(after).toHaveLength(before);
     expect(after.every((t) => t.project === 'Atlas v2')).toBe(true);
   });
