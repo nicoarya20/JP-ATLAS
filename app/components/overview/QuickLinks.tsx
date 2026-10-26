@@ -1,6 +1,7 @@
 import { Group, Paper, SimpleGrid, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import {
+  FiBookOpen,
   FiDatabase,
   FiFileText,
   FiKey,
@@ -68,6 +69,13 @@ const LINKS: Array<{
     description: 'Diagram tabel dan relasi',
     icon: FiDatabase,
     color: 'grape',
+  },
+  {
+    to: '/dev/openapi',
+    label: 'Spec OpenAPI',
+    description: 'Endpoint per API key',
+    icon: FiBookOpen,
+    color: 'indigo',
   },
   {
     to: '/dev/changelog',

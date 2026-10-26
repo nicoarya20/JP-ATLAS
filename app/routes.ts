@@ -55,6 +55,7 @@ export default [
     route('dev/posts', 'routes/super/posts.tsx'),
     route('dev/api-keys', 'routes/super/api-keys.tsx'),
     route('dev/db-schema', 'routes/super/db-schema.tsx'),
+    route('dev/openapi', 'routes/super/openapi.tsx'),
     route('dev/visits', 'routes/super/visits.tsx'),
     route('dev/login-logs', 'routes/super/login-logs.tsx'),
     route('dev/rate-limit-logs', 'routes/super/rate-limit-logs.tsx'),
