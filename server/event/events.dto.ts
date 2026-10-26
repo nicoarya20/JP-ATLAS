@@ -9,6 +9,7 @@
 import type { Caps, EventCapKey } from '../access/capabilities';
 import type { IsoDate } from '../metrics/types';
 import type { EventKind, EventLocationType, EventNoteStatus, ProjectStatus } from '../pm/enums';
+import type { EventRange } from './events.range';
 
 /** A person as an event shows them: id and name only, never email or phone (Q8). */
 export type PersonRef = { id: string; name: string };
@@ -62,8 +63,13 @@ export const EVENT_REMINDERS_MAX = 5;
 export const EVENT_REMINDER_MINUTES_MAX = 10_080;
 
 export type ListEventsInput = {
-  /** Defaults to `upcoming`. */
+  /** Defaults to `upcoming`; ignored for the `now` cut when `range` is given (A9). */
   tab?: EventTab;
+  /**
+   * Calendar window in the team zone, both ends counted. Given, it *replaces* the tab's cut on
+   * `now`: a month grid needs the events that already happened as well as the ones to come.
+   */
+  range?: EventRange;
   kind?: readonly EventKind[];
   projectId?: string;
   /** Free text matched against the title. */
