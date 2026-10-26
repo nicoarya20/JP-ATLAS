@@ -118,12 +118,10 @@ describe('person detail: profile', () => {
     expect(html).toContain('Cuti sampai 16 Okt');
   });
 
-  it('says "Pengajuan cuti 14–16 Okt" for a pending request', async () => {
-    const html = await view(
-      detail({ availability: { kind: 'pending', from: '2026-10-14', to: '2026-10-16' } }),
-    );
-    expect(html).toContain('Pengajuan cuti 14–16 Okt');
+  it('says nothing, not "Tersedia", when there is no leave to show', async () => {
+    const html = await view(detail({ availability: null }));
     expect(html).not.toContain('Cuti sampai');
+    expect(html).not.toContain('Tersedia');
   });
 });
 

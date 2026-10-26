@@ -10,7 +10,6 @@ import { eventsApi } from './app-events';
 import { eventTrashApi } from './app-events.trash';
 import { homeApi } from './app-home';
 import { inboxApi } from './app-inbox';
-import { leaveApi } from './app-leave';
 import { profileApi } from './app-profile';
 import { projectsApi } from './app-projects';
 import { projectMembersApi } from './app-projects.members';
@@ -29,7 +28,6 @@ export const appApi = new Elysia({ prefix: '/app' })
   .use(profileApi)
   .use(homeApi)
   .use(inboxApi)
-  .use(leaveApi)
   .use(projectsApi)
   .use(projectMembersApi)
   .use(projectTrashApi)

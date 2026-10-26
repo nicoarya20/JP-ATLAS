@@ -1,38 +1,20 @@
 /**
- * Server half of the leave blocks on /app/settings: the person's own state and every right the page
- * needs (requests are decided from the Inbox card, not here). The page never compares a role; it reads these flags, which
- * come from the same policy functions the API enforces (`server/leave/leave.policy.ts`).
+ * Server half of the Ketersediaan block on /app/settings: whether the signed-in person is on leave
+ * today. It reads `leaveStatusFor` directly instead of going through an endpoint of its own, the
+ * way the rest of this loader already works — nothing on the page writes leave since P14 D3.
  */
-import { isPmOrAbove } from '@server/access/level';
 import type { Actor } from '@server/guard';
-import { canManageLeaveSettings, initialLeaveStatus } from '@server/leave/leave.policy';
-import { myLeave } from '@server/leave/leave.query';
-import { isAdminRole } from '@server/permissions';
-import { toPrincipal } from '@server/project/membership.query';
-import { getLeaveSettings } from '@server/settings-leave';
+import { leaveStatusFor } from '@server/leave/leave.status.query';
 import { requestClock } from '@server/task/task.clock';
-import type { LeaveApprovers, LeavePageData } from '~/lib/leave-api';
+import type { LeavePageData } from '~/lib/leave-api';
 import { toJson } from '~/lib/loader-json';
 
-/** Who answers this person's request: nobody (Admin), an Admin (Project Manager) or a Pengelola or Admin (Member). */
-function approversFor(actor: Actor): LeaveApprovers {
-  if (isAdminRole(actor.role)) return 'none';
-  return isPmOrAbove(toPrincipal(actor)) ? 'admin' : 'manager_or_admin';
-}
-
-/** Reads the leave state of the signed-in person with their rights; called from the settings loader. */
+/** Reads the leave state of the signed-in person; called from the settings loader. */
 export async function loadLeavePage(actor: Actor): Promise<LeavePageData> {
-  const principal = toPrincipal(actor);
   const { today } = requestClock();
-  const { requiresApproval } = await getLeaveSettings();
-  const me = await myLeave(actor.user.id, today, requiresApproval);
+  const status = await leaveStatusFor([actor.user.id], today);
   return toJson<LeavePageData>({
-    me,
+    onLeaveUntil: status.get(actor.user.id)?.until ?? null,
     today,
-    flags: {
-      canManageSwitch: canManageLeaveSettings(principal).ok,
-      autoApproves: initialLeaveStatus(actor.role, requiresApproval) === 'approved',
-      approvers: approversFor(actor),
-    },
   });
 }

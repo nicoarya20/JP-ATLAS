@@ -1,12 +1,13 @@
 /**
  * `availability` on `GET /api/app/team` and `GET /api/app/team/:userId` (Cuti in the Team menu):
- * an approved leave under way is shown to everybody, a pending request only to its owner, Project
- * Managers and Admin, and a leave that is over, not started, rejected or canceled shows nothing.
- * Asserted on the raw response bodies; the list and the detail must agree.
+ * a recorded leave under way is shown to everybody, and a leave that is over or has not started
+ * shows nothing. Since P14 there is no waiting state and so no per-viewer rule left (D2/D3), and
+ * the Admin-only note never appears here (D6). Asserted on the raw response bodies; the list and
+ * the detail must agree.
  */
 import { afterAll, afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { db } from '../../server/db';
-import { leaveRequest } from '../../server/db/schema';
+import { leavePeriod } from '../../server/db/schema';
 import { call, type Json, resetApiLimiters } from '../support/api';
 import { installAuthSpies } from '../support/auth';
 import { createCleaner } from '../support/cleanup';
@@ -28,9 +29,8 @@ afterAll(() => cleaner.flushAll());
 const BASE = '/app/team';
 const marker = () => `m${crypto.randomUUID().slice(0, 8)}`;
 
-type Status = 'pending' | 'approved' | 'rejected' | 'canceled';
-const leave = (u: TestUser, startDate: string, endDate: string, status: Status) =>
-  db.insert(leaveRequest).values({ userId: u.id, startDate, endDate, status });
+const leave = (u: TestUser, startDate: string, endDate: string, note: string | null = null) =>
+  db.insert(leavePeriod).values({ userId: u.id, startDate, endDate, note });
 
 /** One project of Eka (Pengelola, Project Manager) holding a Member per leave state. */
 async function world() {
@@ -41,18 +41,13 @@ async function world() {
   const onLeave = await f.user({ name: `${mk} OnLeave` });
   const over = await f.user({ name: `${mk} Over` });
   const future = await f.user({ name: `${mk} Future` });
-  const pending = await f.user({ name: `${mk} Pending` });
-  const rejected = await f.user({ name: `${mk} Rejected` });
-  const canceled = await f.user({ name: `${mk} Canceled` });
-  const everyone = [mate, onLeave, over, future, pending, rejected, canceled];
+  const everyone = [mate, onLeave, over, future];
   await f.project({ lead: eka, members: everyone.map((u) => [u, 'member'] as const), name: mk });
-  await leave(onLeave, '2026-10-05', '2026-10-16', 'approved');
-  await leave(over, '2026-09-20', '2026-09-25', 'approved');
-  await leave(future, '2026-10-12', '2026-10-14', 'approved');
-  await leave(pending, '2026-10-14', '2026-10-16', 'pending');
-  await leave(rejected, '2026-10-07', '2026-10-09', 'rejected');
-  await leave(canceled, '2026-10-07', '2026-10-09', 'canceled');
-  return { mk, eka, admin, mate, onLeave, over, future, pending, rejected, canceled };
+  // The note is Admin-only (D6); it is seeded precisely so the Team response can be shown not to carry it.
+  await leave(onLeave, '2026-10-05', '2026-10-16', 'umroh');
+  await leave(over, '2026-09-20', '2026-09-25');
+  await leave(future, '2026-10-12', '2026-10-14');
+  return { mk, eka, admin, mate, onLeave, over, future };
 }
 type World = Awaited<ReturnType<typeof world>>;
 
@@ -104,30 +99,16 @@ describe.each(surfaces)('availability in the %s', (_name, read) => {
     expect(await read(w.eka, w, w.future)).toBeNull();
   });
 
-  it('shows a pending request to its owner, a Project Manager and an Admin', async () => {
-    const w = await world();
-    const want = { kind: 'pending', from: '2026-10-14', to: '2026-10-16' };
-    expect(await read(w.pending, w, w.pending)).toEqual(want);
-    expect(await read(w.eka, w, w.pending)).toEqual(want);
-    expect(await read(w.admin, w, w.pending)).toEqual(want);
-  });
-
-  it('shows a pending request to no other Member', async () => {
-    const w = await world();
-    expect(await read(w.mate, w, w.pending)).toBeNull();
-  });
-
-  it('is null for a rejected and for a canceled request, whoever asks', async () => {
-    const w = await world();
-    for (const who of [w.eka, w.admin, w.rejected, w.canceled]) {
-      expect(await read(who, w, w.rejected)).toBeNull();
-      expect(await read(who, w, w.canceled)).toBeNull();
-    }
-  });
-
-  it('is null for somebody who never asked for leave', async () => {
+  it('is null for somebody with no recorded leave', async () => {
     const w = await world();
     expect(await read(w.eka, w, w.mate)).toBeNull();
+  });
+
+  it('never carries the Admin-only note (P14 D6)', async () => {
+    const w = await world();
+    const a = await read(w.mate, w, w.onLeave);
+    expect(Object.keys(a as object).sort()).toEqual(['kind', 'until']);
+    expect(JSON.stringify(a)).not.toInclude('umroh');
   });
 });
 
@@ -136,7 +117,7 @@ describe('availability leaves the rest of the Team response alone', () => {
     const w = await world();
     auth.as(w.mate);
     const res = await call('GET', `${BASE}?q=${w.mk}&limit=50`);
-    expect(res.body.total).toBe(8); // the seven Members and Eka
+    expect(res.body.total).toBe(5); // the four Members and Eka
     const other = (res.body.people as Json[]).find((p) => p.id === w.onLeave.id) as Json;
     expect(Object.keys(other).sort()).toEqual(
       ['availability', 'id', 'image', 'isSelf', 'jobTitle', 'name', 'projects'].sort(),

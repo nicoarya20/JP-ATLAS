@@ -4,7 +4,7 @@
  */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
 import { db } from '../../server/db';
-import { leaveRequest } from '../../server/db/schema';
+import { leavePeriod } from '../../server/db/schema';
 import { toPrincipal } from '../../server/project/membership.query';
 import type { ListTeamOk, ListTeamResult } from '../../server/team/team.dto';
 import { isRefused } from '../../server/team/team.dto';
@@ -24,14 +24,14 @@ afterAll(() => cleaner.flushAll());
 const NOW = ATLAS_NOW; // 2026-10-07 in the team zone
 const principal = (u: TestUser) => toPrincipal({ user: u, role: u.role });
 const leaveStatements = (queries: readonly string[]) =>
-  queries.filter((q) => q.includes('"leave_request"'));
+  queries.filter((q) => q.includes('"leave_period"'));
 
 function ok(r: ListTeamResult): ListTeamOk {
   if (isRefused(r)) throw new Error(`refused with ${r.code}`);
   return r;
 }
 
-/** A manager and `people` Members, every second one on approved leave. */
+/** A manager and `people` Members, every second one with a recorded leave. */
 async function team(people: number) {
   const mk = `m${crypto.randomUUID().slice(0, 8)}`;
   const boss = await f.user({ role: 'project_manager', name: `${mk} Boss` });
@@ -44,14 +44,11 @@ async function team(people: number) {
   });
   const away = mates.filter((_, i) => i % 2 === 0);
   if (away.length > 0) {
-    await db.insert(leaveRequest).values(
-      away.map((m) => ({
-        userId: m.id,
-        startDate: '2026-10-06',
-        endDate: '2026-10-09',
-        status: 'approved' as const,
-      })),
-    );
+    await db
+      .insert(leavePeriod)
+      .values(
+        away.map((m) => ({ userId: m.id, startDate: '2026-10-06', endDate: '2026-10-09' })),
+      );
   }
   return { mk, boss, mates, away };
 }

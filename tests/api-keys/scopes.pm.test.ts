@@ -122,41 +122,10 @@ describe('Event Trash routes (S7 E-07)', () => {
 });
 
 describe('Leave routes', () => {
-  test.each([
-    ['POST', '/api/app/leave/l1/approve'],
-    ['POST', '/api/app/leave/l1/reject'],
-    ['DELETE', '/api/app/leave/l1'],
-    ['PUT', '/api/app/leave/settings'],
-  ])('%s %s is session only', (m, p) => {
-    expect(isPmKeyDenied(m, p)).toBe(true);
-    expect(requiredScope(m, p)).toBeNull();
-  });
-
-  test.each([
-    ['GET', '/api/app/leave/me', 'app:read'],
-    ['GET', '/api/app/leave/pending', 'app:read'],
-    ['GET', '/api/app/leave/settings', 'app:read'],
-    ['POST', '/api/app/leave', 'app:write'],
-  ])('%s %s stays open to keys with %s', (m, p, scope) => {
-    expect(isPmKeyDenied(m, p)).toBe(false);
-    expect<string | null>(requiredScope(m, p)).toBe(scope);
-  });
-
-  test('every denied route exists, and each deny pattern names the file that owns it', () => {
-    for (const [method, path] of [
-      ['POST', '/api/app/leave/:id/approve'],
-      ['POST', '/api/app/leave/:id/reject'],
-      ['DELETE', '/api/app/leave/:id'],
-      ['PUT', '/api/app/leave/settings'],
-    ]) {
-      // Elysia registers a prefix's root route with a trailing slash (`/leave/settings/`).
-      expect(appRoutes.some((r) => r.method === method && r.path.replace(/\/$/, '') === path)).toBe(
-        true,
-      );
-    }
-    expect(PM_DENY_OWNER['POST leave/*/decision']).toBe('app-leave.decide.ts');
-    expect(PM_DENY_OWNER['DELETE leave/*']).toBe('app-leave.me.ts');
-    expect(PM_DENY_OWNER['PUT leave/settings']).toBe('app-leave.settings.ts');
+  // P14 CU-02 removed /api/app/leave/* with the approval flow; the deny patterns went with it, and
+  // CU-03 denies the two admin routes that replace them. Until then nothing under this prefix exists.
+  test('no /api/app/leave route is registered any more', () => {
+    expect(appRoutes.filter((r) => r.path.startsWith('/api/app/leave'))).toEqual([]);
   });
 });
 

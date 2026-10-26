@@ -1,12 +1,11 @@
 /** "Tolak cuti" dialog: an optional reason the requester will read; refusals from the server stay inside it. */
 import { Alert, Button, Group, Modal, Stack, Text, Textarea } from '@mantine/core';
-import { LEAVE_REJECT_REASON_MAX } from '@server/leave/leave.dto';
 import { useState } from 'react';
 import { notify } from '~/components/ui/notify';
 import { describeApiError } from '~/lib/http';
 import { rejectLeave } from '~/lib/leave-api';
 import { formatLeaveRange } from '~/lib/leave-view';
-import { LEAVE_REJECT_COPY } from './leave.copy';
+import { LEAVE_REJECT_COPY, LEAVE_REJECT_REASON_MAX } from './leave.copy';
 
 /** The request being refused: its id, the requester's name and the range, as the Inbox card shows them. */
 export type LeaveRejectTarget = { id: string; name: string; startDate: string; endDate: string };

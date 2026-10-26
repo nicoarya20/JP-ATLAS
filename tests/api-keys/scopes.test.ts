@@ -202,22 +202,8 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('POST', '/api/app/trash/event/e1/restore')).toBeNull();
   });
 
-  // Leave: a key may read leave and send a request, but not decide, withdraw or change the switch.
-  it('keeps leave reads and sending a request on app:read / app:write', () => {
-    expect(requiredScope('GET', '/api/app/leave/me')).toBe('app:read');
-    expect(requiredScope('GET', '/api/app/leave/pending')).toBe('app:read');
-    expect(requiredScope('GET', '/api/app/leave/settings')).toBe('app:read');
-    expect(requiredScope('POST', '/api/app/leave')).toBe('app:write');
-  });
-
-  it('returns null for the leave routes that decide, withdraw or change the switch', () => {
-    expect(requiredScope('POST', '/api/app/leave/l1/approve')).toBeNull();
-    expect(requiredScope('POST', '/api/app/leave/l1/reject')).toBeNull();
-    expect(requiredScope('post', '/api/app/leave/l1/approve/')).toBeNull();
-    expect(requiredScope('DELETE', '/api/app/leave/l1')).toBeNull();
-    expect(requiredScope('PUT', '/api/app/leave/settings')).toBeNull();
-    expect(requiredScope('PUT', '/api/app/leave/settings/')).toBeNull();
-  });
+  // Leave left /api/app entirely with the approval flow (P14 CU-02); the admin routes that replace
+  // it are mapped in CU-03. Nothing under /api/app/leave answers any more, so nothing is asserted.
 
   it('keeps the event reads, writes and minutes on app:read / app:write', () => {
     expect(requiredScope('GET', '/api/app/events')).toBe('app:read');

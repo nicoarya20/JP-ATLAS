@@ -25,19 +25,7 @@ export function shortDate(iso: string): string {
   return m && month ? `${Number(m[3])} ${month}` : iso;
 }
 
-/** A range in one line: "14–16 Okt" inside a month, "30 Okt – 2 Nov" across months, "14 Okt" for one day. */
-export function shortRange(from: string, to: string): string {
-  if (from === to) return shortDate(from);
-  const a = ISO_DATE.exec(from);
-  const b = ISO_DATE.exec(to);
-  if (a && b && a[1] === b[1] && a[2] === b[2]) return `${Number(a[3])}–${shortDate(to)}`;
-  return `${shortDate(from)} – ${shortDate(to)}`;
-}
-
 /** The line to show for a person's availability, or null when nothing should be drawn (never "Tersedia"). */
 export function availabilityText(a: TeamAvailability | undefined): string | null {
-  if (!a) return null;
-  return a.kind === 'on_leave'
-    ? `Cuti sampai ${shortDate(a.until)}`
-    : `Pengajuan cuti ${shortRange(a.from, a.to)}`;
+  return a ? `Cuti sampai ${shortDate(a.until)}` : null;
 }

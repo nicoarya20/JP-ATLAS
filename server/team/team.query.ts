@@ -162,7 +162,6 @@ export async function listTeam(
     : everyone;
   const leave = await leaveStatusFor(
     paged.map((x) => x.id),
-    p,
     today(now),
     exec,
   );

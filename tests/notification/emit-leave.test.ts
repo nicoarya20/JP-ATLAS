@@ -13,16 +13,33 @@ import {
   emitLeaveRequested,
 } from '../../server/notification/emit.leave';
 import { inboxActionCount, listInbox } from '../../server/notification/notification.query';
-import {
-  asPrincipal,
-  CLOCK,
-  type LeaveWorld,
-  leaveCards,
-  leaveWorld,
-  seedLeave,
-} from '../leave/leave.world';
+import { CLOCK, type LeaveWorld, leaveWorld, seedLeave } from '../leave/leave.world';
 import { createCleaner } from '../support/cleanup';
 import { createFactory } from '../support/factory.task';
+import type { Principal } from '../../server/access/types';
+import type { Role } from '../../server/permissions';
+import type { TestUser } from '../support/factory.user';
+
+// Local since P14 CU-02: leave.world no longer knows about approvers or leave-ref cards, because
+// nothing writes them any more. Both helpers leave with these cards in CU-06.
+const asPrincipal = (u: Pick<TestUser, 'id' | 'role'>): Principal => ({
+  id: u.id,
+  appRole: u.role as Role,
+  impersonating: false,
+});
+
+/** The Inbox cards written for one leave row, optionally for one kind. */
+const leaveCards = (refId: string, kind?: string) =>
+  db
+    .select()
+    .from(notification)
+    .where(
+      and(
+        eq(notification.refType, 'leave'),
+        eq(notification.refId, refId),
+        kind ? eq(notification.kind, kind) : undefined,
+      ),
+    );
 
 const cleaner = createCleaner();
 const f = createFactory(cleaner, { tag: 'emitleave' });
@@ -37,7 +54,7 @@ const FACTS = { startDate: '2026-10-14', endDate: '2026-10-16', days: 3, at: CLO
 
 /** A pending request for Dodi and the approval cards for Nico and Ayu, as the service would write them. */
 async function requested() {
-  const row = await seedLeave(w.dodi, FACTS.startDate, FACTS.endDate, 'pending');
+  const row = await seedLeave(w.dodi, FACTS.startDate, FACTS.endDate);
   const facts = { ...FACTS, requestId: row.id, requesterId: w.dodi.id, requesterName: 'Dodi' };
   await emitLeaveRequested(db, { ...facts, approverIds: [w.nico.id, w.ayu.id], dueTasks: 2 });
   return { row, facts };
