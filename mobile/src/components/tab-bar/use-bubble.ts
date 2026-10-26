@@ -15,6 +15,11 @@ import { BUBBLE_MS, EASE, EASE_OUT, HELD, JELLY, keyframes, POP, SPRING } from '
 /** The bubble's shared values, read by TabBubble and TabItem on the UI thread. */
 export type BubbleValues = ReturnType<typeof useBubble>['values'];
 
+// The jelly's two channels, split once here: `settle` runs on the UI thread, where a callback written inside a worklet
+// (`JELLY.map(...)`) is hoisted out as a plain JS function and calling it aborts the app.
+const JELLY_X = JELLY.map(([at, x]) => [at, x] as const);
+const JELLY_Y = JELLY.map(([at, , y]) => [at, y] as const);
+
 type BubbleOptions = {
   n: number;
   /** Index of the selected tab. */
@@ -27,6 +32,8 @@ type BubbleOptions = {
  * The tab bubble (prototype kit/tabbar.jsx GlassTabs): rests behind the active tab, jumps under a finger and follows it,
  * and on release the nearest tab is picked. Every tab change, wherever it came from, slides it there with a jelly
  * bounce (not on the first mount). Motion runs on the UI thread; JS only hears the release and the lit tab changing.
+ * A finger's release settles the bubble right there on the UI thread: waiting for the tab change to come back from JS
+ * left it standing still for the new screen's render (about 300 ms in a dev build) before it moved.
  */
 export function useBubble({ n, active, onRelease }: BubbleOptions) {
   const reduced = useReducedMotion();
@@ -86,20 +93,8 @@ export function useBubble({ n, active, onRelease }: BubbleOptions) {
       sy.set(1);
       icon.set(1);
     } else if (bounce) {
-      sx.set(
-        keyframes(
-          JELLY.map(([at, x]) => [at, x] as const),
-          BUBBLE_MS.jelly,
-          EASE_OUT,
-        ),
-      );
-      sy.set(
-        keyframes(
-          JELLY.map(([at, , y]) => [at, y] as const),
-          BUBBLE_MS.jelly,
-          EASE_OUT,
-        ),
-      );
+      sx.set(keyframes(JELLY_X, BUBBLE_MS.jelly, EASE_OUT));
+      sy.set(keyframes(JELLY_Y, BUBBLE_MS.jelly, EASE_OUT));
       icon.set(keyframes(POP, BUBBLE_MS.pop, SPRING));
     } else {
       const back = { duration: BUBBLE_MS.release, easing: SPRING };
@@ -110,22 +105,35 @@ export function useBubble({ n, active, onRelease }: BubbleOptions) {
   };
 
   // Every tab change slides the bubble there with a bounce, whatever caused it; not on the first mount. It runs after
-  // every render (its worklets are new each render), and the ref keeps it to one slide per change.
+  // every render (its worklets are new each render), and `last` keeps it to changes of `active`. `shown` is the tab the
+  // bubble last settled on, so a change the bubble already went to on release does not bounce it twice.
+  const last = useRef(active);
   const shown = useRef(active);
   useEffect(() => {
+    if (last.current === active) return;
+    last.current = active;
     if (shown.current === active) return;
     shown.current = active;
     settle(active, true);
   });
 
-  /** Release on tab `index` (JS): the same tab bounces in place; another one is up to onRelease. */
-  const release = (index: number) => {
-    if (index === active) settle(active, true);
+  /** The bubble has settled on tab `index` (JS): hand the pick to onRelease. */
+  const picked = (index: number) => {
+    shown.current = index;
     onRelease(index);
   };
 
+  /** Pick tab `index` without a finger (a screen reader's action): bounce there, then pick it. */
+  const release = (index: number) => {
+    settle(index, true);
+    picked(index);
+  };
+
   /** The picked tab did not become active (its press was taken over, e.g. More): back to the active tab. */
-  const snapBack = () => settle(active, false);
+  const snapBack = () => {
+    shown.current = active;
+    settle(active, false);
+  };
 
   const at = (x: number) => {
     'worklet';
@@ -148,9 +156,14 @@ export function useBubble({ n, active, onRelease }: BubbleOptions) {
       follow(at(e.x));
     },
     onFinalize: (e) => {
-      if (e.canceled && activated.get()) scheduleOnRN(snapBack);
+      if (e.canceled && activated.get()) {
+        scheduleOnRN(snapBack);
+        return;
+      }
       // The lit tab, not the bubble's position: the bubble may still be sliding toward the finger.
-      else scheduleOnRN(release, lit.get());
+      const to = lit.get();
+      settle(to, true);
+      scheduleOnRN(picked, to);
     },
   });
 

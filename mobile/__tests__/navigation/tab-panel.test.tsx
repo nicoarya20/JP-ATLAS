@@ -98,6 +98,15 @@ describe('More panel motion', () => {
     expect(rise(0)).toEqual({ opacity: 0, translateY: PANEL.rise.y, scale: PANEL.rise.scale });
   });
 
+  // In the flow, the 0-tall clip squeezed the content to 0, so it measured 0 and the panel unfolded to nothing on
+  // device (Jest has no layout to show it).
+  it('keeps its content out of the flow, so the folded clip cannot squeeze what it measures', async () => {
+    await mount();
+
+    const content = screen.getByTestId('tab-panel-content', { includeHiddenElements: true });
+    expect(content).toHaveStyle({ position: 'absolute', top: 0, left: 0, right: 0 });
+  });
+
   it('unfolds to its content with one swell, then folds back faster', async () => {
     const view = await mount();
 

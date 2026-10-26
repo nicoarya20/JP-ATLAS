@@ -94,8 +94,11 @@ export function TabShell({ open, label, panel, onEscape, children }: TabShellPro
           importantForAccessibility={open ? 'auto' : 'no-hide-descendants'}
           style={[{ overflow: 'hidden' }, unfold]}
         >
+          {/* Absolute, so the content keeps its natural height inside the 0-tall clip; in the flow it is squeezed to
+              0 there, measures 0, and the panel would unfold to nothing. */}
           <View
             testID="tab-panel-content"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
             onLayout={(e) => {
               const h = e.nativeEvent.layout.height;
               content.set(h);
