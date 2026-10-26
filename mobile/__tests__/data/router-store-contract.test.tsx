@@ -17,6 +17,14 @@ import { createStore, useStore } from '@/data/store';
 
 const probe = createStore('first');
 
+/**
+ * `/b` and `/t2` exist only in the route tree `renderRouter` builds below, so the typed-route union
+ * generated from the real app (via `expo-env.d.ts`) does not know them. The cast is the narrowest
+ * way to say that; without it this file only typechecks on a checkout where `expo-env.d.ts` is
+ * missing, which is exactly the trap recorded as H-E19.
+ */
+const testHref = (path: string) => path as Parameters<typeof router.push>[0];
+
 /** Mount/unmount and render bookkeeping of one screen, so the test can see what the router did. */
 const log: string[] = [];
 
@@ -36,10 +44,10 @@ function Watcher({ id }: { id: string }) {
   return (
     <View>
       <Text testID={`value-${id}`}>{value}</Text>
-      <Link testID={`to-b-${id}`} href="/b">
+      <Link testID={`to-b-${id}`} href={testHref('/b')}>
         b
       </Link>
-      <Link testID={`to-t2-${id}`} href="/t2">
+      <Link testID={`to-t2-${id}`} href={testHref('/t2')}>
         t2
       </Link>
     </View>
