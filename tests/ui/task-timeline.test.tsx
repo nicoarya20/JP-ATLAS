@@ -1,12 +1,14 @@
 /**
  * Task timeline (S2-13): user text is escaped, only http(s) becomes a link, a removed account reads
  * "Mantan anggota", and a failed send keeps the draft. C-TSK-1: no raw HTML sink in app/components/tasks.
+ * The Trash moves (S6 D1) read as sentences, and an action this version does not know still renders.
  */
 import { describe, expect, it } from 'bun:test';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { TimelineItem } from '../../app/components/tasks/TimelineItem';
 import {
+  activityDetail,
   activityText,
   isSafeUrl,
   sendKeepingDraft,
@@ -27,6 +29,17 @@ const comment = (over: Record<string, unknown> = {}) =>
     editedAt: null,
     ...over,
   }) as TimelineEntry;
+
+type ActivityEntry = Extract<TimelineEntry, { kind: 'activity' }>;
+const activity = (action: string, payload: unknown = { number: 7 }) =>
+  ({
+    kind: 'activity',
+    id: `a-${action}`,
+    at: AT,
+    author: { id: 'u-2', name: 'Sari' },
+    action,
+    payload,
+  }) as ActivityEntry;
 
 const show = (entry: TimelineEntry, viewerId = 'u-1') =>
   renderUi(<TimelineItem entry={entry} taskRef="7" viewerId={viewerId} canComment />);
@@ -98,6 +111,22 @@ describe('timeline text', () => {
     );
     expect(text({ from: null, to: 'Bangun' })).toBe('memindahkan tugas ke tahapan Bangun');
     expect(text({ from: 'Bangun', to: null })).toBe('mengeluarkan tugas dari tahapan Bangun');
+  });
+
+  it('reads a Trash move as a sentence, with the person who made it', async () => {
+    expect(activityText(activity('trashed'))).toBe('menghapus tugas ini ke Sampah');
+    expect(activityText(activity('restored'))).toBe('memulihkan tugas ini dari Sampah');
+    const html = await show(activity('trashed'));
+    expect(html).toContain('Sari');
+    expect(html).toContain('menghapus tugas ini ke Sampah');
+    expect(await show(activity('restored'))).toContain('memulihkan tugas ini dari Sampah');
+  });
+
+  it('still renders an action this version does not know, with no extra line', async () => {
+    // History written by a newer version must read, not break the page.
+    expect(activityText(activity('dibekukan', null))).toBe('mengubah tugas ini');
+    expect(activityDetail(activity('dibekukan', 'bukan objek'))).toBe(null);
+    expect(await show(activity('dibekukan', null))).toContain('mengubah tugas ini');
   });
 });
 

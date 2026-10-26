@@ -50,6 +50,10 @@ export const TASK_ACTIVITY = {
   uncancel: 'uncanceled',
   // Comment removal (S2-06, D6): payload `{ commentId }` only, never the comment text.
   commentDelete: 'comment.delete',
+  /** Sent to the Trash (S6 D1): payload `{ number }`; the same name the project timeline uses. */
+  trash: 'trashed',
+  /** Brought back from the Trash (S6 D1): payload `{ number }`. */
+  restore: 'restored',
 } as const;
 
 /** Workflow steps the API offers in S2 (P3 §5); each has a `POST /tasks/:ref/<action>` route. */

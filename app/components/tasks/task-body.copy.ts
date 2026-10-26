@@ -75,6 +75,8 @@ export const ACTIVITY_COPY = {
   canceled: 'membatalkan tugas ini',
   uncanceled: 'memulihkan tugas ini',
   'comment.delete': 'menghapus sebuah komentar',
+  trashed: 'menghapus tugas ini ke Sampah',
+  restored: 'memulihkan tugas ini dari Sampah',
   fallback: 'mengubah tugas ini',
   reason: (text: string) => `Alasan: ${text}`,
 } as const;
