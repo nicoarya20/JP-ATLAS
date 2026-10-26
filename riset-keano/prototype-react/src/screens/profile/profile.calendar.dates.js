@@ -1,7 +1,7 @@
 // My calendar: date maths for the week view and the signed-in person's events placed on real dates and minutes.
 import { D } from '../../data/sample';
 
-/** The prototype's today (D.today: Wednesday, Oct 7, 2026) and the status bar clock (9:41) as minutes after midnight. */
+/** The prototype's today (D.today: Wednesday, Oct 7, 2026) and its clock (9:41) as minutes after midnight. */
 export const TODAY = new Date(2026, 9, 7);
 export const NOW_MIN = 9 * 60 + 41;
 

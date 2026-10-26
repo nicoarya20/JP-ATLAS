@@ -1,4 +1,5 @@
-// Projects module registration (owner: pm-dashboard-65): list, create flows (form/story/AI draft/template), detail tabs, extend sheet.
+// Projects module registration (owner: pm-dashboard-65): list, create flows (form/story/AI draft/template), detail tabs,
+// extend sheet, and the detail ⋯ Edit project screen and Move to Archive sheet.
 import { screen, sheet } from '../../core/registry';
 import { getRole } from '../../core/session';
 import './projects.css';
@@ -9,6 +10,7 @@ import { ProjectsDraft, ProjectsTemplate } from './projects.draft';
 import { ProjectsOverview } from './projects.detail';
 import { ProjectsMembers, ProjectsPhases, ProjectsTasks } from './projects.tabs';
 import ProjectsExtend from './projects.extend';
+import { ProjectsArchive, ProjectsEdit } from './projects.edit';
 
 const G = 'Projects';
 const MANAGERS = ['pm', 'admin'];
@@ -25,3 +27,5 @@ screen('projects.tasks', { title: '⑨ Detail · Tasks', group: G, Component: Pr
 screen('projects.phases', { title: '⑩ Detail · Phases', group: G, Component: ProjectsPhases });
 screen('projects.members', { title: '⑪ Detail · Members', group: G, Component: ProjectsMembers });
 sheet('projects.extend', { from: 'projects.overview', title: '⑫ Extend deadline', group: G, roles: MANAGERS, Component: ProjectsExtend });
+screen('projects.edit', { title: '⑬ Edit project (detail ⋯)', group: G, roles: MANAGERS, Component: ProjectsEdit });
+sheet('projects.archive', { from: 'projects.overview', title: '⑭ Sheet · Move to Archive', group: G, roles: MANAGERS, Component: ProjectsArchive });

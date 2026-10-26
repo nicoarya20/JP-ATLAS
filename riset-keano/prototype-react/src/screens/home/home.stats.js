@@ -2,7 +2,7 @@
 import { D } from '../../data/sample';
 import { EV } from '../events/events.shared';
 import { items } from '../inbox/inbox.shared';
-import { TODAY, assigned, days } from '../tasks/tasks.shared';
+import { TODAY, assigned, days, isOpen } from '../tasks/tasks.shared';
 
 /** Days back to this week's Monday (the sample week runs Monday to Sunday). */
 const SINCE_MONDAY = (TODAY.getDay() + 6) % 7;
@@ -26,7 +26,7 @@ function activeSub(active) {
 /** My open tasks (with overdue count), tasks in progress (with the most urgent due) and tasks done this week. */
 export function myTaskStats() {
   const mine = D.tasks.filter(t => assigned(t, D.me().name));
-  const open = mine.filter(t => t.status !== 'Done'), overdue = open.filter(late).length;
+  const open = mine.filter(isOpen), overdue = open.filter(late).length;
   const active = mine.filter(t => t.status === 'In progress');
   const done = mine.filter(t => t.status === 'Done' && days(doneOn(t)) >= -SINCE_MONDAY);
   return {
@@ -39,7 +39,7 @@ export function myTaskStats() {
 /** Calendar items still ahead this month: my open tasks due from today on, plus events I attend that haven't happened yet. */
 export function upcomingThisMonth() {
   const me = D.me().name;
-  const tasks = D.tasks.filter(t => assigned(t, me) && t.status !== 'Done' && leftThisMonth(t.due));
+  const tasks = D.tasks.filter(t => assigned(t, me) && isOpen(t) && leftThisMonth(t.due));
   const events = D.events.filter(e => e.attendees.includes(me) && e.status !== 'Done' && leftThisMonth(EV.date(e).slice(5)));
   const n = tasks.length + events.length;
   return { count: n, sub: `${n} ${n === 1 ? 'item' : 'items'}` };

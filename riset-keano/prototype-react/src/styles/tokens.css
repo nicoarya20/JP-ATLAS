@@ -140,7 +140,7 @@
   /* Spacing and radii stay Cupertino: only Atlas colour and type are adopted, component shapes keep the iOS look. */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
   --radius-card: 12px; --radius-sm: 8px;
-  --statusbar-h: 44px;   /* the fake iOS status bar on top of the phone */
+  --statusbar-h: 44px;   /* empty band on top of the phone, kept clear for the notch */
 }
 
 .dark {

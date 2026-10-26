@@ -112,4 +112,15 @@ describe('panels drawn in --fill', () => {
     const tracks = document.querySelectorAll('.hm-answer .react-cupertino-ui-progressbar__track');
     expect(tracks.length).toBeGreaterThan(0);
   });
+
+  it('draws the My Focus cards as --fill panels without a line, inside the section card', () => {
+    const css = read('screens/home/home.css');
+    const list = '.hm-cards.rows.react-cupertino-ui-list';
+    const item = `${list} .react-cupertino-ui-list-item`;
+    expect(rule(css, `${item}:last-child`)).toMatch(/background:\s*var\(--fill\)/);
+    expect(rule(css, `${item}:last-child`)).not.toMatch(/box-shadow|border:/);
+    expect(rule(css, `${item} > *`)).toMatch(/--fill:\s*var\(--surface-raised\)/);
+    // A grid list sized its auto track to the nowrap title and pushed long rows past the card; keep the library's flex column.
+    expect(rule(css, list)).not.toMatch(/display:\s*grid/);
+  });
 });

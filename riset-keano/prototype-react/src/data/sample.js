@@ -27,6 +27,8 @@ const projects = [
   { id: 'attendance', name: 'Attendance App', lead: 'Nico', status: 'Draft', health: 'No tasks yet', why: '', progress: 0, due: 'Dec 7', members: ['Nico'] },
   { id: 'website', name: 'Company Profile Website', lead: 'Rina', status: 'Done', health: '✓ Done', why: '', progress: 100, due: 'Sep 1', members: ['Rina', 'Lea'] },
 ];
+/** Projects moved to Archive (Project detail ⋯ › Move to Archive); D.project still finds them. */
+const archivedProjects = [];
 /** Atlas detail (Projects ⑧–⑪). */
 const atlas = {
   started: 'Sep 1', timeElapsed: 60, daysLeft: 24, phaseNow: 'Development', phasePct: 60,
@@ -186,12 +188,13 @@ const home = {
 
 export const D = {
   inbox,
-  today, people, ME, projects, atlas, story, templates, tasks, archivedTasks, taskDetail, quickWrite, csv, events, archivedEvents, kickoff, standup, team, archive, users, home,
+  today, people, ME, projects, archivedProjects, atlas, story, templates, tasks, archivedTasks, taskDetail, quickWrite, csv, events, archivedEvents, kickoff, standup, team, archive, users, home,
   /** Signed-in person for the active role. */
   me: () => ({ key: ME[getRole()], ...people[ME[getRole()]] }),
   /** Person by key or first name. */
   person: k => people[k] || Object.values(people).find(p => p.name === k),
-  project: id => projects.find(p => p.id === id),
+  /** Project by id, archived ones included. */
+  project: id => projects.find(p => p.id === id) || archivedProjects.find(p => p.id === id),
   /** Task by number, archived ones included. */
   task: no => tasks.find(t => t.no === no) || archivedTasks.find(t => t.no === no),
   /** Event by id, archived ones included. */

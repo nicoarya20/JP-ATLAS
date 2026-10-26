@@ -1,0 +1,9 @@
+{
+  "//": "Node-side code (scripts/, __tests__/node/) that reads files; the app itself never gets Node types.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "jest"]
+  },
+  "include": ["scripts/**/*.ts", "__tests__/node/**/*.ts"],
+  "exclude": ["node_modules"]
+}

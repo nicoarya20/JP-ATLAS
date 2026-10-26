@@ -1,11 +1,11 @@
-// Team workload from the live task list: a person's active tasks (anything not Done) and which of them are overdue.
+// Team workload from the live task list: a person's active tasks (anything not Done or Canceled) and which of them are overdue.
 import { D } from '../../data/sample';
-import { days } from '../tasks/tasks.shared';
+import { days, isOpen } from '../tasks/tasks.shared';
 
 /** True when task t is past its due date. */
 export const isOverdue = t => !!t.due && days(t.due) < 0;
 /** Active tasks of a person, by first name. */
-export const activeOf = name => D.tasks.filter(t => t.who === name && t.status !== 'Done');
+export const activeOf = name => D.tasks.filter(t => t.who === name && isOpen(t));
 /** { active, overdue } task counts of a person, by first name. */
 export function loadOf(name) {
   const tasks = activeOf(name);

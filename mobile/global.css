@@ -1,0 +1,158 @@
+/* GENERATED from src/theme/*.ts by `bun run theme:css`; edit those files, not this one.
+   JP Atlas tokens as gluestack-ui v5 theme variables (RGB triplets), switched by Uniwind.setTheme. */
+@import "tailwindcss";
+@import 'uniwind';
+
+@layer theme {
+  :root {
+    @variant light {
+      --background: 244 246 250;
+      --foreground: 18 34 54;
+      --card: 255 255 255;
+      --card-foreground: 18 34 54;
+      --popover: 255 255 255;
+      --popover-foreground: 18 34 54;
+      --primary: 200 249 4;
+      --primary-foreground: 7 19 33;
+      --primary-pressed: 181 227 0;
+      --primary-border: 100 125 0;
+      --secondary: 234 240 246;
+      --secondary-foreground: 18 34 54;
+      --muted: 234 240 246;
+      --muted-foreground: 76 96 117;
+      --accent: 235 233 255;
+      --accent-foreground: 59 50 148;
+      --atlas: 81 70 201;
+      --destructive: 165 27 60;
+      --destructive-foreground: 255 255 255;
+      --danger-soft: 255 237 240;
+      --success: 12 104 71;
+      --success-soft: 229 246 236;
+      --warning: 128 84 0;
+      --warning-soft: 255 243 214;
+      --info: 81 70 201;
+      --info-soft: 235 233 255;
+      --border: 199 210 223;
+      --input: 105 125 146;
+      --ring: 81 70 201;
+      --veil: 7 19 33 / 0.6;
+      --snack: 14 26 36;
+      --snack-foreground: 243 246 251;
+      --snack-action: 182 180 255;
+    }
+
+    @variant dark {
+      --background: 7 19 33;
+      --foreground: 243 246 251;
+      --card: 14 26 36;
+      --card-foreground: 243 246 251;
+      --popover: 14 26 36;
+      --popover-foreground: 243 246 251;
+      --primary: 200 249 4;
+      --primary-foreground: 7 19 33;
+      --primary-pressed: 217 255 61;
+      --primary-border: 200 249 4;
+      --secondary: 22 38 56;
+      --secondary-foreground: 243 246 251;
+      --muted: 22 38 56;
+      --muted-foreground: 183 196 211;
+      --accent: 37 41 73;
+      --accent-foreground: 229 224 255;
+      --atlas: 182 180 255;
+      --destructive: 255 160 172;
+      --destructive-foreground: 7 19 33;
+      --danger-soft: 56 30 41;
+      --success: 116 222 174;
+      --success-soft: 20 56 46;
+      --warning: 255 209 122;
+      --warning-soft: 56 45 21;
+      --info: 182 180 255;
+      --info-soft: 37 41 73;
+      --border: 52 70 90;
+      --input: 114 134 156;
+      --ring: 200 249 4;
+      --veil: 7 19 33 / 0.73;
+      --snack: 22 38 56;
+      --snack-foreground: 243 246 251;
+      --snack-action: 182 180 255;
+    }
+  }
+}
+
+@theme inline {
+  --color-*: initial;
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-card: rgb(var(--card));
+  --color-card-foreground: rgb(var(--card-foreground));
+  --color-popover: rgb(var(--popover));
+  --color-popover-foreground: rgb(var(--popover-foreground));
+  --color-primary: rgb(var(--primary));
+  --color-primary-foreground: rgb(var(--primary-foreground));
+  --color-primary-pressed: rgb(var(--primary-pressed));
+  --color-primary-border: rgb(var(--primary-border));
+  --color-secondary: rgb(var(--secondary));
+  --color-secondary-foreground: rgb(var(--secondary-foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-foreground: rgb(var(--accent-foreground));
+  --color-atlas: rgb(var(--atlas));
+  --color-destructive: rgb(var(--destructive));
+  --color-destructive-foreground: rgb(var(--destructive-foreground));
+  --color-danger-soft: rgb(var(--danger-soft));
+  --color-success: rgb(var(--success));
+  --color-success-soft: rgb(var(--success-soft));
+  --color-warning: rgb(var(--warning));
+  --color-warning-soft: rgb(var(--warning-soft));
+  --color-info: rgb(var(--info));
+  --color-info-soft: rgb(var(--info-soft));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-ring: rgb(var(--ring));
+  --color-veil: rgb(var(--veil));
+  --color-snack: rgb(var(--snack));
+  --color-snack-foreground: rgb(var(--snack-foreground));
+  --color-snack-action: rgb(var(--snack-action));
+}
+
+@theme {
+  --font-*: initial;
+  --font-weight-*: initial;
+  --spacing: 4px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-modal: 16px;
+  --radius-identity: 20px;
+  --text-page: 26px;
+  --text-page--line-height: 31px;
+  --text-section: 20px;
+  --text-section--line-height: 24px;
+  --text-headline: 16px;
+  --text-headline--line-height: 21px;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-subhead: 14px;
+  --text-subhead--line-height: 21px;
+  --text-footnote: 12px;
+  --text-footnote--line-height: 18px;
+  --text-metric: 32px;
+  --text-metric--line-height: 38px;
+}
+
+@utility font-normal {
+  font-family: 'Manrope-Regular';
+  font-weight: normal;
+}
+@utility font-medium {
+  font-family: 'Manrope-Medium';
+  font-weight: normal;
+}
+@utility font-semibold {
+  font-family: 'Manrope-SemiBold';
+  font-weight: normal;
+}
+@utility font-bold {
+  font-family: 'Manrope-Bold';
+  font-weight: normal;
+}

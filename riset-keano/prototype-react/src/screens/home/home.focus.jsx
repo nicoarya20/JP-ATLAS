@@ -5,9 +5,11 @@ import { D } from '../../data/sample';
 import { Btn, Link, Progress, Row, Rows, StatusPill } from '../../kit';
 import { EV, taskScreen } from '../events/events.shared';
 import { useEvents } from '../events/events.store';
-import { TODAY, days } from '../tasks/tasks.shared';
+import { TODAY, days, isOpen } from '../tasks/tasks.shared';
 import { moveTask, useTaskMoves } from '../tasks/tasks.store';
 
+/** Project statuses that leave Agenda & Projects. */
+const CLOSED_PROJECT = ['Done', 'Canceled'];
 /** Days from today to Sunday: the end of "This week". */
 const WEEK_LEFT = 6 - (TODAY.getDay() + 6) % 7;
 
@@ -33,7 +35,7 @@ function Group({ label, tasks }) {
   return (
     <>
       <Label>{label}</Label>
-      <Rows plain>{tasks.map(t => <FocusRow key={t.no} t={t} />)}</Rows>
+      <Rows plain className="hm-cards">{tasks.map(t => <FocusRow key={t.no} t={t} />)}</Rows>
     </>
   );
 }
@@ -43,7 +45,7 @@ function Group({ label, tasks }) {
 export function Focus({ role }) {
   useTaskMoves();
   const me = D.me().name;
-  const open = D.tasks.filter(t => t.who === me && t.status !== 'Done');
+  const open = D.tasks.filter(t => t.who === me && isOpen(t));
   const due = t => (t.due ? days(t.due) : Infinity);
   const review = role === 'pm' ? D.tasks.filter(t => t.status === 'In review' && t.who !== me) : [];
   const groups = [['Overdue', open.filter(t => due(t) < 0)], ['Today', open.filter(t => due(t) === 0)],
@@ -54,7 +56,7 @@ export function Focus({ role }) {
       {role === 'admin' && (
         <>
           <Label>Needs action</Label>
-          <Rows plain>
+          <Rows plain className="hm-cards">
             <Row title={`Approve ${D.users.counts.pending} new users`} sub="Users · Approval · Waiting 1 day" chev={false}
               go="users.approve" right={<Btn sm kind="primary" go="users.approve">Open</Btn>} />
           </Rows>
@@ -64,7 +66,7 @@ export function Focus({ role }) {
       {review.length > 0 && (
         <>
           <Label>Awaiting your review</Label>
-          <Rows plain>
+          <Rows plain className="hm-cards">
             {review.map((t, i) => <FocusRow key={t.no} t={t} btn={<Btn sm kind={i ? 'outline' : 'primary'} go={taskScreen(t)} task={t.no}>Review</Btn>} />)}
           </Rows>
         </>
@@ -81,7 +83,7 @@ export function AgendaProjects({ role }) {
   useEvents();
   const me = D.me().name;
   const next = D.events.find(e => e.attendees.includes(me) && e.status !== 'Done' && !e.canceled);
-  const projects = D.projects.filter(p => p.status !== 'Done' && (role === 'admin' || p.members.includes(me)));
+  const projects = D.projects.filter(p => !CLOSED_PROJECT.includes(p.status) && (role === 'admin' || p.members.includes(me)));
   return (
     <>
       <Rows plain>

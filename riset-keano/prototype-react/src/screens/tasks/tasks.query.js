@@ -1,10 +1,10 @@
 // Tasks ①b: the Filter & sort query — its options, the default per list, and applying it to a task list.
 // A query lives in the list screen's params ({status, project, priority, sort, who}), so Apply is a go() to the same screen.
 import { D } from '../../data/sample';
-import { assigned, atlas, days } from './tasks.shared';
+import { assigned, atlas, days, isOpen } from './tasks.shared';
 
 /** Overlay options; index 0 is the default. Kept out of the .jsx so the overlay file stays Fast Refresh friendly. */
-export const STATUSES = ['All active', 'To do', 'In progress', 'In review', 'Done'];
+export const STATUSES = ['All active', 'To do', 'In progress', 'In review', 'Done', 'Canceled'];
 export const PRIORITIES = ['All', 'High', 'Medium', 'Low'];
 export const SORTS = ['Due date', 'Priority', 'Recently updated', 'Title (A–Z)'];
 export const SORT_DUE = 0;
@@ -38,11 +38,11 @@ const COMPARE = [
   (a, b) => a.title.localeCompare(b.title),
 ];
 
-/** Filter and sort tasks by a query. All active hides Done on the lists; the board keeps every column (board = true). */
+/** Filter and sort tasks by a query. All active hides Done and Canceled on the lists; the board keeps every column (board = true). */
 export function applyQuery(tasks, q, board = false) {
   const name = q.project && D.project(q.project)?.name;
   return tasks
-    .filter(t => (q.status ? t.status === STATUSES[q.status] : board || t.status !== 'Done'))
+    .filter(t => (q.status ? t.status === STATUSES[q.status] : board || isOpen(t)))
     .filter(t => !name || t.project === name)
     .filter(t => !q.priority || t.priority === PRIORITIES[q.priority])
     .filter(t => !q.who || assigned(t, D.me().name))

@@ -10,11 +10,11 @@ import './menu.css';
 function MenuItem({ item, onDone }) {
   const [nav] = splitNav(item);
   const run = useNav(nav);
-  const click = e => { onDone(); run?.(e); };
+  const click = e => { onDone(); (item.onClick || run)?.(e); };
   return <button type="button" role="menuitem" className={item.danger ? 'danger' : undefined} onClick={click}>{item.label}</button>;
 }
 
-/** ⋯ button + dropdown. items = [{label, danger?, ...nav props (go, sheet, task, toast…)}]; label = the button's name. */
+/** ⋯ button + dropdown. items = [{label, danger?, onClick? or nav props (go, sheet, task, toast…)}]; label = the button's name. */
 export function Menu({ items, label = 'More' }) {
   const [open, setOpen] = useState(false);
   return (

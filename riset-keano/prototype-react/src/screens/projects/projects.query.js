@@ -2,7 +2,7 @@
 // A query lives in the list screen's params ({status, health, sort}), so Apply is a go() to the same screen.
 
 /** Overlay options; index 0 is the default. */
-export const STATUSES = ['All', 'Active', 'On hold', 'Done', 'Draft'];
+export const STATUSES = ['All', 'Active', 'On hold', 'Done', 'Draft', 'Canceled'];
 export const HEALTHS = ['All', 'Needs attention', 'Overdue', 'On track'];
 export const SORTS = ['Nearest deadline', 'Lowest progress', 'Name (A–Z)'];
 
