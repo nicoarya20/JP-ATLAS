@@ -3,14 +3,21 @@ import { Check } from 'lucide-react-native';
 
 import { EmptyState } from '@/components/state/empty-state';
 import { Button, ButtonText } from '@/components/ui/button';
+import { Text } from '@/components/ui/text';
 import type { RespondCard } from '@/data/inbox';
-import { INBOX_EMPTY } from './inbox.strings';
+
+import { INBOX, INBOX_EMPTY } from './inbox.strings';
 import { InboxCard } from './inbox-card';
 
-type RespondTabProps = { cards: readonly RespondCard[]; onUpdates: () => void };
+type RespondTabProps = {
+  cards: readonly RespondCard[];
+  /** The server has more cards than the page that was loaded. */
+  more?: boolean;
+  onUpdates: () => void;
+};
 
 /** The cards, or "All caught up" with a way to the latest updates. */
-export function RespondTab({ cards, onUpdates }: RespondTabProps) {
+export function RespondTab({ cards, more = false, onUpdates }: RespondTabProps) {
   if (!cards.length) {
     return (
       <EmptyState
@@ -26,5 +33,16 @@ export function RespondTab({ cards, onUpdates }: RespondTabProps) {
       />
     );
   }
-  return cards.map((c) => <InboxCard key={c.key} card={c} />);
+  return (
+    <>
+      {cards.map((c) => (
+        <InboxCard key={c.key} card={c} />
+      ))}
+      {more && (
+        <Text testID="inbox-more-respond" className="text-footnote text-muted-foreground">
+          {INBOX.moreRespond}
+        </Text>
+      )}
+    </>
+  );
 }
