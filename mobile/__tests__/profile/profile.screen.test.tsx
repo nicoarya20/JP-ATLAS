@@ -1,11 +1,15 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
+
+import { resetAuthClient, setAuthHeaders } from '@/api';
+import { sessionStore } from '@/session';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { getProfileState, resetProfile } from '../../src/data/profile.store';
 import type { Role } from '../../src/data/sample';
 import { ProfileScreen } from '../../src/screens/profile/profile.screen';
+import { serveAuth } from '../helpers/auth-server';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
@@ -16,9 +20,18 @@ const PM: Role = 'pm';
 
 drainToastTimers();
 
+let server: ReturnType<typeof serveAuth> | null = null;
+
 beforeEach(() => {
   resetProfile();
   jest.clearAllMocks();
+  resetAuthClient();
+  setAuthHeaders(null);
+});
+
+afterEach(() => {
+  server?.restore();
+  server = null;
 });
 
 const show = () => render(<ProfileScreen role={PM} />, { wrapper: GluestackUIProvider });
@@ -97,11 +110,13 @@ describe('ProfileScreen', () => {
     expect(screen.getByLabelText('Note: Heads down until noon. Edit note')).toBeOnTheScreen();
   });
 
-  test('Sign out asks first (T2), then returns to the login screen', async () => {
+  // Phase 2: confirming really ends the session, and the gate takes it from there (no navigation here).
+  test('Sign out asks first (T2), then really ends the session', async () => {
+    server = serveAuth({ '/sign-out': { body: { success: true } } });
     await show();
     await fireEvent.press(screen.getByText('Sign out'));
     expect(within(screen.getByTestId('sign-out-dialog')).getByText('Sign out?')).toBeOnTheScreen();
     await act(async () => fireEvent.press(screen.getByTestId('confirm-action')));
-    expect(router.replace).toHaveBeenCalledWith('/login');
+    await waitFor(() => expect(sessionStore.get().status).toBe('signed-out'));
   });
 });

@@ -5,3 +5,12 @@
 // for a navigation that takes a fraction of that at normal load. Remove with the jest.config.js settings.
 const ASYNC_UTIL_TIMEOUT_MS = 3000;
 require('@testing-library/react-native').configure({ asyncUtilTimeout: ASYNC_UTIL_TIMEOUT_MS });
+
+// Phase 2 gates the app on a session (app/_layout.tsx). A test that is not about signing in starts from an approved
+// account already read, so the gate renders the app on the first frame and asks the server nothing; a test about the
+// gate resets the store itself and lets the real read run against a stubbed fetch.
+const session = require('./__tests__/helpers/session-fixtures');
+beforeEach(() => {
+  session.resetSessionForTest();
+  session.seedSession();
+});

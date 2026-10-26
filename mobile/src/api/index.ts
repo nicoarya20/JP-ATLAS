@@ -1,6 +1,7 @@
 export {
   APP_SCHEME,
   type AuthClient,
+  clearStoredSession,
   connectSessionToApi,
   getAuthClient,
   resetAuthClient,
@@ -17,6 +18,7 @@ export {
   apiPost,
   apiRequest,
   apiUrl,
+  CLIENT_MESSAGES,
   REQUEST_TIMEOUT_MS,
   setAuthHeaders,
 } from './client';

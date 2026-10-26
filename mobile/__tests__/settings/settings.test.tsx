@@ -1,5 +1,8 @@
-import { fireEvent, render, screen, within } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { router } from 'expo-router';
+
+import { resetAuthClient, setAuthHeaders } from '@/api';
+import { sessionStore } from '@/session';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import type { Role } from '../../src/data/sample';
@@ -7,6 +10,7 @@ import { getLeave, getSettings, LEAVE } from '../../src/data/settings';
 import { LeaveScreen } from '../../src/screens/settings/leave.screen';
 import { ProfileEditScreen } from '../../src/screens/settings/profile-edit.screen';
 import { SettingsScreen } from '../../src/screens/settings/settings.screen';
+import { serveAuth } from '../helpers/auth-server';
 import { setParams } from '../helpers/router-mock';
 import { drainToastTimers } from '../helpers/toast-timers';
 
@@ -18,9 +22,18 @@ const PM: Role = 'pm';
 
 drainToastTimers();
 
+let server: ReturnType<typeof serveAuth> | null = null;
+
 beforeEach(() => {
   jest.clearAllMocks();
   setParams({});
+  resetAuthClient();
+  setAuthHeaders(null);
+});
+
+afterEach(() => {
+  server?.restore();
+  server = null;
 });
 
 const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvider });
@@ -59,16 +72,20 @@ describe('SettingsScreen', () => {
     expect(screen.getByText('Roles and permissions — not in the prototype yet')).toBeOnTheScreen();
   });
 
-  test('Sign out asks first (T2); Cancel stays, confirming goes to the login screen', async () => {
+  // Phase 2: confirming really ends the session, and the gate takes it from there (no navigation here).
+  test('Sign out asks first (T2); Cancel stays, confirming ends the session', async () => {
+    server = serveAuth({ '/sign-out': { body: { success: true } } });
     await show(<SettingsScreen role={PM} />);
     await fireEvent.press(screen.getByText('Sign out'));
     const dialog = within(screen.getByTestId('sign-out-dialog'));
     expect(dialog.getByText("You'll be signed out of this account.")).toBeOnTheScreen();
     await fireEvent.press(dialog.getByText('Cancel'));
-    expect(router.replace).not.toHaveBeenCalled();
+    expect(server.calls).toHaveLength(0);
+    expect(sessionStore.get().status).toBe('signed-in');
+
     await fireEvent.press(screen.getByText('Sign out'));
     await fireEvent.press(screen.getByTestId('confirm-action'));
-    expect(router.replace).toHaveBeenCalledWith('/login');
+    await waitFor(() => expect(sessionStore.get().status).toBe('signed-out'));
   });
 });
 

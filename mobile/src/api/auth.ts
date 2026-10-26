@@ -52,6 +52,23 @@ export function resetAuthClient(): void {
   client = null;
 }
 
+/** What the Expo plugin writes into a storage key it has nothing to keep (an empty cookie map). */
+const EMPTY_STORED_VALUE = '{}';
+
+/**
+ * Empties the stored session: the cookie map and the cached session payload, under the same keys
+ * the Expo plugin uses. The plugin already does this on a successful `/sign-out`; calling it
+ * again is harmless, and it is the only way to clear the phone when the server says the session
+ * was already gone. Writing "{}" rather than deleting is deliberate — it is what the plugin
+ * writes, and a base key without a chunk marker reads back as "no cookie".
+ */
+export async function clearStoredSession(): Promise<void> {
+  await Promise.all([
+    SecureStore.setItemAsync(`${SESSION_STORAGE_PREFIX}_cookie`, EMPTY_STORED_VALUE),
+    SecureStore.setItemAsync(`${SESSION_STORAGE_PREFIX}_session_data`, EMPTY_STORED_VALUE),
+  ]);
+}
+
 /**
  * Headers that carry the stored session to our own endpoints. React Native has no cookie jar,
  * so `/api/app/*` requests have to send the cookie the auth client saved.
