@@ -42,6 +42,19 @@ describe('SheetFrame', () => {
     expect(router.back).toHaveBeenCalledTimes(1);
   });
 
+  // react-native-screens keeps a formSheet's scroll view in place only when it is the screen's first view; wrapped (it
+  // was in a KeyboardAvoidingView), it took the sheet's offset on screen and the sheet looked empty on device.
+  test('is the scroll view itself, which keeps its inputs above the keyboard', async () => {
+    await show(
+      <SheetFrame testID="frame" title="Sort">
+        <Text>Body</Text>
+      </SheetFrame>,
+    );
+    const frame = screen.getByTestId('frame');
+    expect(frame.type).toBe('RCTScrollView');
+    expect(frame.props.automaticallyAdjustKeyboardInsets).toBe(true);
+  });
+
   test('a given onClose replaces the pop', async () => {
     const onClose = jest.fn();
     await show(
