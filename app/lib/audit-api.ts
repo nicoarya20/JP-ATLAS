@@ -125,10 +125,8 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'project.condition.clear': { label: 'Cabut kondisi proyek manual', color: 'gray' },
   'trash.purge': { label: 'Hapus selamanya dari Sampah', color: 'red' },
   'trash.retention': { label: 'Pembersihan Sampah otomatis', color: 'gray' },
-  'leave.approve': { label: 'Setujui cuti', color: 'teal' },
-  'leave.reject': { label: 'Tolak cuti', color: 'red' },
-  'leave.cancel': { label: 'Batalkan cuti', color: 'orange' },
-  'settings.leave.update': { label: 'Settings cuti', color: 'indigo' },
+  'leave.set': { label: 'Catat cuti', color: 'indigo' },
+  'leave.clear': { label: 'Akhiri cuti', color: 'orange' },
   'data.export': { label: 'Ekspor data ke CSV', color: 'orange' },
 };
 

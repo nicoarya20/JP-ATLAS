@@ -15,7 +15,7 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 /** Every S0B-18 stub is now filled; the list stays so a future stub module has a place to be declared. */
 const STUBS: { file: string; plugin: string; prefix: string }[] = [];
 
-/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S3 I04 inbox, S3 B-06 home, S6 M03 team, S7 E-06 events, S7 E-07 event Trash, leave): no longer stubs, still mounted by app.ts. */
+/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S3 I04 inbox, S3 B-06 home, S6 M03 team, S7 E-06 events, S7 E-07 event Trash): no longer stubs, still mounted by app.ts. `leaveApi` left the list with the leave routes in P14 CU-02. */
 const FILLED = [
   'profileApi',
   'inboxApi',
@@ -32,7 +32,6 @@ const FILLED = [
   'taskDetailApi',
   'eventsApi',
   'eventTrashApi',
-  'leaveApi',
 ];
 
 /** Modules that already predate the no-Drizzle rule; new ones must not join this list. */
@@ -101,9 +100,9 @@ describe('module hygiene', () => {
   });
 
   test('every module instance stays within the route budget', async () => {
-    // app.ts and the schedule and leave assemblers only aggregate routers that each stay within the budget.
+    // app.ts and the schedule assembler only aggregate routers that each stay within the budget.
     const modules = appFiles().filter(
-      (f) => !['app.ts', 'app-projects.schedule.ts', 'app-leave.ts'].includes(f),
+      (f) => !['app.ts', 'app-projects.schedule.ts'].includes(f),
     );
     for (const file of modules) {
       const mod = (await import(path.join(API_DIR, file))) as Record<string, unknown>;
@@ -116,7 +115,7 @@ describe('module hygiene', () => {
   });
 
   test.each([
-    ['app.ts', 64], // 60 until the leave assembler joined, 62 with it; the Beranda adds one import and one mount
+    ['app.ts', 62], // 60 until the Beranda added an import and a mount; the leave assembler left in P14 CU-02
     ['app-context.ts', 90],
     ['app-common.ts', 80],
     ['app-projects.ts', 150],
@@ -134,10 +133,6 @@ describe('module hygiene', () => {
     ['app-events.notes.ts', 150],
     ['app-events.schema.ts', 150],
     ['app-team.ts', 150],
-    ['app-leave.ts', 20],
-    ['app-leave.me.ts', 150],
-    ['app-leave.decide.ts', 150],
-    ['app-leave.settings.ts', 150],
     ...STUBS.map((s) => [s.file, 150] as const),
   ] as const)('%s stays within %d lines', (file, max) => {
     expect(lines(file)).toBeLessThanOrEqual(max);

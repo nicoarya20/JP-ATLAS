@@ -1,311 +1,64 @@
-/** Leave UI: the card in its four states on /app/settings, the request dialog, the rejection dialog and the blocks per right. */
-import { afterEach, describe, expect, it, spyOn } from 'bun:test';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+/**
+ * Leave UI since P14: Ketersediaan on /app/settings is read-only (CU-05), and with the Inbox
+ * rejection dialog gone too (CU-06) nothing in the leave UI writes any more.
+ */
+import { describe, expect, it } from 'bun:test';
 import { LeaveCard } from '../../app/components/leave/LeaveCard';
-import {
-  type LeaveRejectTarget,
-  LeaveRejectView,
-} from '../../app/components/leave/LeaveRejectModal';
-import { LeaveRequestView } from '../../app/components/leave/LeaveRequestModal';
 import { LeaveSections } from '../../app/components/leave/LeaveSections';
-import { ApiError, describeApiError } from '../../app/lib/http';
-import type { LeaveMeDto, LeavePageData, LeaveRequestDto } from '../../app/lib/leave-api';
-import { submitLeave } from '../../app/lib/leave-api';
+import type { LeavePageData } from '../../app/lib/leave-api';
 import { render } from './project-fixtures';
 
 const TODAY = '2026-10-10'; // test-only
 
-const req = (over: Partial<LeaveRequestDto> = {}): LeaveRequestDto => ({
-  id: 'l-1',
-  userId: 'u-1',
-  startDate: '2026-10-14',
-  endDate: '2026-10-16',
-  days: 3,
-  note: null,
-  status: 'pending',
-  decidedBy: null,
-  decidedAt: null,
-  rejectReason: null,
-  createdAt: '2026-10-09T03:00:00.000Z',
-  canCancel: true,
-  ...over,
-});
+const card = (onLeaveUntil: string | null) => render(<LeaveCard onLeaveUntil={onLeaveUntil} />);
 
-const me = (state: LeaveMeDto['state'], request: LeaveRequestDto | null): LeaveMeDto => ({
-  state,
-  request,
-  history: request ? [request] : [],
-  requiresApproval: true,
-});
-
-const card = (m: LeaveMeDto) =>
-  render(
-    <LeaveCard
-      me={m}
-      approvers="manager_or_admin"
-      today={TODAY}
-      busy={false}
-      onRequest={() => {}}
-      onCancel={() => {}}
-    />,
-  );
-
-describe('LeaveCard', () => {
-  it('none: the availability sentence and only the "Ajukan cuti" button', async () => {
-    const html = await card(me('none', null));
+describe('LeaveCard is read-only', () => {
+  it('here: says so and offers no button at all', async () => {
+    const html = await card(null);
     expect(html).toContain('Tidak sedang cuti. Rekan melihat Anda sebagai Tersedia.');
-    expect(html).toContain('Ajukan cuti');
-    expect(html).not.toContain('Menunggu persetujuan');
-    expect(html.match(/<button/g)).toHaveLength(1);
-  });
-
-  it('pending: range, badge, who got it and "Batalkan pengajuan"', async () => {
-    const html = await card(me('pending', req()));
-    expect(html).toContain('Cuti 14–16 Okt 2026');
-    expect(html).toContain('Menunggu persetujuan');
-    expect(html).toContain('Dikirim ke Pengelola proyek Anda atau Admin');
-    expect(html).toContain('Batalkan pengajuan');
     expect(html).not.toContain('Ajukan cuti');
+    expect(html.match(/<button/g)).toBeNull();
   });
 
-  it('approved: badge, the approver and "Cuti sampai", with "Batalkan cuti"', async () => {
-    const request = req({
-      status: 'approved',
-      decidedBy: { id: 'a', name: 'Ayu' },
-      startDate: '2026-10-09',
-    });
-    const html = await card(me('approved', request));
-    expect(html).toContain('Disetujui');
-    expect(html).toContain(
-      'Disetujui oleh Ayu. Rekan melihat Anda sebagai Cuti sampai 16 Okt 2026.',
-    );
-    expect(html).toContain('Batalkan cuti');
-    expect(html).not.toContain('Batalkan pengajuan');
+  it('on leave: names the last day and still offers no button', async () => {
+    const html = await card('2026-10-16');
+    expect(html).toContain('Cuti sampai 16 Okt 2026.');
+    expect(html).toContain('Sedang cuti');
+    expect(html.match(/<button/g)).toBeNull();
   });
 
-  it('approved without an approver: "Cuti langsung berlaku"', async () => {
-    const html = await card(me('approved', req({ status: 'approved' })));
-    expect(html).toContain('Cuti langsung berlaku.');
-    expect(html).not.toContain('Disetujui oleh');
-  });
-
-  it('rejected: badge, the reason and "Ajukan lagi"', async () => {
-    const request = req({
-      status: 'rejected',
-      decidedBy: { id: 'a', name: 'Ayu' },
-      rejectReason: 'Ada tenggat tanggal 16 Okt',
-      canCancel: false,
-    });
-    const html = await card(me('rejected', request));
-    expect(html).toContain('Ditolak');
-    expect(html).toContain('Alasan Ayu: Ada tenggat tanggal 16 Okt');
-    expect(html).toContain('Ajukan lagi');
-    expect(html).not.toContain('Batalkan');
-  });
-
-  it('lists earlier requests under the card without repeating the one on it', async () => {
-    const older = req({
-      id: 'l-0',
-      status: 'canceled',
-      startDate: '2026-09-01',
-      endDate: '2026-09-02',
-    });
-    const current = req();
-    const html = await card({ ...me('pending', current), history: [current, older] });
-    expect(html).toContain('Riwayat cuti');
-    expect(html).toContain('1–2 Sep 2026 · Dibatalkan');
-    expect(html).not.toContain('14–16 Okt 2026 · Menunggu persetujuan');
-  });
-
-  it('shows no history block when there is nothing but the current request', async () => {
-    expect(await card(me('pending', req()))).not.toContain('Riwayat cuti');
+  it('says where leave is arranged instead, in both states (P14 §8 R4)', async () => {
+    // Without this sentence the Member only sees a button that disappeared.
+    for (const until of [null, '2026-10-16']) {
+      const html = await card(until);
+      expect(html).toContain(
+        'Pengajuan cuti diurus lewat HRD atau atasanmu, bukan di aplikasi ini.',
+      );
+    }
   });
 });
 
-const viewProps = {
+const page = (onLeaveUntil: string | null = null): LeavePageData => ({
+  onLeaveUntil,
   today: TODAY,
-  approvers: 'manager_or_admin' as const,
-  autoApproves: false,
-  blocker: null,
-  error: null,
-  loading: false,
-  onChange: () => {},
-  onSubmit: () => {},
-  onCancel: () => {},
-};
-
-describe('LeaveRequestView', () => {
-  const values = { from: '2026-10-14', to: '2026-10-16', note: 'Cuti keluarga' };
-
-  it('has both date fields, the note, Batal and "Kirim pengajuan" for a Member', async () => {
-    const html = await render(<LeaveRequestView {...viewProps} values={values} />);
-    expect(html).toContain('Dari tanggal');
-    expect(html).toContain('Sampai tanggal');
-    expect(html).toContain('Catatan (boleh kosong)');
-    expect(html).toContain('Cuti keluarga');
-    expect(html).toContain('>Batal<');
-    expect(html).toContain('Kirim pengajuan');
-    expect(html).toContain('Pengajuan dikirim ke Pengelola proyek Anda atau Admin.');
-    expect(html).not.toContain('Simpan cuti');
-  });
-
-  it('says "Simpan cuti" when the leave is approved on the spot', async () => {
-    const html = await render(
-      <LeaveRequestView {...viewProps} approvers="none" autoApproves values={values} />,
-    );
-    expect(html).toContain('Simpan cuti');
-    expect(html).not.toContain('Kirim pengajuan');
-    expect(html).toContain('langsung berlaku');
-  });
-
-  it('tells a Project Manager the request goes to Admin', async () => {
-    const html = await render(
-      <LeaveRequestView {...viewProps} approvers="admin" values={values} />,
-    );
-    expect(html).toContain('Pengajuan dikirim ke Admin.');
-  });
-
-  it('disables the send button and says why while the form is incomplete', async () => {
-    const html = await render(
-      <LeaveRequestView
-        {...viewProps}
-        values={{ from: null, to: null, note: '' }}
-        blocker="Pilih tanggal mulai cuti."
-      />,
-    );
-    expect(html).toContain('Pilih tanggal mulai cuti.');
-    expect(html).toMatch(/<button[^>]*disabled[^>]*>(?:(?!<\/button>).)*Kirim pengajuan/s);
-  });
-
-  it('keeps the fields and shows a server refusal inside the dialog', async () => {
-    const error = 'Rentang ini beririsan dengan cuti Anda yang lain.';
-    const html = await render(<LeaveRequestView {...viewProps} values={values} error={error} />);
-    expect(html).toContain('role="alert"');
-    expect(html).toContain(error);
-    expect(html).toContain('Cuti keluarga');
-    expect(html).toContain('value="14 ');
-    expect(html).toContain('value="16 ');
-  });
 });
 
-describe('a refused request reaches the dialog as the server wrote it', () => {
-  afterEach(() => spyOn(globalThis, 'fetch').mockRestore());
+const sections = (data: LeavePageData) => render(<LeaveSections leave={data} />);
 
-  it('turns a 409 LEAVE_OVERLAP answer into the sentence the dialog shows', async () => {
-    const message = 'Rentang ini beririsan dengan cuti Anda yang lain.';
-    spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ error: message, code: 'LEAVE_OVERLAP', status: 409 }), {
-        status: 409,
-        headers: { 'content-type': 'application/json' },
-      }),
-    );
-    const err = await submitLeave({
-      startDate: '2026-10-14',
-      endDate: '2026-10-16',
-      note: null,
-    }).catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(ApiError);
-    expect((err as ApiError).code).toBe('LEAVE_OVERLAP');
-    expect(describeApiError(err)).toBe(message);
-  });
-});
-
-const target = (over: Partial<LeaveRejectTarget> = {}): LeaveRejectTarget => ({
-  id: 'l-9',
-  name: 'Dodi',
-  startDate: '2026-10-14',
-  endDate: '2026-10-16',
-  ...over,
-});
-
-describe('LeaveRejectView', () => {
-  it('names the requester, explains the impact and has an optional reason', async () => {
-    const html = await render(
-      <LeaveRejectView
-        item={target()}
-        reason="Ada tenggat"
-        error={null}
-        loading={false}
-        onReason={() => {}}
-        onSubmit={() => {}}
-        onCancel={() => {}}
-      />,
-    );
-    expect(html).toContain('Dodi, 14–16 Okt 2026.');
-    expect(html).toContain('Pemohon dikabari');
-    expect(html).toContain('Alasan (boleh kosong)');
-    expect(html).toContain('Ada tenggat');
-    expect(html).toContain('Tolak pengajuan');
-    expect(html).toContain('>Batal<');
-  });
-
-  it('keeps a refusal such as ALREADY_DECIDED inside the dialog', async () => {
-    const html = await render(
-      <LeaveRejectView
-        item={target()}
-        reason=""
-        error="Pengajuan ini sudah diputuskan."
-        loading={false}
-        onReason={() => {}}
-        onSubmit={() => {}}
-        onCancel={() => {}}
-      />,
-    );
-    expect(html).toContain('role="alert"');
-    expect(html).toContain('Pengajuan ini sudah diputuskan.');
-  });
-});
-
-const page = (flags: Partial<LeavePageData['flags']>): LeavePageData => ({
-  me: me('none', null),
-  today: TODAY,
-  flags: {
-    canManageSwitch: false,
-    autoApproves: false,
-    approvers: 'manager_or_admin',
-    ...flags,
-  },
-});
-
-const sections = (data: LeavePageData) =>
-  render(
-    <QueryClientProvider client={new QueryClient()}>
-      <LeaveSections leave={data} />
-    </QueryClientProvider>,
-  );
-
-describe('LeaveSections follow the loader flags', () => {
-  it('a Member sees Ketersediaan only', async () => {
-    const html = await sections(page({}));
+describe('LeaveSections', () => {
+  it('is Ketersediaan alone: no approval queue and no team switch left', async () => {
+    const html = await sections(page());
     expect(html).toContain('Ketersediaan');
     expect(html).not.toContain('Persetujuan cuti');
     expect(html).not.toContain('Pengaturan tim');
     expect(html).not.toContain('Cuti perlu persetujuan');
+    expect(html).not.toContain('Ajukan cuti');
+    expect(html).not.toMatch(/type="checkbox"/);
   });
 
-  it('an approver no longer sees a "Persetujuan cuti" block: requests are decided from the Inbox', async () => {
-    const html = await sections(page({ approvers: 'admin' }));
-    expect(html).not.toContain('Persetujuan cuti');
+  it('reads the same for everyone: there is no role flag to follow any more (P14 D3)', async () => {
+    const html = await sections(page('2026-10-16'));
+    expect(html).toContain('Cuti sampai 16 Okt 2026.');
     expect(html).not.toContain('Pengaturan tim');
-  });
-
-  it('an Admin sees Ketersediaan and the team switch with its explanation', async () => {
-    const html = await sections(
-      page({ canManageSwitch: true, autoApproves: true, approvers: 'none' }),
-    );
-    expect(html).toContain('Ketersediaan');
-    expect(html).not.toContain('Persetujuan cuti');
-    expect(html).toContain('Pengaturan tim');
-    expect(html).toContain('Cuti perlu persetujuan');
-    expect(html).toContain('Bila dimatikan, semua cuti langsung berlaku.');
-    expect(html).toMatch(/type="checkbox"[^>]*checked/);
-  });
-
-  it('shows the switch off when the workspace does not require approval', async () => {
-    const data = page({ canManageSwitch: true });
-    data.me = { ...data.me, requiresApproval: false };
-    const html = await sections(data);
-    expect(html).toContain('Mati');
-    expect(html).not.toMatch(/type="checkbox"[^>]*checked/);
   });
 });

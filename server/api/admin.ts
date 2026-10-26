@@ -1,7 +1,8 @@
 /**
  * Admin console API (`/api/admin/*`): user directory, role changes and deletion.
  * Authority comes from `access/user.policy` (via `admin-context`), not from
- * Better Auth's admin endpoints; moderation lives in `admin-moderation`.
+ * Better Auth's admin endpoints; moderation lives in `admin-moderation` and
+ * recording somebody's leave in `admin-leave`.
  */
 import { eq } from 'drizzle-orm';
 import { Elysia, t } from 'elysia';
@@ -15,6 +16,7 @@ import { fail } from '../pm/respond';
 import { adminContext, callerOf } from './admin-context';
 import { adminExportApi } from './admin-export';
 import { adminInvitationsApi } from './admin-invitations';
+import { adminLeaveApi } from './admin-leave';
 import { adminModerationApi } from './admin-moderation';
 import { adminPermissionsApi } from './admin-permissions';
 import { adminUserStats, findUserTarget, listAdminUsers, UserListQuery } from './admin-users.query';
@@ -26,6 +28,7 @@ const KNOWN_ROLES: readonly string[] = Object.values(ROLES);
 export const adminApi = new Elysia({ prefix: '/admin' })
   .use(adminContext)
   .use(adminModerationApi)
+  .use(adminLeaveApi)
   .use(adminExportApi)
   .use(adminInvitationsApi)
   .use(adminPermissionsApi)

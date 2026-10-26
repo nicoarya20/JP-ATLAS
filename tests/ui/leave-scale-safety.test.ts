@@ -20,8 +20,11 @@ const hits = (re: RegExp) =>
 
 describe('leave UI scale safety', () => {
   it('scans the leave components', () => {
+    // The request dialog went with the application flow (P14 CU-05) and the Inbox rejection dialog
+    // with the approval card (CU-06); the read-only Ketersediaan card is what is left to scan.
     expect(files).toContain('app/components/leave/LeaveCard.tsx');
-    expect(files).toContain('app/components/leave/LeaveRequestModal.tsx');
+    expect(files).toContain('app/components/leave/LeaveSections.tsx');
+    expect(files).not.toContain('app/components/leave/LeaveRejectModal.tsx');
   });
 
   it('uses no numeric icon size, pixel font size or fixed pixel width', () => {

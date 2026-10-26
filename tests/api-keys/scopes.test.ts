@@ -44,6 +44,17 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/admin/users/stats')).toBe('users:read');
     expect(requiredScope('GET', '/api/admin/invitationsx')).toBeNull();
   });
+  it('never lets an API key record or end somebody leave (P14 CU-03)', () => {
+    for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/users/u1/leave')).toBeNull();
+      expect(requiredScope(method, '/api/admin/users/u1/leave/')).toBeNull();
+      // An odd id segment must not fall through to the generic users rule either.
+      expect(requiredScope(method, '/api/admin/users/a/b/leave')).toBeNull();
+    }
+    // Lookalike neighbours keep the directory scope: only `/leave` itself is cut off.
+    expect(requiredScope('GET', '/api/admin/users/u1/leaves')).toBe('users:read');
+    expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
+  });
   it('lets a key read the role matrix with settings:read, and never write it (AD-09)', () => {
     expect(requiredScope('GET', '/api/admin/permissions-matrix')).toBe('settings:read');
     expect(requiredScope('HEAD', '/api/admin/permissions-matrix')).toBe('settings:read');
@@ -202,22 +213,8 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('POST', '/api/app/trash/event/e1/restore')).toBeNull();
   });
 
-  // Leave: a key may read leave and send a request, but not decide, withdraw or change the switch.
-  it('keeps leave reads and sending a request on app:read / app:write', () => {
-    expect(requiredScope('GET', '/api/app/leave/me')).toBe('app:read');
-    expect(requiredScope('GET', '/api/app/leave/pending')).toBe('app:read');
-    expect(requiredScope('GET', '/api/app/leave/settings')).toBe('app:read');
-    expect(requiredScope('POST', '/api/app/leave')).toBe('app:write');
-  });
-
-  it('returns null for the leave routes that decide, withdraw or change the switch', () => {
-    expect(requiredScope('POST', '/api/app/leave/l1/approve')).toBeNull();
-    expect(requiredScope('POST', '/api/app/leave/l1/reject')).toBeNull();
-    expect(requiredScope('post', '/api/app/leave/l1/approve/')).toBeNull();
-    expect(requiredScope('DELETE', '/api/app/leave/l1')).toBeNull();
-    expect(requiredScope('PUT', '/api/app/leave/settings')).toBeNull();
-    expect(requiredScope('PUT', '/api/app/leave/settings/')).toBeNull();
-  });
+  // Leave left /api/app entirely with the approval flow (P14 CU-02); the admin routes that replace
+  // it are mapped in CU-03. Nothing under /api/app/leave answers any more, so nothing is asserted.
 
   it('keeps the event reads, writes and minutes on app:read / app:write', () => {
     expect(requiredScope('GET', '/api/app/events')).toBe('app:read');

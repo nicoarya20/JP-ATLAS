@@ -51,11 +51,10 @@ export const AUDIT_ACTIONS = {
   // Permanent delete by an Admin; `trash.retention` is the same thing done by the purge job.
   TRASH_PURGE: 'trash.purge',
   TRASH_RETENTION: 'trash.retention',
-  // Leave: the decision, the withdrawal and the workspace switch (Pengaturan > Ketersediaan).
-  LEAVE_APPROVE: 'leave.approve',
-  LEAVE_REJECT: 'leave.reject',
-  LEAVE_CANCEL: 'leave.cancel',
-  SETTINGS_LEAVE_UPDATE: 'settings.leave.update',
+  // Leave: an Admin writes somebody's availability down or ends it (P14 D3). The four actions of
+  // the old approval flow left with it in CU-03 — nothing decides or withdraws a request any more.
+  LEAVE_SET: 'leave.set',
+  LEAVE_CLEAR: 'leave.clear',
   // CSV export from Pengaturan (P11 AD-10); the entry records the kind and the row count, never a row.
   DATA_EXPORT: 'data.export',
 } as const;

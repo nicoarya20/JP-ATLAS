@@ -3,6 +3,8 @@
 > 22 Okt 2026 · tahap 2 · lanjutan langsung `P11-area-admin.md`. Mengikat: `../KEPUTUSAN-MVP-INTI.md` > `../JADWAL-S3-S8.md` > `P11-area-admin.md` > dokumen ini. Lahir dari diskusi user 22 Okt 2026 ("menu admin yang datanya masih dummy, aku mau pakai data real dari backend"). Fondasi kode menang atas desain; kutipan `path:baris` adalah yang dibaca di `main` @ `dedb775` pada tanggal itu. Tanda **ASUMSI** = belum diverifikasi.
 >
 > **Dikoreksi 23 Okt 2026 oleh `P14-cuti-status-admin.md`:** RD-07 (tab Kebijakan kerja) **dicoret** — lihat §3 D7 dan §4 K6. Akibatnya migrasi turun dari enam kolom ke **lima**, tab Pengaturan tinggal **lima**, dan pengingat acara bawaan berpindah ke RD-08. Anggaran turun ≈2 (21 → 19).
+>
+> **P14 mendarat 26 Okt 2026** (CU-01..CU-08): tab Kebijakan kerja dan `leaveRequiresApproval` sudah hilang dari kode, migrasi `0022_admin_policy.sql` memang lima kolom, dan `0023_leave_period.sql` sudah mendarat di belakangnya. Hari kerja dan hari libur ada di `HUTANG.md` **H-E15**, bukan menggantung di rencana ini.
 
 ## 1. Ringkasan
 
@@ -128,7 +130,7 @@ Dua saklar bawaan (`news`, `event_reminder`) sesuai kategori yang benar-benar ad
 #### RD-09 · Tab Fitur: katalog terkurasi + layar **baca-saja** · Dep: – · M (1,5)
 Katalog `server/features.catalog.ts`: kunci, nama Indonesia, penjelasan satu baris, kalimat "bila dimatikan", bawaan. Isinya **empat** fitur `/app` (`leave`, `events`, `trash`, `ask-data`) — `export` dan `api-keys` dikeluarkan, **disetujui user 23 Okt 2026** (§4 K5, §11 T1).
 
-**Dikoreksi 23 Okt 2026 (§3 D7):** `leave` **tetap** di katalog, tetapi kalimat "bila dimatikan" wajib ditulis ulang. Setelah P14, mematikannya menyembunyikan badge Ketersediaan di Tim dan menu "Setel cuti" di `/dashboard/users` — bukan lagi "anggota tidak bisa mengajukan cuti", karena mengajukan cuti memang tidak lagi terjadi di aplikasi.
+**Dikoreksi 23 Okt 2026 (§3 D7):** `leave` **tetap** di katalog, tetapi kalimat "bila dimatikan" wajib ditulis ulang. Setelah P14, mematikannya menyembunyikan badge Ketersediaan di Tim dan menu "Setel cuti" di `/dashboard/users` — bukan lagi "anggota tidak bisa mengajukan cuti", karena mengajukan cuti memang tidak lagi terjadi di aplikasi. **Selesai 26 Okt 2026 (P14 CU-08):** `whenOff` di `server/features.catalog.ts` menyebut ketiga tempatnya, termasuk kontrol di menu Pengguna yang mendarat di CU-04.
 
 Layar Admin **membaca** `GET /api/settings` dan menampilkan status tiap fitur sebagai lencana `Nyala`/`Mati` (teks, bukan warna saja) plus satu kalimat ke mana harus pergi untuk mengubahnya. Tidak ada saklar, tidak ada tombol simpan — karena itu tugas ini **tidak lagi bergantung pada RD-02**. Penyunting key/value di `/dev` tetap satu-satunya penulis; flag di luar katalog tidak ditampilkan di layar Admin dan tidak pernah dihapus olehnya.
 

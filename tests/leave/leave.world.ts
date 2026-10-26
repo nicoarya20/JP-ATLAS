@@ -1,34 +1,23 @@
 /**
- * Shared scenario of the leave tests: one workspace, the people who decide and the people who ask.
+ * Shared scenario of the leave tests: one workspace with the four roles in it. Nobody decides leave
+ * any more (P14 D3) — Admin records it — but the cast stays, because what every role may *read* of
+ * someone else's leave is exactly what these tests check.
  *
  *   Ayu   Admin
  *   Nico  Project Manager, Pengelola of X
  *   Lea   Project Manager, Pengelola of Y (shares nothing with Dodi)
  *   Dodi  Member in X
- *   Eka   Member in X who holds the project role Pengelola (a Member-Pengelola: still never decides leave)
+ *   Eka   Member in X who holds the project role Pengelola (a Member-Pengelola)
  *   Oki   Member in Y only
  */
-import { and, eq } from 'drizzle-orm';
-import type { Principal } from '../../server/access/types';
 import { db } from '../../server/db';
-import { leaveRequest, notification } from '../../server/db/schema';
-import type { LeaveClock } from '../../server/leave/leave.dto';
-import type { Role } from '../../server/permissions';
+import { leavePeriod } from '../../server/db/schema';
 import { ATLAS_NOW } from '../support/clock';
 import type { Factory } from '../support/factory.task';
 import type { TestUser } from '../support/factory.user';
 
 /** 2026-10-07 10:00 WIB: "today" of every leave test. */
-export const CLOCK: LeaveClock = { now: ATLAS_NOW, today: '2026-10-07' };
-
-export const asPrincipal = (
-  u: Pick<TestUser, 'id' | 'role'>,
-  impersonating = false,
-): Principal => ({
-  id: u.id,
-  appRole: u.role as Role,
-  impersonating,
-});
+export const CLOCK = { now: ATLAS_NOW, today: '2026-10-07' } as const;
 
 export async function leaveWorld(f: Factory) {
   const ayu = await f.user({ role: 'admin', name: 'Ayu' });
@@ -49,30 +38,16 @@ export async function leaveWorld(f: Factory) {
 }
 export type LeaveWorld = Awaited<ReturnType<typeof leaveWorld>>;
 
-/** Inserts a request directly, bypassing the service (for states the service would not create). */
+/** Records a leave period straight into the table; `note` is Admin-only and never read back by Team. */
 export async function seedLeave(
   user: Pick<TestUser, 'id'>,
   start: string,
   end: string,
-  status: 'pending' | 'approved' | 'rejected' | 'canceled' = 'pending',
+  note: string | null = null,
 ) {
   const [row] = await db
-    .insert(leaveRequest)
-    .values({ userId: user.id, startDate: start, endDate: end, status })
+    .insert(leavePeriod)
+    .values({ userId: user.id, startDate: start, endDate: end, note })
     .returning();
   return row;
-}
-
-/** The Inbox cards written for one leave request, optionally for one kind. */
-export function leaveCards(requestId: string, kind?: string) {
-  return db
-    .select()
-    .from(notification)
-    .where(
-      and(
-        eq(notification.refType, 'leave'),
-        eq(notification.refId, requestId),
-        kind ? eq(notification.kind, kind) : undefined,
-      ),
-    );
 }

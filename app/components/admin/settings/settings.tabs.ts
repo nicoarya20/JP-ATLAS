@@ -1,14 +1,16 @@
 /**
- * The six Setelan organisasi tabs of /dashboard/settings, in the order of P11 §4 ("Tab
- * Pengaturan") minus the two AD-20 moved out: Peran & izin is a report (/dashboard/permissions)
- * and Ekspor data is a tool (/dashboard/export), so neither is a setting, and six tabs fit one
- * row on a 1366px laptop where eight did not. This file is the shell only: every panel is a
- * placeholder, and `owner` names the task that replaces it — Identitas AD-04, Pengumuman AD-05,
- * Akses masuk AD-06, Kebijakan kerja AD-07, Pemberitahuan P9 G-02, Fitur AD-08. Nothing here
- * reads or writes settings yet, so no guard decision depends on it.
+ * The five Setelan organisasi tabs of /dashboard/settings, in the order of P11 §4 ("Tab
+ * Pengaturan") minus the three taken out: AD-20 moved Peran & izin to a report
+ * (/dashboard/permissions) and Ekspor data to a tool (/dashboard/export), so neither is a
+ * setting, and P14 D1 dropped Kebijakan kerja because nothing in the code reads a working day
+ * yet — working days and holidays come back with the deadline calculator that needs them, and
+ * the leave approval switch went away with approval itself (P14 §4 K1/K6). This file is the
+ * shell only: every panel is a placeholder, and `owner` names the task that replaces it —
+ * Identitas AD-04, Pengumuman AD-05, Akses masuk AD-06, Pemberitahuan P9 G-02, Fitur AD-08.
+ * Nothing here reads or writes settings yet, so no guard decision depends on it.
  */
 import type { IconType } from 'react-icons';
-import { FiBell, FiCalendar, FiLogIn, FiTag, FiToggleLeft, FiVolume2 } from 'react-icons/fi';
+import { FiBell, FiLogIn, FiTag, FiToggleLeft, FiVolume2 } from 'react-icons/fi';
 
 export type SettingsTab = {
   /** Also the `?tab=` value, so every tab is linkable. */
@@ -25,7 +27,7 @@ export type SettingsTab = {
 
 export const SETTINGS_PAGE_COPY = {
   title: 'Pengaturan',
-  description: 'Setelan organisasi: identitas aplikasi, akses masuk, dan kebijakan kerja.',
+  description: 'Setelan organisasi: identitas aplikasi, pengumuman, akses masuk, dan fitur.',
   tabsLabel: 'Kelompok pengaturan',
 } as const;
 
@@ -56,15 +58,6 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
     description:
       'Formulir pendaftaran, kewajiban persetujuan admin, dan undangan. Menyusul (AD-06).',
     owner: 'AD-06',
-  },
-  {
-    value: 'kebijakan-kerja',
-    label: 'Kebijakan kerja',
-    icon: FiCalendar,
-    title: 'Hari kerja dan hari libur',
-    description:
-      'Hari kerja, daftar hari libur, pengingat acara bawaan, dan persetujuan cuti. Menyusul (AD-07).',
-    owner: 'AD-07',
   },
   {
     value: 'pemberitahuan',

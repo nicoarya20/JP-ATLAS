@@ -1,161 +1,138 @@
 /**
- * Leave reads for one person and for one request: the requester's own state (`GET /leave/me`), a
- * request loaded with its owner for the write paths, the overlap check and the "does this approver
- * manage a project the applicant is in" fact the policy needs. Each function is one statement.
+ * Reads of `leave_period` the admin paths need: the period under way, the period a new range would
+ * collide with, and one person's recorded history (P14 §10 T1). Each read takes the executor, so
+ * the service can run it inside its own transaction. The Team status has its own statement in
+ * `leave.status.query.ts`; all of them lean on `leave_period_user_id_idx`.
  */
-import { and, desc, eq, getTableColumns, gte, inArray, lte, ne, sql } from 'drizzle-orm';
-import { alias } from 'drizzle-orm/pg-core';
+import { and, asc, count, desc, eq, gte, lte, ne } from 'drizzle-orm';
 import { db } from '../db';
-import { LEAVE_ACTIVE_STATUSES, leaveRequest, project, projectMember, user } from '../db/schema';
+import { leavePeriod, user } from '../db/schema';
 import type { IsoDate } from '../metrics/types';
-import { normalizeRole, type Role } from '../permissions';
-import { isLive } from '../pm/soft-delete';
 import type { Executor } from '../pm/tx';
-import { LEAVE_HISTORY_LIMIT, type LeaveMeDto, type LeavePerson } from './leave.dto';
-import { type LeaveRowWithDecider, toLeaveDto } from './leave.mapper';
+import { leaveDays } from './leave.validate';
 
-const decider = alias(user, 'decider');
+/** A recorded period as the admin paths read it; `note` is Admin-only and stops here (P14 D6). */
+export type LeavePeriodRow = {
+  id: string;
+  startDate: IsoDate;
+  endDate: IsoDate;
+  note: string | null;
+};
 
-/** `leave_request` columns plus the decider's id and name, for every read that returns a request. */
-const withDecider = () => ({
-  ...getTableColumns(leaveRequest),
-  deciderId: decider.id,
-  deciderName: decider.name,
-});
+const COLUMNS = {
+  id: leavePeriod.id,
+  startDate: leavePeriod.startDate,
+  endDate: leavePeriod.endDate,
+  note: leavePeriod.note,
+} as const;
 
-type DeciderCols = { deciderId: string | null; deciderName: string | null };
-
-/** Folds the two decider columns back into the `decider` person the DTO reads. */
-function fold<T extends DeciderCols>(
-  row: T,
-): Omit<T, keyof DeciderCols> & { decider: LeavePerson | null } {
-  const { deciderId, deciderName, ...rest } = row;
-  return {
-    ...rest,
-    decider: deciderId && deciderName ? { id: deciderId, name: deciderName } : null,
-  };
-}
-
-/** A request with its owner's name and account role, as the decide and cancel paths need them. */
-export type LoadedLeave = { row: LeaveRowWithDecider; applicant: { name: string; role: Role } };
-
-/** One request by id with its owner, or null; takes the executor so a write path can read inside its transaction. */
-export async function loadLeave(exec: Executor, id: string): Promise<LoadedLeave | null> {
-  const [found] = await exec
-    .select({ ...withDecider(), applicantName: user.name, applicantRole: user.role })
-    .from(leaveRequest)
-    .innerJoin(user, eq(user.id, leaveRequest.userId))
-    .leftJoin(decider, eq(decider.id, leaveRequest.decidedBy))
-    .where(eq(leaveRequest.id, id));
-  if (!found) return null;
-  const { applicantName, applicantRole, ...rest } = found;
-  return {
-    row: fold(rest),
-    applicant: { name: applicantName, role: normalizeRole(applicantRole) },
-  };
+/**
+ * The leave `userId` is on today, or null when they are here. Earliest start wins, so two periods
+ * that both cover today (possible for rows the migration carried over) resolve to one answer.
+ */
+export async function runningPeriod(
+  userId: string,
+  today: IsoDate,
+  exec: Executor = db,
+): Promise<LeavePeriodRow | null> {
+  const [row] = await exec
+    .select(COLUMNS)
+    .from(leavePeriod)
+    .where(
+      and(
+        eq(leavePeriod.userId, userId),
+        lte(leavePeriod.startDate, today),
+        gte(leavePeriod.endDate, today),
+      ),
+    )
+    .orderBy(asc(leavePeriod.startDate), asc(leavePeriod.id))
+    .limit(1);
+  return row ?? null;
 }
 
 /**
- * Whether `approverId` manages (project role Pengelola) a live project that `applicantId` also
- * belongs to. The policy's only project fact; one `EXISTS`, never a loop over projects.
+ * A period of the same person that shares at least one day with `start`..`end`, or null. `exceptId`
+ * is the row being replaced, which may of course overlap itself. The answer carries the range so
+ * the 409 can name the period the Admin has to look at (P14 §10 T2).
  */
-export async function managesSharedProject(
-  approverId: string,
-  applicantId: string,
-  exec: Executor = db,
-): Promise<boolean> {
-  const mine = alias(projectMember, 'mine');
-  const theirs = alias(projectMember, 'theirs');
-  const [row] = await exec
-    .select({ one: sql<number>`1` })
-    .from(mine)
-    .innerJoin(theirs, eq(theirs.projectId, mine.projectId))
-    .innerJoin(project, eq(project.id, mine.projectId))
-    .where(
-      and(
-        eq(mine.userId, approverId),
-        eq(mine.role, 'manager'),
-        eq(theirs.userId, applicantId),
-        isLive(project),
-      ),
-    )
-    .limit(1);
-  return row !== undefined;
-}
-
-/** The id of another open request of `userId` that shares a day with `start`..`end`, or null. */
-export async function findOverlap(
-  exec: Executor,
+export async function overlappingPeriod(
   userId: string,
   start: IsoDate,
   end: IsoDate,
-  exceptId?: string,
-): Promise<string | null> {
+  exceptId: string | null,
+  exec: Executor = db,
+): Promise<LeavePeriodRow | null> {
   const [row] = await exec
-    .select({ id: leaveRequest.id })
-    .from(leaveRequest)
+    .select(COLUMNS)
+    .from(leavePeriod)
     .where(
       and(
-        eq(leaveRequest.userId, userId),
-        inArray(leaveRequest.status, [...LEAVE_ACTIVE_STATUSES]),
-        lte(leaveRequest.startDate, end),
-        gte(leaveRequest.endDate, start),
-        exceptId ? ne(leaveRequest.id, exceptId) : undefined,
+        eq(leavePeriod.userId, userId),
+        // Two inclusive ranges touch when each starts no later than the other ends.
+        lte(leavePeriod.startDate, end),
+        gte(leavePeriod.endDate, start),
+        exceptId ? ne(leavePeriod.id, exceptId) : undefined,
       ),
     )
+    .orderBy(asc(leavePeriod.startDate), asc(leavePeriod.id))
     .limit(1);
-  return row?.id ?? null;
+  return row ?? null;
 }
 
 /**
- * The requester's own leave (`GET /leave/me`). `request` is the open one that matters now: leave
- * under way first, else the soonest upcoming one. With none open, a last request that was rejected
- * (and not followed by a newer one) shows as `rejected` so the reason stays readable until they ask again.
+ * One recorded period as the Admin drawer's history reads it (P14 §10 T1). The `days` count and the
+ * ISO timestamp are built here rather than in the route: a period that is entirely in the past is
+ * invisible everywhere else, so this is the only screen that can show it, and nothing else needs a
+ * second shape for it. `recordedBy` comes from the same statement — one row per period, no N+1.
  */
-export async function myLeave(
+export type LeaveHistoryRow = LeavePeriodRow & {
+  days: number;
+  /** When the Admin wrote it down, ISO; the client formats it in the reader's zone. */
+  recordedAt: string;
+  /** The Admin who recorded it, or null once that account is gone (`created_by` is ON DELETE SET NULL). */
+  recordedBy: { id: string; name: string | null } | null;
+};
+
+/** Default page of the history list; the drawer is a side panel, not a report. */
+export const LEAVE_HISTORY_LIMIT = 10;
+/** Ceiling a caller may ask for, so a page size cannot turn into "load every period". */
+export const LEAVE_HISTORY_MAX_LIMIT = 50;
+
+/**
+ * One person's recorded periods, newest range first, with the Admin who wrote each one. Paged on
+ * purpose: somebody with years of history must not arrive as one answer. `total` is a second
+ * statement because the page itself is truncated, so the list cannot count what it does not hold.
+ */
+export async function listLeavePeriods(
   userId: string,
-  today: IsoDate,
-  requiresApproval: boolean,
+  paging: { limit: number; offset: number },
   exec: Executor = db,
-): Promise<LeaveMeDto> {
-  const base = () =>
-    exec
-      .select(withDecider())
-      .from(leaveRequest)
-      .leftJoin(decider, eq(decider.id, leaveRequest.decidedBy));
-  const [open, recent] = await Promise.all([
-    base()
-      .where(
-        and(
-          eq(leaveRequest.userId, userId),
-          inArray(leaveRequest.status, [...LEAVE_ACTIVE_STATUSES]),
-          gte(leaveRequest.endDate, today),
-        ),
-      )
-      // Under way (starts today or earlier) sorts before upcoming; then the soonest start.
-      .orderBy(
-        sql`(${leaveRequest.startDate} > ${today}::date)`,
-        leaveRequest.startDate,
-        leaveRequest.id,
-      )
-      .limit(1),
-    base()
-      .where(eq(leaveRequest.userId, userId))
-      .orderBy(desc(leaveRequest.createdAt), desc(leaveRequest.id))
-      .limit(LEAVE_HISTORY_LIMIT),
-  ]);
-  const history = recent.map((r) => toLeaveDto(fold(r), today));
-  const current = open[0] ? toLeaveDto(fold(open[0]), today) : null;
-  if (current) {
-    return {
-      state: current.status === 'approved' ? 'approved' : 'pending',
-      request: current,
-      history,
-      requiresApproval,
-    };
-  }
-  const last = history[0];
-  if (last?.status === 'rejected')
-    return { state: 'rejected', request: last, history, requiresApproval };
-  return { state: 'none', request: null, history, requiresApproval };
+): Promise<{ items: LeaveHistoryRow[]; total: number }> {
+  const rows = await exec
+    .select({
+      ...COLUMNS,
+      createdAt: leavePeriod.createdAt,
+      byId: user.id,
+      byName: user.name,
+    })
+    .from(leavePeriod)
+    // LEFT JOIN, not INNER: a period whose recording admin was deleted must still be listed.
+    .leftJoin(user, eq(user.id, leavePeriod.createdBy))
+    .where(eq(leavePeriod.userId, userId))
+    .orderBy(desc(leavePeriod.startDate), desc(leavePeriod.id))
+    .limit(paging.limit)
+    .offset(paging.offset);
+  const [counted] = await exec
+    .select({ total: count() })
+    .from(leavePeriod)
+    .where(eq(leavePeriod.userId, userId));
+  return {
+    items: rows.map(({ createdAt, byId, byName, ...row }) => ({
+      ...row,
+      days: leaveDays(row.startDate, row.endDate),
+      recordedAt: createdAt.toISOString(),
+      recordedBy: byId === null ? null : { id: byId, name: byName },
+    })),
+    total: counted?.total ?? 0,
+  };
 }

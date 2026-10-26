@@ -1,51 +1,39 @@
 /**
- * Leave requests (`leave_request`). Migration 0021 creates the table.
- * A request is a calendar range with no balance or leave type (Pengaturan > Ketersediaan). The
- * Team status is computed from these rows by date, so a leave ends by itself; nothing is stored
- * per day. Enum tuples live in this file for the same reason as `schema.notification.ts`.
+ * Leave periods (`leave_period`). Migration 0023 creates the table and drops `leave_request`.
+ * A period is a calendar range with no balance and no leave type: Admin records what HRD or a
+ * manager already decided outside the app (P14 D2/D4), so there is no status to keep — a row that
+ * exists is a leave that holds. The Team status is computed from these rows by date, so a leave
+ * ends by itself; nothing is stored per day.
  */
 import { sql } from 'drizzle-orm';
-import { check, date, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { check, date, index, pgTable, text } from 'drizzle-orm/pg-core';
 import { user } from './schema.auth';
-import { createdAt, oneOf, pk, updatedAt } from './schema.columns';
+import { createdAt, pk, updatedAt } from './schema.columns';
 
-/** `pending` waits for an approver, `canceled` is the requester withdrawing; `rejected`/`canceled` are final. */
-export const LEAVE_STATUSES = ['pending', 'approved', 'rejected', 'canceled'] as const;
-export type LeaveStatus = (typeof LEAVE_STATUSES)[number];
-
-/** Statuses that hold the calendar: two of them for one person may not overlap. */
-export const LEAVE_ACTIVE_STATUSES = [
-  'pending',
-  'approved',
-] as const satisfies readonly LeaveStatus[];
-
-/** A range of days one person is away, inclusive of both ends, decided by an approver or automatically. */
-export const leaveRequest = pgTable(
-  'leave_request',
+/** A range of days one person is away, inclusive of both ends, as recorded by an Admin. */
+export const leavePeriod = pgTable(
+  'leave_period',
   {
     id: pk(),
-    // CASCADE: a deleted account takes its requests with it; nobody else owns them.
+    // CASCADE: a deleted account takes its leave periods with it; nobody else owns them.
     userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     // Pure calendar dates in the team zone: string mode avoids timezone shifts.
     startDate: date('start_date', { mode: 'string' }).notNull(),
     endDate: date('end_date', { mode: 'string' }).notNull(),
+    /** Admin-only free text ("umroh", "sakit"); it never reaches a Team DTO (P14 D6). */
     note: text('note'),
-    status: text('status', { enum: LEAVE_STATUSES }).notNull().default('pending'),
-    // NULL with status `approved` = approved automatically (Admin, or the approval switch is off).
-    decidedBy: text('decided_by').references(() => user.id, { onDelete: 'set null' }),
-    decidedAt: timestamp('decided_at', { withTimezone: true }),
-    rejectReason: text('reject_reason'),
+    // SET NULL: who recorded it is a trace, not an owner, so a removed admin keeps the period alive.
+    createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
-    oneOf(t.status, LEAVE_STATUSES),
-    check('leave_request_end_after_start_check', sql`${t.endDate} >= ${t.startDate}`),
-    // "My requests" and the overlap check start from the person and their open statuses.
-    index('leave_request_user_id_status_idx').on(t.userId, t.status),
-    // The Team status and the approver's list both ask "who is in this status on these days".
-    index('leave_request_status_start_date_end_date_idx').on(t.status, t.startDate, t.endDate),
+    check('leave_period_end_after_start_check', sql`${t.endDate} >= ${t.startDate}`),
+    // "This person's periods" and the overlap check both start from the person.
+    index('leave_period_user_id_idx').on(t.userId),
+    // The Team status asks "who is away on these days" across everyone.
+    index('leave_period_start_date_end_date_idx').on(t.startDate, t.endDate),
   ],
 );

@@ -162,6 +162,13 @@
       "when": 1792743123560,
       "tag": "0022_admin_policy",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1792975942619,
+      "tag": "0023_leave_period",
+      "breakpoints": true
     }
   ]
 }

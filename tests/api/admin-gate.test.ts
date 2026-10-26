@@ -42,13 +42,24 @@ const ROUTES: RouteRow[] = (adminApi.routes as Array<{ method: string; path: str
   .filter((r) => r.method !== 'HEAD' && r.method !== 'OPTIONS')
   .map((r) => ({ ...r, label: `${r.method} ${r.path}` }));
 
-/** A valid body for every verb so schema validation cannot answer before the gate does. */
+/**
+ * A valid body per route, because Elysia validates the body before `onBeforeHandle`: a route whose
+ * schema the generic body does not satisfy would answer 422 and the sweep would never reach its
+ * gate. `{ role }` fits the role, ban and approval routes; anything stricter is listed here.
+ */
+const BODY_BY_PATH: Readonly<Record<string, unknown>> = {
+  '/admin/users/:id/leave': { startDate: '2026-11-01', endDate: '2026-11-02' },
+};
+const bodyFor = (r: { method: string; path: string }) =>
+  r.method === 'GET' ? undefined : (BODY_BY_PATH[r.path] ?? { role: 'member' });
+
 async function send(r: { method: string; path: string }) {
+  const body = bodyFor(r);
   const res = await app.handle(
     new Request(`http://localhost${r.path.replace(/:\w+/g, 'any-id')}`, {
       method: r.method,
-      headers: r.method === 'GET' ? {} : { 'Content-Type': 'application/json' },
-      body: r.method === 'GET' ? undefined : JSON.stringify({ role: 'member' }),
+      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
     }),
   );
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
@@ -64,6 +75,9 @@ describe('every /admin route carries the gate', () => {
         'POST /admin/users/:id/ban',
         'POST /admin/users/:id/unban',
         'DELETE /admin/users/:id',
+        'GET /admin/users/:id/leave',
+        'PUT /admin/users/:id/leave',
+        'DELETE /admin/users/:id/leave',
       ]),
     );
   });

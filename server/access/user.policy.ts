@@ -41,6 +41,17 @@ export function canActOnUser(p: Principal, target: UserTarget): Decision {
 }
 
 /**
+ * Whether `p` may record or end somebody's leave (P14 D3). Deliberately not `canActOnUser`: every
+ * target an Admin can see is fair game, because a super-admin and an Admin take leave too and an
+ * Admin writing down their own is the ordinary case. Impersonation is still refused — the audit
+ * entry would name the account being impersonated instead of the person who acted (Q9).
+ */
+export function canRecordUserLeave(p: Principal): Decision {
+  if (p.impersonating) return deny('IMPERSONATING');
+  return canManageUsers(p);
+}
+
+/**
  * Whether `p` may change `target`'s role to `next`. The target must be
  * actionable, then: Admin only moves Member↔PM, `admin` is granted by a
  * super-admin, and `super-admin` is never assignable (env only).

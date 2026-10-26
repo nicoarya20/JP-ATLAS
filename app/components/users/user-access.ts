@@ -4,7 +4,12 @@
  */
 import { canTransitionAccount } from '@server/access/account-status.rules';
 import { DENY_UI } from '@server/access/decision';
-import { canActOnUser, canSetUserRole, type Principal } from '@server/access/user.policy';
+import {
+  canActOnUser,
+  canRecordUserLeave,
+  canSetUserRole,
+  type Principal,
+} from '@server/access/user.policy';
 import { canImpersonate, normalizeRole, ROLES, type Role } from '@server/permissions';
 import type { AdminUser } from '~/lib/admin-users-api';
 
@@ -29,6 +34,12 @@ export type UserAccess = {
   ban: boolean;
   impersonate: boolean;
   remove: boolean;
+  /**
+   * Whether the actor may record this person's leave. Unlike the actions above it does not depend on
+   * the target: an Admin, a Super-admin and the actor themselves may all be recorded as away (P14
+   * D3), so a protected account is still offered "Setel cuti". Impersonation is the only refusal.
+   */
+  leave: boolean;
   /** Why the account cannot be changed at all, or null when the policy lets the actor act. */
   blockedReason: string | null;
 };
@@ -75,13 +86,17 @@ export function userAccess(user: AdminUser, p: UserPermissions): UserAccess {
     impersonate: canAct && !p.impersonating && canImpersonate(p.actorRole),
     // The API only lets a super-admin delete accounts (NOT_APP_ROLE for an Admin).
     remove: canAct && principal.appRole === ROLES.SUPER_ADMIN,
+    leave: canRecordUserLeave(principal).ok,
     blockedReason: onTarget.ok
       ? null
       : blockedMessage(onTarget.code, target.appRole, principal.appRole),
   };
 }
 
-/** True when at least one action is open for the account. */
+/**
+ * True when at least one *account* action is open. Leave is deliberately not counted: it is open
+ * for every target, so counting it would hide the reason an account cannot be changed.
+ */
 export function hasAnyAction(a: UserAccess): boolean {
   return a.roles.length > 0 || a.approve || a.reject || a.ban || a.impersonate || a.remove;
 }

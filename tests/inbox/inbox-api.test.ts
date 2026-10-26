@@ -1,7 +1,10 @@
-/** Inbox client: request shapes, error mapping, the polling contract of the bell and the card actions. */
+/**
+ * Inbox client: request shapes, error mapping, the polling contract of the bell and opening a card.
+ * Since P14 CU-06 the Inbox writes nothing but "read": the approve and reject calls left with the
+ * two-button leave card.
+ */
 import { afterEach, describe, expect, it, spyOn } from 'bun:test';
 import { markCardRead } from '../../app/components/inbox/useInboxActions';
-import { leaveTargetOf } from '../../app/components/inbox/useInboxLeave';
 import { ApiError, describeApiError } from '../../app/lib/http';
 import {
   fetchInbox,
@@ -12,13 +15,12 @@ import {
   markInboxRead,
   uniqueInboxItems,
 } from '../../app/lib/inbox-api';
-import { approveLeave } from '../../app/lib/leave-api';
 import {
   INBOX_COUNT_POLL_MS,
   INBOX_LIST_POLL_MS,
   inboxCountOptions,
 } from '../../app/lib/use-inbox';
-import { leaveRequestCard, NOW, taskCard } from './inbox-fixtures';
+import { NOW, taskCard } from './inbox-fixtures';
 
 const fetchSpy = spyOn(globalThis, 'fetch');
 afterEach(() => fetchSpy.mockReset());
@@ -77,13 +79,6 @@ describe('writes', () => {
     expect(lastCall()[0]).toBe('/api/app/inbox/read-all');
     expect(lastCall()[1].method).toBe('POST');
   });
-
-  it('approves the request the leave card stands for through the leave route', async () => {
-    reply(200, { request: {} });
-    await approveLeave(leaveTargetOf(leaveRequestCard()).id);
-    expect(lastCall()[0]).toBe('/api/app/leave/l-9/approve');
-    expect(lastCall()[1].method).toBe('POST');
-  });
 });
 
 describe('markCardRead (opening a card)', () => {
@@ -109,26 +104,6 @@ describe('markCardRead (opening a card)', () => {
     markCardRead(taskCard(), () => refreshed++);
     await Bun.sleep(10);
     expect(refreshed).toBe(1);
-  });
-});
-
-describe('leaveTargetOf', () => {
-  it('takes the request id from the card ref and the names and dates from its snapshot', () => {
-    expect(leaveTargetOf(leaveRequestCard())).toEqual({
-      id: 'l-9',
-      name: 'Dodi',
-      startDate: '2026-10-14',
-      endDate: '2026-10-16',
-    });
-  });
-
-  it('survives a payload without them', () => {
-    expect(leaveTargetOf(leaveRequestCard({ payload: {} }))).toEqual({
-      id: 'l-9',
-      name: '',
-      startDate: '',
-      endDate: '',
-    });
   });
 });
 

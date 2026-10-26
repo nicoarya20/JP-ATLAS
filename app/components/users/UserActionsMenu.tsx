@@ -1,5 +1,6 @@
 import { ActionIcon, Menu } from '@mantine/core';
 import {
+  FiCalendar,
   FiCheck,
   FiEye,
   FiLogIn,
@@ -12,6 +13,7 @@ import {
 } from 'react-icons/fi';
 import { type AdminUser, isBanActive, ROLE_LABEL } from '~/lib/admin-users-api';
 import { hasAnyAction, type UserPermissions, userAccess } from './user-access';
+import { USER_LEAVE_COPY } from './user-leave.copy';
 import type { useUserActions } from './useUserActions';
 
 type Props = {
@@ -46,6 +48,19 @@ export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
         <Menu.Item leftSection={<FiEye size={14} />} onClick={() => onOpen(user)}>
           Lihat detail
         </Menu.Item>
+        {/* Availability sits on its own: it is open for every account, including a protected one
+            and the actor's own (P14 D3), so it is not part of the account actions below. */}
+        {can.leave && (
+          <>
+            <Menu.Divider />
+            <Menu.Item
+              leftSection={<FiCalendar size={14} />}
+              onClick={() => actions.setLeave(user)}
+            >
+              {USER_LEAVE_COPY.set}
+            </Menu.Item>
+          </>
+        )}
         {(can.approve || can.reject) && <Menu.Divider />}
         {can.approve && (
           <Menu.Item
