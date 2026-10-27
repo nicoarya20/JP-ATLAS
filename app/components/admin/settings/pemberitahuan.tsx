@@ -95,7 +95,8 @@ export function PemberitahuanPreview() {
         title="Saklar pemberitahuan"
         description="Nilai bawaan untuk seluruh organisasi. Tiap orang masih bisa mematikannya untuk diri sendiri di Pengaturan akun, tetapi tidak bisa menyalakan yang dimatikan di sini."
       >
-        {/* Desktop: one row per notice. */}
+        {/* Desktop: one row per notice. Mantine has no `overflowX` prop, so the scroll wrapper
+            stays a `style` — three columns scroll rather than widening the card. */}
         <Box style={{ overflowX: 'auto' }} visibleFrom="sm">
           <Table striped highlightOnHover verticalSpacing="sm">
             <Table.Thead>
@@ -129,14 +130,14 @@ export function PemberitahuanPreview() {
         {/* Mobile: a card per notice — switches in a sideways-scrolling table are unusable. */}
         <Stack gap="xs" hiddenFrom="sm">
           {kinds.map((k) => (
-            <Paper key={k.key} withBorder p="sm" radius="md">
+            <Paper key={k.key} withBorder p="sm">
               <Stack gap="xs">
-                <div>
+                <Box>
                   <Text fw={500}>{k.label}</Text>
                   <Text size="xs" c="dimmed">
                     {k.description}
                   </Text>
-                </div>
+                </Box>
                 <Group gap="lg" wrap="wrap">
                   {COLUMNS.map((c) => (
                     <Group key={c.key} gap="xs">
