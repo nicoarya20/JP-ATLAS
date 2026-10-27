@@ -9,6 +9,7 @@ import { PROJECT_STATUSES, type ProjectStatus } from '../pm/enums';
 import { listProjects, PROJECT_SORTS, type ProjectSort } from '../project/project.query';
 import { parsePaging } from './analytics-paging';
 import { adminContext, callerOf } from './admin-context';
+import { adminProjectsManagerApi } from './admin-projects.manager';
 
 const SEARCH_MAX_LENGTH = 100;
 
@@ -58,6 +59,7 @@ export const adminProjectsApi = new Elysia({ prefix: '/projects' })
       return { items, total, page, limit };
     },
     { query: ListQuery },
-  );
+  )
+  .use(adminProjectsManagerApi);
 
 export type AdminProjectsApi = typeof adminProjectsApi;

@@ -80,6 +80,13 @@ export const PM_KEY_DENY: readonly Deny[] = [
     method: '*',
     path: /^\/api\/admin\/users\/.*\/leave(?:\/.*)?$/i,
   },
+  // Handing a project to another Pengelola from the Admin console (P11 AD-13) changes who runs it:
+  // an escalation, session only, like the product's own Lead handover above.
+  {
+    id: 'PUT admin projects/*/manager',
+    method: 'PUT',
+    path: /^\/api\/admin\/projects\/.*\/manager(?:\/.*)?$/i,
+  },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -102,6 +109,7 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'POST projects/*/condition-override': 'app-projects.deadline.ts',
   'POST projects/*/extend-deadline': 'app-projects.deadline.ts',
   '* admin users/*/leave': 'admin-leave.ts',
+  'PUT admin projects/*/manager': 'admin-projects.manager.ts',
 };
 
 /**
