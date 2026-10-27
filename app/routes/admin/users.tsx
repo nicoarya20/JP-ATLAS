@@ -1,4 +1,4 @@
-import { Badge, Group, Stack, Tabs, Text, Title } from '@mantine/core';
+import { Badge, Stack, Tabs } from '@mantine/core';
 import { listInvitations } from '@server/account/invitation.admin.query';
 import { adminUserStats, listAdminUsers } from '@server/api/admin-users.query';
 import { requireAnyRole } from '@server/guard';
@@ -9,6 +9,7 @@ import { INVITATION_LIMIT, InvitationPanel } from '~/components/users/Invitation
 import { PendingApprovalList } from '~/components/users/PendingApprovalList';
 import { UserDirectory } from '~/components/users/UserDirectory';
 import { useUserActions } from '~/components/users/useUserActions';
+import { PageHeader } from '~/components/ui/PageHeader';
 import {
   fetchUserStats,
   PENDING_LIMIT,
@@ -23,6 +24,11 @@ import type { Route } from './+types/users';
 export function meta() {
   return [{ title: 'Pengguna — Simple PM' }];
 }
+
+export const USERS_PAGE_COPY = {
+  title: 'Pengguna',
+  description: 'Setujui pendaftar baru, atur peran, dan undang orang ke aplikasi.',
+} as const;
 
 const LIMIT = 25;
 const TABS = ['pending', 'all', 'invitations'] as const;
@@ -80,14 +86,7 @@ export default function AdminUsersPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>Pengguna</Title>
-          <Text size="sm" c="dimmed">
-            Setujui pendaftar baru, atur peran, dan undang orang ke aplikasi.
-          </Text>
-        </div>
-      </Group>
+      <PageHeader title={USERS_PAGE_COPY.title} description={USERS_PAGE_COPY.description} />
 
       <Tabs
         value={tab}
@@ -95,6 +94,8 @@ export default function AdminUsersPage({ loaderData }: Route.ComponentProps) {
           setParams({ tab: parseTab(v) }, { replace: true, preventScrollReset: true })
         }
       >
+        {/* Mantine has no `flexWrap`/`overflowX` style props: the three tabs scroll sideways on a
+            375px screen rather than stacking into rows (CLAUDE.md mobile §2). */}
         <Tabs.List style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
           <Tabs.Tab
             value="pending"
