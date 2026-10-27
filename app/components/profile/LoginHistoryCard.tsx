@@ -1,4 +1,4 @@
-import { Group, Stack, Text, Tooltip } from '@mantine/core';
+import { Box, Group, Stack, Text, Tooltip } from '@mantine/core';
 import type { LoginRow } from '~/lib/login-logs-api';
 import { methodMeta } from '~/lib/login-logs-api';
 import { useTimeFormat } from '~/lib/time-format';
@@ -25,7 +25,7 @@ export function LoginHistoryCard({ rows, total }: { rows: LoginRow[]; total: num
         <Stack gap="sm">
           {rows.map((l) => (
             <Group key={l.id} justify="space-between" wrap="nowrap" gap="xs">
-              <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+              <Stack gap={0} miw={0} flex={1}>
                 <Tooltip label={formatDateTime(String(l.createdAt))} withArrow openDelay={300}>
                   <Text size="sm" fw={500} lh={1.3}>
                     {formatRelative(String(l.createdAt))}
@@ -35,10 +35,11 @@ export function LoginHistoryCard({ rows, total }: { rows: LoginRow[]; total: num
                   {`${l.ip ?? '—'} · ${countryFlag(l.country)} ${locationLabel(l)} · ${deviceSummary(l)}`}
                 </TruncatedText>
               </Stack>
+              {/* A Tooltip needs one element that forwards a ref; Badge does not, so Box carries it. */}
               <Tooltip label={`Metode: ${methodMeta(l.method).label}`} withArrow>
-                <div>
+                <Box>
                   <MethodBadge method={l.method} size="xs" />
-                </div>
+                </Box>
               </Tooltip>
             </Group>
           ))}

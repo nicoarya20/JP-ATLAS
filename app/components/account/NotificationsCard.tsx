@@ -39,19 +39,19 @@ export function NotificationsCard({ initial }: { initial: NotificationPrefs }) {
   });
 
   return (
-    <Paper withBorder radius="md" p={{ base: 'md', md: 'lg' }}>
+    <Paper withBorder p={{ base: 'md', md: 'lg' }}>
       <Stack gap="md">
         {SWITCHES.map(({ key, label, hint }) => {
           const pending = save.isPending && key in (save.variables ?? {});
           return (
             <Group key={key} justify="space-between" align="flex-start" wrap="nowrap" gap="md">
-              <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
+              <Stack gap={4} miw={0} flex={1}>
                 <Text fw={700}>{label}</Text>
                 <Text size="sm" c="dimmed">
                   {hint}
                 </Text>
               </Stack>
-              <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+              <Group gap="xs" wrap="nowrap" flex="0 0 auto">
                 <Text size="sm" fw={600}>
                   {prefs[key] ? NOTIFICATIONS_COPY.on : NOTIFICATIONS_COPY.off}
                 </Text>

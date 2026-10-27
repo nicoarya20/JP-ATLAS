@@ -111,7 +111,7 @@ export function PasswordCard({
         />
       </Stack>
       <Group justify="flex-end">
-        <Text size="xs" c="dimmed" style={{ flex: 1 }}>
+        <Text size="xs" c="dimmed" flex={1}>
           Sesi di perangkat ini tetap masuk.
         </Text>
         <Button onClick={() => change.mutate()} loading={change.isPending} disabled={!ready}>

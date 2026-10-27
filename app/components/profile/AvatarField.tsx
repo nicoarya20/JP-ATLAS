@@ -71,7 +71,7 @@ export function AvatarField({
         color="initials"
         imageProps={{ referrerPolicy: 'no-referrer' }}
       />
-      <Stack gap={6} style={{ minWidth: 0 }}>
+      <Stack gap="xs" miw={0}>
         <Group gap="xs" wrap="wrap">
           <FileButton onChange={pick} accept={AVATAR_ACCEPT} disabled={busy}>
             {(props) => (

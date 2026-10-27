@@ -1,4 +1,4 @@
-import { Anchor, Button, Group, SimpleGrid, Stack, TextInput, Title } from '@mantine/core';
+import { Anchor, Box, Button, Group, SimpleGrid, Stack, TextInput, Title } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import {
   isPhoneFormat,
@@ -76,19 +76,16 @@ export function ProfileEditForm({
 
   return (
     <Stack gap="md">
-      <div>
-        <Anchor
-          component={Link}
-          to={SETTINGS_PATH}
-          size="sm"
-          display="inline-flex"
-          style={{ alignItems: 'center', gap: 'var(--mantine-spacing-xs)' }}
-        >
-          <FiArrowLeft size="1.25em" aria-hidden />
-          {COPY.back}
+      <Box>
+        <Anchor component={Link} to={SETTINGS_PATH} size="sm" display="inline-block">
+          {/* A Group carries the icon/label gap, so it comes off the spacing scale, like PageHeader. */}
+          <Group component="span" gap="xs">
+            <FiArrowLeft size="1.25em" aria-hidden />
+            {COPY.back}
+          </Group>
         </Anchor>
         <Title order={2}>{COPY.title}</Title>
-      </div>
+      </Box>
       <AvatarField
         image={image}
         name={form.displayName.trim() || profile.name}

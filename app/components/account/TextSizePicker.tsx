@@ -36,17 +36,13 @@ export function TextSizePicker({
           >
             <Stack gap={4} align="center">
               {/* Absolute rem, so each button previews its own size whatever the current scale. */}
-              <Text
-                component="span"
-                fw={700}
-                lh={1.2}
-                style={{ fontSize: `${TEXT_SCALE[size]}rem` }}
-              >
+              <Text component="span" fw={700} lh={1.2} fz={`${TEXT_SCALE[size]}rem`}>
                 Aa {TEXT_SIZE_LABELS[size]}
               </Text>
               <Text component="span" size="sm" fw={active ? 600 : 400}>
                 {active ? (
                   <>
+                    {/* A react-icons SVG takes no Mantine props; `verticalAlign` has none anyway. */}
                     <FiCheckCircle size="1.25em" style={{ verticalAlign: 'middle' }} />{' '}
                     {APPEARANCE_COPY.active}
                   </>
