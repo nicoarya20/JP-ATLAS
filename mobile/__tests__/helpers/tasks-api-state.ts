@@ -247,10 +247,12 @@ export function fakeTaskApi(
   }
 
   const routes: AuthRoutes = {
+    // The same counts `tasks-api-server.ts` answered before writes could change them, so the group
+    // titles in the list suites still read about the same numbers.
     '/api/app/tasks/counts': () => ({
       body: wireCounts({
         mine: {
-          overdue: rowsFor('?status=todo&status=in_progress&due=overdue', allRows()).length,
+          overdue: rowsFor('?status=todo&due=overdue', allRows()).length,
           today: rowsFor('?status=todo&status=in_progress&due=today', allRows()).length,
         },
         byStatus: { todo: allRows().filter((r) => r.status === 'todo').length },

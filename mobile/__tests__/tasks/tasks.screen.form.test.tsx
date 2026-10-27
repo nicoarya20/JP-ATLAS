@@ -1,7 +1,8 @@
 // Edit task and New task (port of prototype tasks.edit.test / tasks.form.test, items.open): tags are lowercase without
 // duplicates, Save writes the task and goes back; Fill form starts from the first AI draft, Show more folds the extra
 // fields, Save opens the new task; Just write ✦ and Import CSV are modals; a Member may not edit someone else's task.
-import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { router } from 'expo-router';
 
 import { getTask, getTasksState } from '../../src/data/tasks.state';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
@@ -12,11 +13,18 @@ drainToastTimers();
 
 const button = (name: string) => screen.getByRole('button', { name });
 
-/** Edit task the way it is reached: from the detail's ⋯ menu, so Save goes back to the detail. */
+/**
+ * Edit task, opened at its own route.
+ *
+ * It used to be reached from the detail's ⋯ menu, but the detail reads the server now while this
+ * form still writes to the sample store, so the menu no longer offers Edit task — a form that
+ * cannot save what the screen above it shows is worse than one more tap
+ * (docs/phase2-gap-disembunyikan.md). The form itself is unchanged, and so is what these tests are
+ * about; only the way in is. Save still goes back to the detail.
+ */
 async function openEdit(no: number) {
   await openTasks(`/tasks/${no}`);
-  await fireEvent.press(screen.getByTestId('task-menu'));
-  await fireEvent.press(await screen.findByText('Edit task'));
+  await act(() => router.push(`/tasks/${no}/edit`));
   expect(await screen.findByTestId('screen-task-edit')).toBeOnTheScreen();
 }
 
@@ -116,15 +124,18 @@ describe('new task', () => {
     expect(screen.getByLabelText(/^Which /)).toBeOnTheScreen();
   });
 
-  it('Save adds a To do task and opens its detail', async () => {
+  it('Save adds a To do task and opens its detail, which the server does not have yet', async () => {
+    // The form still writes to the sample store (step 8 of docs/phase2-map-tasks.md §6), while the
+    // detail it opens reads `/api/app/tasks/:ref` — so the task it just made is not there. That is
+    // the mismatch itself, asserted rather than hidden: it goes away with the form, not before.
     const before = getTasksState().tasks.length;
     await openTasks('/tasks/new/form');
     await fireEvent.press(screen.getByTestId('form-save'));
-    await waitFor(() => expect(screen.getByTestId('screen-task')).toBeOnTheScreen());
     const added = getTasksState().tasks.find((t) => t.title === 'Fix the login page');
     expect(getTasksState().tasks.length).toBe(before + 1);
     expect(added?.status).toBe('To do');
-    expect(screen).toHavePathname(`/tasks/${added?.no}`);
+    await waitFor(() => expect(screen).toHavePathname(`/tasks/${added?.no}`));
+    expect(await screen.findByTestId('task-missing')).toBeOnTheScreen();
   });
 
   it('/tasks/csv previews the rows as cards and imports the ready ones', async () => {
