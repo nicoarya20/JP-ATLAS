@@ -29,19 +29,20 @@ function TaskChip({ task, late }: { task: TeamTaskRef; late: boolean }) {
 function TaskRow({ task, project, today }: { task: TeamTaskRef; project: string; today: IsoDate }) {
   const late = task.dueDate !== null && describeDue(task.dueDate, today).late;
   return (
-    <Paper component="li" withBorder p="sm" radius="md">
+    <Paper component="li" withBorder p="sm">
       <Group justify="space-between" align="flex-start" gap="xs" wrap="wrap">
-        <Stack gap={2} style={{ minWidth: 0, flex: '1 1 220px' }}>
+        <Stack gap={4} miw={0} flex="1 1 220px">
+          {/* Clamped, not wrapped: every row in the list keeps the same height (K-5). */}
           <Anchor
             component={Link}
             to={`/app/tasks/${task.number}`}
             fw={600}
             c="inherit"
-            style={{ overflowWrap: 'anywhere' }}
+            lineClamp={2}
           >
             {`#${task.number} ${task.title}`}
           </Anchor>
-          <Group gap={6} wrap="wrap">
+          <Group gap="xs" wrap="wrap">
             <Text size="sm" c="dimmed">
               {project}
             </Text>
@@ -72,7 +73,9 @@ function Body({ tasks, projects, today, ...rest }: Props) {
   if (!rest.tasksVisible) {
     return (
       <Group gap="xs" wrap="nowrap" align="flex-start" c="dimmed">
-        <FiLock size="1.25em" aria-hidden style={{ flexShrink: 0, marginTop: 2 }} />
+        {/* A react-icons SVG takes no Mantine style props; the em nudge keeps the lock on
+            the first text line at every text size. */}
+        <FiLock size="1.25em" aria-hidden style={{ flexShrink: 0, marginTop: '0.15em' }} />
         <Text>{TASKS_COPY.hidden}</Text>
       </Group>
     );
@@ -88,6 +91,7 @@ function Body({ tasks, projects, today, ...rest }: Props) {
       aria-label={TASKS_COPY.taskList}
       m={0}
       p={0}
+      // Mantine has no `list-style` style prop, and `List` would change the markup of the rows.
       style={{ listStyle: 'none' }}
     >
       {tasks.map((t) => (

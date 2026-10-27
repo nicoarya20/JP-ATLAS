@@ -18,8 +18,11 @@ export function AvailabilityBadge({
       variant="light"
       color={onLeave ? 'warn' : 'gray'}
       leftSection={<Icon size="1.25em" aria-hidden />}
-      // Long wording wraps on a 375 px card instead of running off it.
-      style={{ height: 'auto', maxWidth: '100%', minHeight: 'var(--badge-height)' }}
+      // Long wording wraps on a 375 px card instead of running off it; the badge grows
+      // downwards from its normal height rather than widening.
+      h="auto"
+      maw="100%"
+      mih="var(--badge-height)"
       styles={{ label: { whiteSpace: 'normal', overflowWrap: 'anywhere' } }}
     >
       {text}
