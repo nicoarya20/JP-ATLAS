@@ -37,10 +37,10 @@ function Row({ row }: { row: ServerLogRow }) {
         aria-expanded={open}
       >
         <Group gap="sm" wrap="nowrap" align="flex-start">
-          <Badge size="xs" variant="light" color={meta.color} w={52} style={{ flexShrink: 0 }}>
+          <Badge size="xs" variant="light" color={meta.color} w={52} flex="0 0 auto">
             {meta.label}
           </Badge>
-          <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+          <Stack gap={0} miw={0} flex={1}>
             <TruncatedText size="sm" lh={1.35} ff="monospace">
               {row.msg || '(tanpa pesan)'}
             </TruncatedText>

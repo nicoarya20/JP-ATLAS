@@ -50,7 +50,7 @@ export function RateLimitTable(props: Props) {
         withTableBorder
         verticalSpacing="xs"
         fz="sm"
-        style={{ minWidth: 720 }}
+        miw={720}
       >
         <Table.Thead>
           <Table.Tr>

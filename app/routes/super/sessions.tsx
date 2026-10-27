@@ -145,7 +145,7 @@ export default function SessionsPage({ loaderData }: Route.ComponentProps) {
             value={filters.search}
             onChange={(e) => setFilters({ search: e.currentTarget.value })}
             size="sm"
-            style={{ flex: '1 1 240px', minWidth: 0 }}
+            flex="1 1 240px" miw={0}
           />
           <SegmentedControl
             size="sm"

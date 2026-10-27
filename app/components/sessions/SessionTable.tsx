@@ -36,7 +36,7 @@ const SKELETON_KEYS = ['s0', 's1', 's2', 's3', 's4', 's5'];
 function DeviceCell({ s }: { s: SessionRow }) {
   const d = describeSession(s.userAgent);
   return (
-    <Stack gap={0} style={{ minWidth: 0 }}>
+    <Stack gap={0} miw={0}>
       <TruncatedText size="sm" lh={1.3} maw={220}>
         {d.summary}
       </TruncatedText>
@@ -126,7 +126,7 @@ export function SessionTable({ rows, loading, fetching = false, empty, ...h }: P
         withTableBorder
         verticalSpacing="xs"
         fz="sm"
-        style={{ minWidth: 760 }}
+        miw={760}
       >
         <Table.Thead>
           <Table.Tr>
@@ -205,7 +205,7 @@ export function SessionCardList({ rows, loading, empty, ...h }: Props) {
       {rows.map((s) => (
         <Paper key={s.id} withBorder p="sm" radius="md">
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap={6} miw={0} flex={1}>
               <UserCell row={s} subtitle={s.userEmail} />
               <DeviceCell s={s} />
               <Flags s={s} currentSessionId={h.currentSessionId} />

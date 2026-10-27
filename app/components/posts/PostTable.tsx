@@ -93,7 +93,7 @@ export function PostTable({ rows, loading, fetching = false, empty, ...h }: Prop
         withTableBorder
         verticalSpacing="xs"
         fz="sm"
-        style={{ minWidth: 720 }}
+        miw={720}
       >
         <Table.Thead>
           <Table.Tr>
@@ -116,7 +116,7 @@ export function PostTable({ rows, loading, fetching = false, empty, ...h }: Prop
             rows.map((p) => (
               <Table.Tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => h.onEdit(p)}>
                 <Table.Td>
-                  <Stack gap={0} style={{ minWidth: 0 }}>
+                  <Stack gap={0} miw={0}>
                     <TruncatedText size="sm" fw={500} lh={1.3} maw={420}>
                       {p.title}
                     </TruncatedText>
@@ -176,7 +176,7 @@ export function PostCardList({ rows, loading, empty, ...h }: Props) {
       {rows.map((p) => (
         <Paper key={p.id} withBorder p="sm" radius="md">
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap={4} miw={0} flex={1}>
               <Text size="sm" fw={500} lineClamp={2}>
                 {p.title}
               </Text>

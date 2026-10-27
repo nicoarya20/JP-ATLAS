@@ -23,7 +23,7 @@ export function CurlSnippet({ command }: { command: string }) {
                 size="sm"
                 onClick={copy}
                 aria-label="Salin perintah curl"
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               >
                 {copied ? <FiCheck size="1.25em" /> : <FiCopy size="1.25em" />}
               </ActionIcon>

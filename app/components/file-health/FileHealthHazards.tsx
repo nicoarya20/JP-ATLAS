@@ -40,20 +40,20 @@ export function FileHealthHazards({ rows, cautionTokens, dangerTokens }: Props) 
         {hazards.map((r) => (
           <Paper key={r.path} withBorder radius="sm" p="xs">
             <Group justify="space-between" wrap="wrap" gap="xs">
-              <Group gap="xs" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+              <Group gap="xs" wrap="nowrap" miw={0} flex={1}>
                 <Badge
                   color={HAZARD_META[r.hazard].color}
                   size="sm"
                   variant="filled"
-                  style={{ flexShrink: 0 }}
+                  flex="0 0 auto"
                 >
                   {HAZARD_META[r.hazard].label}
                 </Badge>
-                <Text ff="monospace" size="sm" truncate style={{ minWidth: 0 }}>
+                <Text ff="monospace" size="sm" truncate miw={0}>
                   {r.path}
                 </Text>
               </Group>
-              <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+              <Text size="xs" c="dimmed" flex="0 0 auto">
                 ~{fmtNum(r.estTokens)} token · {fmtNum(r.lines)} baris
               </Text>
             </Group>

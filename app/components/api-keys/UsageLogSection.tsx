@@ -88,7 +88,7 @@ function Rows({ rows, onKey }: { rows: UsageLogRow[]; onKey: (id: string) => voi
               </TruncatedText>
             </Box>
           </Table.Td>
-          <Table.Td style={{ maxWidth: 0, minWidth: 220 }}>
+          <Table.Td maw={0} miw={220}>
             <TruncatedText ff="monospace" size="sm">
               {`${r.method} ${r.path}`}
             </TruncatedText>
@@ -163,7 +163,7 @@ export function UsageLogSection() {
             value={filters.search}
             onChange={(e) => setFilters({ search: e.currentTarget.value })}
             size="sm"
-            style={{ flex: '1 1 220px', minWidth: 0 }}
+            flex="1 1 220px" miw={0}
           />
           <Select
             size="sm"
@@ -251,7 +251,7 @@ export function UsageLogSection() {
             withTableBorder
             verticalSpacing="xs"
             fz="sm"
-            style={{ minWidth: 720 }}
+            miw={720}
           >
             <Table.Thead>
               <Table.Tr>

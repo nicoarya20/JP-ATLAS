@@ -12,16 +12,16 @@ import { OperationDetail } from './OperationDetail';
 
 function OperationControl({ op }: { op: ViewOperation }) {
   return (
-    <Group gap="xs" wrap="nowrap" align="flex-start" style={{ minWidth: 0 }}>
+    <Group gap="xs" wrap="nowrap" align="flex-start" miw={0}>
       <Badge
         size="sm"
         color={methodColor(op.method)}
         variant="filled"
-        style={{ flexShrink: 0, minWidth: 64 }}
+        flex="0 0 auto" miw={64}
       >
         {op.method}
       </Badge>
-      <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+      <Stack gap={0} miw={0} flex={1}>
         <Text size="sm" ff="monospace" style={{ wordBreak: 'break-all' }}>
           {op.path}
         </Text>

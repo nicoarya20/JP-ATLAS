@@ -142,7 +142,7 @@ export function ApiCard() {
         {rows.map((r) => (
           <Group key={r.path} gap="sm" wrap="wrap">
             <Code>{r.path}</Code>
-            <Text size="sm" c="dimmed" style={{ flex: 1 }}>
+            <Text size="sm" c="dimmed" flex={1}>
               {r.note}
             </Text>
             {r.to && (

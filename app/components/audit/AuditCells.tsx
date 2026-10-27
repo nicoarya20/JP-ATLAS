@@ -6,7 +6,7 @@ export function ActionBadge({ action, size = 'sm' }: { action: string; size?: 'x
   const m = actionMeta(action);
   return (
     <Tooltip label={action} withArrow>
-      <Badge variant="light" color={m.color} size={size} style={{ flexShrink: 0 }}>
+      <Badge variant="light" color={m.color} size={size} flex="0 0 auto">
         {m.label}
       </Badge>
     </Tooltip>
@@ -32,7 +32,7 @@ export function ActorCell({ row }: { row: AuditRow }) {
         color="initials"
         imageProps={{ referrerPolicy: 'no-referrer' }}
       />
-      <Stack gap={0} style={{ minWidth: 0 }}>
+      <Stack gap={0} miw={0}>
         <TruncatedText size="sm" fw={500} lh={1.3} maw={180}>
           {row.actorName ?? row.actorEmail ?? row.actorId ?? '—'}
         </TruncatedText>
@@ -46,7 +46,7 @@ export function ActorCell({ row }: { row: AuditRow }) {
 
 export function TargetCell({ row }: { row: AuditRow }) {
   return (
-    <Stack gap={0} style={{ minWidth: 0 }}>
+    <Stack gap={0} miw={0}>
       <Text size="xs" c="dimmed" lh={1.3}>
         {TARGET_LABELS[row.targetType] ?? row.targetType}
       </Text>

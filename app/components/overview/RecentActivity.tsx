@@ -54,7 +54,7 @@ export function RecentActivity({ data }: { data: DevOverview }) {
               color="initials"
               imageProps={{ referrerPolicy: 'no-referrer' }}
             />
-            <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap={0} miw={0} flex={1}>
               <TruncatedText size="sm" fw={500} lh={1.3}>
                 {l.userName ?? l.userId}
               </TruncatedText>
@@ -66,7 +66,7 @@ export function RecentActivity({ data }: { data: DevOverview }) {
               size="xs"
               variant="light"
               color={methodMeta(l.method).color}
-              style={{ flexShrink: 0 }}
+              flex="0 0 auto"
             >
               {methodMeta(l.method).label}
             </Badge>
@@ -80,10 +80,10 @@ export function RecentActivity({ data }: { data: DevOverview }) {
       >
         {data.recentBlocks.map((b) => (
           <Group key={b.id} gap="sm" wrap="nowrap">
-            <Badge size="xs" variant="light" color="red" ff="monospace" style={{ flexShrink: 0 }}>
+            <Badge size="xs" variant="light" color="red" ff="monospace" flex="0 0 auto">
               {b.method ?? '—'}
             </Badge>
-            <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap={0} miw={0} flex={1}>
               <TruncatedText ff="monospace" size="sm" lh={1.3}>
                 {b.path}
               </TruncatedText>

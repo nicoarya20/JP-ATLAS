@@ -31,13 +31,13 @@ function ActorRow({
   const body = (
     <Stack gap={4}>
       <Group justify="space-between" wrap="nowrap" gap="xs">
-        <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+        <Group gap="xs" wrap="nowrap" miw={0}>
           <Avatar src={a.image} size={20} radius="xl" name={label} color="initials" />
-          <TruncatedText size="sm" style={{ minWidth: 0 }}>
+          <TruncatedText size="sm" miw={0}>
             {label}
           </TruncatedText>
         </Group>
-        <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+        <Text size="xs" c="dimmed" flex="0 0 auto">
           {nf.format(a.count)} · {pct}%
         </Text>
       </Group>

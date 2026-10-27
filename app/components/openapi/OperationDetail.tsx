@@ -95,7 +95,7 @@ export function OperationDetail({
   const responses = Object.entries(op.operation.responses ?? {});
 
   return (
-    <Stack gap="md" style={{ minWidth: 0 }}>
+    <Stack gap="md" miw={0}>
       <Group gap="xs" wrap="wrap">
         {op.isPublic ? (
           <Badge size="sm" color="gray" variant="light">

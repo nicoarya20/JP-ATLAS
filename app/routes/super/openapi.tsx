@@ -103,7 +103,7 @@ export default function OpenApiPage() {
   return (
     <Stack gap="md">
       <Group justify="space-between" align="flex-start" wrap="wrap">
-        <Stack gap={4} style={{ minWidth: 0 }}>
+        <Stack gap={4} miw={0}>
           <Title order={1}>Spec OpenAPI</Title>
           <Text size="sm" c="dimmed">
             Penampil spec buatan sendiri (bukan Swagger UI) di atas{' '}

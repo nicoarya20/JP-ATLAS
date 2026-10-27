@@ -70,6 +70,7 @@ export function TableNode({ data }: NodeProps & { data: TableNodeData }) {
             width="11"
             height="11"
             viewBox="0 0 12 12"
+            // A raw <svg> takes no Mantine style props.
             style={{ opacity: 0.75, flexShrink: 0 }}
             aria-hidden="true"
           >

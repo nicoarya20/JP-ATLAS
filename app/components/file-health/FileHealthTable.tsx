@@ -97,7 +97,7 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
     <>
       <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
         <Box style={{ overflowX: 'auto' }}>
-          <Table highlightOnHover verticalSpacing="xs" fz="sm" style={{ minWidth: 760 }}>
+          <Table highlightOnHover verticalSpacing="xs" fz="sm" miw={760}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>File</Table.Th>

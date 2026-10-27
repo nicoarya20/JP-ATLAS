@@ -40,7 +40,7 @@ export function ApiKeyDetailDrawer({ keyRow: k, onClose, soonDays, fetchUsage, h
       {k && (
         <Stack gap="md">
           <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-            <Stack gap={2} style={{ minWidth: 0 }}>
+            <Stack gap={2} miw={0}>
               <Text fw={600} size="lg" lh={1.2} style={{ wordBreak: 'break-word' }}>
                 {k.name}
               </Text>

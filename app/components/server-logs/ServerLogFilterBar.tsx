@@ -27,7 +27,7 @@ export function ServerLogFilterBar({
         value={filters.search}
         onChange={(e) => onChange({ ...filters, search: e.currentTarget.value })}
         size="sm"
-        style={{ flex: '1 1 260px', minWidth: 0 }}
+        flex="1 1 260px" miw={0}
       />
       <SegmentedControl
         size="sm"

@@ -59,7 +59,7 @@ export function LoginFilters({ filters, onChange, onReset, stats, matchCount, us
           value={filters.search}
           onChange={(e) => onChange({ search: e.currentTarget.value })}
           size="sm"
-          style={{ flex: '1 1 240px', minWidth: 0 }}
+          flex="1 1 240px" miw={0}
         />
         <Select
           size="sm"

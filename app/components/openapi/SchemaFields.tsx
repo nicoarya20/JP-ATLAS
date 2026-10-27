@@ -12,7 +12,7 @@ const INDENT = 14;
 
 function FieldRow({ field }: { field: SchemaField }) {
   return (
-    <Box pl={field.depth * INDENT} style={{ minWidth: 0 }}>
+    <Box pl={field.depth * INDENT} miw={0}>
       <Group gap="xs" wrap="wrap" align="baseline">
         <Code style={{ wordBreak: 'break-word' }}>{field.name}</Code>
         <Text size="xs" c="dimmed" ff="monospace">

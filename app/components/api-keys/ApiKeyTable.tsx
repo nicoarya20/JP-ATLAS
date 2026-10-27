@@ -102,7 +102,7 @@ export function ApiKeyTable({ rows, loading, fetching = false, empty, soonDays, 
         withTableBorder
         verticalSpacing="xs"
         fz="sm"
-        style={{ minWidth: 860 }}
+        miw={860}
       >
         <Table.Thead>
           <Table.Tr>
@@ -200,7 +200,7 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
           style={{ cursor: 'pointer' }}
         >
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap={6} miw={0} flex={1}>
               <Group gap="xs" wrap="nowrap" justify="space-between">
                 <KeyIdentityCell k={k} />
                 <KeyStatusBadge status={k.status} size="xs" />
@@ -216,7 +216,7 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
                 {k.usage24h} req/24j
               </Text>
             </Stack>
-            <Box onClick={(e) => e.stopPropagation()} style={{ flexShrink: 0 }}>
+            <Box onClick={(e) => e.stopPropagation()} flex="0 0 auto">
               <ApiKeyActionsMenu k={k} h={h} />
             </Box>
           </Group>

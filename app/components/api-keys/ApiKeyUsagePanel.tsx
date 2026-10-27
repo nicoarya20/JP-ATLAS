@@ -190,7 +190,7 @@ export function ApiKeyUsagePanel({
                       {r.status}
                     </Badge>
                   </Table.Td>
-                  <Table.Td style={{ maxWidth: 0 }}>
+                  <Table.Td maw={0}>
                     <TruncatedText ff="monospace" size="xs">
                       {`${r.method} ${r.path}`}
                     </TruncatedText>
@@ -200,7 +200,7 @@ export function ApiKeyUsagePanel({
                       {r.durationMs != null ? ` · ${r.durationMs} ms` : ''}
                     </Text>
                   </Table.Td>
-                  <Table.Td w={92} style={{ textAlign: 'right' }}>
+                  <Table.Td w={92} ta="right">
                     <Tooltip label={formatDateTime(r.createdAt)} withArrow>
                       <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
                         {formatRelative(r.createdAt)}

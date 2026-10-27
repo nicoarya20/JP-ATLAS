@@ -18,7 +18,7 @@ export function MethodBadge({
         color={m.color}
         variant={method === 'impersonation' ? 'filled' : 'light'}
         size={size}
-        style={{ flexShrink: 0 }}
+        flex="0 0 auto"
       >
         {m.label}
       </Badge>

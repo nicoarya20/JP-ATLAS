@@ -83,12 +83,16 @@ function Inner({ schema, direction, compact, selectedId, onSelect, fitKey }: Sch
         pannable
         zoomable
         nodeColor={(n) => (n.id === selectedId ? ACCENT : 'var(--mantine-color-default-border)')}
-        maskColor="rgba(0,0,0,0.08)"
+        maskColor={MINIMAP_MASK}
+        // React Flow's MiniMap renders a plain <svg>, so it takes no Mantine style props.
         style={{ background: 'var(--mantine-color-body)' }}
       />
     </ReactFlow>
   );
 }
+
+/** Dims the off-screen area of the minimap; a neutral wash, not a palette colour. */
+const MINIMAP_MASK = 'rgba(0,0,0,0.08)';
 
 /** ERD canvas with its own React Flow provider (so the page can stay a plain component). */
 export function SchemaGraph(props: SchemaGraphProps) {

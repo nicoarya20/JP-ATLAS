@@ -36,7 +36,7 @@ export function AuditTable({ rows, loading, fetching = false, onOpen, empty }: P
         withTableBorder
         verticalSpacing="xs"
         fz="sm"
-        style={{ minWidth: 720 }}
+        miw={720}
       >
         <Table.Thead>
           <Table.Tr>

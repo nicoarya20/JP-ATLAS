@@ -29,7 +29,7 @@ function CountBadge({ item }: { item: NavItem }) {
       variant={alert ? 'filled' : 'light'}
       color={alert ? (b.color ?? 'red') : 'gray'}
       circle={b.value < 10}
-      style={{ flexShrink: 0 }}
+      flex="0 0 auto"
     >
       {badgeValue(b.value)}
     </Badge>
@@ -162,7 +162,7 @@ export function NavList({ groups, collapsed, onNavigate }: Props) {
                     onClick={onNavigate}
                     variant="light"
                     fw={active ? 600 : 500}
-                    style={{ borderRadius: 'var(--mantine-radius-md)' }}
+                    bdrs="md"
                   />
                 </Tooltip>
               );

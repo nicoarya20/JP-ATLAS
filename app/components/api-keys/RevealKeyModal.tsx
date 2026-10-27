@@ -63,7 +63,7 @@ function RevealBody({ reveal, onClose }: { reveal: Reveal; onClose: () => void }
                     size="lg"
                     onClick={copy}
                     aria-label="Salin kunci"
-                    style={{ flexShrink: 0 }}
+                    flex="0 0 auto"
                   >
                     {copied ? <FiCheck size={16} /> : <FiCopy size={16} />}
                   </ActionIcon>

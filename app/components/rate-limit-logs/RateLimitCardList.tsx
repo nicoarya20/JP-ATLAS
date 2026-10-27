@@ -57,12 +57,12 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
                 checked={selected.has(r.id)}
                 onChange={() => h.onToggle(r.id)}
                 onClick={(e) => e.stopPropagation()}
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               />
-              <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+              <Stack gap={4} miw={0} flex={1}>
                 <Group gap="xs" wrap="nowrap" align="center">
                   <MethodBadge method={r.method} size="xs" />
-                  <TruncatedText ff="monospace" size="sm" fw={500} style={{ minWidth: 0 }}>
+                  <TruncatedText ff="monospace" size="sm" fw={500} miw={0}>
                     {r.path}
                   </TruncatedText>
                 </Group>
@@ -84,7 +84,7 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
                   h.onDelete(r);
                 }}
                 aria-label="Hapus catatan"
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               >
                 <FiTrash2 size={16} />
               </ActionIcon>
