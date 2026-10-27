@@ -57,10 +57,12 @@ describe('/dashboard area', () => {
     expect(fileOf('dashboard/export')).toBe('routes/admin/export.tsx');
   });
 
-  test('the Admin sidebar has the five AD-20 entries in reading order', () => {
+  test('the Admin sidebar has its entries in reading order', () => {
+    // Proyek (AD-12) sits right after Pengguna; the Aktivitas lane adds its entry after Proyek.
     expect(NAV.map((n) => [n.label, n.to])).toEqual([
       ['Dashboard', '/dashboard'],
       ['Pengguna', '/dashboard/users'],
+      ['Proyek', '/dashboard/projects'],
       ['Peran & izin', '/dashboard/permissions'],
       ['Ekspor data', '/dashboard/export'],
       ['Pengaturan', '/dashboard/settings'],

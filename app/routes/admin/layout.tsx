@@ -5,6 +5,7 @@ import { getSidebarCollapsed } from '@server/sidebar';
 import { adminSidebarBadges } from '@server/sidebar-badges';
 import {
   FiDownload,
+  FiFolder,
   FiGrid,
   FiHome,
   FiLayers,
@@ -30,6 +31,7 @@ export function meta(_: Route.MetaArgs) {
 export const NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: FiHome },
   { to: '/dashboard/users', label: 'Pengguna', icon: FiUsers },
+  { to: '/dashboard/projects', label: 'Proyek', icon: FiFolder },
   { to: '/dashboard/permissions', label: 'Peran & izin', icon: FiShield },
   { to: '/dashboard/export', label: 'Ekspor data', icon: FiDownload },
   { to: '/dashboard/settings', label: 'Pengaturan', icon: FiSettings },
