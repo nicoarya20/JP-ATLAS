@@ -17,9 +17,10 @@ import type { RoleChangesSummary } from './overview.dto';
 
 const target = alias(user, 'role_change_target');
 
-/** Reads a string field out of the stored audit meta; anything non-string (or missing) becomes null. */
-function metaString(meta: Record<string, unknown> | null, key: string): string | null {
-  const v = meta?.[key];
+/** Reads a string field out of the stored audit meta (jsonb, so `unknown`); non-string or missing → null. */
+function metaString(meta: unknown, key: string): string | null {
+  if (meta === null || typeof meta !== 'object') return null;
+  const v = (meta as Record<string, unknown>)[key];
   return typeof v === 'string' ? v : null;
 }
 

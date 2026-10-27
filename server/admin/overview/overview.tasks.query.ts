@@ -6,7 +6,7 @@
  * Two statements only: the page of rows (with project and assignee names from joins, so there is no
  * query per task) and the matching count.
  */
-import { and, asc, eq, isNotNull, lt, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, lt, sql } from 'drizzle-orm';
 import { db } from '../../db';
 import { project, task, user } from '../../db/schema';
 import { diffDays } from '../../metrics/dates';
@@ -27,7 +27,7 @@ export async function getOverdueTasks(
     isLive(task),
     isNotNull(task.dueDate),
     lt(task.dueDate, today),
-    sql`${task.status} in (${sql.join(OPEN_STATUSES, sql`, `)})`,
+    inArray(task.status, [...OPEN_STATUSES]),
   );
   const [rows, [totals]] = await Promise.all([
     exec
