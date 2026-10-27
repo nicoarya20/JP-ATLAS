@@ -12,6 +12,17 @@ import {
 
 const MONO = 'ui-monospace, "Cascadia Code", monospace';
 
+/*
+ * This file is the one place in the console that deliberately stays on inline `style` instead of
+ * Mantine props (docs/ui-pola.md §3). React Flow measures a node's DOM in raw pixels to place it
+ * and to anchor every edge handle, and `erd.layout.ts` computes those positions from the same
+ * NODE_WIDTH / HDR_H / ROW_H constants. Mantine's spacing and size props go through `rem()`, which
+ * multiplies by `var(--mantine-scale)`, so the user text-size setting (1 / 1,25 / 1,5) would grow
+ * the rendered card while the computed edge geometry stayed put and every line would miss its row.
+ * The colours here come from `erd.layout.ts` (ACCENT, PK_COL), which is the ERD's own small
+ * palette: diagram semantics, not JP Atlas roles.
+ */
+
 /** ERD table card with a handle per column so edges attach to the exact row. */
 export function TableNode({ data }: NodeProps & { data: TableNodeData }) {
   const cols = visibleColumns(data, data.compact);

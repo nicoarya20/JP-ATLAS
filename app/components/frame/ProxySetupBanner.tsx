@@ -73,7 +73,16 @@ function CopyValue({ value }: { value: string }) {
   const line = `TRUSTED_PROXIES=${value}`;
   return (
     <Box pos="relative">
-      <Code block pr={COPY_BUTTON_CLEARANCE} style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+      <Code
+        block
+        pr={COPY_BUTTON_CLEARANCE}
+        style={{
+          // No Mantine prop for `whiteSpace` or `wordBreak`: the snippet keeps its line breaks and still
+          // wraps a long unbroken token.
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+        }}
+      >
         {line}
       </Code>
       <CopyButton value={line} timeout={1500}>

@@ -31,8 +31,16 @@ export function CurlSnippet({ command }: { command: string }) {
           )}
         </CopyButton>
       </Group>
-      <Code block fz="xs"
-              style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+      <Code
+        block
+        fz="xs"
+        style={{
+          // No Mantine prop for `whiteSpace` or `wordBreak`: the snippet keeps its line breaks and still
+          // wraps a long unbroken token.
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+        }}
+      >
         {command}
       </Code>
       <Text size="xs" c="dimmed">

@@ -31,7 +31,15 @@ export function SpecSummary({
           </Badge>
         </Group>
         {baseUrl && (
-          <Text size="xs" c="dimmed" ff="monospace" style={{ wordBreak: 'break-all' }}>
+          <Text
+            size="xs"
+            c="dimmed"
+            ff="monospace"
+            style={{
+              // Mantine has no `wordBreak` prop, and this value is a path or key with no spaces to break at.
+              wordBreak: 'break-all',
+            }}
+          >
             {baseUrl}
           </Text>
         )}

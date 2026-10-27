@@ -64,7 +64,10 @@ export function LoginDetailDrawer({ row, onClose, onDelete, onFilterUser, deleti
               size="xs"
               leftSection={<FiFilter size={12} />}
               onClick={() => onFilterUser(row.userId)}
-              style={{ alignSelf: 'flex-end' }}
+              style={{
+                // Mantine has no `alignSelf` prop: the button sits at the end of the row instead of stretching.
+                alignSelf: 'flex-end',
+              }}
             >
               Lihat semua login user ini
             </Button>
@@ -121,8 +124,16 @@ export function LoginDetailDrawer({ row, onClose, onDelete, onFilterUser, deleti
               <Text size="sm" c="dimmed">
                 User agent
               </Text>
-              <Code block fz="xs"
-              style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+              <Code
+                block
+                fz="xs"
+                style={{
+                  // No Mantine prop for `whiteSpace` or `wordBreak`: the snippet keeps its line breaks and still
+                  // wraps a long unbroken token.
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
+                }}
+              >
                 {dash(row.userAgent)}
               </Code>
             </Stack>

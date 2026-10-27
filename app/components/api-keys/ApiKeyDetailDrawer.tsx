@@ -41,7 +41,15 @@ export function ApiKeyDetailDrawer({ keyRow: k, onClose, soonDays, fetchUsage, h
         <Stack gap="md">
           <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
             <Stack gap={2} miw={0}>
-              <Text fw={600} size="lg" lh={1.2} style={{ wordBreak: 'break-word' }}>
+              <Text
+                fw={600}
+                size="lg"
+                lh={1.2}
+                style={{
+                  // Mantine has no `wordBreak` prop; a long identifier breaks instead of widening the row.
+                  wordBreak: 'break-word',
+                }}
+              >
                 {k.name}
               </Text>
               <Text size="sm" c="dimmed" ff="monospace">
@@ -197,7 +205,13 @@ export function ApiKeyDetailDrawer({ keyRow: k, onClose, soonDays, fetchUsage, h
                   <>
                     <Divider />
                     <Section title="Catatan">
-                      <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+                      <Text
+                        size="sm"
+                        style={{
+                          // Mantine has no `whiteSpace` prop; the stored value keeps its own line breaks.
+                          whiteSpace: 'pre-wrap',
+                        }}
+                      >
                         {k.note}
                       </Text>
                     </Section>

@@ -69,7 +69,8 @@ export function FileHealthFilters({ filters, onChange, summary, matchCount }: Pr
           value={filters.search}
           onChange={(e) => onChange({ search: e.currentTarget.value })}
           size="sm"
-          flex="1 1 220px" miw={0}
+          flex="1 1 220px"
+          miw={0}
         />
         <SegmentedControl
           size="sm"

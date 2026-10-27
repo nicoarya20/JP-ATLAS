@@ -43,15 +43,16 @@ export function LoginTable(props: Props) {
   const someSelected = rows.some((r) => selected.has(r.id));
 
   return (
-    <Box pos="relative" style={{ overflowX: 'auto' }}>
+    <Box
+      pos="relative"
+      style={{
+        // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+        // (CLAUDE.md mobile §2).
+        overflowX: 'auto',
+      }}
+    >
       <LoadingOverlay visible={fetching && !loading} zIndex={5} overlayProps={{ blur: 1 }} />
-      <Table
-        highlightOnHover
-        withTableBorder
-        verticalSpacing="xs"
-        fz="sm"
-        miw={720}
-      >
+      <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={720}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th w={36}>
@@ -65,7 +66,13 @@ export function LoginTable(props: Props) {
               />
             </Table.Th>
             <Table.Th
-              style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+              style={{
+                // No Mantine prop for `cursor`, `userSelect` or `whiteSpace`: a sortable header must not wrap,
+                // and repeated clicks must not select its label.
+                cursor: 'pointer',
+                userSelect: 'none',
+                whiteSpace: 'nowrap',
+              }}
               onClick={onToggleSort}
             >
               <Group gap={4} wrap="nowrap">
@@ -93,7 +100,10 @@ export function LoginTable(props: Props) {
               <Table.Tr
                 key={r.id}
                 bg={selected.has(r.id) ? 'var(--mantine-primary-color-light)' : undefined}
-                style={{ cursor: 'pointer' }}
+                style={{
+                  // Mantine has no `cursor` prop; clicking here opens the detail view.
+                  cursor: 'pointer',
+                }}
                 onClick={() => props.onOpen(r)}
               >
                 <Table.Td onClick={(e) => e.stopPropagation()}>

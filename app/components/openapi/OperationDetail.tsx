@@ -28,7 +28,14 @@ function ParamRow({ param, components }: { param: SpecParameter; components: Com
   return (
     <Stack gap={2}>
       <Group gap="xs" wrap="wrap" align="baseline">
-        <Code style={{ wordBreak: 'break-word' }}>{param.name}</Code>
+        <Code
+          style={{
+            // Mantine has no `wordBreak` prop; a long identifier breaks instead of widening the row.
+            wordBreak: 'break-word',
+          }}
+        >
+          {param.name}
+        </Code>
         <Badge size="xs" variant="light" color="gray">
           {param.in}
         </Badge>

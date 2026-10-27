@@ -168,7 +168,11 @@ export default function AuditPage({ loaderData }: Route.ComponentProps) {
             size="compact-sm"
             rightSection={showSummary ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
             onClick={() => setShowSummary((v) => !v)}
-            style={{ alignSelf: 'flex-start' }}
+            style={{
+              // Mantine has no `alignSelf` prop: the button keeps its own height instead of stretching to the
+              // filter row's.
+              alignSelf: 'flex-start',
+            }}
           >
             {showSummary ? 'Sembunyikan ringkasan' : 'Tampilkan ringkasan'}
           </Button>
@@ -196,7 +200,14 @@ export default function AuditPage({ loaderData }: Route.ComponentProps) {
         </Alert>
       )}
 
-      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
         <AuditTable
           rows={rows}
           loading={list.isPending}

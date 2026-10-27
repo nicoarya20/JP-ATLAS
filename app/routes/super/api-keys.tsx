@@ -183,7 +183,14 @@ export default function ApiKeysPage({ loaderData }: Route.ComponentProps) {
             </Alert>
           )}
 
-          <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
+          <Paper
+            withBorder
+            visibleFrom="sm"
+            style={{
+              // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+              overflow: 'hidden',
+            }}
+          >
             <ApiKeyTable
               rows={rows}
               loading={list.isPending}

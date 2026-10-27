@@ -62,12 +62,7 @@ export function RecentActivity({ data }: { data: DevOverview }) {
                 {`${formatRelative(String(l.createdAt))} · ${countryFlag(l.country)} ${locationLabel(l)} · ${l.ip ?? '—'}`}
               </TruncatedText>
             </Stack>
-            <Badge
-              size="xs"
-              variant="light"
-              color={methodMeta(l.method).color}
-              flex="0 0 auto"
-            >
+            <Badge size="xs" variant="light" color={methodMeta(l.method).color} flex="0 0 auto">
               {methodMeta(l.method).label}
             </Badge>
           </Group>

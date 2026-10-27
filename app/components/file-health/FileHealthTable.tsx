@@ -95,8 +95,21 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
 
   return (
     <>
-      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
-        <Box style={{ overflowX: 'auto' }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          style={{
+            // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+            // (CLAUDE.md mobile §2).
+            overflowX: 'auto',
+          }}
+        >
           <Table highlightOnHover verticalSpacing="xs" fz="sm" miw={760}>
             <Table.Thead>
               <Table.Tr>
@@ -152,7 +165,15 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
         {rows.map((r) => (
           <Paper key={r.path} withBorder p="sm" radius="md">
             <Stack gap={6}>
-              <Text ff="monospace" size="sm" fw={500} style={{ wordBreak: 'break-all' }}>
+              <Text
+                ff="monospace"
+                size="sm"
+                fw={500}
+                style={{
+                  // Mantine has no `wordBreak` prop, and this value is a path or key with no spaces to break at.
+                  wordBreak: 'break-all',
+                }}
+              >
                 {r.path}
               </Text>
               <Group gap="xs" wrap="wrap">

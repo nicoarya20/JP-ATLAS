@@ -49,7 +49,8 @@ export function ApiKeyFilterBar({
           value={filters.search}
           onChange={(e) => setFilters({ search: e.currentTarget.value })}
           size="sm"
-          flex="1 1 240px" miw={0}
+          flex="1 1 240px"
+          miw={0}
         />
         <Select
           size="sm"

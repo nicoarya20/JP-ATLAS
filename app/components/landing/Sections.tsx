@@ -76,11 +76,7 @@ export function FeaturesSection() {
 export function ConsoleSection() {
   const groups = Array.from(new Set(CONSOLE_PAGES.map((p) => p.group)));
   return (
-    <Box
-      component="section"
-      py={{ base: 40, md: 72 }}
-      bg="var(--mantine-color-default-hover)"
-    >
+    <Box component="section" py={{ base: 40, md: 72 }} bg="var(--mantine-color-default-hover)">
       <Container size="lg">
         <SectionHeading
           id="konsol"
@@ -154,11 +150,7 @@ export function SecuritySection() {
 
 export function ArchitectureSection() {
   return (
-    <Box
-      component="section"
-      py={{ base: 40, md: 72 }}
-      bg="var(--mantine-color-default-hover)"
-    >
+    <Box component="section" py={{ base: 40, md: 72 }} bg="var(--mantine-color-default-hover)">
       <Container size="lg">
         <SectionHeading
           id="arsitektur"

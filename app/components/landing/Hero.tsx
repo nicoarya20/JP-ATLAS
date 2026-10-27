@@ -33,7 +33,6 @@ const TRUST = ['MIT', 'SSR', 'Type-safe', 'Satu binary', 'Mobile-first', 'Ramah 
 const WINDOW_CONTROLS = ['#ff5f57', '#febc2e', '#28c840'] as const;
 const WINDOW_CONTROL_SIZE = 10;
 
-
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <Stack gap={0} align="center">

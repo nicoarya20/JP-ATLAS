@@ -24,7 +24,14 @@ function Item({
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
         {label}
       </Text>
-      <Text fw={600} c={warn ? 'warn' : undefined} style={{ overflowWrap: 'anywhere' }}>
+      <Text
+        fw={600}
+        c={warn ? 'warn' : undefined}
+        style={{
+          // Mantine has no `overflowWrap` prop; this value can be one long unbroken token.
+          overflowWrap: 'anywhere',
+        }}
+      >
         {value}
       </Text>
       {hint && (

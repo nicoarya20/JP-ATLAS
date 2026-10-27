@@ -60,7 +60,17 @@ function DailyBars({ daily }: { daily: UsageBreakdown['daily'] }) {
     );
   const max = Math.max(...daily.map((d) => d.count), 1);
   return (
-    <Group gap={4} align="flex-end" wrap="nowrap" h={SPARKLINE_HEIGHT} style={{ overflowX: 'auto' }}>
+    <Group
+      gap={4}
+      align="flex-end"
+      wrap="nowrap"
+      h={SPARKLINE_HEIGHT}
+      style={{
+        // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+        // (CLAUDE.md mobile §2).
+        overflowX: 'auto',
+      }}
+    >
       {daily.map((d) => (
         <Tooltip
           key={d.day}
@@ -179,7 +189,13 @@ export function ApiKeyUsagePanel({
         total={total30d}
         render={(k) => (k ? `${countryFlag(k)} ${countryName(k)}` : 'Tidak diketahui')}
       />
-      <Paper withBorder style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
         <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} p="sm" pb={4}>
           Request terakhir
         </Text>
@@ -209,7 +225,14 @@ export function ApiKeyUsagePanel({
                   </Table.Td>
                   <Table.Td w={92} ta="right">
                     <Tooltip label={formatDateTime(r.createdAt)} withArrow>
-                      <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                        style={{
+                          // Mantine has no `whiteSpace` prop; a relative timestamp must stay on one line.
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {formatRelative(r.createdAt)}
                       </Text>
                     </Tooltip>

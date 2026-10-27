@@ -47,7 +47,10 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
             radius="md"
             bg={selected.has(r.id) ? 'var(--mantine-primary-color-light)' : undefined}
             onClick={() => h.onOpen(r)}
-            style={{ cursor: 'pointer' }}
+            style={{
+              // Mantine has no `cursor` prop; clicking here opens the detail view.
+              cursor: 'pointer',
+            }}
           >
             <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
               <Checkbox

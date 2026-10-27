@@ -119,15 +119,16 @@ function Actions({ s, h }: { s: SessionRow; h: SessionHandlers }) {
 export function SessionTable({ rows, loading, fetching = false, empty, ...h }: Props) {
   const { relative: formatRelative } = useTimeFormat();
   return (
-    <Box pos="relative" style={{ overflowX: 'auto' }}>
+    <Box
+      pos="relative"
+      style={{
+        // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+        // (CLAUDE.md mobile §2).
+        overflowX: 'auto',
+      }}
+    >
       <LoadingOverlay visible={fetching && !loading} zIndex={5} overlayProps={{ blur: 1 }} />
-      <Table
-        highlightOnHover
-        withTableBorder
-        verticalSpacing="xs"
-        fz="sm"
-        miw={760}
-      >
+      <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={760}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>User</Table.Th>
@@ -151,7 +152,13 @@ export function SessionTable({ rows, loading, fetching = false, empty, ...h }: P
             rows.map((s) => (
               <Table.Tr key={s.id}>
                 <Table.Td>
-                  <Box onClick={() => h.onFilterUser(s.userId)} style={{ cursor: 'pointer' }}>
+                  <Box
+                    onClick={() => h.onFilterUser(s.userId)}
+                    style={{
+                      // Mantine has no `cursor` prop; clicking here opens the detail view.
+                      cursor: 'pointer',
+                    }}
+                  >
                     <UserCell row={s} subtitle={s.userEmail} />
                   </Box>
                 </Table.Td>

@@ -29,12 +29,18 @@ function Row({ row }: { row: ServerLogRow }) {
       withBorder
       radius="sm"
       p="xs"
-      style={{ borderLeft: `3px solid var(--mantine-color-${meta.color}-6)` }}
+      style={{
+        // `bd` sets all four sides; the level stripe needs only the left edge, which has no prop.
+        borderLeft: `3px solid var(--mantine-color-${meta.color}-6)`,
+      }}
     >
       <UnstyledButton
         onClick={() => hasExtras && setOpen((o) => !o)}
         w="100%"
-        style={{ cursor: hasExtras ? 'pointer' : 'default' }}
+        style={{
+          // Mantine has no `cursor` prop; only a row that really has extra fields is clickable.
+          cursor: hasExtras ? 'pointer' : 'default',
+        }}
         aria-expanded={open}
       >
         <Group gap="sm" wrap="nowrap" align="flex-start">
@@ -52,9 +58,25 @@ function Row({ row }: { row: ServerLogRow }) {
           </Stack>
           {hasExtras &&
             (open ? (
-              <FiChevronDown size={14} style={{ flexShrink: 0, marginTop: 4 }} />
+              <FiChevronDown
+                size={14}
+                style={{
+                  // A react-icons <svg> takes no Mantine props; the nudge lines the chevron up with the first
+                  // line of the message.
+                  flexShrink: 0,
+                  marginTop: 4,
+                }}
+              />
             ) : (
-              <FiChevronRight size={14} style={{ flexShrink: 0, marginTop: 4 }} />
+              <FiChevronRight
+                size={14}
+                style={{
+                  // A react-icons <svg> takes no Mantine props; the nudge lines the chevron up with the first
+                  // line of the message.
+                  flexShrink: 0,
+                  marginTop: 4,
+                }}
+              />
             ))}
         </Group>
       </UnstyledButton>
@@ -64,7 +86,12 @@ function Row({ row }: { row: ServerLogRow }) {
             block
             mt="xs"
             fz="xs"
-            style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+            style={{
+              // No Mantine prop for `whiteSpace` or `wordBreak`: the payload keeps its line breaks and still
+              // wraps a long unbroken token.
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
           >
             {JSON.stringify(extras, null, 2)}
           </Code>

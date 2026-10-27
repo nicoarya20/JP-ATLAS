@@ -145,7 +145,8 @@ export default function SessionsPage({ loaderData }: Route.ComponentProps) {
             value={filters.search}
             onChange={(e) => setFilters({ search: e.currentTarget.value })}
             size="sm"
-            flex="1 1 240px" miw={0}
+            flex="1 1 240px"
+            miw={0}
           />
           <SegmentedControl
             size="sm"
@@ -200,7 +201,14 @@ export default function SessionsPage({ loaderData }: Route.ComponentProps) {
         </Alert>
       )}
 
-      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
         <SessionTable
           rows={rows}
           loading={list.isPending}

@@ -73,14 +73,26 @@ function Rows({ rows, onKey }: { rows: UsageLogRow[]; onKey: (id: string) => voi
         <Table.Tr key={r.id}>
           <Table.Td>
             <Tooltip label={formatDateTime(r.createdAt)} withArrow openDelay={300}>
-              <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+              <Text
+                size="sm"
+                style={{
+                  // Mantine has no `whiteSpace` prop; a relative timestamp must stay on one line.
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {formatRelative(r.createdAt)}
               </Text>
             </Tooltip>
           </Table.Td>
           <Table.Td>
-            <Box onClick={() => onKey(r.keyId)} miw={0}
-              style={{ cursor: 'pointer' }}>
+            <Box
+              onClick={() => onKey(r.keyId)}
+              miw={0}
+              style={{
+                // Mantine has no `cursor` prop; clicking here opens the detail view.
+                cursor: 'pointer',
+              }}
+            >
               <TruncatedText size="sm" fw={500} maw={160}>
                 {r.keyName ?? '(tanpa nama)'}
               </TruncatedText>
@@ -164,7 +176,8 @@ export function UsageLogSection() {
             value={filters.search}
             onChange={(e) => setFilters({ search: e.currentTarget.value })}
             size="sm"
-            flex="1 1 220px" miw={0}
+            flex="1 1 220px"
+            miw={0}
           />
           <Select
             size="sm"
@@ -245,15 +258,21 @@ export function UsageLogSection() {
           {(log.error as Error).message}
         </Alert>
       )}
-      <Paper withBorder style={{ overflow: 'hidden' }}>
-        <Box style={{ overflowX: 'auto' }}>
-          <Table
-            highlightOnHover
-            withTableBorder
-            verticalSpacing="xs"
-            fz="sm"
-            miw={720}
-          >
+      <Paper
+        withBorder
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          style={{
+            // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+            // (CLAUDE.md mobile §2).
+            overflowX: 'auto',
+          }}
+        >
+          <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={720}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Waktu</Table.Th>

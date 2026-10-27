@@ -21,11 +21,7 @@ import { CODE_FONT_SIZE, COPY_BUTTON_CLEARANCE, SECTION_SCROLL_MARGIN } from './
 
 export function QuickStartSection() {
   return (
-    <Box
-      component="section"
-      py={{ base: 40, md: 72 }}
-      bg="var(--mantine-color-default-hover)"
-    >
+    <Box component="section" py={{ base: 40, md: 72 }} bg="var(--mantine-color-default-hover)">
       <Container size="lg">
         {/* Mantine has no `alignItems` style prop and SimpleGrid takes no align prop, so this
             stays a `style`: the copy centres against the taller code block. */}

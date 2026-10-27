@@ -13,16 +13,18 @@ import { OperationDetail } from './OperationDetail';
 function OperationControl({ op }: { op: ViewOperation }) {
   return (
     <Group gap="xs" wrap="nowrap" align="flex-start" miw={0}>
-      <Badge
-        size="sm"
-        color={methodColor(op.method)}
-        variant="filled"
-        flex="0 0 auto" miw={64}
-      >
+      <Badge size="sm" color={methodColor(op.method)} variant="filled" flex="0 0 auto" miw={64}>
         {op.method}
       </Badge>
       <Stack gap={0} miw={0} flex={1}>
-        <Text size="sm" ff="monospace" style={{ wordBreak: 'break-all' }}>
+        <Text
+          size="sm"
+          ff="monospace"
+          style={{
+            // Mantine has no `wordBreak` prop, and this value is a path or key with no spaces to break at.
+            wordBreak: 'break-all',
+          }}
+        >
           {op.path}
         </Text>
         {op.summary && (
