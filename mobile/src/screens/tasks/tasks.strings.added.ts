@@ -36,6 +36,8 @@ export const MISSING = {
   note: 'Add a note to cancel for Other.',
   /** The server asks for 3–200 characters, so the hint says the shortest it takes. */
   reopen: 'Enter a reason of at least 3 characters.',
+  /** A sheet opened from a link, before the task it acts on has been read. */
+  loading: 'Loading the task…',
 } as const;
 
 /**

@@ -2,13 +2,13 @@
 // REASON_REQUIRED when it is missing. The prototype reopened a task with a plain button, so this sheet is new; it is
 // shaped like Return and Cancel, and the task goes back to In progress with the reason in its history.
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Field } from '@/components/form/field';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { Text } from '@/components/ui/text';
-import { useTaskDetailView } from '@/data/tasks.api.detail';
+import { ensureTaskDetailView, useTaskDetailView } from '@/data/tasks.api.detail';
 import { reopenTask } from '@/data/tasks.api.write';
 
 import { whyFailed } from '../parts/write-failed';
@@ -28,8 +28,16 @@ export function ReopenScreen() {
   const [reason, setReason] = useState('');
   const [touched, setTouched] = useState(false);
   const [sending, setSending] = useState(false);
-  const missing = reason.trim().length >= REASON_MIN ? undefined : MISSING.reopen;
   const task = view.task;
+  // A sheet can be opened straight from a link, with nothing read yet (see the Cancel sheet).
+  useEffect(() => {
+    void ensureTaskDetailView(ref);
+  }, [ref]);
+  const missing = !task
+    ? MISSING.loading
+    : reason.trim().length >= REASON_MIN
+      ? undefined
+      : MISSING.reopen;
   // While the detail is still loading there is nothing to reopen yet; once it has arrived without
   // the capability, the step is not this viewer's to take and the sheet has no business being open.
   // Not while the reopen is out, though: it succeeds by taking the task out of Done, which drops

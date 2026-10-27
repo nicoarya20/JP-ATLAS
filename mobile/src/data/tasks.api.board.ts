@@ -18,9 +18,9 @@ import { applyApiError } from '@/session/session.state';
 
 import { invalidateAll } from './resource';
 import { capOn } from './tasks.api.map';
+import type { WireCaps } from './tasks.api.types';
 import { moveCapKey, moveStep } from './tasks.api.values';
 import { everyTaskStore, postStep } from './tasks.api.write';
-import type { WireCaps } from './tasks.api.types';
 import { type BoardStatus, COLUMNS } from './tasks.columns';
 import type { TaskStatus } from './tasks.shared';
 

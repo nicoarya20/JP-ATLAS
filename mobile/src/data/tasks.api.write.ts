@@ -149,11 +149,17 @@ export const addComment = (ref: string | number, body: string) =>
  * takes an id where every other task route also takes a number (B1).
  */
 export const trashTask = (ref: string | number) =>
-  send(() => apiDelete<WireTrashed>(`/api/app/tasks/${encodeURIComponent(String(ref))}`), touchedBy(ref));
+  send(
+    () => apiDelete<WireTrashed>(`/api/app/tasks/${encodeURIComponent(String(ref))}`),
+    touchedBy(ref),
+  );
 
 /** Undo of a trashed task, by the id the delete answered with. */
 export const restoreTrashedTask = (id: string) =>
   send(
-    () => apiPost<{ id: string; number: number }>(`/api/app/trash/task/${encodeURIComponent(id)}/restore`),
+    () =>
+      apiPost<{ id: string; number: number }>(
+        `/api/app/trash/task/${encodeURIComponent(id)}/restore`,
+      ),
     everyTaskStore(),
   );

@@ -3,10 +3,12 @@
 // date can be read as "two days overdue" the way the prototype's rows were.
 import type {
   WireCaps,
+  WirePrimaryAction,
   WireTaskCounts,
   WireTaskDetail,
   WireTaskListItem,
   WireTaskPage,
+  WireTaskStatus,
   WireTimelineEntry,
   WireTimelinePage,
 } from '@/data/tasks.api.types';
@@ -21,13 +23,45 @@ export const CAN_ALL: WireCaps = {
   trash: true,
 };
 
+/**
+ * What a Manager may do to a task in each status, as `server/access/capabilities.ts` answers it.
+ *
+ * Per status and not one blanket map, because `can{}` is the whole of how this app decides what to
+ * offer: a fixture that says a finished task may be started would have the screens under test
+ * offering a step the server would refuse. `approve` and `return` are left out of `in_review` on
+ * purpose — the server sends them but their routes answer 404 until S4 (A6).
+ */
+export const CAPS_OF: Record<WireTaskStatus, WireCaps> = {
+  todo: CAN_ALL,
+  in_progress: {
+    update: true,
+    unstart: true,
+    complete: true,
+    cancel: true,
+    comment: true,
+    trash: true,
+  },
+  in_review: { update: true, cancel: true, comment: true, trash: true },
+  done: { update: true, reopen: true, comment: true, trash: true },
+  canceled: { uncancel: true, comment: true, trash: true },
+};
+
+/** The one step the server highlights per status. */
+export const PRIMARY_OF: Record<WireTaskStatus, WirePrimaryAction | null> = {
+  todo: 'start',
+  in_progress: 'complete',
+  in_review: 'approve',
+  done: 'reopen',
+  canceled: 'uncancel',
+};
+
 /** One list row; every field has a default, so a test names only what it is about. */
 export function wireItem(over: Partial<WireTaskListItem> = {}): WireTaskListItem {
+  const status = over.status ?? 'todo';
   return {
     id: 't-12',
     number: 12,
     title: 'Fix login layout',
-    status: 'todo',
     priority: 'high',
     dueDate: '2026-10-05',
     assignee: { id: 'u-nico', name: 'Nico' },
@@ -35,8 +69,9 @@ export function wireItem(over: Partial<WireTaskListItem> = {}): WireTaskListItem
     phase: null,
     labels: [],
     checklist: { done: 0, total: 0 },
-    primary: 'start',
-    can: CAN_ALL,
+    status,
+    primary: PRIMARY_OF[status],
+    can: CAPS_OF[status],
     ...over,
   };
 }

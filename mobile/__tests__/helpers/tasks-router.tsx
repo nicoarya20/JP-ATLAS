@@ -29,8 +29,8 @@ import { ReopenScreen } from '../../src/screens/tasks/sheets/reopen.screen';
 import { ReturnScreen } from '../../src/screens/tasks/sheets/return.screen';
 import { serveAuth } from './auth-server';
 import { resetSessionForTest, seedSession } from './session-fixtures';
-import { type FakeTaskApi, fakeTaskApi } from './tasks-api-state';
 import { SAMPLE_ROWS } from './tasks-api-server';
+import { type FakeTaskApi, fakeTaskApi } from './tasks-api-state';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
 jest.mock('expo-font', () => ({

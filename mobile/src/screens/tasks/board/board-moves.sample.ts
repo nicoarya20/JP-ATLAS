@@ -26,7 +26,8 @@ export const sampleMoves = (role: Role): BoardMoves => ({
     moveOnBoard(me(role), [...nos], to).notice,
   denied: (card) => {
     const task = getTask(card.no);
-    if (!task) throw new Error(`Cannot say why task #${card.no} may not move: it is not in the store`);
+    if (!task)
+      throw new Error(`Cannot say why task #${card.no} may not move: it is not in the store`);
     return deniedNotice(task);
   },
 });

@@ -12,8 +12,6 @@
 // Trash (404).
 import type {
   WireCancelCategory,
-  WireCaps,
-  WirePrimaryAction,
   WireTaskDetail,
   WireTaskListItem,
   WireTaskStatus,
@@ -22,34 +20,7 @@ import type {
 
 import type { AuthReply, AuthRoutes } from './auth-server';
 import { rowsFor, SAMPLE_ROWS } from './tasks-api-server';
-import { wireActivity, wireCounts, wireDetail, wirePage } from './tasks-wire';
-
-/** What the viewer may do to a task in each status, as `server/access/capabilities.ts` answers it. */
-const CAPS: Record<WireTaskStatus, WireCaps> = {
-  todo: { update: true, start: true, complete: true, cancel: true, comment: true, trash: true },
-  in_progress: {
-    update: true,
-    unstart: true,
-    complete: true,
-    cancel: true,
-    comment: true,
-    trash: true,
-  },
-  // `approve` and `return` are the server's too, but their routes answer 404 until S4 (A6), so a
-  // review task offers nothing here either — which is what the detail must cope with.
-  in_review: { update: true, cancel: true, comment: true, trash: true },
-  done: { update: true, reopen: true, comment: true, trash: true },
-  canceled: { uncancel: true, comment: true, trash: true },
-};
-
-/** The one step the server highlights per status. */
-const PRIMARY: Record<WireTaskStatus, WirePrimaryAction | null> = {
-  todo: 'start',
-  in_progress: 'complete',
-  in_review: 'approve',
-  done: 'reopen',
-  canceled: 'uncancel',
-};
+import { CAPS_OF, PRIMARY_OF, wireActivity, wireCounts, wireDetail, wirePage } from './tasks-wire';
 
 /** The steps this app can reach, each with the statuses it may be taken from. */
 const STEPS: Record<string, { from: WireTaskStatus[]; to: WireTaskStatus; logs: string }> = {
@@ -113,8 +84,8 @@ export function fakeTaskApi(
       String(row.number),
       wireDetail({
         ...rest,
-        can: CAPS[row.status],
-        primary: PRIMARY[row.status],
+        // The row's own caps, as the server's starting answer; a step recomputes them below the
+        // way the server would.
         // The list row counts its steps without carrying them; a detail that wants the items
         // themselves names them in `details`.
         checklist: { ...checklist, items: [] },
@@ -143,8 +114,8 @@ export function fakeTaskApi(
     phase: t.phase,
     labels: t.labels,
     checklist: { done: t.checklist.done, total: t.checklist.total },
-    primary: PRIMARY[t.status],
-    can: CAPS[t.status],
+    primary: t.primary,
+    can: t.can,
   });
 
   const allRows = () => [...live.values()].map(rowOf);
@@ -176,8 +147,8 @@ export function fakeTaskApi(
     task.completedAt = move.to === 'done' ? NOW : null;
     task.canceledAt = move.to === 'canceled' ? NOW : null;
     if (name === 'reopen') task.reopenCount += 1;
-    task.can = CAPS[task.status];
-    task.primary = PRIMARY[task.status];
+    task.can = CAPS_OF[task.status];
+    task.primary = PRIMARY_OF[task.status];
     log(task, wireActivity(move.logs, { id: `a-${move.logs}-${task.number}`, at: NOW }));
     return {
       body: {
@@ -221,7 +192,9 @@ export function fakeTaskApi(
       if (!task) return fail(404, 'NOT_FOUND', 'Tugas tidak ditemukan.');
       live.delete(String(task.number));
       bin.set(task.id, task);
-      return { body: { trash: { kind: 'task', id: task.id, number: task.number, label: task.title } } };
+      return {
+        body: { trash: { kind: 'task', id: task.id, number: task.number, label: task.title } },
+      };
     }
     if (method === 'POST' && rest === 'comments') {
       const task = find(ref);
@@ -260,14 +233,19 @@ export function fakeTaskApi(
     }),
     '/api/app/tasks/form-options': { body: { projects: [] } },
     '/api/app/trash/task/': (url) => {
-      const id = url.slice(url.indexOf('/api/app/trash/task/') + '/api/app/trash/task/'.length).split('/')[0] ?? '';
+      const id =
+        url
+          .slice(url.indexOf('/api/app/trash/task/') + '/api/app/trash/task/'.length)
+          .split('/')[0] ?? '';
       const task = bin.get(id);
       if (!task) return fail(404, 'NOT_FOUND', 'Item sampah tidak ditemukan.');
       bin.delete(id);
       live.set(String(task.number), task);
       return { body: { id: task.id, number: task.number } };
     },
-    '/timeline': (url) => ({ body: { items: logs.get(refAndStep(url).ref) ?? [], nextCursor: null } }),
+    '/timeline': (url) => ({
+      body: { items: logs.get(refAndStep(url).ref) ?? [], nextCursor: null },
+    }),
     '/api/app/tasks?': (url) => ({ body: wirePage(rowsFor(url, allRows())) }),
     '/api/app/tasks/': oneTask,
   };

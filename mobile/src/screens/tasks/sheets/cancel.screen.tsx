@@ -5,7 +5,7 @@
 // The reason goes to the server as two fields — a category from its enum and the note — never as the one joined
 // sentence the prototype logged, which there is no column for.
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Field } from '@/components/form/field';
 import { fieldName } from '@/components/form/field-name';
@@ -14,7 +14,7 @@ import { RadioList } from '@/components/form/radio-list';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { Text } from '@/components/ui/text';
-import { useTaskDetailView } from '@/data/tasks.api.detail';
+import { ensureTaskDetailView, useTaskDetailView } from '@/data/tasks.api.detail';
 import { CANCEL_WORDS, cancelCategoryOf } from '@/data/tasks.api.values';
 import { cancelTaskOnServer } from '@/data/tasks.api.write';
 
@@ -42,11 +42,17 @@ export function CancelScreen() {
   const [touched, setTouched] = useState(false);
   const [sending, setSending] = useState(false);
   const task = view.task;
+  // A sheet can be opened straight from a link, with nothing read yet. Idempotent by rule 1: this
+  // joins the detail screen's request when there is one and makes it when there is not — without it
+  // the guard below never sees a task and the sheet would act on one it knows nothing about.
+  useEffect(() => {
+    void ensureTaskDetailView(ref);
+  }, [ref]);
   // Canceling drops Cancel from the menu, so the sheet must not read the menu while it closes: it
   // turns away only a task the server has answered about and does not offer it for.
   if (view.missing || (task && !sending && !task.menu.includes('cancel')))
     return <Redirect href="/" />;
-  const missing = missingOf(why, text);
+  const missing = task ? missingOf(why, text) : MISSING.loading;
   const send = async () => {
     const category = cancelCategoryOf(why);
     if (!category) return;

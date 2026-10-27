@@ -50,10 +50,11 @@ export type BoardMoves = {
    * Move these tasks to `to`. Resolves with the line to show afterwards, or null when there is
    * nothing to say.
    */
-  move: (cards: readonly BoardCardData[], nos: readonly number[], to: BoardStatus) =>
-    | string
-    | null
-    | Promise<string | null>;
+  move: (
+    cards: readonly BoardCardData[],
+    nos: readonly number[],
+    to: BoardStatus,
+  ) => string | null | Promise<string | null>;
   /** What to say when a card that cannot be moved is held. */
   denied: (card: BoardCardData) => string;
 };

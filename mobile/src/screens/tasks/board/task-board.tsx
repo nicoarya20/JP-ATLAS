@@ -14,12 +14,18 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useNotice } from '@/components/notice/use-notice';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
-import { type BoardStatus, COLUMNS, holdGroup, selectionHint, sharedStatus } from '@/data/tasks.columns';
+import {
+  type BoardStatus,
+  COLUMNS,
+  holdGroup,
+  selectionHint,
+  sharedStatus,
+} from '@/data/tasks.columns';
 import { SPACING } from '@/theme/tokens';
 
 import { S } from '../tasks.strings';
-import { BoardColumn } from './board-column';
 import type { BoardCardData, BoardMoves } from './board-cards';
+import { BoardColumn } from './board-column';
 import { sampleMoves } from './board-moves.sample';
 import { RadialMenu } from './radial-menu';
 import { useMoveMenu } from './use-move-menu';

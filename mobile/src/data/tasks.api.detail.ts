@@ -29,7 +29,7 @@ import { person } from './people';
 import type { ResourcePhase } from './resource';
 import { taskDetail, taskTimeline } from './tasks.api';
 import { CAP_DISABLED_REASON, capOn, capShown } from './tasks.api.map';
-import { historyOf, type TaskHistoryLine, authorOfAction } from './tasks.api.timeline';
+import { authorOfAction, historyOf, type TaskHistoryLine } from './tasks.api.timeline';
 import type { WireCaps, WireTaskDetail, WireTimelineEntry } from './tasks.api.types';
 import { actionStep, cancelWordOf, priorityWord, statusWord } from './tasks.api.values';
 import type { TaskActionKey, TaskMenuKey } from './tasks.detail';
@@ -38,9 +38,9 @@ import {
   daysLate,
   detailVariant,
   dueIn,
+  stepsTitle,
   type TaskPriority,
   type TaskStatus,
-  stepsTitle,
 } from './tasks.shared';
 
 /** One fact of the detail. No tag row: `tags` has no column and is refused with 422 (A2). */
