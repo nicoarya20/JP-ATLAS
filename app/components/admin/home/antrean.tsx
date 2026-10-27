@@ -5,7 +5,7 @@
  * It keeps the shape of the preview cards around it so AD-15 can drop the others into the same
  * grid without the real one looking like a stranger.
  */
-import { Anchor, Button, Group, Stack, Text, ThemeIcon } from '@mantine/core';
+import { Anchor, Box, Button, Group, Stack, Text, ThemeIcon } from '@mantine/core';
 import { FiClock } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { SectionCard } from '~/components/ui/SectionCard';
@@ -39,18 +39,18 @@ export function AntreanWidget({ pending }: { pending: number }) {
             {ANTREAN_COPY.open}
           </Anchor>
         </Group>
-        <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+        <Group gap="sm" wrap="nowrap" miw={0}>
           <ThemeIcon variant="light" color={waiting ? 'yellow' : 'gray'} size="xl" radius="md">
             <FiClock size="1.25em" aria-hidden />
           </ThemeIcon>
-          <div style={{ minWidth: 0 }}>
+          <Box miw={0}>
             <Text fw={600}>
               {waiting ? `${nf.format(pending)} menunggu persetujuan` : ANTREAN_COPY.empty}
             </Text>
             <Text size="sm" c="dimmed">
               {waiting ? ANTREAN_COPY.waitingHint : ANTREAN_COPY.emptyHint}
             </Text>
-          </div>
+          </Box>
         </Group>
         {waiting && (
           <Button component={Link} to="/dashboard/users?tab=pending" size="sm">
