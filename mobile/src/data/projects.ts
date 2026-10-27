@@ -52,10 +52,14 @@ export type ProjectsList = {
  * The request one list is made of.
  *
  * `scope` is always `mine`, which is the web's own default for this list
- * (`DEFAULT_PROJECT_FILTERS.lingkup = 'saya'`). The route does take `scope=all`, and offering it
- * would give an Admin or a PM the projects they are not a member of — that is GAP B-17, a control
- * this module does not have yet, and it is in `docs/phase2-gap-disembunyikan.md` rather than
- * guessed at here. Which projects a Member may see is clamped server-side either way.
+ * (`DEFAULT_PROJECT_FILTERS.lingkup = 'saya'`). The route does take `scope=all`, which would give
+ * an Admin or a PM the projects they are not a member of — a real "All / Mine" control, and
+ * **B-17** in `docs/phase2-map-projects.md`. B-17 is a *B*: the parameter already exists and works,
+ * so this is a server capability mobile has not taken up yet, not a change anyone is waiting on.
+ * The row is in `docs/phase2-gap-disembunyikan.md` §3.
+ *
+ * Which projects a Member may see is clamped server-side either way
+ * (`server/access/project.policy.ts`), so nothing here guards it.
  */
 function listParams(o: ProjectsListOptions): ProjectListParams {
   const search = o.search.trim();
