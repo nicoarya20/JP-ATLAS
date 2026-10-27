@@ -19,21 +19,25 @@ import { GANTT_COPY, LIST_COPY } from './projects.copy';
 function Unscheduled({ projects }: { projects: ProjectListItem[] }) {
   if (projects.length === 0) return null;
   return (
-    <Paper withBorder p="sm" radius="md">
+    <Paper withBorder p="sm">
       <Stack gap="xs">
-        <Title order={5}>{GANTT_COPY.unscheduledTitle}</Title>
+        {/* The handoff defines three heading sizes and no h5; a card title is a section (20 px). */}
+        <Title order={3}>{GANTT_COPY.unscheduledTitle}</Title>
         <Text size="sm" c="dimmed">
           {GANTT_COPY.unscheduledHint}
         </Text>
-        <Stack gap="xs" component="ul" m={0} p={0} style={{ listStyle: 'none' }}>
+        <Stack
+          gap="xs"
+          component="ul"
+          m={0}
+          p={0}
+          // Mantine has no `list-style` style prop; `List` would change the markup of the rows.
+          style={{ listStyle: 'none' }}
+        >
           {projects.map((p) => (
             <li key={p.id}>
-              <Anchor
-                component={Link}
-                to={projectHref(p.id)}
-                fw={600}
-                style={{ overflowWrap: 'anywhere' }}
-              >
+              {/* Truncated, not wrapped: every row in the list keeps the same height (K-5). */}
+              <Anchor component={Link} to={projectHref(p.id)} fw={600} truncate>
                 {p.name}
               </Anchor>
               {p.startDate && (
@@ -93,13 +97,13 @@ export function ProjectGantt({
             role="region"
             aria-label={LIST_COPY.ganttLabel}
             tabIndex={0}
-            style={{
-              overflowX: 'auto',
-              border: GRID_LINE,
-              borderRadius: 'var(--mantine-radius-md)',
-            }}
+            bd={GRID_LINE}
+            bdrs="md"
+            // Mantine has no `overflow` style prop: the months scroll sideways rather than
+            // widening the page (CLAUDE.md mobile §2).
+            style={{ overflowX: 'auto' }}
           >
-            <Box style={{ width: 'max-content', minWidth: '100%' }}>
+            <Box w="max-content" miw="100%">
               <GanttHeader layout={layout} />
               {rows.map(({ project, row }) => (
                 <GanttRow

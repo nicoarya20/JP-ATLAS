@@ -1,4 +1,4 @@
-import { Paper, Stack, Text } from '@mantine/core';
+import { Box, Paper, Stack, Text } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import type { TextSize } from '@server/pm/enums';
 import { textSizeCookie } from '@server/text-size';
@@ -40,12 +40,12 @@ export function AppearanceCard({ textSize }: { textSize: TextSize }) {
   return (
     <Paper withBorder p={{ base: 'md', md: 'lg' }}>
       <Stack gap="sm">
-        <div>
+        <Box>
           <Text fw={700}>{APPEARANCE_COPY.sizeTitle}</Text>
           <Text size="sm" c="dimmed">
             {APPEARANCE_COPY.description}
           </Text>
-        </div>
+        </Box>
         <TextSizePicker
           value={textSize}
           pending={save.isPending ? (save.variables ?? null) : null}

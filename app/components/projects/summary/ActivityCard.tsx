@@ -68,7 +68,7 @@ export function ActivityCard({ projectId, first }: { projectId: string; first: A
   const feed = useProjectActivity(projectId, first);
   const items = feed.data.pages.flatMap((page) => page.items);
   return (
-    <Paper withBorder p="md" radius="md">
+    <Paper withBorder p="md">
       <Stack gap="xs">
         <Text fw={600}>{ACTIVITY_COPY.title}</Text>
         <ActivityList

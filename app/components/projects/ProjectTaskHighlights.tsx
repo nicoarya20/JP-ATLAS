@@ -56,7 +56,7 @@ export function ProjectTaskHighlights({ overdue }: Props) {
   // The summary renders this card inside /app/projects/:projectId, so the route names the project.
   const { projectId = '' } = useParams();
   return (
-    <Paper withBorder p="md" radius="md">
+    <Paper withBorder p="md">
       <Stack gap="xs">
         <Text fw={600}>{SUMMARY_COPY.highlightsTitle}</Text>
         <Text size="sm" c={overdue > 0 ? 'danger' : 'dimmed'}>

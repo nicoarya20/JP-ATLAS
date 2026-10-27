@@ -24,7 +24,7 @@ export function ExtensionList({ items, total }: ListProps) {
   return (
     <Stack gap="sm" role="list">
       {items.map((e) => (
-        <Stack key={e.id} gap={2} role="listitem">
+        <Stack key={e.id} gap={4} role="listitem">
           <Text size="sm" fw={600}>
             {BADGE_COPY.move(formatCalendarDate(e.oldDueDate), formatCalendarDate(e.newDueDate))}
           </Text>

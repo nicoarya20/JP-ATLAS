@@ -15,7 +15,7 @@ type Props = { entry: TimelineEntry; taskRef: string; viewerId: string; canComme
 
 function Byline({ entry, extra }: { entry: TimelineEntry; extra?: string }) {
   return (
-    <Group gap={6} wrap="wrap">
+    <Group gap="xs" wrap="wrap">
       <Text size="sm" fw={600}>
         {entry.author.name}
       </Text>
@@ -54,8 +54,8 @@ function CommentView({
       onConfirm: () => void remove.run(entry.id),
     });
   return (
-    <Paper withBorder p="sm" radius="md">
-      <Stack gap={6}>
+    <Paper withBorder p="sm">
+      <Stack gap="xs">
         {/* nowrap is safe: the byline wraps itself beside one 44px icon button. */}
         <Group justify="space-between" wrap="nowrap" align="flex-start" gap="xs">
           <Byline entry={entry} extra={entry.editedAt ? COPY.edited : undefined} />
@@ -129,8 +129,8 @@ export function TimelineItem({ entry, taskRef, viewerId, canComment }: Props) {
   }
   const detail = activityDetail(entry);
   return (
-    <Stack gap={2} px="xs">
-      <Group gap={6} wrap="wrap">
+    <Stack gap={4} px="xs">
+      <Group gap="xs" wrap="wrap">
         <Text size="sm" c="dimmed">
           <Text span fw={600} inherit>
             {entry.author.name}

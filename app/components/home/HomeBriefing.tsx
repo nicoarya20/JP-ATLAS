@@ -16,7 +16,7 @@ export function HomeBriefing({ widget, retry }: { widget: Widget<Briefing>; retr
     >
       {(b) => (
         <>
-          <Stack gap={6}>
+          <Stack gap="xs">
             {b.lines.map((line) => (
               <Text key={line}>{line}</Text>
             ))}

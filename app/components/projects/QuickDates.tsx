@@ -1,5 +1,5 @@
 /** "1 minggu / 2 minggu / 1 bulan / 3 bulan" buttons that fill the due date from the start date. */
-import { Button, Group, Text } from '@mantine/core';
+import { Box, Button, Group, Text } from '@mantine/core';
 import type { IsoDate } from '@server/metrics/types';
 import { FORM_COPY } from './projects.copy';
 
@@ -48,8 +48,8 @@ export function quickRangeDates(
 
 export function QuickDates({ onPick }: { onPick: (range: QuickRange) => void }) {
   return (
-    <div>
-      <Text size="sm" c="dimmed" mb={6} id="quick-dates-label">
+    <Box>
+      <Text size="sm" c="dimmed" mb="xs" id="quick-dates-label">
         {FORM_COPY.quickLabel}
       </Text>
       <Group gap="xs" wrap="wrap" role="group" aria-labelledby="quick-dates-label">
@@ -59,6 +59,6 @@ export function QuickDates({ onPick }: { onPick: (range: QuickRange) => void }) 
           </Button>
         ))}
       </Group>
-    </div>
+    </Box>
   );
 }

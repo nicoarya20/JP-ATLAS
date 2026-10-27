@@ -17,7 +17,7 @@ export function TaskTimeline({ taskRef, viewerId, canComment }: Props) {
   const q = useTimeline(taskRef);
   const entries = q.data?.pages.flatMap((p) => p.items) ?? [];
   return (
-    <Paper withBorder p={{ base: 'sm', md: 'md' }} radius="md">
+    <Paper withBorder p={{ base: 'sm', md: 'md' }}>
       <Stack gap="sm">
         <Title order={3}>{COPY.title}</Title>
         {canComment && <CommentBox taskRef={taskRef} />}

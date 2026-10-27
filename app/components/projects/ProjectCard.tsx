@@ -31,7 +31,7 @@ export function ConditionCell({ project }: { project: Pick<ProjectListItem, 'con
     );
   }
   return (
-    <Stack gap={2} align="flex-start">
+    <Stack gap={4} align="flex-start">
       <ConditionPill condition={condition.level} />
       {condition.reason && (
         <Text size="xs" c="dimmed">

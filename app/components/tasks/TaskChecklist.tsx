@@ -156,7 +156,7 @@ function AddStep({ taskRef, full }: { taskRef: string; full: boolean }) {
 export function TaskChecklist({ taskRef, checklist, canEdit }: Props) {
   const { done, total, items } = checklist;
   return (
-    <Paper withBorder p={{ base: 'sm', md: 'md' }} radius="md">
+    <Paper withBorder p={{ base: 'sm', md: 'md' }}>
       <Stack gap="sm">
         <Group justify="space-between" wrap="wrap" gap="xs">
           <Title order={3}>{COPY.title}</Title>

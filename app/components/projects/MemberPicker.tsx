@@ -1,5 +1,5 @@
 /** Members of a new project: search people (name + job title only, Q8), give each a role, remove before saving. */
-import { ActionIcon, Group, Paper, Select, Stack, Text } from '@mantine/core';
+import { ActionIcon, Box, Group, Paper, Select, Stack, Text } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { PROJECT_MEMBER_ROLES, type ProjectMemberRole } from '@server/pm/enums';
 import { useQuery } from '@tanstack/react-query';
@@ -58,14 +58,14 @@ export function MemberPicker({ value, onChange, creator }: Props) {
 
   return (
     <Stack gap="xs">
-      <div>
+      <Box>
         <Text size="sm" fw={500}>
           {PICKER_COPY.label}
         </Text>
         <Text size="xs" c="dimmed">
           {PICKER_COPY.hint}
         </Text>
-      </div>
+      </Box>
       <Select
         label={PICKER_COPY.search}
         placeholder={PICKER_COPY.searchPlaceholder}
@@ -81,14 +81,14 @@ export function MemberPicker({ value, onChange, creator }: Props) {
         nothingFoundMessage={search.trim() ? PICKER_COPY.nothingFound : undefined}
         error={people.isError ? PICKER_COPY.failed : undefined}
       />
-      <Paper withBorder p="sm" radius="md">
+      <Paper withBorder p="sm">
         <Group justify="space-between" gap="xs" wrap="wrap">
           <PersonLine name={`${creator.name} ${PICKER_COPY.you}`} jobTitle={null} image={null} />
           <Text size="sm">{MEMBER_ROLE_LABELS.manager}</Text>
         </Group>
       </Paper>
       {value.map((m) => (
-        <Paper key={m.id} withBorder p="sm" radius="md">
+        <Paper key={m.id} withBorder p="sm">
           <Group justify="space-between" gap="xs" wrap="wrap">
             <PersonLine {...m} />
             <Group gap="xs" wrap="nowrap">
