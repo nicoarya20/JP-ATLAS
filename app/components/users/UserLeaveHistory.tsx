@@ -70,7 +70,7 @@ export function UserLeaveHistory({ items, today }: Props) {
             {items.map((entry) => (
               <Table.Tr key={entry.id}>
                 <Table.Td>
-                  <Group gap={6} wrap="nowrap">
+                  <Group gap="xs" wrap="nowrap">
                     <Text size="sm">{formatLeaveRange(entry.startDate, entry.endDate)}</Text>
                     <PhaseBadge phase={leavePhaseOf(entry, today)} />
                   </Group>
@@ -104,9 +104,9 @@ export function UserLeaveHistory({ items, today }: Props) {
       {/* Mobile: every field visible without a horizontal scroll. */}
       <Stack gap="xs" hiddenFrom="sm">
         {items.map((entry) => (
-          <Paper key={entry.id} withBorder p="sm" radius="md">
-            <Stack gap={4} style={{ minWidth: 0 }}>
-              <Group gap={6} wrap="wrap">
+          <Paper key={entry.id} withBorder p="sm">
+            <Stack gap={4} miw={0}>
+              <Group gap="xs" wrap="wrap">
                 <Text size="sm" fw={500}>
                   {formatLeaveRange(entry.startDate, entry.endDate)}
                 </Text>

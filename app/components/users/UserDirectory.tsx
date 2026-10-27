@@ -102,7 +102,12 @@ export function UserDirectory({
         </Alert>
       )}
 
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        // No `overflow` style prop in Mantine; it clips the table's corners to the card radius.
+        style={{ overflow: 'hidden' }}
+      >
         <UserTable {...listProps} fetching={list.isFetching} />
       </Paper>
       <Box hiddenFrom="sm">

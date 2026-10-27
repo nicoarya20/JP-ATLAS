@@ -7,6 +7,7 @@
 import {
   Alert,
   Badge,
+  Box,
   Button,
   Group,
   Pagination,
@@ -46,7 +47,7 @@ export function UserLeaveView({ data, busy, page, onPage, onSet, onEnd }: ViewPr
   const pages = Math.max(1, Math.ceil(total / limit));
   return (
     <Stack gap="sm">
-      <Paper withBorder p="sm" radius="md">
+      <Paper withBorder p="sm">
         <Stack gap="xs">
           {running ? (
             <>
@@ -62,12 +63,12 @@ export function UserLeaveView({ data, busy, page, onPage, onSet, onEnd }: ViewPr
                 </Text>
               </Group>
               {running.note && (
-                <div>
+                <Box>
                   <Text size="xs" c="dimmed">
                     {COPY.noteLabel}
                   </Text>
                   <Text size="sm">{running.note}</Text>
-                </div>
+                </Box>
               )}
               <Text size="xs" c="dimmed">
                 {COPY.noteOnlyHere}
@@ -99,7 +100,7 @@ export function UserLeaveView({ data, busy, page, onPage, onSet, onEnd }: ViewPr
         {COPY.historyTitle}
       </Text>
       {items.length === 0 ? (
-        <Paper withBorder p="md" radius="md">
+        <Paper withBorder p="md">
           <Stack gap={4} align="center">
             <Text size="sm" fw={500}>
               {COPY.historyEmpty}

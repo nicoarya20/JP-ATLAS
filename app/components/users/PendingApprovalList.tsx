@@ -61,9 +61,9 @@ function PendingRow({
   const can = userAccess(user, perms);
   const busy = actions.busyId === user.id;
   return (
-    <Paper withBorder p="sm" radius="md">
+    <Paper withBorder p="sm">
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-        <Stack gap={4} style={{ minWidth: 0, flex: '1 1 240px' }}>
+        <Stack gap={4} miw={0} flex="1 1 240px">
           <IdentityCell user={user} isSelf={user.id === perms.currentUserId} />
           <Tooltip label={dateTime(user.createdAt)} withArrow openDelay={300}>
             <Text size="xs" c="dimmed">
@@ -139,7 +139,7 @@ export function PendingApprovalList({ initial, loadedAt, perms, actions }: Props
   const { users, total } = list.data;
   if (users.length === 0)
     return (
-      <Paper withBorder radius="md">
+      <Paper withBorder>
         <EmptyQueue />
       </Paper>
     );
