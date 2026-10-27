@@ -1,17 +1,22 @@
-// My calendar (prototype profile.calendar.dates.js): a Sunday-first week, as in iOS Calendar (the Events calendar is
-// Monday-first), and the signed-in person's events placed on dates and minutes. ISO dates in UTC, like src/data/dates.ts.
+// My calendar: a Sunday-first week, as in iOS Calendar (the Events calendar is Monday-first), and
+// my events placed on dates and minutes. ISO dates in UTC, like src/data/dates.ts.
+//
+// Two things the prototype did are gone, because the server cannot back either:
+//
+// - **The red "now" line.** It sat at the sample's frozen 9:41. The server's clock gives this app
+//   today's *date* and the team's zone but no instant (`SessionClock`), so there is no honest
+//   minute to draw it at — and a line drawn at the wrong minute is worse than no line, because it
+//   is read as the time. Listed in mobile/docs/phase2-gap-disembunyikan.md.
+// - **Repeats.** The prototype expanded "every N weeks" itself; recurrence is a deferred server GAP
+//   (K6 group B), so an event falls on its own day and no other.
 import { toUtc } from './dates';
 import { addDays, clockMinutes, monthTitle } from './events.dates';
 import { type EventItem, eventEnd, eventStart } from './events.shared';
-import { CLOCK } from './tasks.shared';
-import { type PersonIdentity, someSamePerson } from './viewer';
 
 /** Height of one hour row, in points. */
 export const HOUR_PX = 56;
 /** A day without events opens scrolled to 8 AM. */
 export const FIRST_MIN = 8 * 60;
-/** The sample clock (9:41) as minutes after midnight: where the now line sits on today. */
-export const NOW_MIN = (([h, m]) => h * 60 + m)(CLOCK.split(':').map(Number));
 
 export const WEEKDAYS = [
   'Sunday',
@@ -24,13 +29,12 @@ export const WEEKDAYS = [
 ] as const;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** One event on the person's calendar: start/end in minutes after midnight, every = repeat interval in days. */
+/** One event on my calendar: its day, and start/end in minutes after midnight. */
 export type CalendarItem = {
   e: EventItem;
   date: string;
   start: number;
   end: number;
-  every: number;
 };
 
 /** Day of the week, Sunday = 0. */
@@ -52,43 +56,24 @@ export function dayLabel(iso: string): string {
 /** Hour row label: "12 AM", "9 AM", "12 PM", "3 PM". */
 export const hourLabel = (h: number) => `${h % 12 || 12} ${h < 12 ? 'AM' : 'PM'}`;
 
-/** Clock text of a minute count: "9:41". */
-export const clock = (min: number) =>
-  `${Math.floor(min / 60) % 12 || 12}:${String(min % 60).padStart(2, '0')}`;
-
 /**
- * Repeat interval in days: the prototype counts only "every N weeks", so a daily event shows once (ported as is,
- * docs/phase1-screens.more.md §8.1).
+ * Events placed on their day with their start and end minute. The rows are already mine — the
+ * server said so per row (`participants.isParticipant`) — so nothing is filtered by person here.
  */
-function repeatDays(repeat: string | undefined): number {
-  const m = /every (\d+ )?weeks?/.exec(repeat ?? '');
-  return m ? Number(m[1] ?? 1) * 7 : 0;
-}
-
-/** Events a person attends, placed on their first date with their start and end minute. */
-export const eventsFor = (events: readonly EventItem[], who: PersonIdentity): CalendarItem[] =>
-  events
-    .filter((e) => someSamePerson(e.attendees, who))
-    .map((e) => ({
-      e,
-      date: e.date,
-      start: clockMinutes(eventStart(e)),
-      end: clockMinutes(eventEnd(e)),
-      every: repeatDays(e.repeat),
-    }));
-
-/** True when the item (or one of its repeats) falls on iso. */
-export function occursOn(item: CalendarItem, iso: string): boolean {
-  const n = Math.round((toUtc(iso).getTime() - toUtc(item.date).getTime()) / 864e5);
-  return n === 0 || (item.every > 0 && n > 0 && n % item.every === 0);
-}
+export const eventsFor = (events: readonly EventItem[]): CalendarItem[] =>
+  events.map((e) => ({
+    e,
+    date: e.date,
+    start: clockMinutes(eventStart(e)),
+    end: clockMinutes(eventEnd(e)),
+  }));
 
 /** The items on iso, earliest first. */
 export const itemsOn = (items: readonly CalendarItem[], iso: string) =>
-  items.filter((it) => occursOn(it, iso)).sort((a, b) => a.start - b.start);
+  items.filter((it) => it.date === iso).sort((a, b) => a.start - b.start);
 
-/** Where the day grid opens: an hour before now (today), else before the first event, else before 8 AM. */
-export function initialScroll(today: boolean, items: readonly CalendarItem[]): number {
-  const focus = today ? NOW_MIN : (items[0]?.start ?? FIRST_MIN);
+/** Where the day grid opens: an hour before the first event of the day, else before 8 AM. */
+export function initialScroll(items: readonly CalendarItem[]): number {
+  const focus = items[0]?.start ?? FIRST_MIN;
   return (Math.max(focus - 60, 0) / 60) * HOUR_PX;
 }

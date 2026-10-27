@@ -2,10 +2,12 @@
 // account role from `whoami`, the Inbox count from `/api/app/inbox/count`), and my calendar's week
 // and day. The requests live in profile.api.ts; this file only maps.
 import { today } from './clock';
-import type { EventHref, EventItem } from './events.shared';
+import { toServerEvent } from './events.map';
+import type { EventHref } from './events.shared';
 import { eventHref, eventWhere } from './events.shared';
 import { inboxActionCount } from './inbox.api';
 import { profileResource } from './profile.api';
+import { peekEventsRange } from './profile.calendar.api';
 import {
   type CalendarItem,
   dayLabel,
@@ -157,6 +159,8 @@ export type MyCalendarData = {
   blocks: CalendarBlock[];
   /** Where the hour grid opens. */
   scrollY: number;
+  /** The week held more events than one read carries, so a day may be missing some. */
+  truncated: boolean;
 };
 
 const block = ({ e, start, end }: CalendarItem): CalendarBlock => ({
@@ -182,13 +186,20 @@ export const weekDays = (items: readonly CalendarItem[], day: string): CalendarD
     marked: itemsOn(items, iso).length > 0,
   }));
 
-/** Profile ② My calendar for `role` on `day`, from the events list. */
-export function getMyCalendar(
-  role: Role,
-  day: string,
-  events: readonly EventItem[],
-): MyCalendarData {
-  const items = eventsFor(events, signedIn(role));
+/** The range My calendar reads for `day`: the Sunday-first week holding it. */
+export function calendarRange(day: string): { from: string; to: string } {
+  const week = weekOf(day);
+  return { from: week[0] ?? day, to: week[week.length - 1] ?? day };
+}
+
+/**
+ * Profile ② My calendar on `day`, from the store. The week is one range read, so the strip's dots
+ * and the day's blocks come from the same answer and cannot disagree.
+ */
+export function getMyCalendar(day: string): MyCalendarData {
+  const { from, to } = calendarRange(day);
+  const week = peekEventsRange(from, to);
+  const items = eventsFor(week.items.map((item) => toServerEvent(item)));
   const todays = itemsOn(items, day);
   const n = todays.length;
   return {
@@ -198,6 +209,7 @@ export function getMyCalendar(
     count: n ? `${n} event${n > 1 ? 's' : ''}` : 'No events',
     today: day === today(),
     blocks: todays.map(block),
-    scrollY: initialScroll(day === today(), todays),
+    scrollY: initialScroll(todays),
+    truncated: week.truncated,
   };
 }

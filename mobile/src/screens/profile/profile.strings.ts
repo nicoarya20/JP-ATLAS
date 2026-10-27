@@ -30,4 +30,5 @@ export const CALENDAR = {
   title: 'My calendar',
   previous: 'Previous week',
   next: 'Next week',
+  truncated: 'This week has more events than were loaded; some may be missing.',
 } as const;
