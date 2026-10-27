@@ -1,4 +1,4 @@
-import { DARK, LIGHT, type SchemeTokens } from './tokens';
+import { DARK, LIGHT, MOBILE_STATUS, type SchemeTokens } from './tokens';
 
 /*
  * JP Atlas roles on gluestack-ui v5's semantic theme variables (plus our own: atlas, status pairs, veil, snack). global.css
@@ -41,6 +41,9 @@ export const THEME_ROLES: Record<string, Source> = {
   destructive: 'danger',
   'destructive-foreground': (scheme) => ON_DANGER[scheme],
   'danger-soft': 'dangerBg',
+  alert: (scheme) => MOBILE_STATUS[scheme].alert,
+  'alert-foreground': (scheme) => ON_DANGER[scheme],
+  presence: (scheme) => MOBILE_STATUS[scheme].presence,
   success: 'success',
   'success-soft': 'successBg',
   warning: 'warning',

@@ -8,8 +8,11 @@ import { type Decisions, getDecisions, waitingUsers } from '@/data/users';
 
 export const MORE_PANEL = { label: 'More' } as const;
 
-/** Tile colour (prototype .mm-tile blue/green/orange/teal/gray). */
-export type MoreTone = 'blue' | 'green' | 'orange' | 'teal' | 'gray';
+/**
+ * Tile colour (prototype .mm-tile blue/green/orange/teal/gray). Atlas has no teal (its info is the same violet as
+ * Inbox's), so Archive, which holds what was deleted, takes the danger pair: every tile reads apart.
+ */
+export type MoreTone = 'blue' | 'green' | 'orange' | 'red' | 'gray';
 
 export type MoreTile = {
   /** Route it opens (registered in app/(tabs)/more/_layout.tsx). */
@@ -42,7 +45,7 @@ export function moreTiles(role: Role, decided: Decisions = getDecisions()): More
       tone: 'orange',
       badge: waitingUsers(decided).length,
     },
-    { path: '/more/archive', label: 'Archive', Icon: Archive, tone: 'teal' },
+    { path: '/more/archive', label: 'Archive', Icon: Archive, tone: 'red' },
     { path: '/more/settings', label: 'Settings', Icon: Settings, tone: 'gray' },
   ];
   return tiles.filter((t): t is MoreTile => t !== false);

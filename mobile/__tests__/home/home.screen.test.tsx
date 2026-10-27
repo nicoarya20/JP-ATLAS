@@ -28,11 +28,12 @@ async function renderHome(role: Role) {
   return onOpen;
 }
 
+// Stat chips are the buttons labelled "<label>, <sub>"; the avatar ("<name>, open profile") shares the shape.
 const chipLabels = () =>
   screen
     .getAllByRole('button')
     .map((b) => b.props.accessibilityLabel as string | undefined)
-    .filter((l) => l?.includes(', '));
+    .filter((l) => l?.includes(', ') && !l.endsWith(', open profile'));
 
 describe('HomeScreen · Project Manager', () => {
   test('greeting, stat chips and the six sections', async () => {
@@ -57,10 +58,13 @@ describe('HomeScreen · Project Manager', () => {
     }
   });
 
-  test('My Focus groups my tasks and shows status where Done is not allowed', async () => {
+  test('My Focus groups my tasks; where Done is not allowed the status sits in the sub line, not a pill', async () => {
     await renderHome('pm');
     expect(screen.getByText('#12 Fix SSO login')).toBeTruthy();
-    expect(screen.getByText('In progress')).toBeTruthy();
+    expect(screen.getByText('Atlas Project · 2 days overdue · In progress')).toBeTruthy();
+    expect(screen.queryByText('In progress')).toBeNull();
+    // A row with Done keeps the plain sub line: the status only stands in for a missing action.
+    expect(screen.getByText('Atlas Project · Today')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Done: Write the API spec' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Done: Fix SSO login' })).toBeNull();
     expect(screen.getByText('Awaiting your review')).toBeTruthy();
@@ -140,6 +144,13 @@ describe('HomeScreen · Project Manager', () => {
     expect(onOpen).toHaveBeenCalledTimes(7);
   });
 
+  test('my avatar opens my profile, like the More panel profile card', async () => {
+    const onOpen = await renderHome('pm');
+    await fireEvent.press(screen.getByRole('button', { name: 'Nico Pratama, open profile' }));
+    expect(onOpen).toHaveBeenCalledWith('/profile');
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
   test('agenda shows the next meeting and my four projects', async () => {
     await renderHome('pm');
     expect(screen.getByText('Wed, Oct 7 · In person · Meeting Room 2')).toBeTruthy();
@@ -166,7 +177,7 @@ describe('HomeScreen · Member', () => {
       'Inbox, 3 to respond',
     ]);
     expect(screen.getByText('#17 Fix the save button on the profile page')).toBeTruthy();
-    expect(screen.getByText('In review')).toBeTruthy();
+    expect(screen.getByText(/ · In review$/)).toBeTruthy();
     expect(screen.queryByText(/^Done: /)).toBeNull();
     expect(screen.queryByText('Awaiting your review')).toBeNull();
     expect(screen.getAllByRole('button', { name: /\?$/ })).toHaveLength(2);

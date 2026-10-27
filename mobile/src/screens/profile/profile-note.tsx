@@ -1,4 +1,4 @@
-// Profile note (prototype profile.note.jsx): the thought bubble next to the photo. Tap to type; Done or leaving the
+// Profile note (prototype profile.note.jsx): the round pill next to the photo, and its input while editing. Tap to type; Done or leaving the
 // field saves, an empty note clears it.
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
@@ -35,14 +35,14 @@ export function ProfileNote() {
           accessibilityRole="button"
           accessibilityLabel={note ? NOTE.editLabel(note) : NOTE.addLabel}
           onPress={edit}
-          className="min-h-11 justify-center rounded-card bg-muted px-4 py-2"
+          className="min-h-11 justify-center rounded-full bg-muted px-4 py-2"
         >
           <Text className={`text-subhead ${note ? '' : 'text-muted-foreground'}`}>
             {note || NOTE.add}
           </Text>
         </Pressable>
       ) : (
-        <Input className="min-h-11 w-full rounded-card">
+        <Input className="min-h-11 w-full rounded-full">
           <InputField
             testID="profile-note-input"
             aria-label={NOTE.input}

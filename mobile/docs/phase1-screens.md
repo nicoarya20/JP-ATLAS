@@ -147,6 +147,7 @@ Dipakai oleh ≥ 2 modul. Port dari `src/kit/*` prototipe. Tiap berkas ≤ 150 b
 | `src/data/archive.store.ts` | `sample.js` `archive` + `*.store.js` | Entri Archive bersama (ditulis store tasks/projects/events, dibaca W3): `entryKey`, `addEntry`, `removeEntry`, `listEntries`, `findEntry`, `useArchiveEntries`, `resetArchive` |
 | `src/data/people.ts`, `src/data/sample/people.extra.ts` | `sample.js` `people[].email/role`, `D.person`, `D.me` | `person(keyOrName)`, `me(role)`, `listPeople()`, `ROLE_TAG`, `ROLE_LABEL`; email + peran akun |
 | `src/theme/tokens.ts` `MIN_TARGET` | — | Area sentuh minimum 44 pt |
+| `src/theme/tokens.ts` `MOBILE_STATUS` | — | Warna status gaya iOS khusus mobile (tak ada di web): `alert` (merah badge angka & Sign out, `bg-alert`) dan `presence` (titik online, `bg-presence`); pesan status, chip, dan dialog destruktif tetap pakai pasangan Atlas |
 
 Badge status memakai `src/components/status/status-pill.tsx` Sesi B.
 
@@ -159,7 +160,7 @@ Badge status memakai `src/components/status/status-pill.tsx` Sesi B.
 - **`Seg`:** `kind` `'tabs'` (default, ganti isi layar; `tablist`/`tab` + selected) atau `'radio'` (pilihan form/tampilan; `radiogroup`/`radio` + checked), supaya satu layar tidak punya dua tablist; `label` = nama baris; `lines` 1 | 2 (label boleh 2 baris, mis. Inbox); `names` = nama yang dibacakan per segmen (diabaikan bila panjangnya beda); `icons`.
 - **`FormError`:** error di bawah sekelompok kontrol yang tidak dijangkau error `Field` (rentang waktu, picker); live region di Android, `announceForAccessibility` di iOS.
 - **`spoken()`:** kartu/baris yang menampilkan beberapa fakta memakai satu nama gabungan di elemen yang bisa ditekan, dan bagian-bagiannya dikeluarkan dari urutan baca.
-- **`MIN_TARGET` (44 pt):** target sentuh buatan sendiri yang digambar lebih kecil mencapai 44 pt lewat `hitSlop`, tampilan tetap. Button kit sudah `min-h-11`; kontrol Seg/Field/Select juga `min-h-11`.
+- **`MIN_TARGET` (44 pt):** target sentuh buatan sendiri yang digambar lebih kecil mencapai 44 pt lewat `hitSlop`, tampilan tetap. Button kit sudah `min-h-11`; Field/Select juga `min-h-11`. Seg digambar 32 pt (`min-h-8`, setara segmented control iOS) dan mencapai 44 pt lewat `hitSlop` 6 pt atas-bawah.
 - **Kaca:** hanya permukaan tab bar (pil, panel, FAB) yang memakai `GlassSurface` (`phase1-navigation.md` §4.3); layar tidak memakai `GlassView`.
 - **`useTabBarInset()`:** semua layar ber-bar dan `SnackHost` memakai padding bawah ini (`DetailPage`/`StackedScreen` sudah).
 

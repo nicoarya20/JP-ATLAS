@@ -12,6 +12,7 @@ import { NoMatch } from '@/components/state/no-match';
 import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 import { getProjectsList } from '@/data/projects';
 import { BASE_QUERY } from '@/data/projects.query';
 import { setProjectsQuery, useProjectsQuery, useProjectsState } from '@/data/projects.store';
@@ -21,6 +22,9 @@ import { SESSION_ROLE } from '@/data/session';
 import { LIST } from '../projects.strings';
 import { PeopleRow } from './people-row';
 import { ProjectCard } from './project-card';
+
+/** "Clear" is drawn at its 24 pt text line so the pick's line hugs the list; 10 pt above and below reach 44 pt. */
+const CLEAR_SLOP = { top: 10, bottom: 10 } as const;
 
 /** The Projects tab. role: who is signed in (K12). */
 export function ProjectsScreen({ role = SESSION_ROLE }: { role?: Role }) {
@@ -50,23 +54,33 @@ export function ProjectsScreen({ role = SESSION_ROLE }: { role?: Role }) {
       }
     >
       <PeopleRow people={data.people} mine={data.mine} who={who} onPick={pick} />
-      {data.whoLine && (
-        <HStack className="items-center justify-between gap-2">
-          <Text className="flex-1 text-subhead font-semibold">{data.whoLine}</Text>
-          <Button variant="link" onPress={() => pick(undefined)}>
-            <ButtonText>{LIST.clear}</ButtonText>
-          </Button>
-        </HStack>
-      )}
-      {data.empty === 'noMatch' ? (
-        <NoMatch title={LIST.noMatch} onReset={reset} />
-      ) : data.empty === 'none' ? (
-        <EmptyState testID="projects-empty" icon={FolderOpen} title={LIST.empty} />
-      ) : (
-        data.cards.map((c) => (
-          <ProjectCard key={c.id} card={c} onOpen={(id) => router.push(`/projects/${id}`)} />
-        ))
-      )}
+      {/* The pick's line sits 8 pt over the list it names; the cards keep the screen's 16 pt between them. */}
+      <VStack className="gap-2">
+        {data.whoLine && (
+          <HStack className="items-center justify-between gap-2">
+            <Text className="flex-1 text-subhead font-semibold">{data.whoLine}</Text>
+            <Button
+              variant="link"
+              hitSlop={CLEAR_SLOP}
+              className="min-h-0 py-0"
+              onPress={() => pick(undefined)}
+            >
+              <ButtonText>{LIST.clear}</ButtonText>
+            </Button>
+          </HStack>
+        )}
+        <VStack className="gap-4">
+          {data.empty === 'noMatch' ? (
+            <NoMatch title={LIST.noMatch} onReset={reset} />
+          ) : data.empty === 'none' ? (
+            <EmptyState testID="projects-empty" icon={FolderOpen} title={LIST.empty} />
+          ) : (
+            data.cards.map((c) => (
+              <ProjectCard key={c.id} card={c} onOpen={(id) => router.push(`/projects/${id}`)} />
+            ))
+          )}
+        </VStack>
+      </VStack>
     </StackedScreen>
   );
 }

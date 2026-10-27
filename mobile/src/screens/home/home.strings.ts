@@ -48,6 +48,7 @@ export const FOCUS_GROUP: Record<FocusGroupKey, string> = {
 
 export const S = {
   greeting: (greeting: string, name: string) => `${greeting}, ${name}`,
+  openProfile: (full: string) => `${full}, open profile`,
   search: 'Search or ask anything…',
   searchLater: 'Search is coming soon.',
   briefing: { title: 'Daily Briefing', sub: 'What do I need to know today?' },
@@ -68,6 +69,9 @@ export const S = {
       `See all tasks (${open})${review ? ` · ${review} awaiting review` : ''}`,
     taskTitle: (no: number, title: string) => `#${no} ${title}`,
     taskSub: (project: string, when: string) => `${project} · ${when}`,
+    /** A row without its own action carries its status here, so the right column only ever holds buttons. */
+    taskSubStatus: (project: string, when: string, status: string) =>
+      `${project} · ${when} · ${status}`,
   },
   ask: {
     title: 'Ask Data',

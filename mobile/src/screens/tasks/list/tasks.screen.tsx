@@ -61,7 +61,7 @@ export function TasksScreen({ role = SESSION_ROLE }: { role?: Role }) {
               onChange={pickScope}
             />
           </View>
-          <View className="w-24">
+          <View className="w-20">
             <Seg
               testID="tasks-view"
               label={SPOKEN.view}

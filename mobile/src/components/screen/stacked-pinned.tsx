@@ -34,7 +34,7 @@ export function StackedPinned({ progress, children }: StackedPinnedProps) {
       <Animated.View
         onLayout={measure}
         style={pad}
-        className="rounded-t-3xl border-t border-border bg-background px-4 pb-2"
+        className="rounded-t-3xl bg-background px-4 pb-2"
       >
         <PinnedProgressContext.Provider value={progress}>{children}</PinnedProgressContext.Provider>
       </Animated.View>

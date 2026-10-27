@@ -7,6 +7,11 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
+import { MIN_TARGET } from '@/theme/tokens';
+
+/** A segment is drawn 32 pt tall (min-h-8, like the iOS segmented control); hitSlop above and below reaches 44 pt. */
+const SEG_HEIGHT = 32;
+const SLOP = { top: (MIN_TARGET - SEG_HEIGHT) / 2, bottom: (MIN_TARGET - SEG_HEIGHT) / 2 };
 
 type SegProps = {
   items: readonly string[];
@@ -57,12 +62,13 @@ export function Seg({
             accessibilityLabel={spoken?.[i] ?? label}
             accessibilityState={radio ? { checked: on } : { selected: on }}
             onPress={() => onChange(i)}
-            className={`min-h-11 flex-1 items-center justify-center rounded-control px-2 ${lines > 1 ? 'py-1' : ''} ${on ? 'border border-border bg-card' : ''}`}
+            hitSlop={SLOP}
+            className={`min-h-8 flex-1 items-center justify-center rounded-control px-2 ${lines > 1 ? 'py-1' : ''} ${on ? 'border border-border bg-card' : ''}`}
           >
             {icon ? (
               <Icon
                 as={icon}
-                size="lg"
+                size="md"
                 className={on ? 'text-foreground' : 'text-muted-foreground'}
               />
             ) : (

@@ -15,6 +15,7 @@ import { useTabBarInset } from '@/navigation/use-tab-bar-inset';
 import { SPACING } from '@/theme/tokens';
 
 import { FindFieldContext } from './stacked-context';
+import { EDGE, EDGE_BAND, StackedEdge } from './stacked-edge';
 import { PIN_PAD_SHRINK, StackedPinned } from './stacked-pinned';
 import { useSearchCollapse } from './use-search-collapse';
 
@@ -107,12 +108,8 @@ export function StackedScreen({
         >
           <FindFieldContext.Provider value={fold.register}>{find}</FindFieldContext.Provider>
         </Animated.View>
-        {pinned ? (
-          <StackedPinned progress={fold.pinned}>{pinned}</StackedPinned>
-        ) : (
-          <View className="h-3 rounded-t-3xl border-t border-border bg-background" />
-        )}
-        {/* With a pinned row the canvas runs up under its see-through fold, so no seam shows the surface. */}
+        {pinned ? <StackedPinned progress={fold.pinned}>{pinned}</StackedPinned> : <StackedEdge />}
+        {/* The canvas runs up under the pinned row's see-through fold, or under the corner-only edge; no seam shows. */}
         <View
           className="flex-1 gap-4 bg-background px-4"
           style={
@@ -122,7 +119,7 @@ export function StackedScreen({
                   paddingTop: SPACING.lg + SPACING.xs,
                   paddingBottom: bottom,
                 }
-              : { paddingTop: SPACING.xs / 2, paddingBottom: bottom }
+              : { marginTop: -EDGE, paddingTop: EDGE_BAND, paddingBottom: bottom }
           }
         >
           {children}

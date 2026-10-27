@@ -10,14 +10,14 @@ import type { ProfileData } from '@/data/profile';
 import { PROFILE } from './profile.strings';
 import { ProfileNote } from './profile-note';
 
-/** Presence dot: green when online, grey when not. Decorative; the status text says it. */
+/** Presence dot: the bright presence green when online, grey when not. Decorative; the status text says it. */
 export function PresenceDot({ online, small }: { online: boolean; small?: boolean }) {
   return (
     <View
       testID={small ? 'presence-dot-small' : 'presence-dot'}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      className={`rounded-full border-2 border-card ${small ? 'h-3 w-3' : 'h-5 w-5'} ${online ? 'bg-success' : 'bg-muted-foreground'}`}
+      className={`rounded-full border-2 border-card ${small ? 'h-3 w-3' : 'h-5 w-5'} ${online ? 'bg-presence' : 'bg-muted-foreground'}`}
     />
   );
 }

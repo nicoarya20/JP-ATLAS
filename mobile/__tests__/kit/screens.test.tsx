@@ -87,6 +87,18 @@ describe('StackedScreen', () => {
     );
     expect(screen.queryByTestId('stacked-find')).not.toBeOnTheScreen();
   });
+
+  test('without a pinned row a corner-only 24 pt edge sticks under the header and lets touches through', async () => {
+    await show(
+      <StackedScreen title="Projects">
+        <Text>Cards</Text>
+      </StackedScreen>,
+    );
+    const edge = screen.getByTestId('stacked-edge');
+    expect(edge.props.pointerEvents).toBe('none');
+    expect(edge).toHaveStyle({ height: 24 });
+    expect(screen.queryByTestId('stacked-pinned')).not.toBeOnTheScreen();
+  });
 });
 
 describe('StackedScreen · pinned row and reveal', () => {
