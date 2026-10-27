@@ -1,23 +1,20 @@
-// Copy of the Profile screens. The prototype's note bubble, presence dot and single mute switch are
-// gone: the server keeps no note and no presence, and it keeps two notification switches rather
-// than one — see mobile/docs/phase2-gap-disembunyikan.md.
+// Copy of the Profile screens, verbatim from the prototype (profile.main.jsx, profile.note.jsx, profile.calendar.jsx);
+// the clipboard messages follow docs/phase1-screens.more.md §8.
 
 export const PROFILE = {
+  online: 'Online',
+  offline: 'Offline',
   editProfile: 'Edit profile',
   myTasks: 'My tasks',
   myCalendar: 'My calendar',
   inbox: 'Inbox',
-  notifications: 'Notifications',
-  eventReminder: 'Event reminders',
-  eventReminderSub: 'Before an event you are invited to starts',
-  inboxNews: 'Inbox news',
-  inboxNewsSub: 'Updates on your projects and tasks',
-  alwaysOn: 'Cards that need your answer always arrive; only these two kinds can be turned off.',
-  saveFailed: (message: string) => `Could not save that: ${message}`,
+  mute: 'Mute notifications',
   settings: 'Settings',
   help: 'Help & resources',
   helpNotice: 'Help & resources — not in the prototype yet',
   general: 'General info',
+  showOnline: 'Show me as online',
+  seenAs: (online: boolean) => `Teammates see you as ${online ? 'Online' : 'Offline'}`,
   email: 'Email',
   copyEmail: 'Copy email',
   copied: 'Email copied',
@@ -26,9 +23,16 @@ export const PROFILE = {
   signOut: 'Sign out',
 } as const;
 
+export const NOTE = {
+  add: '+ Add a note',
+  addLabel: 'Add a note',
+  editLabel: (note: string) => `Note: ${note}. Edit note`,
+  placeholder: "What's on your mind?",
+  input: 'Note',
+} as const;
+
 export const CALENDAR = {
   title: 'My calendar',
   previous: 'Previous week',
   next: 'Next week',
-  truncated: 'This week has more events than were loaded; some may be missing.',
 } as const;

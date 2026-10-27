@@ -1,17 +1,21 @@
 // Events helpers shared by the events screens, Home and Inbox: the wide event type, its status, times and place, and
 // which route an event opens. Ported from the prototype's events.shared.js.
-import { today } from './clock';
 import { weekdayMonthDay } from './dates';
-import { PROJECTS, type SampleEvent } from './sample';
+import { PROJECTS, type SampleEvent, TODAY } from './sample';
 import { EVENT_RESULTS, type EventExtra, type Repeat } from './sample/events.extra';
 
 /** Event types offered by the new-event form, in form order. */
 export const TYPES = ['Meeting', 'Review', 'Important', 'Team event', 'Other'] as const;
 export type EventType = (typeof TYPES)[number];
 
-// `REPEATS` (the form's repeat picker options) is gone with the picker itself: recurrence is refused
-// by the API (GAP-A4), and a list of options nothing offers is dead code. `REPEAT_DAYS` stays — the
-// sample calendar still walks a series with it until the Profile calendar is ported.
+/** Repeat options of the form as [label, repeat value]; index 0 = does not repeat. */
+export const REPEATS: readonly (readonly [string, Repeat | ''])[] = [
+  ['No', ''],
+  ['Daily', 'daily'],
+  ['Every week', 'every week'],
+  ['Every 2 weeks', 'every 2 weeks'],
+];
+
 /** How many days apart a recurring event's next dates are, per repeat option. */
 export const REPEAT_DAYS: Record<Repeat, number> = {
   daily: 1,
@@ -24,14 +28,9 @@ export const DEFAULT_PROJECT = 'atlas';
 
 export type Cancellation = {
   reason: string;
-  /** Name of whoever canceled it; the list DTO carries no canceller, so it is empty there. */
   by: string;
-  /**
-   * Only this occurrence of a recurring event; the next ones continue. Optional and never set from
-   * the server: cancelling one occurrence needs recurrence, which the API does not have
-   * (GAP-A4/A5). Only the sample path still writes it.
-   */
-  once?: boolean;
+  /** Only this occurrence of a recurring event; the next ones continue. */
+  once: boolean;
 };
 
 /** Step 3 › Create tasks: the task numbers it made, who confirmed and when (ISO). */
@@ -53,13 +52,7 @@ export type EventStatusLabel = 'Canceled' | 'Done' | 'Today' | 'Upcoming';
 
 /** Status pill text: Canceled, Done, Today, or Upcoming. */
 export const eventStatus = (e: EventItem): EventStatusLabel =>
-  e.canceled
-    ? 'Canceled'
-    : e.status === 'Done'
-      ? 'Done'
-      : e.date === today()
-        ? 'Today'
-        : 'Upcoming';
+  e.canceled ? 'Canceled' : e.status === 'Done' ? 'Done' : e.date === TODAY ? 'Today' : 'Upcoming';
 
 /** Project name of an event: the one picked in its form, else Atlas. */
 export function eventProject(e: EventItem): string {

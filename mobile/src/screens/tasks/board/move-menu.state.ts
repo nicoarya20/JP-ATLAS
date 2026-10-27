@@ -2,9 +2,9 @@
 // offsetOf over the board's DOM): each card's window rect, measured from its registered view, from the menu centre.
 import type { HostInstance } from 'react-native';
 
-import type { BoardStatus } from '@/data/tasks.columns';
 import { offsetOf } from '@/data/tasks.radial';
 import type { TaskStatus } from '@/data/tasks.shared';
+import { getTask } from '@/data/tasks.state';
 
 /** A card of a group move: where it sits from the menu centre, so it can fly in from there. */
 export type StackCard = { no: number; title: string; dx: number; dy: number };
@@ -16,14 +16,6 @@ export type MoveMenuState = {
   title: string;
   /** Status they share (marked Now), or null for a mixed group. */
   from: TaskStatus | null;
-  /**
-   * The columns this menu may move its tasks to, decided before it opened.
-   *
-   * The server takes steps, not statuses, and only twelve transitions exist; a side the task's own
-   * `can{}` does not carry is drawn off rather than tried and refused with `409 WRONG_STATE`
-   * (`phase2-map-tasks.md` §1.3).
-   */
-  allowed: readonly BoardStatus[];
   /** Menu centre in window px. */
   x: number;
   y: number;
@@ -32,6 +24,13 @@ export type MoveMenuState = {
   group: boolean;
   /** The group's cards, once measured. */
   stack: StackCard[] | null;
+};
+
+/** Task #no from the store; the menu only opens on cards that are on the board. */
+export const taskOf = (no: number) => {
+  const t = getTask(no);
+  if (!t) throw new Error(`Cannot open the move menu: task #${no} is not on the board`);
+  return t;
 };
 
 type Rect = { x: number; y: number; width: number; height: number };

@@ -2,8 +2,10 @@
 
 export const LIST = {
   title: 'Projects',
-  // The server matches the name only (GAP A-6), so the placeholder promises only that.
-  search: 'Search project name…',
+  search: 'Search project name or description…',
+  people: 'Show projects of',
+  myProjects: 'My projects',
+  clear: 'Clear',
   lead: (name: string) => `Lead: ${name}`,
   due: (date: string) => `Due ${date}`,
   progress: (name: string) => `Progress of ${name}`,
@@ -11,7 +13,7 @@ export const LIST = {
   noMatch: 'No projects match these filters.',
 } as const;
 
-export const FILTER = { status: 'Status', attention: 'Attention', sort: 'Sort by' } as const;
+export const FILTER = { status: 'Status', health: 'Health', sort: 'Sort by' } as const;
 
 export const DETAIL = {
   actions: 'Project actions',
@@ -23,7 +25,6 @@ export const DETAIL = {
   leadDue: (lead: string, due: string) => `Lead: ${lead} · Due: ${due}`,
   extend: 'Extend deadline',
   tabs: ['Overview', 'Tasks', 'Phases', 'Members'],
-  loadingTitle: 'Project',
   missingTitle: 'Project not found',
   missingText: 'It may have been moved to Archive or deleted.',
 } as const;
@@ -43,17 +44,20 @@ export const OVERVIEW = {
 } as const;
 
 export const TASKS_TAB = {
+  views: ['List', 'Kanban'],
   newTask: '+ New task',
   noMatch: 'No tasks match these filters.',
-  none: 'No tasks in this project yet.',
 } as const;
 
 export const PHASES = {
+  addPhase: '+ Phase',
+  addPhaseNotice: 'Add phase',
   milestone: 'Milestone',
-  looseMilestones: 'Other milestones',
+  addMilestone: '+ Milestone',
+  addMilestoneNotice: 'Add milestone',
+  noProgress: 'No progress yet',
   history: 'Deadline history',
   none: 'No phases yet.',
-  failed: 'Could not save that. Try again.',
 } as const;
 
 export const MEMBERS = {
@@ -82,8 +86,6 @@ export const MEMBERS = {
     `${name} becomes ${role} in “${project}”.`,
   roleConfirm: 'Change role',
   roleChanged: 'Role changed',
-  /** Fallback only: a refusal normally arrives with the server's own sentence, which is shown instead. */
-  failed: 'Could not save that. Try again.',
 } as const;
 
 export const EXTEND = {
@@ -92,15 +94,19 @@ export const EXTEND = {
   next: 'New deadline',
   after: (date: string) => `New deadline must be after ${date}.`,
   why: 'Why extend?',
-  // The reason words come from EXTENSION_REASONS now: they are the server's four categories, not a
-  // list of their own that could drift from the enum.
+  reasons: [
+    'Scope increased',
+    'Waiting on third party',
+    'Estimate was off',
+    'Short-staffed',
+    'Other',
+  ],
   reason: 'Reason',
+  impact: 'Impact of change',
   recorded: 'Recorded in Deadline history and Project activity.',
   cancel: 'Cancel',
   save: 'Save',
   saved: 'Deadline extended',
-  /** Fallback only: a refusal normally arrives with the server's own sentence. */
-  failed: 'Could not save that. Try again.',
 } as const;
 
 export const EDIT = {
@@ -122,10 +128,6 @@ export const EDIT = {
   cancel: 'Cancel',
   save: 'Save changes',
   saved: 'Project updated',
-  /** Fallback only: a refusal normally arrives with the server's own sentence. */
-  failed: 'Could not save that. Try again.',
-  /** `can.update` is off: the server would refuse this form's Save. */
-  mayNot: 'You can\u2019t edit this project.',
 } as const;
 
 export const ARCHIVE = {
@@ -139,8 +141,6 @@ export const ARCHIVE = {
   undo: 'Undo',
   restored: 'Project restored',
   goneForever: "This project was deleted forever and can't be restored.",
-  /** Fallback only: a refusal normally arrives with the server's own sentence. */
-  failed: 'Could not move it to Archive. Try again.',
 } as const;
 
 export const CREATE = {
@@ -170,10 +170,6 @@ export const CREATE = {
   create: 'Create project',
   created: 'Project created',
   ai: 'AI-assisted',
-  /** Fallback only: a refusal normally arrives with the server's own sentence. */
-  failed: 'Could not create the project. Try again.',
-  /** `caps.createProject` is off (A-17): the route would refuse this form. */
-  mayNot: 'You can\u2019t create a project.',
 } as const;
 
 export const FORM = {

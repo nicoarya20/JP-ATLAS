@@ -11,8 +11,6 @@ import * as TasksStack from '../../app/(tabs)/tasks/_layout';
 import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { resetArchive } from '../../src/data/archive.store';
-import { resetEventsApi } from '../../src/data/events.api';
-import { setEventsSearch } from '../../src/data/events.query';
 import { resetEvents } from '../../src/data/events.store';
 import type { Role } from '../../src/data/sample';
 import { resetTasks } from '../../src/data/tasks.store';
@@ -26,8 +24,6 @@ import { RecordingScreen } from '../../src/screens/events/record/recording.scree
 import { EventResultsScreen } from '../../src/screens/events/results/results.screen';
 import { ArchiveEventScreen } from '../../src/screens/events/sheets/archive.screen';
 import { CancelEventScreen } from '../../src/screens/events/sheets/cancel.screen';
-import { eventsApiFixture } from './events-api-fixtures';
-import { type Handler, type Reply, serveEvents } from './events-server';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
 jest.mock('expo-font', () => ({
@@ -65,39 +61,14 @@ function routes(role: Role) {
 export const openEvents = (url: string, role: Role = 'pm'): Promise<RenderRouterResult> =>
   renderRouter(routes(role), { initialUrl: url, wrapper: GluestackUIProvider });
 
-/**
- * The fake `/api/app/events*` these screens read, installed per test. A test that wants a different
- * answer calls `answerEvents()` before opening a screen — the Events screens fetch on mount, so the
- * handler has to be in place first.
- */
-let handler: Handler = eventsApiFixture;
-
-/** Answer the API differently for the test running now; falls back to the fixtures. */
-export function answerEvents(next: (call: Parameters<Handler>[0]) => Reply | null): void {
-  handler = (call) => next(call) ?? eventsApiFixture(call);
-}
-
-/** The calls the fake API saw, in order. */
-export const eventCalls = () => server?.calls ?? [];
-
-let server: ReturnType<typeof serveEvents> | null = null;
-
-/** Every store an Events screen writes, back to its starting point after each test. */
+/** Every store an Events screen writes, back to the sample after each test. */
 export function resetEventStores() {
-  beforeEach(() => {
-    handler = eventsApiFixture;
-    server = serveEvents((call) => handler(call));
-  });
   afterEach(async () => {
     await act(async () => {
       resetEvents();
-      resetEventsApi();
-      setEventsSearch('');
       resetTasks();
       resetArchive();
       resetSnack();
     });
-    server?.restore();
-    server = null;
   });
 }

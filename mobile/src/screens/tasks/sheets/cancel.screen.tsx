@@ -1,11 +1,8 @@
-// Tasks ⑫ Cancel (detail ⋯ › Cancel task, prototype tasks.sheets.jsx TasksCancel): a reason is required, and a note for
-// Other; the task stays in its project marked Canceled, and its detail shows why with Restore. Cancel task stays
+// Tasks ⑫ Cancel (detail ⋯ › Cancel task, prototype tasks.sheets.jsx TasksCancel): a reason is required, and a note
+// for Other; the task stays in its project marked Canceled, and its detail shows why with Restore. Cancel task stays
 // disabled until both are given and says what is missing (UX §5): as its hint, and on screen once the note was touched.
-//
-// The reason goes to the server as two fields — a category from its enum and the note — never as the one joined
-// sentence the prototype logged, which there is no column for.
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Field } from '@/components/form/field';
 import { fieldName } from '@/components/form/field-name';
@@ -14,89 +11,66 @@ import { RadioList } from '@/components/form/radio-list';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { Text } from '@/components/ui/text';
-import { ensureTaskDetailView, useTaskDetailView } from '@/data/tasks.api.detail';
-import { CANCEL_WORDS, cancelCategoryOf } from '@/data/tasks.api.values';
-import { cancelTaskOnServer } from '@/data/tasks.api.write';
+import type { Role } from '@/data/sample';
+import { SESSION_ROLE } from '@/data/session';
+import { getTaskDetail } from '@/data/tasks';
+import { CANCEL_OTHER, CANCEL_REASONS, cancelReason, cancelTask } from '@/data/tasks.actions';
 
 import { Labelled } from '../parts/labelled';
-import { whyFailed } from '../parts/write-failed';
 import { S } from '../tasks.strings';
 import { MISSING } from '../tasks.strings.added';
 import { SheetPair, taskLine } from './sheet-parts';
 
-/** The last reason ("Other") is the one the server insists on a note for. */
-const OTHER = CANCEL_WORDS.length - 1;
-
 /** What Cancel task still needs: a reason, then the note Other asks for. */
 const missingOf = (why: number, text: string) =>
-  why < 0 ? MISSING.why : why === OTHER && !text.trim() ? MISSING.note : undefined;
+  why < 0 ? MISSING.why : why === CANCEL_OTHER && !text.trim() ? MISSING.note : undefined;
 
-/** Cancel sheet of the task in the route (`/tasks/<no>/cancel`); a task the server will not cancel goes home. */
-export function CancelScreen() {
+/** Cancel sheet of the task in the route (`/tasks/<no>/cancel`); without Cancel in its ⋯ menu it goes home. */
+export function CancelScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const ref = id ?? '';
+  const no = Number(id);
   const notice = useNotice();
-  const view = useTaskDetailView(ref);
+  // Read once: canceling drops Cancel from the menu, which must not redirect the sheet while it closes.
+  const [view] = useState(() => getTaskDetail(role, no));
   const [why, setWhy] = useState(-1);
   const [text, setText] = useState('');
   const [touched, setTouched] = useState(false);
-  const [sending, setSending] = useState(false);
-  const task = view.task;
-  // A sheet can be opened straight from a link, with nothing read yet. Idempotent by rule 1: this
-  // joins the detail screen's request when there is one and makes it when there is not — without it
-  // the guard below never sees a task and the sheet would act on one it knows nothing about.
-  useEffect(() => {
-    void ensureTaskDetailView(ref);
-  }, [ref]);
-  // Canceling drops Cancel from the menu, so the sheet must not read the menu while it closes: it
-  // turns away only a task the server has answered about and does not offer it for.
-  if (view.missing || (task && !sending && !task.menu.includes('cancel')))
-    return <Redirect href="/" />;
-  const missing = task ? missingOf(why, text) : MISSING.loading;
-  const send = async () => {
-    const category = cancelCategoryOf(why);
-    if (!category) return;
-    setSending(true);
-    try {
-      await cancelTaskOnServer(ref, category, text);
-      notice(S.detail.done.canceled);
-      router.back();
-    } catch (cause) {
-      notice(whyFailed(cause));
-      setSending(false);
-    }
+  if (!view?.menu.includes('cancel')) return <Redirect href="/" />;
+  const missing = missingOf(why, text);
+  const send = () => {
+    notice(cancelTask(role, no, why, text));
+    router.back();
   };
   const actions = (
     <SheetPair
       cancel={S.sheet.back}
       primary={S.sheet.cancelAction}
       kind="danger"
-      ok={!missing}
-      busy={sending}
+      ok={!!cancelReason(why, text)}
       hint={missing}
-      onPress={() => void send()}
+      onPress={send}
       testID="cancel-send"
     />
   );
   return (
     <SheetFrame
       title={S.sheet.cancelTitle}
-      sub={task ? taskLine(task) : ''}
+      sub={taskLine(view)}
       actions={actions}
       testID="screen-task-cancel"
     >
       <Labelled required label={S.sheet.why}>
         <RadioList
           label={fieldName(S.sheet.why, true)}
-          items={CANCEL_WORDS}
-          value={CANCEL_WORDS[why] ?? null}
-          onChange={(r) => setWhy((CANCEL_WORDS as readonly string[]).indexOf(r))}
+          items={CANCEL_REASONS}
+          value={CANCEL_REASONS[why] ?? null}
+          onChange={(r) => setWhy((CANCEL_REASONS as readonly string[]).indexOf(r))}
         />
         {touched && why < 0 && <FormError testID="cancel-why-error">{MISSING.why}</FormError>}
       </Labelled>
       <Field
         multiline
-        required={why === OTHER}
+        required={why === CANCEL_OTHER}
         label={S.sheet.note}
         placeholder={S.sheet.noteHint}
         value={text}

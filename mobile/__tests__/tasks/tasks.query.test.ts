@@ -8,7 +8,6 @@ import {
 } from '../../src/data/tasks.query';
 import { getQuery, resetQueries, setQuery } from '../../src/data/tasks.query-state';
 import { getTasksState } from '../../src/data/tasks.state';
-import { viewerNamed } from '../helpers/session-fixtures';
 
 // Sample tasks on the prototype's "today", Wed Oct 7 2026; Nico (pm) is the viewer unless stated.
 
@@ -37,37 +36,27 @@ describe('baseQuery and isFiltered', () => {
 
 describe('applyQuery', () => {
   test('All active hides Done and Canceled on the lists but not on the board', () => {
-    expect(nos(applyQuery(all(), q(), { me: viewerNamed('Nico') }))).not.toContain(8);
-    expect(nos(applyQuery(all(), q(), { board: true, me: viewerNamed('Nico') }))).toContain(8);
-    expect(nos(applyQuery(all(), q({ status: 4 }), { me: viewerNamed('Nico') }))).toEqual([8]);
+    expect(nos(applyQuery(all(), q(), { me: 'Nico' }))).not.toContain(8);
+    expect(nos(applyQuery(all(), q(), { board: true, me: 'Nico' }))).toContain(8);
+    expect(nos(applyQuery(all(), q({ status: 4 }), { me: 'Nico' }))).toEqual([8]);
   });
 
   test('project, priority and assignee filters', () => {
-    expect(nos(applyQuery(all(), baseQuery('all'), { me: viewerNamed('Nico') }))).not.toContain(9);
-    expect(nos(applyQuery(all(), q({ project: 'sinar' }), { me: viewerNamed('Nico') }))).toEqual([
-      9,
-    ]);
-    expect(nos(applyQuery(all(), q({ priority: 1 }), { me: viewerNamed('Nico') }))).toEqual([12]);
-    expect(nos(applyQuery(all(), q({ who: 1 }), { me: viewerNamed('Dodi') }))).toEqual([17, 16]);
+    expect(nos(applyQuery(all(), baseQuery('all'), { me: 'Nico' }))).not.toContain(9);
+    expect(nos(applyQuery(all(), q({ project: 'sinar' }), { me: 'Nico' }))).toEqual([9]);
+    expect(nos(applyQuery(all(), q({ priority: 1 }), { me: 'Nico' }))).toEqual([12]);
+    expect(nos(applyQuery(all(), q({ who: 1 }), { me: 'Dodi' }))).toEqual([17, 16]);
   });
 
   test('the four sorts: due date, priority then due, recently updated, title', () => {
-    expect(nos(applyQuery(all(), q({ sort: 0 }), { me: viewerNamed('Nico') }))).toEqual([
-      12, 14, 17, 9, 15, 16,
-    ]);
-    expect(nos(applyQuery(all(), q({ sort: 1 }), { me: viewerNamed('Nico') }))).toEqual([
-      12, 14, 17, 9, 15, 16,
-    ]);
-    expect(nos(applyQuery(all(), q({ sort: 2 }), { me: viewerNamed('Nico') }))).toEqual([
-      12, 17, 9, 14, 15, 16,
-    ]);
-    expect(nos(applyQuery(all(), q({ sort: 3 }), { me: viewerNamed('Nico') }))).toEqual([
-      12, 17, 16, 9, 15, 14,
-    ]);
+    expect(nos(applyQuery(all(), q({ sort: 0 }), { me: 'Nico' }))).toEqual([12, 14, 17, 9, 15, 16]);
+    expect(nos(applyQuery(all(), q({ sort: 1 }), { me: 'Nico' }))).toEqual([12, 14, 17, 9, 15, 16]);
+    expect(nos(applyQuery(all(), q({ sort: 2 }), { me: 'Nico' }))).toEqual([12, 17, 9, 14, 15, 16]);
+    expect(nos(applyQuery(all(), q({ sort: 3 }), { me: 'Nico' }))).toEqual([12, 17, 16, 9, 15, 14]);
   });
 
   test('an unknown sort is refused', () => {
-    expect(() => applyQuery(all(), q({ sort: 9 }), { me: viewerNamed('Nico') })).toThrow(
+    expect(() => applyQuery(all(), q({ sort: 9 }), { me: 'Nico' })).toThrow(
       'Cannot sort tasks: no sort #9',
     );
   });

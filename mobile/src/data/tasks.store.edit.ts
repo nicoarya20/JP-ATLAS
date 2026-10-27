@@ -1,6 +1,6 @@
 import { listEntries } from './archive.store';
-import { today } from './clock';
-import { now, type TaskInfo, type TaskItem, whenFromDue } from './tasks.shared';
+import { TODAY } from './sample';
+import { NOW, type TaskInfo, type TaskItem, whenFromDue } from './tasks.shared';
 import {
   type NewTaskExtras,
   type NewTaskFields,
@@ -23,7 +23,7 @@ const whenOfDue = (t: TaskItem) => (t.status === 'Done' ? t.when : whenFromDue(t
 export function editTask(no: number, fields: TaskFields, extras: TaskExtras, editor: string) {
   const s = store.get();
   const t = taskOrThrow(s, no, 'edit');
-  const edited = { ...t, ...fields, updated: now() };
+  const edited = { ...t, ...fields, updated: NOW };
   const next =
     fields.due !== undefined && fields.due !== t.due
       ? { ...edited, when: whenOfDue(edited) }
@@ -47,21 +47,14 @@ export function addTask(fields: NewTaskFields, extras: NewTaskExtras, creator: s
   }
   const s = store.get();
   const no = Math.max(s.top, ...[...s.tasks, ...s.archived].map((t) => t.no), ...archivedNos()) + 1;
-  const base: TaskItem = {
-    no,
-    status: 'To do',
-    next: 'Start',
-    updated: now(),
-    when: '',
-    ...fields,
-  };
+  const base: TaskItem = { no, status: 'To do', next: 'Start', updated: NOW, when: '', ...fields };
   const info: TaskInfo = {
     ...extras,
     by: creator,
-    on: today(),
+    on: TODAY,
     steps: [],
     proof: [],
-    history: [{ text: `${creator} created this task`, on: today() }],
+    history: [{ text: `${creator} created this task`, on: TODAY }],
   };
   store.set({
     ...s,

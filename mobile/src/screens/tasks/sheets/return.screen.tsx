@@ -49,7 +49,7 @@ export function ReturnScreen({ role = SESSION_ROLE }: { role?: Role }) {
   return (
     <SheetFrame
       title={S.sheet.returnTitle}
-      sub={taskLine(view.task)}
+      sub={taskLine(view)}
       actions={actions}
       testID="screen-task-return"
     >

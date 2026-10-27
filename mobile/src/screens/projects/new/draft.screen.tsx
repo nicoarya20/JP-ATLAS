@@ -12,7 +12,7 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import { getProjectCreate } from '@/data/projects.sample-form';
+import { getProjectCreate } from '@/data/projects';
 import { rangeLabel } from '@/data/projects.dates';
 import type { Role } from '@/data/sample';
 import type { DraftType, StoryPhase } from '@/data/sample/projects.extra';

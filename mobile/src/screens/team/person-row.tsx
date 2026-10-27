@@ -1,5 +1,4 @@
-// Team list row: avatar, name, the job title and projects, a recorded leave, and the task numbers
-// the server allowed this viewer to see. Opens Team ② by account id.
+// Team list row (prototype team.list.jsx Person): avatar, name, role, status, extra line and task counts; opens Team ②.
 import { router } from 'expo-router';
 
 import { PersonAvatar } from '@/components/avatar/person-avatar';
@@ -11,13 +10,13 @@ import type { TeamRow } from '@/data/team';
 
 import { rowLabel, TEAM } from './team.strings';
 
-/**
- * A recorded leave, muted. There is no green "Available": the server sends leave or nothing, and
- * nothing does not mean available (`server/team/team.dto.ts`).
- */
-export function StatusText({ status }: { status: string }) {
-  if (!status) return null;
-  return <Text className="text-footnote text-muted-foreground">{status}</Text>;
+/** Green when available, muted for a leave note. */
+export function StatusText({ status, available }: { status: string; available: boolean }) {
+  return (
+    <Text className={`text-footnote ${available ? 'text-success' : 'text-muted-foreground'}`}>
+      {status}
+    </Text>
+  );
 }
 
 /** One person; the counts show only where the viewer may see them. Its name reads every line. */
@@ -43,8 +42,8 @@ export function PersonRow({ o }: { o: TeamRow }) {
         <PersonAvatar name={o.full} />
         <VStack className="min-w-0 flex-1 gap-1">
           <Text className="font-semibold">{name}</Text>
-          {!!o.role && <Text className="text-footnote text-muted-foreground">{o.role}</Text>}
-          <StatusText status={o.status} />
+          <Text className="text-footnote text-muted-foreground">{o.role}</Text>
+          <StatusText status={o.status} available={o.available} />
           {o.extra && <Text className="text-footnote text-muted-foreground">{o.extra}</Text>}
           {o.load && (
             <HStack className="gap-2">

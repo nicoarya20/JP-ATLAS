@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 
-import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
+import { Button, ButtonText } from '@/components/ui/button';
 import { Checkbox, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from '@/components/ui/checkbox';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
@@ -74,8 +74,6 @@ type FootProps = {
   ok?: boolean;
   /** Why the primary is off while !ok; read as its hint. */
   why?: string;
-  /** The primary's request is out: a spinner, and no second press (UX §2). */
-  busy?: boolean;
   onPress: () => void;
   children?: ReactNode;
 };
@@ -86,29 +84,21 @@ export function Foot({
   label,
   ok = true,
   why,
-  busy = false,
   onPress,
   children,
 }: FootProps) {
   return (
     <>
-      <Button
-        variant="outline"
-        className="flex-1"
-        isDisabled={busy}
-        onPress={() => router.back()}
-      >
+      <Button variant="outline" className="flex-1" onPress={() => router.back()}>
         <ButtonText>{cancel}</ButtonText>
       </Button>
       <Button
         className="flex-[2]"
-        isDisabled={!ok || busy}
-        accessibilityState={{ busy, disabled: !ok || busy }}
+        isDisabled={!ok}
         onPress={onPress}
         accessibilityLabel={label}
         accessibilityHint={ok ? undefined : why}
       >
-        {busy && <ButtonSpinner />}
         {children ?? <ButtonText>{label}</ButtonText>}
       </Button>
     </>

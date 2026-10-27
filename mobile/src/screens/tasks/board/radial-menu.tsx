@@ -88,7 +88,6 @@ export function RadialMenu({ menu: m }: { menu: MoveMenu }) {
               column={c}
               group={shown.group}
               now={c.status === shown.from}
-              shut={!shown.allowed.includes(c.status)}
               lit={lit === c.status}
               closing={closing}
               reduced={m.reduced}

@@ -1,8 +1,4 @@
-// The app's route tree with every Projects route, for the Projects screen tests.
-//
-// `role` reaches only the screens still on sample data. The list and the detail take no role any
-// more: what they offer comes from the server (`caps` and the project's own `can{}`), so a test
-// about what a Member may do seeds the session and stubs those answers instead of passing a word.
+// The app's route tree with every Projects route, for the Projects screen tests; each screen gets the role under test.
 import { act } from '@testing-library/react-native';
 import { type RenderRouterResult, renderRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
@@ -20,8 +16,6 @@ import { resetArchive } from '../../src/data/archive.store';
 import { resetProjects } from '../../src/data/projects.store';
 import type { Role } from '../../src/data/sample';
 import { resetQueries } from '../../src/data/tasks.query-state';
-import { serveAuth } from './auth-server';
-import { projectApiRoutes } from './projects-api-server';
 import { resetTasks } from '../../src/data/tasks.store';
 import { ProjectDetailScreen } from '../../src/screens/projects/detail/project-detail.screen';
 import { ProjectEditScreen } from '../../src/screens/projects/edit/project-edit.screen';
@@ -60,9 +54,9 @@ function routes(role: Role) {
     'tasks/new/_layout': NewTaskStack,
     'tasks/new/form': stub('screen-task-form'),
     '(tabs)/projects/_layout': ProjectsStack,
-    '(tabs)/projects/index': () => <ProjectsScreen />,
+    '(tabs)/projects/index': () => <ProjectsScreen role={role} />,
     '(tabs)/projects/filter': ProjectsFilterScreen,
-    '(tabs)/projects/[id]/index': () => <ProjectDetailScreen />,
+    '(tabs)/projects/[id]/index': () => <ProjectDetailScreen role={role} />,
     '(tabs)/projects/[id]/edit': () => <ProjectEditScreen role={role} />,
     '(tabs)/projects/[id]/settings': () => <ProjectSettingsScreen role={role} />,
     '(tabs)/projects/[id]/extend': () => <ExtendProjectScreen role={role} />,
@@ -81,34 +75,8 @@ function routes(role: Role) {
 export const openProjects = (url: string, role: Role = 'pm'): Promise<RenderRouterResult> =>
   renderRouter(routes(role), { initialUrl: url, wrapper: GluestackUIProvider });
 
-let server: ReturnType<typeof serveAuth> | null = null;
-
-/**
- * Answer `/api/app/projects*` differently for the test running now.
- *
- * Call it **before** opening a screen: these screens fetch on mount, so routes installed afterwards
- * would miss the first request and the screen would settle on a failure instead.
- */
-export function answerProjects(o: Parameters<typeof projectApiRoutes>[0]): void {
-  server?.use(projectApiRoutes(o));
-}
-
-/** The URLs the stub was asked for, in order; how a write's address is asserted (K4). */
-export const projectCalls = (): readonly string[] => server?.calls ?? [];
-
-/** True when some request's URL contains `fragment`. */
-export const asked = (fragment: string): boolean =>
-  projectCalls().some((u) => u.includes(fragment));
-
-/**
- * The stubbed server, plus every store a Projects screen writes, back to its starting point around
- * each test. The resources themselves are forgotten by the global `resetSessionForTest()`, which
- * runs first — without that a project read from the previous test would still look fresh.
- */
+/** Every store a Projects screen writes, back to the sample after each test. */
 export function resetProjectStores() {
-  beforeEach(() => {
-    server = serveAuth(projectApiRoutes());
-  });
   afterEach(async () => {
     await act(async () => {
       resetProjects();
@@ -117,7 +85,5 @@ export function resetProjectStores() {
       resetQueries();
       resetSnack();
     });
-    server?.restore();
-    server = null;
   });
 }

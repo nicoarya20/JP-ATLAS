@@ -1,249 +1,214 @@
-/**
- * The four detail tabs as the screens read them: Overview, Tasks, Phases and Members of one project.
- *
- * Every getter is synchronous and reads the stores; `ensure*` fills them (§1 of the pattern doc).
- * The tabs do not share one request — the Overview alone is five — so each tab, and inside the
- * Overview each section, carries its own phase and error: one failed read says so in its own place
- * and the rest of the page stays up.
- *
- * The mapping itself lives next door (`projects.api.detail.ts`, `.plan.ts`, `.members.ts`); this
- * file is only about which resources a tab is made of and when they are asked for.
- */
-import type { ApiError } from '@/api/errors';
+// Project detail tabs ⑧–⑪ (prototype projects.detail.jsx / projects.tabs.jsx): Overview, Tasks, Phases and Members of
+// one project. Only Atlas has phases, milestones and a deadline history in the sample; other projects show their
+// list data and say what they have none of.
+import { daysBetween, monthDay } from './dates';
+import { me, person } from './people';
+import { daysLeftLabel, longDate, rangeLabel } from './projects.dates';
+import { findProject, getProjectsState, type ProjectItem } from './projects.store';
+import { type Role, TODAY } from './sample';
+import { type PhaseState, PROJECT_DETAIL, type ProjectRole } from './sample/projects.extra';
+import { getTasksList, type TaskCard, taskCard } from './tasks';
+import { isOpen } from './tasks.shared';
+import { getTasksState, type TasksState } from './tasks.state';
 
-import {
-  projectActivity,
-  projectDetail,
-  projectExtensions,
-  projectMembers,
-  projectPlan,
-} from './projects.api';
-import {
-  type OverviewActivity,
-  type OverviewAttention,
-  type OverviewPlan,
-  type OverviewProgress,
-  overviewActivity,
-  overviewPlan,
-  overviewProgress,
-  projectAttentionRows,
-  type SectionState,
-} from './projects.api.detail';
-import { type CapState, capState } from './projects.api.map';
-import { type MembersView, membersView } from './projects.api.members';
-import { type PhasesView, phasesView } from './projects.api.plan';
-import { type ProjectTaskParams, projectAttentions, projectTaskList } from './projects.api.tasks';
-import type { ResourcePhase } from './resource';
-import { type TaskCard, cardOf as taskCardOf } from './tasks.api.map';
-import { priorityWire, sortWire, statusesOf } from './tasks.api.values';
-import { PRIORITIES, type TaskQuery } from './tasks.query';
-import type { TaskPriority } from './tasks.shared';
-import { viewer } from './viewer';
+const PCT = 100;
 
-export type { AttentionRow } from './projects.api.detail';
-export { PROJECT_ROLES_LIST } from './projects.api.members';
-export type { AttentionReason } from './projects.api.tasks';
-
-const stateOf = (phase: ResourcePhase, error: ApiError | null): SectionState => ({ phase, error });
-
-/* ------------------------------------------------------------------ Overview */
-
-export type ProjectOverview = OverviewProgress & {
-  plan: OverviewPlan;
-  attention: OverviewAttention;
-  activity: OverviewActivity;
-};
-
-/** Everything the Overview needs: the plan, the three attention queries and the activity feed. */
-export async function ensureProjectOverview(id: string): Promise<void> {
-  await Promise.all([
-    projectDetail(id).ensure(),
-    projectPlan(id).ensure(),
-    projectActivity(id).ensure(),
-    ...projectAttentions(id).map((r) => r.ensure()),
-  ]);
+function projectOrThrow(id: string, what: string): ProjectItem {
+  const p = findProject(id);
+  if (!p) throw new Error(`Cannot read the ${what} of project "${id}": no such project`);
+  return p;
 }
 
-/** Fetch one part of the Overview again, for its own Try again. */
-export const reloadProjectPlan = (id: string): Promise<unknown> => projectPlan(id).reload();
-export const reloadProjectActivity = (id: string): Promise<unknown> => projectActivity(id).reload();
-export const moreProjectActivity = (id: string): Promise<void> => projectActivity(id).more();
-export const reloadProjectAttention = (id: string): Promise<unknown[]> =>
-  Promise.all(projectAttentions(id).map((r) => r.reload()));
+/** Why a task needs attention, in the order the Overview lists them. */
+export type AttentionReason = 'Overdue' | 'Awaiting review' | 'Due today';
 
-/** ⑧ Overview of project `id`; null until its detail has arrived (the header shows the state). */
-export function getProjectOverview(id: string): ProjectOverview | null {
-  const detail = projectDetail(id).current();
-  if (!detail) return null;
-  const plan = projectPlan(id).peek();
-  const activity = projectActivity(id).peek();
+/** due = "Oct 5", for the row's spoken label (the row shows the reason's icon, the title and sub). */
+export type AttentionRow = {
+  no: number;
+  title: string;
+  sub: string;
+  due: string;
+  reason: AttentionReason;
+};
+
+function reasonOf(t: TaskCard & { dueIso: string }): AttentionReason | null {
+  const d = daysBetween(TODAY, t.dueIso);
+  if (d < 0) return 'Overdue';
+  if (t.status === 'In review') return 'Awaiting review';
+  return d === 0 ? 'Due today' : null;
+}
+
+const ORDER: readonly AttentionReason[] = ['Overdue', 'Awaiting review', 'Due today'];
+
+/** Open tasks of the project that are overdue, awaiting review or due today (the prototype's #12, #17 and #14). */
+function attention(s: TasksState, role: Role, name: string): AttentionRow[] {
+  const rows = s.tasks
+    .filter((t) => t.project === name && isOpen(t))
+    .flatMap((t) => {
+      const c = taskCard(s, role, t);
+      const reason = reasonOf({ ...c, dueIso: t.due });
+      return reason
+        ? [
+            {
+              no: t.no,
+              title: `#${t.no} ${t.title}`,
+              sub: `${t.who} · ${c.note}`,
+              due: c.due,
+              reason,
+            },
+          ]
+        : [];
+    });
+  return ORDER.flatMap((r) => rows.filter((x) => x.reason === r));
+}
+
+/** ⑧ Overview of project id for `role`. */
+export function getProjectOverview(role: Role, id: string, s: TasksState = getTasksState()) {
+  const p = projectOrThrow(id, 'overview');
+  const d = PROJECT_DETAIL[id];
+  const left = daysLeftLabel(TODAY, p.due);
+  const span = p.started ? daysBetween(p.started, p.due) : 0;
+  const elapsed =
+    p.started && span > 0
+      ? Math.min(PCT, Math.max(0, Math.round((daysBetween(p.started, TODAY) / span) * PCT)))
+      : null;
+  const now = d?.phases.find((ph) => ph.state === 'In progress');
+  const next = d?.phases.find((ph) => ph.milestone && !ph.milestone.reached)?.milestone;
   return {
-    ...overviewProgress(detail),
-    plan: overviewPlan(plan.data, stateOf(plan.phase, plan.error)),
-    attention: projectAttentionRows(id),
-    activity: overviewActivity(
-      activity.data,
-      projectActivity(id).hasMore(),
-      stateOf(activity.phase, activity.error),
-    ),
+    progress: p.progress,
+    elapsed,
+    timeLine: p.started
+      ? `Start ${monthDay(p.started)} · due ${monthDay(p.due)} · ${left}`
+      : `Due ${monthDay(p.due)} · ${left}`,
+    steps: d?.phases.map((ph) => ({ name: ph.name, state: ph.state })) ?? [],
+    now: now && d ? `Now: ${now.name} · ${d.phasePct}%` : null,
+    milestone: next
+      ? {
+          name: `◆ Next milestone: ${next.name}`,
+          line: `${longDate(next.date)} · in ${daysBetween(TODAY, next.date)} days`,
+        }
+      : null,
+    attention: attention(s, role, p.name),
+    activity: (getProjectsState().activity[id] ?? []).map((a) => ({
+      text: a.text,
+      on: monthDay(a.on),
+    })),
   };
 }
 
-/** The Overview in a component, re-rendering when any of its stores changes. */
-export function useProjectOverview(id: string): ProjectOverview | null {
-  projectDetail(id).use();
-  projectPlan(id).use();
-  projectActivity(id).use();
-  for (const r of projectAttentions(id)) r.use();
-  return getProjectOverview(id);
-}
+/** Per-task action of the project's Tasks tab (Manager / Admin), by status; a Member, or a closed task, gets View. */
+export type TaskAction =
+  | { kind: 'notice'; label: string; notice: string }
+  | { kind: 'open'; label: string };
 
-/* --------------------------------------------------------------------- Tasks */
-
-/** none = the project has no tasks at all; noMatch = the filters or search leave nothing. */
-export type TasksEmpty = 'none' | 'noMatch' | null;
-
-export type ProjectTasks = {
-  cards: TaskCard[];
-  /** "5 tasks loaded", because a keyset page carries no total (GAP A-13). */
-  count: string | null;
-  empty: TasksEmpty;
-  phase: ResourcePhase;
-  error: ApiError | null;
-  hasMore: boolean;
-  /** How + New task must be drawn, from the list's own `caps.createTask`. */
-  createTask: CapState;
+const ACTIONS: Partial<Record<TaskCard['status'], TaskAction>> = {
+  'To do': { kind: 'notice', label: 'Start working', notice: 'Task started' },
+  'In progress': { kind: 'notice', label: 'Request review', notice: 'Sent for review' },
+  'In review': { kind: 'open', label: 'Review' },
 };
+const VIEW: TaskAction = { kind: 'open', label: 'View' };
 
-/** The priority a filter index asks for, or none for "All". */
-const priorityFilter = (index: number): string[] | undefined => {
-  const word = PRIORITIES[index];
-  return index && word ? [priorityWire(word as TaskPriority)] : undefined;
-};
-
-/** The request the project's Tasks tab makes, from the query its own filter sheet keeps. */
-export function projectTaskParams(query: TaskQuery, search: string): ProjectTaskParams {
-  const q = search.trim();
-  return {
-    status: statusesOf(query.status),
-    priority: priorityFilter(query.priority),
-    assigneeId: query.who ? viewer().userId : undefined,
-    q: q || undefined,
-    sort: sortWire(query.sort),
-  };
-}
-
-const taskListOf = (id: string, query: TaskQuery, search: string) =>
-  projectTaskList(id, projectTaskParams(query, search));
-
-/** Fetch the project's tasks, unless they are already fresh. */
-export const ensureProjectTasks = (
+/** ⑨ Tasks of project id as a list (with each card's action) or a board, with the project scope's query. */
+export function getProjectTasks(
+  role: Role,
   id: string,
-  query: TaskQuery,
+  view: 'list' | 'board',
   search: string,
-): Promise<unknown> => taskListOf(id, query, search).ensure();
-
-export const reloadProjectTasks = (
-  id: string,
-  query: TaskQuery,
-  search: string,
-): Promise<unknown> => taskListOf(id, query, search).reload();
-
-export const moreProjectTasks = (id: string, query: TaskQuery, search: string): Promise<void> =>
-  taskListOf(id, query, search).more();
-
-/**
- * ⑨ Tasks of project `id` as a list.
- *
- * The per-row action buttons the prototype drew from the task's status ("Start working", "Request
- * review", "Review") are not here: the capability and the step are both on the row (`can`,
- * `primary`), but the writes behind them belong to the Tasks module and are not wired to a screen
- * yet, and the task detail a user would land on is still sample data. A button that reports work it
- * did not do is worse than none, so the row opens the task instead. Listed in
- * `docs/phase2-gap-disembunyikan.md`.
- */
-export function getProjectTasks(id: string, query: TaskQuery, search: string): ProjectTasks {
-  const list = taskListOf(id, query, search);
-  const state = list.peek();
-  const items = state.data?.items ?? [];
-  const narrowed = !!(query.status || query.priority || query.who || search.trim());
-  const n = items.length;
+  s: TasksState = getTasksState(),
+) {
+  const list = getTasksList(role, { scope: `project:${id}`, view, search }, s);
+  const canEdit = role !== 'member';
+  const cards =
+    list.view === 'board'
+      ? list.columns.flatMap((c) => c.cards)
+      : list.groups.flatMap((g) => g.tasks);
   return {
-    cards: items.map(taskCardOf),
-    count: state.data ? `${n} task${n === 1 ? '' : 's'} loaded` : null,
-    empty: n > 0 || !state.data ? null : narrowed ? 'noMatch' : 'none',
-    phase: state.phase,
-    error: state.error,
-    hasMore: list.hasMore(),
-    createTask: capState(
-      state.data ? { createTask: state.data.caps.createTask } : undefined,
-      'createTask',
-    ),
+    view: list.view,
+    filtered: list.filtered,
+    /** noMatch once the query or search leaves nothing (the board too, with Reset filters). */
+    empty: list.empty,
+    cards,
+    /** List cards with their action; the board takes `cards` alone. */
+    rows:
+      list.view === 'list'
+        ? cards.map((card) => ({ card, action: (canEdit && ACTIONS[card.status]) || VIEW }))
+        : [],
+    count: `${cards.length} ${cards.length === 1 ? 'task' : 'tasks'}`,
   };
 }
 
-/** The project's tasks in a component. */
-export function useProjectTasks(id: string, query: TaskQuery, search: string): ProjectTasks {
-  taskListOf(id, query, search).use();
-  return getProjectTasks(id, query, search);
-}
+/** Button of a phase card for a Manager / Admin: complete the one in progress, start the next one. */
+const PHASE_BUTTON: Partial<
+  Record<PhaseState, { label: string; notice: string; primary: boolean }>
+> = {
+  'In progress': { label: 'Complete phase', notice: 'Phase completed', primary: true },
+  'Not started': { label: 'Start phase', notice: 'Phase started', primary: false },
+};
 
-/* -------------------------------------------------------------------- Phases */
-
-export type ProjectPhases = PhasesView & { phase: ResourcePhase; error: ApiError | null };
-
-/** The plan and the deadline history together: the Phases tab shows both. */
-export async function ensureProjectPhases(id: string): Promise<void> {
-  await Promise.all([
-    projectDetail(id).ensure(),
-    projectPlan(id).ensure(),
-    projectExtensions(id).ensure(),
-  ]);
-}
-
-export const reloadProjectPhases = (id: string): Promise<unknown[]> =>
-  Promise.all([projectPlan(id).reload(), projectExtensions(id).reload()]);
-
-/** ⑩ Phases of project `id`, with its deadline history. */
-export function getProjectPhases(id: string): ProjectPhases {
-  const plan = projectPlan(id).peek();
-  const detail = projectDetail(id).current();
-  const extensions = projectExtensions(id).current();
+/** ⑩ Phases of project id; canEdit adds the phase buttons (only on the phase right after the current one). */
+export function getProjectPhases(id: string, canEdit: boolean) {
+  projectOrThrow(id, 'phases');
+  const d = PROJECT_DETAIL[id];
+  const phases = d?.phases ?? [];
+  const nextUp = phases.findIndex((ph) => ph.state === 'Not started');
+  const h = d?.deadlineHistory;
   return {
-    ...phasesView(plan.data, detail?.can, detail?.originalDueDate ?? null, extensions),
-    phase: plan.phase,
-    error: plan.error,
+    count: `${phases.length} phases`,
+    cards: phases.map((ph, i) => {
+      const done = ph.state === 'Done';
+      const pct = done ? PCT : ph.state === 'In progress' ? (d?.phasePct ?? 0) : 0;
+      const m = ph.milestone;
+      const button = PHASE_BUTTON[ph.state];
+      return {
+        name: ph.name,
+        mark: done ? '✓' : String(i + 1),
+        range: rangeLabel(ph.start, ph.end),
+        state: ph.state,
+        now: ph.state === 'In progress',
+        pct,
+        milestone: m
+          ? {
+              name: `◆ ${m.name}`,
+              line: m.reached ? `Reached ${monthDay(m.date)}` : `${monthDay(m.date)} · Waiting`,
+            }
+          : null,
+        button: canEdit && button && (button.primary || i === nextUp) ? button : null,
+      };
+    }),
+    history: h
+      ? {
+          original: `Original deadline: ${longDate(h.from)}`,
+          change: `${monthDay(h.from)} → ${monthDay(h.to)}`,
+          reason: h.reason,
+          by: `${h.note} · by ${h.by} · ${longDate(h.on)}`,
+        }
+      : null,
   };
 }
 
-/** The Phases tab in a component. */
-export function useProjectPhases(id: string): ProjectPhases {
-  projectDetail(id).use();
-  projectPlan(id).use();
-  projectExtensions(id).use();
-  return getProjectPhases(id);
-}
+/** Project roles a member can have. */
+export const PROJECT_ROLES_LIST: readonly ProjectRole[] = ['Manager', 'Member', 'Viewer'];
 
-/* ------------------------------------------------------------------- Members */
-
-export type ProjectMembers = MembersView & { phase: ResourcePhase; error: ApiError | null };
-
-export async function ensureProjectMembers(id: string): Promise<void> {
-  await Promise.all([projectDetail(id).ensure(), projectMembers(id).ensure()]);
-}
-
-export const reloadProjectMembers = (id: string): Promise<unknown> => projectMembers(id).reload();
-
-/** ⑪ Members of project `id`. */
-export function getProjectMembers(id: string): ProjectMembers {
-  const list = projectMembers(id).peek();
-  const detail = projectDetail(id).current();
-  return { ...membersView(list.data, detail?.can), phase: list.phase, error: list.error };
-}
-
-/** The Members tab in a component. */
-export function useProjectMembers(id: string): ProjectMembers {
-  projectDetail(id).use();
-  projectMembers(id).use();
-  return getProjectMembers(id);
+/** ⑪ Members of project id for `role`. */
+export function getProjectMembers(role: Role, id: string) {
+  const p = projectOrThrow(id, 'members');
+  const myName = me(role).name;
+  const managers = p.members.filter((n) => p.roles[n] === 'Manager');
+  return {
+    name: p.name,
+    count: `${p.members.length} members`,
+    cards: p.members.map((n) => {
+      const info = person(n);
+      return {
+        name: n,
+        full: info?.full ?? n,
+        sub: info ? `${info.title} · ${info.division}` : '',
+        role: p.roles[n] ?? 'Member',
+        you: n === myName,
+        lead: n === p.lead,
+      };
+    }),
+    /** "<lead> is the only Manager…", while the Lead is the one Manager. */
+    onlyManager: managers.length === 1 && managers[0] === p.lead ? p.lead : null,
+  };
 }

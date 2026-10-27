@@ -51,17 +51,3 @@ jest.mock(
       ),
     ),
 );
-
-// From Phase 2 the app is gated on a session (app/_layout.tsx), so every test that renders the root layout loads Better
-// Auth's Expo client (src/api/auth.ts). Its three native dependencies have no implementation in jest: SecureStore
-// becomes an in-memory map, and Linking/Network return the two values the plugin reads. Factories live in
-// __tests__/helpers/expo-session-mocks.ts; a suite that wants to look inside the store mocks it again locally.
-jest.mock('expo-secure-store', () =>
-  require('./__tests__/helpers/expo-session-mocks').secureStoreMock(),
-);
-jest.mock('expo-linking', () => require('./__tests__/helpers/expo-session-mocks').linkingMock());
-jest.mock('expo-network', () => require('./__tests__/helpers/expo-session-mocks').networkMock());
-
-// The auth client refuses to be built without a server address (src/api/client.ts), on purpose: a silent default would
-// send a real session somewhere unexpected. Tests get one, and never reach it — fetch is always stubbed.
-process.env.EXPO_PUBLIC_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:3005';

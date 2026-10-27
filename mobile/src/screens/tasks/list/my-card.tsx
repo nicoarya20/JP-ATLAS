@@ -3,7 +3,7 @@
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import type { TaskCard } from '@/data/tasks.api.map';
+import type { TaskCard } from '@/data/tasks';
 
 import { S } from '../tasks.strings';
 import { cardName } from './card-name';

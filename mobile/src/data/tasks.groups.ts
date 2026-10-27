@@ -1,9 +1,8 @@
-import { today } from './clock';
 import { daysToSunday } from './dates';
 import type { Role } from './sample';
+import { TODAY } from './sample';
 import { applyQuery, SORT_DUE, SORTS, type TaskQuery } from './tasks.query';
 import { assigned, dueIn, type TaskItem } from './tasks.shared';
-import type { Viewer } from './viewer';
 
 /*
  * My tasks grouping (prototype tasks.list.jsx TasksMy): a review queue on top for Managers and Admins, then the
@@ -29,7 +28,7 @@ export function groupOf(t: Pick<TaskItem, 'status' | 'due'>): number {
   const d = dueIn(t);
   if (d < 0) return 0;
   if (d <= 1) return d + 1;
-  return d <= daysToSunday(today()) ? 3 : 4;
+  return d <= daysToSunday(TODAY) ? 3 : 4;
 }
 
 /** Title of the review queue per role; a Member has none. */
@@ -46,7 +45,7 @@ export function myGroups(
   role: Role,
   tasks: readonly TaskItem[],
   q: TaskQuery,
-  me: Viewer,
+  me: string,
 ): TaskGroup[] {
   const title = REVIEW_GROUP[role];
   const review = title

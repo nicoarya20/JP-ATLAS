@@ -9,7 +9,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import type { TaskCard } from '@/data/tasks.api.map';
+import type { TaskCard } from '@/data/tasks';
 
 import { S } from '../tasks.strings';
 import { SPOKEN } from '../tasks.strings.added';
@@ -38,15 +38,14 @@ export function AllCard({ card: t, onOpen }: AllCardProps) {
       <Pressable
         testID={`task-card-${t.no}`}
         accessibilityRole="button"
-        accessibilityLabel={cardName(t, { place: t.type ?? '', late: false, note: true })}
+        accessibilityLabel={cardName(t, { place: t.type, late: false, note: true })}
         onPress={() => onOpen(t.no)}
         className="min-w-0 flex-1"
       >
         <VStack className="gap-1">
           <CardTitle>{t.title}</CardTitle>
           <Text className="text-footnote text-muted-foreground">
-            {/* No kind on a list row (A3): the segment is left out, not shown empty. */}#{t.no}
-            {t.type ? ` · ${t.type}` : ''} · {t.whoLabel}
+            #{t.no} · {t.type} · {t.whoLabel}
           </Text>
           <Text className="text-footnote font-semibold text-foreground">{t.note}</Text>
           <HStack className="mt-1 items-center justify-between gap-2">

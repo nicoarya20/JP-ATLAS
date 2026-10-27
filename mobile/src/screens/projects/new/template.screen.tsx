@@ -12,7 +12,7 @@ import { useNotice } from '@/components/notice/use-notice';
 import { DetailPage } from '@/components/screen/detail-page';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
-import { getProjectCreate, templateDates } from '@/data/projects.sample-form';
+import { getProjectCreate, templateDates } from '@/data/projects';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
 import { allowedScreen } from '@/navigation/screen-roles';

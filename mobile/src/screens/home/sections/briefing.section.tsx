@@ -5,39 +5,20 @@ import { VStack } from '@/components/ui/vstack';
 import type { HomeData } from '@/data/home.types';
 
 import { S } from '../home.strings';
-import { WidgetCard } from '../parts/widget-card';
+import { SectionCard } from '../parts/section-card';
 
-/** Daily Briefing: the server's rule-built lines (Indonesian, as they came), then when it was built. */
-export function BriefingSection({
-  briefing,
-  onRetry,
-}: {
-  briefing: HomeData['briefing'];
-  onRetry: () => void;
-}) {
+/** Daily Briefing: rule-built lines about today, then when it was built. */
+export function BriefingSection({ briefing }: { briefing: HomeData['briefing'] }) {
   return (
-    <WidgetCard
-      title={S.briefing.title}
-      sub={S.briefing.sub}
-      icon={Sparkles}
-      section={briefing}
-      onRetry={onRetry}
-      testID="briefing-failed"
-    >
-      {(data) => (
-        <>
-          <VStack className="gap-2">
-            {data.lines.map((line) => (
-              <Text key={line} className="text-body">
-                {line}
-              </Text>
-            ))}
-          </VStack>
-          <Text className="text-footnote text-muted-foreground">
-            {S.briefing.meta(data.updatedLabel)}
+    <SectionCard title={S.briefing.title} sub={S.briefing.sub} icon={Sparkles}>
+      <VStack className="gap-2">
+        {briefing.lines.map((line) => (
+          <Text key={line} className="text-body">
+            {line}
           </Text>
-        </>
-      )}
-    </WidgetCard>
+        ))}
+      </VStack>
+      <Text className="text-footnote text-muted-foreground">{briefing.meta}</Text>
+    </SectionCard>
   );
 }

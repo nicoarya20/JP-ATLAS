@@ -1,22 +1,18 @@
-// Sign out (T2): Settings, Profile, the pending screen and the denied screen all open this dialog.
-// Phase 2 really ends the session — the server revokes it, then the phone's stored copy is emptied —
-// and the session gate (app/_layout.tsx) swaps the app for the sign-in screen as soon as the
-// session store says so, so nothing here navigates.
-import { isApiError } from '@/api';
+// Sign out (T2): Settings, Profile and the pending sign-up open the same dialog; Phase 1 only goes to the login screen
+// (no session to end yet, docs/phase1-screens.more.md §11).
+import { router } from 'expo-router';
+
 import { ConfirmDialog } from '@/components/confirm/confirm-dialog';
-import { signOutEverywhere } from '@/session';
 
 import { SIGN_OUT } from './auth.strings';
 
-/**
- * What the dialog shows when signing out failed: the server's own message when it answered, ours
- * when the request never arrived. The dialog stays open, so the person can try again or cancel —
- * a session the server still honours must not be reported as ended.
- */
-export const signOutError = (thrown: unknown): string =>
-  isApiError(thrown) && thrown.message ? thrown.message : SIGN_OUT.failed;
+/** Back to the login screen, with nothing left to go back to. */
+export function signOut() {
+  if (router.canDismiss()) router.dismissAll();
+  router.replace('/login');
+}
 
-/** The Sign out confirmation; confirming ends the session for real. */
+/** The Sign out confirmation; confirming signs out. */
 export function SignOutDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <ConfirmDialog
@@ -25,8 +21,7 @@ export function SignOutDialog({ open, onClose }: { open: boolean; onClose: () =>
       title={SIGN_OUT.title}
       message={SIGN_OUT.message}
       confirmLabel={SIGN_OUT.confirm}
-      onConfirm={signOutEverywhere}
-      errorText={signOutError}
+      onConfirm={signOut}
       danger
       testID="sign-out-dialog"
     />

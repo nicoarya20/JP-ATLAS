@@ -1,7 +1,6 @@
-import { today } from './clock';
 import { listPeople, me, ROLE_TAG } from './people';
 import { getProjectByName, listProjects } from './projects.state';
-import type { Project, Role } from './sample';
+import { type Project, type Role, TODAY } from './sample';
 import { FORM_DESC, QUICK_WRITE } from './sample/tasks.extra';
 import { TASK_PHASES } from './sample/tasks.settings';
 import {
@@ -17,7 +16,6 @@ import {
 } from './tasks.shared';
 import { findTask, getTasksState, taskInfo } from './tasks.state';
 import { addTask, editTask } from './tasks.store';
-import { viewer as signedIn } from './viewer';
 
 /*
  * Edit task and New task · Fill form (prototype tasks.edit.jsx, tasks.form.jsx, tasks.form.fields.jsx): the values a
@@ -108,7 +106,7 @@ export function getTaskEdit(role: Role, no: number): TaskEditView | null {
   const s = getTasksState();
   const t = findTask(s, no);
   if (!t) return null;
-  const viewer = signedIn(role);
+  const viewer = me(role);
   if (!mayChange(viewer, t)) {
     const text = `Only ${t.who}, the project Manager or an Admin can edit #${t.no}.`;
     return { allowed: false, title: "You can't edit this task", text };
@@ -140,7 +138,7 @@ export function getTaskEdit(role: Role, no: number): TaskEditView | null {
     members,
     phases: project ? phasesOf(project.id) : null,
     reviewLocked: t.status === 'In review',
-    member: viewer.sample.role === 'Member',
+    member: viewer.role === 'Member',
   };
 }
 
@@ -203,7 +201,7 @@ export function initialForm(project: Project): TaskForm {
     reviewer: '',
     steps: [],
     proof: [],
-    start: today(),
+    start: TODAY,
     hours: '4',
   };
 }

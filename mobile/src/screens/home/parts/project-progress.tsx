@@ -5,22 +5,16 @@ import { VStack } from '@/components/ui/vstack';
 
 import { S } from '../home.strings';
 
-type ProjectProgressProps = {
-  value: number;
-  label?: string;
-  /** What the server wrote next to the bar ("4/10"); without it the percentage is shown. */
-  display?: string;
-  onMuted?: boolean;
-};
+type ProjectProgressProps = { value: number; label?: string; onMuted?: boolean };
 
-/** Violet progress bar with an optional label and number. On a muted panel the track steps up to the surface. */
-export function ProjectProgress({ value, label, display, onMuted }: ProjectProgressProps) {
+/** Violet progress bar with an optional label and percentage. On a muted panel the track steps up to the surface. */
+export function ProjectProgress({ value, label, onMuted }: ProjectProgressProps) {
   return (
     <VStack className="gap-1">
       {label && (
         <HStack className="justify-between">
           <Text className="text-footnote">{label}</Text>
-          <Text className="text-footnote text-muted-foreground">{display ?? S.percent(value)}</Text>
+          <Text className="text-footnote text-muted-foreground">{S.percent(value)}</Text>
         </HStack>
       )}
       <Progress

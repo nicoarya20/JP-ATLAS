@@ -10,7 +10,7 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { SPACING } from '@/theme/tokens';
 
-import { APP_NAME, BRAND, SIGN_IN, SIGN_IN_FORM } from './auth.strings';
+import { APP_NAME, BRAND, SIGN_IN } from './auth.strings';
 
 /** Grey box standing in for an image (prototype kit Media). */
 export function Media({ label, small }: { label: string; small?: boolean }) {
@@ -56,28 +56,17 @@ export function Brand() {
   );
 }
 
-/**
- * The Google button, switched off with the reason next to it, and the approval note.
- *
- * Google sign-in cannot work in Expo Go: the deep-link scheme it would be called back on is not
- * registered there, and Google will not accept an `http` LAN address as a redirect URI
- * (reacttransition.md §6c). It stays visible rather than hidden, so nobody looks for a button that
- * is simply missing, and the reason is a line of text, not a tooltip a phone cannot show.
- */
-export function GoogleUnavailable() {
+/** "Sign in to your account" with the Google button and the approval note. */
+export function SignIn({ onGoogle }: { onGoogle: () => void }) {
   return (
-    <VStack className="gap-4" testID="google-unavailable">
-      <Button
-        size="lg"
-        variant="outline"
-        isDisabled
-        className="gap-3"
-        accessibilityHint={SIGN_IN_FORM.googleUnavailable}
-      >
+    <VStack className="gap-4">
+      <Text accessibilityRole="header" className="text-section font-semibold">
+        {SIGN_IN.title}
+      </Text>
+      <Button size="lg" variant="outline" onPress={onGoogle} className="gap-3">
         <GoogleMark />
         <ButtonText>{SIGN_IN.google}</ButtonText>
       </Button>
-      <Text className="text-footnote text-muted-foreground">{SIGN_IN_FORM.googleUnavailable}</Text>
       <Text className="text-footnote text-muted-foreground">{SIGN_IN.note}</Text>
     </VStack>
   );

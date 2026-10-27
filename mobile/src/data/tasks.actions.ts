@@ -1,11 +1,9 @@
-import { today } from './clock';
 import { me } from './people';
 import type { Role, TaskStatus } from './sample';
-import { CANCEL_WORDS } from './tasks.api.values';
+import { TODAY } from './sample';
 import { buildTaskDetail, type TaskActionKey, type TaskMenuKey } from './tasks.detail';
 import { getTasksState, taskInfo } from './tasks.state';
 import { archiveTask, moveTask, unarchiveTask } from './tasks.store';
-import { viewer as signedIn } from './viewer';
 
 /*
  * Detail actions and the Return / Cancel sheets (prototype useStatusAction, tasks.sheets.jsx): each writes the new
@@ -25,8 +23,14 @@ const STATUS_ACTION: Record<TaskActionKey, { to: TaskStatus; notice: string; log
 /** Return sheet quick picks (fill the reason). */
 export const RETURN_QUICK = ['Still has errors', 'Not as requested', 'Evidence unclear'] as const;
 
-/** Cancel sheet reasons; the last one (Other) needs a note. The words live with the server's enum. */
-export const CANCEL_REASONS = CANCEL_WORDS;
+/** Cancel sheet reasons; the last one (Other) needs a note. */
+export const CANCEL_REASONS = [
+  'Duplicate / already exists',
+  'No longer needed',
+  'Outside the project scope',
+  'Created by mistake',
+  'Other',
+] as const;
 export const CANCEL_OTHER = CANCEL_REASONS.length - 1;
 
 function detailOrThrow(role: Role, no: number, what: string) {
@@ -46,13 +50,13 @@ export function runTaskAction(role: Role, no: number, key: TaskActionKey): strin
       ? d.stateNote?.kind === 'canceled' && d.stateNote.restore
       : d.actions.some((a) => a.key === key);
   if (!offered) throw refuse(key, no, role);
-  const viewer = signedIn(role);
+  const viewer = me(role);
   const a = STATUS_ACTION[key];
   const by = taskInfo(getTasksState(), no).reviewer?.split(' ')[0] ?? '';
   const log = key === 'requestReview' ? `${a.log} · reviewer: ${by}` : a.log;
   const extras =
     key === 'requestReview'
-      ? { asked: { by: viewer.name, on: today() } }
+      ? { asked: { by: viewer.name, on: TODAY } }
       : key === 'restore'
         ? { canceled: undefined }
         : undefined;

@@ -1,22 +1,11 @@
-// The sample events and the changes the prototype made to them, ported from events.store.js.
-//
-// SAMPLE ONLY since Phase 2. The Events screens read the server (`events.api.ts`) and write through
-// it; what is still here serves the modules that have not been ported yet and read `eventsStore`
-// directly — the Profile calendar, Archive, and the Home/Inbox widgets until their own wave — plus
-// the recording → outcomes → results screens, which have no server side at all (GAP-A8).
-//
-// Nothing here talks to the server, and the two names it shares with `events.api.ts`
-// (`cancelEvent`, `restoreEvent`) act on the sample, not on a real event. Do not add to this file:
-// when a module is ported, its reads move to a resource and its share of this one goes away.
-//
-// The query store below is *not* sample-only: `eventsQueryStore` is the live Filter & sort state
-// (phase1-screens.md K4) and `events.query.ts` turns it into what the server is asked for.
+// Event changes, ported from the prototype's events.store.js: New event / Edit save the form, ⋯ › Cancel marks the
+// event Canceled (one occurrence or the series), ⋯ › Move to Archive moves it (or one occurrence) to Archive until Undo
+// restores it, and Step 3 › Create tasks confirms its outcomes as tasks. Screens read through src/data/events.ts.
 import { addEntry, removeEntry } from './archive.store';
-import { today } from './clock';
 import { addDays, dateLabel } from './events.dates';
 import { BASE_QUERY, type EventsQuery } from './events.query';
 import { type EventItem, type EventType, eventProject, REPEAT_DAYS } from './events.shared';
-import { EVENTS, type SampleEvent } from './sample';
+import { EVENTS, type SampleEvent, TODAY } from './sample';
 import { type DraftTask, EVENT_EXTRA, type Repeat } from './sample/events.extra';
 import { createStore, useStore } from './store';
 import { addTask } from './tasks.store';
@@ -116,7 +105,7 @@ export function addEvent(fields: EventFields, creator: string): string {
     status: 'Upcoming',
     attendees: [],
     creator,
-    updated: today(),
+    updated: TODAY,
   };
   const e = write(blank, fields);
   const added = { ...e, attendees: [creator, ...e.attendees.filter((n) => n !== creator)] };
@@ -126,7 +115,7 @@ export function addEvent(fields: EventFields, creator: string): string {
 
 /** Save the Edit form of event id (same fields as addEvent); the event moves if its date changed. */
 export function editEvent(id: string, fields: EventFields, editor: string): void {
-  const e = { ...write(listed(id, 'edit'), fields), updated: today(), editor };
+  const e = { ...write(listed(id, 'edit'), fields), updated: TODAY, editor };
   eventsStore.set((s) => ({ ...s, list: insert(without(s.list, id), e) }));
 }
 
@@ -145,7 +134,7 @@ export function cancelEvent(id: string, reason: string, by: string, { once = fal
  */
 export function archiveEvent(id: string, by: string, { once = false } = {}): string {
   const e = listed(id, 'archive');
-  const entry = { kind: 'EVENT' as const, where: eventProject(e), by, date: today() };
+  const entry = { kind: 'EVENT' as const, where: eventProject(e), by, date: TODAY };
   const s = eventsStore.get();
   if (once && e.repeat) {
     const from = e.date;
@@ -239,7 +228,7 @@ export function confirmOutcomes(id: string, drafts: readonly DraftTask[], by: st
       by,
     ),
   );
-  const done: EventItem = { ...e, status: 'Done', outcomes: { tasks, by, date: today() } };
+  const done: EventItem = { ...e, status: 'Done', outcomes: { tasks, by, date: TODAY } };
   const swap = (list: readonly EventItem[]) => list.map((x) => (x.id === id ? done : x));
   eventsStore.set((s) => ({ ...s, list: swap(s.list), archived: swap(s.archived) }));
   return tasks;

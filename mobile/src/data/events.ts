@@ -1,12 +1,7 @@
-// Events data per screen. Phase 2 swapped the sample for the server: `events.api.ts` fetches
-// `/api/app/events*` into resources, `events.map.ts` turns its DTOs into the shape the screens read,
-// and the getters below stay synchronous reads of what is held (`mobile/docs/phase2-pola-data.md`).
-// Screens ask for the data with `syncEventsList` / `syncEventsWindow` / `eventDetailResource` and
-// watch the resource's phase for loading and failure.
-//
-// The getters live per screen in events.list.ts, events.calendar.ts and events.detail.ts; the
-// recording, outcomes and results screens still read the sample (events.results.ts), because they
-// have no server side at all — GAP-A8.
+// Events data per screen, the swap point to the API: today each getter reads the in-memory events store
+// (events.store.ts), in Phase 2 it becomes a fetch of /api/app/events… returning the same shape. Screens re-render
+// through useEventsState() / useEventsQuery() and call these getters for what they show. The getters live per screen
+// in events.list.ts, events.calendar.ts and events.detail.ts; outcomes and results: events.results.ts.
 export {
   type AgendaItem,
   type CalendarDay,
@@ -14,16 +9,11 @@ export {
   type EventsCalendarData,
   getEventsCalendar,
   stepCalendar,
-  windowKeyOf,
 } from './events.calendar';
 export {
   type EventAttendee,
   type EventDetailData,
-  type EventFormData,
-  type EventMenuItem,
-  type FormGuest,
   getEventDetail,
   getEventForm,
 } from './events.detail';
 export { type EventCard, type EventsListData, getEventsList } from './events.list';
-export type { ServerEvent, ServerEventDetail } from './events.map';

@@ -1,4 +1,5 @@
 import { monthDay } from './dates';
+import { me } from './people';
 import { findProject } from './projects.state';
 import { type Role, TASK_REVIEWERS } from './sample';
 import { boardColumns } from './tasks.columns';
@@ -26,7 +27,6 @@ import {
   whoLabel,
 } from './tasks.shared';
 import { getTasksState, type TasksState } from './tasks.state';
-import { viewer as signedIn, type Viewer } from './viewer';
 
 /*
  * Tasks data in one call per screen, the swap point to the API: today built from the sample data in tasks.store,
@@ -89,7 +89,7 @@ const FALLBACK_REVIEWER = TASK_REVIEWERS[17]?.split(' ')[0] ?? '';
 
 /** Card view of task t for `role`. */
 export function taskCard(s: TasksState, role: Role, t: TaskItem): TaskCard {
-  const viewer = signedIn(role);
+  const viewer = me(role);
   const days = dueIn(t);
   const late = days < 0;
   return {
@@ -112,8 +112,8 @@ export function taskCard(s: TasksState, role: Role, t: TaskItem): TaskCard {
 }
 
 /** Tasks a scope starts from: mine, every listed task, or one project's. */
-function sourceOf(s: TasksState, scope: TaskScope, who: Viewer): readonly TaskItem[] {
-  if (scope === 'mine') return s.tasks.filter((t) => assigned(t, who));
+function sourceOf(s: TasksState, scope: TaskScope, name: string): readonly TaskItem[] {
+  if (scope === 'mine') return s.tasks.filter((t) => assigned(t, name));
   const id = projectOfScope(scope);
   if (!id) return s.tasks;
   // By id in the projects store: a renamed project keeps its tasks.
@@ -130,14 +130,14 @@ export function getTasksList(
 ): TasksList {
   const { scope, view, search = '' } = options;
   const query = options.query ?? getQuery(scope);
-  const who = signedIn(role);
+  const name = me(role).name;
   const card = (t: TaskItem) => taskCard(s, role, t);
   const filtered = isFiltered(query);
   const narrowed = filtered || !!search.trim();
   const base = { scope, query, filtered };
   if (view === 'board') {
-    const source = searchTasks(sourceOf(s, scope, who), search);
-    const tasks = applyQuery(source, query, { board: true, me: who });
+    const source = searchTasks(sourceOf(s, scope, name), search);
+    const tasks = applyQuery(source, query, { board: true, me: name });
     const columns = boardColumns(tasks).map((c) => ({ ...c, cards: c.tasks.map(card) }));
     // An empty board without filters keeps its empty columns (prototype); a narrowed one says so, with Reset (UX §4).
     return { ...base, view, columns, empty: !tasks.length && narrowed ? 'noMatch' : null };
@@ -145,15 +145,15 @@ export function getTasksList(
   // My tasks reads every task: its review queue spans the team, myGroups picks the viewer's own.
   const groups: TaskCardGroup[] =
     scope === 'mine'
-      ? myGroups(role, searchTasks(s.tasks, search), query, who).map((g) => ({
+      ? myGroups(role, searchTasks(s.tasks, search), query, name).map((g) => ({
           title: g.title,
           tasks: g.tasks.map(card),
         }))
       : [
           {
             title: null,
-            tasks: applyQuery(searchTasks(sourceOf(s, scope, who), search), query, {
-              me: who,
+            tasks: applyQuery(searchTasks(sourceOf(s, scope, name), search), query, {
+              me: name,
             }).map(card),
           },
         ].filter((g) => g.tasks.length);

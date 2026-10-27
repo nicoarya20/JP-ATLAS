@@ -4,34 +4,33 @@
 // whose cards fly from their places to the finger (MoveStack). Each card's gesture (use-move-gesture) tracks the
 // finger on the UI thread (`values`: the aim, to call aimTo only on a change, and the ring's angle) and calls open /
 // aimTo / finish here on JS, where the aim and "slid out" are kept: release decisions never read UI-thread state.
-//
-// Which sides are open, and what a release writes, are the caller's (`BoardMoves`): against the server a side is
-// `can{}`'s answer for that card and a move is one request per task, against the sample store it is the store's own
-// rule and one call. Either way a side that is shut is decided before the ring is drawn, never by a refusal after it.
 import { useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { useReducedMotion, useSharedValue } from 'react-native-reanimated';
 
 import { useNotice } from '@/components/notice/use-notice';
+import { me } from '@/data/people';
+import type { Role } from '@/data/sample';
+import type { TaskCard } from '@/data/tasks';
 import { type BoardStatus, holdGroup, sharedStatus } from '@/data/tasks.columns';
 import { clampCenter } from '@/data/tasks.radial';
+import { deniedNotice } from '@/data/tasks.shared';
+import { moveOnBoard } from '@/data/tasks.store';
 
-import type { BoardCardData, BoardMoves } from './board-cards';
-import { type MoveMenuState, measureGroup } from './move-menu.state';
+import { type MoveMenuState, measureGroup, taskOf } from './move-menu.state';
 import { useCardViews, useClosingMenu, useTapGuard } from './use-move-menu.parts';
 
 type MoveMenuOptions = {
+  role: Role;
   /** Cards on the board, and the picked ones still on it. */
-  cards: readonly BoardCardData[];
+  cards: readonly TaskCard[];
   picked: readonly number[];
-  /** How this board moves its cards. */
-  moves: BoardMoves;
   /** A group was moved: selecting ends. */
   onGroupMoved: () => void;
 };
 
 /** The move menu of one board. */
-export function useMoveMenu({ cards, picked, moves, onGroupMoved }: MoveMenuOptions) {
+export function useMoveMenu({ role, cards, picked, onGroupMoved }: MoveMenuOptions) {
   const notice = useNotice();
   const reduced = useReducedMotion();
   const screen = useWindowDimensions();
@@ -53,13 +52,6 @@ export function useMoveMenu({ cards, picked, moves, onGroupMoved }: MoveMenuOpti
     setMenu(m);
   };
 
-  /** The card #no on the board; the menu and its moves only ever name cards that are on it. */
-  const cardOrThrow = (no: number) => {
-    const card = cards.find((c) => c.no === no);
-    if (!card) throw new Error(`Cannot open the move menu: task #${no} is not on the board`);
-    return card;
-  };
-
   const close = (moved: BoardStatus | null = null) => {
     const m = live.current;
     if (!m) return;
@@ -69,35 +61,32 @@ export function useMoveMenu({ cards, picked, moves, onGroupMoved }: MoveMenuOpti
   };
 
   const open = (no: number, x: number, y: number) => {
-    const card = cardOrThrow(no);
+    const task = taskOf(no);
     tap.hold(); // letting go after the hold is not a tap that opens the task
     if (live.current) return;
-    const nos = holdGroup(no, picked);
-    const held = nos.map(cardOrThrow);
-    const allowed = moves.sidesForAll(held);
-    // Nowhere to move it to is not a menu: say why instead of opening a ring of dead options.
-    if (!allowed.length) {
-      notice(moves.denied(card));
+    if (!cards.find((c) => c.no === no)?.mayChange) {
+      notice(deniedNotice(task));
       return;
     }
     aimed.current = null;
     slid.current = false;
     setAim(null);
+    const nos = holdGroup(no, picked);
+    const tasks = nos.map(taskOf);
     const group = nos.length > 1;
     const center = clampCenter(x, y, screen.width, screen.height, group);
     show({
       no,
       nos,
-      title: `#${no} ${card.title}`,
-      from: sharedStatus(held),
-      allowed,
+      title: `#${no} ${task.title}`,
+      from: sharedStatus(tasks),
       ...center,
       sticky: false,
       group,
       stack: null,
     });
     if (!group) return;
-    measureGroup(no, views.current, held, screen, center).then((stack) => {
+    measureGroup(no, views.current, tasks, screen, center).then((stack) => {
       if (live.current?.no !== no) return;
       // Without the cards' places the group cannot fly in: cancel the move (nothing moves, the picks stay).
       if (stack) show({ ...live.current, stack });
@@ -105,29 +94,23 @@ export function useMoveMenu({ cards, picked, moves, onGroupMoved }: MoveMenuOpti
     });
   };
 
-  /** Move the menu's tasks to `status` and close; a status they share, or a shut side, only closes. */
+  /** Move the menu's tasks to `status` and close; the status they share only closes. */
   const pick = (status: BoardStatus) => {
     const m = live.current;
     if (!m) return;
-    const taking = status !== m.from && m.allowed.includes(status);
-    close(taking ? status : null);
-    if (!taking) return;
-    const held = m.nos.map(cardOrThrow);
-    void (async () => {
-      const said = await moves.move(held, m.nos, status);
-      if (said) notice(said);
-    })();
+    close(status === m.from ? null : status);
+    if (status === m.from) return;
+    const { notice: text } = moveOnBoard(me(role), m.nos, status);
+    if (text) notice(text);
     if (m.group) onGroupMoved();
   };
 
-  /** The slide now points at `status` (null: back in the centre). A shut side is not an aim. */
+  /** The slide now points at `status` (null: back in the centre). */
   const aimTo = (status: BoardStatus | null) => {
-    const m = live.current;
-    if (!m || m.sticky) return;
-    const at = status && m.allowed.includes(status) ? status : null;
-    aimed.current = at;
+    if (!live.current || live.current.sticky) return;
+    aimed.current = status;
     if (status) slid.current = true;
-    setAim(at);
+    setAim(status);
   };
 
   /** The hold ended: aimed = move, slid out and back = cancel, never slid = stay open; a system cancel closes. */
@@ -156,8 +139,6 @@ export function useMoveMenu({ cards, picked, moves, onGroupMoved }: MoveMenuOpti
     register,
     takeTap: tap.takeTap,
     resetTap: tap.resetTap,
-    /** The columns one card may be moved to, for the screen-reader actions on it. */
-    sidesFor: moves.sidesFor,
   };
 }
 

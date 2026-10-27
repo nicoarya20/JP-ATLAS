@@ -1,41 +1,23 @@
-// My calendar against a stubbed `/api/app/events?from&to`: the week it asks for, the blocks it
-// places, and the week strip's drag. The prototype's "now" line is gone — the server's clock
-// carries today's date and the team zone but no instant to draw a line at.
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { createGestureController } from 'react-native-gesture-handler/jest-utils';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
+import { resetEvents } from '../../src/data/events.store';
+import type { Role } from '../../src/data/sample';
 import { CalendarScreen } from '../../src/screens/profile/calendar.screen';
-import { listItem, page } from '../helpers/events-server';
-import { type Reply, serveAppApi } from '../helpers/team-trash-server';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
+
+// The signed-in role, as a variable: biome reads a literal `role` prop as an ARIA role.
+const PM: Role = 'pm';
 
 // test-only: a 350 px strip, so a page needs 87.5 px of drag.
 const STRIP_PX = 350;
 const FRAME_MS = 16;
 /** Longer than the 220 ms slide. */
 const SETTLED_MS = 400;
-
-/** Two of my events on Wednesday 7 Oct, in the team's zone: 09:00–10:00 and 14:00–15:00. */
-const MINE = page([
-  listItem({
-    id: 'daily',
-    kind: 'meeting',
-    startsAt: '2026-10-07T02:00:00.000Z',
-    endsAt: '2026-10-07T03:00:00.000Z',
-  }),
-  listItem({ id: 'review' }),
-]);
-
-let events: Reply = { body: MINE };
-
-const server = serveAppApi(({ path }) => {
-  if (path === '/api/app/events') return events;
-  return { status: 500, body: { error: `no stub for ${path}`, code: 'X', status: 500 } };
-});
 
 const Providers = ({ children }: { children: React.ReactNode }) => (
   <GestureHandlerRootView>
@@ -49,9 +31,7 @@ const advance = (ms: number) =>
   });
 
 async function open() {
-  await render(<CalendarScreen />, { wrapper: Providers });
-  // The week is asked for on mount; let it answer before anything is asserted.
-  await act(async () => {});
+  await render(<CalendarScreen role={PM} />, { wrapper: Providers });
   await fireEvent(screen.getByTestId('week-strip'), 'layout', {
     nativeEvent: { layout: { x: 0, y: 0, width: STRIP_PX, height: 72 } },
   });
@@ -65,26 +45,19 @@ async function drag(pan: ReturnType<typeof createGestureController>, dx: number,
   await act(() => pan.update({ translationX: dx, velocityX: vx }));
   await act(() => pan.end({ translationX: dx, velocityX: vx }));
   await advance(SETTLED_MS);
-  await act(async () => {});
 }
 
 const dayText = () => screen.getByTestId('calendar-day');
 
 beforeEach(() => {
   jest.useFakeTimers();
-  events = { body: MINE };
+  resetEvents();
   jest.clearAllMocks();
 });
 afterEach(() => jest.useRealTimers());
 
 describe('My calendar', () => {
-  it('asks for the week it shows, once', async () => {
-    await open();
-    const asked = server.to('/api/app/events').map((c) => Object.fromEntries(c.search));
-    expect(asked).toEqual([{ from: '2026-10-04', to: '2026-10-10', limit: '100' }]);
-  });
-
-  it('opens on today: the month, the picked day with its count, and my blocks', async () => {
+  test('opens on today: month, picked day with its count, my events and the now line', async () => {
     await open();
     expect(screen.getByRole('header', { name: 'October 2026' })).toBeOnTheScreen();
     expect(dayText()).toHaveTextContent('Wednesday, Oct 7, 2026 · 2 events');
@@ -92,27 +65,28 @@ describe('My calendar', () => {
     expect(screen.getByTestId('calendar-block-daily')).toBeOnTheScreen();
     expect(screen.getByTestId('calendar-block-review').props.className).toContain('bg-accent');
     expect(screen.getByTestId('calendar-block-daily').props.className).toContain('bg-info-soft');
+    expect(screen.getByTestId('now-line', { includeHiddenElements: true })).toHaveTextContent(
+      '9:41',
+      {
+        exact: false,
+      },
+    );
   });
 
-  it('draws no "now" line, because the server sends no instant to put one at', async () => {
-    await open();
-    expect(screen.queryByTestId('now-line', { includeHiddenElements: true })).not.toBeOnTheScreen();
-  });
-
-  it('shows another day of the same week without asking again', async () => {
+  test('picking another day shows its events and drops the now line', async () => {
     await open();
     await fireEvent.press(screen.getByLabelText('Monday, Oct 5, 2026'));
     expect(dayText()).toHaveTextContent('Monday, Oct 5, 2026 · No events');
-    expect(server.to('/api/app/events')).toHaveLength(1);
+    expect(screen.queryByTestId('now-line', { includeHiddenElements: true })).not.toBeOnTheScreen();
   });
 
-  it('runs the hours from 12 AM, which is shown too', async () => {
+  test('the hours run from 12 AM, which is shown too', async () => {
     await open();
     expect(screen.getByText('12 AM')).toBeOnTheScreen();
     expect(screen.getByText('1 AM')).toBeOnTheScreen();
   });
 
-  it('gives every block a 44 pt touch target', async () => {
+  test('every event block reaches a 44 pt touch target', async () => {
     await open();
     for (const block of screen.getAllByTestId(/^calendar-block-/)) {
       const { height } = block.props.style;
@@ -121,24 +95,22 @@ describe('My calendar', () => {
     }
   });
 
-  it('opens the event a block stands for', async () => {
+  test('an event block opens the event', async () => {
     await open();
     await fireEvent.press(screen.getByTestId('calendar-block-review'));
     expect(router.push).toHaveBeenCalledWith('/events/review');
   });
 
-  it('pages to the next week on a long drag left, and asks for that week', async () => {
+  test('a long drag left pages to the next week; right goes back', async () => {
     const pan = await open();
-    events = { body: page([]) };
     await drag(pan, -150);
     expect(dayText()).toHaveTextContent(/^Wednesday, Oct 14, 2026/);
     expect(screen.getByTestId('week-day-2026-10-11')).toBeOnTheScreen();
-    expect(server.to('/api/app/events').at(-1)?.search.get('from')).toBe('2026-10-11');
     await drag(pan, 150);
     expect(dayText()).toHaveTextContent(/^Wednesday, Oct 7, 2026/);
   });
 
-  it('springs back on a short slow drag, and pages on a short flick', async () => {
+  test('a short slow drag springs back; a short flick pages', async () => {
     const pan = await open();
     await drag(pan, -40);
     expect(dayText()).toHaveTextContent(/^Wednesday, Oct 7, 2026/);
@@ -146,7 +118,7 @@ describe('My calendar', () => {
     expect(dayText()).toHaveTextContent(/^Wednesday, Oct 14, 2026/);
   });
 
-  it('keeps each day its own button, and pages with a named action', async () => {
+  test('each day stays its own button, and pages with a named action', async () => {
     await open();
     expect(screen.queryByRole('adjustable')).not.toBeOnTheScreen();
     const days = screen.getAllByTestId(/^week-day-/);
@@ -156,20 +128,13 @@ describe('My calendar', () => {
       'Previous week',
       'Next week',
     ]);
-    const paged = (iso: string, actionName: string) =>
+    const page = (iso: string, actionName: string) =>
       fireEvent(screen.getByTestId(`week-day-${iso}`), 'accessibilityAction', {
         nativeEvent: { actionName },
       });
-    await paged('2026-10-07', 'previous-week');
+    await page('2026-10-07', 'previous-week');
     expect(dayText()).toHaveTextContent(/^Wednesday, Sep 30, 2026/);
-    await paged('2026-09-30', 'next-week');
+    await page('2026-09-30', 'next-week');
     expect(dayText()).toHaveTextContent(/^Wednesday, Oct 7, 2026/);
-  });
-
-  it("shows the server's own sentence when the week cannot be read", async () => {
-    events = { status: 500, body: { error: 'Ada yang salah.', code: 'INTERNAL', status: 500 } };
-    await open();
-    expect(screen.getByText('Ada yang salah.')).toBeOnTheScreen();
-    expect(screen.queryByTestId('day-grid')).not.toBeOnTheScreen();
   });
 });

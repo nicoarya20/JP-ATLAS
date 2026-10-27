@@ -1,16 +1,17 @@
-// Events ① list and ①b Filter & sort through the real route tree, against the fake
-// `/api/app/events` (helpers/events-api-fixtures.ts): upcoming events by schedule, the filter
-// sheet's draft, the dot, group by type, Reset filters, and the search text as a server query.
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
-import { PAST_IDS, SERVER_EVENTS } from '../helpers/events-api-fixtures';
-import { answerEvents, eventCalls, openEvents, resetEventStores } from '../helpers/events-router';
-import { listItem, page } from '../helpers/events-server';
+// Events ① list and ①b Filter & sort (port of prototype events.filter.test / events.items.test): upcoming events by
+// schedule, the filter sheet's draft, the dot, group by type, Reset filters, the search, results buttons per role.
+import { fireEvent, screen, within } from '@testing-library/react-native';
+
+import { archiveEvent } from '../../src/data/events.store';
+import { EVENTS } from '../../src/data/sample/events';
+import { openEvents, resetEventStores } from '../helpers/events-router';
 
 resetEventStores();
 
-const UPCOMING = SERVER_EVENTS.filter((e) => !PAST_IDS.includes(e.id)).map((e) => e.id);
+const PAST = ['kickoff', 'daily'];
+const UPCOMING = EVENTS.filter((e) => !PAST.includes(e.id));
 const card = (id: string) => screen.queryByTestId(`event-card-${id}`);
-const shown = () => SERVER_EVENTS.filter((e) => card(e.id)).map((e) => e.id);
+const shown = () => EVENTS.filter((e) => card(e.id)).map((e) => e.id);
 /** The list's group headings (the Events title is a header too). */
 const heads = () =>
   screen
@@ -21,129 +22,101 @@ const filterButton = () => screen.getByRole('button', { name: 'Filter and sort' 
 const filterOn = () => filterButton().props.accessibilityValue?.text === 'Filters on';
 const sheet = () => within(screen.getByTestId('filter-sheet'));
 const press = (name: string) => fireEvent.press(sheet().getByRole('button', { name }));
-const apply = () => fireEvent.press(sheet().getByText('Apply'));
-const search = () => screen.getByLabelText('Search event title…');
 
 async function openFilter() {
   await fireEvent.press(filterButton());
   expect(screen.getByRole('header', { name: 'Filter & sort' })).toBeOnTheScreen();
 }
-
-/** The list's own calls, as query objects. */
-const asked = () =>
-  eventCalls()
-    .filter((c) => c.path === '/api/app/events')
-    .map((c) => Object.fromEntries(c.search));
-
-const listed = async (url = '/events', role: 'pm' | 'member' = 'pm') => {
-  await openEvents(url, role);
-  await waitFor(() => expect(screen.queryByTestId('events-loading')).not.toBeOnTheScreen());
-};
+const apply = () => fireEvent.press(sheet().getByText('Apply'));
 
 describe('events list', () => {
-  it('shows a loading state before the first answer', async () => {
-    await openEvents('/events');
-    // The list is asked for on mount; nothing is drawn until it answers.
-    expect(screen.getByTestId('events-loading')).toBeOnTheScreen();
-    await waitFor(() => expect(screen.queryByTestId('events-loading')).not.toBeOnTheScreen());
-  });
-
   it('opens on the upcoming events by schedule, without the filter dot', async () => {
-    await listed();
+    await openEvents('/events');
     expect(screen.getByTestId('screen-events')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Search title or location…')).toBeOnTheScreen();
     expect(screen.getByRole('tab', { name: 'List' })).toBeSelected();
-    expect(shown()).toEqual(UPCOMING);
+    expect(shown()).toEqual(UPCOMING.map((e) => e.id));
     expect(heads()).toContain('Today · Wed, Oct 7');
     expect(filterOn()).toBe(false);
-    expect(asked()).toEqual([{ tab: 'upcoming', limit: '30' }]);
   });
 
-  it('asks the server for the search text instead of narrowing what is loaded', async () => {
-    await listed();
-    await act(async () => {
-      fireEvent.changeText(search(), 'sinar');
-    });
-    // Typing settles first, so a word is one request and not one per keystroke.
-    await waitFor(() => expect(shown()).toEqual(['sinar']));
-    expect(asked().at(-1)).toEqual({ tab: 'upcoming', q: 'sinar', limit: '30' });
+  it('marks a repeating event and leaves the results button off upcoming cards', async () => {
+    await openEvents('/events');
+    const sprint = card('sprint');
+    expect(sprint && within(sprint).getByTestId('event-repeat')).toBeOnTheScreen();
+    expect(screen.queryByText('View results')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Check results')).not.toBeOnTheScreen();
+  });
+
+  it('the search narrows the list by title or location', async () => {
+    await openEvents('/events');
+    await fireEvent.changeText(screen.getByLabelText('Search title or location…'), 'sinar');
+    expect(shown()).toEqual(['sinar']);
   });
 
   it('opens the tapped card’s own detail', async () => {
-    await listed();
+    await openEvents('/events');
     await fireEvent.press(screen.getByTestId('event-card-sinar'));
     expect(screen).toHavePathname('/events/sinar');
-    expect(await screen.findByText('Progress presentation to PT Sinar')).toBeOnTheScreen();
+    expect(screen.getByTestId('screen-event')).toBeOnTheScreen();
+    expect(screen.getByText('Progress presentation to PT Sinar')).toBeOnTheScreen();
   });
 
-  it('shows the empty state with New event when the first unfiltered page is empty', async () => {
-    answerEvents((call) => (call.path === '/api/app/events' ? { body: page([]) } : null));
-    await listed('/events', 'member');
+  it('the Member empty state offers New event', async () => {
+    for (const e of EVENTS) archiveEvent(e.id, 'Nico');
+    await openEvents('/events', 'member');
     expect(screen.getByTestId('events-empty')).toBeOnTheScreen();
+    expect(screen.getByText('No events yet')).toBeOnTheScreen();
     const empty = within(screen.getByTestId('events-empty'));
     await fireEvent.press(empty.getByRole('button', { name: 'New event' }));
     expect(screen).toHavePathname('/events/new');
   });
+});
 
-  it("hides the empty state's New event when the server says this account may not create one", async () => {
-    answerEvents((call) =>
-      call.path === '/api/app/events' ? { body: page([], { caps: { createEvent: false } }) } : null,
-    );
-    await listed();
-    const empty = within(screen.getByTestId('events-empty'));
-    expect(empty.queryByRole('button', { name: 'New event' })).not.toBeOnTheScreen();
-    // The tab bar's own "+" is still there: it lives in the shared navigation, which this wave may
-    // not change. Noted in the Gelombang 1 hand-over as the one control `caps.createEvent` misses.
-    expect(screen.queryByRole('button', { name: 'New event' })).toBeOnTheScreen();
-  });
+describe('events results buttons', () => {
+  const pastList = async (role: 'pm' | 'member') => {
+    await openEvents('/events', role);
+    await openFilter();
+    await press('Past');
+    await apply();
+  };
 
-  it('offers Try again when the list cannot be read, and shows the server’s own words', async () => {
-    answerEvents((call) =>
-      call.path === '/api/app/events'
-        ? {
-            status: 500,
-            body: {
-              error: 'Server sedang bermasalah.',
-              code: 'INTERNAL',
-              status: 500,
-              requestId: 'r1',
-            },
-          }
-        : null,
-    );
-    await listed();
-    expect(screen.getByTestId('events-failed')).toBeOnTheScreen();
-    expect(screen.getByText('Server sedang bermasalah.')).toBeOnTheScreen();
-    const before = asked().length;
-    await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
-    expect(asked().length).toBe(before + 1);
-  });
-
-  it('loads a further page when the server says there is one', async () => {
-    answerEvents((call) => {
-      if (call.path !== '/api/app/events') return null;
-      return call.search.get('cursor')
-        ? { body: page([listItem({ id: 'extra', title: 'One more' })]) }
-        : { body: page([listItem({ id: 'first', title: 'First' })], { nextCursor: 'c1' }) };
+  it('PM: View results on the confirmed kickoff, Check results on the unconfirmed stand-up', async () => {
+    await pastList('pm');
+    expect(shown()).toEqual(PAST);
+    const kickoff = card('kickoff');
+    const daily = card('daily');
+    expect(kickoff && within(kickoff).getByText('View results')).toBeOnTheScreen();
+    expect(daily && within(daily).getByText('Check results')).toBeOnTheScreen();
+    expect(filterOn()).toBe(true);
+    // one stop per card: the results button is the card's named action, not a second element
+    expect(daily?.props.accessibilityActions).toEqual([
+      { name: 'activate' },
+      { name: 'results', label: 'Check results' },
+    ]);
+    expect(screen.queryByRole('button', { name: 'Check results' })).not.toBeOnTheScreen();
+    await fireEvent(daily as never, 'accessibilityAction', {
+      nativeEvent: { actionName: 'results' },
     });
-    await listed();
-    await fireEvent.press(screen.getByTestId('events-load-more'));
-    expect(await screen.findByText('One more')).toBeOnTheScreen();
-    expect(screen.getByText('First')).toBeOnTheScreen();
-    expect(screen.queryByTestId('events-load-more')).not.toBeOnTheScreen();
+    expect(screen).toHavePathname('/events/daily/outcomes/3');
   });
 
-  it('names a card by everything it shows, and offers no second action', async () => {
-    await listed();
-    expect(card('sinar')?.props.accessibilityLabel).toBe(
-      'Progress presentation to PT Sinar, Thu, Oct 8, 10:00–11:00 AM, Online, Important, Upcoming',
-    );
-    expect(card('sinar')?.props.accessibilityActions).toBeUndefined();
+  it('PM: the visible Check results button opens the same screen', async () => {
+    await pastList('pm');
+    await fireEvent.press(screen.getByText('Check results'));
+    expect(screen).toHavePathname('/events/daily/outcomes/3');
+  });
+
+  it('Member: View results on both, which opens the stand-up’s outcomes to read', async () => {
+    await pastList('member');
+    expect(screen.getAllByText('View results')).toHaveLength(2);
+    expect(screen.queryByText('Check results')).not.toBeOnTheScreen();
   });
 });
 
 describe('events filter & sort', () => {
   it('has Show, Event type, Project and Group by, the default draft picked', async () => {
-    await listed();
+    await openEvents('/events');
     await openFilter();
     for (const h of ['Show', 'Event type', 'Project', 'Group by'])
       expect(sheet().getByRole('header', { name: h })).toBeOnTheScreen();
@@ -151,58 +124,54 @@ describe('events filter & sort', () => {
     expect(sheet().getAllByRole('button', { name: 'All' })[0]).toBeSelected();
   });
 
-  it('Past asks the server for the past tab, and those events read Done', async () => {
-    await listed();
-    await openFilter();
-    await press('Past');
-    await act(async () => {
-      apply();
-    });
-    await waitFor(() => expect(shown()).toEqual(PAST_IDS));
-    expect(asked().at(-1)).toEqual({ tab: 'past', limit: '30' });
-    expect(within(card('kickoff') as never).getByText('Done')).toBeOnTheScreen();
-    expect(filterOn()).toBe(true);
-  });
-
-  it('one type becomes a kind in the query, and lights the dot', async () => {
-    await listed();
+  it('narrows to one type and lights the dot, and keeps upcoming on top of it', async () => {
+    await openEvents('/events');
     await openFilter();
     await press('Meeting');
-    await act(async () => {
-      apply();
-    });
-    await waitFor(() => expect(shown()).toEqual(['rehearsal']));
-    expect(asked().at(-1)).toEqual({ tab: 'upcoming', kind: 'meeting', limit: '30' });
+    await apply();
+    expect(screen).toHavePathname('/events');
+    expect(shown()).toEqual(['rehearsal']);
     expect(filterOn()).toBe(true);
   });
 
-  it('groups the list by type without asking the server again', async () => {
-    await listed();
-    const before = asked().length;
+  it('groups the list by type in form order', async () => {
+    await openEvents('/events');
     await openFilter();
     await fireEvent.press(sheet().getByLabelText('Type'));
-    await act(async () => {
-      apply();
-    });
+    await apply();
     expect(heads()).toEqual(['Meeting', 'Review', 'Important', 'Team event']);
-    expect(asked()).toHaveLength(before);
+    expect(shown().sort()).toEqual(UPCOMING.map((e) => e.id).sort());
     expect(filterOn()).toBe(false);
   });
 
-  it('offers Reset filters when nothing matches; the search alone says so', async () => {
-    await listed();
-    await act(async () => {
-      fireEvent.changeText(search(), 'nothing here');
-    });
-    expect(await screen.findByText('No events match this search.')).toBeOnTheScreen();
-    await act(async () => {
-      fireEvent.press(screen.getByRole('button', { name: 'Reset filters' }));
-    });
-    await waitFor(() => expect(shown()).toEqual(UPCOMING));
+  it('offers Reset filters when no event matches; the search alone says so', async () => {
+    await openEvents('/events');
+    await fireEvent.changeText(screen.getByLabelText('Search title or location…'), 'nothing here');
+    expect(screen.getByText('No events match this search.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Reset filters' }));
+    expect(shown()).toEqual(UPCOMING.map((e) => e.id));
+  });
+
+  it('says "these filters" once a filter is on, search or not', async () => {
+    await openEvents('/events');
+    await openFilter();
+    await press('Important');
+    await apply();
+    await fireEvent.changeText(screen.getByLabelText('Search title or location…'), 'nothing here');
+    expect(screen.getByText('No events match these filters.')).toBeOnTheScreen();
+    expect(screen.queryByText('No events match this search.')).not.toBeOnTheScreen();
+  });
+
+  it('names a card by everything it shows', async () => {
+    await openEvents('/events');
+    expect(card('sinar')?.props.accessibilityLabel).toMatch(
+      /^Progress presentation to PT Sinar, Thu, Oct 8, .+–.+, .+, Important, (Upcoming|Today)$/,
+    );
+    expect(card('sinar')?.props.accessibilityActions).toBeUndefined();
   });
 
   it('Reset puts the draft back to upcoming, every type, by schedule', async () => {
-    await listed();
+    await openEvents('/events');
     await openFilter();
     await press('Past');
     await press('Meeting');
@@ -213,13 +182,8 @@ describe('events filter & sort', () => {
     expect(sheet().getByLabelText('Schedule')).toBeChecked();
   });
 
-  it('offers the projects of the loaded events, and leaves Show off the calendar’s sheet', async () => {
-    await listed();
-    await openFilter();
-    // Built from what is loaded: mobile has no project list of its own yet.
-    expect(sheet().getByLabelText('Project').props.accessibilityValue?.text).toBe('All projects');
-    await fireEvent.press(sheet().getByText('Apply'));
-    await listed('/events?view=calendar');
+  it('leaves Show off the calendar’s sheet', async () => {
+    await openEvents('/events?view=calendar');
     await openFilter();
     expect(sheet().queryByRole('header', { name: 'Show' })).not.toBeOnTheScreen();
     expect(sheet().getByRole('header', { name: 'Event type' })).toBeOnTheScreen();

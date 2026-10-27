@@ -8,7 +8,8 @@ import { FilterField } from '@/components/filter/filter-field';
 import { FilterSheet } from '@/components/filter/filter-sheet';
 import { Chips } from '@/components/form/chips';
 import { RadioList } from '@/components/form/radio-list';
-import { sortSupported } from '@/data/tasks.api.values';
+import { SelectField } from '@/components/form/select-field';
+import { useProjectsState } from '@/data/projects.state';
 import {
   ASSIGNEES,
   PRIORITIES,
@@ -21,12 +22,11 @@ import { defaultQuery, getQuery, setQuery } from '@/data/tasks.query-state';
 
 import { S } from '../tasks.strings';
 
-/**
- * The sorts the server can do. "Title (A–Z)" is not one of them (A16) and sorting in the client
- * would sort only the page already loaded, so the Tasks tab does not offer it. A project's tab
- * still filters the sample store in memory, where every sort is real, so it keeps all four.
- */
-const SERVER_SORTS = SORTS.filter((_, i) => sortSupported(i));
+/** All projects, then each listed one by its current name (one in Archive is not offered). */
+const projectOptions = (list: readonly { id: string; name: string }[]) => [
+  { value: '', label: S.filter.allProjects },
+  ...list.map((p) => ({ value: p.id, label: p.name })),
+];
 
 type TasksFilterPanelProps = {
   scope: TaskScope;
@@ -43,6 +43,7 @@ export function TasksFilterPanel({
   onDone = router.back,
 }: TasksFilterPanelProps) {
   const [draft, setDraft] = useState<TaskQuery>(() => getQuery(scope));
+  const projects = useProjectsState().list;
   const set = (patch: Partial<TaskQuery>) => setDraft((d) => ({ ...d, ...patch }));
   const apply = () => {
     setQuery(scope, draft);
@@ -58,18 +59,23 @@ export function TasksFilterPanel({
           onChange={(status) => set({ status })}
         />
       </FilterField>
-      {/*
-        A project's tab filters the sample store, so it offers Assignee and every sort. The Tasks
-        tab asks the server, which has no id for a sample project: Project is left out rather than
-        sent as an id that would answer an empty list (see docs/phase2-gap-disembunyikan.md).
-      */}
-      {inProject && (
+      {inProject ? (
         <FilterField label={S.filter.assignee}>
           <Chips
             label={S.filter.assignee}
             items={ASSIGNEES}
             value={draft.who}
             onChange={(who) => set({ who })}
+          />
+        </FilterField>
+      ) : (
+        <FilterField label={S.filter.project}>
+          <SelectField
+            testID="filter-project"
+            label={S.filter.project}
+            options={projectOptions(projects)}
+            value={draft.project}
+            onChange={(project) => set({ project })}
           />
         </FilterField>
       )}
@@ -84,7 +90,7 @@ export function TasksFilterPanel({
       <FilterField label={S.filter.sort}>
         <RadioList
           label={S.filter.sort}
-          items={inProject ? SORTS : SERVER_SORTS}
+          items={SORTS}
           value={SORTS[draft.sort]}
           onChange={(sort) => set({ sort: SORTS.indexOf(sort as (typeof SORTS)[number]) })}
         />

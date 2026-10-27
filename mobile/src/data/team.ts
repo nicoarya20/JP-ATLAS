@@ -1,134 +1,121 @@
-// Team ① for the screens: who the server says is on my team, with the task numbers I am allowed to
-// see. One person is team.person.ts; the requests and the wire shapes are team.api.ts.
-import { monthDay } from './dates';
-import type { Slices } from './offset-pages';
-import type { Role } from './sample';
-import {
-  type LeaveStatusWire,
-  type ProjectMemberRoleWire,
-  TEAM_LIMIT,
-  type TeamLoadWire,
-  type TeamPersonWire,
-  type TeamProjectRefWire,
-  type TeamQuery,
-  type TeamSummaryWire,
-  teamList,
-} from './team.api';
+// Team for the screens (prototype team.list.jsx VARIANTS): who is on my team, their task load from the live task list,
+// and what each role may see of it; one person is team.person.ts. Phase 2 reads the API here.
 
-export type { TeamQuery, TeamSortWire } from './team.api';
+import { listPeople, me, type PersonInfo, type PersonKey, person } from './people';
+import { PROJECTS, type Project, type Role } from './sample';
+import { AVAILABLE, TEAM_LIST, type TeamEntry } from './sample/team';
+import type { TaskItem } from './tasks.shared';
+import { getTasksState } from './tasks.state';
+import { type Load, loadOf, totalOf } from './team.load';
 
-/** Open-task numbers of one person, as the server counted them. */
-export type Load = { active: number; overdue: number };
+/** The live lists a team screen reads; tests pass their own. */
+export type TeamSource = { tasks?: readonly TaskItem[]; projects?: readonly Project[] };
 
 export type TeamRow = {
-  /** The account id; also the route param of Team ②. */
-  key: string;
+  key: PersonKey;
   full: string;
   you: boolean;
-  /** "UI Designer · Atlas (Member)" — the job title and the projects, both from the server. */
   role: string;
-  /** A recorded leave ("On leave until Oct 14"), or empty: the server sends nothing else. */
   status: string;
-  /** They also have open tasks on projects the viewer does not share. No number: it is not theirs to know. */
+  /** Green "Available" instead of a leave note. */
+  available: boolean;
   extra?: string;
-  /** Absent where the viewer may not see someone's task numbers (an absent key, not a zero). */
+  /** Hidden (undefined) where the viewer may not see someone's task counts. */
   load?: Load;
 };
 
-export type TeamData = {
-  /** "12 people · 3 projects", plus the load of the people shown when they are all of them. */
-  summary: string;
-  people: TeamRow[];
-  /** How many people match on the server, however many are on hand. */
-  total: number;
-  /** There are matching people this app has not asked for yet. */
-  hasMore: boolean;
-  /** A closing note for this role; absent for a Project Manager, who needs none. */
-  note?: string;
+export type TeamData =
+  | { empty: true }
+  | { empty: false; summary: string; people: TeamRow[]; note?: string };
+
+export type TeamTaskRow = { no: number; title: string; sub: string; pill: string };
+
+export type TeamPersonData = {
+  person: PersonInfo;
+  status: string;
+  available: boolean;
+  /** "Projects" for Admin (all of them), else "Shared projects". */
+  projectsTitle: string;
+  projects: { id: string; name: string }[];
+  /** null: a Member looking at someone else, who may not see their tasks. */
+  tasks: { load: Load; rows: TeamTaskRow[]; hidden: string[] } | null;
 };
 
-const PROJECT_ROLE: Record<ProjectMemberRoleWire, string> = {
-  manager: 'Manager',
-  member: 'Member',
-  viewer: 'Viewer',
+type Variant = Partial<Omit<TeamEntry, 'key'>> & { key: PersonKey; you?: boolean; counts?: false };
+
+const entry = (key: TeamEntry['key']) => {
+  const found = TEAM_LIST.find((o) => o.key === key);
+  if (!found) throw new Error(`Team sample has no row for ${key}`);
+  return found;
 };
 
-/** Notes per role (GAP A-18): the role comes from `whoami`, and decides copy only, never access. */
-const NOTE: Partial<Record<Role, string>> = {
-  admin: 'Approving new users and changing roles happens in More › Users.',
-  member: 'Task counts per person are visible only to that person, the project Manager and Admin.',
-};
+const nameOf = (key: PersonKey) => person(key)?.name ?? key;
 
-/** "Atlas (Manager)": a project and the person's role in it, as the server sent both. */
-export const projectLabel = (p: TeamProjectRefWire): string =>
-  `${p.name} (${PROJECT_ROLE[p.role] ?? p.role})`;
-
-/** "Atlas (Manager), Internal Tools (Member)", or nothing when the viewer shares no project with them. */
-export const projectsLine = (projects: readonly TeamProjectRefWire[]): string =>
-  projects.map(projectLabel).join(', ');
-
-/**
- * What the server says about someone's leave, or `''`.
- *
- * `availability: null` means "nothing to show" and is **not** a synonym for "available"
- * (`server/team/team.dto.ts`), so no row ever claims someone is available: the Admin-only leave
- * note is deliberately never sent, and inventing a green "Available" from a missing key would be
- * this app asserting something the server refused to say.
- */
-export const availabilityText = (availability: LeaveStatusWire | null): string =>
-  availability ? `On leave until ${monthDay(availability.until)}` : '';
-
-const loadOf = (load: TeamLoadWire | undefined): Load | undefined =>
-  load ? { active: load.active, overdue: load.overdue } : undefined;
-
-/** One wire person as a row. */
-export function teamRow(p: TeamPersonWire): TeamRow {
-  const projects = projectsLine(p.projects);
+function row(v: Variant, tasks: readonly TaskItem[]): TeamRow {
+  const p = person(v.key);
+  if (!p) throw new Error(`Team row ${v.key} is not a sample person`);
+  const status = v.status ?? AVAILABLE;
   return {
-    key: p.id,
-    full: p.name,
-    you: p.isSelf,
-    role: [p.jobTitle, projects].filter(Boolean).join(' · '),
-    status: availabilityText(p.availability),
-    extra: p.load?.alsoElsewhere ? 'Also has open tasks on projects you do not share' : undefined,
-    load: loadOf(p.load),
+    key: v.key,
+    full: p.full,
+    you: !!v.you,
+    role: v.role ?? '',
+    status,
+    available: status === AVAILABLE,
+    extra: v.extra || undefined,
+    load: v.counts === false ? undefined : loadOf(p.name, tasks),
   };
 }
 
-/**
- * The summary line.
- *
- * `summary.active`/`overdue` cover **one page** of people, not the whole team
- * (`server/team/team.dto.ts`), so they are only put on screen when that page is the whole team.
- * Once "Load more" has been pressed the numbers on hand describe the last slice alone, and a line
- * that summed them would be quietly wrong — so it says less instead.
- */
-export function summaryLine(summary: TeamSummaryWire, shown: number, total: number): string {
-  const parts = [`${summary.people} people`, `${summary.projects} projects`];
-  const whole = shown === total && total <= TEAM_LIMIT;
-  if (whole && summary.active !== undefined) {
-    parts.push(`${summary.active} active tasks`, `${summary.overdue ?? 0} overdue`);
+/** Team ① for `role`: summary line, people and closing note; a Member on no project gets the empty state. */
+export function getTeam(role: Role, src: TeamSource = {}): TeamData {
+  const tasks = src.tasks ?? getTasksState().tasks;
+  const projects = src.projects ?? PROJECTS;
+  const [nico, rina, dodi] = [entry('nico'), entry('rina'), entry('dodi')];
+  if (role === 'pm') {
+    const people = [{ ...nico, you: true }, rina, dodi].map((v) => row(v, tasks));
+    const total = totalOf(
+      people.map((p) => nameOf(p.key)),
+      tasks,
+    );
+    return {
+      empty: false,
+      summary: `Projects you manage · ${people.length} people · ${total}`,
+      people,
+    };
   }
-  return parts.join(' · ');
-}
-
-/** Team ① from the store: null until the list has answered, so the screen shows it is loading. */
-export function getTeam(query: TeamQuery, role: Role | null): TeamData | null {
-  return teamOf(teamList(query).current(), role);
-}
-
-/** The mapping on its own, so a test can hand it a page without a store. */
-export function teamOf(
-  data: Slices<TeamPersonWire, TeamSummaryWire> | null,
-  role: Role | null,
-): TeamData | null {
-  if (!data) return null;
-  const people = data.rows.map(teamRow);
+  if (role === 'admin') {
+    const everyone = listPeople();
+    const total = totalOf(
+      everyone.map((p) => p.name),
+      tasks,
+    );
+    const variants: Variant[] = [
+      { key: 'ayu', you: true, role: 'Admin · No project', counts: false },
+      { ...nico, role: 'Project Manager · Atlas Project, Internal Tools' },
+      { ...rina, extra: '' },
+      dodi,
+      { key: 'sri', role: 'Observer · Atlas Project', counts: false },
+    ];
+    return {
+      empty: false,
+      summary: `All projects · ${everyone.length} people · ${total}`,
+      people: variants.map((v) => row(v, tasks)),
+      note: 'Approving new users and changing roles happens in More › Users.',
+    };
+  }
+  const mine = projects.filter((p) => p.members.includes(me(role).name));
+  const atlas = mine.find((p) => p.id === 'atlas') ?? mine[0];
+  if (!atlas) return { empty: true };
+  const variants: Variant[] = [
+    { ...dodi, you: true },
+    { ...nico, counts: false },
+    { ...rina, extra: '', counts: false },
+  ];
   return {
-    summary: summaryLine(data.extra, data.rows.length, data.total),
-    people,
-    total: data.total,
-    hasMore: data.rows.length < data.total,
-    note: role ? NOTE[role] : undefined,
+    empty: false,
+    summary: `Project ${atlas.name} · ${atlas.members.length} people`,
+    people: variants.map((v) => row(v, tasks)),
+    note: 'Task counts per person are visible only to that person, the project Manager and Admin.',
   };
 }

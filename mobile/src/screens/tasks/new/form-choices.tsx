@@ -10,7 +10,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
-import { today } from '@/data/clock';
+import { TODAY } from '@/data/sample';
 import type { Option, TaskForm } from '@/data/tasks.form';
 import { PRIORITIES, type TaskPriority, type TaskType, TYPES } from '@/data/tasks.shared';
 
@@ -41,7 +41,7 @@ export function DateEdit({
 }) {
   return (
     <Labelled label={label}>
-      <DateField label={label} value={value} onChange={onChange} initial={today()} />
+      <DateField label={label} value={value} onChange={onChange} initial={TODAY} />
     </Labelled>
   );
 }

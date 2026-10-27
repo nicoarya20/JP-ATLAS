@@ -11,12 +11,12 @@ import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { TaskStatus } from '@/data/sample';
-import type { BoardStatus } from '@/data/tasks.columns';
+import type { TaskCard } from '@/data/tasks';
+import { type BoardStatus, COLUMNS } from '@/data/tasks.columns';
 
 import { cardName } from '../list/card-name';
 import { SPOKEN } from '../tasks.strings.added';
 import { BoardCardChips } from './board-card-chips';
-import { type BoardCardData, cardPlace } from './board-cards';
 import { useMoveGesture } from './use-move-gesture';
 import type { MoveMenu } from './use-move-menu';
 
@@ -24,7 +24,7 @@ import type { MoveMenu } from './use-move-menu';
 export type MoveSet = { n: number; from: TaskStatus | null };
 
 type BoardCardProps = {
-  card: BoardCardData;
+  card: TaskCard;
   mine: boolean;
   menu: MoveMenu;
   /** Select mode: whether it is picked, and the tap that toggles it. */
@@ -41,10 +41,7 @@ type BoardCardProps = {
 export function BoardCard(p: BoardCardProps) {
   const { card: t, menu, select, moveSet } = p;
   const gesture = useMoveGesture(t.no, menu);
-  // The named moves are the sides the board would open for this card, so a screen reader is offered
-  // exactly what the gesture is — no more, and never a side the server would refuse.
-  const moves = menu.sidesFor(t).filter((status) => status !== moveSet.from);
-  const place = cardPlace(t, p.mine);
+  const moves = t.mayChange ? COLUMNS.filter((c) => c.status !== moveSet.from) : [];
   const press = () => {
     if (menu.takeTap()) return;
     if (select) select.toggle();
@@ -60,15 +57,19 @@ export function BoardCard(p: BoardCardProps) {
         <Pressable
           testID={`board-card-${t.no}`}
           accessibilityRole="button"
-          accessibilityLabel={cardName(t, { place, late: t.lateOnBoard, note: false })}
+          accessibilityLabel={cardName(t, {
+            place: p.mine ? t.project : t.type,
+            late: t.lateOnBoard,
+            note: false,
+          })}
           accessibilityState={select ? { selected: select.on } : undefined}
-          accessibilityActions={moves.map((status) => ({
-            name: status,
-            label: SPOKEN.moveTo(moveSet.n, status),
+          accessibilityActions={moves.map((c) => ({
+            name: c.status,
+            label: SPOKEN.moveTo(moveSet.n, c.status),
           }))}
           onAccessibilityAction={(e) => {
-            const to = moves.find((status) => status === e.nativeEvent.actionName);
-            if (to) p.onMove(t.no, to);
+            const to = moves.find((c) => c.status === e.nativeEvent.actionName);
+            if (to) p.onMove(t.no, to.status);
           }}
           onPressIn={menu.resetTap}
           onPress={press}
@@ -88,7 +89,7 @@ export function BoardCard(p: BoardCardProps) {
               {t.title}
             </Text>
             <Text className="text-footnote text-muted-foreground">
-              #{t.no} · {place}
+              #{t.no} · {p.mine ? t.project : t.type}
             </Text>
             <BoardCardChips card={t} />
           </VStack>

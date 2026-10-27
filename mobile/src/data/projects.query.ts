@@ -1,37 +1,49 @@
-// Projects Filter & sort: the options the sheet offers, and nothing else. Filtering and sorting are
-// the server's now (`GET /api/app/projects`), so the in-memory `applyQuery`/`searchProjects` of
-// Phase 1 are gone — narrowing the page this app happens to hold is not narrowing the list, and the
-// difference only shows on the second page, where nobody is looking. The query itself still lives
-// in the projects query store (phase1-screens.md K4).
-//
-// Two of the prototype's controls are not here, and both are listed in
-// `docs/phase2-gap-disembunyikan.md`:
-//   * Health per level (On track / At risk / Off track apart). The server has one flag,
-//     `perhatian=1`, which merges at risk and late (GAP A-3), so one real option is offered under
-//     that name instead of three that would have to be faked.
-//   * Sort by "Lowest progress" (GAP A-4) — progress is computed from tasks, not stored, so there
-//     is no sort for it. `sort=recent` is real and takes its place.
-import { SORTS, STATUSES } from './projects.api.values';
+// Projects Filter & sort: its options, applying a query to the projects, and the search field. Ported from the
+// prototype's projects.query.js; the query itself lives in the projects query store (phase1-screens.md K4).
+import type { ProjectItem } from './projects.state';
 
-export { SORTS, STATUSES } from './projects.api.values';
-
-/** Attention options; index 0 (All) is the default, index 1 sends `perhatian=1`. */
-export const ATTENTION = ['All', 'Needs attention'] as const;
+/** Filter options; index 0 (All) is the default. */
+export const STATUSES = ['All', 'Active', 'On hold', 'Done', 'Draft', 'Canceled'] as const;
+export const HEALTHS = ['All', 'Needs attention', 'Overdue', 'On track'] as const;
+/** Sort options; index 0 (Nearest deadline) is the default. */
+export const SORTS = ['Nearest deadline', 'Lowest progress', 'Name (A–Z)'] as const;
 
 export type ProjectsQuery = {
   /** Index in STATUSES. */
   status: number;
-  /** Index in ATTENTION. */
-  attention: number;
+  /** Index in HEALTHS. */
+  health: number;
   /** Index in SORTS. */
   sort: number;
 };
 
-/** Query the list starts with: every status, nothing singled out, nearest deadline first. */
-export const BASE_QUERY: ProjectsQuery = { status: 0, attention: 0, sort: 0 };
+/** Query the list starts with: every status and health, nearest deadline first. */
+export const BASE_QUERY: ProjectsQuery = { status: 0, health: 0, sort: 0 };
 
-/** True when the query narrows the list (the dot on the filter icon); the sort order alone does not. */
-export const isFiltered = (q: ProjectsQuery) => !!(q.status || q.attention);
+/** True when the query narrows the list (the dot on the filter icon); the sort order alone does not count. */
+export const isFiltered = (q: ProjectsQuery) => !!(q.status || q.health);
 
-/** The option words, so a screen need not know they come from two files. */
-export const OPTIONS = { statuses: STATUSES, attention: ATTENTION, sorts: SORTS } as const;
+type Compare = (a: ProjectItem, b: ProjectItem) => number;
+
+const byDue: Compare = (a, b) => a.due.localeCompare(b.due);
+const COMPARE: readonly Compare[] = [
+  byDue,
+  (a, b) => a.progress - b.progress || byDue(a, b),
+  (a, b) => a.name.localeCompare(b.name),
+];
+
+/** Projects of the picked status and health ("! Needs attention" matches its plain label), in the picked order. */
+export function applyQuery(projects: readonly ProjectItem[], q: ProjectsQuery): ProjectItem[] {
+  const health = q.health ? HEALTHS[q.health] : undefined;
+  return projects
+    .filter((p) => !q.status || p.status === STATUSES[q.status])
+    .filter((p) => !health || p.health.includes(health))
+    .sort(COMPARE[q.sort] ?? byDue);
+}
+
+/** Projects whose name or description holds the search text (case-insensitive); blank text keeps them all. */
+export function searchProjects(projects: readonly ProjectItem[], text: string): ProjectItem[] {
+  const needle = text.trim().toLowerCase();
+  if (!needle) return [...projects];
+  return projects.filter((p) => `${p.name}\n${p.desc}`.toLowerCase().includes(needle));
+}

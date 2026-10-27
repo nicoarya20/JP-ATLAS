@@ -1,6 +1,5 @@
-import { today } from './clock';
 import { getProjectByName } from './projects.state';
-import { TASK_REVIEWERS, TASKS } from './sample';
+import { TASK_REVIEWERS, TASKS, TODAY } from './sample';
 import { TASK_DETAIL, TASK_EXTRA } from './sample/tasks.extra';
 import { createStore, useStore } from './store';
 import type { TaskInfo, TaskItem } from './tasks.shared';
@@ -91,7 +90,7 @@ export function taskInfo(s: TasksState, no: number): TaskInfo {
 /** Extras with a dated history line added (log may be absent). */
 export function record(s: TasksState, no: number, log?: string, extras?: Partial<TaskInfo>) {
   const base = taskInfo(s, no);
-  const history = log ? [...base.history, { text: log, on: today() }] : base.history;
+  const history = log ? [...base.history, { text: log, on: TODAY }] : base.history;
   return { ...s.info, [no]: { ...base, ...extras, history } };
 }
 

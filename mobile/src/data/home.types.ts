@@ -1,35 +1,57 @@
-import type { Href } from 'expo-router';
-
-import type { Widget } from './home.api';
+import type { EventHref } from './events.shared';
+import type { EventsState } from './events.store';
+import type { ProjectsState } from './projects.state';
+import type { ProjectStatus, Role, TaskStatus } from './sample';
+import type { TasksState } from './tasks.state';
+import type { Decisions } from './users';
 
 /*
- * Shape of everything Home shows, built by getHome (src/data/home.ts) out of the one
- * `GET /api/app/home` payload. The data carries values, not copy: the screen words them
- * (src/screens/home/home.strings.ts), and the Indonesian sentences the server composed (the
- * briefing, an Ask answer, an activity line, "Anda · hari ini") travel through as they came (K5).
- *
- * Every section is a `Widget`, exactly as the server sends it: one failing query shows "Try again"
- * on its own card instead of blanking Home.
+ * Shape of everything Home shows, built by getHome (src/data/home.ts). The data carries values, not copy: the screen
+ * words them (src/screens/home/home.strings.ts), so the API can later return this same shape.
  */
-
-export type { Widget } from './home.api';
-
-/** Screen a Home element opens. */
-export type HomeTarget = 'tasks.all' | 'tasks.my' | 'projects.list' | 'inbox.respond';
 
 /**
- * The chips Home can honestly show. The prototype's In Progress, Completed, Upcoming and the three
- * Admin chips are gone with their GAPs (A-4..A-9 in `phase2-map-home-inbox-team.md`): the server has
- * no number that means what their labels say, and inventing one in the client was the rule K6 forbids.
+ * What Home is built from: the task, event and project state and the Users decisions (Phase 2: the API's answer
+ * instead).
  */
-export type StatKey = 'assigned' | 'inbox';
+export type HomeSources = {
+  tasks: TasksState;
+  events: EventsState;
+  projects: ProjectsState;
+  decisions: Decisions;
+};
+
+/** Prototype screen a Home element opens (riset-keano/prototype-react screen ids). */
+export type HomeTarget =
+  | 'tasks.all'
+  | 'tasks.my'
+  | 'projects.list'
+  | 'users.approve'
+  | 'events.calendar'
+  | 'inbox.respond';
+
+export type StatKey =
+  | 'assigned'
+  | 'inProgress'
+  | 'completed'
+  | 'upcoming'
+  | 'inbox'
+  | 'active'
+  | 'overdue'
+  | 'awaiting';
 
 /** The line under a stat chip's label. */
 export type StatSub =
   | { kind: 'overdue'; n: number }
   | { kind: 'onTrack' }
+  | { kind: 'dueToday'; n: number }
+  | { kind: 'noneStarted' }
+  | { kind: 'nextDue'; date: string }
+  | { kind: 'thisWeek' }
+  | { kind: 'items'; n: number }
   | { kind: 'toRespond'; n: number }
-  | { kind: 'caughtUp' };
+  | { kind: 'caughtUp' }
+  | { kind: 'unit'; unit: 'projects' | 'tasks' | 'users' };
 
 /** count null hides the number; alert shows the sub line in the danger colour. */
 export type StatChip = {
@@ -41,83 +63,56 @@ export type StatChip = {
 };
 
 export type FocusTask = {
-  /** The task's id, which is what a workflow write takes. */
-  id: string;
-  /** The number a person sees ("#14"), which is also how the task's own screen is addressed. */
   no: number;
   title: string;
   project: string;
-  dueDate: string | null;
-  /** Whole days past the due date; only the overdue group has it. */
-  overdueDays: number | null;
-  /** The row's one button, as the server's policy decided it — never a client rule (§3 of the map). */
-  action: 'complete' | 'start' | null;
+  when: string;
+  status: TaskStatus;
+  /** False when the task is in review or has a reviewer: the row shows its status instead of Done. */
+  canMarkDone: boolean;
 };
 
-/** A task waiting for my review; it has no due date or button of its own. */
-export type ReviewTask = { id: string; no: number; title: string; project: string };
-
-/** Mobile's own buckets: the server's `tomorrow` and `week` are one "This week" here. */
-export type FocusGroupKey = 'overdue' | 'today' | 'thisWeek' | 'later' | 'noDate';
+export type FocusGroupKey = 'overdue' | 'today' | 'thisWeek';
 
 export type HomeFocus = {
+  /** Admin only: accounts waiting for approval; null when none waits (or not an Admin). */
+  pendingUsers: number | null;
   groups: { key: FocusGroupKey; tasks: FocusTask[] }[];
-  review: ReviewTask[];
-  /** Every open task of mine, not only the rows on screen. */
+  /** PM only: other people's tasks in review. */
+  review: FocusTask[];
   openCount: number;
-  /** Every task waiting for my review, likewise. */
-  reviewCount: number;
   empty: boolean;
 };
 
 export type AgendaEvent = {
   id: string;
-  /** Where its row leads. */
-  href: Href;
+  /** Where its row leads (eventHref: the detail of an event not done). */
+  href: EventHref;
   title: string;
-  /** Clock time in the team zone, from `startsAt`. */
   time: string;
-  /** Calendar day in the team zone, from `startsAt`. */
   date: string;
-  /** Null when the event says nothing about where it is. */
-  mode: 'In person' | 'Online' | null;
+  mode: 'In person' | 'Online';
+  place: string;
 };
-
-/** How a project is doing, as the server judges it; the lifecycle status lives in Projects. */
-export type ProjectCondition = 'on_track' | 'at_risk' | 'off_track';
 
 export type AgendaProject = {
   id: string;
   name: string;
-  due: string | null;
-  /** Null for a project with no tasks yet — not the same as 0%. */
-  progress: number | null;
-  condition: ProjectCondition | null;
-  /** Why it needs a look, in the server's words. */
-  reason: string | null;
+  lead: string;
+  due: string;
+  progress: number;
+  status: ProjectStatus;
 };
 
-/** A task finished this week: who finished it and when, both worded by the server. */
-export type DoneTask = { id: string; title: string; who: string };
-
-export type ActivityRow = { id: string; text: string; meta: string };
-
-export type AskBar = { label: string; pct: number; display: string };
-
-export type AskAnswer = { key: string; question: string; answer: string; bars: AskBar[] };
-
 export type HomeData = {
-  /** The signed-in account's own name, for the greeting and the avatar. */
-  me: { name: string };
+  role: Role;
+  me: { name: string; full: string };
   greeting: string;
   stats: StatChip[];
-  /** The lines are the server's Indonesian sentences; `updatedLabel` is its clock time. */
-  briefing: Widget<{ lines: string[]; updatedLabel: string }>;
-  focus: Widget<HomeFocus>;
-  ask: Widget<AskAnswer[]>;
-  /** My next meeting; null once there is none today or tomorrow. */
-  agenda: Widget<AgendaEvent | null>;
-  projects: Widget<AgendaProject[]>;
-  done: Widget<DoneTask[]>;
-  activity: Widget<ActivityRow[]>;
+  briefing: { lines: string[]; meta: string };
+  focus: HomeFocus;
+  ask: { questions: string[]; answer: string; projects: { name: string; pct: number }[] };
+  agenda: { next: AgendaEvent | null; projects: AgendaProject[] };
+  done: { title: string; who: string }[];
+  activity: { title: string; meta: string }[];
 };
