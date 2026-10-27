@@ -21,7 +21,7 @@ import { MembersTab } from './members.tab';
 import { OverviewTab } from './overview.tab';
 import { PhasesTab } from './phases.tab';
 import { ProjectPage } from './project-page';
-import { TasksBody, TasksTools } from './tasks.tab';
+import { ArchivedTasks, TasksBody, TasksTools } from './tasks.tab';
 
 const asTab = (t?: string): DetailTab => TABS.find((x) => x === t) ?? 'overview';
 
@@ -69,7 +69,11 @@ export function ProjectDetailScreen() {
       <ProjectPage testID="screen-project" title={header.name} right={menu} sticky={top.length}>
         {top}
         <TasksTools id={id} search={search} onSearch={setSearch} archived={header.archived} />
-        <TasksBody id={id} search={search} onResetSearch={() => setSearch('')} />
+        {header.archived ? (
+          <ArchivedTasks />
+        ) : (
+          <TasksBody id={id} search={search} onResetSearch={() => setSearch('')} />
+        )}
       </ProjectPage>
     );
   }
@@ -80,7 +84,7 @@ export function ProjectDetailScreen() {
         <OverviewTab id={id} onPhases={() => router.setParams({ tab: 'phases' })} />
       )}
       {tab === 'phases' && <PhasesTab id={id} />}
-      {tab === 'members' && <MembersTab id={id} />}
+      {tab === 'members' && <MembersTab id={id} project={header.name} />}
     </ProjectPage>
   );
 }

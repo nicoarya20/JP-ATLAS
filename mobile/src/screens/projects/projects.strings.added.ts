@@ -36,4 +36,6 @@ export const ADDED = {
   progress: (percent: string) => `Progress ${percent}`,
   /** Asks the server for the next page; the lists here are paged, not loaded whole. */
   more: 'Load more',
+  /** A project in Archive took its tasks along, so the tab says where they went. */
+  archivedTasks: 'This project is in Archive, and its tasks went with it.',
 } as const;

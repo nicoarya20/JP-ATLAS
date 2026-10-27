@@ -43,9 +43,9 @@ export const OVERVIEW = {
 } as const;
 
 export const TASKS_TAB = {
-  views: ['List', 'Kanban'],
   newTask: '+ New task',
   noMatch: 'No tasks match these filters.',
+  none: 'No tasks in this project yet.',
 } as const;
 
 export const PHASES = {
@@ -82,6 +82,8 @@ export const MEMBERS = {
     `${name} becomes ${role} in “${project}”.`,
   roleConfirm: 'Change role',
   roleChanged: 'Role changed',
+  /** Fallback only: a refusal normally arrives with the server's own sentence, which is shown instead. */
+  failed: 'Could not save that. Try again.',
 } as const;
 
 export const EXTEND = {
