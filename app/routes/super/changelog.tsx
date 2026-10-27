@@ -1,5 +1,6 @@
 import {
   Alert,
+  Box,
   Button,
   Chip,
   CloseButton,
@@ -48,7 +49,7 @@ const EXAMPLE = `## [Unreleased]
 
 function EmptyState({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Paper withBorder radius="md" p="xl">
+    <Paper withBorder p="xl">
       <Stack align="center" gap="xs" ta="center">
         <ThemeIcon variant="light" color="gray" size={48} radius="xl">
           <FiBookOpen size={22} />
@@ -76,14 +77,16 @@ export default function ChangelogPage({ loaderData: cl }: Route.ComponentProps) 
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <div>
-        <Title order={3}>Changelog</Title>
+      {/* Not `PageHeader`: the description carries <Code> elements and `description` is typed
+          `string` (see /tmp/sp-ui-handover/ui-area-dev.md). */}
+      <Box>
+        <Title order={1}>Changelog</Title>
         <Text size="sm" c="dimmed">
           Riwayat perubahan dari <Code>CHANGELOG.md</Code>, ditulis dari sudut pandang user. Agent
           mencatat perubahan di bagian <Code>Unreleased</Code> lalu memberinya nomor versi saat
           deploy.
         </Text>
-      </div>
+      </Box>
 
       {!cl.available ? (
         <EmptyState title="CHANGELOG.md belum ada">
@@ -157,7 +160,7 @@ export default function ChangelogPage({ loaderData: cl }: Route.ComponentProps) 
               w={{ base: '100%', sm: 280 }}
             />
             <Chip.Group value={type ?? 'all'} onChange={(v) => setType(v === 'all' ? null : v)}>
-              <Group gap={6} wrap="wrap">
+              <Group gap="xs" wrap="wrap">
                 <Chip value="all" size="sm">
                   Semua
                 </Chip>
@@ -197,7 +200,7 @@ export default function ChangelogPage({ loaderData: cl }: Route.ComponentProps) 
               </Button>
             </EmptyState>
           ) : (
-            <Paper withBorder radius="md" p={{ base: 'sm', md: 'lg' }}>
+            <Paper withBorder p={{ base: 'sm', md: 'lg' }}>
               <ChangelogTimeline
                 releases={shown}
                 currentVersion={cl.currentVersion}

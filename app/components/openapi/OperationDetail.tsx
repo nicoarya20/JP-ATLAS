@@ -15,7 +15,7 @@ import { SchemaFields } from './SchemaFields';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Stack gap={6}>
+    <Stack gap="xs">
       <Text size="xs" fw={700} tt="uppercase" c="dimmed">
         {title}
       </Text>
@@ -26,9 +26,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function ParamRow({ param, components }: { param: SpecParameter; components: Components }) {
   return (
-    <Stack gap={2}>
+    <Stack gap={4}>
       <Group gap="xs" wrap="wrap" align="baseline">
-        <Code style={{ wordBreak: 'break-word' }}>{param.name}</Code>
+        <Code
+          style={{
+            // Mantine has no `wordBreak` prop; a long identifier breaks instead of widening the row.
+            wordBreak: 'break-word',
+          }}
+        >
+          {param.name}
+        </Code>
         <Badge size="xs" variant="light" color="gray">
           {param.in}
         </Badge>
@@ -95,7 +102,7 @@ export function OperationDetail({
   const responses = Object.entries(op.operation.responses ?? {});
 
   return (
-    <Stack gap="md" style={{ minWidth: 0 }}>
+    <Stack gap="md" miw={0}>
       <Group gap="xs" wrap="wrap">
         {op.isPublic ? (
           <Badge size="sm" color="gray" variant="light">
@@ -127,7 +134,7 @@ export function OperationDetail({
 
       {bodySchema && (
         <Section title={`Request body${op.operation.requestBody?.required ? ' (wajib)' : ''}`}>
-          <Stack gap={6}>
+          <Stack gap="xs">
             {bodyTypes.length > 1 && (
               <Text size="xs" c="dimmed">
                 Diterima sebagai: {bodyTypes.join(', ')}

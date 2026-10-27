@@ -86,15 +86,16 @@ function Edited({ p }: { p: PostRow }) {
 
 export function PostTable({ rows, loading, fetching = false, empty, ...h }: Props) {
   return (
-    <Box pos="relative" style={{ overflowX: 'auto' }}>
+    <Box
+      pos="relative"
+      style={{
+        // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+        // (CLAUDE.md mobile §2).
+        overflowX: 'auto',
+      }}
+    >
       <LoadingOverlay visible={fetching && !loading} zIndex={5} overlayProps={{ blur: 1 }} />
-      <Table
-        highlightOnHover
-        withTableBorder
-        verticalSpacing="xs"
-        fz="sm"
-        style={{ minWidth: 720 }}
-      >
+      <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={720}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Post</Table.Th>
@@ -114,9 +115,16 @@ export function PostTable({ rows, loading, fetching = false, empty, ...h }: Prop
             ))}
           {!loading &&
             rows.map((p) => (
-              <Table.Tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => h.onEdit(p)}>
+              <Table.Tr
+                key={p.id}
+                style={{
+                  // Mantine has no `cursor` prop; clicking here opens the detail view.
+                  cursor: 'pointer',
+                }}
+                onClick={() => h.onEdit(p)}
+              >
                 <Table.Td>
-                  <Stack gap={0} style={{ minWidth: 0 }}>
+                  <Stack gap={0} miw={0}>
                     <TruncatedText size="sm" fw={500} lh={1.3} maw={420}>
                       {p.title}
                     </TruncatedText>
@@ -128,7 +136,13 @@ export function PostTable({ rows, loading, fetching = false, empty, ...h }: Prop
                   </Stack>
                 </Table.Td>
                 <Table.Td onClick={(e) => e.stopPropagation()}>
-                  <Box onClick={() => h.onAuthor(p.authorId)} style={{ cursor: 'pointer' }}>
+                  <Box
+                    onClick={() => h.onAuthor(p.authorId)}
+                    style={{
+                      // Mantine has no `cursor` prop; clicking here opens the detail view.
+                      cursor: 'pointer',
+                    }}
+                  >
                     <UserCell
                       row={{ userId: p.authorId, userName: p.authorName, userImage: p.authorImage }}
                       subtitle={p.authorEmail}
@@ -165,18 +179,13 @@ export function PostCardList({ rows, loading, empty, ...h }: Props) {
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
     <Stack gap="xs">
       {rows.map((p) => (
-        <Paper key={p.id} withBorder p="sm" radius="md">
+        <Paper key={p.id} withBorder p="sm">
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap={4} miw={0} flex={1}>
               <Text size="sm" fw={500} lineClamp={2}>
                 {p.title}
               </Text>

@@ -24,7 +24,7 @@ export function MethodBadge({
       variant="light"
       size={size}
       ff="monospace"
-      style={{ flexShrink: 0 }}
+      flex="0 0 auto"
     >
       {m || '—'}
     </Badge>
@@ -34,7 +34,7 @@ export function MethodBadge({
 /** Method badge + path (truncated with tooltip) for a blocked request. */
 export function RequestCell({ row, maw = 280 }: { row: RateLimitRow; maw?: number }) {
   return (
-    <Stack gap={2} style={{ minWidth: 0 }}>
+    <Stack gap={4} miw={0}>
       <MethodBadge method={row.method} size="xs" />
       <TruncatedText ff="monospace" size="sm" lh={1.3} maw={maw}>
         {row.path}

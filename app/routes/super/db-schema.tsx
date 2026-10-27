@@ -1,4 +1,4 @@
-import { Alert, Button, Center, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { Alert, Button, Group, Loader, Paper, Stack, Text } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { introspectDrizzleSchema } from '@server/db/schema-introspect';
 import { schemaStats } from '@server/db/schema-stats';
@@ -11,6 +11,7 @@ import type { Direction } from '~/components/db-schema/erd.layout';
 import { SchemaStatsCards } from '~/components/db-schema/SchemaStatsCards';
 import { SchemaToolbar } from '~/components/db-schema/SchemaToolbar';
 import { TableDetailDrawer } from '~/components/db-schema/TableDetailDrawer';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { useTimeFormat } from '~/lib/time-format';
 import type { Route } from './+types/db-schema';
 
@@ -30,6 +31,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { schema, stats };
 }
 
+/** The ERD canvas fills most of the viewport but never collapses below a usable height. */
+const CANVAS_HEIGHT = 'min(72vh, 820px)';
+const CANVAS_MIN_HEIGHT = 420;
+
 export default function DbSchemaPage({ loaderData }: Route.ComponentProps) {
   const { dateTime: formatDateTime } = useTimeFormat();
   const { schema, stats } = loaderData;
@@ -46,24 +51,21 @@ export default function DbSchemaPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>DB Schema</Title>
-          <Text size="sm" c="dimmed">
-            Diagram relasi dari definisi Drizzle, dipadukan dengan jumlah baris dan ukuran nyata di
-            database. Statistik {formatDateTime(stats.generatedAt)}.
-          </Text>
-        </div>
-        <Button
-          size="sm"
-          variant="light"
-          leftSection={<FiRefreshCw size={14} />}
-          loading={revalidator.state === 'loading'}
-          onClick={() => revalidator.revalidate()}
-        >
-          Muat ulang statistik
-        </Button>
-      </Group>
+      <PageHeader
+        title="DB Schema"
+        description={`Diagram relasi dari definisi Drizzle, dipadukan dengan jumlah baris dan ukuran nyata di database. Statistik ${formatDateTime(stats.generatedAt)}.`}
+        actions={
+          <Button
+            size="sm"
+            variant="light"
+            leftSection={<FiRefreshCw size={14} />}
+            loading={revalidator.state === 'loading'}
+            onClick={() => revalidator.revalidate()}
+          >
+            Muat ulang statistik
+          </Button>
+        }
+      />
 
       {pending > 0 && (
         <Alert
@@ -90,19 +92,17 @@ export default function DbSchemaPage({ loaderData }: Route.ComponentProps) {
         onFit={() => setFitKey((k) => k + 1)}
       />
 
-      <Paper
-        withBorder
-        radius="md"
-        style={{ overflow: 'hidden', height: 'min(72vh, 820px)', minHeight: 420 }}
-      >
+      {/* Mantine has no `overflow` style prop, so this stays a `style`: it clips the React Flow
+          canvas to the card's rounded corners. */}
+      <Paper withBorder h={CANVAS_HEIGHT} mih={CANVAS_MIN_HEIGHT} style={{ overflow: 'hidden' }}>
         <Suspense
           fallback={
-            <Center h="100%" style={{ gap: 8 }}>
+            <Group h="100%" justify="center" gap="xs">
               <Loader size="sm" />
               <Text size="sm" c="dimmed">
                 Menyiapkan diagram…
               </Text>
-            </Center>
+            </Group>
           }
         >
           <SchemaGraph

@@ -23,12 +23,7 @@ export function LoginCardList({ rows, loading, empty, selected, deletingId, ...h
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
 
   return (
     <Stack gap="xs">
@@ -39,10 +34,12 @@ export function LoginCardList({ rows, loading, empty, selected, deletingId, ...h
             key={r.id}
             withBorder
             p="sm"
-            radius="md"
             bg={selected.has(r.id) ? 'var(--mantine-primary-color-light)' : undefined}
             onClick={() => h.onOpen(r)}
-            style={{ cursor: 'pointer' }}
+            style={{
+              // Mantine has no `cursor` prop; clicking here opens the detail view.
+              cursor: 'pointer',
+            }}
           >
             <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
               <Checkbox
@@ -52,15 +49,15 @@ export function LoginCardList({ rows, loading, empty, selected, deletingId, ...h
                 checked={selected.has(r.id)}
                 onChange={() => h.onToggle(r.id)}
                 onClick={(e) => e.stopPropagation()}
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               />
-              <Group gap="xs" wrap="nowrap" align="flex-start" style={{ flex: 1, minWidth: 0 }}>
-                <Avatar src={r.userImage} size={36} radius="xl" style={{ flexShrink: 0 }}>
+              <Group gap="xs" wrap="nowrap" align="flex-start" flex={1} miw={0}>
+                <Avatar src={r.userImage} size={36} radius="xl" flex="0 0 auto">
                   {r.userName ? r.userName.charAt(0).toUpperCase() : '?'}
                 </Avatar>
-                <Stack gap={4} style={{ minWidth: 0 }}>
+                <Stack gap={4} miw={0}>
                   <Group gap="xs" wrap="nowrap">
-                    <TruncatedText size="sm" fw={500} style={{ minWidth: 0 }}>
+                    <TruncatedText size="sm" fw={500} miw={0}>
                       {r.userName ?? r.userId}
                     </TruncatedText>
                     <MethodBadge method={r.method} size="xs" />
@@ -86,7 +83,7 @@ export function LoginCardList({ rows, loading, empty, selected, deletingId, ...h
                   h.onDelete(r);
                 }}
                 aria-label="Hapus login log"
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               >
                 <FiTrash2 size={16} />
               </ActionIcon>

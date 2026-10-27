@@ -12,9 +12,16 @@ const INDENT = 14;
 
 function FieldRow({ field }: { field: SchemaField }) {
   return (
-    <Box pl={field.depth * INDENT} style={{ minWidth: 0 }}>
+    <Box pl={field.depth * INDENT} miw={0}>
       <Group gap="xs" wrap="wrap" align="baseline">
-        <Code style={{ wordBreak: 'break-word' }}>{field.name}</Code>
+        <Code
+          style={{
+            // Mantine has no `wordBreak` prop; a long identifier breaks instead of widening the row.
+            wordBreak: 'break-word',
+          }}
+        >
+          {field.name}
+        </Code>
         <Text size="xs" c="dimmed" ff="monospace">
           {field.type}
         </Text>
@@ -55,7 +62,7 @@ export function SchemaFields({ fields }: { fields: SchemaField[] }) {
       </Text>
     );
   return (
-    <Stack gap={6}>
+    <Stack gap="xs">
       {fields.map((f) => (
         <FieldRow key={f.key} field={f} />
       ))}

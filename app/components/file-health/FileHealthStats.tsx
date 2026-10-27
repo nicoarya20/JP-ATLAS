@@ -1,4 +1,4 @@
-import { Group, Paper, SimpleGrid, Skeleton, Text, ThemeIcon } from '@mantine/core';
+import { Box, Group, Paper, SimpleGrid, Skeleton, Text, ThemeIcon } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import {
   FiAlertOctagon,
@@ -73,9 +73,9 @@ export function FileHealthStats({ summary }: { summary: FileHealthSummary | unde
   return (
     <SimpleGrid cols={{ base: 2, sm: 3, lg: 6 }} spacing="sm">
       {tiles.map((t) => (
-        <Paper key={t.label} withBorder radius="md" p="md">
+        <Paper key={t.label} withBorder p="md">
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <div style={{ minWidth: 0 }}>
+            <Box miw={0}>
               <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} truncate>
                 {t.label}
               </Text>
@@ -85,14 +85,8 @@ export function FileHealthStats({ summary }: { summary: FileHealthSummary | unde
               <Text size="xs" c="dimmed" mt={2} truncate>
                 {t.hint}
               </Text>
-            </div>
-            <ThemeIcon
-              variant="light"
-              color={t.color}
-              size="lg"
-              radius="md"
-              style={{ flexShrink: 0 }}
-            >
+            </Box>
+            <ThemeIcon variant="light" color={t.color} size="lg" radius="md" flex="0 0 auto">
               <t.icon size={16} />
             </ThemeIcon>
           </Group>

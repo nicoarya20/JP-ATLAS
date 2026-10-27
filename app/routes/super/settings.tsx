@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Stack, Tabs, Text, Title } from '@mantine/core';
+import { Alert, Button, Stack, Tabs } from '@mantine/core';
 import { requireRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { settingsOverview } from '@server/settings';
@@ -11,6 +11,7 @@ import { MaintenanceCard } from '~/components/settings/MaintenanceCard';
 import { RateLimitSettingsCard } from '~/components/settings/RateLimitSettingsCard';
 import { RetentionCard } from '~/components/settings/RetentionCard';
 import { RuntimeInfoCard } from '~/components/settings/RuntimeInfoCard';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { toJson } from '~/lib/loader-json';
 import {
   fetchSettingsOverviewFull,
@@ -49,29 +50,29 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
   const data = q.data;
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }} maw={960}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>App Settings</Title>
-          <Text size="sm" c="dimmed">
-            Pengaturan runtime yang tersimpan di database. Setiap perubahan dicatat di Audit Log.
-          </Text>
-        </div>
-        <Button
-          size="sm"
-          variant="light"
-          leftSection={<FiRefreshCw size={14} />}
-          loading={q.isFetching}
-          onClick={() => q.refetch()}
-        >
-          Muat ulang
-        </Button>
-      </Group>
+      <PageHeader
+        title="App Settings"
+        description="Pengaturan runtime yang tersimpan di database. Setiap perubahan dicatat di Audit Log."
+        actions={
+          <Button
+            size="sm"
+            variant="light"
+            leftSection={<FiRefreshCw size={14} />}
+            loading={q.isFetching}
+            onClick={() => q.refetch()}
+          >
+            Muat ulang
+          </Button>
+        }
+      />
       {q.isError && (
         <Alert color="red" icon={<FiAlertCircle size={16} />} title="Gagal memuat pengaturan">
           {(q.error as Error).message}
         </Alert>
       )}
       <Tabs defaultValue="auth" keepMounted={false} variant="outline">
+        {/* Mantine has no `flexWrap` style prop: eight tabs must wrap rather than overflow a
+            375 px screen (CLAUDE.md mobile §3). */}
         <Tabs.List style={{ flexWrap: 'wrap' }}>
           {TABS.map((t) => (
             <Tabs.Tab key={t.value} value={t.value}>

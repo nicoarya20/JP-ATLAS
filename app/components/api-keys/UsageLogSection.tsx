@@ -73,13 +73,26 @@ function Rows({ rows, onKey }: { rows: UsageLogRow[]; onKey: (id: string) => voi
         <Table.Tr key={r.id}>
           <Table.Td>
             <Tooltip label={formatDateTime(r.createdAt)} withArrow openDelay={300}>
-              <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+              <Text
+                size="sm"
+                style={{
+                  // Mantine has no `whiteSpace` prop; a relative timestamp must stay on one line.
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {formatRelative(r.createdAt)}
               </Text>
             </Tooltip>
           </Table.Td>
           <Table.Td>
-            <Box onClick={() => onKey(r.keyId)} style={{ cursor: 'pointer', minWidth: 0 }}>
+            <Box
+              onClick={() => onKey(r.keyId)}
+              miw={0}
+              style={{
+                // Mantine has no `cursor` prop; clicking here opens the detail view.
+                cursor: 'pointer',
+              }}
+            >
               <TruncatedText size="sm" fw={500} maw={160}>
                 {r.keyName ?? '(tanpa nama)'}
               </TruncatedText>
@@ -88,7 +101,7 @@ function Rows({ rows, onKey }: { rows: UsageLogRow[]; onKey: (id: string) => voi
               </TruncatedText>
             </Box>
           </Table.Td>
-          <Table.Td style={{ maxWidth: 0, minWidth: 220 }}>
+          <Table.Td maw={0} miw={220}>
             <TruncatedText ff="monospace" size="sm">
               {`${r.method} ${r.path}`}
             </TruncatedText>
@@ -146,7 +159,7 @@ export function UsageLogSection() {
 
   return (
     <Stack gap="md">
-      <Paper withBorder radius="md" p="sm">
+      <Paper withBorder p="sm">
         <Group gap="xs" wrap="wrap" align="center">
           <TextInput
             placeholder="Cari path atau IP…"
@@ -163,7 +176,8 @@ export function UsageLogSection() {
             value={filters.search}
             onChange={(e) => setFilters({ search: e.currentTarget.value })}
             size="sm"
-            style={{ flex: '1 1 220px', minWidth: 0 }}
+            flex="1 1 220px"
+            miw={0}
           />
           <Select
             size="sm"
@@ -244,15 +258,21 @@ export function UsageLogSection() {
           {(log.error as Error).message}
         </Alert>
       )}
-      <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
-        <Box style={{ overflowX: 'auto' }}>
-          <Table
-            highlightOnHover
-            withTableBorder
-            verticalSpacing="xs"
-            fz="sm"
-            style={{ minWidth: 720 }}
-          >
+      <Paper
+        withBorder
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          style={{
+            // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+            // (CLAUDE.md mobile §2).
+            overflowX: 'auto',
+          }}
+        >
+          <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={720}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Waktu</Table.Th>

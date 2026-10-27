@@ -76,7 +76,10 @@ export function RateLimitDetailDrawer({ row, onClose, onDelete, onFilterIp, dele
                 size="xs"
                 leftSection={<FiFilter size={12} />}
                 onClick={() => onFilterIp(row.ip as string)}
-                style={{ alignSelf: 'flex-end' }}
+                style={{
+                  // Mantine has no `alignSelf` prop: the button sits at the end of the row instead of stretching.
+                  alignSelf: 'flex-end',
+                }}
               >
                 Lihat semua blokir dari IP ini
               </Button>
@@ -107,7 +110,16 @@ export function RateLimitDetailDrawer({ row, onClose, onDelete, onFilterIp, dele
               <Text size="sm" c="dimmed">
                 User agent
               </Text>
-              <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
+              <Code
+                block
+                fz="xs"
+                style={{
+                  // No Mantine prop for `whiteSpace` or `wordBreak`: the snippet keeps its line breaks and still
+                  // wraps a long unbroken token.
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all',
+                }}
+              >
                 {dash(row.userAgent)}
               </Code>
             </Stack>

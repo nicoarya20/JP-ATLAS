@@ -22,6 +22,9 @@ import { Link } from 'react-router';
 
 const LOOPBACK = '127.0.0.1,::1';
 
+/** Right padding that keeps the command clear of the floating copy button (44 px). */
+const COPY_BUTTON_CLEARANCE = 44;
+
 const ISSUE_TEXT: Record<
   ProxyHealth['issue'],
   { title: string; body: (p: string | null) => string }
@@ -70,7 +73,16 @@ function CopyValue({ value }: { value: string }) {
   const line = `TRUSTED_PROXIES=${value}`;
   return (
     <Box pos="relative">
-      <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', paddingRight: 44 }}>
+      <Code
+        block
+        pr={COPY_BUTTON_CLEARANCE}
+        style={{
+          // No Mantine prop for `whiteSpace` or `wordBreak`: the snippet keeps its line breaks and still
+          // wraps a long unbroken token.
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+        }}
+      >
         {line}
       </Code>
       <CopyButton value={line} timeout={1500}>

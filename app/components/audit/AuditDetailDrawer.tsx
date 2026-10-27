@@ -47,7 +47,16 @@ export function AuditDetailDrawer({ row, onClose }: { row: AuditRow | null; onCl
           </Section>
           <Divider />
           <Section title="Detail">
-            <Code block style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            <Code
+              block
+              fz="xs"
+              style={{
+                // No Mantine prop for `whiteSpace` or `wordBreak`: the payload keeps its line breaks and still
+                // wraps a long unbroken token.
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}
+            >
               {row.meta ? JSON.stringify(row.meta, null, 2) : '(tidak ada data tambahan)'}
             </Code>
           </Section>
@@ -57,7 +66,14 @@ export function AuditDetailDrawer({ row, onClose }: { row: AuditRow | null; onCl
               {row.ip ? <Copyable value={row.ip} /> : <Text size="sm">—</Text>}
             </Field>
             <Field label="User agent">
-              <Text size="xs" c="dimmed" style={{ wordBreak: 'break-all' }}>
+              <Text
+                size="xs"
+                c="dimmed"
+                style={{
+                  // Mantine has no `wordBreak` prop, and this value is a path or key with no spaces to break at.
+                  wordBreak: 'break-all',
+                }}
+              >
                 {row.userAgent ?? '—'}
               </Text>
             </Field>

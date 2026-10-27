@@ -23,7 +23,7 @@ export function CurlSnippet({ command }: { command: string }) {
                 size="sm"
                 onClick={copy}
                 aria-label="Salin perintah curl"
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               >
                 {copied ? <FiCheck size="1.25em" /> : <FiCopy size="1.25em" />}
               </ActionIcon>
@@ -31,7 +31,16 @@ export function CurlSnippet({ command }: { command: string }) {
           )}
         </CopyButton>
       </Group>
-      <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
+      <Code
+        block
+        fz="xs"
+        style={{
+          // No Mantine prop for `whiteSpace` or `wordBreak`: the snippet keeps its line breaks and still
+          // wraps a long unbroken token.
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+        }}
+      >
         {command}
       </Code>
       <Text size="xs" c="dimmed">

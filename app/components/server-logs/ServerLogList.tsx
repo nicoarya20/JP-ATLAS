@@ -29,18 +29,25 @@ function Row({ row }: { row: ServerLogRow }) {
       withBorder
       radius="sm"
       p="xs"
-      style={{ borderLeft: `3px solid var(--mantine-color-${meta.color}-6)` }}
+      style={{
+        // `bd` sets all four sides; the level stripe needs only the left edge, which has no prop.
+        borderLeft: `3px solid var(--mantine-color-${meta.color}-6)`,
+      }}
     >
       <UnstyledButton
         onClick={() => hasExtras && setOpen((o) => !o)}
-        style={{ width: '100%', cursor: hasExtras ? 'pointer' : 'default' }}
+        w="100%"
+        style={{
+          // Mantine has no `cursor` prop; only a row that really has extra fields is clickable.
+          cursor: hasExtras ? 'pointer' : 'default',
+        }}
         aria-expanded={open}
       >
         <Group gap="sm" wrap="nowrap" align="flex-start">
-          <Badge size="xs" variant="light" color={meta.color} w={52} style={{ flexShrink: 0 }}>
+          <Badge size="xs" variant="light" color={meta.color} w={52} flex="0 0 auto">
             {meta.label}
           </Badge>
-          <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+          <Stack gap={0} miw={0} flex={1}>
             <TruncatedText size="sm" lh={1.35} ff="monospace">
               {row.msg || '(tanpa pesan)'}
             </TruncatedText>
@@ -51,9 +58,25 @@ function Row({ row }: { row: ServerLogRow }) {
           </Stack>
           {hasExtras &&
             (open ? (
-              <FiChevronDown size={14} style={{ flexShrink: 0, marginTop: 4 }} />
+              <FiChevronDown
+                size={14}
+                style={{
+                  // A react-icons <svg> takes no Mantine props; the nudge lines the chevron up with the first
+                  // line of the message.
+                  flexShrink: 0,
+                  marginTop: 4,
+                }}
+              />
             ) : (
-              <FiChevronRight size={14} style={{ flexShrink: 0, marginTop: 4 }} />
+              <FiChevronRight
+                size={14}
+                style={{
+                  // A react-icons <svg> takes no Mantine props; the nudge lines the chevron up with the first
+                  // line of the message.
+                  flexShrink: 0,
+                  marginTop: 4,
+                }}
+              />
             ))}
         </Group>
       </UnstyledButton>
@@ -62,7 +85,13 @@ function Row({ row }: { row: ServerLogRow }) {
           <Code
             block
             mt="xs"
-            style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+            fz="xs"
+            style={{
+              // No Mantine prop for `whiteSpace` or `wordBreak`: the payload keeps its line breaks and still
+              // wraps a long unbroken token.
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
           >
             {JSON.stringify(extras, null, 2)}
           </Code>
@@ -91,14 +120,9 @@ export function ServerLogList({
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
-    <Stack gap={6}>
+    <Stack gap="xs">
       {rows.map((r) => (
         <Row key={r.seq ?? `${r.time}-${r.msg}`} row={r} />
       ))}

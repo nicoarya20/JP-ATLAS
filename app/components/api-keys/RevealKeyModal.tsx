@@ -49,9 +49,17 @@ function RevealBody({ reveal, onClose }: { reveal: Reveal; onClose: () => void }
           Simpan kunci ini sekarang di secret manager atau env integrasi Anda. Setelah jendela ini
           ditutup, kunci tidak bisa dilihat lagi — hanya bisa dirotasi.
         </Alert>
-        <Paper withBorder radius="md" p="sm" bg="var(--mantine-color-default-hover)">
+        <Paper withBorder p="sm" bg="var(--mantine-color-default-hover)">
           <Group justify="space-between" wrap="nowrap" gap="xs">
-            <Text ff="monospace" size="sm" style={{ wordBreak: 'break-all', minWidth: 0 }}>
+            <Text
+              ff="monospace"
+              size="sm"
+              miw={0}
+              style={{
+                // Mantine has no `wordBreak` prop, and this value is a path or key with no spaces to break at.
+                wordBreak: 'break-all',
+              }}
+            >
               {reveal.key}
             </Text>
             <CopyButton value={reveal.key} timeout={1500}>
@@ -63,7 +71,7 @@ function RevealBody({ reveal, onClose }: { reveal: Reveal; onClose: () => void }
                     size="lg"
                     onClick={copy}
                     aria-label="Salin kunci"
-                    style={{ flexShrink: 0 }}
+                    flex="0 0 auto"
                   >
                     {copied ? <FiCheck size={16} /> : <FiCopy size={16} />}
                   </ActionIcon>
@@ -98,7 +106,15 @@ function RevealBody({ reveal, onClose }: { reveal: Reveal; onClose: () => void }
           <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
             Contoh pemakaian
           </Text>
-          <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+          <Code
+            block
+            style={{
+              // No Mantine prop for `whiteSpace` or `wordBreak`: the snippet keeps its line breaks and still
+              // wraps a long unbroken token.
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-all',
+            }}
+          >
             {example}
           </Code>
           <Text size="xs" c="dimmed">

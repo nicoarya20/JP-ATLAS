@@ -1,4 +1,4 @@
-import { Alert, Badge, Button, Group, Stack, Text, Title } from '@mantine/core';
+import { Alert, Badge, Box, Button, Group, Stack, Text, Title } from '@mantine/core';
 import { devOverview } from '@server/dev-overview';
 import { requireRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
@@ -70,9 +70,11 @@ export default function OverviewPage({ loaderData: data }: Route.ComponentProps)
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
       <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
+        {/* Not `PageHeader`: the environment badge sits beside the title, and `title` is typed
+            `string` (see /tmp/sp-ui-handover/ui-area-dev.md). */}
+        <Box miw={0}>
           <Group gap="xs">
-            <Title order={3}>Overview</Title>
+            <Title order={1}>Overview</Title>
             <Badge variant="light" color={data.runtime.nodeEnv === 'production' ? 'red' : 'teal'}>
               {data.runtime.nodeEnv}
             </Badge>
@@ -80,7 +82,7 @@ export default function OverviewPage({ loaderData: data }: Route.ComponentProps)
           <Text size="sm" c="dimmed">
             Ringkasan kondisi aplikasi saat ini. Diperbarui {formatDateTime(data.generatedAt)}.
           </Text>
-        </div>
+        </Box>
         <Button
           size="sm"
           variant="light"

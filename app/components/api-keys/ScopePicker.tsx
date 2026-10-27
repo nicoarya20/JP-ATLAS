@@ -1,4 +1,4 @@
-import { Badge, Checkbox, Group, Stack, Text, Tooltip } from '@mantine/core';
+import { Badge, Box, Checkbox, Group, Stack, Text, Tooltip } from '@mantine/core';
 import type { ScopeDef } from '~/lib/api-keys-api';
 
 const ROLE_RANK: Record<string, number> = {
@@ -34,7 +34,7 @@ export function ScopePicker({ scopes, value, onChange, ownerRole }: Props) {
   const toggle = (id: string, on: boolean) =>
     onChange(on ? [...new Set([...value, id])] : value.filter((v) => v !== id));
   const renderGroup = (title: string, list: ScopeDef[]) => (
-    <Stack gap={6}>
+    <Stack gap="xs">
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
         {title}
       </Text>
@@ -48,7 +48,7 @@ export function ScopePicker({ scopes, value, onChange, ownerRole }: Props) {
             disabled={!ok}
             onChange={(e) => toggle(s.id, e.currentTarget.checked)}
             label={
-              <Group gap={6} wrap="nowrap">
+              <Group gap="xs" wrap="nowrap">
                 <Text size="sm" ff="monospace">
                   {s.id}
                 </Text>
@@ -69,7 +69,8 @@ export function ScopePicker({ scopes, value, onChange, ownerRole }: Props) {
             withArrow
             position="top-start"
           >
-            <div>{box}</div>
+            {/* Tooltip needs an element that forwards a ref; a disabled Checkbox does not. */}
+            <Box>{box}</Box>
           </Tooltip>
         );
       })}

@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Badge,
+  Box,
   Divider,
   Indicator,
   NavLink,
@@ -29,7 +30,7 @@ function CountBadge({ item }: { item: NavItem }) {
       variant={alert ? 'filled' : 'light'}
       color={alert ? (b.color ?? 'red') : 'gray'}
       circle={b.value < 10}
-      style={{ flexShrink: 0 }}
+      flex="0 0 auto"
     >
       {badgeValue(b.value)}
     </Badge>
@@ -41,7 +42,7 @@ function itemHint(item: NavItem): React.ReactNode {
   const lines = [item.description, item.badge?.tooltip].filter(Boolean);
   if (lines.length === 0) return item.label;
   return (
-    <Stack gap={2}>
+    <Stack gap={4}>
       {lines.map((l) => (
         <Text key={l} size="xs" lh={1.3}>
           {l}
@@ -82,7 +83,7 @@ function CollapsedItem({
   return (
     <Tooltip
       label={
-        <Stack gap={2}>
+        <Stack gap={4}>
           <Text size="xs" fw={600} lh={1.3}>
             {item.label}
             {b ? ` · ${badgeValue(b.value)}` : ''}
@@ -95,7 +96,8 @@ function CollapsedItem({
       multiline
       maw={280}
     >
-      <div>
+      {/* Tooltip needs an element that forwards a ref; the icon itself may be an Indicator. */}
+      <Box>
         {b ? (
           <Indicator
             color={alert ? (b.color ?? 'red') : 'gray'}
@@ -108,7 +110,7 @@ function CollapsedItem({
         ) : (
           icon
         )}
-      </div>
+      </Box>
     </Tooltip>
   );
 }
@@ -119,7 +121,7 @@ export function NavList({ groups, collapsed, onNavigate }: Props) {
   return (
     <Stack gap={collapsed ? 'xs' : 'md'} component="nav" aria-label="Navigasi utama">
       {groups.map((g, gi) => (
-        <div key={g.label ?? `group-${gi}`}>
+        <Box key={g.label ?? `group-${gi}`}>
           {collapsed
             ? gi > 0 && <Divider mb="xs" />
             : g.label && (
@@ -127,7 +129,7 @@ export function NavList({ groups, collapsed, onNavigate }: Props) {
                   {g.label}
                 </Text>
               )}
-          <Stack gap={collapsed ? 6 : 2}>
+          <Stack gap={collapsed ? 'xs' : 4}>
             {g.items.map((item) => {
               const active = isNavActive(pathname, item);
               if (collapsed)
@@ -162,13 +164,13 @@ export function NavList({ groups, collapsed, onNavigate }: Props) {
                     onClick={onNavigate}
                     variant="light"
                     fw={active ? 600 : 500}
-                    style={{ borderRadius: 'var(--mantine-radius-md)' }}
+                    bdrs="md"
                   />
                 </Tooltip>
               );
             })}
           </Stack>
-        </div>
+        </Box>
       ))}
     </Stack>
   );
