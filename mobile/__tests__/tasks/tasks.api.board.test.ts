@@ -7,8 +7,8 @@
  * nothing is "tried to see if it works".
  */
 import { setAuthHeaders } from '@/api/client';
-import { isMovable, movableTo, movableToAll, moveTasksOnBoard } from '@/data/tasks.api.board';
 import type { MovableCard } from '@/data/tasks.api.board';
+import { isMovable, movableTo, movableToAll, moveTasksOnBoard } from '@/data/tasks.api.board';
 
 import { serveAuth } from '../helpers/auth-server';
 
@@ -22,17 +22,18 @@ const card = (over: Partial<MovableCard> = {}): MovableCard => ({
 describe('which columns a card may be moved to', () => {
   it('offers the steps the server allows from this status, and nothing else', () => {
     expect(movableTo(card())).toEqual(['In progress', 'Done']);
-    expect(movableTo(card({ status: 'In progress', can: { unstart: true, complete: true } }))).toEqual([
-      'To do',
-      'Done',
-    ]);
+    expect(
+      movableTo(card({ status: 'In progress', can: { unstart: true, complete: true } })),
+    ).toEqual(['To do', 'Done']);
     expect(movableTo(card({ status: 'Done', can: { reopen: true } }))).toEqual(['In progress']);
   });
 
   it('shuts a side whose capability the server refuses or left out', () => {
     // A deny code means "shown but disabled" for a button; for a side of the move menu there is
     // nothing to disable halfway, so it is simply not a move that may be made.
-    expect(movableTo(card({ can: { start: 'LOCKED_BY_STATUS', complete: true } }))).toEqual(['Done']);
+    expect(movableTo(card({ can: { start: 'LOCKED_BY_STATUS', complete: true } }))).toEqual([
+      'Done',
+    ]);
     expect(movableTo(card({ can: { update: true } }))).toEqual([]);
     expect(isMovable(card({ can: { update: true } }))).toBe(false);
   });
