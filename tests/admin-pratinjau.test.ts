@@ -24,9 +24,7 @@ const MARKER = /^\/\/ PRATINJAU\(([^)]+)\): .+$/m;
 const PREVIEW_FILES: Record<string, string> = {
   'app/components/admin/home/beranda.content.ts': 'AD-14',
   'app/components/admin/home/beranda.widgets.tsx': 'AD-15',
-  'app/components/admin/settings/akses-masuk.tsx': 'AD-06',
   'app/components/admin/settings/pemberitahuan.tsx': 'P9 G-02',
-  'app/components/admin/settings/pengumuman.tsx': 'AD-05',
 };
 
 const read = (file: string) => readFileSync(path.join(ROOT, file), 'utf8');
