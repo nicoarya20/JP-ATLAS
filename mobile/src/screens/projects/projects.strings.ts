@@ -23,6 +23,7 @@ export const DETAIL = {
   leadDue: (lead: string, due: string) => `Lead: ${lead} · Due: ${due}`,
   extend: 'Extend deadline',
   tabs: ['Overview', 'Tasks', 'Phases', 'Members'],
+  loadingTitle: 'Project',
   missingTitle: 'Project not found',
   missingText: 'It may have been moved to Archive or deleted.',
 } as const;
