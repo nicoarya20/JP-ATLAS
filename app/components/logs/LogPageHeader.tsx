@@ -22,7 +22,7 @@ export function LogPageHeader(p: Props) {
   return (
     <Group justify="space-between" align="flex-start" wrap="wrap">
       <Box>
-        <Title order={3}>{p.title}</Title>
+        <Title order={1}>{p.title}</Title>
         <Text size="sm" c="dimmed">
           {p.description}
         </Text>
