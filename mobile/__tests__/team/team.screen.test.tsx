@@ -24,15 +24,16 @@ describe('TeamScreen', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId('team-row-nico')).toHaveAccessibleName(/^Nico Pratama \(You\), /);
     expect(screen.getByText('1 overdue')).toBeOnTheScreen();
-    expect(screen.getByText('Leave planned Oct 12–14')).toBeOnTheScreen();
+    // Leave was dropped: no availability line, no leave note.
+    expect(screen.queryByText(/Leave planned|Available/)).not.toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('team-row-rina'));
     expect(router.push).toHaveBeenCalledWith('/more/team/rina');
   });
 
-  test('a row reads every line it shows: role, status, extra and the counts', async () => {
+  test('a row reads every line it shows: role, extra and the counts', async () => {
     await showTeam('pm');
     expect(screen.getByTestId('team-row-rina')).toHaveAccessibleName(
-      'Rina Wulandari, Member · Atlas Project, Available, Also on other projects, 1 active',
+      'Rina Wulandari, Member · Atlas Project, Also on other projects, 1 active',
     );
     // The red overdue count is read too, not only seen.
     expect(screen.getByLabelText(/, \d+ active, 1 overdue$/)).toBeOnTheScreen();
@@ -41,7 +42,7 @@ describe('TeamScreen', () => {
   test('Admin: everyone and the Users note', async () => {
     await showTeam('admin');
     expect(screen.getByTestId('team-row-ayu')).toHaveAccessibleName(
-      'Ayu Lestari (You), Admin · No project, Available',
+      'Ayu Lestari (You), Admin · No project',
     );
     expect(screen.getByTestId('team-row-sri')).toBeOnTheScreen();
     expect(

@@ -2,7 +2,7 @@
 // Phase 1 only hides entries and redirects deep links in the UI; the server enforces roles in Phase 2.
 import type { Role } from '@/data/sample/people';
 
-/** The prototype's 71 screen and sheet ids (test/screens.ids.js). */
+/** The prototype's screen and sheet ids (test/screens.ids.js), less settings.leave (leave was dropped). */
 // biome-ignore format: one prototype group per line
 export const SCREEN_IDS = [
   'auth.login', 'auth.account', 'auth.pending', 'auth.denied',
@@ -21,7 +21,7 @@ export const SCREEN_IDS = [
   'team.list', 'team.person', 'team.empty',
   'archive.list', 'archive.empty', 'archive.undo', 'archive.delete',
   'users.approve', 'users.roles',
-  'settings.main', 'settings.profile', 'settings.leave',
+  'settings.main', 'settings.profile',
   'profile.me', 'profile.calendar',
 ] as const;
 

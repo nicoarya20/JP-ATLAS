@@ -60,13 +60,12 @@ export function Setting(p: { title: string; hint: string; below?: boolean; child
 
 const options = (list: readonly string[]) => list.map((o) => ({ value: o, label: o }));
 
-/** Team settings (Admin only): AI, recording retention, default reminder, leave approval, roles. */
+/** Team settings (Admin only): AI, recording retention, default reminder, roles. */
 export function TeamSettings() {
   const notice = useNotice();
   const [ai, setAi] = useState(true);
   const [retention, setRetention] = useState<string>(T.retentionOptions[1]);
   const [reminder, setReminder] = useState<string>(T.reminderOptions[2]);
-  const [approval, setApproval] = useState(true);
   return (
     <Group label={T.label}>
       <SwitchRow label={T.ai} sub={T.aiHint} value={ai} onChange={setAi} />
@@ -86,12 +85,6 @@ export function TeamSettings() {
           onChange={setReminder}
         />
       </Setting>
-      <SwitchRow
-        label={T.leaveApproval}
-        sub={T.leaveApprovalHint}
-        value={approval}
-        onChange={setApproval}
-      />
       <Setting title={T.roles} hint={T.rolesHint}>
         <Button
           size="sm"

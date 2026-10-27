@@ -3,7 +3,7 @@
 
 import { listPeople, me, type PersonInfo, type PersonKey, person } from './people';
 import { PROJECTS, type Project, type Role } from './sample';
-import { AVAILABLE, TEAM_LIST, type TeamEntry } from './sample/team';
+import { TEAM_LIST, type TeamEntry } from './sample/team';
 import type { TaskItem } from './tasks.shared';
 import { getTasksState } from './tasks.state';
 import { type Load, loadOf, totalOf } from './team.load';
@@ -16,9 +16,6 @@ export type TeamRow = {
   full: string;
   you: boolean;
   role: string;
-  status: string;
-  /** Green "Available" instead of a leave note. */
-  available: boolean;
   extra?: string;
   /** Hidden (undefined) where the viewer may not see someone's task counts. */
   load?: Load;
@@ -32,8 +29,6 @@ export type TeamTaskRow = { no: number; title: string; sub: string; pill: string
 
 export type TeamPersonData = {
   person: PersonInfo;
-  status: string;
-  available: boolean;
   /** "Projects" for Admin (all of them), else "Shared projects". */
   projectsTitle: string;
   projects: { id: string; name: string }[];
@@ -54,14 +49,11 @@ const nameOf = (key: PersonKey) => person(key)?.name ?? key;
 function row(v: Variant, tasks: readonly TaskItem[]): TeamRow {
   const p = person(v.key);
   if (!p) throw new Error(`Team row ${v.key} is not a sample person`);
-  const status = v.status ?? AVAILABLE;
   return {
     key: v.key,
     full: p.full,
     you: !!v.you,
     role: v.role ?? '',
-    status,
-    available: status === AVAILABLE,
     extra: v.extra || undefined,
     load: v.counts === false ? undefined : loadOf(p.name, tasks),
   };

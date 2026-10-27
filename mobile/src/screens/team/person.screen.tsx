@@ -18,7 +18,6 @@ import { useTasks } from '@/data/tasks.state';
 import type { TeamPersonData } from '@/data/team';
 import { getTeamPerson } from '@/data/team.person';
 
-import { StatusText } from './person-row';
 import { PERSON, rowLabel } from './team.strings';
 
 const Heading = ({ title, right }: { title: string; right?: string }) => (
@@ -88,7 +87,6 @@ export function PersonScreen({ id, role = SESSION_ROLE }: { id: string; role?: R
           <Text accessibilityRole="header" className="text-page font-bold">
             {p.full}
           </Text>
-          <StatusText status={d.status} available={d.available} />
         </VStack>
       </HStack>
       <SectionCard>

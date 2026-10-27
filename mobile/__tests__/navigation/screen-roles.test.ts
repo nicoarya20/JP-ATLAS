@@ -16,9 +16,10 @@ const MANAGERS_ONLY = [
 const ADMIN_ONLY = ['users.approve', 'users.roles', 'archive.delete'];
 const MEMBER_ONLY = ['events.empty', 'team.empty'];
 
-test('the 71 prototype ids, each once', () => {
-  expect(SCREEN_IDS).toHaveLength(71);
-  expect(new Set(SCREEN_IDS).size).toBe(71);
+test('the 70 prototype ids (71 less settings.leave), each once', () => {
+  expect(SCREEN_IDS).toHaveLength(70);
+  expect(new Set(SCREEN_IDS).size).toBe(70);
+  expect(SCREEN_IDS).not.toContain('settings.leave');
 });
 
 test.each(SCREEN_IDS.map((id) => [id]))('%s opens for the right roles', (id) => {

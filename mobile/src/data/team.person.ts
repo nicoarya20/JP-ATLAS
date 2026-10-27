@@ -2,7 +2,6 @@
 // active tasks unless a Member is looking at someone else.
 import { me, person } from './people';
 import { PROJECTS, type Role } from './sample';
-import { AVAILABLE, TEAM_LIST } from './sample/team';
 import { getTasksState } from './tasks.state';
 import type { TeamPersonData, TeamSource } from './team';
 import { activeOf, isOverdue, loadOf } from './team.load';
@@ -17,7 +16,6 @@ export function getTeamPerson(
   if (!p || p.key !== key) return null;
   const tasks = src.tasks ?? getTasksState().tasks;
   const projects = src.projects ?? PROJECTS;
-  const status = TEAM_LIST.find((o) => o.key === key)?.status ?? AVAILABLE;
   const viewer = me(role);
   const theirs = projects.filter((pr) => pr.members.includes(p.name));
   const shared = theirs.filter((pr) => role === 'admin' || pr.members.includes(viewer.name));
@@ -25,8 +23,6 @@ export function getTeamPerson(
   const seesTasks = role !== 'member' || viewer.key === p.key;
   return {
     person: p,
-    status,
-    available: status === AVAILABLE,
     projectsTitle: role === 'admin' ? 'Projects' : 'Shared projects',
     projects: shared.map((pr) => ({ id: pr.id, name: pr.name })),
     tasks: seesTasks

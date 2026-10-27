@@ -64,7 +64,6 @@ Route tipis: file `app/**` hanya me-render layar dari `src/screens/<modul>/` (po
 | `app/tasks/csv.tsx` | modal | `tasks.csv` (dibuka dari Create sheet, bukan dari tab) |
 | `app/projects/new/_layout.tsx` (`index`, `form`, `story`, `draft`, `template`) | modal; langkah berikutnya push di Stack modal | `projects.new/form/story/draft/template` |
 | `app/events/new.tsx` (param `event?`, `details?`) | modal | `events.new`, `events.new-details` |
-| `app/leave.tsx` | SHEET | `settings.leave` (dibuka dari Create dan Settings) |
 | `app/profile/_layout.tsx` (`index`, `calendar`) | modal; `calendar` push di dalamnya | `profile.me`, `profile.calendar` |
 
 Catatan: `/tasks/new` (statis, root) dan `/(tabs)/tasks/[id]` sama-sama cocok dengan `/tasks/new`; Expo Router memilih rute statis. Id tugas selalu angka, jadi aman. Dijaga tes `renderRouter`: `/tasks/new` membuka modal (`__tests__/tasks/tasks.screen.form.test.tsx`), `/tasks/12` membuka detail (tes `__tests__/tasks/`).
@@ -191,7 +190,7 @@ Paket Expo (`npx expo install`, versi dari `bundledNativeModules` SDK 58):
 | Paket | Versi SDK 58 | Untuk | Wajib? |
 |---|---|---|---|
 | `expo-clipboard` | ~58.0.4 | "Copy email" di profile.me | Ya |
-| `@react-native-community/datetimepicker` | 9.2.1 (versi bundel SDK 58; cek dengan `npx expo install --check`) | Due date, Start date, leave From/To (`form/date-field.tsx` W0) | Ya. gluestack `date-time-picker` **tidak** dipakai (alpha tidak dipakai di stack ini) |
+| `@react-native-community/datetimepicker` | 9.2.1 (versi bundel SDK 58; cek dengan `npx expo install --check`) | Due date, Start date (`form/date-field.tsx` W0) | Ya. gluestack `date-time-picker` **tidak** dipakai (alpha tidak dipakai di stack ini) |
 | `react-native-keyboard-controller` | 1.22.7 | Form panjang (task form, event form, comment foot) | Opsional, **belum dipasang**: `DetailPage`/`SheetFrame` memakai `KeyboardAvoidingView` + `automaticallyAdjustKeyboardInsets` (§7) |
 | `react-native-pager-view` | 9.0.7 | Pager pekan profile.calendar | Tidak dipasang; pan Reanimated cukup (lihat `phase1-screens.more.md`) |
 
@@ -204,7 +203,7 @@ Reanimated 4.7.1, Worklets 0.13, RNGH 3.3, react-native-screens 4.30, lucide sud
 | G0 | **W0 Kit** | `src/components/{screen,search,filter,sheet,menu,form,list,state,snack,avatar}/**`, `src/data/{store,archive.store,people}.ts`, `src/data/sample/*.ts` bersama (Sesi B, setelah Home selesai) + `src/data/sample/people.extra.ts`, `src/navigation/screen-roles.ts`, `__tests__/kit/**` | Komponen + tes; contoh pemakaian di tes |
 | G1 | **W1 Tasks** | `app/(tabs)/tasks/**`, `app/tasks/**`, `src/screens/tasks/**`, `src/data/tasks*.ts`, `src/data/sample/tasks.*.ts` (baru), `__tests__/tasks/**` | Doc tasks §Tes lulus; ekspor `TaskList`, `TaskBoard` siap dipakai Projects |
 | G1 | **W2 Events** | `app/(tabs)/events/**`, `app/events/**`, `src/screens/events/**`, `src/data/events*.ts`, `src/data/sample/events.*.ts` (baru), `__tests__/events/**` | Doc events §Tes lulus |
-| G1 | **W3 More + Auth + Profile** | `app/(tabs)/more/{inbox,team,archive,users,settings}**`, `app/(auth)/**`, `app/leave.tsx`, `app/profile/**`, `src/screens/{inbox,team,users,archive,settings,auth,profile}/**`, `src/data/{inbox,team,users,settings,profile,auth}*.ts` + `src/data/archive.ts` (bukan `archive.store.ts` milik W0), `src/data/sample/{inbox.extra,team,users,archive,auth}.ts` (baru), `__tests__/{inbox,team,users,archive,settings,auth,profile}/**` | Doc more §Tes lulus |
+| G1 | **W3 More + Auth + Profile** | `app/(tabs)/more/{inbox,team,archive,users,settings}**`, `app/(auth)/**`, `app/profile/**`, `src/screens/{inbox,team,users,archive,settings,auth,profile}/**`, `src/data/{inbox,team,users,settings,profile,auth}*.ts` + `src/data/archive.ts` (bukan `archive.store.ts` milik W0), `src/data/sample/{inbox.extra,team,users,archive,auth}.ts` (baru), `__tests__/{inbox,team,users,archive,settings,auth,profile}/**` | Doc more §Tes lulus |
 | G2 | **W4 Projects** | `app/(tabs)/projects/**`, `app/projects/**`, `src/screens/projects/**`, `src/data/projects*.ts`, `src/data/sample/projects.*.ts` (baru), `__tests__/projects/**` | Doc projects §Tes lulus |
 
 - W4 boleh mulai di G1 untuk list/create/overview/phases/members; tab **Tasks** proyek dan `projects/[id]/settings` menunggu ekspor `TaskBoard`/`TasksSearchField`/`TasksFilterPanel`/`TasksSettings` dari W1 (kontrak di `phase1-screens.tasks.md` §9).

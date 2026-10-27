@@ -1,5 +1,4 @@
-// Copy of the Settings screens, verbatim from the prototype (settings.main.jsx, settings.profile.jsx, settings.leave.jsx).
-// The leave copy per role lives with its data (LEAVE in src/data/settings.ts), which the Create sheet also reads.
+// Copy of the Settings screens, verbatim from the prototype (settings.main.jsx, settings.profile.jsx).
 
 export const SETTINGS = {
   title: 'Settings',
@@ -12,9 +11,6 @@ export const SETTINGS = {
   inboxUpdatesHint: 'Comments, task changes, and event invites',
   notificationsNote:
     "Requests that need your response always appear in Inbox and can't be turned off.",
-  availability: 'Availability',
-  leave: 'Leave',
-  leaveHint: 'Not on leave. Teammates see you as Available.',
   signOut: 'Sign out',
 } as const;
 
@@ -28,9 +24,6 @@ export const TEAM_SETTINGS = {
   reminder: 'Default event reminder',
   reminderHint: 'Used for new events unless the creator changes it',
   reminderOptions: ['30 min', '1 day', '1 day & 30 min'],
-  leaveApproval: 'Leave needs approval',
-  leaveApprovalHint:
-    'Leave requests must be approved by the project Manager or Admin first. If off, leave applies immediately.',
   roles: 'Roles and permissions',
   rolesHint: 'See who can do what (read-only)',
   // The prototype draws "View" with a chevron icon; the name says what it opens.
@@ -56,11 +49,4 @@ export const PROFILE_EDIT = {
   cancel: 'Cancel',
   save: 'Save',
   saved: 'Profile saved',
-} as const;
-
-export const LEAVE_SHEET = {
-  from: 'From date',
-  to: 'To date',
-  note: 'Note (optional)',
-  cancel: 'Cancel',
 } as const;

@@ -10,7 +10,6 @@ export const CREATE_ROUTES = {
   'projects.new': '/projects/new',
   'events.new': '/events/new',
   'tasks.csv': '/tasks/csv',
-  'settings.leave': '/leave',
 } as const satisfies Partial<Record<ScreenId, Href>>;
 
 export type CreateGo = keyof typeof CREATE_ROUTES;
