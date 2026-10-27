@@ -224,7 +224,13 @@ export function InvitationPanel({ initial, loadedAt, perms }: Props) {
         <Alert color="red" icon={<FiAlertCircle size={16} />} title="Gagal memuat undangan">
           <Group justify="space-between" wrap="wrap" gap="xs">
             <Text size="sm">{(list.error as Error).message}</Text>
-            <Button size="xs" variant="light" color="red" onClick={() => list.refetch()}>
+            <Button
+              size="xs"
+              variant="light"
+              color="red"
+              loading={list.isFetching}
+              onClick={() => list.refetch()}
+            >
               Coba lagi
             </Button>
           </Group>

@@ -122,7 +122,13 @@ export function PendingApprovalList({ initial, loadedAt, perms, actions }: Props
       >
         <Group justify="space-between" wrap="wrap" gap="xs">
           <Text size="sm">{(list.error as Error).message}</Text>
-          <Button size="xs" variant="light" color="red" onClick={() => list.refetch()}>
+          <Button
+            size="xs"
+            variant="light"
+            color="red"
+            loading={list.isFetching}
+            onClick={() => list.refetch()}
+          >
             Coba lagi
           </Button>
         </Group>

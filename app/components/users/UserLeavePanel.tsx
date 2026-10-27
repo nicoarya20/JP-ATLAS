@@ -150,7 +150,13 @@ export function UserLeavePanel({ user, canRecord, actions }: Props) {
       <Alert color="danger" icon={<FiAlertCircle size="1.25em" />} title={COPY.historyFailed}>
         <Group justify="space-between" wrap="wrap" gap="xs">
           <Text size="sm">{(leave.error as Error).message}</Text>
-          <Button size="xs" variant="light" color="danger" onClick={() => leave.refetch()}>
+          <Button
+            size="xs"
+            variant="light"
+            color="danger"
+            loading={leave.isFetching}
+            onClick={() => leave.refetch()}
+          >
             {COPY.retry}
           </Button>
         </Group>

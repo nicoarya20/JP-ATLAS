@@ -55,7 +55,8 @@ export function UserLeaveHistory({ items, today }: Props) {
   const { dateTime: formatDateTime } = useTimeFormat();
   return (
     <>
-      {/* Scroll wrapper: four columns in a side drawer do not always fit. */}
+      {/* No `overflowX` prop in Mantine: four columns in a side drawer do not always fit, so
+          they scroll rather than widening the drawer. */}
       <Box style={{ overflowX: 'auto' }} visibleFrom="sm">
         <Table verticalSpacing="xs" fz="sm">
           <Table.Thead>
