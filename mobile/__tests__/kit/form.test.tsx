@@ -114,6 +114,12 @@ describe('Chips, MultiChips and Seg', () => {
     expect(onChange).toHaveBeenCalledWith(1);
   });
 
+  test('a Seg segment (32 pt drawn) reaches 44 pt through a 6 pt hitSlop above and below', async () => {
+    await show(<Seg items={['My tasks', 'All tasks']} value={0} onChange={jest.fn()} />);
+    const tab = screen.getByRole('tab', { name: 'My tasks' });
+    expect(tab.props.hitSlop).toEqual({ top: 6, bottom: 6 });
+  });
+
   test('Seg labels stay on one line unless lines lets a long one wrap to two', async () => {
     const items = ['Needs your response (3)', 'Updates'];
     await show(<Seg items={items} value={0} onChange={jest.fn()} />);

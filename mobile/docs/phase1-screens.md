@@ -159,7 +159,7 @@ Badge status memakai `src/components/status/status-pill.tsx` Sesi B.
 - **`Seg`:** `kind` `'tabs'` (default, ganti isi layar; `tablist`/`tab` + selected) atau `'radio'` (pilihan form/tampilan; `radiogroup`/`radio` + checked), supaya satu layar tidak punya dua tablist; `label` = nama baris; `lines` 1 | 2 (label boleh 2 baris, mis. Inbox); `names` = nama yang dibacakan per segmen (diabaikan bila panjangnya beda); `icons`.
 - **`FormError`:** error di bawah sekelompok kontrol yang tidak dijangkau error `Field` (rentang waktu, picker); live region di Android, `announceForAccessibility` di iOS.
 - **`spoken()`:** kartu/baris yang menampilkan beberapa fakta memakai satu nama gabungan di elemen yang bisa ditekan, dan bagian-bagiannya dikeluarkan dari urutan baca.
-- **`MIN_TARGET` (44 pt):** target sentuh buatan sendiri yang digambar lebih kecil mencapai 44 pt lewat `hitSlop`, tampilan tetap. Button kit sudah `min-h-11`; kontrol Seg/Field/Select juga `min-h-11`.
+- **`MIN_TARGET` (44 pt):** target sentuh buatan sendiri yang digambar lebih kecil mencapai 44 pt lewat `hitSlop`, tampilan tetap. Button kit sudah `min-h-11`; Field/Select juga `min-h-11`. Seg digambar 32 pt (`min-h-8`, setara segmented control iOS) dan mencapai 44 pt lewat `hitSlop` 6 pt atas-bawah.
 - **Kaca:** hanya permukaan tab bar (pil, panel, FAB) yang memakai `GlassSurface` (`phase1-navigation.md` §4.3); layar tidak memakai `GlassView`.
 - **`useTabBarInset()`:** semua layar ber-bar dan `SnackHost` memakai padding bawah ini (`DetailPage`/`StackedScreen` sudah).
 
