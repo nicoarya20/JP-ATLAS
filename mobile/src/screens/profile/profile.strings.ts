@@ -12,8 +12,7 @@ export const PROFILE = {
   eventReminderSub: 'Before an event you are invited to starts',
   inboxNews: 'Inbox news',
   inboxNewsSub: 'Updates on your projects and tasks',
-  alwaysOn:
-    'Cards that need your answer always arrive; only these two kinds can be turned off.',
+  alwaysOn: 'Cards that need your answer always arrive; only these two kinds can be turned off.',
   saveFailed: (message: string) => `Could not save that: ${message}`,
   settings: 'Settings',
   help: 'Help & resources',

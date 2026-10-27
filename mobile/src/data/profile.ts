@@ -5,6 +5,7 @@ import { today } from './clock';
 import type { EventHref, EventItem } from './events.shared';
 import { eventHref, eventWhere } from './events.shared';
 import { inboxActionCount } from './inbox.api';
+import { profileResource } from './profile.api';
 import {
   type CalendarItem,
   dayLabel,
@@ -16,7 +17,6 @@ import {
   weekday,
   weekOf,
 } from './profile.calendar.dates';
-import { profileResource } from './profile.api';
 import type { Role } from './sample';
 import { viewer as signedIn } from './viewer';
 import { whoamiRoleLabel } from './whoami.api';

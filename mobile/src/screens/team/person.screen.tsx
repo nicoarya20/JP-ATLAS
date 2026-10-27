@@ -66,9 +66,7 @@ function Tasks({ d }: { d: TeamPersonData }) {
           {PERSON.capped(PERSON_TASKS_MAX)}
         </Text>
       )}
-      {d.elsewhere && (
-        <Text className="text-footnote text-muted-foreground">{d.elsewhere}</Text>
-      )}
+      {d.elsewhere && <Text className="text-footnote text-muted-foreground">{d.elsewhere}</Text>}
     </VStack>
   );
 }

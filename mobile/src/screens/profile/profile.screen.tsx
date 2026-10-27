@@ -3,7 +3,16 @@
 // leading to a tab close the modal first.
 import * as Clipboard from 'expo-clipboard';
 import { type Href, router } from 'expo-router';
-import { Bell, CalendarDays, CircleHelp, Copy, Inbox, ListChecks, Pencil, Settings } from 'lucide-react-native';
+import {
+  Bell,
+  CalendarDays,
+  CircleHelp,
+  Copy,
+  Inbox,
+  ListChecks,
+  Pencil,
+  Settings,
+} from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 
 import { SectionLabel } from '@/components/form/section-label';
@@ -63,11 +72,7 @@ function Notifications() {
       setSaving(null);
     }
   };
-  const row = (
-    key: keyof NotificationPrefsWire,
-    title: string,
-    sub: string,
-  ) => (
+  const row = (key: keyof NotificationPrefsWire, title: string, sub: string) => (
     <Row
       lead={<Tile icon={Bell} tone="indigo" />}
       title={title}

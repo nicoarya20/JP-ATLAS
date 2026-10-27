@@ -6,12 +6,12 @@ import type { Role } from './sample';
 import {
   type LeaveStatusWire,
   type ProjectMemberRoleWire,
+  TEAM_LIMIT,
   type TeamLoadWire,
   type TeamPersonWire,
   type TeamProjectRefWire,
   type TeamQuery,
   type TeamSummaryWire,
-  TEAM_LIMIT,
   teamList,
 } from './team.api';
 
@@ -56,8 +56,7 @@ const PROJECT_ROLE: Record<ProjectMemberRoleWire, string> = {
 /** Notes per role (GAP A-18): the role comes from `whoami`, and decides copy only, never access. */
 const NOTE: Partial<Record<Role, string>> = {
   admin: 'Approving new users and changing roles happens in More › Users.',
-  member:
-    'Task counts per person are visible only to that person, the project Manager and Admin.',
+  member: 'Task counts per person are visible only to that person, the project Manager and Admin.',
 };
 
 /** "Atlas (Manager)": a project and the person's role in it, as the server sent both. */
@@ -91,9 +90,7 @@ export function teamRow(p: TeamPersonWire): TeamRow {
     you: p.isSelf,
     role: [p.jobTitle, projects].filter(Boolean).join(' · '),
     status: availabilityText(p.availability),
-    extra: p.load?.alsoElsewhere
-      ? 'Also has open tasks on projects you do not share'
-      : undefined,
+    extra: p.load?.alsoElsewhere ? 'Also has open tasks on projects you do not share' : undefined,
     load: loadOf(p.load),
   };
 }

@@ -20,7 +20,7 @@
  */
 import { apiGet } from '@/api';
 
-import { offsetPaged, type OffsetPaged } from './offset-pages';
+import { type OffsetPaged, offsetPaged } from './offset-pages';
 import { type Resource, resource } from './resource';
 
 /** `server/team/team.query.ts`: the page the server sends when no limit is asked for. */
@@ -137,10 +137,14 @@ export function teamList(query: TeamQuery): TeamListResource {
   const key = teamQueryKey(query);
   const held = lists.get(key);
   if (held) return held;
-  const made = offsetPaged<TeamPersonWire, TeamSummaryWire>(key, TEAM_LIMIT, async (offset, limit) => {
-    const body = await apiGet<TeamListWire>(teamUrl(query, offset, limit));
-    return { rows: body.people, total: body.total, extra: body.summary };
-  });
+  const made = offsetPaged<TeamPersonWire, TeamSummaryWire>(
+    key,
+    TEAM_LIMIT,
+    async (offset, limit) => {
+      const body = await apiGet<TeamListWire>(teamUrl(query, offset, limit));
+      return { rows: body.people, total: body.total, extra: body.summary };
+    },
+  );
   lists.set(key, made);
   return made;
 }
