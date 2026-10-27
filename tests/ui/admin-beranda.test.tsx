@@ -19,8 +19,9 @@ import type {
   Widget,
 } from '@server/admin/overview/overview.dto';
 import type { ReactNode } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
-import { MemoryRouter } from 'react-router';
+import { renderToString } from 'react-dom/server';
+import { createStaticHandler, createStaticRouter, StaticRouterProvider } from 'react-router';
+import type { RenderClock } from '../../app/lib/time-format';
 import { AntreanWidget } from '../../app/components/admin/home/antrean';
 import { OVERVIEW_COPY } from '../../app/components/admin/home/overview.copy';
 import {
@@ -32,12 +33,22 @@ import {
 } from '../../app/components/admin/home/overview.widgets';
 import { HOME_COPY } from '../../app/components/home/home.copy';
 
-const render = (node: ReactNode) =>
-  renderToStaticMarkup(
+// Renders under a data router whose root loader supplies the clock, like the real app, so widgets
+// that read the root clock through useTimeFormat (e.g. Perubahan peran) render as they do in app.
+const FIXED_CLOCK: RenderClock = { now: Date.parse('2026-10-27T05:00:00.000Z'), timeZone: 'Asia/Jakarta' };
+const render = async (node: ReactNode) => {
+  const handler = createStaticHandler([
+    { id: 'root', path: '/', loader: () => ({ clock: FIXED_CLOCK }), Component: () => node },
+  ]);
+  const context = await handler.query(new Request('http://x/'));
+  if (context instanceof Response) throw new Error(`Unexpected redirect ${context.status}`);
+  const router = createStaticRouter(handler.dataRoutes, context);
+  return renderToString(
     <MantineProvider>
-      <MemoryRouter>{node}</MemoryRouter>
+      <StaticRouterProvider router={router} context={context} hydrate={false} />
     </MantineProvider>,
   );
+};
 
 /** `&` comes back as `&amp;`, and the markup is far too large to put inside an expectation. */
 const shows = (html: string, text: string) => html.includes(text.replace(/&/g, '&amp;'));
@@ -160,67 +171,67 @@ const CARDS = [
 ];
 
 describe('Admin Beranda widgets (loaded)', () => {
-  it.each(CARDS)('$name asks its question in the subtitle', ({ node, copy }) => {
-    const html = render(node);
+  it.each(CARDS)('$name asks its question in the subtitle', async ({ node, copy }) => {
+    const html = await render(node);
     expect(shows(html, copy.title)).toBe(true);
     expect(shows(html, copy.subtitle)).toBe(true);
   });
 
-  it.each(CARDS)('$name links on to the menu that acts on it', ({ node, to }) => {
-    expect(render(node)).toContain(`href="${to}"`);
+  it.each(CARDS)('$name links on to the menu that acts on it', async ({ node, to }) => {
+    expect(await render(node)).toContain(`href="${to}"`);
   });
 
-  it('shows the real figures, not an empty shell', () => {
-    expect(shows(render(<MembersWidget widget={MEMBERS} retry={retry} />), '31')).toBe(true);
+  it('shows the real figures, not an empty shell', async () => {
+    expect(shows(await render(<MembersWidget widget={MEMBERS} retry={retry} />), '31')).toBe(true);
     expect(
       shows(
-        render(<LateTasksWidget widget={OVERDUE} retry={retry} />),
+        await render(<LateTasksWidget widget={OVERDUE} retry={retry} />),
         'Finalisasi kontrak vendor',
       ),
     ).toBe(true);
     // The overdue list says how many more there are behind its link.
     expect(
       shows(
-        render(<LateTasksWidget widget={OVERDUE} retry={retry} />),
+        await render(<LateTasksWidget widget={OVERDUE} retry={retry} />),
         OVERVIEW_COPY.overdue.more(7),
       ),
     ).toBe(true);
   });
 
-  it('renders the role change as "who: from → to"', () => {
-    const html = render(<RoleChangesWidget widget={ROLES} retry={retry} />);
+  it('renders the role change as "who: from → to"', async () => {
+    const html = await render(<RoleChangesWidget widget={ROLES} retry={retry} />);
     expect(shows(html, 'Budi: Member → Project Manager')).toBe(true);
   });
 });
 
 describe('Admin Beranda widgets (empty)', () => {
-  it('shows an informative empty state when there are no overdue tasks', () => {
+  it('shows an informative empty state when there are no overdue tasks', async () => {
     const empty: Widget<OverdueTasksSummary> = { ok: true, data: { total: 0, items: [] } };
     expect(
-      shows(render(<LateTasksWidget widget={empty} retry={retry} />), OVERVIEW_COPY.overdue.empty),
+      shows(await render(<LateTasksWidget widget={empty} retry={retry} />), OVERVIEW_COPY.overdue.empty),
     ).toBe(true);
   });
 
-  it('shows an empty state for an agenda with nothing upcoming', () => {
+  it('shows an empty state for an agenda with nothing upcoming', async () => {
     const empty: Widget<AgendaSummary> = { ok: true, data: { total: 0, items: [] } };
     expect(
       shows(
-        render(<AgendaWidget widget={empty} retry={retry} timeZone="Asia/Jakarta" />),
+        await render(<AgendaWidget widget={empty} retry={retry} timeZone="Asia/Jakarta" />),
         OVERVIEW_COPY.agenda.empty,
       ),
     ).toBe(true);
   });
 
-  it('shows an empty state for no recent role changes', () => {
+  it('shows an empty state for no recent role changes', async () => {
     const empty: Widget<RoleChangesSummary> = { ok: true, data: { items: [] } };
     expect(
-      shows(render(<RoleChangesWidget widget={empty} retry={retry} />), OVERVIEW_COPY.roles.empty),
+      shows(await render(<RoleChangesWidget widget={empty} retry={retry} />), OVERVIEW_COPY.roles.empty),
     ).toBe(true);
   });
 });
 
 describe('Admin Beranda widgets (failed section)', () => {
-  it.each(CARDS)('$name offers "Coba lagi" when its section failed', ({ name }) => {
+  it.each(CARDS)('$name offers "Coba lagi" when its section failed', async ({ name }) => {
     const nodes: Record<string, ReactNode> = {
       Anggota: <MembersWidget widget={failed} retry={retry} />,
       'Proyek per status': <ProjectsWidget widget={failed} retry={retry} />,
@@ -228,7 +239,7 @@ describe('Admin Beranda widgets (failed section)', () => {
       Agenda: <AgendaWidget widget={failed} retry={retry} timeZone="Asia/Jakarta" />,
       'Perubahan peran': <RoleChangesWidget widget={failed} retry={retry} />,
     };
-    const html = render(nodes[name]);
+    const html = await render(nodes[name]);
     expect(shows(html, HOME_COPY.error)).toBe(true);
     expect(shows(html, HOME_COPY.retry)).toBe(true);
   });
@@ -237,20 +248,20 @@ describe('Admin Beranda widgets (failed section)', () => {
 describe('Admin Beranda approval queue', () => {
   const ok = (count: number): Widget<{ count: number }> => ({ ok: true, data: { count } });
 
-  it('says nothing is waiting when the count is zero, and offers no review button', () => {
-    const html = render(<AntreanWidget widget={ok(0)} retry={retry} />);
+  it('says nothing is waiting when the count is zero, and offers no review button', async () => {
+    const html = await render(<AntreanWidget widget={ok(0)} retry={retry} />);
     expect(shows(html, OVERVIEW_COPY.pending.empty)).toBe(true);
     expect(shows(html, OVERVIEW_COPY.pending.review)).toBe(false);
   });
 
-  it('counts the waiting registrants and offers the review button', () => {
-    const html = render(<AntreanWidget widget={ok(4)} retry={retry} />);
+  it('counts the waiting registrants and offers the review button', async () => {
+    const html = await render(<AntreanWidget widget={ok(4)} retry={retry} />);
     expect(shows(html, OVERVIEW_COPY.pending.waiting('4'))).toBe(true);
     expect(html).toContain('href="/dashboard/users?tab=pending"');
   });
 
-  it('offers "Coba lagi" when the section failed', () => {
-    const html = render(<AntreanWidget widget={failed} retry={retry} />);
+  it('offers "Coba lagi" when the section failed', async () => {
+    const html = await render(<AntreanWidget widget={failed} retry={retry} />);
     expect(shows(html, HOME_COPY.retry)).toBe(true);
   });
 });
