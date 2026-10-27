@@ -2,6 +2,7 @@
 import { Alert, Button, Group, Stack, Text } from '@mantine/core';
 import type { TaskDraftQuestion as Question } from '@server/ai/task-draft.types';
 import { FiHelpCircle } from 'react-icons/fi';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { WRITE_COPY as COPY } from './task-draft.copy';
 
 type Props = {
@@ -21,7 +22,7 @@ export function TaskDraftQuestion({ question, onAnswer, onEditText }: Props) {
       icon={<FiHelpCircle size="1.25em" aria-hidden />}
     >
       <Stack gap="sm">
-        <Text fw={600} style={{ overflowWrap: 'anywhere' }}>
+        <Text fw={600} style={WRAP_ANYWHERE}>
           {question.text}
         </Text>
         {options.length > 0 ? (

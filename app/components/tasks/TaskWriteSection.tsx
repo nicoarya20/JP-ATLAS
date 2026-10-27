@@ -1,6 +1,7 @@
 /** "Tulis saja ✦" (Tugas ⑤) below the mode toggle: project, story box, the AI's question and the drafts. */
 import { Paper, Select, Stack, Text } from '@mantine/core';
 import type { TaskFormProject } from '@server/task/task-form.query';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { TaskDraftList } from './TaskDraftList';
 import { TaskDraftQuestion } from './TaskDraftQuestion';
 import { TaskWriteBox } from './TaskWriteBox';
@@ -37,11 +38,11 @@ export function TaskWriteSection({ write, projects, projectId, onProject, ...loo
       />
       {showResult ? (
         <Stack gap="md">
-          <Paper withBorder p="sm" radius="md">
+          <Paper withBorder p="sm">
             <Text size="xs" c="dimmed">
               {COPY.yourText}
             </Text>
-            <Text size="sm" lineClamp={3} style={{ overflowWrap: 'anywhere' }}>
+            <Text size="sm" lineClamp={3} style={WRAP_ANYWHERE}>
               {state.text.trim()}
             </Text>
           </Paper>

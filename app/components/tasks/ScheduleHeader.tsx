@@ -12,9 +12,13 @@ type Props = {
   count: number | string;
 };
 
+/**
+ * The handoff defines three heading sizes (page 32, section 20, body) and no h4, so a group
+ * heading takes the section size while staying an h2 in the page outline.
+ */
 export function ScheduleHeader({ group, count }: Props) {
   return (
-    <Title order={2} size="h4" id={scheduleHeadingId(group)}>
+    <Title order={2} size="h3" id={scheduleHeadingId(group)}>
       {LIST_COPY.groupCount(SCHEDULE_GROUP_LABELS[group], count)}
     </Title>
   );

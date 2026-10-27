@@ -11,6 +11,7 @@ import { Link } from 'react-router';
 import { PriorityBadge } from '~/components/pm/PriorityBadge';
 import { StatusBadge } from '~/components/pm/StatusBadge';
 import { TaskLabelChip } from '~/components/pm/TaskLabelChip';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { DateText } from '~/components/ui/DateText';
 import { TASK_LABEL_PRIORITY } from '~/lib/pm-labels';
 import { NextStepBar } from './NextStepBar';
@@ -44,8 +45,8 @@ export function headerLabels(labels: readonly TaskLabel[]): TaskLabel[] {
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
-      <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
+    <Group gap="xs" wrap="nowrap" miw={0}>
+      <Text size="sm" c="dimmed" flex="0 0 auto">
         {`${label}:`}
       </Text>
       {children}
@@ -61,9 +62,10 @@ export function TaskHeader({ task, today, afterDelete }: Props) {
     <Stack gap="sm">
       {/* nowrap is safe: the only button is one 44px icon and the title itself wraps. */}
       <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-        <Stack gap={2} style={{ minWidth: 0 }}>
+        <Stack gap={4} miw={0}>
           <Text size="sm" c="dimmed">{`#${task.number}`}</Text>
-          <Title order={2} style={{ overflowWrap: 'anywhere' }}>
+          {/* The page title of a detail page: it wraps in full, never truncated (K-5). */}
+          <Title order={2} style={WRAP_ANYWHERE}>
             {task.title}
           </Title>
         </Stack>

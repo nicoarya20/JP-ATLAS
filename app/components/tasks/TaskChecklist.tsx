@@ -17,6 +17,7 @@ import {
 import { TASK_CHECKLIST_MAX_ITEMS, TASK_CHECKLIST_TEXT_MAX } from '@server/task/task.limits';
 import { useState } from 'react';
 import { FiCheck, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { WRAP_PRE_ANYWHERE } from '~/components/pm/text-wrap';
 import { confirmAction } from '~/components/ui/confirmAction';
 import type { TaskChecklist as Checklist, ChecklistItem } from '~/lib/tasks-api';
 import { CHECKLIST_COPY as COPY } from './task-body.copy';
@@ -58,7 +59,7 @@ function StepRow({
           value={text}
           maxLength={TASK_CHECKLIST_TEXT_MAX}
           onChange={(e) => setText(e.currentTarget.value)}
-          style={{ flex: '1 1 12rem' }}
+          flex="1 1 12rem"
         />
         <Group gap="xs" wrap="wrap">
           <Button loading={change.loading} onClick={save} leftSection={<FiCheck size="1.25em" />}>
@@ -84,14 +85,17 @@ function StepRow({
         }
       />
       <Text
-        style={{ flex: 1, minWidth: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}
+        flex={1}
+        miw={0}
+        // A checklist step is user text on a detail page: its line breaks survive and it wraps in full.
+        style={WRAP_PRE_ANYWHERE}
         td={item.isDone ? 'line-through' : undefined}
         c={item.isDone ? 'dimmed' : undefined}
       >
         {item.text}
       </Text>
       {canEdit && (
-        <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+        <Group gap="xs" wrap="nowrap" flex="0 0 auto">
           <ActionIcon
             variant="subtle"
             color="gray"
@@ -139,7 +143,7 @@ function AddStep({ taskRef, full }: { taskRef: string; full: boolean }) {
           disabled={full}
           error={full ? COPY.full : undefined}
           onChange={(e) => setText(e.currentTarget.value)}
-          style={{ flex: '1 1 12rem' }}
+          flex="1 1 12rem"
         />
         <Button type="submit" loading={add.loading} disabled={full || text.trim() === ''}>
           {COPY.add}

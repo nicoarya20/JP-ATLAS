@@ -21,7 +21,7 @@ export const TASK_COLUMNS: ResponsiveColumn<TaskListItem>[] = [
     header: LIST_COPY.colTask,
     cell: (t) => (
       <Group gap="xs" wrap="nowrap" justify="space-between">
-        <Stack gap={4} style={{ minWidth: 0 }}>
+        <Stack gap={4} miw={0}>
           <TaskTitle task={t} />
           <TaskMeta task={t} />
           <Text size="sm" c="dimmed" truncate>

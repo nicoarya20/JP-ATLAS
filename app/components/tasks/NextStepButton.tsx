@@ -38,7 +38,7 @@ export function NextStepButton({ taskRef, primary, fullWidth }: Props) {
       loading={step.loading}
       onClick={run}
       fullWidth={fullWidth}
-      style={{ flexShrink: 0 }}
+      flex="0 0 auto"
     >
       {NEXT_STEP_LABELS[primary]}
     </Button>

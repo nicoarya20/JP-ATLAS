@@ -86,6 +86,7 @@ export function TaskFilters({ filters, onChange, projects, people, locked }: Pro
               ...(v === 'saya' ? { [P.person]: null } : {}),
             })
           }
+          // Mantine has no `align-self` style prop, and aligning the Stack would move every child.
           style={{ alignSelf: 'flex-start' }}
         />
       )}
@@ -100,7 +101,7 @@ export function TaskFilters({ filters, onChange, projects, people, locked }: Pro
             setSearch(e.currentTarget.value);
             commitSearch(e.currentTarget.value);
           }}
-          style={{ flex: '1 1 16rem' }}
+          flex="1 1 16rem"
         />
         <Select
           label={FILTER_COPY.sortLabel}
@@ -108,7 +109,7 @@ export function TaskFilters({ filters, onChange, projects, people, locked }: Pro
           value={filters.urut}
           allowDeselect={false}
           onChange={(v) => v && onChange({ [P.sort]: orDefault(v, D.urut) })}
-          style={{ flex: '0 1 14rem' }}
+          flex="0 1 14rem"
         />
       </Group>
       <Chip.Group

@@ -2,6 +2,7 @@
 import { ActionIcon, Button, Group, Menu, Paper, Stack, Text, Textarea } from '@mantine/core';
 import { useState } from 'react';
 import { FiEdit2, FiMoreHorizontal, FiTrash2 } from 'react-icons/fi';
+import { WRAP_PRE_ANYWHERE } from '~/components/pm/text-wrap';
 import { confirmAction } from '~/components/ui/confirmAction';
 import { DateText } from '~/components/ui/DateText';
 import type { TimelineEntry } from '~/lib/tasks-api';
@@ -65,7 +66,7 @@ function CommentView({
                   variant="subtle"
                   color="gray"
                   aria-label={COPY.commentMenu}
-                  style={{ flexShrink: 0 }}
+                  flex="0 0 auto"
                 >
                   <FiMoreHorizontal size="1.25em" aria-hidden />
                 </ActionIcon>
@@ -139,7 +140,7 @@ export function TimelineItem({ entry, taskRef, viewerId, canComment }: Props) {
         <DateText value={entry.at} mode="relative" />
       </Group>
       {detail && (
-        <Text size="xs" c="dimmed" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+        <Text size="xs" c="dimmed" style={WRAP_PRE_ANYWHERE}>
           {detail}
         </Text>
       )}
