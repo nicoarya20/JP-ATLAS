@@ -1,10 +1,10 @@
-/* Words added in the Projects QA pass (W4e), not in the prototype: why a primary is off, accessible names without the
-   visible "+" or "→", and what the screen-reader labels of the cards and the phase steps say. */
+/* Words added in the Projects QA pass (W4e) and in Phase 2, not in the prototype: why a primary is off, accessible
+   names without the visible "+" or "→", and the words the server-backed screens needed (paging, honest counts, and the
+   one line a control disabled by the server gets). */
 
 /** Shown under the field (and read as the disabled primary's hint) while the form can't be sent. */
 export const WHY = {
   name: 'Enter a project name.',
-  nameTaken: 'A project with this name already exists.',
   template: 'Choose a template.',
   story: 'Write your story first.',
   next: 'Pick a new deadline.',
@@ -32,8 +32,8 @@ export const STEP_STATE = {
 } as const satisfies Record<PhaseState, string>;
 
 export const ADDED = {
-  archivedTasks: 'Tasks are in Archive with the project.',
   leadStays: "The Lead stays Manager and can't be removed.",
-  members: (n: number) => `${n} member${n === 1 ? '' : 's'}`,
   progress: (percent: string) => `Progress ${percent}`,
+  /** Asks the server for the next page; the lists here are paged, not loaded whole. */
+  more: 'Load more',
 } as const;

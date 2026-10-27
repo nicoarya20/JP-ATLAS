@@ -2,10 +2,8 @@
 
 export const LIST = {
   title: 'Projects',
-  search: 'Search project name or description…',
-  people: 'Show projects of',
-  myProjects: 'My projects',
-  clear: 'Clear',
+  // The server matches the name only (GAP A-6), so the placeholder promises only that.
+  search: 'Search project name…',
   lead: (name: string) => `Lead: ${name}`,
   due: (date: string) => `Due ${date}`,
   progress: (name: string) => `Progress of ${name}`,
@@ -13,7 +11,7 @@ export const LIST = {
   noMatch: 'No projects match these filters.',
 } as const;
 
-export const FILTER = { status: 'Status', health: 'Health', sort: 'Sort by' } as const;
+export const FILTER = { status: 'Status', attention: 'Attention', sort: 'Sort by' } as const;
 
 export const DETAIL = {
   actions: 'Project actions',
