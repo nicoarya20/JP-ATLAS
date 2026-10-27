@@ -10,6 +10,7 @@ import type {
   WireExtensionList,
   WireMemberItem,
   WireMemberList,
+  WireMilestone,
   WirePhase,
   WirePickerList,
   WireProjectDetail,
@@ -108,7 +109,7 @@ export function wirePhase(over: Partial<WirePhase> = {}): WirePhase {
   return {
     id: 'ph-1',
     projectId: 'atlas',
-    name: 'Discovery',
+    name: 'Planning',
     description: null,
     position: 1,
     startDate: '2026-09-01',
@@ -122,24 +123,55 @@ export function wirePhase(over: Partial<WirePhase> = {}): WirePhase {
   };
 }
 
+/** The three phases the QA assertions read as steps: done, current, upcoming. */
+export const PROJECT_PHASES: readonly WirePhase[] = [
+  wirePhase(),
+  wirePhase({
+    id: 'ph-2',
+    name: 'Development',
+    position: 2,
+    startDate: '2026-09-25',
+    endDate: '2026-10-20',
+    status: 'in_progress',
+    finishedAt: null,
+    taskCount: 6,
+    doneCount: 3,
+  }),
+  wirePhase({
+    id: 'ph-3',
+    name: 'Testing',
+    position: 3,
+    startDate: '2026-10-21',
+    endDate: '2026-10-31',
+    status: 'not_started',
+    startedAt: null,
+    finishedAt: null,
+    taskCount: 0,
+    doneCount: 0,
+  }),
+];
+
+export function wireMilestone(over: Partial<WireMilestone> = {}): WireMilestone {
+  return {
+    id: 'm-1',
+    projectId: 'atlas',
+    phaseId: 'ph-1',
+    title: 'Kickoff signed off',
+    description: null,
+    dueDate: '2026-09-24',
+    reachedAt: '2026-09-24T09:00:00.000Z',
+    ...over,
+  };
+}
+
 export function wirePlan(over: Partial<WireProjectPlan> = {}): WireProjectPlan {
-  const phases = over.phases ?? [
-    wirePhase(),
-    wirePhase({
-      id: 'ph-2',
-      name: 'Build',
-      position: 2,
-      startDate: '2026-09-25',
-      endDate: '2026-10-20',
-      status: 'in_progress',
-      finishedAt: null,
-      taskCount: 6,
-      doneCount: 3,
-    }),
-  ];
+  const phases = over.phases ?? [...PROJECT_PHASES];
+  // One milestone, on Planning: the Phases tab must show its heading there and not on a phase
+  // without one.
+  const milestones = over.milestones ?? [wireMilestone()];
   return {
     phases,
-    milestones: [],
+    milestones,
     nextMilestone: null,
     currentPhase: phases.find((p) => p.status === 'in_progress') ?? null,
     ...over,

@@ -147,8 +147,9 @@ describe('Tasks tab', () => {
 describe('Phases tab', () => {
   it('shows the phases with their range and progress', async () => {
     await openProjects('/projects/atlas?tab=phases');
-    await waitFor(() => expect(screen.getByTestId('phase-Discovery')).toBeOnTheScreen());
-    expect(screen.getByTestId('phase-Build')).toBeOnTheScreen();
+    await waitFor(() => expect(screen.getByTestId('phase-Planning')).toBeOnTheScreen());
+    expect(screen.getByTestId('phase-Development')).toBeOnTheScreen();
+    expect(screen.getByTestId('phase-Testing')).toBeOnTheScreen();
   });
 
   it('shows the deadline history the extensions answer', async () => {
