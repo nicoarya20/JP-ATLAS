@@ -1,7 +1,8 @@
-import { Stack, Text, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { EksporDataPanel } from '~/components/admin/export/ekspor-data';
+import { PageHeader } from '~/components/ui/PageHeader';
 import type { Route } from './+types/export';
 
 export const EXPORT_PAGE_COPY = {
@@ -27,12 +28,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function AdminExportPage() {
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <div>
-        <Title order={1}>{EXPORT_PAGE_COPY.title}</Title>
-        <Text size="sm" c="dimmed">
-          {EXPORT_PAGE_COPY.description}
-        </Text>
-      </div>
+      <PageHeader title={EXPORT_PAGE_COPY.title} description={EXPORT_PAGE_COPY.description} />
       <EksporDataPanel />
     </Stack>
   );

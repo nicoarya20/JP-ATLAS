@@ -107,7 +107,8 @@ export function TaskFormMore({ form, kinds, phases, hasProject, withSteps }: Pro
                   aria-label={COPY.stepLabel(i + 1)}
                   placeholder={COPY.stepPlaceholder}
                   maxLength={TASK_CHECKLIST_TEXT_MAX}
-                  style={{ flex: 1, minWidth: 0 }}
+                  flex={1}
+                  miw={0}
                   onKeyDown={onStepKey}
                   {...form.getInputProps(`steps.${i}`)}
                 />
@@ -116,7 +117,7 @@ export function TaskFormMore({ form, kinds, phases, hasProject, withSteps }: Pro
                   color="gray"
                   aria-label={COPY.removeStep(i + 1)}
                   onClick={() => form.removeListItem('steps', i)}
-                  style={{ flexShrink: 0 }}
+                  flex="0 0 auto"
                 >
                   <FiX size="1.25em" aria-hidden />
                 </ActionIcon>

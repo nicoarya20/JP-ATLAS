@@ -45,6 +45,8 @@ describe('/dashboard area', () => {
     const paths = layout?.children?.map((c) => c.path);
     expect(paths).toContain('dashboard');
     expect(paths).toContain('dashboard/users');
+    // The Admin reading of the audit trail (AD-18).
+    expect(paths).toContain('dashboard/activity');
     // Split out of Pengaturan by AD-20: a report and a tool, not settings.
     expect(paths).toContain('dashboard/permissions');
     expect(paths).toContain('dashboard/export');
@@ -57,10 +59,13 @@ describe('/dashboard area', () => {
     expect(fileOf('dashboard/export')).toBe('routes/admin/export.tsx');
   });
 
-  test('the Admin sidebar has the five AD-20 entries in reading order', () => {
+  test('the Admin sidebar lists its entries in reading order', () => {
+    // Pengguna → Proyek (AD-12) → Aktivitas (AD-18) → the AD-20 entries.
     expect(NAV.map((n) => [n.label, n.to])).toEqual([
       ['Dashboard', '/dashboard'],
       ['Pengguna', '/dashboard/users'],
+      ['Proyek', '/dashboard/projects'],
+      ['Aktivitas', '/dashboard/activity'],
       ['Peran & izin', '/dashboard/permissions'],
       ['Ekspor data', '/dashboard/export'],
       ['Pengaturan', '/dashboard/settings'],

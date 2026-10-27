@@ -10,6 +10,7 @@ import { and, asc, desc, eq, ilike, inArray, isNull, type SQL, sql } from 'drizz
 import type { EventSubject, Membership, Principal } from '../access/types';
 import { db } from '../db';
 import { event, project } from '../db/schema';
+import { shiftDate, zonedDayStart } from '../metrics/dates';
 import type { CursorKey } from '../pm/keyset';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
@@ -21,6 +22,7 @@ import {
   type ListEventsInput,
   type ProjectRef,
 } from './events.dto';
+import type { EventRange } from './events.range';
 
 /** Every column an event read selects; the project columns come from a LEFT JOIN, so they are nullable. */
 export const eventColumns = {
@@ -73,6 +75,23 @@ export function inTab(tab: EventTab, now: Date): SQL {
   return tab === 'upcoming'
     ? sql`${event.endsAt} > ${instant(now)}`
     : sql`${event.endsAt} <= ${instant(now)}`;
+}
+
+/**
+ * Events that *overlap* the calendar window, both ends counted (A9). Overlap, not "starts inside":
+ * a meeting that began on the last day of last month and runs into this one belongs on this
+ * month's grid, and so does an event that has already finished — this filter knows nothing of
+ * `now`, which is exactly why a calendar can use it where `inTab` cannot.
+ *
+ * The two boundaries are local midnights of the team zone, turned into instants by the one shared
+ * helper (`zonedDayStart`). Read them in UTC instead and a 06.00 WIB event belongs to the previous
+ * day, so the first day of every window silently loses its morning.
+ */
+export function inRange(range: EventRange, timeZone: string): SQL {
+  const start = zonedDayStart(range.from, timeZone);
+  // `to` is inclusive, so the window ends at midnight of the day after it.
+  const endExclusive = zonedDayStart(shiftDate(range.to, 1), timeZone);
+  return sql`(${event.endsAt} > ${instant(start)} AND ${event.startsAt} < ${instant(endExclusive)})`;
 }
 
 /** Keyset step in the tab's own direction: upcoming runs forwards in time, past backwards. */

@@ -70,7 +70,6 @@ export function TrashItemCard({
     <Paper
       id={trashCardId(view.key)}
       withBorder
-      radius="md"
       p="md"
       bd={highlighted ? '2px solid var(--mantine-primary-color-filled)' : undefined}
     >
@@ -80,15 +79,16 @@ export function TrashItemCard({
         align={{ base: 'stretch', sm: 'center' }}
         justify="space-between"
       >
-        <Group gap="md" wrap="nowrap" align="flex-start" style={{ minWidth: 0, flex: 1 }}>
-          <Badge variant="light" color="gray" size="lg" miw="6em" style={{ flexShrink: 0 }}>
+        <Group gap="md" wrap="nowrap" align="flex-start" miw={0} flex={1}>
+          <Badge variant="light" color="gray" size="lg" miw="6em" flex="0 0 auto">
             {view.chip}
           </Badge>
-          <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
-            <Text fw={700} style={{ overflowWrap: 'anywhere' }}>
+          {/* Clamped, not wrapped: every card in the list keeps the same height (K-5). */}
+          <Stack gap={4} miw={0} flex={1}>
+            <Text fw={700} lineClamp={2}>
               {view.title}
             </Text>
-            <Text size="sm" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
+            <Text size="sm" c="dimmed" truncate>
               {view.info}
             </Text>
             {view.blocked && <BlockedNote blocked={view.blocked} onViewProject={onViewProject} />}

@@ -1,6 +1,7 @@
-import { Group, Paper, SimpleGrid, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
+import { Box, Group, Paper, SimpleGrid, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import {
+  FiBookOpen,
   FiDatabase,
   FiFileText,
   FiKey,
@@ -70,6 +71,13 @@ const LINKS: Array<{
     color: 'grape',
   },
   {
+    to: '/dev/openapi',
+    label: 'Spec OpenAPI',
+    description: 'Endpoint per API key',
+    icon: FiBookOpen,
+    color: 'indigo',
+  },
+  {
     to: '/dev/changelog',
     label: 'Changelog',
     description: 'Riwayat perubahan per versi',
@@ -97,19 +105,19 @@ export function QuickLinks() {
           prefetch="intent"
           aria-label={l.label}
         >
-          <Paper withBorder radius="md" p="md" h="100%">
+          <Paper withBorder p="md" h="100%">
             <Group gap="sm" wrap="nowrap">
               <ThemeIcon variant="light" color={l.color} size="lg" radius="md">
                 <l.icon size={16} />
               </ThemeIcon>
-              <div style={{ minWidth: 0 }}>
-                <Text fw={600} size="sm" lh={1.2}>
+              <Box miw={0}>
+                <Text fw={600} size="sm" lh={1.2} truncate>
                   {l.label}
                 </Text>
-                <Text size="xs" c="dimmed" lh={1.2}>
+                <Text size="xs" c="dimmed" lh={1.2} lineClamp={2}>
                   {l.description}
                 </Text>
-              </div>
+              </Box>
             </Group>
           </Paper>
         </UnstyledButton>

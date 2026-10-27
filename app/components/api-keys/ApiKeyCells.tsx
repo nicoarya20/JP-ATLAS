@@ -25,7 +25,7 @@ export function KeyStatusBadge({
 /** Name on top, masked prefix below — never the plain key. */
 export function KeyIdentityCell({ k }: { k: ApiKeyRow }) {
   return (
-    <Stack gap={0} style={{ minWidth: 0 }}>
+    <Stack gap={0} miw={0}>
       <TruncatedText size="sm" fw={500} lh={1.3} maw={220}>
         {k.name ?? '(tanpa nama)'}
       </TruncatedText>

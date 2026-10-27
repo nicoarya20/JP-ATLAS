@@ -10,13 +10,13 @@ export function HomeBriefing({ widget, retry }: { widget: Widget<Briefing>; retr
     <HomeSection
       title={HOME_COPY.briefing.title}
       subtitle={HOME_COPY.briefing.subtitle}
-      accent="teal"
+      accent="ok"
       widget={widget}
       retry={retry}
     >
       {(b) => (
         <>
-          <Stack gap={6}>
+          <Stack gap="xs">
             {b.lines.map((line) => (
               <Text key={line}>{line}</Text>
             ))}

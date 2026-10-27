@@ -18,9 +18,9 @@ export type MemberHandlers = {
 
 export function MemberIdentity({ member, isMe }: { member: ProjectMemberItem; isMe: boolean }) {
   return (
-    <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+    <Group gap="sm" wrap="nowrap" miw={0}>
       <MemberAvatar name={member.name} image={member.image} />
-      <Stack gap={2} style={{ minWidth: 0 }}>
+      <Stack gap={4} miw={0}>
         <Group gap="xs" wrap="wrap">
           <Text fw={500} truncate>
             {member.name} {isMe && MEMBERS_COPY.you}
@@ -45,7 +45,7 @@ export function MemberIdentity({ member, isMe }: { member: ProjectMemberItem; is
 export function MemberRole({ member }: { member: ProjectMemberItem }) {
   const hint = MEMBER_ROLE_HINTS[member.role];
   return (
-    <Stack gap={2}>
+    <Stack gap={4}>
       <Text>{MEMBER_ROLE_LABELS[member.role]}</Text>
       {hint && (
         <Text size="sm" c="dimmed">

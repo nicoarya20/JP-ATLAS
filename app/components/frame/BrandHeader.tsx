@@ -1,4 +1,4 @@
-import { ActionIcon, Badge, Group, Stack, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Anchor, Badge, Box, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { FiZap } from 'react-icons/fi';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from 'react-icons/tb';
 import { Link } from 'react-router';
@@ -79,11 +79,11 @@ export function BrandHeader({
 
   return (
     <Group justify="space-between" wrap="nowrap" gap="xs" align="flex-start">
-      <Link to={homePath} style={{ textDecoration: 'none', color: 'inherit', minWidth: 0 }}>
-        <Group gap={8} wrap="nowrap" align="flex-start">
-          <FiZap size={22} style={{ marginTop: 2, flexShrink: 0 }} />
-          <div style={{ minWidth: 0 }}>
-            <Group gap={6} wrap="nowrap">
+      <Anchor component={Link} to={homePath} underline="never" c="inherit" miw={0}>
+        <Group gap="xs" wrap="nowrap" align="flex-start">
+          <FiZap size="1.5em" aria-hidden />
+          <Box miw={0}>
+            <Group gap="xs" wrap="nowrap">
               <Text fw={700} size="lg" lh={1.2} truncate>
                 {appName}
               </Text>
@@ -99,10 +99,10 @@ export function BrandHeader({
                 {version ? ` · v${version}` : ''}
               </Text>
             )}
-          </div>
+          </Box>
         </Group>
-      </Link>
-      <Group gap={2} wrap="nowrap">
+      </Anchor>
+      <Group gap={4} wrap="nowrap">
         {extra}
         {toggle}
       </Group>

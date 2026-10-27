@@ -20,6 +20,8 @@ import { EmptyState } from '../app/components/ui/EmptyState';
 import { ERROR_SECONDS, notify, SUCCESS_SECONDS } from '../app/components/ui/notify';
 import { PAGE_WIDTHS, PageContainer } from '../app/components/ui/PageContainer';
 import { PageHeader } from '../app/components/ui/PageHeader';
+import { SectionCard } from '../app/components/ui/SectionCard';
+import { SettingsCard } from '../app/components/settings/SettingsParts';
 import type { RenderClock } from '../app/lib/time-format';
 
 const ROOT = path.join(import.meta.dir, '..');
@@ -106,6 +108,28 @@ describe('PageHeader and PageContainer', () => {
   it('no ui component sets wrap="nowrap"', () => {
     const src = readFileSync(path.join(ROOT, 'app/components/ui/PageHeader.tsx'), 'utf8');
     expect(src).not.toMatch(/wrap=["{']+nowrap/);
+  });
+});
+
+describe('heading levels', () => {
+  // Three levels exist in the JP Atlas handoff (TYPE in app/lib/theme-tokens.ts): page 32,
+  // section 20, body. A page title is h1 and a card title is a section, so h3. Anything else
+  // would invent a size the handoff never defined, which is how the sizes drifted before.
+  it('gives a page title h1 and a card title h3', () => {
+    expect(render(<PageHeader title="Semua tugas" />)).toContain('<h1');
+    expect(render(<SectionCard title="Ringkasan">x</SectionCard>)).toContain('<h3');
+    expect(render(<SettingsCard title="Keamanan">x</SettingsCard>)).toContain('<h3');
+  });
+
+  it('keeps h4 and h5 out of the shared cards and page header', () => {
+    for (const file of [
+      'app/components/ui/PageHeader.tsx',
+      'app/components/ui/SectionCard.tsx',
+      'app/components/settings/SettingsParts.tsx',
+    ]) {
+      const src = readFileSync(path.join(ROOT, file), 'utf8');
+      expect(src).not.toMatch(/order=\{[45]\}/);
+    }
   });
 });
 

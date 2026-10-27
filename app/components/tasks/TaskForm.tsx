@@ -2,7 +2,17 @@
  * Task form: `create` (Tugas ⑥, S2-11) or `edit` ("Ubah tugas" of the task detail, S2-12/S2-13; the
  * project stays fixed and initial steps are not offered). Limits are the write routes' (`task.limits`).
  */
-import { Button, Collapse, Group, Select, SimpleGrid, Stack, Text, TextInput } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Collapse,
+  Group,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import type { IsoDate } from '@server/metrics/types';
@@ -190,8 +200,8 @@ export function TaskForm(props: TaskFormProps) {
           clearable
           {...form.getInputProps('dueDate')}
         />
-        <div>
-          <Text size="sm" c="dimmed" mb={6} id="task-quick-due-label">
+        <Box>
+          <Text size="sm" c="dimmed" mb="xs" id="task-quick-due-label">
             {COPY.quickLabel}
           </Text>
           <Group gap="xs" wrap="wrap" role="group" aria-labelledby="task-quick-due-label">
@@ -205,7 +215,7 @@ export function TaskForm(props: TaskFormProps) {
               </Button>
             ))}
           </Group>
-        </div>
+        </Box>
         <Group>
           <Button
             variant="subtle"

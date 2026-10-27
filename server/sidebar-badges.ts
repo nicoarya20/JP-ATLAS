@@ -9,6 +9,7 @@ import { realUser } from './api/admin-users.query';
 import { countRateLimitLastHour } from './api/analytics-ratelimits.stats.query';
 import { errorsLastHour, warningsLastHour } from './api/logs';
 import { keyStats } from './api-keys/query';
+import { SCOPES } from './api-keys/scopes';
 import { changelogOverview } from './changelog';
 import { db } from './db';
 import { auditLog, loginLog, post, session, user, visitLog } from './db/schema';
@@ -160,6 +161,12 @@ async function collect(): Promise<SidebarBadges> {
             `${nf.format(sessions.active)} sesi aktif (perangkat yang sedang masuk)`,
           ),
     '/dev/posts': info(posts, `${nf.format(posts)} post baru dalam 24 jam`),
+    // Scale, not a to-do: how wide the documented API surface is. The page itself
+    // shows far fewer operations — the spec is filtered down to the key you load.
+    '/dev/openapi': info(
+      SCOPES.length,
+      `${nf.format(SCOPES.length)} scope API — spec yang tampil disaring per API key`,
+    ),
     '/dev/visits': info(visits, `${nf.format(visits)} kunjungan dalam 24 jam`),
     '/dev/login-logs': info(logins, `${nf.format(logins)} login dalam 24 jam`),
     '/dev/audit': info(audits, `${nf.format(audits)} aksi admin tercatat dalam 24 jam`),

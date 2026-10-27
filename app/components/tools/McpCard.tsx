@@ -104,7 +104,7 @@ export function McpCard({ info }: { info: McpInfo | undefined }) {
             )}
           </CopyButton>
         </Group>
-        <Code block style={{ fontSize: 12 }}>
+        <Code block fz="xs">
           {snippet}
         </Code>
       </Stack>

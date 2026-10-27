@@ -16,13 +16,15 @@ import {
 import { authClient } from '~/lib/auth-client';
 import { BanUserForm } from './BanUserForm';
 import { useApprovalActions } from './useApprovalActions';
+import { useLeaveActions } from './useLeaveActions';
 
 const roleLabel = (r: string) => ROLE_LABEL[r] ?? r;
 
-/** Role / suspend / delete / impersonate / approve / reject with confirm dialogs, loading state and feedback. */
+/** Role / suspend / delete / impersonate / approve / reject / leave with confirm dialogs, loading state and feedback. */
 export function useUserActions({ onDone }: { onDone: () => void }) {
   const qc = useQueryClient();
   const approvals = useApprovalActions({ onDone });
+  const leave = useLeaveActions({ onDone });
   const [busyId, setBusyId] = useState<string | null>(null);
   const invalidate = () =>
     Promise.all([
@@ -173,6 +175,8 @@ export function useUserActions({ onDone }: { onDone: () => void }) {
     impersonate,
     approve: approvals.approve,
     reject: approvals.reject,
-    busyId: busyId ?? approvals.busyId,
+    setLeave: leave.setLeave,
+    endLeave: leave.endLeave,
+    busyId: busyId ?? approvals.busyId ?? leave.busyId,
   };
 }

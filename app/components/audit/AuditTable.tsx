@@ -29,15 +29,16 @@ const SKELETON_KEYS = ['s0', 's1', 's2', 's3', 's4', 's5'];
 /** Desktop table (≥ sm). */
 export function AuditTable({ rows, loading, fetching = false, onOpen, empty }: Props) {
   return (
-    <Box pos="relative" style={{ overflowX: 'auto' }}>
+    <Box
+      pos="relative"
+      style={{
+        // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+        // (CLAUDE.md mobile §2).
+        overflowX: 'auto',
+      }}
+    >
       <LoadingOverlay visible={fetching && !loading} zIndex={5} overlayProps={{ blur: 1 }} />
-      <Table
-        highlightOnHover
-        withTableBorder
-        verticalSpacing="xs"
-        fz="sm"
-        style={{ minWidth: 720 }}
-      >
+      <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={720}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Waktu</Table.Th>
@@ -60,7 +61,14 @@ export function AuditTable({ rows, loading, fetching = false, onOpen, empty }: P
             ))}
           {!loading &&
             rows.map((r) => (
-              <Table.Tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => onOpen(r)}>
+              <Table.Tr
+                key={r.id}
+                style={{
+                  // Mantine has no `cursor` prop; clicking here opens the detail view.
+                  cursor: 'pointer',
+                }}
+                onClick={() => onOpen(r)}
+              >
                 <Table.Td>
                   <TimeCell iso={r.createdAt} />
                 </Table.Td>
@@ -121,12 +129,7 @@ export function AuditCardList({ rows, loading, onOpen, empty }: Props) {
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
     <Stack gap="xs">
       {rows.map((r) => (
@@ -134,9 +137,11 @@ export function AuditCardList({ rows, loading, onOpen, empty }: Props) {
           key={r.id}
           withBorder
           p="sm"
-          radius="md"
           onClick={() => onOpen(r)}
-          style={{ cursor: 'pointer' }}
+          style={{
+            // Mantine has no `cursor` prop; clicking here opens the detail view.
+            cursor: 'pointer',
+          }}
         >
           <Stack gap={4}>
             <Group gap="xs" wrap="nowrap">

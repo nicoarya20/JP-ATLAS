@@ -4,6 +4,7 @@ import type { PhaseStatus } from '@server/pm/enums';
 import type { PhaseDto } from '@server/project/project-plan.dto';
 import type { IconType } from 'react-icons';
 import { FiCheck, FiCircle } from 'react-icons/fi';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { NEXT_PHASE_COPY, PHASE_STATUS_TEXT } from './summary.copy';
 
 type StepLook = { icon: IconType | null; color: string; variant: 'filled' | 'default' | 'light' };
@@ -15,6 +16,10 @@ const LOOK: Record<PhaseStatus, StepLook> = {
   not_started: { icon: null, color: 'gray', variant: 'default' },
 };
 
+/** A step column: wide enough for a two-word phase name, capped so ten steps still scroll. */
+const STEP_MIN_WIDTH = 88;
+const STEP_MAX_WIDTH = 128;
+
 function Step({ phase }: { phase: PhaseDto }) {
   const { icon: Icon, color, variant } = LOOK[phase.status];
   const current = phase.status === 'in_progress';
@@ -23,15 +28,18 @@ function Step({ phase }: { phase: PhaseDto }) {
       component="li"
       gap={4}
       align="center"
-      miw={88}
-      maw={128}
-      style={{ listStyle: 'none', flexShrink: 0 }}
+      miw={STEP_MIN_WIDTH}
+      maw={STEP_MAX_WIDTH}
+      flex="0 0 auto"
+      // Mantine has no `list-style` style prop; `List` cannot lay the steps out in a row.
+      style={{ listStyle: 'none' }}
       aria-current={current ? 'step' : undefined}
     >
       <ThemeIcon radius="xl" size="lg" color={color} variant={variant}>
         {Icon && <Icon size="1.25em" aria-hidden />}
       </ThemeIcon>
-      <Text size="sm" fw={current ? 700 : 500} ta="center" style={{ overflowWrap: 'anywhere' }}>
+      {/* A step is a fixed-width column, so a long phase name wraps rather than widening it. */}
+      <Text size="sm" fw={current ? 700 : 500} ta="center" style={WRAP_ANYWHERE}>
         {phase.name}
       </Text>
       <Text size="xs" c="dimmed">
@@ -44,6 +52,8 @@ function Step({ phase }: { phase: PhaseDto }) {
 /** Scrolls sideways inside its card when there are more steps than fit, so a phone never overflows the page. */
 export function PhaseStepper({ phases }: { phases: readonly PhaseDto[] }) {
   return (
+    // Mantine has no `overflow` style prop: the steps scroll sideways rather than widening
+    // the card (CLAUDE.md mobile §2).
     <Box style={{ overflowX: 'auto' }}>
       <Group
         component="ol"
@@ -53,7 +63,9 @@ export function PhaseStepper({ phases }: { phases: readonly PhaseDto[] }) {
         p={0}
         m={0}
         aria-label={NEXT_PHASE_COPY.stepperLabel}
-        style={{ width: 'max-content', minWidth: '100%', flexShrink: 0 }}
+        w="max-content"
+        miw="100%"
+        flex="0 0 auto"
       >
         {phases.map((p) => (
           <Step key={p.id} phase={p} />

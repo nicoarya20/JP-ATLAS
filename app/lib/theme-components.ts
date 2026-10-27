@@ -1,4 +1,5 @@
 import { Button, type MantineThemeComponents, rem } from '@mantine/core';
+import { dateInputDefaults } from './theme-date-input';
 import { RADIUS } from './theme-tokens';
 
 const LARGE = { defaultProps: { size: 'lg' } } as const;
@@ -39,8 +40,8 @@ export const themeComponents: MantineThemeComponents = {
   Textarea: LARGE,
   NumberInput: LARGE,
   Select: LARGE,
-  // Project forms use DateInput (CLAUDE.md); left at `md` it would sit next to 50 px inputs.
-  DateInput: LARGE,
+  // Project forms use DateInput (CLAUDE.md); its defaults live in ./theme-date-input.
+  DateInput: dateInputDefaults,
   // Event form (S7): TimeInput and MultiSelect also sit beside 50 px inputs and defaulted to `md`.
   TimeInput: LARGE,
   MultiSelect: LARGE,
@@ -49,7 +50,9 @@ export const themeComponents: MantineThemeComponents = {
   Switch: LARGE,
   ActionIcon: { defaultProps: { size: 'xl' } },
   // Card 14 px and modal 16 px (RADIUS); anything else follows the 10 px control default.
-  Paper: { defaultProps: { radius: RADIUS.card } },
+  // A card is bordered unless it opts out: 116 of 121 call sites asked for it by hand. `Card`
+  // renders a `Paper` and inherits this; Modal, Drawer, Menu and Popover dropdowns do not.
+  Paper: { defaultProps: { radius: RADIUS.card, withBorder: true } },
   Card: { defaultProps: { radius: RADIUS.card } },
   Modal: { defaultProps: { radius: RADIUS.modal, overlayProps: OVERLAY } },
   Drawer: { defaultProps: { radius: RADIUS.modal, overlayProps: OVERLAY } },

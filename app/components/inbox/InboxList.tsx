@@ -14,14 +14,11 @@ type Props = {
   lane: InboxLane;
   seed: InboxSeed;
   clock: InboxClock;
-  approvingId: string | null;
   onOpen: (item: InboxItem) => void;
-  onApprove: (item: InboxItem) => void;
-  onReject: (item: InboxItem) => void;
   onShowNews: () => void;
 };
 
-export function InboxList({ lane, seed, clock, onShowNews, ...cardActions }: Props) {
+export function InboxList({ lane, seed, clock, onOpen, onShowNews }: Props) {
   const pages = useInboxPages(lane, seed);
   const items = uniqueInboxItems(pages.data?.pages ?? []);
   return (
@@ -50,15 +47,7 @@ export function InboxList({ lane, seed, clock, onShowNews, ...cardActions }: Pro
             </Text>
           )}
           {section.items.map((item) => (
-            <InboxCard
-              key={item.id}
-              item={item}
-              clock={clock}
-              busy={cardActions.approvingId === item.id}
-              onOpen={cardActions.onOpen}
-              onApprove={cardActions.onApprove}
-              onReject={cardActions.onReject}
-            />
+            <InboxCard key={item.id} item={item} clock={clock} onOpen={onOpen} />
           ))}
         </Stack>
       ))}
@@ -67,6 +56,7 @@ export function InboxList({ lane, seed, clock, onShowNews, ...cardActions }: Pro
           variant="default"
           loading={pages.isFetchingNextPage}
           onClick={() => void pages.fetchNextPage()}
+          // Mantine has no `alignSelf` style prop, and centring the Stack would move every child.
           style={{ alignSelf: 'center' }}
         >
           {INBOX_COPY.loadMore}

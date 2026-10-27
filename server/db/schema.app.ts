@@ -58,6 +58,18 @@ export const appSetting = pgTable('app_setting', {
   maintenanceAllowRoles: text('maintenance_allow_roles'),
   /** Feature flags: [{ key, enabled, description }]. */
   featureFlags: jsonb('feature_flags'),
+  /** Admin announcement banner: { text, level, active, dismissibleUntil }. NULL = no announcement. */
+  announcement: jsonb('announcement'),
+  // Sign-in policy (P13 RD-01). NULL = the behaviour that was hard-coded before, so the
+  // migration alone changes nothing and the console can tell "default" from "set by Admin".
+  /** NULL = new accounts still wait for approval. */
+  signupRequiresApproval: boolean('signup_requires_approval'),
+  /** Role a self-registered account gets; NULL = `member`. Never `admin`/`super-admin` (privilege escalation). */
+  defaultSignupRole: text('default_signup_role'),
+  /** Invitation lifetime; NULL = INVITATION_TTL_DAYS (server/account/limits.ts). */
+  invitationTtlDays: integer('invitation_ttl_days'),
+  /** Organisation notification defaults: { news, eventReminder, defaultEventReminderMinutes }. NULL = all on, 30 min. */
+  notificationDefaults: jsonb('notification_defaults'),
   // Branding overrides; NULL = built-in defaults.
   appName: text('app_name'),
   appTagline: text('app_tagline'),
@@ -66,8 +78,6 @@ export const appSetting = pgTable('app_setting', {
   demoEnabled: boolean('demo_enabled').default(false).notNull(),
   /** Retired with the demo sandbox; unused, kept for the same expand/contract window. */
   demoTtlHours: integer('demo_ttl_hours'),
-  // Pengaturan tim > "Cuti perlu persetujuan" (Admin only). Off = every leave request is approved on submit.
-  leaveRequiresApproval: boolean('leave_requires_approval').default(true).notNull(),
   updatedAt: timestamp('updated_at')
     .$defaultFn(() => new Date())
     .notNull(),

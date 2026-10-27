@@ -6,7 +6,7 @@
 import { and, eq, gt, ilike, inArray, isNull, or, type SQL, sql } from 'drizzle-orm';
 import type { ProjectListScope } from '../access/project.policy';
 import { db } from '../db';
-import { project, projectMember, task, taskChecklistItem } from '../db/schema';
+import { project, projectMember, projectPhase, task, taskChecklistItem } from '../db/schema';
 import type { ScheduleBounds, ScheduleGroup } from '../metrics/schedule';
 import { ACTIVE_STATUSES } from '../metrics/task.metrics';
 import { PROJECT_PRIORITIES } from '../pm/enums';
@@ -172,7 +172,14 @@ export function afterCursor(sort: TaskSort, at: { sortValue: CursorSortValue; id
   return or(beyond, sameKeyLaterId(v), s.nullable ? sql`${s.expr} IS NULL` : undefined) as SQL;
 }
 
-/** Columns of every task read, joined with the project (`TaskCardRow`). */
+/** The condition every task read joins the phase on; a left join, because most tasks carry none. */
+export const onTaskPhase = eq(projectPhase.id, task.phaseId);
+
+/**
+ * Columns of every task read (`TaskCardRow`). A reader must join `project` (inner) and
+ * `projectPhase` (left, on `onTaskPhase`), so the phase rides along with the page instead of
+ * costing one query per row.
+ */
 export const cardColumns = {
   id: task.id,
   number: task.number,
@@ -183,6 +190,8 @@ export const cardColumns = {
   projectId: task.projectId,
   projectName: project.name,
   projectStatus: project.status,
+  phaseId: task.phaseId,
+  phaseName: projectPhase.name,
   assigneeId: task.assigneeId,
   reviewerId: task.reviewerId,
   createdBy: task.createdBy,

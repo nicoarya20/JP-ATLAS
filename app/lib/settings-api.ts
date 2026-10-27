@@ -129,3 +129,54 @@ export function sameRetention(a: RetentionSettings, b: RetentionSettings): boole
     a.apiUsageDays === b.apiUsageDays
   );
 }
+
+// ── Public read (no role) ────────────────────────────────────────────────────
+
+/** Shape of the unauthenticated `GET /api/settings`: the login page and the Admin Fitur tab read it. */
+export type PublicSettings = AuthSettings & {
+  features: Record<string, boolean>;
+  branding: Branding;
+};
+
+export const fetchPublicSettings = () => request<PublicSettings>(BASE);
+
+// ── Announcement + sign-in policy (Admin-owned, AD-05 / AD-06) ───────────────
+
+export type AnnouncementLevel = 'info' | 'warn' | 'danger';
+export type Announcement = {
+  text: string;
+  level: AnnouncementLevel;
+  active: boolean;
+  dismissibleUntil: string | null;
+};
+
+/** Sign-in policy as Admin stored it; `null` per field means "still on the built-in default". */
+export type AccessPolicy = {
+  requiresApproval: boolean | null;
+  defaultRole: string | null;
+  invitationTtlDays: number | null;
+};
+
+/**
+ * Like `request`, but surfaces the server's `{ error }` message (AD-03/05/06 answer 400 with an
+ * Indonesian sentence) instead of a slice of raw JSON, so the panel can show it as-is.
+ */
+async function requestMsg<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(body?.error || `${init?.method ?? 'GET'} ${url} gagal (${res.status}).`);
+  }
+  return res.json() as Promise<T>;
+}
+
+export const fetchAnnouncement = () =>
+  requestMsg<Announcement | null>(`${BASE}/announcement`);
+export const saveAnnouncement = (a: Announcement) =>
+  requestMsg<Announcement | null>(`${BASE}/announcement`, json('PUT', a));
+export const clearAnnouncement = () =>
+  requestMsg<Announcement | null>(`${BASE}/announcement`, json('DELETE'));
+
+export const fetchAccessPolicy = () => requestMsg<AccessPolicy>(`${BASE}/access-policy`);
+export const saveAccessPolicy = (p: AccessPolicy) =>
+  requestMsg<AccessPolicy>(`${BASE}/access-policy`, json('PUT', p));

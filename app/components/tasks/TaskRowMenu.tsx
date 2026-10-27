@@ -20,7 +20,12 @@ export function TaskRowMenu({ task }: { task: TaskRowMenuTask }) {
   const remove = useTaskDelete();
   if (!hasRowMenu(task)) return null;
   return (
-    <Box pos="relative" style={{ zIndex: 1, flexShrink: 0 }}>
+    <Box
+      pos="relative"
+      flex="0 0 auto"
+      // Mantine has no `z-index` style prop; 1 lifts the menu above the row's cover link.
+      style={{ zIndex: 1 }}
+    >
       {/* Tooltip must not wrap Menu.Target (it swallows the click); the icon has an aria-label instead. */}
       <Menu position="bottom-end" withinPortal>
         <Menu.Target>

@@ -27,7 +27,7 @@ export function ErrorPage({ error, appName = 'Simple PM' }: Props) {
         <Stack gap="xl" w="100%" maw={560}>
           <Group justify="center" gap="xs">
             <Anchor component={Link} to="/" c="inherit" underline="never">
-              <Group gap={6}>
+              <Group gap="xs">
                 <FiZap size={18} />
                 <Text fw={700}>{appName}</Text>
               </Group>

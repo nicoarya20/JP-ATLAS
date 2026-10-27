@@ -4,6 +4,8 @@
  * project never interleave. Only tasks and events still live at delete time are tagged
  * `deleted_with_project_id`; one trashed earlier on its own keeps its own Trash entry and is not
  * restored with the project.
+ * The cascade writes no per-task history row on purpose: the `trashed`/`restored` row below carries
+ * the task count and is the one record of the move (see the DECISION in `task/task-trash.service.ts`).
  * There is no permanent delete or purge here: both belong to S6.
  */
 import { and, eq } from 'drizzle-orm';

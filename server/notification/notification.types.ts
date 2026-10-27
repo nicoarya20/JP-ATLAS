@@ -37,21 +37,16 @@ export type AccountCardPayload = { name: string };
 export type EventCardPayload = { title: string; startsAt?: string; projectName?: string };
 
 /**
- * A leave card (Cuti): the requester's name, the range and the number of days, plus what the
- * approver needs to decide (`dueTasks`) or what the requester needs to read back (`decision`, with the
- * reject reason as `excerpt`). Dates are `YYYY-MM-DD` strings in the team zone, so the payload stays JSON.
+ * The card an Admin's record produces (P14 D5): the range that was written down or ended, and
+ * which of the two happened. The note is absent on purpose — it is Admin-only (P14 D6) — and so is
+ * the name, because this card only ever reaches the person it is about.
  */
-export type LeaveCardPayload = {
-  name: string;
+export type LeaveRecordedCardPayload = {
   startDate: string;
   endDate: string;
   days: number;
-  /** `leave_requested` only: the requester's unfinished tasks due inside the range. */
-  dueTasks?: number;
-  /** `leave_decided` only. */
-  decision?: 'approved' | 'rejected';
-  /** `leave_decided` only: the reject reason, already cut to `PAYLOAD_EXCERPT_MAX`. */
-  excerpt?: string;
+  /** `set` = the period was recorded or corrected, `cleared` = the leave under way was ended. */
+  change: 'set' | 'cleared';
 };
 
 /**
@@ -80,9 +75,9 @@ export type NotificationPayloadByKind = {
   event_invited: EventCardPayload;
   event_changed: EventCardPayload;
   event_canceled: EventCardPayload;
-  // Shipped with the leave module: the approval card (two buttons) and the news of the outcome.
-  leave_requested: LeaveCardPayload;
-  leave_decided: LeaveCardPayload;
+  // Leave (P14 D5). The approval card and the news of its outcome left with the approval flow
+  // itself in CU-06; what an Admin records is the only leave card there is.
+  leave_recorded: LeaveRecordedCardPayload;
 };
 
 export type NotificationKind = keyof NotificationPayloadByKind;

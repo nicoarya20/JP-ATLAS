@@ -1,4 +1,4 @@
-/** Inbox markup: a card per kind, the two-button leave card, tabs, empty and error states, the bell and the page body. */
+/** Inbox markup: a card per kind, tabs, empty and error states, the bell and the page body. */
 import { describe, expect, it } from 'bun:test';
 import { MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,12 +16,18 @@ import { bellLabel, NotificationBell } from '../../app/components/inbox/Notifica
 import type { InboxItem, InboxLane, InboxSeed } from '../../app/lib/inbox-api';
 import {
   cardButton,
-  cardSecondaryButton,
   cardSentence,
   NOTIFICATION_KIND_LIST,
 } from '../../server/notification/notification.catalog';
 import { anchors } from '../ui/project-fixtures';
-import { CLOCK, eventCard, leaveRequestCard, NOW, taskCard } from './inbox-fixtures';
+import {
+  CLOCK,
+  eventCard,
+  leaveRecordedCard,
+  legacyLeaveCard,
+  NOW,
+  taskCard,
+} from './inbox-fixtures';
 
 /** Renders under a data router at `url`, like the real app (links need it, the tab reads `?tab=`). */
 async function renderAt(url: string, node: ReactNode): Promise<string> {
@@ -43,17 +49,7 @@ async function renderAt(url: string, node: ReactNode): Promise<string> {
 const render = (node: ReactNode) => renderAt('/', node);
 
 const noop = () => {};
-const card = (item: InboxItem, extra: { busy?: boolean } = {}) =>
-  render(
-    <InboxCard
-      item={item}
-      clock={CLOCK}
-      onOpen={noop}
-      onApprove={noop}
-      onReject={noop}
-      {...extra}
-    />,
-  );
+const card = (item: InboxItem) => render(<InboxCard item={item} clock={CLOCK} onOpen={noop} />);
 const buttons = (html: string) =>
   [...html.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)].map((m) =>
     (m[1] ?? '').replace(/<[^>]*>/g, '').trim(),
@@ -89,20 +85,47 @@ describe('InboxCard: a work-queue task card', () => {
   });
 });
 
-describe('InboxCard: the leave approval card', () => {
-  it('has Tolak and Setujui as real buttons and no link that would go nowhere', async () => {
-    const html = await card(leaveRequestCard());
-    expect(html).toContain('Dodi mengajukan cuti');
+describe('InboxCard: the recorded leave card (P14 D5)', () => {
+  it('says what an Admin did, names the range and links once to Ketersediaan', async () => {
+    const html = await card(leaveRecordedCard());
+    expect(html).toContain('Cuti Anda dicatat oleh Ayu');
     expect(html).toContain('14–16 Okt 2026 · 3 hari');
-    expect(html).toContain('2 tugas jatuh tempo selama cuti');
-    expect(buttons(html)).toEqual(['Tolak', 'Setujui']);
+    expect(anchors(html).map((a) => [a.href, a.text])).toEqual([
+      ['/app/settings', 'Lihat ketersediaan'],
+    ]);
+    // The only button is that link: nothing is decided from the Inbox any more.
+    expect(buttons(html)).toEqual([]);
+  });
+
+  it('reads the same when an Admin ended the leave', async () => {
+    const html = await card(
+      leaveRecordedCard({
+        sentence: 'Cuti Anda diakhiri oleh Ayu',
+        payload: { startDate: '2026-10-14', endDate: '2026-10-16', days: 3, change: 'cleared' },
+      }),
+    );
+    expect(html).toContain('Cuti Anda diakhiri oleh Ayu');
+    expect(anchors(html)).toHaveLength(1);
+  });
+});
+
+/** P14 §8 R3: an old approval row still in the table is a readable news card, not a broken one. */
+describe('InboxCard: rows of the retired approval flow', () => {
+  it('renders an old request row with its heading and range, and no button at all', async () => {
+    const html = await card(legacyLeaveCard());
+    expect(html).toContain('Ada kabar baru untuk Anda');
+    expect(html).toContain('14–16 Okt 2026 · 3 hari');
+    expect(html).not.toContain('Setujui');
+    expect(html).not.toContain('Tolak');
+    expect(buttons(html)).toEqual([]);
     expect(anchors(html)).toEqual([]);
   });
 
-  it('spins Setujui and holds Tolak while the approval is being sent', async () => {
-    const html = await card(leaveRequestCard(), { busy: true });
-    expect(html.match(/<button[^>]*data-loading="true"/g)).toHaveLength(1);
-    expect(html.match(/<button[^>]*data-disabled="true"/g)).toHaveLength(1);
+  it('renders an old decision row the same way', async () => {
+    const html = await card(legacyLeaveCard({ kind: 'leave_decided', lane: 'info' }));
+    expect(html).toContain('Ada kabar baru untuk Anda');
+    expect(buttons(html)).toEqual([]);
+    expect(anchors(html)).toEqual([]);
   });
 });
 
@@ -114,10 +137,10 @@ describe('InboxCard: kinds', () => {
     expect(anchors(html)).toEqual([]);
   });
 
+  // Every kind has exactly one button, and it is a link: the two-button path left in P14 CU-06.
   it.each([...NOTIFICATION_KIND_LIST])(
-    '%s renders its catalog sentence and exactly the catalog buttons',
+    '%s renders its catalog sentence and exactly one link button',
     async (kind) => {
-      const secondary = cardSecondaryButton(kind);
       const item = taskCard({
         kind,
         sentence: cardSentence(kind, {
@@ -126,20 +149,17 @@ describe('InboxCard: kinds', () => {
           title: 'Judul',
           project: 'Atlas',
           name: 'Dodi',
+          outcome: 'dicatat',
         }),
         button: cardButton(kind),
-        secondaryButton: secondary,
         href: '/app/somewhere',
       });
       const html = await card(item);
       expect(html).toContain(item.sentence ?? '');
-      if (secondary) {
-        expect(buttons(html)).toEqual([secondary, cardButton(kind)]);
-      } else {
-        expect(anchors(html).map((a) => [a.href, a.text])).toEqual([
-          ['/app/somewhere', cardButton(kind)],
-        ]);
-      }
+      expect(buttons(html)).toEqual([]);
+      expect(anchors(html).map((a) => [a.href, a.text])).toEqual([
+        ['/app/somewhere', cardButton(kind)],
+      ]);
     },
   );
 });
@@ -210,18 +230,7 @@ const seedOf = (action: ReturnType<typeof page> | null, info: ReturnType<typeof 
   }) satisfies InboxSeed;
 
 const list = (lane: InboxLane, seed: InboxSeed) =>
-  render(
-    <InboxList
-      lane={lane}
-      seed={seed}
-      clock={CLOCK}
-      approvingId={null}
-      onOpen={noop}
-      onApprove={noop}
-      onReject={noop}
-      onShowNews={noop}
-    />,
-  );
+  render(<InboxList lane={lane} seed={seed} clock={CLOCK} onOpen={noop} onShowNews={noop} />);
 
 describe('InboxList (seeded by the loader)', () => {
   it('shows the news lane by day with its headings', async () => {
@@ -259,7 +268,7 @@ describe('InboxList (seeded by the loader)', () => {
 });
 
 describe('InboxView (the page body)', () => {
-  const seed = seedOf(page([taskCard(), leaveRequestCard()]), page([eventCard()]));
+  const seed = seedOf(page([taskCard()]), page([eventCard(), leaveRecordedCard()]));
   const view = (url: string) =>
     renderAt(
       url,
@@ -274,7 +283,8 @@ describe('InboxView (the page body)', () => {
     expect(html).toContain('Inbox');
     expect(html).toContain('Semua kabar dan permintaan untuk Anda');
     expect(html).toContain('Perlu Anda tanggapi (4)');
-    expect(html).toContain('Dodi mengajukan cuti');
+    expect(html).toContain('Nico menunjuk Anda mengerjakan #14');
+    expect(html).not.toContain('Cuti Anda dicatat oleh Ayu');
     expect(html).not.toContain('Tandai semua dibaca');
   });
 
@@ -282,6 +292,7 @@ describe('InboxView (the page body)', () => {
     const html = await view('/app/inbox?tab=info');
     expect(html).toContain('Tandai semua dibaca');
     expect(html).toContain('Nico mengundang Anda');
-    expect(html).not.toContain('Dodi mengajukan cuti');
+    expect(html).toContain('Cuti Anda dicatat oleh Ayu');
+    expect(html).not.toContain('Nico menunjuk Anda mengerjakan #14');
   });
 });

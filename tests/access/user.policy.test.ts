@@ -4,6 +4,7 @@ import {
   canActOnUser,
   canInviteWithRole,
   canManageUsers,
+  canRecordUserLeave,
   canSetUserRole,
   type Principal,
   type UserTarget,
@@ -120,6 +121,22 @@ describe('canManageUsers', () => {
     ['sa', 'allow'],
   ] as const)('%s => %s', (who, expected) => {
     expect(result(canManageUsers(principal(who)))).toBe(expected);
+  });
+});
+
+describe('canRecordUserLeave (P14 D3)', () => {
+  it.each([
+    ['member', 'NOT_ADMIN'],
+    ['pm', 'NOT_ADMIN'],
+    ['admin', 'allow'],
+    ['sa', 'allow'],
+  ] as const)('%s => %s', (who, expected) => {
+    expect(result(canRecordUserLeave(principal(who)))).toBe(expected);
+  });
+
+  it('refuses while impersonating, because the audit entry would name the wrong person', () => {
+    expect(result(canRecordUserLeave(principal('admin', true)))).toBe('IMPERSONATING');
+    expect(result(canRecordUserLeave(principal('sa', true)))).toBe('IMPERSONATING');
   });
 });
 

@@ -24,33 +24,56 @@ type Props = {
   onFit: () => void;
 };
 
+/** Fixed-width glyph column so all five legend rows line up under each other. */
+const LEGEND_GLYPH_WIDTH = 22;
+
+function LegendRow({
+  glyph,
+  color,
+  mono,
+  children,
+}: {
+  glyph: string;
+  color?: string;
+  mono?: boolean;
+  children: string;
+}) {
+  return (
+    <Group gap="xs" wrap="nowrap">
+      <Text
+        span
+        w={LEGEND_GLYPH_WIDTH}
+        flex="0 0 auto"
+        fz="xs"
+        fw={mono ? undefined : 700}
+        ff={mono ? 'monospace' : undefined}
+        c={color}
+      >
+        {glyph}
+      </Text>
+      <Text size="xs">{children}</Text>
+    </Group>
+  );
+}
+
 function Legend() {
   return (
-    <Stack gap={6}>
-      <Group gap="xs">
-        <span style={{ width: 22, fontSize: 10, fontWeight: 700, color: PK_COL }}>PK</span>
-        <Text size="xs">Primary key</Text>
-      </Group>
-      <Group gap="xs">
-        <span style={{ width: 22, fontSize: 10, fontWeight: 700, color: ACCENT }}>FK</span>
-        <Text size="xs">Foreign key, garis mengarah ke tabel yang dirujuk</Text>
-      </Group>
-      <Group gap="xs">
-        <span
-          style={{ width: 22, fontSize: 10, fontWeight: 700, color: 'var(--mantine-color-dimmed)' }}
-        >
-          UQ
-        </span>
-        <Text size="xs">Nilai unik</Text>
-      </Group>
-      <Group gap="xs">
-        <span style={{ width: 22, fontSize: 11, color: ACCENT }}>?</span>
-        <Text size="xs">Kolom boleh NULL</Text>
-      </Group>
-      <Group gap="xs">
-        <span style={{ width: 22, fontFamily: 'monospace', fontSize: 11 }}>{'>|'}</span>
-        <Text size="xs">Ujung bercabang = banyak, ujung garis = satu</Text>
-      </Group>
+    <Stack gap="xs">
+      <LegendRow glyph="PK" color={PK_COL}>
+        Primary key
+      </LegendRow>
+      <LegendRow glyph="FK" color={ACCENT}>
+        Foreign key, garis mengarah ke tabel yang dirujuk
+      </LegendRow>
+      <LegendRow glyph="UQ" color="dimmed">
+        Nilai unik
+      </LegendRow>
+      <LegendRow glyph="?" color={ACCENT}>
+        Kolom boleh NULL
+      </LegendRow>
+      <LegendRow glyph=">|" mono>
+        Ujung bercabang = banyak, ujung garis = satu
+      </LegendRow>
       <Text size="xs" c="dimmed">
         Klik tabel untuk menyorot relasinya dan membuka detail. Klik area kosong untuk melepas.
       </Text>
@@ -70,7 +93,7 @@ export function SchemaToolbar({
   onFit,
 }: Props) {
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <Select
           size="sm"

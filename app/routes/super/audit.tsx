@@ -8,7 +8,6 @@ import {
   Paper,
   Stack,
   Text,
-  Title,
   Tooltip,
 } from '@mantine/core';
 import { useDebouncedValue, useLocalStorage } from '@mantine/hooks';
@@ -30,6 +29,7 @@ import { AuditDetailDrawer } from '~/components/audit/AuditDetailDrawer';
 import { AuditFilters } from '~/components/audit/AuditFilters';
 import { AuditCardList, AuditTable } from '~/components/audit/AuditTable';
 import { StatTileGrid } from '~/components/logs/StatTile';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { VisitEmptyState } from '~/components/visits/VisitEmptyState';
 import {
   type AuditListResponse,
@@ -120,43 +120,40 @@ export default function AuditPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>Audit Log</Title>
-          <Text size="sm" c="dimmed">
-            Jejak setiap aksi berhak istimewa dari konsol: siapa, apa, ke siapa, dari mana. Hanya
-            bisa dibaca, tidak bisa diubah.
-          </Text>
-        </div>
-        <Group gap="xs" wrap="wrap">
-          <Tooltip label="Unduh CSV sesuai filter aktif (maks. 10.000 baris)" withArrow>
+      <PageHeader
+        title="Audit Log"
+        description="Jejak setiap aksi berhak istimewa dari konsol: siapa, apa, ke siapa, dari mana. Hanya bisa dibaca, tidak bisa diubah."
+        actions={
+          <>
+            <Tooltip label="Unduh CSV sesuai filter aktif (maks. 10.000 baris)" withArrow>
+              <Button
+                component="a"
+                href={exportAuditUrl(filters)}
+                download
+                size="sm"
+                variant="default"
+                leftSection={<FiDownload size={14} />}
+                disabled={total === 0}
+                onClick={(e) => total === 0 && e.preventDefault()}
+              >
+                Export CSV
+              </Button>
+            </Tooltip>
             <Button
-              component="a"
-              href={exportAuditUrl(filters)}
-              download
               size="sm"
-              variant="default"
-              leftSection={<FiDownload size={14} />}
-              disabled={total === 0}
-              onClick={(e) => total === 0 && e.preventDefault()}
+              variant="light"
+              leftSection={<FiRefreshCw size={14} />}
+              loading={list.isFetching}
+              onClick={() => {
+                list.refetch();
+                stats.refetch();
+              }}
             >
-              Export CSV
+              Refresh
             </Button>
-          </Tooltip>
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<FiRefreshCw size={14} />}
-            loading={list.isFetching}
-            onClick={() => {
-              list.refetch();
-              stats.refetch();
-            }}
-          >
-            Refresh
-          </Button>
-        </Group>
-      </Group>
+          </>
+        }
+      />
 
       <StatTileGrid tiles={tiles} />
 
@@ -168,7 +165,11 @@ export default function AuditPage({ loaderData }: Route.ComponentProps) {
             size="compact-sm"
             rightSection={showSummary ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
             onClick={() => setShowSummary((v) => !v)}
-            style={{ alignSelf: 'flex-start' }}
+            style={{
+              // Mantine has no `alignSelf` prop: the button keeps its own height instead of stretching to the
+              // filter row's.
+              alignSelf: 'flex-start',
+            }}
           >
             {showSummary ? 'Sembunyikan ringkasan' : 'Tampilkan ringkasan'}
           </Button>
@@ -196,7 +197,14 @@ export default function AuditPage({ loaderData }: Route.ComponentProps) {
         </Alert>
       )}
 
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
         <AuditTable
           rows={rows}
           loading={list.isPending}

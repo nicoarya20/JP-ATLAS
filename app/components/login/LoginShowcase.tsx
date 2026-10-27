@@ -20,6 +20,11 @@ import {
 const CHART_W = 260;
 const CHART_H = 90;
 
+/** Decorative corner grid: faint enough to read as texture behind the preview cards. */
+const GRID_OPACITY = 0.18;
+/** The line redraws when the range changes; matching both paths keeps fill and stroke together. */
+const PATH_TRANSITION = 'd 400ms ease';
+
 /** Faded square grid for a panel corner; purely decorative. */
 function CornerGrid({ corner }: { corner: 'top-right' | 'bottom-left' }) {
   const top = corner === 'top-right';
@@ -33,8 +38,10 @@ function CornerGrid({ corner }: { corner: 'top-right' | 'bottom-left' }) {
       right={top ? -20 : undefined}
       bottom={top ? undefined : -20}
       left={top ? undefined : -20}
+      opacity={GRID_OPACITY}
+      // `bg` maps to the `background` shorthand, which would reset the `background-size` that
+      // draws the grid; `pointerEvents` and `maskImage` have no Mantine prop at all.
       style={{
-        opacity: 0.18,
         pointerEvents: 'none',
         backgroundImage:
           'linear-gradient(var(--mantine-color-white) 1px, transparent 1px), linear-gradient(90deg, var(--mantine-color-white) 1px, transparent 1px)',
@@ -50,7 +57,7 @@ function AnalyticsCard() {
   const data = SHOWCASE_DATA[range];
   const line = linePath(data.values, CHART_W, CHART_H);
   return (
-    <Paper radius="md" p="md" shadow="md" mr={48}>
+    <Paper withBorder={false} p="md" shadow="md" mr={48}>
       <Group justify="space-between" align="center" wrap="wrap" gap="xs" mb="xs">
         <Text fw={700} size="sm">
           {SHOWCASE_COPY.analyticsTitle}
@@ -74,7 +81,8 @@ function AnalyticsCard() {
         <path
           d={`${line} L ${CHART_W},${CHART_H} L 0,${CHART_H} Z`}
           fill="var(--mantine-primary-color-light)"
-          style={{ transition: 'd 400ms ease' }}
+          // A raw SVG path takes no Mantine props, and `transition` has none in any case.
+          style={{ transition: PATH_TRANSITION }}
         />
         <path
           d={line}
@@ -84,7 +92,7 @@ function AnalyticsCard() {
           strokeLinecap="round"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
-          style={{ transition: 'd 400ms ease' }}
+          style={{ transition: PATH_TRANSITION }}
         />
       </svg>
       <Text size="xs" c="dimmed" mt={4}>
@@ -94,9 +102,20 @@ function AnalyticsCard() {
   );
 }
 
+const DONUT_CARD_WIDTH = 150;
+
 function DonutCard() {
   return (
-    <Paper aria-hidden radius="md" p="sm" shadow="lg" pos="absolute" right={0} bottom={0} w={150}>
+    <Paper
+      withBorder={false}
+      aria-hidden
+      p="sm"
+      shadow="lg"
+      pos="absolute"
+      right={0}
+      bottom={0}
+      w={DONUT_CARD_WIDTH}
+    >
       <Text fw={700} size="sm" mb={4}>
         {SHOWCASE_COPY.donutTitle}
       </Text>
@@ -119,22 +138,24 @@ function DonutCard() {
   );
 }
 
+/** Secondary copy on the brand panel; white at full strength is reserved for the heading. */
+const MUTED_ON_BRAND = 0.7;
+
 /** Decorative right-hand panel of the login card: preview cards plus brand heading. */
 export function LoginShowcase({ appName, tagline }: { appName: string; tagline: string | null }) {
   return (
-    <Box
+    // Mantine has no `overflow` style prop, so this stays a `style`: it clips the corner grids
+    // to the panel's rounded edge.
+    <Stack
       pos="relative"
       w="100%"
       h="100%"
       p="xl"
+      gap={0}
+      justify="center"
       bg="var(--mantine-primary-color-9)"
-      style={{
-        borderRadius: 'var(--mantine-radius-lg)',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-      }}
+      bdrs="lg"
+      style={{ overflow: 'hidden' }}
     >
       <CornerGrid corner="top-right" />
       <CornerGrid corner="bottom-left" />
@@ -144,24 +165,17 @@ export function LoginShowcase({ appName, tagline }: { appName: string; tagline: 
           <DonutCard />
         </Box>
         <Stack gap="xs" ta="center">
-          <Text
-            size="xs"
-            fw={600}
-            tt="uppercase"
-            c="white"
-            opacity={0.7}
-            style={{ letterSpacing: 1 }}
-          >
+          <Text size="xs" fw={600} tt="uppercase" c="white" opacity={MUTED_ON_BRAND} lts={1}>
             {appName}
           </Text>
           <Title order={2} c="white" fw={800}>
             {SHOWCASE_COPY.heading}
           </Title>
-          <Text size="sm" c="white" opacity={0.7}>
+          <Text size="sm" c="white" opacity={MUTED_ON_BRAND}>
             {tagline || SHOWCASE_COPY.defaultTagline}
           </Text>
         </Stack>
       </Stack>
-    </Box>
+    </Stack>
   );
 }

@@ -7,13 +7,21 @@ import { OverrideBadge, SettingsCard } from './SettingsParts';
 
 const URL_RE = /^https?:\/\/\S+$|^mailto:\S+$/i;
 
-/** App name, tagline and support link used by the shell, meta tags and login page. */
+/**
+ * App name, tagline and support link used by the shell, meta tags and login page.
+ *
+ * `onSaved` is for callers whose values come from a route loader instead of react-query: they pass
+ * a revalidate here, and because the loader refetch also repaints the sidebar and the tab title,
+ * the reader is no longer asked to reload the page by hand.
+ */
 export function BrandingCard({
   settings,
   defaults,
+  onSaved,
 }: {
   settings: BrandingSettings;
   defaults: Branding;
+  onSaved?: () => void;
 }) {
   const qc = useQueryClient();
   const [form, setForm] = useState<BrandingSettings>(settings);
@@ -27,9 +35,12 @@ export function BrandingCard({
     mutationFn: () => saveBranding(form),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['settings-overview'] });
+      onSaved?.();
       notifications.show({
         color: 'teal',
-        message: 'Branding disimpan. Muat ulang halaman untuk melihat di sidebar.',
+        message: onSaved
+          ? 'Branding disimpan. Nama baru berlaku untuk semua orang di semua area.'
+          : 'Branding disimpan. Muat ulang halaman untuk melihat di sidebar.',
       });
     },
     onError: (e: Error) =>
@@ -43,8 +54,9 @@ export function BrandingCard({
   ) => (
     <TextInput
       label={
-        <Group gap={6}>
-          <span>{label}</span>
+        // `component="span"`: this sits inside the input's <label>, which may not hold a div.
+        <Group component="span" gap="xs">
+          {label}
           <OverrideBadge overridden={Boolean(form[key]?.trim())} />
         </Group>
       }

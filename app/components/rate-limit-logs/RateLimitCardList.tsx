@@ -28,12 +28,7 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
 
   return (
     <Stack gap="xs">
@@ -44,10 +39,12 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
             key={r.id}
             withBorder
             p="sm"
-            radius="md"
             bg={selected.has(r.id) ? 'var(--mantine-primary-color-light)' : undefined}
             onClick={() => h.onOpen(r)}
-            style={{ cursor: 'pointer' }}
+            style={{
+              // Mantine has no `cursor` prop; clicking here opens the detail view.
+              cursor: 'pointer',
+            }}
           >
             <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
               <Checkbox
@@ -57,12 +54,12 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
                 checked={selected.has(r.id)}
                 onChange={() => h.onToggle(r.id)}
                 onClick={(e) => e.stopPropagation()}
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               />
-              <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+              <Stack gap={4} miw={0} flex={1}>
                 <Group gap="xs" wrap="nowrap" align="center">
                   <MethodBadge method={r.method} size="xs" />
-                  <TruncatedText ff="monospace" size="sm" fw={500} style={{ minWidth: 0 }}>
+                  <TruncatedText ff="monospace" size="sm" fw={500} miw={0}>
                     {r.path}
                   </TruncatedText>
                 </Group>
@@ -84,7 +81,7 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
                   h.onDelete(r);
                 }}
                 aria-label="Hapus catatan"
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               >
                 <FiTrash2 size={16} />
               </ActionIcon>

@@ -163,6 +163,9 @@ export function requiredScope(method: string, pathname: string): Scope | null {
     p.startsWith('/api/me/api-keys')
   )
     return null;
+  // The deny list first (D10): session-only routes are refused before any prefix rule can hand them
+  // a scope. It has to come before the generic `/api/admin/users` rule, not only before `app:*`.
+  if (isPmKeyDenied(m, p)) return null;
   // MCP is a JSON-RPC endpoint: every method needs the mcp scope.
   if (p.startsWith('/api/mcp')) return 'mcp';
   if (p === '/api/settings' || p === '/api/settings/')
@@ -178,6 +181,16 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/admin/permissions-matrix')) return read ? 'settings:read' : null;
   // Bulk CSV export of the whole directory (P11 §5): no scope may reach it, whatever the method.
   if (p.startsWith('/api/admin/export')) return null;
+  // The Admin Beranda summary (P11 AD-14) is a read-only view across the admin console (users,
+  // projects, tasks, events, audit); no single resource scope fits, so it rides the admin console's
+  // cross-cutting read scope `settings:read` (the same one the role matrix uses), and never writes.
+  if (p.startsWith('/api/admin/overview')) return read ? 'settings:read' : null;
+  // The Admin activity reading (P11 AD-18) is a console-only, PII-masked human view: session only,
+  // no scope may reach it, like the export beside it.
+  if (p.startsWith('/api/admin/activity')) return null;
+  // The Admin project console (P11 AD-11..AD-13) is a management view, not a data feed: no scope
+  // reaches it, and handing a project to another Pengelola is also in PM_KEY_DENY. Session only.
+  if (p.startsWith('/api/admin/projects')) return null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;
@@ -186,7 +199,6 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/ops/reset')) return null;
   if (p.startsWith('/api/ops')) return read ? 'ops:read' : null;
   if (p.startsWith('/api/me')) return read ? 'me:read' : null;
-  if (isPmKeyDenied(m, p)) return null; // D10: session-only PM routes, before the generic app:* rule
   // POST /api/app/tasks/draft (AI draft, A1) lands here on purpose: it saves nothing but spends the
   // provider quota, so a read-only key must not reach it. Its per-user rate limit applies to keys too.
   if (p.startsWith('/api/app/') || p === '/api/app') return read ? 'app:read' : 'app:write';
@@ -197,6 +209,8 @@ export function requiredScope(method: string, pathname: string): Scope | null {
 /**
  * Public reads (e.g. GET /api/posts, /api/hello, /api/version) need no scope but may still carry a key for tracking.
  * /api/openapi.json is listed so any valid key passes the plugin; its handler then rejects callers without a key.
+ * /api/docs(+/json) is the dev-only Scalar UI (see api/docs.ts): no key needed, so a key-bearing caller must
+ * not be refused 403 by the plugin.
  */
 export function isPublicRead(method: string, pathname: string): boolean {
   return (
@@ -205,7 +219,9 @@ export function isPublicRead(method: string, pathname: string): boolean {
       pathname.startsWith('/api/storage/avatars/') ||
       pathname === '/api/hello' ||
       pathname === '/api/version' ||
-      pathname === '/api/openapi.json')
+      pathname === '/api/openapi.json' ||
+      pathname === '/api/docs' ||
+      pathname === '/api/docs/json')
   );
 }
 

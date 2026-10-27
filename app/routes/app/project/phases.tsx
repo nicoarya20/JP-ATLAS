@@ -76,7 +76,7 @@ export default function ProjectPhasesPage({ loaderData }: Route.ComponentProps) 
 
   return (
     <Stack gap="xl">
-      <Stack gap={2}>
+      <Stack gap={4}>
         <Title order={2} size="h3">
           {PLAN_COPY.title}
         </Title>

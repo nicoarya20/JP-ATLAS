@@ -42,7 +42,7 @@ export function EksporDataPanel() {
 
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
         {EXPORT_ITEMS.map((item) => (
-          <Paper key={item.kind} withBorder p="md" radius="md">
+          <Paper key={item.kind} withBorder p="md">
             <Stack gap="sm" h="100%" justify="space-between">
               <Stack gap={4}>
                 <Group gap="xs" wrap="nowrap">

@@ -15,7 +15,7 @@ type Props = {
 export function SelectionBar({ count, noun, deleting, onClear, onDelete }: Props) {
   if (count === 0) return null;
   return (
-    <Paper withBorder radius="md" p="sm" bg="var(--mantine-primary-color-light)">
+    <Paper withBorder p="sm" bg="var(--mantine-primary-color-light)">
       <Group justify="space-between" wrap="wrap" gap="xs">
         <Text size="sm" fw={500}>
           {nf.format(count)} {noun} dipilih

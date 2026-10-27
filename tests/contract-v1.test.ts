@@ -42,12 +42,20 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     'TrashItemCapKey TrashItemCaps TrashListScope canPurge canRestoreTask canTrashTask canViewTrashItem trashItemCaps trashListScope',
   'server/access/types.ts':
     'EventSubject Membership Principal ProjectRole ProjectSubject TaskSubject',
+  // P14 CU-03 addition (contract-v1 §2 "menambah"): who may record somebody's leave. Its own rule
+  // because every target is fair game (D3) while `canActOnUser` protects Admins from each other.
   'server/access/user.policy.ts':
-    'Principal UserTarget canActOnUser canInviteWithRole canManageUsers canSetUserRole',
+    'Principal UserTarget canActOnUser canInviteWithRole canManageUsers canRecordUserLeave canSetUserRole',
   'server/metrics/condition.ts':
     'ConditionInput ConditionMilestone ConditionOverride ConditionReason ConditionResult ConditionTask activeOverride computeCondition formatConditionReason',
   'server/metrics/config.ts': 'METRICS',
-  'server/metrics/dates.ts': 'IsoDate diffDays isoDateIn',
+  // PD-01 addition (contract-v1 §2 "menambah"): the sane calendar range both the write services and
+  // every date input read, so a mistyped year cannot reach the project timeline. Nothing renamed.
+  // A9 addition: `shiftDate` and `zonedDayStart` moved here from `trash.metrics.ts`, which kept
+  // them private, so the event calendar window and the Trash purge draw a day boundary the same
+  // way. Nothing renamed and nothing removed; `trash.metrics.ts` now imports them.
+  'server/metrics/dates.ts':
+    'CALENDAR_DATE_MAX CALENDAR_DATE_MIN CALENDAR_YEAR_MAX CALENDAR_YEAR_MIN IsoDate diffDays isInCalendarRange isoDateIn shiftDate zonedDayStart',
   'server/metrics/project.metrics.ts':
     'ElapsedResult MilestoneState ProgressResult elapsed milestoneState progress',
   'server/metrics/schedule.ts':
@@ -78,13 +86,14 @@ const SHARED_FILES = words(`
 
 /**
  * The twenty-one /app URLs (/app/settings/profile added with the Pengaturan wireframe: the "Ubah profil" screen, a compatible addition; S7 E-10 added /app/events/new, the two-stage event form, and E-11 /app/events/:id, the event detail; docs/decisions/0004-contract-v1-hybrid-menus.md added /app/inbox, /app/events and /app/team; S5a UI-05 added the Tahapan tab and S5a tim-b2 the person detail, see 0002 §6): the thirteen: the eleven of X1 D4 (/app plus ten children), /app/trash (S1-18, user decision
- * 15 Oct 2026, option B) and /app/tasks/:number/edit (S2-13, "Ubah tugas"); both compatible additions, see 0002-contract-v1.md §6. /profile is outside /app/.
+ * 15 Oct 2026, option B), /app/tasks/:number/edit (S2-13, "Ubah tugas") and /app/events/:id/edit (S7,
+ * "Ubah acara"); all compatible additions, see 0002-contract-v1.md §6. /profile is outside /app/.
  */
 const APP_URLS = words(`
   /app /app/projects /app/projects/new /app/projects/:projectId /app/projects/:projectId/tasks
   /app/projects/:projectId/phases /app/projects/:projectId/members /app/projects/:projectId/settings /app/tasks /app/tasks/new
   /app/tasks/:number /app/tasks/:number/edit /app/settings /app/settings/profile /app/trash
-  /app/inbox /app/events /app/events/new /app/events/:id /app/team /app/team/:userId
+  /app/inbox /app/events /app/events/new /app/events/:id /app/events/:id/edit /app/team /app/team/:userId
 `);
 
 const DECLARATION =
@@ -154,8 +163,8 @@ describe('contract-v1 routes and menu', () => {
     (u) => u === '/app' || u.startsWith('/app/'),
   );
 
-  it('registers exactly twenty-one /app URLs', () => {
-    expect(appUrls).toHaveLength(21);
+  it('registers exactly twenty-two /app URLs', () => {
+    expect(appUrls).toHaveLength(22);
     expect(appUrls.sort()).toEqual([...APP_URLS].sort());
   });
 

@@ -1,14 +1,18 @@
 # P11 — Rencana eksekusi: Area Admin (`/dashboard`)
 
 > 21 Okt 2026 · tahap 2 · **Gelombang 1 sudah dikerjakan** (AD-01 dan AD-02 selesai dan ter-merge ke `plan/p11-area-admin` @ `97a578b`, 21 Okt 2026); AD-03..AD-19 masih rencana. Cabang induk lajur ini `plan/p11-area-admin`. Mengikat: `../KEPUTUSAN-MVP-INTI.md` > `../JADWAL-S3-S8.md` > dokumen ini. Lahir dari diskusi user 21 Okt 2026 (pertanyaan: "menu apa saja di area Admin, dan kenapa"). Fondasi kode menang atas desain; kutipan `path:baris` adalah yang dibaca di worktree `feature/project-management` pada tanggal itu. Tanda **ASUMSI** = belum diverifikasi.
+>
+> **Dikoreksi 23 Okt 2026 oleh `P14-cuti-status-admin.md`:** AD-07 (tab Kebijakan kerja) **dicoret** dan tab Pengaturan turun **6 → 5**. Sebabnya persetujuan cuti keluar dari aplikasi, sehingga saklar "Cuti perlu persetujuan" — satu-satunya isi AD-07 yang punya backend nyata — ikut hilang; hari kerja dan hari libur ditunda sampai ada yang benar-benar menghitungnya. Nomor migrasi juga berpindah tangan — final: `0022_admin_policy.sql` (§5). Tiap butir yang terdampak ditandai di tempatnya masing-masing.
+>
+> **P14 mendarat 26 Okt 2026** (CU-01..CU-08 di `nicoarya20/sp-p14-cuti`), jadi koreksi di atas bukan rencana lagi: berkas `settings/kebijakan-kerja.tsx` sudah dihapus, Pengaturan admin benar-benar lima tab (`tests/admin-settings-tabs.test.ts`), alur persetujuan cuti sudah tidak ada di kode, dan cuti kini disetel Admin dari `/dashboard/users`. Hari kerja dan hari libur tercatat sebagai `HUTANG.md` **H-E15** dengan konsumennya disebut (kalkulator tenggat).
 
 ## 1. Ringkasan
 
-- Area `/dashboard` sekarang **2 menu** (Beranda satu kartu + Pengguna). Rencana ini membawanya ke **7 menu** — Beranda, Pengguna, Proyek, Peran & izin, Ekspor data, Aktivitas, Pengaturan — dan memindahkan kepemilikan setelan organisasi dari `/dev` ke `/dashboard`. (**Dikoreksi 21 Okt 2026, AD-20:** semula 5 menu dengan Pengaturan 8 tab. Delapan tab tidak muat satu baris di laptop 1366px, dan dua di antaranya bukan setelan — Peran & izin adalah laporan, Ekspor data adalah alat — jadi keduanya naik jadi menu sendiri dan Pengaturan tinggal 6 tab.)
+- Area `/dashboard` sekarang **2 menu** (Beranda satu kartu + Pengguna). Rencana ini membawanya ke **7 menu** — Beranda, Pengguna, Proyek, Peran & izin, Ekspor data, Aktivitas, Pengaturan — dan memindahkan kepemilikan setelan organisasi dari `/dev` ke `/dashboard`. (**Dikoreksi 21 Okt 2026, AD-20:** semula 5 menu dengan Pengaturan 8 tab. Delapan tab tidak muat satu baris di laptop 1366px, dan dua di antaranya bukan setelan — Peran & izin adalah laporan, Ekspor data adalah alat — jadi keduanya naik jadi menu sendiri dan Pengaturan tinggal 6 tab.) **Dikoreksi lagi 23 Okt 2026 (P14):** **5 tab** — Kebijakan kerja dihapus.
 - **Garis batas yang disepakati user (21 Okt 2026):** area super-admin = **teknis/developer** (infrastruktur, dikerjakan saat ada yang rusak); area Admin = **kebijakan kantor**. Konsekuensinya: apa pun yang mengubah tampilan/perilaku untuk semua role adalah milik Admin, bukan super-admin. Ini menutup pertanyaan "pindah vs duplikasi" — jawabannya **pindah**.
 - **Pengalih area jadi tiga entri setara**: `App · Admin · Super-admin`. Tautan dalam (`Antrean persetujuan`) dan `Pengaturan akun` keluar dari grup itu.
-- **20 tugas, AD-01..AD-20**, total ≈ **34,5 hari-orang AI** + reviewer ≈ 4, dibagi tiga tahap yang bisa dirilis sendiri-sendiri.
-- **Satu migrasi** (**`0022`** — dikoreksi 21 Okt 2026: `0021` sudah dipakai `0021_leave_request.sql`): kolom settings untuk Pengumuman dan Kebijakan kerja. Butuh baton, antre setelah `0017`-`0021`.
+- **20 tugas, AD-01..AD-20**, total ≈ **34,5 hari-orang AI** + reviewer ≈ 4, dibagi tiga tahap yang bisa dirilis sendiri-sendiri. (**Dikoreksi 23 Okt 2026, P14:** 19 tugas aktif, ≈ **32,5** — AD-07 dicoret.)
+- **Satu migrasi** (**`0022`** — dikoreksi 21 Okt 2026: `0021` sudah dipakai `0021_leave_request.sql`): kolom settings untuk Pengumuman dan Kebijakan kerja. Butuh baton, antre setelah `0017`-`0021`. **Dikoreksi 23 Okt 2026 (P14 §4 K3, lalu P13 §4 K6):** isinya tinggal kolom Pengumuman — `working_days` dicabut bersama AD-07. Nomornya **`0022`**: migrasi ini diserap P13 RD-01 dan mendarat 23 Okt 2026 sebagai `0022_admin_policy.sql`, karena `0022_leave_period.sql` milik P14 belum ada saat itu.
 - **Lajur ini hampir tidak menyentuh kode `/app`**, jadi bisa jalan paralel dengan S6/S7 alih-alih menunggu giliran. Lihat §10 Q1.
 - **Semua pertanyaan §10 (Q1-Q8) sudah dijawab user 21 Okt 2026.** Rencana ini siap dieksekusi begitu baton migrasi dan kuota worker memungkinkan.
 
@@ -27,7 +31,7 @@
 | **Setelan: guard** | `PUT /api/settings/*` dan `/api/settings-ops/*` semuanya `requireRole(request, ROLES.SUPER_ADMIN)` | `server/api/settings.ts:33,41,61,94`; `server/api/settings-ops.ts:23,47,62,103` |
 | Branding | `appName`, `appTagline`, `supportUrl`; `BRANDING_DEFAULTS` = Simple PM | `server/settings-branding.ts:11-15,44` |
 | Feature flags | JSON di baris settings; `FLAG_KEY_RE`, `MAX_FLAGS=100`, editor key/value bebas | `server/settings-features.ts:6-8,38` |
-| Cuti | `LeaveSettings = { requiresApproval }`, default `true` | `server/settings-leave.ts:7,10` |
+| ~~Cuti~~ | ~~`LeaveSettings = { requiresApproval }`, default `true`~~ · **basi 23 Okt 2026 (P14 CU-01/CU-02):** saklar dan modulnya dihapus bersama alur persetujuan | ~~`server/settings-leave.ts:7,10`~~ |
 | Banner global | **Pola yang bisa ditiru Pengumuman**: `maintenance.enabled` ikut `frameInfo()` → dibaca tiap layout; `isMaintenanceExempt`/`shouldBlock` memilih path & role | `server/app-info.ts:18-21`; `server/settings-maintenance.ts:71,76` |
 | Audit | 30+ aksi sudah ada, termasuk `SETTINGS_BRANDING_UPDATE`, `SETTINGS_FEATURES_UPDATE`, `USER_ROLE_SET`, `USER_APPROVE` — **cukup untuk menu Aktivitas tanpa aksi baru**, kecuali Pengumuman & Ekspor | `server/audit.ts:11-41` |
 | Rute antrean | `APPROVAL_QUEUE_ROUTE = '/dashboard/users'` dipakai bersama badge `/dev` | `server/sidebar-badges.ts:36` |
@@ -73,7 +77,7 @@ AREA LAIN
 | **Peran & izin** | *"Peran ini sebenarnya boleh apa?"* | `/dashboard/permissions` — matriks baca-saja, diturunkan dari `server/permissions.ts` (AD-20) |
 | **Ekspor data** | *"Aku butuh datanya di luar aplikasi."* | `/dashboard/export` — CSV anggota/proyek/tugas, diaudit (AD-20) |
 | Aktivitas | *"Siapa yang melakukan ini?"* | Audit disaring ke aksi yang Admin pahami |
-| Pengaturan | *"Aturan main kantor ini apa?"* | 6 tab, lihat bawah |
+| Pengaturan | *"Aturan main kantor ini apa?"* | 5 tab (semula 6; P14), lihat bawah |
 
 **Tab Pengaturan**
 
@@ -82,7 +86,7 @@ AREA LAIN
 | Identitas | ubah | ubah | nama app, tagline, support URL |
 | Pengumuman | ubah | ubah | banner semua area, bisa ditutup |
 | Akses masuk | ubah | ubah | form daftar, wajib persetujuan, undangan |
-| Kebijakan kerja | ubah | ubah | hari kerja, hari libur, pengingat acara, cuti wajib disetujui |
+| ~~Kebijakan kerja~~ | — | — | **DIHAPUS 23 Okt 2026 (P14 D1, CU-07).** Cuti wajib disetujui hilang bersama alur persetujuan; pengingat acara bawaan pindah ke tab Pemberitahuan; hari kerja & hari libur turun ke `HUTANG.md` sampai ada kalkulator tenggat yang membacanya |
 | Pemberitahuan | ubah | ubah | **menunggu P9 G-02** |
 | Fitur | ubah | ubah | daftar terkurasi, bukan editor key/value |
 
@@ -90,14 +94,14 @@ AREA LAIN
 
 ## 5. Data & API
 
-**Migrasi `0022`** (butuh baton, antre setelah `0017`-`0021`; **bukan `0021`** — nomor itu sudah dipakai `0021_leave_request.sql`)
+**Migrasi `0022`** — mendarat 23 Okt 2026 sebagai `0022_admin_policy.sql` lewat P13 RD-01, yang menyerap migrasi lajur ini. Sempat digeser ke `0023` (dikoreksi 23 Okt 2026, P14 §4 K3) dengan asumsi `0022_leave_period.sql` sudah ada; pemeriksaan ulang `server/db/migrations/` menemukan migrasi terakhir masih `0021_leave_request.sql`, jadi aturan R1 berlaku dan **lajur P14 yang menggeser `leave_period` ke `0023`**.
 
 | Kolom | Tabel | Untuk |
 |---|---|---|
 | `announcement` (jsonb) | `settings` | `{ text, level, active, dismissibleUntil }` — ikut pola `featureFlags` yang sudah jsonb |
-| `working_days` (jsonb) | `settings` | `{ days[], holidays[], defaultEventReminder }` |
+| ~~`working_days` (jsonb)~~ | ~~`settings`~~ | **DICABUT 23 Okt 2026 (P14 §4 K2).** Tidak ada lagi layar yang menulisnya. Kolomnya dibuat nanti **bersama** kalkulator tenggat yang membacanya, bukan dibiarkan kosong menunggu |
 
-Keduanya nullable, tanpa backfill, guard idempoten. Tidak ada tabel baru.
+Nullable, tanpa backfill, guard idempoten. Tidak ada tabel baru.
 
 **Endpoint**
 
@@ -107,7 +111,7 @@ Keduanya nullable, tanpa backfill, guard idempoten. Tidak ada tabel baru.
 | `PUT` | `/api/settings/auth` | super-admin | **admin + super-admin** (bagian kebijakan saja) |
 | `PUT` | `/api/settings/features` | super-admin | **admin + super-admin** |
 | `PUT` | `/api/settings/announcement` | – | admin + super-admin *(baru)* |
-| `PUT` | `/api/settings/working-days` | – | admin + super-admin *(baru)* |
+| ~~`PUT`~~ | ~~`/api/settings/working-days`~~ | – | **DICABUT 23 Okt 2026 (P14).** Diganti dua endpoint admin `PUT`/`DELETE /api/admin/users/:id/leave`, lihat P14 §6 |
 | `GET` | `/api/admin/overview` | – | admin + super-admin *(baru)* |
 | `GET` | `/api/admin/projects` | – | admin + super-admin *(baru)* |
 | `POST` | `/api/admin/projects/:id/manager` | – | admin + super-admin *(baru)* |
@@ -116,7 +120,7 @@ Keduanya nullable, tanpa backfill, guard idempoten. Tidak ada tabel baru.
 
 Rate limit, retensi, maintenance, demo tetap `requireRole(SUPER_ADMIN)` — tidak disentuh.
 
-**Audit** — tambah 3 aksi: `SETTINGS_ANNOUNCEMENT_UPDATE`, `SETTINGS_WORKING_DAYS_UPDATE`, `DATA_EXPORT`; plus `PROJECT_MANAGER_SET`. Semua wajib masuk `ACTION_META` (`app/lib/audit-api.ts`).
+**Audit** — tambah 3 aksi: `SETTINGS_ANNOUNCEMENT_UPDATE`, ~~`SETTINGS_WORKING_DAYS_UPDATE`~~ (**dicabut 23 Okt 2026, P14** — diganti `LEAVE_SET`/`LEAVE_CLEAR` milik P14), `DATA_EXPORT`; plus `PROJECT_MANAGER_SET`. Semua wajib masuk `ACTION_META` (`app/lib/audit-api.ts`).
 
 **Scope kunci API** — rute `/api/admin/*` baru dipetakan di `server/api-keys/scopes.ts` + assertion di `tests/api-keys/scopes.test.ts`. `POST /projects/:id/manager` dan `GET /export/:kind` masuk daftar tolak (eskalasi & ekspor massal).
 
@@ -124,7 +128,7 @@ Rate limit, retensi, maintenance, demo tetap `requireRole(SUPER_ADMIN)` — tida
 
 Ukuran: `S (1)` · `M (1,5)` · `L (2)` · `L (2,5)` hari-orang AI.
 
-### Tahap 1 — Pengaturan (≈16,5) · menjawab langsung "tampilan global semua role"
+### Tahap 1 — Pengaturan (≈16,5 → **14,5** setelah AD-07 dicoret, P14) · menjawab langsung "tampilan global semua role"
 
 ### AD-01 · Pengalih area tiga entri + Pengaturan akun ke menu avatar · Dep: – · S (1)
 Ubah `APP`/`SECONDARY` (`admin/layout.tsx:21-28`), `OTHER` (`super/layout.tsx:151-160`), dan padanannya di layout `/app`. Label `'Area lain'` di `AppFrame.tsx:228` tetap.
@@ -138,14 +142,18 @@ Rute + tab shell + `meta()` + guard. `tests/admin-routes.test.ts` otomatis menja
 ### AD-04 · Tab Identitas · Dep: AD-03 · S (1)
 Pakai ulang `BrandingCard.tsx`.
 
-### AD-05 · Pengumuman: migrasi 0022 + API + banner semua area · Dep: AD-02 · L (2,5) · **baton migrasi**
+### AD-05 · Pengumuman: migrasi `0022` + API + banner semua area · Dep: AD-02 · L (2,5) · **baton migrasi**
 Banner ikut `frameInfo()` seperti maintenance. Menyentuh `AppFrame` → wajib `smoke:prod` + `smoke:binary`.
 
 ### AD-06 · Tab Akses masuk · Dep: AD-03 · M (1,5) · PARALEL dgn AD-04
 Pakai ulang `AuthSettingsCard.tsx`, buang bagian teknis.
 
-### AD-07 · Tab Kebijakan kerja · Dep: AD-05 (baton) · L (2) · lihat Q5
-**Fase 1 hanya menyimpan + menampilkan.** Tidak mengubah perhitungan tenggat yang sudah jalan.
+### ~~AD-07 · Tab Kebijakan kerja~~ · **DICORET 23 Okt 2026 (P14 D1)** · L (2)
+~~**Fase 1 hanya menyimpan + menampilkan.** Tidak mengubah perhitungan tenggat yang sudah jalan.~~
+
+Dicoret setelah pemindaian 23 Okt menemukan **nol** konsumen: tidak satu pun tempat di `server/` atau `app/lib/` menghitung hari kerja (`isWorkday`, `getDay()`, akhir pekan). Tugas ini akan menghasilkan setelan yang disimpan tapi tidak dibaca siapa pun — admin mencentang Sabtu sebagai libur, tenggat tugas tetap jatuh di Sabtu. Anggaran Tahap 1 turun ≈2 (16,5 → 14,5).
+
+Isinya dibagi tiga: saklar cuti **hilang** (P14 CU-02), pengingat acara bawaan **pindah** ke tab Pemberitahuan (P13 RD-08, lihat §9 kontradiksi 3), hari kerja + hari libur **ditunda** ke `HUTANG.md` dan dibangun bersama kalkulator tenggatnya.
 
 ### AD-08 · Tab Fitur terkurasi · Dep: AD-03 · M (1,5) · PARALEL
 Daftar flag yang dikenal + deskripsi Indonesia. Editor key/value bebas tetap di `/dev`.
@@ -211,10 +219,10 @@ Definisi selesai per tugas mengikuti `README.md` §3 tanpa pengecualian. Tugas y
 
 | # | Risiko | Mitigasi |
 |---|---|---|
-| R1 | **Baton migrasi** `0022` bertabrakan dengan migrasi lajur produk | AD-05 pemegang baton tunggal; jangan luncurkan bersamaan dengan tugas bermigrasi lain. `0021` sudah terpakai (`leave_request`), jadi nomor bebas berikutnya `0022` — periksa ulang `server/db/migrations/` sebelum `db:generate` |
+| R1 | **Baton migrasi** bertabrakan dengan migrasi lajur produk | AD-05 pemegang baton tunggal; jangan luncurkan bersamaan dengan tugas bermigrasi lain. **Diselesaikan 23 Okt 2026:** aturan intinya yang menentukan — periksa ulang `server/db/migrations/` sebelum `db:generate`; siapa pun yang mendarat duluan menang dan yang lain menyesuaikan. P13 RD-01 memeriksa dan menemukan migrasi terakhir masih `0021_leave_request.sql`, lalu mendarat sebagai **`0022_admin_policy.sql`**; `0022_leave_period.sql` milik P14 **bergeser ke `0023`** |
 | R2 | **AD-03 melonggarkan guard** — salah tulis = eskalasi hak | Persetujuan user satu per satu, tes negatif member/PM/admin wajib, diff ditinjau manual |
 | R3 | Pengumuman menyentuh `AppFrame` → semua area ikut terpengaruh | Smoke prod + binary; banner gagal-lunak (gagal baca = tidak tampil, bukan layar putih) |
-| R4 | Kebijakan kerja diam-diam mengubah perhitungan tenggat S1/S2 | Fase 1 simpan + tampilkan saja (Q5). Perubahan perhitungan = rencana terpisah |
+| ~~R4~~ | ~~Kebijakan kerja diam-diam mengubah perhitungan tenggat S1/S2~~ | **Gugur 23 Okt 2026 (P14 D1):** AD-07 dicoret, jadi tidak ada lagi yang bisa menyentuh perhitungan tenggat. Risiko ini hidup lagi saat hari kerja dibangun dari `HUTANG.md` — bawa serta ke rencana itu |
 | R5 | Ekspor data memuat seluruh tabel ke memori | Streaming + paginasi wajib; rate limit; diaudit |
 | R6 | Daftar proyek N+1 saat mengambil Pengelola | Join/batch, bukan loop; paginasi wajib |
 | R7 | Super-admin bingung setelan "hilang" dari `/dev` | Baris penunjuk di `/dev/settings` + entri Admin di pengalih area (AD-01) |
@@ -226,7 +234,7 @@ Definisi selesai per tugas mengikuti `README.md` §3 tanpa pengecualian. Tugas y
 
 1. ~~**Hapus permanen punya dua pemilik.**~~ **Ditutup 21 Okt 2026 (user, Q2 = A):** tetap milik P8; area Admin hanya menautkan ke `/app/trash`, tanpa layar Sampah sendiri. Sampah tunggal di `/app` terkumpul per jenis (proyek ada; tugas di P8 Z-02/Z-03; event di S7), member memulihkan sebatas `deletedByOrManaged`, admin/super-admin melihat `all` dan memegang tombol hapus permanen, purge otomatis 30 hari di P8 Z-05. Semua itu sudah terpasang di `server/access/trash.policy.ts:73-75,114-117` — P11 tidak menyentuhnya.
 2. **Tab Pemberitahuan** bertindih dengan P9 G-02 (saklar Pemberitahuan). Usul: P9 pemilik, P11 hanya menyediakan tempatnya.
-3. **Pengingat acara bawaan** bertindih dengan P7 M09 (pengaturan tim). Usul: pindah ke tab Kebijakan kerja di sini, M09 dicoret.
+3. **Pengingat acara bawaan** bertindih dengan P7 M09 (pengaturan tim). ~~Usul: pindah ke tab Kebijakan kerja di sini, M09 dicoret.~~ **Dikoreksi 23 Okt 2026 (P14 §4 K4):** rumah yang diusulkan itu ikut terhapus. Pindah ke **tab Pemberitahuan** (P13 RD-08) — ini memang nilai awal notifikasi, bukan kebijakan kerja. M09 tetap dicoret.
 4. **`CLAUDE.md` root** menulis `/dashboard` khusus "manajemen akun dan tim". Definisi itu berubah dan wajib disunting di AD-19.
 
 **Dokumen yang harus disunting**
@@ -241,7 +249,7 @@ Definisi selesai per tugas mengikuti `README.md` §3 tanpa pengecualian. Tugas y
 | Q2 | ~~Hapus permanen: tetap P8 Z-04 (Sampah) atau pindah ke tab Pengaturan?~~ | **DIJAWAB 21 Okt (user): tetap P8.** Satu Sampah di `/app`, tombol hapus permanen hanya untuk admin + super-admin (`canPurge` sudah begitu). Area Admin menautkan saja |
 | Q3 | AD-03 melonggarkan guard setelan dari super-admin ke admin — konfirmasi? | **Ya**, sesuai garis batas 21 Okt. Tetap butuh persetujuan user satu per satu saat eksekusi, di luar merge per gelombang |
 | Q4 | Pengumuman: bisa ditutup user? tampil juga di halaman publik (landing/login)? | **Bisa ditutup; hanya area login-an.** Landing adalah muka produk, tidak dipasangi pengumuman internal |
-| Q5 | ~~Kebijakan kerja boleh mengubah perhitungan tenggat yang sudah jalan?~~ | **DIJAWAB 21 Okt (user): belum.** Fase 1 hanya simpan + tampilkan; perhitungan tenggat S1/S2 tidak disentuh. Mengubahnya = rencana terpisah |
+| Q5 | ~~Kebijakan kerja boleh mengubah perhitungan tenggat yang sudah jalan?~~ | **DIJAWAB 21 Okt (user): belum.** Fase 1 hanya simpan + tampilkan; perhitungan tenggat S1/S2 tidak disentuh. **Ditutup 23 Okt 2026 (P14 D1):** pertanyaannya gugur — jawaban "belum" itu justru yang membuat AD-07 tidak punya nilai, jadi tabnya dicoret seluruhnya dan hari kerja menunggu kalkulatornya |
 | Q6 | Ekspor data: siapa dan diaudit? | **Admin + super-admin**, diaudit (`DATA_EXPORT`), rate-limited, kunci API ditolak |
 | Q7 | Laporan (⑥) keluar dari rencana ini? | **Ya**, rencana terpisah setelah data menumpuk |
 | Q8 | Urutan rilis: Tahap 1 → 2 → 3, atau Proyek (Tahap 2) duluan? | **Tahap 1 duluan** — menjawab pertanyaan asal user, datanya sudah ada, risikonya paling kecil |

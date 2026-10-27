@@ -64,7 +64,7 @@ export function TaskMenu({ task, afterDelete }: { task: TaskMenuTask; afterDelet
             disabled={task.can.cancel !== true}
             onClick={openCancel}
           >
-            <Stack gap={2}>
+            <Stack gap={4}>
               <Text inherit>{DETAIL_COPY.cancel}</Text>
               <Text size="xs" c="dimmed">
                 {blocked ?? DETAIL_COPY.cancelHint}

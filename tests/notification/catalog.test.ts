@@ -2,7 +2,6 @@
 import { describe, expect, it, test } from 'bun:test';
 import {
   cardButton,
-  cardSecondaryButton,
   cardSentence,
   isNotificationKind,
   kindsByLane,
@@ -18,7 +17,8 @@ import {
 import type { NotificationKind } from '../../server/notification/notification.types';
 
 // The kinds really emitted: S3's (P5 §5.2 "Katalog yang dikirim di S3", user_pending since I14), S7's four event cards
-// and the two leave cards (emit.leave.ts).
+// and the one leave card left (emit.leave.recorded.ts, P14 D5; the two approval cards went with the
+// approval flow itself in CU-06).
 const SHIPPED: NotificationKind[] = [
   'task_assigned',
   'task_unassigned',
@@ -32,8 +32,7 @@ const SHIPPED: NotificationKind[] = [
   'event_invited',
   'event_changed',
   'event_canceled',
-  'leave_requested',
-  'leave_decided',
+  'leave_recorded',
 ];
 // Reserved on purpose: the feature behind them lands in S4 (Periksa, mention).
 const RESERVED: NotificationKind[] = [
@@ -205,30 +204,24 @@ describe('copy', () => {
 });
 
 describe('leave cards', () => {
-  it('files the approval under work and the outcome under news', () => {
-    expect(NOTIFICATION_KINDS.leave_requested).toMatchObject({ lane: 'action', shipped: true });
-    expect(NOTIFICATION_KINDS.leave_decided).toMatchObject({ lane: 'info', shipped: true });
-    expect(prefCategoryOf('leave_requested')).toBeNull();
-    expect(prefCategoryOf('leave_decided')).toBe('news');
+  it('files what an Admin recorded under news: there is nothing to answer (P14 D5)', () => {
+    expect(NOTIFICATION_KINDS.leave_recorded).toMatchObject({ lane: 'info', shipped: true });
+    expect(prefCategoryOf('leave_recorded')).toBe('news');
+    expect(cardButton('leave_recorded')).toBe('Lihat ketersediaan');
   });
 
-  it('gives the approval card two buttons and every other card one', () => {
-    expect(cardButton('leave_requested')).toBe('Setujui');
-    expect(cardSecondaryButton('leave_requested')).toBe('Tolak');
-    const others = EVERY_KIND.filter((kind) => kind !== 'leave_requested');
-    expect(others.filter((kind) => cardSecondaryButton(kind) !== null)).toEqual([]);
+  it('says which of the two things an Admin did, naming them when it is known', () => {
+    expect(cardSentence('leave_recorded', { actor: 'Ayu', outcome: 'dicatat' })).toBe(
+      'Cuti Anda dicatat oleh Ayu',
+    );
+    expect(cardSentence('leave_recorded', { outcome: 'diakhiri' })).toBe('Cuti Anda diakhiri');
   });
 
-  it('names the requester on the approval card and the outcome on the answer', () => {
-    expect(cardSentence('leave_requested', { actor: 'Dodi', name: 'Dodi' })).toBe(
-      'Dodi mengajukan cuti',
-    );
-    expect(cardSentence('leave_requested', { name: 'Dodi' })).toBe('Dodi mengajukan cuti');
-    expect(cardSentence('leave_decided', { actor: 'Nico', outcome: 'ditolak' })).toBe(
-      'Pengajuan cuti Anda ditolak oleh Nico',
-    );
-    expect(cardSentence('leave_decided', { outcome: 'disetujui' })).toBe(
-      'Pengajuan cuti Anda disetujui',
-    );
+  // P14 CU-06: the approval card was the only kind that ever had a second button, and the whole
+  // mechanism left with it. Nothing in the catalog may grow one back without this test failing.
+  it('leaves no kind with a second button, and no copy field to put one in', () => {
+    expect(EVERY_KIND.filter((kind) => 'secondaryButton' in NOTIFICATION_COPY[kind])).toEqual([]);
+    expect(isNotificationKind('leave_requested')).toBe(false);
+    expect(isNotificationKind('leave_decided')).toBe(false);
   });
 });

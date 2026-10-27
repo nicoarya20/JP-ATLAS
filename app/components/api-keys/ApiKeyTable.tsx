@@ -95,15 +95,16 @@ export function ApiKeyActionsMenu({ k, h }: { k: ApiKeyRow; h: ApiKeyHandlers })
 
 export function ApiKeyTable({ rows, loading, fetching = false, empty, soonDays, ...h }: Props) {
   return (
-    <Box pos="relative" style={{ overflowX: 'auto' }}>
+    <Box
+      pos="relative"
+      style={{
+        // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+        // (CLAUDE.md mobile §2).
+        overflowX: 'auto',
+      }}
+    >
       <LoadingOverlay visible={fetching && !loading} zIndex={5} overlayProps={{ blur: 1 }} />
-      <Table
-        highlightOnHover
-        withTableBorder
-        verticalSpacing="xs"
-        fz="sm"
-        style={{ minWidth: 860 }}
-      >
+      <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={860}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Kunci</Table.Th>
@@ -126,7 +127,14 @@ export function ApiKeyTable({ rows, loading, fetching = false, empty, soonDays, 
             ))}
           {!loading &&
             rows.map((k) => (
-              <Table.Tr key={k.id} onClick={() => h.onOpen(k)} style={{ cursor: 'pointer' }}>
+              <Table.Tr
+                key={k.id}
+                onClick={() => h.onOpen(k)}
+                style={{
+                  // Mantine has no `cursor` prop; clicking here opens the detail view.
+                  cursor: 'pointer',
+                }}
+              >
                 <Table.Td>
                   <KeyIdentityCell k={k} />
                 </Table.Td>
@@ -182,12 +190,7 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
     <Stack gap="xs">
       {rows.map((k) => (
@@ -195,12 +198,14 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
           key={k.id}
           withBorder
           p="sm"
-          radius="md"
           onClick={() => h.onOpen(k)}
-          style={{ cursor: 'pointer' }}
+          style={{
+            // Mantine has no `cursor` prop; clicking here opens the detail view.
+            cursor: 'pointer',
+          }}
         >
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap="xs" miw={0} flex={1}>
               <Group gap="xs" wrap="nowrap" justify="space-between">
                 <KeyIdentityCell k={k} />
                 <KeyStatusBadge status={k.status} size="xs" />
@@ -216,7 +221,7 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
                 {k.usage24h} req/24j
               </Text>
             </Stack>
-            <Box onClick={(e) => e.stopPropagation()} style={{ flexShrink: 0 }}>
+            <Box onClick={(e) => e.stopPropagation()} flex="0 0 auto">
               <ApiKeyActionsMenu k={k} h={h} />
             </Box>
           </Group>

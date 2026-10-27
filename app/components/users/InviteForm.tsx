@@ -52,7 +52,8 @@ export function InviteForm({ perms, loading, onSubmit }: Props) {
             inputMode="email"
             autoComplete="off"
             disabled={blocked !== null}
-            style={{ flex: '1 1 260px', minWidth: 0 }}
+            flex="1 1 260px"
+            miw={0}
           />
           <Select
             label="Peran"

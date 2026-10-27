@@ -32,7 +32,7 @@ export function ApiKeyFilterBar({
   ownerLabel,
 }: Props) {
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari nama kunci, prefix, pemilik, catatan…"
@@ -49,7 +49,8 @@ export function ApiKeyFilterBar({
           value={filters.search}
           onChange={(e) => setFilters({ search: e.currentTarget.value })}
           size="sm"
-          style={{ flex: '1 1 240px', minWidth: 0 }}
+          flex="1 1 240px"
+          miw={0}
         />
         <Select
           size="sm"

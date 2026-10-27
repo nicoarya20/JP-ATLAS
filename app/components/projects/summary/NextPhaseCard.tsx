@@ -4,6 +4,7 @@ import type { IsoDate } from '@server/metrics/types';
 import type { ProjectPlan } from '@server/project/project-plan.query';
 import { FiFlag, FiLayers } from 'react-icons/fi';
 import { Link } from 'react-router';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { EmptyState } from '~/components/ui/EmptyState';
 import { PhaseStepper } from './PhaseStepper';
 import { currentPhaseLine, milestoneWhen, phasePercent } from './phase-view';
@@ -30,11 +31,12 @@ function Milestone({ plan, today }: Pick<Props, 'plan' | 'today'>) {
   }
   const when = milestoneWhen(m, today);
   return (
-    <Group gap={6} wrap="nowrap" align="flex-start" style={{ minWidth: 0 }}>
+    <Group gap="xs" wrap="nowrap" align="flex-start" miw={0}>
       <Text c={when.late ? 'danger' : undefined} lh={1.4}>
         <FiFlag size="1.25em" aria-hidden />
       </Text>
-      <Text size="sm" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+      {/* A summary line: the milestone title wraps in full rather than being cut short. */}
+      <Text size="sm" miw={0} style={WRAP_ANYWHERE}>
         <Text span fw={600}>{`${NEXT_PHASE_COPY.milestoneLabel}: ${m.title}`}</Text>
         {' — '}
         <Text span c={when.late ? 'danger' : 'dimmed'}>
@@ -62,9 +64,9 @@ function Running({ plan }: Pick<Props, 'plan'>) {
 export function NextPhaseCard({ projectId, plan, today, canPlan }: Props) {
   const empty = plan.phases.length === 0;
   return (
-    <Paper withBorder p="md" radius="md">
+    <Paper withBorder p="md">
       <Stack gap="sm">
-        <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+        <Group gap="xs" wrap="nowrap" miw={0}>
           <FiLayers size="1.25em" aria-hidden />
           <Text fw={600}>{NEXT_PHASE_COPY.title}</Text>
         </Group>

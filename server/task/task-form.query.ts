@@ -4,6 +4,7 @@
  */
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { atLeast, levelOf } from '../access/level';
+import { canViewProject } from '../access/project.policy';
 import { canCreateTask } from '../access/task.policy';
 import type { Principal } from '../access/types';
 import { db } from '../db';
@@ -11,6 +12,7 @@ import { project, projectMember, projectPhase, taskKind } from '../db/schema';
 import type { TaskBaseKind } from '../pm/enums';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
+import { loadProject } from '../project/project-rows.query';
 
 /** Projects offered by the form, by name; more than this is rare in a family team. */
 export const TASK_FORM_PROJECT_LIMIT = 100;
@@ -121,4 +123,36 @@ export async function listTaskFormProjects(
       kinds: kinds.get(r.id) ?? [],
       phases: phases.get(r.id) ?? [],
     }));
+}
+
+/**
+ * The form options of one project: its kinds and phases, the same two lists the web Edit loader
+ * reads (`app/routes/app/task-edit.tsx`). `null` when the project is missing, in the Trash or
+ * hidden from `p`, which the caller answers as the one 404 a hidden record shares with a missing
+ * one (D8).
+ *
+ * Gated on `canViewProject`, not on `canCreateTask`: the Edit form of an existing task needs these
+ * lists too, and a Completed or On-hold project may refuse a *new* task (Q12) while its tasks are
+ * still editable. Three queries, whatever the project holds.
+ */
+export async function getTaskFormProject(
+  p: Principal,
+  projectId: string,
+  exec: Executor = db,
+): Promise<TaskFormProject | null> {
+  const row = await loadProject(exec, projectId);
+  if (!row) return null;
+  const membership = (await loadMembership(p.id, [projectId], exec)).get(projectId) ?? null;
+  // View first: the kinds and phases of a hidden project must never be loaded, let alone returned.
+  if (!canViewProject(p, row, membership).ok) return null;
+  const [kinds, phases] = await Promise.all([
+    loadTaskKinds([projectId], exec),
+    loadTaskPhases([projectId], exec),
+  ]);
+  return {
+    id: row.id,
+    name: row.name,
+    kinds: kinds.get(projectId) ?? [],
+    phases: phases.get(projectId) ?? [],
+  };
 }

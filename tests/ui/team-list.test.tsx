@@ -90,15 +90,14 @@ describe('person cards', () => {
     expect(html.match(/Cuti sampai/g)).toHaveLength(1);
   });
 
-  it('says "Pengajuan cuti 14–16 Okt" for a pending request, with an icon beside the words', async () => {
-    const asking = person({
-      id: 'u-asking',
+  it('puts an icon beside the words, so the status is not carried by colour alone', async () => {
+    const away = person({
+      id: 'u-away2',
       name: 'Hani',
-      availability: { kind: 'pending', from: '2026-10-14', to: '2026-10-16' },
+      availability: { kind: 'on_leave', until: '2026-10-16' },
     });
-    const html = await render(<TeamList {...LIST_DEFAULTS} people={[asking]} empty={null} />);
-    expect(html).toContain('Pengajuan cuti 14–16 Okt');
-    expect(html).toMatch(/<svg[^>]*aria-hidden="true"[^>]*>[\s\S]*Pengajuan cuti/);
+    const html = await render(<TeamList {...LIST_DEFAULTS} people={[away]} empty={null} />);
+    expect(html).toMatch(/<svg[^>]*aria-hidden="true"[^>]*>[\s\S]*Cuti sampai/);
   });
 });
 

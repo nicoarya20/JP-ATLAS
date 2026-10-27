@@ -65,7 +65,7 @@ export function ParticipantPicker({ value, onChange, projectId, error, wrapperPr
       nothingFoundMessage={everyone.isFetching ? undefined : COPY.participantsNone}
       rightSection={everyone.isFetching ? <Loader size="xs" /> : undefined}
       renderOption={({ option }) => (
-        <Stack gap={0} style={{ minWidth: 0 }}>
+        <Stack gap={0} miw={0}>
           <Text size="sm" truncate>
             {option.label}
           </Text>

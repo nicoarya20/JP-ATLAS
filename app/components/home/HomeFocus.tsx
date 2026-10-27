@@ -1,4 +1,4 @@
-import { Anchor, Button, Divider, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Button, Divider, Group, Stack, Text } from '@mantine/core';
 import type {
   HomeFocus as Focus,
   HomeCounters,
@@ -25,7 +25,7 @@ type Props = {
 
 function GroupHeading({ group }: { group: HomeScheduleGroup }) {
   return (
-    <Group gap={4} c="dimmed" mb={2}>
+    <Group gap={4} c="dimmed" mb={4}>
       {group === 'overdue' && <FiAlertTriangle size="1.25em" aria-hidden />}
       {group === 'today' && <FiClock size="1.25em" aria-hidden />}
       <Text size="xs" fw={700} tt="uppercase">
@@ -71,28 +71,28 @@ export function HomeFocus({ widget, counters, today, retry }: Props) {
               const rows = f.items.filter((t) => t.group === group);
               if (rows.length === 0) return null;
               return (
-                <div key={group}>
+                <Box key={group}>
                   <GroupHeading group={group} />
                   {rows.map((t, i) => (
-                    <div key={t.id}>
+                    <Box key={t.id}>
                       {i > 0 && <Divider />}
                       <HomeFocusRow task={t} today={today} />
-                    </div>
+                    </Box>
                   ))}
-                </div>
+                </Box>
               );
             })}
             {f.awaitingReview.length > 0 && (
-              <div>
-                <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={2}>
+              <Box>
+                <Text size="xs" fw={700} tt="uppercase" c="dimmed" mb={4}>
                   {HOME_COPY.focus.waitingReview}
                 </Text>
                 <Stack gap={0}>
                   {f.awaitingReview.map((t, i) => (
-                    <div key={t.id}>
+                    <Box key={t.id}>
                       {i > 0 && <Divider />}
-                      <Group justify="space-between" wrap="wrap" gap="xs" py={6}>
-                        <Stack gap={2} style={{ minWidth: 0, flex: '1 1 14rem' }}>
+                      <Group justify="space-between" wrap="wrap" gap="xs" py="xs">
+                        <Stack gap={4} miw={0} flex="1 1 14rem">
                           <Text fw={600}>{t.title}</Text>
                           <Text size="xs" c="dimmed">
                             {t.project.name}
@@ -102,16 +102,16 @@ export function HomeFocus({ widget, counters, today, retry }: Props) {
                           component={Link}
                           to={`/app/tasks/${t.number}`}
                           variant="light"
-                          style={{ flexShrink: 0 }}
+                          flex="0 0 auto"
                           aria-label={`${HOME_COPY.focus.review}: ${t.title}`}
                         >
                           {HOME_COPY.focus.review}
                         </Button>
                       </Group>
-                    </div>
+                    </Box>
                   ))}
                 </Stack>
-              </div>
+              </Box>
             )}
             <Anchor component={Link} to={HOME_LINKS.tasks} fw={600} size="sm">
               {[

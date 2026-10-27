@@ -1,5 +1,6 @@
 import { Avatar, Button, Group, Paper, Stack, Text } from '@mantine/core';
 import { Link } from 'react-router';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import type { MyProfile } from '~/lib/profile-api';
 import { ACCOUNT_COPY } from './account.copy';
 
@@ -20,9 +21,9 @@ export function AccountSummaryCard({
     .filter(Boolean)
     .join(' · ');
   return (
-    <Paper withBorder radius="md" p={{ base: 'md', md: 'lg' }}>
+    <Paper withBorder p={{ base: 'md', md: 'lg' }}>
       <Group justify="space-between" align="center" wrap="wrap" gap="md">
-        <Group gap="md" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+        <Group gap="md" wrap="nowrap" miw={0} flex={1}>
           <Avatar
             src={image}
             radius="xl"
@@ -31,14 +32,15 @@ export function AccountSummaryCard({
             color="initials"
             imageProps={{ referrerPolicy: 'no-referrer' }}
           />
-          <Stack gap={2} style={{ minWidth: 0 }}>
-            <Text fw={700} style={{ overflowWrap: 'anywhere' }}>
+          {/* The viewer's own identity: an email must wrap in full, never be cut short. */}
+          <Stack gap={4} miw={0}>
+            <Text fw={700} style={WRAP_ANYWHERE}>
               {name}
             </Text>
-            <Text size="sm" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
+            <Text size="sm" c="dimmed" style={WRAP_ANYWHERE}>
               {role || ACCOUNT_COPY.noJobTitle}
             </Text>
-            <Text size="sm" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
+            <Text size="sm" c="dimmed" style={WRAP_ANYWHERE}>
               {contact}
             </Text>
           </Stack>

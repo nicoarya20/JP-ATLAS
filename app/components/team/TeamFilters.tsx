@@ -54,7 +54,7 @@ export function TeamFilters({ filters, projects, canSortByLoad, onChange }: Prop
         clearable
         searchable
         nothingFoundMessage={TEAM_COPY.filteredTitle}
-        style={{ flex: '1 1 12rem' }}
+        flex="1 1 12rem"
       />
       <TextInput
         aria-label={TEAM_COPY.searchLabel}
@@ -66,7 +66,7 @@ export function TeamFilters({ filters, projects, canSortByLoad, onChange }: Prop
           setSearch(e.currentTarget.value);
           commitSearch(e.currentTarget.value);
         }}
-        style={{ flex: '2 1 14rem' }}
+        flex="2 1 14rem"
       />
       <Group gap="xs" wrap="wrap">
         <Text id={SORT_LABEL_ID} size="sm" c="dimmed">
@@ -78,7 +78,7 @@ export function TeamFilters({ filters, projects, canSortByLoad, onChange }: Prop
           value={filters.urut}
           allowDeselect={false}
           onChange={(v) => v && onChange({ [P.sort]: v === DEFAULT_TEAM_FILTERS.urut ? null : v })}
-          style={{ flex: '0 1 14rem' }}
+          flex="0 1 14rem"
         />
       </Group>
     </Group>

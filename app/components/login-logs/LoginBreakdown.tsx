@@ -26,7 +26,7 @@ type Props = {
 function TopUsers({ stats, onUser }: { stats: LoginStats; onUser: (id: string) => void }) {
   const total = Math.max(1, stats.total);
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder p="md">
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} mb="sm">
         User paling sering login
       </Text>
@@ -46,15 +46,15 @@ function TopUsers({ stats, onUser }: { stats: LoginStats; onUser: (id: string) =
               >
                 <Stack gap={4}>
                   <Group justify="space-between" wrap="nowrap" gap="xs">
-                    <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+                    <Group gap="xs" wrap="nowrap" miw={0}>
                       <Avatar src={u.image} size={20} radius="xl">
                         {u.name ? u.name.charAt(0).toUpperCase() : '?'}
                       </Avatar>
-                      <TruncatedText size="sm" style={{ minWidth: 0 }}>
+                      <TruncatedText size="sm" miw={0}>
                         {u.name ?? u.userId}
                       </TruncatedText>
                     </Group>
-                    <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+                    <Text size="xs" c="dimmed" flex="0 0 auto">
                       {nf.format(u.count)} · {pct}%
                     </Text>
                   </Group>

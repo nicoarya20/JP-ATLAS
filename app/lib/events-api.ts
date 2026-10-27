@@ -1,6 +1,6 @@
 /**
  * Client for `/api/app/events` through Eden: keyset pages (`nextCursor`), one event, the writes
- * (create, cancel, send to the Trash, restore), the DTO types the server sends, and the
+ * (create, change, cancel, send to the Trash, restore), the DTO types the server sends, and the
  * react-query keys.
  */
 import type { EventDetail, EventListItem, PersonRef } from '@server/event/events.dto';
@@ -31,6 +31,7 @@ export const eventKeys = {
 export const EVENTS_PATH = '/app/events';
 export const NEW_EVENT_PATH = '/app/events/new';
 export const eventHref = (id: string) => `/app/events/${encodeURIComponent(id)}`;
+export const eventEditHref = (id: string) => `${eventHref(id)}/edit`;
 
 type ErrorValue = { error?: unknown; code?: unknown; requestId?: unknown; issues?: unknown };
 type EdenResult<T> = {
@@ -140,6 +141,18 @@ export type CreateEventBody = {
 /** Creates an event; answers with the detail the read would give (201). Throws `ApiError` on a refusal. */
 export async function createEvent(body: CreateEventBody): Promise<EventDetail> {
   return unwrapEvent(await client.api.app.events.post(body)) as EventDetail;
+}
+
+/**
+ * Body of `PATCH /api/app/events/:id`. The project and the guest list are `t.Never()` on the route
+ * (an event cannot be moved between projects, and guests are invited from the detail page), so a
+ * body carrying either is refused with 422 — the type leaves them out on purpose.
+ */
+export type UpdateEventBody = Omit<CreateEventBody, 'projectId' | 'participantIds'>;
+
+/** Changes an event; answers with the detail as it is now. Throws `ApiError` on a refusal. */
+export async function updateEvent(id: string, body: UpdateEventBody): Promise<EventDetail> {
+  return unwrapEvent(await client.api.app.events({ id: pathId(id) }).patch(body)) as EventDetail;
 }
 
 /** Colleagues offered as guests: a person's id, name and job title, nothing more (Q8). */

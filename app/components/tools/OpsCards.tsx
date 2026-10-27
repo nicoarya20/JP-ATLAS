@@ -20,11 +20,18 @@ function Item({
   warn?: boolean;
 }) {
   return (
-    <Stack gap={2}>
+    <Stack gap={4}>
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
         {label}
       </Text>
-      <Text fw={600} c={warn ? 'orange' : undefined} style={{ overflowWrap: 'anywhere' }}>
+      <Text
+        fw={600}
+        c={warn ? 'warn' : undefined}
+        style={{
+          // Mantine has no `overflowWrap` prop; this value can be one long unbroken token.
+          overflowWrap: 'anywhere',
+        }}
+      >
         {value}
       </Text>
       {hint && (
@@ -138,11 +145,11 @@ export function ApiCard() {
       title="API"
       description="Semua endpoint di bawah /api dibatasi per IP klien (X-RateLimit-Limit / -Remaining, 429 RATE_LIMITED + Retry-After). IP klien = IP koneksi, atau X-Forwarded-For hanya dari proxy di TRUSTED_PROXIES. /api/auth/* memakai rate limit Better Auth; /api/mcp dikecualikan."
     >
-      <Stack gap={6}>
+      <Stack gap="xs">
         {rows.map((r) => (
           <Group key={r.path} gap="sm" wrap="wrap">
             <Code>{r.path}</Code>
-            <Text size="sm" c="dimmed" style={{ flex: 1 }}>
+            <Text size="sm" c="dimmed" flex={1}>
               {r.note}
             </Text>
             {r.to && (

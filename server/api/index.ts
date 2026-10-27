@@ -19,6 +19,7 @@ import { apiKeysUsageApi } from './api-keys-usage';
 import { appApi } from './app';
 import { auditApi } from './audit';
 import { authMount } from './auth-gate';
+import { devApiDocs } from './docs';
 import { fileHealthApi } from './file-health';
 import { logsApi } from './logs';
 import { meApi } from './me';
@@ -118,5 +119,10 @@ export const api = new Elysia({ prefix: '/api' })
 
 // Registered after the chain so the spec route can describe `api` without a self-referential type.
 api.use(openapiApi(() => api));
+
+// Dev-only Scalar UI for the whole API at /api/docs (+ /api/docs/json). Empty plugin
+// in production, so those paths 404 there. The plugin reads the app's global routes,
+// so registration position does not affect which routes it documents.
+api.use(devApiDocs());
 
 export type Api = typeof api;

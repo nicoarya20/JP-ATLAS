@@ -30,6 +30,7 @@ const EXEMPT_PREFIXES = [
   '/go',
   '/api/auth/',
   '/api/settings',
+  '/api/docs', // dev-only API docs (api/docs.ts) stay reachable during maintenance
   '/assets/',
   '/favicon',
   '/_vite/',

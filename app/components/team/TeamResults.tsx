@@ -6,6 +6,9 @@ import { TeamList } from './TeamList';
 import { TeamSummaryLine } from './TeamSummaryLine';
 import { TEAM_COPY } from './team.copy';
 
+/** The previous answer stays readable but visibly out of date while the new one loads. */
+const STALE_OPACITY = 0.6;
+
 /** Open-task sums of the people on screen; null when the viewer may not count other people's work. */
 export function workOf(people: readonly TeamPerson[], mayCount: boolean, summaryHasWork: boolean) {
   if (!mayCount || !summaryHasWork) return null;
@@ -31,7 +34,7 @@ type Props = {
 
 export function TeamResults({ scopeName, work, stale, ...list }: Props) {
   return (
-    <Stack gap="md" aria-busy={stale} style={{ opacity: stale ? 0.6 : 1 }}>
+    <Stack gap="md" aria-busy={stale} opacity={stale ? STALE_OPACITY : 1}>
       <TeamSummaryLine
         scope={scopeName ?? TEAM_COPY.allProjects}
         people={list.total}

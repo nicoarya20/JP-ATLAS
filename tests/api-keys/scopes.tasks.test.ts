@@ -14,6 +14,10 @@ describe('task route scopes', () => {
   test.each([
     ['GET', '/api/app/tasks', 'app:read'],
     ['GET', '/api/app/tasks/counts', 'app:read'],
+    // A12: the form options are a read of kinds and phases the caller may already see, so a
+    // read-only key reaches them and no entry in `scopes.pm.ts` is needed.
+    ['GET', '/api/app/tasks/form-options', 'app:read'],
+    ['GET', '/api/app/tasks/form-options?projectId=p1', 'app:read'],
     ['GET', '/api/app/tasks/482', 'app:read'],
     ['GET', '/api/app/tasks/7f1c2d3e-task-id', 'app:read'],
     ['POST', '/api/app/tasks', 'app:write'],
@@ -42,6 +46,7 @@ describe('task route scopes', () => {
       [
         'GET /api/app/tasks/',
         'GET /api/app/tasks/counts',
+        'GET /api/app/tasks/form-options',
         'GET /api/app/tasks/:ref',
         'POST /api/app/tasks/',
         'POST /api/app/tasks/draft',

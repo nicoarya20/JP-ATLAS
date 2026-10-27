@@ -69,7 +69,8 @@ export default function ProjectTasksPage({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap="lg">
       <Group justify="space-between" align="flex-start" wrap="wrap">
-        <Title order={2} size="h4">
+        {/* The handoff defines three heading sizes (page 32, section 20, body) and no h4. */}
+        <Title order={2} size="h3">
           {PROJECT_TAB_COPY.title}
         </Title>
         {createTo && (

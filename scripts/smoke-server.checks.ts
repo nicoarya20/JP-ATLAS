@@ -165,6 +165,16 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     contentType: 'application/json',
   },
   {
+    // The dev-only Scalar docs (api/docs.ts) must not exist in production — the
+    // plugin is empty there, so the API catch-all answers the uniform JSON 404.
+    // This is the security guarantee of the feature.
+    name: 'docs API mati di produksi → 404',
+    path: '/api/docs',
+    status: 404,
+    contentType: 'application/json',
+    bodyIncludes: '"code":"NOT_FOUND"',
+  },
+  {
     name: 'Better Auth hidup',
     path: '/api/auth/get-session',
     status: 200,

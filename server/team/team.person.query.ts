@@ -63,7 +63,7 @@ export async function getPerson(
   );
   const work = 'none' in scope ? null : await loadPersonWork(userId, scope, today(now), exec);
   const load: TeamLoad | undefined = work?.load;
-  const leave = await leaveStatusFor([userId], p, today(now), exec);
+  const leave = await leaveStatusFor([userId], today(now), exec);
   return {
     // Stored role, read as the user directory reads it; only an Admin is told (absent, not null).
     ...(admin ? { accountRole: normalizeRole(person.role) } : {}),

@@ -1,7 +1,8 @@
 /**
  * Admin console API (`/api/admin/*`): user directory, role changes and deletion.
  * Authority comes from `access/user.policy` (via `admin-context`), not from
- * Better Auth's admin endpoints; moderation lives in `admin-moderation`.
+ * Better Auth's admin endpoints; moderation lives in `admin-moderation` and
+ * recording somebody's leave in `admin-leave`.
  */
 import { eq } from 'drizzle-orm';
 import { Elysia, t } from 'elysia';
@@ -12,11 +13,15 @@ import { db } from '../db';
 import { user as userTable } from '../db/schema';
 import { ROLES, type Role } from '../permissions';
 import { fail } from '../pm/respond';
+import { adminActivityApi } from './admin-activity';
 import { adminContext, callerOf } from './admin-context';
 import { adminExportApi } from './admin-export';
 import { adminInvitationsApi } from './admin-invitations';
+import { adminLeaveApi } from './admin-leave';
 import { adminModerationApi } from './admin-moderation';
+import { adminOverviewApi } from './admin-overview';
 import { adminPermissionsApi } from './admin-permissions';
+import { adminProjectsApi } from './admin-projects';
 import { adminUserStats, findUserTarget, listAdminUsers, UserListQuery } from './admin-users.query';
 
 const Params = t.Object({ id: t.String() });
@@ -25,10 +30,14 @@ const KNOWN_ROLES: readonly string[] = Object.values(ROLES);
 
 export const adminApi = new Elysia({ prefix: '/admin' })
   .use(adminContext)
+  .use(adminOverviewApi)
+  .use(adminActivityApi)
   .use(adminModerationApi)
+  .use(adminLeaveApi)
   .use(adminExportApi)
   .use(adminInvitationsApi)
   .use(adminPermissionsApi)
+  .use(adminProjectsApi)
   .get('/users', ({ query }) => listAdminUsers(query), { query: UserListQuery })
   .get('/users/stats', () => adminUserStats())
   .post(

@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 export function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Stack gap="xs" component="section" aria-label={title}>
-      <Title order={4}>{title}</Title>
+      <Title order={3}>{title}</Title>
       {children}
     </Stack>
   );

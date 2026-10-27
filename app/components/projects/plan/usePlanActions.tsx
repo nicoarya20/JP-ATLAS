@@ -1,6 +1,5 @@
 /** Phase and milestone writes with `loading`, toasts and cache refresh; both deletes ask first (T2). */
 import type { MilestoneDto, PhaseDto } from '@server/project/project-plan.dto';
-import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { confirmAction } from '~/components/ui/confirmAction';
 import {
@@ -15,8 +14,8 @@ import {
   updateMilestone,
   updatePhase,
 } from '~/lib/project-plan-api';
-import { projectKeys } from '~/lib/projects-api';
 import { useApiMutation } from '~/lib/use-api-mutation';
+import { useRefreshProject } from '../summary/useRefreshProject';
 import { PLAN_ACTION_COPY as COPY, PLAN_CONFIRM_COPY } from './plan.copy';
 import {
   type MilestoneFormValues,
@@ -28,9 +27,9 @@ import {
 import { type MoveDirection, movedOrder, type PlanBusy } from './plan-view';
 
 export function usePlanActions(projectId: string, phases: readonly PhaseDto[]) {
-  const queryClient = useQueryClient();
-  // A plan write can change the Ringkasan card and the lists too, so every project key refreshes.
-  const refresh = () => queryClient.invalidateQueries({ queryKey: projectKeys.all });
+  // A plan write can change the Ringkasan card, the lists and the header (a ticked milestone moves
+  // the condition), and the header comes from the layout loader (PRJ-02).
+  const refresh = useRefreshProject();
   const [busy, setBusy] = useState<PlanBusy>(null);
   /** Marks a row busy for the duration of one write; `run` never throws, so the reset always happens. */
   const track = async <T,>(marker: NonNullable<PlanBusy>, run: () => Promise<T>): Promise<T> => {

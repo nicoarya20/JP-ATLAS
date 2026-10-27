@@ -1,7 +1,8 @@
-import { Stack, Text, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { adminUserStats, listAdminUsers } from '@server/api/admin-users.query';
 import { requireRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { UserDirectory } from '~/components/users/UserDirectory';
 import type { UserListResponse, UserStats } from '~/lib/admin-users-api';
 import { useApp } from '~/lib/app-context';
@@ -34,13 +35,10 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
   const perms = { actorRole, currentUserId: me.id, impersonating: loaderData.impersonating };
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <div>
-        <Title order={3}>Users</Title>
-        <Text size="sm" c="dimmed">
-          Semua akun: peran, status blokir, persetujuan, aktivitas masuk, dan provider yang tertaut.
-          Super-admin diatur lewat env.
-        </Text>
-      </div>
+      <PageHeader
+        title="Users"
+        description="Semua akun: peran, status blokir, persetujuan, aktivitas masuk, dan provider yang tertaut. Super-admin diatur lewat env."
+      />
       <UserDirectory initial={loaderData} perms={perms} />
     </Stack>
   );

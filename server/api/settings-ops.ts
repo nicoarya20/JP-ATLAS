@@ -1,7 +1,13 @@
-/** Settings groups beyond auth/rate-limit: retention, feature flags, branding, access modes (super-admin). */
+/**
+ * Settings groups beyond auth/rate-limit: retention, feature flags, branding, access modes.
+ * Super-admin everywhere except the three groups an Admin owns (AD-03): `PUT /branding` (RD-02),
+ * and the announcement banner and sign-in policy nested under `./settings-announcement` and
+ * `./settings-access`. The technical switches — retention, feature flags, maintenance — stay out
+ * of reach on purpose.
+ */
 import { Elysia, t } from 'elysia';
 import { AUDIT_ACTIONS, audit } from '../audit';
-import { requireRole } from '../guard';
+import { requireAnyRole, requireRole } from '../guard';
 import { ROLES } from '../permissions';
 import { upsertBranding } from '../settings-branding';
 import { FLAG_KEY_RE, MAX_FLAGS, upsertFeatureFlags } from '../settings-features';
@@ -12,11 +18,13 @@ import {
   upsertRetention,
 } from '../settings-retention';
 import { settingsAccessApi } from './settings-access';
+import { settingsAnnouncementApi } from './settings-announcement';
 
 const Days = t.Nullable(t.Integer({ minimum: RETENTION_MIN_DAYS, maximum: RETENTION_MAX_DAYS }));
 
 export const settingsOpsApi = new Elysia({ prefix: '/settings' })
   .use(settingsAccessApi)
+  .use(settingsAnnouncementApi)
   .put(
     '/retention',
     async ({ request, body }) => {
@@ -97,10 +105,11 @@ export const settingsOpsApi = new Elysia({ prefix: '/settings' })
       }),
     },
   )
+  /** Admin + super-admin (P13 RD-02): the only settings group an Admin may write. */
   .put(
     '/branding',
     async ({ request, body }) => {
-      const { user } = await requireRole(request, ROLES.SUPER_ADMIN);
+      const { user } = await requireAnyRole(request, [ROLES.ADMIN, ROLES.SUPER_ADMIN]);
       const saved = await upsertBranding({
         appName: body.appName ?? null,
         appTagline: body.appTagline ?? null,

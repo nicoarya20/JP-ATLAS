@@ -1,5 +1,5 @@
 /** "Aktivitas terakhir" card: who did what, newest first, with a keyset "Muat lebih banyak". */
-import { Button, Group, Paper, Stack, Text } from '@mantine/core';
+import { Box, Button, Group, Paper, Stack, Text } from '@mantine/core';
 import type { ActivityItemDto } from '@server/project/project-activity.dto';
 import { FiActivity } from 'react-icons/fi';
 import { DateText } from '~/components/ui/DateText';
@@ -11,14 +11,15 @@ import { useProjectActivity } from './useProjectActivity';
 
 export function ActivityRow({ item }: { item: ActivityItemDto }) {
   return (
-    <Group gap="sm" wrap="nowrap" align="flex-start" role="listitem" style={{ minWidth: 0 }}>
+    <Group gap="sm" wrap="nowrap" align="flex-start" role="listitem" miw={0}>
       <MemberAvatar name={item.actorName ?? ACTIVITY_COPY.unknownActor} />
-      <Text size="sm" style={{ minWidth: 0, flex: 1, overflowWrap: 'anywhere' }}>
+      {/* Clamped, not wrapped: every row in the feed keeps the same height (K-5). */}
+      <Text size="sm" miw={0} flex={1} lineClamp={2}>
         {item.text}
       </Text>
-      <div style={{ flexShrink: 0 }}>
+      <Box flex="0 0 auto">
         <DateText value={item.createdAt} mode="date" />
-      </div>
+      </Box>
     </Group>
   );
 }
@@ -67,7 +68,7 @@ export function ActivityCard({ projectId, first }: { projectId: string; first: A
   const feed = useProjectActivity(projectId, first);
   const items = feed.data.pages.flatMap((page) => page.items);
   return (
-    <Paper withBorder p="md" radius="md">
+    <Paper withBorder p="md">
       <Stack gap="xs">
         <Text fw={600}>{ACTIVITY_COPY.title}</Text>
         <ActivityList

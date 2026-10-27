@@ -32,13 +32,17 @@ export function ParticipantList({ people }: { people: readonly PersonRef[] }) {
       component="ul"
       gap="xs"
       aria-label={EVENTS_COPY.participantsLabel}
-      style={{ listStyle: 'none', margin: 0, padding: 0 }}
+      m={0}
+      p={0}
+      // Mantine has no `list-style` style prop; `List` would change the markup of the rows.
+      style={{ listStyle: 'none' }}
     >
       {people.map((p) => (
         <li key={p.id}>
           <Group gap="xs" wrap="nowrap">
             <MemberAvatar name={p.name} />
-            <Text size="sm" style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+            {/* One guest per row: truncated, so the rows all keep the same height (K-5). */}
+            <Text size="sm" miw={0} truncate>
               {p.name}
             </Text>
           </Group>

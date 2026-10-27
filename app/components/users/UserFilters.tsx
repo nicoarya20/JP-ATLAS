@@ -51,7 +51,7 @@ type Props = {
 export function UserFilters({ filters, onChange, matchCount }: Props) {
   const active = hasActiveUserFilters(filters);
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari nama, email, atau user ID…"
@@ -69,7 +69,8 @@ export function UserFilters({ filters, onChange, matchCount }: Props) {
           onChange={(e) => onChange({ search: e.currentTarget.value })}
           size="sm"
           inputMode="email"
-          style={{ flex: '1 1 240px', minWidth: 0 }}
+          flex="1 1 240px"
+          miw={0}
         />
         <SegmentedControl
           size="sm"

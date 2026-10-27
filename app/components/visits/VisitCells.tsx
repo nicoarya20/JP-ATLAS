@@ -15,14 +15,14 @@ export {
 export function TypeBadge({ row, size = 'sm' }: { row: VisitRow; size?: 'xs' | 'sm' }) {
   if (!row.isBot) {
     return (
-      <Badge color="teal" variant="light" size={size} style={{ flexShrink: 0 }}>
+      <Badge color="teal" variant="light" size={size} flex="0 0 auto">
         Human
       </Badge>
     );
   }
   return (
     <Tooltip label={botKindLabel(row.botKind)} withArrow>
-      <Badge color="red" variant="light" size={size} style={{ flexShrink: 0 }}>
+      <Badge color="red" variant="light" size={size} flex="0 0 auto">
         Bot
       </Badge>
     </Tooltip>
@@ -32,7 +32,7 @@ export function TypeBadge({ row, size = 'sm' }: { row: VisitRow; size?: 'xs' | '
 export function PathCell({ row, maw = 260 }: { row: VisitRow; maw?: number }) {
   const ref = refererHost(row.referer);
   return (
-    <Stack gap={0} style={{ minWidth: 0 }}>
+    <Stack gap={0} miw={0}>
       <TruncatedText ff="monospace" size="sm" lh={1.3} maw={maw}>
         {row.path}
       </TruncatedText>

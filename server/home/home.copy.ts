@@ -84,6 +84,10 @@ export const ACTIVITY_SENTENCES: Readonly<Record<string, Sentence>> = {
   assignee_changed: (who, title) => `${who} mengganti penanggung jawab "${title}"`,
   due_date_changed: (who, title) => `${who} mengubah tenggat "${title}"`,
   priority_changed: (who, title) => `${who} mengubah prioritas "${title}"`,
+  // Only ever read once the task is live again (the feed filters trashed tasks out), so the pair
+  // reads as the round trip it was rather than as news of a task that is gone.
+  trashed: (who, title) => `${who} menghapus tugas "${title}" ke Sampah`,
+  restored: (who, title) => `${who} memulihkan tugas "${title}" dari Sampah`,
 };
 
 /** For an action this file does not know: history written by a newer version must still read. */

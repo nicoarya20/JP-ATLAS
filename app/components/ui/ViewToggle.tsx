@@ -1,4 +1,4 @@
-import { Center, SegmentedControl } from '@mantine/core';
+import { Group, SegmentedControl } from '@mantine/core';
 import type { IconType } from 'react-icons';
 
 export type ViewOption<V extends string> = { value: V; label: string; icon: IconType };
@@ -27,10 +27,10 @@ export function ViewToggle<V extends string>({
       data={options.map(({ value: v, label, icon: Icon }) => ({
         value: v,
         label: (
-          <Center style={{ gap: 'var(--mantine-spacing-xs)' }}>
+          <Group component="span" gap="xs" justify="center">
             <Icon size="1.25em" aria-hidden />
-            <span>{label}</span>
-          </Center>
+            {label}
+          </Group>
         ),
       }))}
     />

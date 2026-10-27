@@ -210,7 +210,7 @@ export function RateLimitSettingsCard({ initial, rateLimit }: Props) {
           </Group>
         }
       />
-      <Stack gap={6}>
+      <Stack gap="xs">
         <Group gap="xs" wrap="wrap" justify="space-between">
           <Group gap="xs">
             <Text fw={500}>Path yang dikecualikan</Text>

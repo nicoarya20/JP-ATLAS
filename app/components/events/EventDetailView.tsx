@@ -3,10 +3,11 @@
  * where, agenda, guests and a passive Notulensi note. There is no edit form and no guest editing
  * here; the actions live in the ⋯ menu and follow the server's `can{}`.
  */
-import { Alert, Group, Paper, Stack, Text, Title } from '@mantine/core';
+import { Alert, Box, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { FiXCircle } from 'react-icons/fi';
 import { useNavigate } from 'react-router';
+import { WRAP_ANYWHERE, WRAP_PRE_ANYWHERE } from '~/components/pm/text-wrap';
 import { BackLink } from '~/components/ui/BackLink';
 import { PageContainer } from '~/components/ui/PageContainer';
 import { EVENTS_PATH, type EventDetail, eventHref } from '~/lib/events-api';
@@ -20,7 +21,7 @@ import { DETAIL_COPY } from './event-detail.copy';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <Paper withBorder p={{ base: 'sm', md: 'md' }} radius="md">
+    <Paper withBorder p={{ base: 'sm', md: 'md' }}>
       <Stack gap="xs">
         <Title order={3}>{title}</Title>
         {children}
@@ -36,9 +37,9 @@ function CanceledBanner({ event }: { event: EventDetail }) {
       icon={<FiXCircle size="1.25em" aria-hidden />}
       title={DETAIL_COPY.canceledTitle}
     >
-      <Stack gap={2}>
+      <Stack gap={4}>
         {event.cancelReason && (
-          <Text size="sm" style={{ overflowWrap: 'anywhere', whiteSpace: 'pre-wrap' }}>
+          <Text size="sm" style={WRAP_PRE_ANYWHERE}>
             {DETAIL_COPY.canceledReason(event.cancelReason)}
           </Text>
         )}
@@ -59,13 +60,15 @@ export function EventDetailView({ event, clock }: Props) {
   const status = eventStatus(event, clock.now);
   return (
     <PageContainer size="narrow">
-      <div>
+      <Box>
         <BackLink fallback={EVENTS_PATH} label={DETAIL_COPY.back} />
-      </div>
+      </Box>
       <Stack gap="sm">
         {/* nowrap is safe: the only button is one icon and the title wraps inside its own column. */}
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-          <Title order={2} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+          {/* The page title of a detail page: 32 px like every PageHeader page (K-1), and it
+              wraps in full rather than being truncated (K-5). */}
+          <Title order={1} miw={0} style={WRAP_ANYWHERE}>
             {event.title}
           </Title>
           <EventDetailMenu
@@ -84,13 +87,13 @@ export function EventDetailView({ event, clock }: Props) {
         {event.canceledAt && <CanceledBanner event={event} />}
       </Stack>
       <Stack gap="lg">
-        <Paper withBorder p={{ base: 'sm', md: 'md' }} radius="md">
+        <Paper withBorder p={{ base: 'sm', md: 'md' }}>
           <EventDetailFacts event={event} timeZone={clock.timeZone} />
         </Paper>
         <Section title={DETAIL_COPY.agenda}>
           {event.agenda?.trim() ? (
             // User text: keep line breaks, render as plain text (never HTML).
-            <Text style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{event.agenda}</Text>
+            <Text style={WRAP_PRE_ANYWHERE}>{event.agenda}</Text>
           ) : (
             <Text c="dimmed">{DETAIL_COPY.noAgenda}</Text>
           )}

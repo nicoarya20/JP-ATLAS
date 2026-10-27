@@ -1,6 +1,5 @@
 /** Project and member writes with `loading`, toasts and cache refresh; member changes ask first (T2). */
 import type { ProjectMemberRole, ProjectStatus } from '@server/pm/enums';
-import { useQueryClient } from '@tanstack/react-query';
 import { confirmAction } from '~/components/ui/confirmAction';
 import { PROJECT_STATUS_LABELS } from '~/lib/pm-labels';
 import {
@@ -10,7 +9,6 @@ import {
   type ProjectCreateInput,
   type ProjectMemberInput,
   type ProjectPatch,
-  projectKeys,
   removeProjectMember,
   setProjectStatus,
   updateProject,
@@ -18,14 +16,15 @@ import {
 import { useApiMutation } from '~/lib/use-api-mutation';
 import { type ProjectEditPlan, saveProjectEdit } from './project-edit';
 import { ACTION_COPY, CONFIRM_COPY, MEMBER_ROLE_LABELS } from './projects.copy';
+import { useRefreshProject } from './summary/useRefreshProject';
 
 /** A member as the dialogs name them. */
 export type MemberRef = { userId: string; name: string };
 
 export function useProjectActions() {
-  const queryClient = useQueryClient();
-  // Every write can change list rows, the header and the member tab, so all project keys refresh.
-  const refresh = () => queryClient.invalidateQueries({ queryKey: projectKeys.all });
+  // Every write can change list rows, the member tab and the header; the header is loader-fed, so
+  // the cache alone is not enough (PRJ-02).
+  const refresh = useRefreshProject();
 
   const create = useApiMutation({
     mutationFn: (input: ProjectCreateInput) => createProject(input),

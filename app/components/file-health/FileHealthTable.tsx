@@ -86,18 +86,26 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
 
   return (
     <>
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
-        <Box style={{ overflowX: 'auto' }}>
-          <Table highlightOnHover verticalSpacing="xs" fz="sm" style={{ minWidth: 760 }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
+        <Box
+          style={{
+            // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+            // (CLAUDE.md mobile §2).
+            overflowX: 'auto',
+          }}
+        >
+          <Table highlightOnHover verticalSpacing="xs" fz="sm" miw={760}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>File</Table.Th>
@@ -150,9 +158,18 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
 
       <Stack gap="xs" hiddenFrom="sm">
         {rows.map((r) => (
-          <Paper key={r.path} withBorder p="sm" radius="md">
-            <Stack gap={6}>
-              <Text ff="monospace" size="sm" fw={500} style={{ wordBreak: 'break-all' }}>
+          <Paper key={r.path} withBorder p="sm">
+            <Stack gap="xs">
+              {/* `lineClamp` keeps every card the same height (K-5); `title` still reveals the
+                  whole path, and `wordBreak` lets a path with no separators break at all. */}
+              <Text
+                ff="monospace"
+                size="sm"
+                fw={500}
+                lineClamp={2}
+                title={r.path}
+                style={{ wordBreak: 'break-all' }}
+              >
                 {r.path}
               </Text>
               <Group gap="xs" wrap="wrap">

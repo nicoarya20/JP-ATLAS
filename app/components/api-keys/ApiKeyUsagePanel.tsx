@@ -1,6 +1,7 @@
 import {
   Alert,
   Badge,
+  Box,
   Group,
   Paper,
   SimpleGrid,
@@ -22,9 +23,18 @@ const nf = new Intl.NumberFormat('id-ID');
 const SKELETON_KEYS = ['s0', 's1', 's2', 's3'];
 const RECENT_LIMIT = 20;
 
+/**
+ * The 90-day sparkline is drawn by hand, so its geometry has no design-system equivalent: the
+ * strip height, bar width/radius, and the floor that keeps a one-request day visible.
+ */
+const SPARKLINE_HEIGHT = 64;
+const SPARKLINE_BAR_WIDTH = 10;
+const SPARKLINE_BAR_RADIUS = 2;
+const SPARKLINE_MIN_BAR_PERCENT = 6;
+
 function Tile({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
         {label}
       </Text>
@@ -50,22 +60,29 @@ function DailyBars({ daily }: { daily: UsageBreakdown['daily'] }) {
     );
   const max = Math.max(...daily.map((d) => d.count), 1);
   return (
-    <Group gap={3} align="flex-end" wrap="nowrap" h={64} style={{ overflowX: 'auto' }}>
+    <Group
+      gap={4}
+      align="flex-end"
+      wrap="nowrap"
+      h={SPARKLINE_HEIGHT}
+      style={{
+        // Mantine has no `overflowX` prop: the table scrolls sideways rather than widening the page
+        // (CLAUDE.md mobile §2).
+        overflowX: 'auto',
+      }}
+    >
       {daily.map((d) => (
         <Tooltip
           key={d.day}
           label={`${d.day}: ${nf.format(d.count)} request, ${nf.format(d.errors)} error`}
           withArrow
         >
-          <div
-            style={{
-              width: 10,
-              flexShrink: 0,
-              height: `${Math.max(6, (d.count / max) * 100)}%`,
-              borderRadius: 2,
-              background:
-                d.errors > 0 ? 'var(--mantine-color-red-5)' : 'var(--mantine-color-blue-5)',
-            }}
+          <Box
+            w={SPARKLINE_BAR_WIDTH}
+            flex="0 0 auto"
+            h={`${Math.max(SPARKLINE_MIN_BAR_PERCENT, (d.count / max) * 100)}%`}
+            bdrs={SPARKLINE_BAR_RADIUS}
+            bg={d.errors > 0 ? 'danger.5' : 'atlas.5'}
           />
         </Tooltip>
       ))}
@@ -146,7 +163,7 @@ export function ApiKeyUsagePanel({
         <Tile label="Error 24 jam" value={nf.format(summary.errors24h)} hint="status ≥ 400" />
         <Tile label="Rata-rata" value={`${nf.format(summary.avgMs)} ms`} hint="durasi 24 jam" />
       </SimpleGrid>
-      <Paper withBorder radius="md" p="md">
+      <Paper withBorder p="md">
         <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} mb="sm">
           Harian (90 hari)
         </Text>
@@ -172,7 +189,13 @@ export function ApiKeyUsagePanel({
         total={total30d}
         render={(k) => (k ? `${countryFlag(k)} ${countryName(k)}` : 'Tidak diketahui')}
       />
-      <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        style={{
+          // Mantine has no `overflow` prop: this clips the table to the card's rounded corners.
+          overflow: 'hidden',
+        }}
+      >
         <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} p="sm" pb={4}>
           Request terakhir
         </Text>
@@ -190,7 +213,7 @@ export function ApiKeyUsagePanel({
                       {r.status}
                     </Badge>
                   </Table.Td>
-                  <Table.Td style={{ maxWidth: 0 }}>
+                  <Table.Td maw={0}>
                     <TruncatedText ff="monospace" size="xs">
                       {`${r.method} ${r.path}`}
                     </TruncatedText>
@@ -200,9 +223,16 @@ export function ApiKeyUsagePanel({
                       {r.durationMs != null ? ` · ${r.durationMs} ms` : ''}
                     </Text>
                   </Table.Td>
-                  <Table.Td w={92} style={{ textAlign: 'right' }}>
+                  <Table.Td w={92} ta="right">
                     <Tooltip label={formatDateTime(r.createdAt)} withArrow>
-                      <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                        style={{
+                          // Mantine has no `whiteSpace` prop; a relative timestamp must stay on one line.
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {formatRelative(r.createdAt)}
                       </Text>
                     </Tooltip>

@@ -15,6 +15,7 @@ import {
   Title,
 } from '@mantine/core';
 import { ARCH, CONSOLE_PAGES, FAQ, FEATURES, SECURITY_POINTS, STACK } from './landing.content';
+import { CODE_FONT_SIZE, SECTION_SCROLL_MARGIN } from './landing.layout';
 
 function SectionHeading({
   id,
@@ -28,8 +29,10 @@ function SectionHeading({
   lead: string;
 }) {
   return (
-    <Stack gap={6} mb="xl" id={id} style={{ scrollMarginTop: 80 }}>
-      <Text size="xs" c="blue" fw={700} tt="uppercase" lts={1}>
+    // Mantine has no `scrollMarginTop` style prop, so this stays a `style`: an `#id` jump must
+    // land below the sticky header rather than under it.
+    <Stack gap="xs" mb="xl" id={id} style={{ scrollMarginTop: SECTION_SCROLL_MARGIN }}>
+      <Text size="xs" c="atlas" fw={700} tt="uppercase" lts={1}>
         {eyebrow}
       </Text>
       <Title order={2} fz={{ base: 28, md: 36 }} lh={1.15}>
@@ -53,7 +56,7 @@ export function FeaturesSection() {
       />
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         {FEATURES.map((f) => (
-          <Card key={f.title} withBorder radius="md" padding="lg">
+          <Card key={f.title} withBorder padding="lg">
             <ThemeIcon variant="light" color={f.color} size={40} radius="md" mb="sm">
               <f.icon size={20} />
             </ThemeIcon>
@@ -73,11 +76,7 @@ export function FeaturesSection() {
 export function ConsoleSection() {
   const groups = Array.from(new Set(CONSOLE_PAGES.map((p) => p.group)));
   return (
-    <Box
-      component="section"
-      py={{ base: 40, md: 72 }}
-      style={{ background: 'var(--mantine-color-default-hover)' }}
-    >
+    <Box component="section" py={{ base: 40, md: 72 }} bg="var(--mantine-color-default-hover)">
       <Container size="lg">
         <SectionHeading
           id="konsol"
@@ -93,19 +92,20 @@ export function ConsoleSection() {
               </Text>
               <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
                 {CONSOLE_PAGES.filter((p) => p.group === g).map((p) => (
-                  <Paper key={p.label} withBorder radius="md" p="md">
+                  <Paper key={p.label} withBorder p="md">
                     <Group gap="sm" wrap="nowrap" align="flex-start">
                       <ThemeIcon variant="light" size={34} radius="md">
                         <p.icon size={16} />
                       </ThemeIcon>
-                      <div style={{ minWidth: 0 }}>
-                        <Text fw={600} size="sm">
+                      {/* `miw={0}` lets the description ellipsise instead of widening the card. */}
+                      <Box miw={0}>
+                        <Text fw={600} size="sm" truncate>
                           {p.label}
                         </Text>
-                        <Text size="xs" c="dimmed">
+                        <Text size="xs" c="dimmed" lineClamp={2}>
                           {p.desc}
                         </Text>
-                      </div>
+                      </Box>
                     </Group>
                   </Paper>
                 ))}
@@ -130,17 +130,17 @@ export function SecuritySection() {
       <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
         {SECURITY_POINTS.map((p) => (
           <Group key={p.title} gap="sm" wrap="nowrap" align="flex-start">
-            <ThemeIcon variant="light" color="teal" size={36} radius="md" style={{ flexShrink: 0 }}>
+            <ThemeIcon variant="light" color="ok" size={36} radius="md" flex="0 0 auto">
               <p.icon size={16} />
             </ThemeIcon>
-            <div>
+            <Box miw={0}>
               <Text fw={600} size="sm">
                 {p.title}
               </Text>
               <Text size="sm" c="dimmed">
                 {p.desc}
               </Text>
-            </div>
+            </Box>
           </Group>
         ))}
       </SimpleGrid>
@@ -150,11 +150,7 @@ export function SecuritySection() {
 
 export function ArchitectureSection() {
   return (
-    <Box
-      component="section"
-      py={{ base: 40, md: 72 }}
-      style={{ background: 'var(--mantine-color-default-hover)' }}
-    >
+    <Box component="section" py={{ base: 40, md: 72 }} bg="var(--mantine-color-default-hover)">
       <Container size="lg">
         <SectionHeading
           id="arsitektur"
@@ -162,8 +158,12 @@ export function ArchitectureSection() {
           title="Satu proses, empat jalur, nol konfigurasi CORS"
           lead="Karena frontend dan backend satu origin, cookie langsung bekerja, Eden client memakai URL relatif, dan deploy hanya butuh satu artefak."
         />
+        {/* Mantine has no `alignItems` style prop and SimpleGrid takes no align prop, so this
+            stays a `style`: the diagram must top-align with the notes beside it. */}
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl" style={{ alignItems: 'start' }}>
-          <Code block style={{ fontSize: 12.5, lineHeight: 1.5, overflowX: 'auto' }}>
+          {/* Mantine has no `overflowX` style prop: the ASCII diagram scrolls sideways rather
+              than widening the page (CLAUDE.md mobile §2). */}
+          <Code block fz={CODE_FONT_SIZE} lh={1.5} style={{ overflowX: 'auto' }}>
             {ARCH}
           </Code>
           <Stack gap="md">
@@ -185,16 +185,16 @@ export function ArchitectureSection() {
                 'bun build --compile membungkus runtime, SSR, dan aset. Migrasi tetap dijalankan dari repo saat rilis.',
               ],
             ].map(([t, d]) => (
-              <div key={t}>
+              <Box key={t}>
                 <Text fw={600} size="sm">
                   {t}
                 </Text>
                 <Text size="sm" c="dimmed">
                   {d}
                 </Text>
-              </div>
+              </Box>
             ))}
-            <Group gap={6} wrap="wrap" mt="xs">
+            <Group gap="xs" wrap="wrap" mt="xs">
               {STACK.map((s) => (
                 <Badge key={s.label} variant="light" color={s.color} size="sm">
                   {s.label}

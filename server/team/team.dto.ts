@@ -40,10 +40,9 @@ export type TeamProjectRef = { id: string; name: string; role: ProjectMemberRole
 export type TeamLoad = { active: number; overdue: number; alsoElsewhere?: true };
 
 /**
- * Leave as the Team shows it, already filtered for the viewer by `leaveStatusFor`: an approved
- * leave under way (`on_leave`, visible to everyone), a pending request (`pending`, only to its
- * owner, Project Managers and Admin) or `null` when there is nothing the viewer may see. Always
- * present and never a stand-in for "available": `null` means "nothing to show".
+ * Leave as the Team shows it: a recorded leave under way (`on_leave`, which every colleague may
+ * read) or `null` when the person is here. Always present and never a stand-in for "available":
+ * `null` means "nothing to show". The Admin-only note never reaches this type (P14 D6).
  */
 export type TeamAvailability = LeaveStatusDto | null;
 

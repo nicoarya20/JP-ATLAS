@@ -13,7 +13,9 @@ import { type AdminUser, isBanActive, ROLE_LABEL } from '~/lib/admin-users-api';
 import { useTimeFormat } from '~/lib/time-format';
 import { Copyable, Field, Section } from '../logs/DetailParts';
 import { RoleBadge, StatusBadge } from './UserCells';
+import { UserLeavePanel } from './UserLeavePanel';
 import { hasAnyAction, type UserPermissions, userAccess } from './user-access';
+import { USER_LEAVE_COPY } from './user-leave.copy';
 import type { useUserActions } from './useUserActions';
 
 type Props = {
@@ -51,7 +53,9 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
               color="initials"
               imageProps={{ referrerPolicy: 'no-referrer' }}
             />
-            <Stack gap={4} style={{ minWidth: 0 }}>
+            <Stack gap={4} miw={0}>
+              {/* A detail view shows the whole value (K-5), and Mantine has no `wordBreak` prop:
+                  a long name wraps between words, an address anywhere since it has none. */}
               <Text fw={600} size="lg" lh={1.2} style={{ wordBreak: 'break-word' }}>
                 {user.name}
               </Text>
@@ -105,6 +109,13 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
               {user.approvalReason ? `Alasan: ${user.approvalReason}` : 'Tanpa alasan tercatat.'}
             </Alert>
           )}
+
+          {/* Availability before Aktivitas: it is the one section an Admin opens the drawer to act
+              on, and the Admin-only note (P14 D6) is readable nowhere else. */}
+          <Section title={USER_LEAVE_COPY.section}>
+            <UserLeavePanel user={user} canRecord={can.leave} actions={actions} />
+          </Section>
+          <Divider />
 
           <Section title="Aktivitas">
             <Field label="Masuk terakhir">

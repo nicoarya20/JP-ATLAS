@@ -43,15 +43,14 @@ export function VisitTable(props: Props) {
   const someSelected = rows.some((r) => selected.has(r.id));
 
   return (
-    <Box pos="relative" style={{ overflowX: 'auto' }}>
+    <Box
+      pos="relative"
+      // No `overflow` style prop in Mantine; eight columns scroll sideways rather than widening
+      // the page (CLAUDE.md mobile §2).
+      style={{ overflowX: 'auto' }}
+    >
       <LoadingOverlay visible={fetching && !loading} zIndex={5} overlayProps={{ blur: 1 }} />
-      <Table
-        highlightOnHover
-        withTableBorder
-        verticalSpacing="xs"
-        fz="sm"
-        style={{ minWidth: 720 }}
-      >
+      <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={720}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th w={36}>
@@ -65,6 +64,8 @@ export function VisitTable(props: Props) {
               />
             </Table.Th>
             <Table.Th
+              // Mantine has no prop for any of these three: the header toggles the sort order, so
+              // it must look pressable, not select its text on a double click, and stay one line.
               style={{ cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
               onClick={onToggleSort}
             >
@@ -94,6 +95,7 @@ export function VisitTable(props: Props) {
               <Table.Tr
                 key={r.id}
                 bg={selected.has(r.id) ? 'var(--mantine-primary-color-light)' : undefined}
+                // No `cursor` style prop in Mantine; the whole row opens the detail drawer.
                 style={{ cursor: 'pointer' }}
                 onClick={() => props.onOpen(r)}
               >

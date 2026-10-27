@@ -1,6 +1,7 @@
-import { Alert, Button, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Alert, Box, Button, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import type { IsoDate } from '@server/metrics/dates';
 import { FiAlertCircle } from 'react-icons/fi';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { MEMBER_ROLE_LABELS } from '~/components/projects/projects.copy';
 import { BackLink } from '~/components/ui/BackLink';
 import { MemberAvatar } from '~/components/ui/MemberAvatar';
@@ -26,21 +27,26 @@ export function TeamDetailView({ userId, initial, loadedAt, today }: Props) {
   );
   return (
     <PageContainer size="narrow">
-      <div>
+      <Box>
         <BackLink fallback={TEAM_LIST_PATH} label={DETAIL_COPY.back} />
-      </div>
+      </Box>
+      {/*
+       * K-1: this is a page title, so it takes the handoff's page size (32 px) like every
+       * `PageHeader` page. It cannot BE a `PageHeader`: that component has no room for the
+       * avatar beside the name or the leave badge under the subtitle.
+       */}
       <Group gap="md" wrap="nowrap" align="center">
         <MemberAvatar name={person.name} size="lg" />
-        <Stack gap={2} style={{ minWidth: 0 }}>
-          <Title order={1} size="h2" style={{ overflowWrap: 'anywhere' }}>
+        <Stack gap={4} miw={0}>
+          <Title order={1} style={WRAP_ANYWHERE}>
             {person.name}
           </Title>
           <Text size="sm" c="dimmed">
             {subtitle}
           </Text>
-          <div>
+          <Box>
             <AvailabilityBadge availability={data.availability} />
-          </div>
+          </Box>
         </Stack>
       </Group>
       {error && (

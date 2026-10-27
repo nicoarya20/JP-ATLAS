@@ -36,7 +36,14 @@ describe('/api/app', () => {
     ctx.actor = { id: 'app-u1', name: 'App User', email: 'app-u1@test.local' };
     const { status, body } = await whoami();
     expect(status).toBe(200);
-    expect(body).toEqual({ userId: 'app-u1', name: 'App User', role: 'member' });
+    // `caps` is the app-wide capability map every client reads instead of branching on the role
+    // (GAP A-17); the per-role values and the parity with the web layout are in app-whoami-caps.test.ts.
+    expect(body).toEqual({
+      userId: 'app-u1',
+      name: 'App User',
+      role: 'member',
+      caps: { createProject: false, createEvent: true, dashboard: false, dev: false },
+    });
   });
 
   test.each([

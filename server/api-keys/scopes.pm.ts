@@ -1,4 +1,7 @@
-/** API-key deny list for PM routes (D10): destructive or identity-changing calls stay session-only. */
+/**
+ * API-key deny list (D10): destructive or identity-changing calls stay session-only. Mostly PM
+ * routes under `/api/app`, plus the admin routes that change what the app says about a person.
+ */
 
 type Deny = { id: string; method: string | '*'; path: RegExp };
 
@@ -69,16 +72,21 @@ export const PM_KEY_DENY: readonly Deny[] = [
     method: 'POST',
     path: /^\/api\/app\/projects\/.*\/extend-deadline(?:\/.*)?$/i,
   },
-  // Leave. Deciding speaks for the approver and tells the requester the outcome; withdrawing frees days
-  // an approver already agreed to; the switch changes who needs approval at all. A leaked key may send
-  // and read requests, but none of these three, which stay with the signed-in person.
+  // Leave had three entries here until P14 CU-02 took the /api/app/leave routes away with the
+  // approval flow. What replaced them is an admin route, and recording somebody else's
+  // availability is as privileged as changing their role (P14 §6): every method, session only.
   {
-    id: 'POST leave/*/decision',
-    method: 'POST',
-    path: /^\/api\/app\/leave\/.*\/(?:approve|reject)\/?$/i,
+    id: '* admin users/*/leave',
+    method: '*',
+    path: /^\/api\/admin\/users\/.*\/leave(?:\/.*)?$/i,
   },
-  { id: 'DELETE leave/*', method: 'DELETE', path: /^\/api\/app\/leave\/.+/i },
-  { id: 'PUT leave/settings', method: 'PUT', path: /^\/api\/app\/leave\/settings(?:\/.*)?$/i },
+  // Handing a project to another Pengelola from the Admin console (P11 AD-13) changes who runs it:
+  // an escalation, session only, like the product's own Lead handover above.
+  {
+    id: 'PUT admin projects/*/manager',
+    method: 'PUT',
+    path: /^\/api\/admin\/projects\/.*\/manager(?:\/.*)?$/i,
+  },
 ];
 
 /** Plugin file in server/api that owns each pattern; the sweep test skips a pattern while its owner is a stub. */
@@ -100,21 +108,20 @@ export const PM_DENY_OWNER: Readonly<Record<string, string>> = {
   'DELETE events/*': 'app-events.write.ts', // guest removal; `DELETE /events/:id` (E-07) is in app-events.trash.ts
   'POST projects/*/condition-override': 'app-projects.deadline.ts',
   'POST projects/*/extend-deadline': 'app-projects.deadline.ts',
-  'POST leave/*/decision': 'app-leave.decide.ts',
-  'DELETE leave/*': 'app-leave.me.ts',
-  'PUT leave/settings': 'app-leave.settings.ts',
+  '* admin users/*/leave': 'admin-leave.ts',
+  'PUT admin projects/*/manager': 'admin-projects.manager.ts',
 };
 
 /**
  * Deny ids whose route is not registered yet: the denial is in place first (Z-01) and the route
- * lands later in the same S6 slice, so the sweep that asserts "this pattern matches a real route"
+ * lands later in the same slice, so the sweep that asserts "this pattern matches a real route"
  * reports them as skipped instead of failing.
  *
- * TODO(trash): scaffolding, agreed with the S6 coordinator as temporary debt — `DELETE trash/*`
- * must be removed from this list by Z-04 (`DELETE /api/app/trash/:kind/:id`, the task that
- * registers the route), and at the latest by the Z-08 gate, which fails if the list is not empty.
+ * Empty since Z-04 registered `DELETE /api/app/trash/:kind/:id`, which was the last entry
+ * (`DELETE trash/*`). Keep it empty: a new deny pattern should land with its route, and the Z-08
+ * gate fails if this list is not empty.
  */
-export const PM_DENY_PENDING: readonly string[] = ['DELETE trash/*'];
+export const PM_DENY_PENDING: readonly string[] = [];
 
 /** True when an API key may not call this route, whatever scopes it holds. */
 export function isPmKeyDenied(method: string, pathname: string): boolean {

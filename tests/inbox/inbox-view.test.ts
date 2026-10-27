@@ -5,12 +5,17 @@ import {
   detailLines,
   groupInbox,
   headlineOf,
-  isLeaveApproval,
-  leaveRangeOf,
   relativeTime,
   sectionsFor,
 } from '../../app/lib/inbox-view';
-import { CLOCK, eventCard, leaveRequestCard, minutesAgo, taskCard } from './inbox-fixtures';
+import {
+  CLOCK,
+  eventCard,
+  leaveRecordedCard,
+  legacyLeaveCard,
+  minutesAgo,
+  taskCard,
+} from './inbox-fixtures';
 
 describe('groupInbox / sectionsFor', () => {
   const items = [
@@ -81,38 +86,19 @@ describe('detailLines and contextLine', () => {
     expect(detailLines(eventCard(), CLOCK)).toEqual(['Latihan presentasi', '27 Okt · 15.00']);
   });
 
-  it('a leave request gives the range with the days, and the due tasks the approver must weigh', () => {
-    expect(detailLines(leaveRequestCard(), CLOCK)).toEqual([
-      '14–16 Okt 2026 · 3 hari',
-      '2 tugas jatuh tempo selama cuti',
-    ]);
-    const none = leaveRequestCard({
-      payload: {
-        name: 'Dodi',
-        startDate: '2026-10-14',
-        endDate: '2026-10-16',
-        days: 3,
-        dueTasks: 0,
-      },
+  it('a recorded leave gives the range with the days', () => {
+    expect(detailLines(leaveRecordedCard(), CLOCK)).toEqual(['14–16 Okt 2026 · 3 hari']);
+    const oneDay = leaveRecordedCard({
+      payload: { startDate: '2026-10-14', endDate: '2026-10-14', days: 1, change: 'cleared' },
     });
-    expect(detailLines(none, CLOCK)).toContain('Tidak ada tugas jatuh tempo');
+    expect(detailLines(oneDay, CLOCK)).toEqual(['14 Okt 2026 · 1 hari']);
   });
 
-  it('a leave outcome quotes the reject reason and never asks about due tasks', () => {
-    const card = leaveRequestCard({
-      kind: 'leave_decided',
-      lane: 'info',
-      secondaryButton: null,
-      payload: {
-        name: 'Dodi',
-        startDate: '2026-10-14',
-        endDate: '2026-10-14',
-        days: 1,
-        decision: 'rejected',
-        excerpt: 'Tenggat proyek',
-      },
-    });
-    expect(detailLines(card, CLOCK)).toEqual(['14 Okt 2026 · 1 hari', '"Tenggat proyek"']);
+  it('a leave card without dates in its payload renders no range instead of a half sentence', () => {
+    expect(detailLines(leaveRecordedCard({ payload: {} }), CLOCK)).toEqual([]);
+    expect(detailLines(leaveRecordedCard({ payload: { startDate: '2026-10-14' } }), CLOCK)).toEqual(
+      [],
+    );
   });
 
   it('a card with an empty or odd payload renders no lines instead of failing', () => {
@@ -122,7 +108,7 @@ describe('detailLines and contextLine', () => {
 
   it('puts the project before the time, and only the time when there is no project', () => {
     expect(contextLine(taskCard(), CLOCK)).toBe('Proyek Atlas · 20 menit lalu');
-    expect(contextLine(leaveRequestCard(), CLOCK)).toBe('20 menit lalu');
+    expect(contextLine(leaveRecordedCard(), CLOCK)).toBe('20 menit lalu');
   });
 
   it('the news lane is timed from its bundle time, not from the first event', () => {
@@ -135,20 +121,55 @@ describe('detailLines and contextLine', () => {
   });
 });
 
-describe('headline and leave helpers', () => {
+describe('headlines', () => {
   it('falls back to a plain sentence for a kind this build does not know', () => {
     expect(headlineOf(taskCard({ sentence: null }))).toBe('Ada kabar baru untuk Anda');
     expect(headlineOf(taskCard())).toBe('Nico menunjuk Anda mengerjakan #14');
   });
+});
 
-  it('only the leave request has two buttons', () => {
-    expect(isLeaveApproval(leaveRequestCard())).toBe(true);
-    expect(isLeaveApproval(taskCard())).toBe(false);
-    expect(isLeaveApproval(leaveRequestCard({ kind: 'leave_decided' }))).toBe(false);
+/**
+ * P14 §8 R3. `leave_requested` and `leave_decided` rows written before CU-06 are still in the
+ * table, and the kinds are gone, so the server sends them with no sentence and no button. They must
+ * read as ordinary news — the docstring of `inbox-view.ts` promises it, these cases prove it.
+ */
+describe('rows of the retired approval flow', () => {
+  it('reads an old request row as plain news, with the range it still carries', () => {
+    const card = legacyLeaveCard();
+    expect(headlineOf(card)).toBe('Ada kabar baru untuk Anda');
+    // The old `dueTasks` field is no longer anybody's business, so it adds no line.
+    expect(detailLines(card, CLOCK)).toEqual(['14–16 Okt 2026 · 3 hari']);
+    expect(contextLine(card, CLOCK)).toBe('20 menit lalu');
   });
 
-  it('reads the range of a leave card for the confirm dialog', () => {
-    expect(leaveRangeOf(leaveRequestCard())).toBe('14–16 Okt 2026');
-    expect(leaveRangeOf(taskCard())).toBeNull();
+  it('reads an old decision row as plain news, quoting the reject reason it holds', () => {
+    const card = legacyLeaveCard({
+      kind: 'leave_decided',
+      lane: 'info',
+      payload: {
+        name: 'Dodi',
+        startDate: '2026-10-14',
+        endDate: '2026-10-14',
+        days: 1,
+        decision: 'rejected',
+        excerpt: 'Tenggat proyek',
+      },
+    });
+    expect(headlineOf(card)).toBe('Ada kabar baru untuk Anda');
+    expect(detailLines(card, CLOCK)).toEqual(['14 Okt 2026 · 1 hari', '"Tenggat proyek"']);
+  });
+
+  it('survives an old row whose payload or ref has nothing this build expects', () => {
+    expect(detailLines(legacyLeaveCard({ payload: {} }), CLOCK)).toEqual([]);
+    // A ref type that was never mapped: no lines, no throw, and the card still has its heading.
+    const odd = legacyLeaveCard({ ref: { type: 'leave_request', id: 'l-9', number: null } });
+    expect(detailLines(odd, CLOCK)).toEqual([]);
+    expect(headlineOf(odd)).toBe('Ada kabar baru untuk Anda');
+  });
+
+  it('still groups and times an old row like any other card of its lane', () => {
+    const old = legacyLeaveCard({ lane: 'info', group: 'yesterday', updatedAt: minutesAgo(20) });
+    expect(sectionsFor('info', [old]).map((s) => s.heading)).toEqual(['Kemarin']);
+    expect(sectionsFor('action', [legacyLeaveCard()])).toHaveLength(1);
   });
 });

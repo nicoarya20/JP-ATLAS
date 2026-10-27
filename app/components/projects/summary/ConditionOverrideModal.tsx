@@ -36,7 +36,7 @@ type ViewProps = {
 function ConditionChoice({ condition }: { condition: ProjectCondition }) {
   const { label, icon: Icon } = CONDITION_LABELS[condition];
   return (
-    <Group gap={6} wrap="nowrap" component="span" style={{ minWidth: 0 }}>
+    <Group gap="xs" wrap="nowrap" component="span" miw={0}>
       <Icon size="1.25em" aria-hidden />
       {label}
     </Group>

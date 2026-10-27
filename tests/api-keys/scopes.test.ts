@@ -18,6 +18,13 @@ describe('requiredScope', () => {
     expect(requiredScope('POST', '/api/admin/users/x/ban')).toBe('users:write');
     expect(requiredScope('GET', '/api/settings')).toBe('settings:read');
     expect(requiredScope('PUT', '/api/settings/rate-limit')).toBe('settings:write');
+    // AD-05/AD-06 routes ride the one /api/settings scope: reachable only by a super-admin key
+    // (settings:write is level 3), never an Admin key — the session path is what AD-03 widened.
+    expect(requiredScope('GET', '/api/settings/announcement')).toBe('settings:read');
+    expect(requiredScope('PUT', '/api/settings/announcement')).toBe('settings:write');
+    expect(requiredScope('DELETE', '/api/settings/announcement')).toBe('settings:write');
+    expect(requiredScope('GET', '/api/settings/access-policy')).toBe('settings:read');
+    expect(requiredScope('PUT', '/api/settings/access-policy')).toBe('settings:write');
     expect(requiredScope('POST', '/api/posts')).toBe('posts:write');
     expect(requiredScope('GET', '/api/me/logins')).toBe('me:read');
     expect(requiredScope('GET', '/api/app/whoami')).toBe('app:read');
@@ -44,6 +51,17 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/admin/users/stats')).toBe('users:read');
     expect(requiredScope('GET', '/api/admin/invitationsx')).toBeNull();
   });
+  it('never lets an API key record or end somebody leave (P14 CU-03)', () => {
+    for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/users/u1/leave')).toBeNull();
+      expect(requiredScope(method, '/api/admin/users/u1/leave/')).toBeNull();
+      // An odd id segment must not fall through to the generic users rule either.
+      expect(requiredScope(method, '/api/admin/users/a/b/leave')).toBeNull();
+    }
+    // Lookalike neighbours keep the directory scope: only `/leave` itself is cut off.
+    expect(requiredScope('GET', '/api/admin/users/u1/leaves')).toBe('users:read');
+    expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
+  });
   it('lets a key read the role matrix with settings:read, and never write it (AD-09)', () => {
     expect(requiredScope('GET', '/api/admin/permissions-matrix')).toBe('settings:read');
     expect(requiredScope('HEAD', '/api/admin/permissions-matrix')).toBe('settings:read');
@@ -51,6 +69,16 @@ describe('requiredScope', () => {
       expect(requiredScope(method, '/api/admin/permissions-matrix')).toBeNull();
     }
     // Reading the matrix is a settings read, so only a super-admin's key can carry it.
+    expect(roleAllowsScope(ROLES.ADMIN, 'settings:read')).toBe(false);
+    expect(roleAllowsScope(ROLES.SUPER_ADMIN, 'settings:read')).toBe(true);
+  });
+  it('lets a key read the Admin Beranda summary with settings:read, and never write it (AD-14)', () => {
+    expect(requiredScope('GET', '/api/admin/overview')).toBe('settings:read');
+    expect(requiredScope('HEAD', '/api/admin/overview')).toBe('settings:read');
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/overview')).toBeNull();
+    }
+    // Reading the summary is a settings read, so only a super-admin's key can carry it.
     expect(roleAllowsScope(ROLES.ADMIN, 'settings:read')).toBe(false);
     expect(roleAllowsScope(ROLES.SUPER_ADMIN, 'settings:read')).toBe(true);
   });
@@ -68,6 +96,12 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/openapi.json')).toBeNull();
     expect(isPublicRead('GET', '/api/openapi.json')).toBe(true);
     expect(isPublicRead('POST', '/api/openapi.json')).toBe(false);
+    // Dev-only Scalar docs (api/docs.ts): public reads so a key-bearing caller is not refused 403.
+    expect(requiredScope('GET', '/api/docs')).toBeNull();
+    expect(requiredScope('GET', '/api/docs/json')).toBeNull();
+    expect(isPublicRead('GET', '/api/docs')).toBe(true);
+    expect(isPublicRead('GET', '/api/docs/json')).toBe(true);
+    expect(isPublicRead('POST', '/api/docs')).toBe(false);
     expect(requiredScope('POST', '/api/app/avatar')).toBeNull(); // session-only since S0B-19 (D10)
     expect(requiredScope('DELETE', '/api/app/avatar')).toBeNull();
     expect(isPublicRead('GET', '/api/storage/avatars/u1/a.png')).toBe(true);
@@ -89,6 +123,23 @@ describe('requiredScope', () => {
       expect(isPublicRead(method, '/api/admin/export/members')).toBe(false);
     }
     // The neighbouring directory routes keep their scope: only the export prefix is cut off.
+    expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
+  });
+
+  it('never lets an API key read the Admin activity log (P11 AD-18)', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/activity')).toBeNull();
+      expect(isPublicRead(method, '/api/admin/activity')).toBe(false);
+    }
+  });
+
+  it('never lets an API key reach the Admin project console (P11 AD-11..AD-13)', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/projects')).toBeNull();
+      expect(requiredScope(method, '/api/admin/projects/p1')).toBeNull();
+      expect(requiredScope(method, '/api/admin/projects/p1/manager')).toBeNull();
+    }
+    // The neighbouring directory routes keep their scope: only the project prefix is cut off.
     expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
   });
 });
@@ -172,6 +223,11 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('post', '/api/app/tasks/draft/')).toBe('app:write');
     expect(requiredScope('GET', '/api/app/projects')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/tasks')).toBe('app:read');
+    // Form options (A12) are a plain read of the kinds and phases the caller may already see, so
+    // they need no entry of their own in `scopes.pm.ts`: nothing here changes data or reaches a
+    // person. Only the deny list below holds `DELETE /api/app/tasks/*`.
+    expect(requiredScope('GET', '/api/app/tasks/form-options')).toBe('app:read');
+    expect(requiredScope('get', '/api/app/tasks/form-options/')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/profile')).toBe('app:read');
     // Team is read-only, so both routes stay on app:read (S6 M03/M04).
     expect(requiredScope('GET', '/api/app/team')).toBe('app:read');
@@ -202,25 +258,12 @@ describe('PM routes denied to API keys (D10)', () => {
     expect(requiredScope('POST', '/api/app/trash/event/e1/restore')).toBeNull();
   });
 
-  // Leave: a key may read leave and send a request, but not decide, withdraw or change the switch.
-  it('keeps leave reads and sending a request on app:read / app:write', () => {
-    expect(requiredScope('GET', '/api/app/leave/me')).toBe('app:read');
-    expect(requiredScope('GET', '/api/app/leave/pending')).toBe('app:read');
-    expect(requiredScope('GET', '/api/app/leave/settings')).toBe('app:read');
-    expect(requiredScope('POST', '/api/app/leave')).toBe('app:write');
-  });
-
-  it('returns null for the leave routes that decide, withdraw or change the switch', () => {
-    expect(requiredScope('POST', '/api/app/leave/l1/approve')).toBeNull();
-    expect(requiredScope('POST', '/api/app/leave/l1/reject')).toBeNull();
-    expect(requiredScope('post', '/api/app/leave/l1/approve/')).toBeNull();
-    expect(requiredScope('DELETE', '/api/app/leave/l1')).toBeNull();
-    expect(requiredScope('PUT', '/api/app/leave/settings')).toBeNull();
-    expect(requiredScope('PUT', '/api/app/leave/settings/')).toBeNull();
-  });
+  // Leave left /api/app entirely with the approval flow (P14 CU-02); the admin routes that replace
+  // it are mapped in CU-03. Nothing under /api/app/leave answers any more, so nothing is asserted.
 
   it('keeps the event reads, writes and minutes on app:read / app:write', () => {
     expect(requiredScope('GET', '/api/app/events')).toBe('app:read');
+    // The calendar window (A9) is a query filter on the same read, not a route of its own.
     expect(requiredScope('GET', '/api/app/events/agenda')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/events/people')).toBe('app:read');
     expect(requiredScope('GET', '/api/app/events/e1')).toBe('app:read');

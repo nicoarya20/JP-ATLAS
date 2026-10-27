@@ -1,14 +1,14 @@
-import { Badge, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { Badge, Box, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import type { SettingsOverview } from '~/lib/settings-api';
 import { SettingsCard } from './SettingsParts';
 
 function Item({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
   return (
-    <Stack gap={2}>
+    <Stack gap={4}>
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
         {label}
       </Text>
-      <div>{value}</div>
+      <Box>{value}</Box>
       {hint && (
         <Text size="xs" c="dimmed">
           {hint}
@@ -37,6 +37,8 @@ export function RuntimeInfoCard({ runtime }: { runtime: SettingsOverview['runtim
         <Item
           label="App URL"
           value={
+            // No `wordBreak` prop in Mantine; a URL has no spaces to wrap at and must stay
+            // readable in full inside a narrow grid cell.
             <Text size="sm" ff="monospace" style={{ wordBreak: 'break-all' }}>
               {runtime.appUrl}
             </Text>

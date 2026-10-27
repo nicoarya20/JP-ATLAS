@@ -1,4 +1,4 @@
-import { Stack, Text, Title } from '@mantine/core';
+import { Box, Stack } from '@mantine/core';
 import { listLogins } from '@server/api/analytics-logins.query';
 import { hasGoogleAuth, isProd } from '@server/env';
 import { requireUser } from '@server/guard';
@@ -22,6 +22,7 @@ import { NotificationsCard } from '~/components/account/NotificationsCard';
 import { SettingsSection } from '~/components/account/SettingsSection';
 import { SignOutButton } from '~/components/account/SignOutButton';
 import { LeaveSections } from '~/components/leave/LeaveSections';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { useApp } from '~/lib/app-context';
 import { useSession } from '~/lib/auth-client';
 import { toJson } from '~/lib/loader-json';
@@ -75,10 +76,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="lg" p={{ base: 'sm', md: 'md' }} maw={880} w="100%">
-      <div>
-        <Title order={2}>{SETTINGS_TITLE}</Title>
-        <Text c="dimmed">{SETTINGS_INTRO}</Text>
-      </div>
+      <PageHeader title={SETTINGS_TITLE} description={SETTINGS_INTRO} />
       <SettingsSection title={ACCOUNT_COPY.section}>
         <AccountSummaryCard profile={loaderData.profile} image={user.image ?? null} />
       </SettingsSection>
@@ -89,9 +87,9 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
         <NotificationsCard initial={loaderData.notificationPrefs} />
       </SettingsSection>
       <LeaveSections leave={loaderData.leave} />
-      <div>
+      <Box>
         <SignOutButton />
-      </div>
+      </Box>
       <AdvancedSettings
         email={loaderData.profile.email}
         role={role}

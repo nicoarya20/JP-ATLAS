@@ -1,5 +1,5 @@
 /** One person as a card: the whole card opens the detail page, "Lihat" is the visible way in. */
-import { Anchor, Button, Group, Paper, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Button, Group, Paper, Stack, Text } from '@mantine/core';
 import type { TeamPerson } from '@server/team/team.dto';
 import { FiArrowRight } from 'react-icons/fi';
 import { Link } from 'react-router';
@@ -31,7 +31,7 @@ export function roleLine(projects: TeamPerson['projects']): string {
 /** Open-task numbers; nothing at all when the server left `load` out (no placeholder, no zero). */
 function LoadBlock({ load }: { load: NonNullable<TeamPerson['load']> }) {
   return (
-    <Stack gap={0} style={{ flex: '0 1 9rem' }}>
+    <Stack gap={0} flex="0 1 9rem">
       <Text fw={700} size="sm">
         {TEAM_COPY.active(load.active)}
       </Text>
@@ -46,26 +46,21 @@ function LoadBlock({ load }: { load: NonNullable<TeamPerson['load']> }) {
 export function TeamPersonCard({ person }: { person: TeamPerson }) {
   const href = teamPersonHref(person.id);
   return (
-    <Paper withBorder p="sm" radius="md" className={CLICK_CARD}>
+    <Paper withBorder p="sm" className={CLICK_CARD}>
       <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-        <Group gap="sm" wrap="nowrap" style={{ flex: '1 1 14rem', minWidth: 0 }}>
+        <Group gap="sm" wrap="nowrap" flex="1 1 14rem" miw={0}>
           <MemberAvatar name={person.name} image={person.image} size="lg" />
-          <Stack gap={2} style={{ minWidth: 0 }}>
-            <Anchor
-              component={Link}
-              to={href}
-              className={ROW_LINK}
-              fw={700}
-              style={{ overflowWrap: 'anywhere' }}
-            >
+          {/* Truncated, not wrapped: every card in the list keeps the same height (K-5). */}
+          <Stack gap={4} miw={0}>
+            <Anchor component={Link} to={href} className={ROW_LINK} fw={700} truncate>
               {person.isSelf ? `${person.name} ${TEAM_COPY.you}` : person.name}
             </Anchor>
-            <Text size="xs" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
+            <Text size="xs" c="dimmed" lineClamp={2}>
               {roleLine(person.projects)}
             </Text>
-            <div>
+            <Box>
               <AvailabilityBadge availability={person.availability} />
-            </div>
+            </Box>
           </Stack>
         </Group>
         {person.load && <LoadBlock load={person.load} />}

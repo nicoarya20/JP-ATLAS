@@ -9,7 +9,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot server/dev-entry.ts",
-    "test": "NODE_ENV=test bun test tests",
+    "dev:all": "bun scripts/dev-all.ts",
+    "test": "NODE_ENV=test bun test ./tests/",
     "test:pm": "NODE_ENV=test bun test tests/access tests/account",
     "build": "react-router build",
     "start": "NODE_ENV=production bun run server/binary-entry.ts start",
@@ -30,6 +31,7 @@
   },
   "dependencies": {
     "@better-auth/api-key": "1.7.3",
+    "@better-auth/expo": "1.7.3",
     "@dagrejs/dagre": "^3.1.1",
     "@elysia/openapi": "^1.4.16",
     "@elysiajs/eden": "^1.4.9",

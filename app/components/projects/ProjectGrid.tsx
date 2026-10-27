@@ -23,7 +23,7 @@ export function ProjectGrid({
         aria-label={LIST_COPY.gridLabel}
       >
         {items.map((p) => (
-          <Paper key={p.id} withBorder p="sm" radius="md" role="listitem" className={CLICK_CARD}>
+          <Paper key={p.id} withBorder p="sm" role="listitem" className={CLICK_CARD}>
             <ProjectCard project={p} today={today} />
           </Paper>
         ))}

@@ -14,9 +14,17 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import type { Role } from '@server/permissions';
+import type { ShellAnnouncement } from '@server/settings-announcement';
 import type { Branding } from '@server/settings-branding';
-import { type ReactNode, useState } from 'react';
-import { FiCornerUpLeft, FiTool, FiZap } from 'react-icons/fi';
+import { type ReactNode, useEffect, useState } from 'react';
+import {
+  FiAlertTriangle,
+  FiCornerUpLeft,
+  FiInfo,
+  FiTool,
+  FiXOctagon,
+  FiZap,
+} from 'react-icons/fi';
 import { Link } from 'react-router';
 import type { AppUser } from '~/lib/app-context';
 import { authClient, useSession } from '~/lib/auth-client';
@@ -69,6 +77,8 @@ type Props = {
   branding?: Branding;
   /** Show the maintenance banner to admins who can still use the app. */
   maintenance?: boolean;
+  /** Office-wide announcement resolved by frameInfo(); null = nothing to show (AD-05). */
+  announcement?: ShellAnnouncement | null;
   /**
    * Server-resolved initial collapsed state (read from cookie in the layout
    * loader). Lets the server render the correct sidebar width immediately,
@@ -94,6 +104,7 @@ export function AppFrame(props: Props) {
     version,
     branding,
     maintenance,
+    announcement,
     bell,
     initialCollapsed = false,
   } = props;
@@ -249,6 +260,10 @@ export function AppFrame(props: Props) {
       </AppShell.Navbar>
 
       <AppShell.Main>
+        {/* Announcement first: it is the office-wide message every signed-in reader is meant to
+            see (and may be pinned unmissable), while the maintenance banner below is an operational
+            note shown only to the privileged roles who can still use the console. */}
+        {announcement && <AnnouncementBanner announcement={announcement} />}
         {maintenance && (
           <Alert
             color="orange"
@@ -266,5 +281,72 @@ export function AppFrame(props: Props) {
         {children}
       </AppShell.Main>
     </AppShell>
+  );
+}
+
+/** localStorage key holding the signature of the announcement this reader has already closed. */
+const ANNOUNCEMENT_DISMISS_KEY = 'mk-announcement-dismissed';
+
+/** Tone → Mantine colour (role-aliased) + icon; the three levels of settings-announcement.ts. */
+const ANNOUNCEMENT_TONE: Record<ShellAnnouncement['level'], { color: string; Icon: typeof FiInfo }> = {
+  info: { color: 'blue', Icon: FiInfo },
+  warn: { color: 'yellow', Icon: FiAlertTriangle },
+  danger: { color: 'red', Icon: FiXOctagon },
+};
+
+/**
+ * A stable short signature of an announcement's content (djb2 → base36). A reader's dismissal is
+ * remembered against this, so editing the text or the tone brings the banner back for everyone —
+ * the "muncul lagi sampai isinya diubah" rule — without needing a server-side per-reader record.
+ */
+export function announcementSignature(a: Pick<ShellAnnouncement, 'text' | 'level'>): string {
+  const input = `${a.level}:${a.text}`;
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) hash = ((hash << 5) + hash + input.charCodeAt(i)) | 0;
+  return (hash >>> 0).toString(36);
+}
+
+/**
+ * Office-wide banner shown in every signed-in area (never on landing/login, which do not render
+ * AppFrame). Dismissal is per-reader and per-content: it lives in localStorage, so it survives
+ * reloads on this device only and resets the moment the announcement changes. A non-dismissible
+ * banner (past its `dismissibleUntil`) carries no close button and ignores any stored dismissal.
+ */
+function AnnouncementBanner({ announcement }: { announcement: ShellAnnouncement }) {
+  const signature = announcementSignature(announcement);
+  // Starts shown so SSR and the first client render agree (no hydration mismatch); the effect then
+  // hides it if this reader had already closed this exact content.
+  const [dismissed, setDismissed] = useState(false);
+  useEffect(() => {
+    if (!announcement.dismissible) return;
+    try {
+      setDismissed(localStorage.getItem(ANNOUNCEMENT_DISMISS_KEY) === signature);
+    } catch {
+      // Private mode or blocked storage: show the banner rather than throw.
+    }
+  }, [signature, announcement.dismissible]);
+
+  if (announcement.dismissible && dismissed) return null;
+  const { color, Icon } = ANNOUNCEMENT_TONE[announcement.level] ?? ANNOUNCEMENT_TONE.info;
+  return (
+    <Alert
+      color={color}
+      variant="light"
+      radius="md"
+      mb="md"
+      icon={<Icon size="1.25em" aria-hidden />}
+      withCloseButton={announcement.dismissible}
+      closeButtonLabel="Tutup pengumuman"
+      onClose={() => {
+        try {
+          localStorage.setItem(ANNOUNCEMENT_DISMISS_KEY, signature);
+        } catch {
+          // Ignore: a failed write just means the banner reappears on the next load.
+        }
+        setDismissed(true);
+      }}
+    >
+      {announcement.text}
+    </Alert>
   );
 }

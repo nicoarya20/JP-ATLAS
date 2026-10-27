@@ -69,6 +69,8 @@ export function activityText(entry: Activity): string {
     case 'canceled':
     case 'uncanceled':
     case 'comment.delete':
+    case 'trashed':
+    case 'restored':
       return ACTIVITY_COPY[entry.action];
     default:
       return ACTIVITY_COPY.fallback;
