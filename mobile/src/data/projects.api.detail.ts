@@ -16,11 +16,7 @@ import type { ApiError } from '@/api/errors';
 import { today } from './clock';
 import { daysBetween, monthDay } from './dates';
 import { instantDate } from './instant';
-import {
-  type AttentionReason,
-  ATTENTION_REASONS,
-  projectAttention,
-} from './projects.api.tasks';
+import { ATTENTION_REASONS, type AttentionReason, projectAttention } from './projects.api.tasks';
 import type { WireProjectDetail, WireProjectPlan } from './projects.api.types';
 import { phaseWord } from './projects.api.values';
 import { daysLeftLabel, longDate } from './projects.dates';
@@ -151,11 +147,7 @@ export function overviewActivity(
 }
 
 /** One attention row from a task the server put in that group. */
-function rowOf(
-  item: WireTaskListItem,
-  reason: AttentionReason,
-  todayIso: string,
-): AttentionRow {
+function rowOf(item: WireTaskListItem, reason: AttentionReason, todayIso: string): AttentionRow {
   const who = item.assignee?.name ?? 'Unassigned';
   const late = item.dueDate ? daysBetween(todayIso, item.dueDate) : null;
   const when =

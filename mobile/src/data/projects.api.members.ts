@@ -14,8 +14,13 @@
  *   `ProjectMemberItem` carries no `department` (GAP A-9), so the half that is real is shown and
  *   the half that is not is left out.
  */
-import { capState, type CapState } from './projects.api.map';
-import type { WireMemberItem, WireMemberList, WirePickerList, WireProjectCaps } from './projects.api.types';
+import { type CapState, capState } from './projects.api.map';
+import type {
+  WireMemberItem,
+  WireMemberList,
+  WirePickerList,
+  WireProjectCaps,
+} from './projects.api.types';
 import { roleWord } from './projects.api.values';
 import type { ProjectRole } from './sample/projects.extra';
 import { samePerson, viewer } from './viewer';

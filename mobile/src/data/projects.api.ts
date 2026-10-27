@@ -27,6 +27,7 @@ import type {
   WireActivityPage,
   WireExtensionList,
   WireMemberList,
+  WirePickerList,
   WireProjectDetail,
   WireProjectListItem,
   WireProjectPage,
@@ -145,12 +146,34 @@ export function projectActivity(id: string): Paged<WireActivityPage> {
   return made;
 }
 
+const pickers = new Map<string, Resource<WirePickerList>>();
+
+/**
+ * The people a project may pick from: `?projectId=` for one project's "+ Member" (which leaves out
+ * those already in it), and without it the candidates a new project may start with. Keyed because
+ * the two answers are different lists.
+ */
+export function projectPicker(projectId?: string): Resource<WirePickerList> {
+  const key = projectId ?? '';
+  const found = pickers.get(key);
+  if (found) return found;
+  const made = resource<WirePickerList>(`team.picker${key && `?${key}`}`, () =>
+    apiGet<WirePickerList>(
+      `/api/app/team/picker${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`,
+    ),
+  );
+  pickers.set(key, made);
+  return made;
+}
+
 /**
  * What the app as a whole lets the caller do. Asked once per session, as the endpoint's own comment
  * says it is meant to be: whether somebody may start a project does not change from one page of the
  * list to the next.
  */
-export const appWhoami = resource<WireWhoami>('whoami', () => apiGet<WireWhoami>('/api/app/whoami'));
+export const appWhoami = resource<WireWhoami>('whoami', () =>
+  apiGet<WireWhoami>('/api/app/whoami'),
+);
 
 /** Every project read asked for so far, by kind, so a write can name what it touched. */
 export const projectReads = {
@@ -159,6 +182,7 @@ export const projectReads = {
   members: () => [...members.values()],
   extensions: () => [...extensions.values()],
   activities: () => [...activities.values()],
+  pickers: () => [...pickers.values()],
 };
 
 /**
@@ -173,6 +197,7 @@ export function forgetProjectResources(): void {
     ...projectReads.members(),
     ...projectReads.extensions(),
     ...projectReads.activities(),
+    ...projectReads.pickers(),
     appWhoami,
   ]) {
     r.forget();
@@ -183,4 +208,5 @@ export function forgetProjectResources(): void {
   members.clear();
   extensions.clear();
   activities.clear();
+  pickers.clear();
 }

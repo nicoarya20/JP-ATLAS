@@ -16,8 +16,12 @@
  * (`reachedAt`, `joinedAt`, `createdAt`) are read through `instant.ts` in `projects.api.detail.ts`.
  */
 import { monthDay } from './dates';
-import type { WireProjectCapKey, WireProjectCaps, WireProjectDetail } from './projects.api.types';
-import type { WireProjectListItem } from './projects.api.types';
+import type {
+  WireProjectCapKey,
+  WireProjectCaps,
+  WireProjectDetail,
+  WireProjectListItem,
+} from './projects.api.types';
 import { conditionWord, statusWord } from './projects.api.values';
 import { longDate } from './projects.dates';
 import type { ProjectStatus } from './sample/projects';

@@ -13,7 +13,7 @@
 import { today } from './clock';
 import { monthDay } from './dates';
 import { instantDate } from './instant';
-import { capOn, type CapState, capState } from './projects.api.map';
+import { type CapState, capOn, capState } from './projects.api.map';
 import type {
   WireExtensionList,
   WireMilestone,

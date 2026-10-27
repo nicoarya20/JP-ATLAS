@@ -10,8 +10,6 @@
  * Note `completed` ↔ **Done**: the screens have always said "Done" and the status pill is keyed on
  * that word (`src/components/status/status.ts`), so the word stays and only its source changes.
  */
-import type { ProjectStatus } from './sample/projects';
-import type { ProjectRole } from './sample/projects.extra';
 import type {
   WireExtensionReason,
   WirePhaseStatus,
@@ -21,7 +19,8 @@ import type {
   WireProjectSort,
   WireProjectStatus,
 } from './projects.api.types';
-import type { PhaseState } from './sample/projects.extra';
+import type { ProjectStatus } from './sample/projects';
+import type { PhaseState, ProjectRole } from './sample/projects.extra';
 
 /** Project priority as the Edit and New forms word it. */
 export type ProjectPriorityWord = 'Low' | 'Medium' | 'High' | 'Critical';

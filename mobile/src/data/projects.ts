@@ -1,28 +1,25 @@
-// Projects data in one call per screen, the swap point to the API: today built from the sample data in projects.store,
-// later a fetch of /api/app/projects returning the same shapes. The detail tabs are in projects.detail.ts.
-import { today } from './clock';
-import { monthDay } from './dates';
-import { me, person } from './people';
-import { addDays, longDate, weekdayLongDate } from './projects.dates';
-import { ofWho, teammates, whoLabel } from './projects.people';
-import { applyQuery, isFiltered, type ProjectsQuery, searchProjects } from './projects.query';
-import {
-  findProject,
-  getProjectsState,
-  isArchivedProject,
-  type ProjectItem,
-  taskCount,
-  taskCountOf,
-} from './projects.store';
-import type { Role } from './sample';
-import {
-  PROJECT_DETAIL,
-  PROJECT_STORY,
-  PROJECT_TEMPLATES,
-  TEMPLATE_PROJECT,
-} from './sample/projects.extra';
-import { viewer as signedIn, someSamePerson } from './viewer';
+/**
+ * What the Projects screens read: the list, and the header every detail tab sits under.
+ *
+ * `getProjectsList()` and `getProjectHeader()` stay **synchronous** and read the stores, exactly as
+ * in Phase 1 (the user's decision, 26 Oct 2026) — `ensure*` is the one call that fills them. That
+ * is why the screens changed far less than this layer did. The detail tabs are in
+ * `projects.detail.ts` and the New project form in `projects.create.ts`.
+ *
+ * Gone from here, deliberately: `projectsFor(role)`, which hid other people's projects from a
+ * Member. The server clamps `scope=all` to `mine` for a Member by itself
+ * (`server/access/project.policy.ts`), so keeping a second copy of that rule in the client could
+ * only ever disagree with it.
+ */
+import type { ApiError } from '@/api/errors';
 
+import { appWhoami, type ProjectListParams, projectDetail, projectList } from './projects.api';
+import { cardOf, headerOf, type ProjectCard, type ProjectHeader } from './projects.api.map';
+import { sortWire, statusFilter } from './projects.api.values';
+import { isFiltered, type ProjectsQuery } from './projects.query';
+import type { ResourcePhase } from './resource';
+
+export type { ProjectCard, ProjectHeader } from './projects.api.map';
 export {
   getProjectMembers,
   getProjectOverview,
@@ -30,172 +27,126 @@ export {
   getProjectTasks,
 } from './projects.detail';
 
-/** A project card of the list. */
-export type ProjectCard = Pick<
-  ProjectItem,
-  'id' | 'name' | 'status' | 'lead' | 'progress' | 'members'
-> & {
-  /** "! Needs attention · 1 important task overdue", or the health alone. */
-  health: string;
-  /** "70%", or "–" before any progress. */
-  percent: string;
-  /** "Oct 31". */
-  due: string;
-};
-
-/** none = the person is in no project (or the pick has none); noMatch = the query or search leaves nothing. */
+/** none = there are no projects at all; noMatch = the filters or search leave nothing. */
 export type ProjectsEmpty = 'none' | 'noMatch' | null;
 
+/** Which list to show, and how it is narrowed. */
+export type ProjectsListOptions = { query: ProjectsQuery; search: string };
+
 export type ProjectsList = {
-  /** Teammates of the people row (first names); a Member's are those sharing a project. */
-  people: string[];
-  /** The My projects chip shows (not for a Member: every project they see is theirs). */
-  mine: boolean;
-  /** "Rina's projects · 3" under the row, when someone is picked. */
-  whoLine: string | null;
   cards: ProjectCard[];
+  /** "12 projects", from the server's `total` — not the number of rows loaded so far. */
+  count: string | null;
   empty: ProjectsEmpty;
-  /** The dot on the filter icon. */
+  /** The dot on the filter icon; only filters that are actually sent count. */
   filtered: boolean;
+  phase: ResourcePhase;
+  error: ApiError | null;
+  /** The server has another page. */
+  hasMore: boolean;
+  /** `caps.createProject` of `GET /api/app/whoami`: whether New project is offered at all (A-17). */
+  mayCreate: boolean;
 };
 
-export type ProjectsListOptions = { who?: string; query: ProjectsQuery; search: string };
-
-/** The projects `role` sees: a Member only those they are in, everyone else all of them. */
-export function projectsFor(role: Role, list: readonly ProjectItem[] = getProjectsState().list) {
-  if (role !== 'member') return [...list];
-  const name = me(role).name;
-  return list.filter((p) => p.members.includes(name));
+/** The request one list is made of. `scope` is always `mine`: see the note in `ProjectsList`. */
+function listParams(o: ProjectsListOptions): ProjectListParams {
+  const search = o.search.trim();
+  return {
+    scope: 'mine',
+    status: statusFilter(o.query.status),
+    q: search || undefined,
+    sort: sortWire(o.query.sort),
+    attention: o.query.attention === 1,
+  };
 }
 
-const card = (p: ProjectItem): ProjectCard => ({
-  id: p.id,
-  name: p.name,
-  status: p.status,
-  lead: p.lead,
-  progress: p.progress,
-  members: p.members,
-  health: p.why ? `${p.health} · ${p.why}` : p.health,
-  percent: p.progress ? `${p.progress}%` : '–',
-  due: monthDay(p.due),
-});
+/** The resource one list reads, so a screen can `use()` it with a hook count that never changes. */
+export const projectsListOf = (o: ProjectsListOptions) => projectList(listParams(o));
 
-/** Projects ① for `role`: people row, the pick, then the query and search applied. */
-export function getProjectsList(role: Role, o: ProjectsListOptions): ProjectsList {
-  const member = role === 'member';
-  const name = me(role).name;
-  const visible = projectsFor(role);
-  const filtered = isFiltered(o.query) || !!o.search.trim();
-  const list = searchProjects(applyQuery(ofWho(visible, o.who, name), o.query), o.search);
+/** Fetch what the list needs, unless it is already fresh (§1); safe from every mount. */
+export async function ensureProjectsList(o: ProjectsListOptions): Promise<void> {
+  await Promise.all([projectsListOf(o).ensure(), appWhoami.ensure()]);
+}
+
+/** Fetch it again whatever is there: pull to refresh, and "Try again" after a failure. */
+export async function reloadProjectsList(o: ProjectsListOptions): Promise<void> {
+  await Promise.all([projectsListOf(o).reload(), appWhoami.reload()]);
+}
+
+/** One more page of the list. */
+export const moreProjects = (o: ProjectsListOptions): Promise<void> => projectsListOf(o).more();
+
+/**
+ * Projects ① as the screen shows them.
+ *
+ * `empty` stays null until a page has actually arrived: saying "no projects" while the request is
+ * still out is a lie the screen then has to take back.
+ */
+export function getProjectsList(o: ProjectsListOptions): ProjectsList {
+  const state = projectsListOf(o).peek();
+  const narrowed = isFiltered(o.query) || !!o.search.trim();
+  const items = state.data?.items ?? [];
+  const total = state.data?.total ?? 0;
   return {
-    people: teammates(visible, name),
-    mine: !member,
-    whoLine: o.who ? `${whoLabel(o.who, member)} · ${list.length}` : null,
-    cards: list.map(card),
-    empty: list.length ? null : filtered ? 'noMatch' : 'none',
+    cards: items.map(cardOf),
+    count: state.data ? `${total} project${total === 1 ? '' : 's'}` : null,
+    empty: items.length > 0 || !state.data ? null : narrowed ? 'noMatch' : 'none',
     filtered: isFiltered(o.query),
+    phase: state.phase,
+    error: state.error,
+    hasMore: projectsListOf(o).hasMore(),
+    mayCreate: appWhoami.current()?.caps.createProject ?? false,
   };
 }
 
-/** Header of the detail, the same on every tab. */
-export type ProjectHeader = Pick<
-  ProjectItem,
-  'id' | 'name' | 'status' | 'health' | 'why' | 'lead' | 'extended'
-> & {
-  /** "Oct 31, 2026". */
-  dueLong: string;
-  archived: boolean;
-  /** Manager or Admin, and not in Archive: the ⋯ menu, Extend deadline and the tab actions. */
-  canEdit: boolean;
+/** Subscribe to everything the list reads; one hook count, whatever the filter is. */
+export function useProjectsList(o: ProjectsListOptions): ProjectsList {
+  projectsListOf(o).use();
+  appWhoami.use();
+  return getProjectsList(o);
+}
+
+export type ProjectHeaderView = {
+  header: ProjectHeader | null;
+  phase: ResourcePhase;
+  error: ApiError | null;
+  /** The id is gone, in the Trash beyond reach, or not ours to see — the server answers one 404. */
+  notFound: boolean;
 };
 
-/** Detail header of project id for `role`; null when no such project (an old link) or a Member is not in it. */
-export function getProjectHeader(role: Role, id: string): ProjectHeader | null {
-  const p = findProject(id);
-  if (!p || (role === 'member' && !someSamePerson(p.members, signedIn(role)))) return null;
-  const archived = isArchivedProject(id);
+/** Fetch the project behind the route, unless it is already fresh. */
+export const ensureProjectHeader = (id: string): Promise<unknown> => projectDetail(id).ensure();
+
+/** Fetch it again: "Try again" after a failure. */
+export const reloadProjectHeader = (id: string): Promise<unknown> => projectDetail(id).reload();
+
+/**
+ * Header of project `id`.
+ *
+ * A project that does not exist, one in the Trash that the caller may not reach, and one belonging
+ * to someone else all answer the same 404 by design (`server/project/project.query.ts`), so the
+ * screen's "Project not found" is right for all three and does not have to tell them apart.
+ */
+export function getProjectHeader(id: string): ProjectHeaderView {
+  const state = projectDetail(id).peek();
   return {
-    id: p.id,
-    name: p.name,
-    status: p.status,
-    health: p.health,
-    why: p.why,
-    lead: p.lead,
-    extended: p.extended,
-    dueLong: longDate(p.due),
-    archived,
-    canEdit: role !== 'member' && !archived,
+    header: state.data ? headerOf(state.data) : null,
+    phase: state.phase,
+    error: state.error,
+    notFound: state.error?.status === 404,
   };
 }
 
-/** Edit project ⑬ for listed project id; null when it is not listed. */
-export function getProjectEdit(id: string) {
-  const p = getProjectsState().list.find((x) => x.id === id);
-  if (!p) return null;
-  // Only the project's Managers can be Lead; the sample has one each, so the pick holds the Lead alone.
-  const managers = p.members.filter((n) => p.roles[n] === 'Manager');
-  return {
-    project: p,
-    leads: managers.map((n) => ({ value: n, label: person(n)?.full ?? n })),
-  };
+/** The header in a component, re-rendering when its store changes. */
+export function useProjectHeader(id: string): ProjectHeaderView {
+  projectDetail(id).use();
+  return getProjectHeader(id);
 }
 
-/** Extend deadline ⑫ for listed project id: the current deadline and the sample's proposal (Atlas only). */
-export function getProjectExtend(id: string) {
-  const p = getProjectsState().list.find((x) => x.id === id);
-  if (!p) return null;
-  const x = PROJECT_DETAIL[id]?.extend;
-  return {
-    name: p.name,
-    current: p.due,
-    currentLabel: longDate(p.due),
-    next: x?.next ?? null,
-    reason: x?.reason ?? '',
-    impact: x?.impact ?? null,
-  };
+/** Move to Archive ⑭: the name and what goes along ("5 tasks"), from `taskCounts.live`. */
+export function getProjectArchive(id: string): { id: string; name: string; tasks: string } | null {
+  const detail = projectDetail(id).current();
+  if (!detail) return null;
+  const n = detail.taskCounts.live;
+  return { id: detail.id, name: detail.name, tasks: `${n} task${n === 1 ? '' : 's'}` };
 }
-
-/** Move to Archive ⑭ for listed project id: its name and what goes along ("5 tasks"). */
-export function getProjectArchive(id: string) {
-  const p = getProjectsState().list.find((x) => x.id === id);
-  return p ? { id: p.id, name: p.name, tasks: taskCount(taskCountOf(id)) } : null;
-}
-
-/** Full names of the people the story names, minus the signed-in one (prototype projects.parts.jsx helpers). */
-const helpers = (role: Role) =>
-  PROJECT_STORY.helpers.filter((k) => k !== me(role).key).map((k) => person(k)?.full ?? k);
-
-/** New project ③–⑦: who creates it, the story and its draft, the templates. */
-export function getProjectCreate(role: Role) {
-  const creator = me(role);
-  const s = PROJECT_STORY;
-  const draftName = findProject(s.project)?.name ?? '';
-  const tasks = s.phases.reduce((n, p) => n + p.tasks.length, 0);
-  return {
-    creator,
-    helpers: helpers(role),
-    today: today(),
-    story: s.text,
-    draft: {
-      name: draftName,
-      summary: s.summary,
-      dates: `${monthDay(s.start)} – ${longDate(s.end)} (${s.months} months)`,
-      members: `${creator.name} (Manager), ${helpers(role)
-        .map((f) => f.split(' ')[0])
-        .join(', ')}`,
-      count: `${s.phases.length} phases · ${s.phases.length} milestones · ${tasks} tasks`,
-      phases: s.phases,
-    },
-    templates: PROJECT_TEMPLATES.map((t) => ({
-      ...t,
-      meta: `${t.days} days · ${t.phases} phases · ${t.tasks} tasks · ${t.types} task types`,
-    })),
-    template: TEMPLATE_PROJECT,
-  };
-}
-
-/** "Mon, Oct 12, 2026" and the estimated end of a project of `days` days starting then. */
-export const templateDates = (start: string, days: number) => ({
-  start: weekdayLongDate(start),
-  end: `${weekdayLongDate(addDays(start, days))} (${days} days)`,
-});
