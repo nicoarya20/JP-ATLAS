@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Box,
   Group,
   Paper,
   Progress,
@@ -44,7 +45,7 @@ function ActorRow({
       <Progress value={pct} size="xs" radius="xl" />
     </Stack>
   );
-  if (!a.actorId) return <div>{body}</div>;
+  if (!a.actorId) return <Box>{body}</Box>;
   return (
     <UnstyledButton
       onClick={() => onActor(a.actorId as string)}

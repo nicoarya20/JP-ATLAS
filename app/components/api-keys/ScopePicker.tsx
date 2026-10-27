@@ -1,4 +1,4 @@
-import { Badge, Checkbox, Group, Stack, Text, Tooltip } from '@mantine/core';
+import { Badge, Box, Checkbox, Group, Stack, Text, Tooltip } from '@mantine/core';
 import type { ScopeDef } from '~/lib/api-keys-api';
 
 const ROLE_RANK: Record<string, number> = {
@@ -69,7 +69,8 @@ export function ScopePicker({ scopes, value, onChange, ownerRole }: Props) {
             withArrow
             position="top-start"
           >
-            <div>{box}</div>
+            {/* Tooltip needs an element that forwards a ref; a disabled Checkbox does not. */}
+            <Box>{box}</Box>
           </Tooltip>
         );
       })}

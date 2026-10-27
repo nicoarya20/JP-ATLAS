@@ -160,14 +160,15 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
         {rows.map((r) => (
           <Paper key={r.path} withBorder p="sm">
             <Stack gap="xs">
+              {/* `lineClamp` keeps every card the same height (K-5); `title` still reveals the
+                  whole path, and `wordBreak` lets a path with no separators break at all. */}
               <Text
                 ff="monospace"
                 size="sm"
                 fw={500}
-                style={{
-                  // Mantine has no `wordBreak` prop, and this value is a path or key with no spaces to break at.
-                  wordBreak: 'break-all',
-                }}
+                lineClamp={2}
+                title={r.path}
+                style={{ wordBreak: 'break-all' }}
               >
                 {r.path}
               </Text>

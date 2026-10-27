@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Badge,
+  Box,
   Divider,
   Indicator,
   NavLink,
@@ -95,7 +96,8 @@ function CollapsedItem({
       multiline
       maw={280}
     >
-      <div>
+      {/* Tooltip needs an element that forwards a ref; the icon itself may be an Indicator. */}
+      <Box>
         {b ? (
           <Indicator
             color={alert ? (b.color ?? 'red') : 'gray'}
@@ -108,7 +110,7 @@ function CollapsedItem({
         ) : (
           icon
         )}
-      </div>
+      </Box>
     </Tooltip>
   );
 }
@@ -119,7 +121,7 @@ export function NavList({ groups, collapsed, onNavigate }: Props) {
   return (
     <Stack gap={collapsed ? 'xs' : 'md'} component="nav" aria-label="Navigasi utama">
       {groups.map((g, gi) => (
-        <div key={g.label ?? `group-${gi}`}>
+        <Box key={g.label ?? `group-${gi}`}>
           {collapsed
             ? gi > 0 && <Divider mb="xs" />
             : g.label && (
@@ -127,7 +129,7 @@ export function NavList({ groups, collapsed, onNavigate }: Props) {
                   {g.label}
                 </Text>
               )}
-          <Stack gap={collapsed ? 6 : 2}>
+          <Stack gap={collapsed ? 'xs' : 4}>
             {g.items.map((item) => {
               const active = isNavActive(pathname, item);
               if (collapsed)
@@ -168,7 +170,7 @@ export function NavList({ groups, collapsed, onNavigate }: Props) {
               );
             })}
           </Stack>
-        </div>
+        </Box>
       ))}
     </Stack>
   );
