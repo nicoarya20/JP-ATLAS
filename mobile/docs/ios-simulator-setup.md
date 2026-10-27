@@ -32,6 +32,10 @@ Tunggu `bootstatus` selesai sebelum `ios:sim`. Kalau Simulator masih booting, Ex
 
 Claude menjalankan perintah ini di background, lalu membaca `.logs/metro.log` untuk `console.log`, error JS, dan redbox.
 
+### Mode produksi (`ios:sim:prod`)
+
+`bun run ios:sim:prod` sama dengan `ios:sim`, tetapi bundle dibuat tanpa mode dev dan di-minify (`--no-dev --minify`): tanpa warning dan pemeriksaan dev React, sehingga rasanya mendekati rilis. Pakai untuk menilai performa dan tampilan akhir. Tidak ada redbox, LogBox, atau Fast Refresh, dan error JS hanya muncul ringkas di `.logs/metro.log`, jadi untuk debugging kembali ke `ios:sim`. Metro tetap berjalan karena app dimuat Expo Go; hentikan `ios:sim` dulu sebelum menjalankan ini (port 8081 sama).
+
 ## Alat Claude
 
 | Kebutuhan | Perintah |

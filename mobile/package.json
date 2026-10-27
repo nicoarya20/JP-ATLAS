@@ -55,6 +55,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "ios:sim": "mkdir -p .logs && expo start --ios 2>&1 | tee .logs/metro.log",
+    "ios:sim:prod": "mkdir -p .logs && expo start --ios --no-dev --minify 2>&1 | tee .logs/metro.log",
     "web": "expo start --web",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
