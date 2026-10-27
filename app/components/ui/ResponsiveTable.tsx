@@ -46,6 +46,8 @@ export function ResponsiveTable<T>({
   if (rows.length === 0) return <>{empty}</>;
   return (
     <>
+      {/* Mantine has no `overflow` style prop, so this stays a `style`: the table scrolls
+          sideways rather than widening the page (CLAUDE.md mobile §2). */}
       <Box style={{ overflowX: 'auto' }} visibleFrom="sm">
         <Table aria-label={label} highlightOnHover verticalSpacing="sm">
           <Table.Thead>
@@ -76,7 +78,6 @@ export function ResponsiveTable<T>({
             key={getRowKey(row)}
             withBorder
             p="sm"
-            radius="md"
             role="listitem"
             className={cardClassName}
           >

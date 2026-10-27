@@ -28,7 +28,7 @@ export function AntreanWidget({ pending }: { pending: number }) {
     <SectionCard
       title={ANTREAN_COPY.title}
       subtitle={ANTREAN_COPY.subtitle}
-      accent={waiting ? 'yellow' : undefined}
+      accent={waiting ? 'warn' : undefined}
     >
       <Stack gap="sm">
         <Group justify="space-between" wrap="wrap" gap="xs">

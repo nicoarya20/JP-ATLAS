@@ -1,5 +1,5 @@
 /** "List | Grid | Gantt" switch of the project list; the value lives in the URL (`?tampilan=`). */
-import { Center, SegmentedControl } from '@mantine/core';
+import { Group, SegmentedControl } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import { FiBarChart2, FiGrid, FiList } from 'react-icons/fi';
 import { VIEW_SLUGS, type ViewSlug } from '~/lib/projects-filters';
@@ -21,10 +21,10 @@ export function ViewToggle({ value, onChange }: Props) {
         return {
           value: slug,
           label: (
-            <Center title={VIEW_COPY[slug].hint} style={{ gap: 'var(--mantine-spacing-xs)' }}>
+            <Group component="span" gap="xs" justify="center" title={VIEW_COPY[slug].hint}>
               <Icon size="1.25em" aria-hidden />
-              <span>{VIEW_COPY[slug].label}</span>
-            </Center>
+              {VIEW_COPY[slug].label}
+            </Group>
           ),
         };
       })}

@@ -3,7 +3,7 @@ import { Button, Stack, Text } from '@mantine/core';
 import type { Widget } from '@server/home/home.dto';
 import type { ReactNode } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
-import { SectionCard } from '~/components/ui/SectionCard';
+import { type AccentColor, SectionCard } from '~/components/ui/SectionCard';
 import { HOME_COPY } from './home.copy';
 
 /** One refetch for the whole page; every failed card shares it and shows the same spinner. */
@@ -31,7 +31,7 @@ export function WidgetError({ onRetry, retrying }: Retry) {
 type Props<T> = {
   title: string;
   subtitle?: string;
-  accent?: string;
+  accent?: AccentColor;
   widget: Widget<T>;
   retry: Retry;
   children: (data: T) => ReactNode;
