@@ -79,6 +79,8 @@ export function VisitDetailDrawer({ row, onClose, onDelete, deleting }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   size="sm"
+                  // A detail view shows the whole URL (K-5), and Mantine has no `wordBreak` prop;
+                  // a long one has no spaces to wrap at, so it is forced to break.
                   style={{ wordBreak: 'break-all' }}
                 >
                   {row.referer} <FiExternalLink size={11} />
@@ -115,7 +117,9 @@ export function VisitDetailDrawer({ row, onClose, onDelete, deleting }: Props) {
               <Text size="sm" c="dimmed">
                 User agent
               </Text>
-              <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
+              {/* `fz="xs"` is the same 12px off the type scale; the two wrapping rules have no
+                  props, and a user agent must be readable in full here (K-5). */}
+              <Code block fz="xs" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
                 {dash(row.userAgent)}
               </Code>
             </Stack>

@@ -29,9 +29,7 @@ export function VisitCardList({ rows, loading, empty, selected, deletingId, ...h
   }
   if (rows.length === 0)
     return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
+      <Paper withBorder>{empty}</Paper>
     );
 
   return (
@@ -44,25 +42,25 @@ export function VisitCardList({ rows, loading, empty, selected, deletingId, ...h
             key={r.id}
             withBorder
             p="sm"
-            radius="md"
             bg={selected.has(r.id) ? 'var(--mantine-primary-color-light)' : undefined}
             onClick={() => h.onOpen(r)}
+            // No `cursor` style prop in Mantine; the whole card opens the detail drawer.
             style={{ cursor: 'pointer' }}
           >
             <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
               <Checkbox
                 size="sm"
-                mt={2}
+                mt={4}
                 aria-label="Pilih kunjungan"
                 checked={selected.has(r.id)}
                 onChange={() => h.onToggle(r.id)}
                 onClick={(e) => e.stopPropagation()}
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               />
-              <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+              <Stack gap={4} miw={0} flex={1}>
                 <Group gap="xs" wrap="nowrap" align="center">
                   <TypeBadge row={r} size="xs" />
-                  <TruncatedText ff="monospace" size="sm" fw={500} style={{ minWidth: 0 }}>
+                  <TruncatedText ff="monospace" size="sm" fw={500} miw={0}>
                     {r.path}
                   </TruncatedText>
                 </Group>
@@ -84,7 +82,7 @@ export function VisitCardList({ rows, loading, empty, selected, deletingId, ...h
                   h.onDelete(r);
                 }}
                 aria-label="Hapus kunjungan"
-                style={{ flexShrink: 0 }}
+                flex="0 0 auto"
               >
                 <FiTrash2 size={16} />
               </ActionIcon>
