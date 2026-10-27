@@ -36,6 +36,16 @@ describe('Projects list', () => {
     expect(cardIds()).not.toContain('migration');
   });
 
+  it('Clear is drawn at its 24 pt text line and reaches 44 pt through its hitSlop', async () => {
+    await openProjects('/projects');
+    const people = within(screen.getByTestId('project-people'));
+    await fireEvent.press(people.getByRole('button', { name: 'Lea' }));
+    expect(screen.getByRole('button', { name: 'Clear' }).props.hitSlop).toEqual({
+      top: 10,
+      bottom: 10,
+    });
+  });
+
   it('opens a project from its card', async () => {
     await openProjects('/projects');
     await fireEvent.press(screen.getByTestId('project-card-atlas'));
