@@ -110,7 +110,7 @@ export function StackedScreen({
         {pinned ? (
           <StackedPinned progress={fold.pinned}>{pinned}</StackedPinned>
         ) : (
-          <View className="h-3 rounded-t-3xl border-t border-border bg-background" />
+          <View className="h-3 rounded-t-3xl bg-background" />
         )}
         {/* With a pinned row the canvas runs up under its see-through fold, so no seam shows the surface. */}
         <View
