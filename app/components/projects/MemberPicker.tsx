@@ -23,9 +23,9 @@ type Props = {
 
 function PersonLine({ name, jobTitle, image }: Pick<PickerPerson, 'name' | 'jobTitle' | 'image'>) {
   return (
-    <Group gap="sm" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+    <Group gap="sm" wrap="nowrap" miw={0} flex={1}>
       <MemberAvatar name={name} image={image} />
-      <Stack gap={0} style={{ minWidth: 0 }}>
+      <Stack gap={0} miw={0}>
         <Text size="sm" fw={500} truncate>
           {name}
         </Text>

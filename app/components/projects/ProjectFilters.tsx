@@ -89,7 +89,7 @@ export function ProjectFilters({ filters, canSeeAll, onChange }: Props) {
             setSearch(e.currentTarget.value);
             commitSearch(e.currentTarget.value);
           }}
-          style={{ flex: '1 1 16rem' }}
+          flex="1 1 16rem"
         />
         {canSeeAll && (
           <SegmentedControl
@@ -134,7 +134,7 @@ export function ProjectFilters({ filters, canSeeAll, onChange }: Props) {
             onChange={(v) =>
               v && onChange({ [P.sort]: orDefault(v, DEFAULT_PROJECT_FILTERS.urut) })
             }
-            style={{ flex: '0 1 13rem' }}
+            flex="0 1 13rem"
           />
         </Group>
       </Group>

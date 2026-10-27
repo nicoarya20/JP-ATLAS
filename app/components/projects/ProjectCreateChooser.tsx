@@ -37,7 +37,6 @@ function WayCard({ way }: { way: Way }) {
       component="section"
       aria-labelledby={titleId}
       withBorder
-      radius="md"
       p="lg"
       h="100%"
       // The recommended way carries the heavier border the wireframe gives it.
@@ -46,8 +45,11 @@ function WayCard({ way }: { way: Way }) {
       <Stack justify="space-between" h="100%" gap="md">
         <Stack gap="xs">
           <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-            <Title order={4} id={titleId} style={{ minWidth: 0 }}>
+            {/* The handoff defines three heading sizes and no h4; a card title is a section (20 px). */}
+            <Title order={3} id={titleId} miw={0}>
               {way.title}
+              {/* A plain span, not a Box or Text: it is here to hide a decorative glyph from
+                  screen readers, not to lay anything out. */}
               {way.id === 'story' && <span aria-hidden> ✦</span>}
             </Title>
             {way.recommended && (

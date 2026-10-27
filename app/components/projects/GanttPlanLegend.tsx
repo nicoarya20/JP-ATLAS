@@ -7,6 +7,11 @@ import { MILESTONE_SIZE_EM, milestoneStyle, stageStyle } from './gantt-style';
 
 const STAGES: PhaseStatus[] = ['done', 'in_progress', 'not_started'];
 /** Stage swatches use a neutral colour: the legend explains the pattern, the bar colour is the condition. */
+/** Legend swatch sizes, in em so they follow the user's text scale. */
+const SWATCH_WIDTH_EM = '1.5em';
+const SWATCH_HEIGHT_EM = '0.8em';
+const SWATCH_RADIUS_EM = '0.2em';
+
 const SWATCH_COLOR = 'gray';
 
 export function GanttPlanLegend({ layout }: { layout: GanttLayout }) {
@@ -16,30 +21,29 @@ export function GanttPlanLegend({ layout }: { layout: GanttLayout }) {
     <Stack gap={4}>
       <Group gap="md" wrap="wrap" role="group" aria-label={GANTT_PLAN_COPY.legendTitle}>
         {STAGES.map((status) => (
-          <Group key={status} gap={6} wrap="wrap">
+          <Group key={status} gap="xs" wrap="wrap">
             <Box
               aria-hidden
-              style={{
-                width: '1.5em',
-                height: '0.8em',
-                borderRadius: '0.2em',
-                ...stageStyle(status, SWATCH_COLOR),
-              }}
+              w={SWATCH_WIDTH_EM}
+              h={SWATCH_HEIGHT_EM}
+              bdrs={SWATCH_RADIUS_EM}
+              // `stageStyle` paints the fill and edge that say done / running / not started.
+              style={stageStyle(status, SWATCH_COLOR)}
             />
             <Text size="sm">{GANTT_PLAN_COPY.legendStage[status]}</Text>
           </Group>
         ))}
         {([true, false] as const).map((reached) => (
-          <Group key={String(reached)} gap={6} wrap="wrap">
+          <Group key={String(reached)} gap="xs" wrap="wrap">
             <Box
               aria-hidden
-              style={{
-                width: `${MILESTONE_SIZE_EM}em`,
-                height: `${MILESTONE_SIZE_EM}em`,
-                transform: 'rotate(45deg)',
-                margin: '0 0.2em',
-                ...milestoneStyle(reached),
-              }}
+              w={`${MILESTONE_SIZE_EM}em`}
+              h={`${MILESTONE_SIZE_EM}em`}
+              my={0}
+              mx={SWATCH_RADIUS_EM}
+              // A diamond is a square turned 45 degrees; Mantine has no `transform` prop, and
+              // `milestoneStyle` paints reached / not reached.
+              style={{ transform: 'rotate(45deg)', ...milestoneStyle(reached) }}
             />
             <Text size="sm">
               {reached

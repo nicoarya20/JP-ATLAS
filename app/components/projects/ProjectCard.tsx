@@ -59,7 +59,7 @@ export function LeadCell({ project }: { project: ProjectListItem }) {
     );
   }
   return (
-    <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+    <Group gap="xs" wrap="nowrap" miw={0}>
       <AvatarStack members={[project.lead]} />
       <Text size="sm" truncate>
         {project.lead.name}
@@ -75,7 +75,8 @@ export function ProjectNameLink({ project }: { project: ProjectListItem }) {
       to={projectHref(project.id)}
       className={ROW_LINK}
       fw={600}
-      style={{ overflowWrap: 'anywhere' }}
+      // Clamped, not wrapped: every card in the list keeps the same height (K-5).
+      lineClamp={2}
     >
       {project.name}
     </Anchor>
@@ -88,7 +89,7 @@ type Props = { project: ProjectListItem; today: IsoDate };
 export function ProjectCard({ project, today }: Props) {
   return (
     <Stack gap="sm">
-      <Stack gap={6} style={{ minWidth: 0 }}>
+      <Stack gap="xs" miw={0}>
         <ProjectNameLink project={project} />
         <Group gap="xs" wrap="wrap">
           <StatusBadge status={project.status} />

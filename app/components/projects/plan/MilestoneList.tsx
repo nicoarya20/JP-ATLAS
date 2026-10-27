@@ -55,16 +55,17 @@ type RowProps = MilestoneHandlers & {
 function MilestoneRow({ milestone: m, phaseName, today, canManage, busy, ...on }: RowProps) {
   const mine = busy?.id === m.id ? busy.action : null;
   return (
-    <Paper component="li" withBorder p="md" radius="md" data-milestone={m.id}>
+    <Paper component="li" withBorder p="md" data-milestone={m.id}>
       <Stack gap="sm">
-        <Stack gap={4} style={{ minWidth: 0 }}>
+        <Stack gap={4} miw={0}>
           <Group gap="xs" wrap="wrap">
-            <Text fw={600} style={{ overflowWrap: 'anywhere' }}>
+            {/* Clamped, not wrapped: every milestone card keeps the same height (K-5). */}
+            <Text fw={600} lineClamp={2}>
               {m.title}
             </Text>
             <ReachedBadge m={m} overdue={isMilestoneOverdue(m, today)} />
           </Group>
-          <Group gap={6} wrap="wrap" c="dimmed">
+          <Group gap="xs" wrap="wrap" c="dimmed">
             <FiCalendar size="1.25em" aria-hidden />
             <Text size="sm">{PLAN_COPY.due(formatCalendarDate(m.dueDate))}</Text>
           </Group>
@@ -132,8 +133,9 @@ export function MilestoneList({ milestones, phases, today, canManage, busy, onAd
   return (
     <Stack gap="sm" component="section" aria-labelledby="plan-milestones-title">
       <Group justify="space-between" align="flex-start" wrap="wrap">
-        <Stack gap={2} style={{ minWidth: 0 }}>
-          <Title order={3} size="h4" id="plan-milestones-title">
+        <Stack gap={4} miw={0}>
+          {/* The handoff defines three heading sizes and no h4; order={3} is already the 20 px section. */}
+          <Title order={3} id="plan-milestones-title">
             {PLAN_COPY.milestonesTitle}
           </Title>
           <Text size="sm" c="dimmed">

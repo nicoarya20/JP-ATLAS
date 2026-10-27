@@ -20,7 +20,8 @@ export function PhaseList({ phases, canManage, busy, onAdd, ...handlers }: Props
   return (
     <Stack gap="sm" component="section" aria-labelledby="plan-phases-title">
       <Group justify="space-between" align="flex-start" wrap="wrap">
-        <Title order={3} size="h4" id="plan-phases-title">
+        {/* The handoff defines three heading sizes and no h4; order={3} is already the 20 px section. */}
+        <Title order={3} id="plan-phases-title">
           {PLAN_COPY.phasesTitle}
         </Title>
         {canManage && (
@@ -49,7 +50,10 @@ export function PhaseList({ phases, canManage, busy, onAdd, ...handlers }: Props
           component="ol"
           gap="sm"
           aria-label={PLAN_COPY.phasesLabel}
-          style={{ listStyle: 'none', margin: 0, padding: 0 }}
+          m={0}
+          p={0}
+          // Mantine has no `list-style` style prop; `List` would change the markup of the cards.
+          style={{ listStyle: 'none' }}
         >
           {phases.map((phase, index) => (
             <PhaseCard

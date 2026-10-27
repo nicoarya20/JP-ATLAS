@@ -14,6 +14,10 @@ import {
   stageTop,
 } from './gantt-style';
 
+/** A stage piece stays visible even when its phase is a single day. */
+const STAGE_MIN_WIDTH_REM = 0.5;
+const STAGE_RADIUS_EM = '0.2em';
+
 /** Both kinds are links to the project like the bar, so a click on them never "misses" the row. */
 type Props = { href: string };
 
@@ -39,17 +43,16 @@ export function GanttSegments({
             tabIndex={-1}
             aria-label={label}
             title={label}
-            style={{
-              position: 'absolute',
-              left: `${g.leftPct}%`,
-              width: `${g.widthPct}%`,
-              minWidth: scaledRem(0.5),
-              top: stageTop(),
-              height: stageHeight(),
-              borderRadius: '0.2em',
-              zIndex: 1,
-              ...stageStyle(g.status, color),
-            }}
+            pos="absolute"
+            left={`${g.leftPct}%`}
+            w={`${g.widthPct}%`}
+            miw={scaledRem(STAGE_MIN_WIDTH_REM)}
+            top={stageTop()}
+            h={stageHeight()}
+            bdrs={STAGE_RADIUS_EM}
+            // `stageStyle` paints the fill and edge that say done / running / not started, and
+            // Mantine has no `z-index` prop (docs/ui-pola.md §3).
+            style={{ zIndex: 1, ...stageStyle(g.status, color) }}
           />
         );
       })}
@@ -77,12 +80,14 @@ export function GanttMilestones({
             tabIndex={-1}
             aria-label={label}
             title={label}
+            pos="absolute"
+            left={`${m.leftPct}%`}
+            top={milestoneTop(hasStages)}
+            w={`${MILESTONE_SIZE_EM}em`}
+            h={`${MILESTONE_SIZE_EM}em`}
+            // A diamond is a square turned 45 degrees around its own centre; `milestoneStyle`
+            // paints reached / not reached, and Mantine has no `transform` or `z-index` prop.
             style={{
-              position: 'absolute',
-              left: `${m.leftPct}%`,
-              top: milestoneTop(hasStages),
-              width: `${MILESTONE_SIZE_EM}em`,
-              height: `${MILESTONE_SIZE_EM}em`,
               transform: 'translate(-50%, -50%) rotate(45deg)',
               zIndex: 1,
               ...milestoneStyle(m.reached),
