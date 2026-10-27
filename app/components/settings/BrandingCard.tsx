@@ -54,8 +54,9 @@ export function BrandingCard({
   ) => (
     <TextInput
       label={
-        <Group gap={6}>
-          <span>{label}</span>
+        // `component="span"`: this sits inside the input's <label>, which may not hold a div.
+        <Group component="span" gap="xs">
+          {label}
           <OverrideBadge overridden={Boolean(form[key]?.trim())} />
         </Group>
       }

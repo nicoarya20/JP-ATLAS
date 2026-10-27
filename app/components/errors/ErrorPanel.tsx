@@ -1,5 +1,6 @@
 import {
   Anchor,
+  Box,
   Button,
   Code,
   Collapse,
@@ -50,6 +51,9 @@ type Props = {
  * what to do next, a support reference, and actions that actually help
  * (back, reload, home, login). Developer details only in development.
  */
+/** Stack-trace size in px: below the 12px `xs` token, so a long trace fits without scrolling. */
+const STACK_FONT_SIZE = 11;
+
 export function ErrorPanel({
   info,
   homePath = '/',
@@ -81,21 +85,23 @@ export function ErrorPanel({
           <ThemeIcon size={56} radius="md" variant="light" color={color}>
             <Icon size={28} />
           </ThemeIcon>
-          <Text fz={44} fw={800} lh={1} lts={-1} c="dimmed" style={{ opacity: 0.6 }}>
+          <Text fz={44} fw={800} lh={1} lts={-1} c="dimmed" opacity={0.6}>
             {info.status}
           </Text>
         </Group>
-        <div>
+        <Box>
           <Text component="h1" fz="xl" fw={700} lh={1.2} m={0}>
             {info.title}
           </Text>
-          <Text size="sm" c="dimmed" mt={6}>
+          <Text size="sm" c="dimmed" mt={4}>
             {info.description}
           </Text>
           <Text size="sm" mt={4}>
             {info.hint}
           </Text>
-        </div>
+        </Box>
+        {/* No `wordBreak` prop in Mantine; a long path has no spaces, and the reference line is
+            what someone reports to support, so none of it may be cut. */}
         <Text size="xs" c="dimmed" ff="monospace" style={{ wordBreak: 'break-all' }}>
           {pathname}
           {isServer ? ` · ${reference} · ${dateTime(new Date(at).toISOString())}` : ''}
@@ -146,7 +152,9 @@ export function ErrorPanel({
               </Group>
             </Anchor>
             <Collapse expanded={open}>
-              <Code block style={{ fontSize: 11, whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+              {/* `fz`/`ta` are props; the pre-wrap has none and keeps a stack trace's own
+                  line breaks instead of running it into one paragraph. */}
+              <Code block fz={STACK_FONT_SIZE} ta="left" style={{ whiteSpace: 'pre-wrap' }}>
                 {info.detail}
               </Code>
             </Collapse>
