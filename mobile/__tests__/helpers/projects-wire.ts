@@ -19,7 +19,10 @@ import type {
   WireWhoami,
 } from '@/data/projects.api.types';
 
+import type { WireTaskListItem } from '@/data/tasks.api.types';
+
 import { TEST_CLOCK } from './session-fixtures';
+import { wireItem as wireTaskItem } from './tasks-wire';
 
 /** The signed-in account of the project tests; matches APPROVED_USER in session-fixtures. */
 export const ME = { id: 'u-nico', name: 'Nico Arya' };
@@ -183,9 +186,50 @@ export const wireWhoami = (over: Partial<WireWhoami> = {}): WireWhoami => ({
   ...over,
 });
 
-/** An empty task page, for the project's Tasks tab and its three attention queries. */
-export const wireTaskPage = () => ({
-  items: [],
+/**
+ * The project's tasks, as `/api/app/tasks?scope=project&projectId=` answers them.
+ *
+ * The Overview's three attention sections and the Tasks tab all come from that one route, told
+ * apart only by the query string (`due=overdue`, `status=in_review`, `due=today`), so these rows
+ * are picked by the same parameters — see `taskRowsFor` in projects-api-server.ts.
+ */
+export const PROJECT_TASKS: readonly WireTaskListItem[] = [
+  taskItem({
+    id: 't-12',
+    number: 12,
+    title: 'Fix SSO login',
+    status: 'todo',
+    dueDate: '2026-10-05',
+  }),
+  taskItem({
+    id: 't-14',
+    number: 14,
+    title: 'Write the API spec',
+    status: 'in_progress',
+    dueDate: TEST_CLOCK.today,
+  }),
+  taskItem({
+    id: 't-17',
+    number: 17,
+    title: 'Review the onboarding copy',
+    status: 'in_review',
+    dueDate: '2026-10-09',
+  }),
+];
+
+/** One task row of this project, with Atlas as its project and the test's own assignee. */
+export function taskItem(over: Partial<WireTaskListItem> = {}): WireTaskListItem {
+  return {
+    ...wireTaskItem(over),
+    project: { id: 'atlas', name: 'Atlas Project', status: 'active' },
+    assignee: { id: ME.id, name: 'Nico' },
+    ...over,
+  };
+}
+
+/** A page of the project's tasks. */
+export const wireTaskPage = (items: readonly WireTaskListItem[] = []) => ({
+  items: [...items],
   nextCursor: null,
   caps: { createTask: true },
 });

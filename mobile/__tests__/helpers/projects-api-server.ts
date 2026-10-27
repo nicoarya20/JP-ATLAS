@@ -18,10 +18,13 @@ import type {
   WireMemberList,
   WireProjectListItem,
 } from '@/data/projects.api.types';
+import type { WireTaskListItem } from '@/data/tasks.api.types';
 
 import type { AuthReply, AuthRoutes } from './auth-server';
+import { TEST_CLOCK } from './session-fixtures';
 import {
   DEFAULT_MEMBERS,
+  PROJECT_TASKS,
   wireActivity,
   wireDetail,
   wireExtensions,
@@ -121,6 +124,30 @@ export function rowsFor(
   return [...kept].sort((a, b) => (a.dueDate ?? '9999').localeCompare(b.dueDate ?? '9999'));
 }
 
+/**
+ * The project's tasks one request asks for.
+ *
+ * The Overview's three attention sections and the Tasks tab share `/api/app/tasks`, told apart only
+ * by the query string, so this picks the rows the same way `server/metrics/schedule.ts` would:
+ * `due=overdue` and `due=today` against the test clock, `status=` against the row.
+ */
+export function taskRowsFor(
+  url: string,
+  rows: readonly WireTaskListItem[] = PROJECT_TASKS,
+): WireTaskListItem[] {
+  const p = paramsOf(url);
+  const statuses = p.getAll('status');
+  const due = p.get('due');
+  const q = (p.get('q') ?? '').toLowerCase();
+  return rows.filter((r) => {
+    if (statuses.length && !statuses.includes(r.status)) return false;
+    if (due === 'overdue' && !(r.dueDate && r.dueDate < TEST_CLOCK.today)) return false;
+    if (due === 'today' && r.dueDate !== TEST_CLOCK.today) return false;
+    if (q && !r.title.toLowerCase().includes(q) && q !== String(r.number)) return false;
+    return true;
+  });
+}
+
 /** The userId a `/members/:userId` write is addressed to, or null for the list itself. */
 export function memberIdOf(url: string): string | null {
   const after = url.split('/members/')[1];
@@ -139,6 +166,12 @@ type Opts = {
   detail?: Parameters<typeof wireDetail>[0];
   /** The member list every read answers; defaults to the Lead plus one plain member. */
   members?: readonly WireMemberItem[];
+  /** The project's task rows; defaults to the three the Overview's attention sections read. */
+  tasks?: readonly WireTaskListItem[];
+  /** Overrides merged into `GET /projects/:id/plan`, e.g. a `nextMilestone`. */
+  plan?: Parameters<typeof wirePlan>[0];
+  /** Fail `GET /projects/:id` with the server's own sentence, for the retry path. */
+  failDetail?: boolean;
   /**
    * What `/members/:userId` answers. Given the userId in the path, it returns the list the server
    * would answer with — so a test shows the removal or the role change it is asserting.
@@ -157,8 +190,8 @@ export function projectApiRoutes(o: Opts = {}): AuthRoutes {
     '/api/app/whoami': { body: wireWhoami() },
     '/api/app/team/picker': { body: wirePicker() },
     // The project's Tasks tab and its three attention queries all come from /api/app/tasks.
-    '/api/app/tasks': { body: wireTaskPage() },
-    '/plan': { body: wirePlan() },
+    '/api/app/tasks': (url: string) => ({ body: wireTaskPage(taskRowsFor(url, o.tasks)) }),
+    '/plan': { body: wirePlan(o.plan) },
     '/extensions': { body: wireExtensions() },
     '/activity': { body: wireActivity() },
     '/members': (url: string) => {
@@ -173,6 +206,9 @@ export function projectApiRoutes(o: Opts = {}): AuthRoutes {
     '/lead': { body: wireDetail(o.detail) },
     '/api/app/projects?': (url: string) => ({ body: wirePage(rowsFor(url, rows)) }),
     '/api/app/projects/': (url: string) => {
+      if (o.failDetail) {
+        return { status: 500, body: { error: 'Proyek tidak dapat dimuat', code: 'INTERNAL' } };
+      }
       const row = rows.find((r) => r.id === projectIdOf(url));
       // A project that is gone, in the Trash out of reach, or not ours: one 404 by design.
       if (!row) return { status: 404, body: { error: 'Proyek tidak ditemukan', code: 'NOT_FOUND' } };
