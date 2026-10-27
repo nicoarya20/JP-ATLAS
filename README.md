@@ -295,7 +295,7 @@ Sistem role: `member` → `project_manager` → `admin` → `super-admin`. Role 
 |---|---|---|
 | `member` | `/app` | Fitur produk (`/app`), profil, keamanan akun, sesi perangkat, API key pribadi |
 | `project_manager` | `/app` | Sama dengan `member`; kewenangan mengelola proyek menyusul di tahap proyek |
-| `admin` | `/dashboard` | Dashboard dan halaman **Pengguna** (`/dashboard/users`: persetujuan pendaftar, peran Member/Project Manager, blokir, undangan, dan **Ketersediaan**: setel, akhiri, serta baca riwayat cuti seseorang), API key pribadi |
+| `admin` | `/dashboard` | Beranda ringkasan harian (6 widget), **Pengguna** (`/dashboard/users`: persetujuan pendaftar, peran Member/Project Manager, blokir, undangan, dan **Ketersediaan**: setel, akhiri, serta baca riwayat cuti seseorang), **Proyek** (`/dashboard/projects`: semua proyek lintas organisasi + ganti pengelola), **Aktivitas** (`/dashboard/activity`: riwayat audit tersaring, email tersamar), **Peran & izin**, **Ekspor data**, **Pengaturan** (`/dashboard/settings`: Identitas, Pengumuman dan Akses masuk yang kini boleh ditulis Admin, Pemberitahuan, Fitur), API key pribadi |
 | `super-admin` | `/dev` | Overview, users, sessions, posts, DB schema, visitor/login/rate-limit/server/audit logs, file health, tools & MCP, settings |
 
 `super-admin` hanya diberikan lewat `SUPER_ADMIN_EMAILS` **dan** hanya bila email akunnya sudah terverifikasi; email yang cocok tetapi belum terverifikasi tetap berperan sebagai `member`.
@@ -322,6 +322,12 @@ Endpoint admin (`/api/admin`, hanya Admin dan Super-admin; galat berbentuk `{ er
 | `GET /invitations?status=`, `POST /invitations` `{ email, role }`, `DELETE /invitations/:id` | Daftar (`active`, `used`, `expired`, `revoked`), buat, dan cabut undangan |
 | `GET /permissions-matrix` | Matriks peran × kemampuan, baca saja. Dihitung dari `server/permissions.ts` saat diminta, bukan tabel yang disalin, jadi tidak bisa ketinggalan dari aturan yang berlaku |
 | `GET /export/:kind` (`members`, `projects`, `tasks`) | Unduh CSV (`text/csv`, BOM UTF-8, RFC 4180). Di-stream per halaman, tanpa kolom rahasia, item di Sampah tidak ikut. Dibatasi 10 unduhan / 5 menit per akun dan tercatat di audit sebagai `data.export` (jenis + jumlah baris saja) |
+| `GET /overview` | Ringkasan Beranda admin dalam satu panggilan: enam bagian (`Widget { ok }`) yang gagal-lunak sendiri-sendiri — pendaftar menunggu, anggota per peran, proyek per status, tugas lewat tenggat, agenda terdekat, perubahan peran terbaru |
+| `GET /projects?scope=&status=&attention=&sort=&q=&page=` | Semua proyek di organisasi (bukan hanya yang diikuti), berhalaman, nama Pengelola ikut dari join (tanpa N+1); `GET /projects/:id` untuk detail |
+| `PUT /projects/:id/manager` `{ userId }` | Ganti Pengelola proyek ke anggota-manajer yang **sudah ada** di proyek itu (tidak mempromosikan siapa pun); tolak saat menyamar, hormati `canActOnTarget` atas lead lama, audit `project.manager.set`. Hanya sesi — ditolak untuk kunci API apa pun |
+| `GET /activity?category=&from=&to=&page=` | Riwayat audit yang disaring ke aksi yang dipahami admin (persetujuan, peran, setelan, hapus/pulihkan proyek, ekspor); label Indonesia, email pelaku tersamar di server, kolom teknis tidak dikirim. Baca saja, ditolak untuk kunci API |
+
+Setelan organisasi yang kini boleh ditulis **Admin** (selain Super-admin): `PUT /api/settings/branding` (Identitas), `GET/PUT/DELETE /api/settings/announcement` (Pengumuman — banner di semua area yang sudah login), dan `PUT /api/settings/access-policy` (Akses masuk: wajib-setujui, peran bawaan pendaftar yang **tidak boleh** Admin/Super-admin, masa undangan). Menyamar ditolak menulis. Setelan teknis (rate limit, retensi, maintenance) tetap `PUT /api/settings/*` khusus Super-admin.
 
 Google OAuth: set `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`. Authorized redirect URI di Google Console: `${BETTER_AUTH_URL}/api/auth/callback/google`.
 
