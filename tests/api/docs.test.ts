@@ -7,20 +7,22 @@ import { devApiDocs } from '../../server/api/docs';
  * guarantee of this feature, so it is asserted here directly and again by the
  * production smoke test. Routes mirror the real API's /api prefix.
  */
-function buildApp(prod: boolean) {
+type Handler = { handle: (req: Request) => Promise<Response> };
+
+function buildApp(prod: boolean): Handler {
   return new Elysia({ prefix: '/api' })
     .get('/sample', () => ({ ok: true }))
     .get('/mcp', () => ({ ok: true })) // excluded from the spec
-    .use(devApiDocs(prod));
+    .use(devApiDocs(prod)) as unknown as Handler;
 }
 
-async function get(app: Elysia<never>, path: string) {
+async function get(app: Handler, path: string) {
   return app.handle(new Request(`http://localhost${path}`));
 }
 
 describe('dev-only Scalar docs (/api/docs)', () => {
   it('serves the Scalar UI as HTML in development', async () => {
-    const res = await get(buildApp(false) as Elysia<never>, '/api/docs');
+    const res = await get(buildApp(false), '/api/docs');
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toContain('text/html');
     const body = await res.text();
@@ -28,7 +30,7 @@ describe('dev-only Scalar docs (/api/docs)', () => {
   });
 
   it('serves an OpenAPI 3 spec of the whole API in development', async () => {
-    const res = await get(buildApp(false) as Elysia<never>, '/api/docs/json');
+    const res = await get(buildApp(false), '/api/docs/json');
     expect(res.status).toBe(200);
     const spec = (await res.json()) as {
       openapi: string;
@@ -47,12 +49,12 @@ describe('dev-only Scalar docs (/api/docs)', () => {
 
   it('is reachable without an API key (no 401/403) in development', async () => {
     // No key header is sent, so a 200 proves the docs need no credentials.
-    const res = await get(buildApp(false) as Elysia<never>, '/api/docs');
+    const res = await get(buildApp(false), '/api/docs');
     expect(res.status).toBe(200);
   });
 
   it('does not exist in production: /api/docs → 404', async () => {
-    const app = buildApp(true) as Elysia<never>;
+    const app = buildApp(true);
     expect((await get(app, '/api/docs')).status).toBe(404);
     expect((await get(app, '/api/docs/json')).status).toBe(404);
   });
