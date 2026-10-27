@@ -81,3 +81,27 @@ export async function upsertAnnouncement(input: Announcement | null): Promise<An
   await upsertSettingsRow({ announcement: input ? normalizeAnnouncement(input) : null });
   return parseAnnouncement(await readSettingsRow());
 }
+
+/** What the app shell renders: text + tone, plus whether this reader is allowed to close it. */
+export type ShellAnnouncement = { text: string; level: AnnouncementLevel; dismissible: boolean };
+
+/**
+ * Resolve the banner for `frameInfo()`: inactive or absent announcements become `null` here, so
+ * the shell never has to know the difference. `dismissible` is decided on the server because the
+ * reader's clock is not a fact we control — a phone one day behind must not be able to close a
+ * notice the office decided is unmissable.
+ */
+export function shellAnnouncement(
+  a: Announcement | null,
+  now: Date = new Date(),
+): ShellAnnouncement | null {
+  if (!a?.active) return null;
+  const until = a.dismissibleUntil ? new Date(a.dismissibleUntil) : null;
+  const dismissible = !until || Number.isNaN(until.getTime()) || now.getTime() <= until.getTime();
+  return { text: a.text, level: a.level, dismissible };
+}
+
+/** The banner the signed-in areas show, already filtered and resolved. */
+export async function getShellAnnouncement(): Promise<ShellAnnouncement | null> {
+  return shellAnnouncement(await getAnnouncement());
+}

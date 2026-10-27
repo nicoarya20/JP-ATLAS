@@ -1,6 +1,10 @@
 /** Build/runtime facts shown in the console shell (version from package.json, environment). */
 import pkg from '../package.json' with { type: 'json' };
 import { env } from './env';
+import {
+  getShellAnnouncement,
+  type ShellAnnouncement,
+} from './settings-announcement';
 import { type Branding, getBranding } from './settings-branding';
 import { getMaintenance } from './settings-maintenance';
 
@@ -12,10 +16,27 @@ export function versionInfo() {
   return { name: APP_NAME, version: APP_VERSION, env: env.NODE_ENV, bun: Bun.version };
 }
 
-export type FrameInfo = { env: string; version: string; branding: Branding; maintenance: boolean };
+export type FrameInfo = {
+  env: string;
+  version: string;
+  branding: Branding;
+  maintenance: boolean;
+  /** Office-wide banner for the signed-in areas; NULL = nothing to show (AD-05). */
+  announcement: ShellAnnouncement | null;
+};
 
 /** Shell facts for every layout loader: environment, version, branding, maintenance state. */
 export async function frameInfo(): Promise<FrameInfo> {
-  const [branding, maintenance] = await Promise.all([getBranding(), getMaintenance()]);
-  return { env: env.NODE_ENV, version: APP_VERSION, branding, maintenance: maintenance.enabled };
+  const [branding, maintenance, announcement] = await Promise.all([
+    getBranding(),
+    getMaintenance(),
+    getShellAnnouncement(),
+  ]);
+  return {
+    env: env.NODE_ENV,
+    version: APP_VERSION,
+    branding,
+    maintenance: maintenance.enabled,
+    announcement,
+  };
 }
