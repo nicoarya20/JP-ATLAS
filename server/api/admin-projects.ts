@@ -48,7 +48,9 @@ export const adminProjectsApi = new Elysia({ prefix: '/projects' })
         scope: 'all',
         status: toStatus(query.status),
         q: query.q?.trim().slice(0, SEARCH_MAX_LENGTH) || undefined,
-        sort: toSort(query.sort),
+        // Default "recently updated": the Admin's question is "what is running now", and it keeps
+        // the SSR page and a client refetch (which omits the default sort) ordering the list alike.
+        sort: toSort(query.sort) ?? 'recent',
         limit,
         offset,
         now: new Date(),
