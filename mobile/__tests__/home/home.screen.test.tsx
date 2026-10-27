@@ -57,10 +57,13 @@ describe('HomeScreen · Project Manager', () => {
     }
   });
 
-  test('My Focus groups my tasks and shows status where Done is not allowed', async () => {
+  test('My Focus groups my tasks; where Done is not allowed the status sits in the sub line, not a pill', async () => {
     await renderHome('pm');
     expect(screen.getByText('#12 Fix SSO login')).toBeTruthy();
-    expect(screen.getByText('In progress')).toBeTruthy();
+    expect(screen.getByText('Atlas Project · 2 days overdue · In progress')).toBeTruthy();
+    expect(screen.queryByText('In progress')).toBeNull();
+    // A row with Done keeps the plain sub line: the status only stands in for a missing action.
+    expect(screen.getByText('Atlas Project · Today')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Done: Write the API spec' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Done: Fix SSO login' })).toBeNull();
     expect(screen.getByText('Awaiting your review')).toBeTruthy();
@@ -166,7 +169,7 @@ describe('HomeScreen · Member', () => {
       'Inbox, 3 to respond',
     ]);
     expect(screen.getByText('#17 Fix the save button on the profile page')).toBeTruthy();
-    expect(screen.getByText('In review')).toBeTruthy();
+    expect(screen.getByText(/ · In review$/)).toBeTruthy();
     expect(screen.queryByText(/^Done: /)).toBeNull();
     expect(screen.queryByText('Awaiting your review')).toBeNull();
     expect(screen.getAllByRole('button', { name: /\?$/ })).toHaveLength(2);

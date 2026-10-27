@@ -4,7 +4,6 @@ import { StatusPill } from '@/components/status/status-pill';
 import { Box } from '@/components/ui/box';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
-import { VStack } from '@/components/ui/vstack';
 import type { HomeData } from '@/data/home.types';
 
 import { S } from '../home.strings';
@@ -48,14 +47,8 @@ export function AgendaSection({ agenda, onOpen }: AgendaSectionProps) {
           title={p.name}
           onPress={() => onOpen(projectHref(p.id))}
           right={<StatusPill status={p.status} />}
-          sub={
-            <VStack className="gap-1">
-              <Text className="text-footnote text-muted-foreground">
-                {S.agenda.projectSub(p.lead, p.due)}
-              </Text>
-              <ProjectProgress value={p.progress} />
-            </VStack>
-          }
+          sub={S.agenda.projectSub(p.lead, p.due)}
+          below={<ProjectProgress value={p.progress} />}
         />
       ))}
     </SectionCard>

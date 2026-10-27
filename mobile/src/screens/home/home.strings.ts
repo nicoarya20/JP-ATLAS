@@ -68,6 +68,9 @@ export const S = {
       `See all tasks (${open})${review ? ` · ${review} awaiting review` : ''}`,
     taskTitle: (no: number, title: string) => `#${no} ${title}`,
     taskSub: (project: string, when: string) => `${project} · ${when}`,
+    /** A row without its own action carries its status here, so the right column only ever holds buttons. */
+    taskSubStatus: (project: string, when: string, status: string) =>
+      `${project} · ${when} · ${status}`,
   },
   ask: {
     title: 'Ask Data',

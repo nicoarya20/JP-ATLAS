@@ -1,4 +1,3 @@
-import { StatusPill } from '@/components/status/status-pill';
 import { Button, ButtonText } from '@/components/ui/button';
 import type { FocusTask } from '@/data/home.types';
 
@@ -14,7 +13,11 @@ type FocusRowProps = {
   action?: { label: string; primary: boolean };
 };
 
-/** A task row of My Focus: opens the task; on the right Done, the task's status, or the given action. */
+/**
+ * A task row of My Focus: opens the task. The right column holds only actions (Review, or Done when the task needs no
+ * review); a row without one shows its status in the sub line instead of a pill, so buttons and pills never share the
+ * column. Review rows say "Awaiting my review" already, so they skip the status.
+ */
 export function FocusRow({ task, onOpen, onDone, action }: FocusRowProps) {
   const right = action ? (
     <Button size="sm" variant={action.primary ? 'default' : 'outline'} onPress={onOpen}>
@@ -29,14 +32,16 @@ export function FocusRow({ task, onOpen, onDone, action }: FocusRowProps) {
     >
       <ButtonText>{S.focus.done}</ButtonText>
     </Button>
-  ) : (
-    <StatusPill status={task.status} />
-  );
+  ) : undefined;
+  const sub =
+    action || task.canMarkDone
+      ? S.focus.taskSub(task.project, task.when)
+      : S.focus.taskSubStatus(task.project, task.when, task.status);
   return (
     <ListRow
       soft
       title={S.focus.taskTitle(task.no, task.title)}
-      sub={S.focus.taskSub(task.project, task.when)}
+      sub={sub}
       right={right}
       onPress={onOpen}
     />
