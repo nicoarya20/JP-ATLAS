@@ -56,6 +56,13 @@ export function hasActiveAdminProjectFilters(f: AdminProjectFilters): boolean {
 export const fetchAdminProjects = (p: AdminProjectsParams) =>
   request<AdminProjectsResponse>(`${BASE}?${buildAdminProjectsQuery(p)}`);
 
+/** A candidate Pengelola for a project: an existing manager other than the current lead (AD-13 A). */
+export type ManagerCandidate = { userId: string; name: string };
+export type ProjectManagersResponse = { managers: ManagerCandidate[] };
+
+export const fetchProjectManagers = (projectId: string) =>
+  request<ProjectManagersResponse>(`${BASE}/${encodeURIComponent(projectId)}/managers`);
+
 /**
  * Hand a project to another Pengelola (AD-13). Session only — `PM_KEY_DENY` refuses any API key —
  * so this always rides the browser session's cookie.

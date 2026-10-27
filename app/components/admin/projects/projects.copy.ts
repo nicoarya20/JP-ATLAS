@@ -47,8 +47,8 @@ export const MANAGER_COPY = {
   changeButton: 'Ganti Pengelola',
   confirmLabel: 'Ganti Pengelola',
   pickerLabel: 'Pengelola baru',
-  pickerPlaceholder: 'Pilih orang',
-  noCandidates: 'Tidak ada kandidat pengelola lain di proyek ini.',
+  pickerPlaceholder: 'Pilih anggota-manajer',
+  noCandidates: 'Tidak ada anggota-manajer lain untuk dijadikan pengelola.',
   success: (name: string) => `${name} sekarang Pengelola proyek ini.`,
   failed: 'Gagal mengganti Pengelola. Coba lagi.',
 } as const;

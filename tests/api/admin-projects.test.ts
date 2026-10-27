@@ -87,3 +87,42 @@ describe('GET /admin/projects', () => {
     expect(second.body.items).toHaveLength(1);
   });
 });
+
+describe('GET /admin/projects/:id/managers (AD-13 picker candidates)', () => {
+  it('lists the project managers except the current lead, with their names', async () => {
+    const admin = await f.user({ role: 'admin' });
+    const lead = await f.user({ role: 'project_manager' });
+    const coManager = await f.user({ role: 'project_manager', name: 'Rina' });
+    const plainMember = await f.user({ role: 'member' });
+    const p = await f.project({
+      lead,
+      members: [
+        [coManager, 'manager'],
+        [plainMember, 'member'],
+      ],
+    });
+
+    auth.as(admin);
+    const res = await call('GET', `${BASE}/${p.id}/managers`);
+    expect(res.status).toBe(200);
+    // Only the co-manager: the lead is excluded (they already have it) and a plain member is not eligible.
+    expect(res.body.managers).toEqual([{ userId: coManager.id, name: 'Rina' }]);
+  });
+
+  it('returns an empty list when the lead is the only manager (no promotion path, AD-13 A)', async () => {
+    const admin = await f.user({ role: 'admin' });
+    const lead = await f.user({ role: 'project_manager' });
+    const p = await f.project({ lead });
+
+    auth.as(admin);
+    const res = await call('GET', `${BASE}/${p.id}/managers`);
+    expect(res.status).toBe(200);
+    expect(res.body.managers).toEqual([]);
+  });
+
+  it('answers 404 for a project that does not exist', async () => {
+    const admin = await f.user({ role: 'admin' });
+    auth.as(admin);
+    expectApiError(await call('GET', `${BASE}/nope-nope/managers`), 404, 'NOT_FOUND');
+  });
+});

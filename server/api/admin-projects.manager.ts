@@ -59,14 +59,13 @@ export async function setProjectManagerByAdmin(
     if (!target) return { ok: false, code: 'NOT_FOUND' };
     if (row.leadId === userId) return { ok: true, value: { id: row.id, from: row.leadId, to: userId } };
 
-    // --- ELIGIBILITY BRANCH (AD-13 A vs B) — pending the user's decision via the coordinator. ---
-    // DEFAULT = option A (conservative, adds no new Admin power): the new Pengelola must already be
-    // a manager-member of this project, exactly as the product's own lead handover requires. If the
-    // user picks option B (Admin may promote any eligible user), replace this block with an upsert
-    // of `projectMember(projectId, userId, 'manager')` before the update below.
+    // The new Pengelola must already be a manager-member of this project — the same rule as the
+    // product's own lead handover (`canSetLead`), kept deliberately (user decision, AD-13 option A):
+    // the Admin menu never promotes anyone, so a project with no other manager simply has no
+    // candidate (AD-17 covers the sole-manager case, not this route). Enforced here too, not only in
+    // the picker, so a stale picker cannot smuggle in a non-manager.
     const role = await managerRoleOf(tx, projectId, userId);
     if (role !== 'manager') return { ok: false, code: role ? 'LEAD_MUST_BE_MANAGER' : 'NOT_MEMBER' };
-    // --- END ELIGIBILITY BRANCH ---
 
     await tx.update(project).set({ leadId: userId }).where(eq(project.id, row.id));
     await logActivity(tx, admin, row.id, 'lead_changed', { from: row.leadId, to: userId });

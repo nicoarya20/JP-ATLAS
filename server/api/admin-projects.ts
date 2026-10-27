@@ -6,7 +6,9 @@
  */
 import { Elysia, t } from 'elysia';
 import { PROJECT_STATUSES, type ProjectStatus } from '../pm/enums';
-import { listProjects, PROJECT_SORTS, type ProjectSort } from '../project/project.query';
+import { listProjectMembers, listProjects, PROJECT_SORTS, type ProjectSort } from '../project/project.query';
+import { fail } from '../pm/respond';
+import { IdParam } from './app-common';
 import { parsePaging } from './analytics-paging';
 import { adminContext, callerOf } from './admin-context';
 import { adminProjectsManagerApi } from './admin-projects.manager';
@@ -59,6 +61,25 @@ export const adminProjectsApi = new Elysia({ prefix: '/projects' })
       return { items, total, page, limit };
     },
     { query: ListQuery },
+  )
+  /**
+   * Candidates for Ganti Pengelola: the project's managers except the current lead (AD-13 option A —
+   * no promotion). Reuses `listProjectMembers`, so the eligibility shown matches what the write
+   * enforces. An empty list means the drawer shows an honest "no other manager" state.
+   */
+  .get(
+    '/:id/managers',
+    async (ctx) => {
+      const { params, status } = ctx;
+      const { principal } = callerOf(ctx);
+      const members = await listProjectMembers(principal, params.id);
+      if (!members) return fail(status, 'NOT_FOUND');
+      const managers = members
+        .filter((m) => m.role === 'manager' && !m.isLead)
+        .map((m) => ({ userId: m.userId, name: m.name }));
+      return { managers };
+    },
+    { params: IdParam },
   )
   .use(adminProjectsManagerApi);
 

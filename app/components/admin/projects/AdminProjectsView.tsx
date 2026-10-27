@@ -135,7 +135,16 @@ export function AdminProjectsView({ first, loadedAt, renderManagerAction }: Prop
       <ProjectDrawer
         item={open}
         onClose={() => setOpen(null)}
-        footer={open && renderManagerAction ? renderManagerAction(open, () => query.refetch()) : null}
+        footer={
+          open && renderManagerAction
+            ? renderManagerAction(open, () => {
+                // A handover changes the lead on the open row, so close the drawer (its data would
+                // be stale) and refresh the table.
+                setOpen(null);
+                void query.refetch();
+              })
+            : null
+        }
       />
     </Stack>
   );

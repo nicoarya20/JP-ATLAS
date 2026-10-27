@@ -4,6 +4,7 @@ import { ROLES } from '@server/permissions';
 import { toPrincipal } from '@server/project/membership.query';
 import { listProjects } from '@server/project/project.query';
 import { AdminProjectsView } from '~/components/admin/projects/AdminProjectsView';
+import { ChangeManagerPanel } from '~/components/admin/projects/ChangeManagerPanel';
 import { ADMIN_PROJECTS_COPY } from '~/components/admin/projects/projects.copy';
 import { PageHeader } from '~/components/ui/PageHeader';
 import { ADMIN_PROJECTS_LIMIT, type AdminProjectsResponse } from '~/lib/admin-projects-api';
@@ -41,7 +42,11 @@ export default function AdminProjectsPage({ loaderData }: Route.ComponentProps) 
         title={ADMIN_PROJECTS_COPY.title}
         description={ADMIN_PROJECTS_COPY.description}
       />
-      <AdminProjectsView first={loaderData.first} loadedAt={loaderData.loadedAt} />
+      <AdminProjectsView
+        first={loaderData.first}
+        loadedAt={loaderData.loadedAt}
+        renderManagerAction={(item, onDone) => <ChangeManagerPanel project={item} onDone={onDone} />}
+      />
     </Stack>
   );
 }
