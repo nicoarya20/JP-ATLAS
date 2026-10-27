@@ -119,10 +119,19 @@ beberapa baris di sini, karena satu GAP menyentuh beberapa kontrol.
 | **Lead** proyek di baris agenda ("Lead Nico · Due Oct 31") | Beranda | Home A-11 | `HomeProject` tidak punya lead | **disembunyikan** (`src/data/home.focus.ts`, `src/screens/home/sections/agenda.section.tsx`) |
 | Pil **status siklus hidup** proyek ("Active"/"Done") di baris agenda | Beranda | Home A-12 | Payload home mengirim `condition` + `reason` (kesehatan), bukan status. Diganti pil `condition` + alasannya, bukan dihilangkan | **diganti** (`src/screens/home/parts/condition-pill.tsx`) |
 | Kolom tanya bebas Ask Data ("Type or say a question…") + tombol **Ask** | Beranda | — (bukan GAP yang ditunda: `server/home/home.ask.ts` memang hanya menjawab 3 pertanyaan tetap, tanpa LLM) | Kolom yang tampak bisa ditanyai apa saja adalah janji yang tidak ada yang menepati | **disembunyikan** (`src/screens/home/sections/ask.section.tsx`: tiga pil pertanyaan + jawabannya) |
-| Catatan gelembung di Profil (`note`) | Profil | Home A-21 | Tidak ada kolom maupun bidang di `ProfileView` | rencana |
-| Presence **Online/Offline** dan klaim "Teammates see you as Online" | Profil | Home A-22 | Tidak ada presence di server. Menampilkannya sebagai lokal = klaim palsu | rencana |
-| Satu switch "Mute notifications" | Profil | Home A-23 | Server punya **dua** switch dan kartu `action` tidak bisa dibisukan; satu switch akan bohong | rencana |
-| Baris fakta "Account role" untuk non-Admin | Tim person | Home A-19 | Server sengaja tidak mengirimnya (privasi) → sembunyikan saat kuncinya absen | rencana |
+| Catatan gelembung di Profil (`note`) | Profil | Home A-21 | Tidak ada kolom maupun bidang di `ProfileView` | **disembunyikan** (`src/screens/profile/profile-hero.tsx`; `profile-note.tsx` + `src/data/profile.store.ts` dihapus — catatan yang hanya hidup di satu ponsel bukan catatan profil) |
+| Presence **Online/Offline** dan klaim "Teammates see you as Online" | Profil | Home A-22 | Tidak ada presence di server. Menampilkannya sebagai lokal = klaim palsu | **disembunyikan** (`src/screens/profile/profile.screen.tsx`, `profile-hero.tsx`: titik presence, switch "Show me as online" dan barisnya dicabut) |
+| Satu switch "Mute notifications" | Profil | Home A-23 | Server punya **dua** switch dan kartu `action` tidak bisa dibisukan; satu switch akan bohong | **diganti** (`src/screens/profile/profile.screen.tsx`: dua switch `eventReminder`/`inboxNews` dari `GET/PUT /api/app/profile/notifications`, plus catatan bahwa kartu yang butuh jawaban selalu datang) |
+| Baris fakta "Account role" untuk non-Admin | Tim person | Home A-19 | Server sengaja tidak mengirimnya (privasi) → sembunyikan saat kuncinya absen | **disembunyikan** (`src/data/team.person.ts`: barisnya hanya dibuat kalau kunci `accountRole` ada) |
+| Pil hijau **"Available"** di baris Tim dan di Tim person | Tim | **G2-TPA1 (baru)** | `availability: null` berarti "tidak ada yang perlu ditampilkan", **bukan** "sedang ada" (`server/team/team.dto.ts`), dan catatan cuti Admin sengaja tidak dikirim (P14 D6). Mengarang "Available" dari kunci kosong = app ini menyatakan hal yang server menolak menyatakannya | **disembunyikan** (`src/data/team.ts` `availabilityText()`, `src/screens/team/person-row.tsx`: cuti tampil muted, selain itu baris statusnya tidak ada) |
+| Pemilih **All projects** di daftar Tim | Tim | **G2-TPA2 (baru)** | `?projectId=` ada di server, tapi daftar proyek mobile masih data contoh dan id-nya bukan id server → daftar kosong tanpa sebab yang terlihat. Sama dengan G1-T1 di tab Tugas; hidup lagi begitu modul Proyek memakai `/api/app/projects` | **disembunyikan** (`src/screens/team/team.screen.tsx`: pemilihnya dicabut; pemilih Sort yang dulu dekoratif justru **diaktifkan** jadi `?sort=`) |
+| Jumlah **active/overdue** di baris ringkasan Tim setelah "Load more" | Tim | **G2-TPA3 (baru)** | `summary.active/overdue` menjumlahkan **satu halaman**, bukan seluruh tim (`server/team/team.dto.ts`). Setelah halaman kedua, angka yang ada hanya menggambarkan halaman terakhir | **disembunyikan sebagian** (`src/data/team.ts` `summaryLine()`: dua angka itu hanya tampil kalau satu halaman = seluruh tim) |
+| Daftar **nama proyek** yang tidak dibagi di Tim person (`tasks.hidden`) | Tim person | Home A-17 | Nama proyek sengaja tidak dikirim (privasi D10); hanya `alsoElsewhere` yang datang | **diganti** (`src/data/team.person.ts` `elsewhere`: kalimat tanpa nama proyek) |
+| Garis merah **"now"** di grid jam My calendar | Profil kalender | **G2-TPA4 (baru)** | `SessionClock` hanya membawa **tanggal** dan zona, tidak ada instan; garisnya dulu dipatok 9:41 data contoh. Garis di menit karangan dibaca sebagai jam sekarang — lebih buruk daripada tidak ada garis. Butuh `now` di fondasi jam (lihat serah-terima §5) | **disembunyikan** (`src/screens/profile/day-grid.tsx`, `src/data/profile.calendar.dates.ts`: `NOW_MIN` dan `clock()` dihapus) |
+| **Pengulangan** acara di My calendar ("every N weeks") | Profil kalender | Events (kelompok B, K6) | Recurrence ditunda di server, jadi klien tidak punya apa pun untuk dikembangkan; `repeatDays()`/`occursOn()` yang mengembangkannya sendiri jadi kode mati | **disembunyikan** (`src/data/profile.calendar.dates.ts`: sebuah acara jatuh di harinya sendiri dan tidak di hari lain) |
+| Bidang `textSize` dari `/api/app/profile` | Profil | B-18 (belum dipakai, bukan ditunda) | Skala teks pengguna di app ini dipegang cookie `mk-text-size`-nya sendiri; menyelaraskan keduanya adalah pekerjaan tersendiri | belum dipakai (`src/data/profile.api.ts`: ada di tipe kabel, tidak dibaca) |
+| **Hapus akun** (`GET /api/app/profile/delete-check`) | Profil | B-19 (belum ada layarnya) | Mobile tidak punya layar hapus akun di Fase 1, jadi tidak ada kontrol yang disembunyikan — hanya endpoint yang belum dipakai | belum dipakai |
+| **Change photo** (`POST/DELETE /api/app/avatar`) | Profil | B-19 | Endpoint sudah ada, UI-nya belum pernah ada di layar Profil mobile (hanya disebut di peta) | belum dipakai |
 
 ---
 
@@ -194,6 +203,35 @@ membaca `respondCards().length` (lewat `getProfile`, berkas milik Gelombang 2), 
 `inbox/count.action`. Untuk >25 kartu terbuka angkanya jadi kurang. Satu baris di
 `src/data/profile.ts` (`inbox: inboxActionCount() ?? 0`) membereskannya; tidak saya kerjakan karena
 berkas itu di luar wilayah saya.
+
+### 4.6 `archive.store.ts` masih ditulis modul lain, tapi tidak dibaca layar Arsip lagi
+
+Layar Arsip membaca `GET /api/app/trash`. `src/data/archive.store.ts` (store contoh) **tetap ada**
+karena `tasks.store.ts`, `projects.store.ts` dan `events.store.ts` memanggil `addEntry`/`removeEntry`
+untuk Undo lokal mereka — tiga berkas milik worker lain. Akibatnya: mengarsipkan sebuah proyek atau
+acara lewat jalur yang masih memakai store contoh **tidak menambah kartu** di layar Arsip, dan
+sebaliknya memulihkan dari Arsip tidak menghapus entri store contoh.
+
+**Siapa yang menutupnya:** worker yang memindahkan Proyek dan Acara ke tulisan server (Acara sudah
+memakai `DELETE /api/app/events/:id` di Gelombang 1, jadi yang tersisa Proyek dan Tugas). Begitu
+tidak ada lagi pemanggil `addEntry`, hapus `archive.store.ts` dan `sample/archive.ts`.
+
+### 4.7 Daftar Proyek belum ikut di-invalidate oleh restore/purge Sampah
+
+`src/data/archive.api.ts` `touched()` menyebut Sampah, Beranda, daftar Acara dan daftar Tugas, tapi
+**tidak** daftar Proyek: modul Proyek dipindah ke API di gelombang yang sama, jadi belum ada
+resource yang bisa disebut (pola yang sama dengan `KNOWN GAP` di `home.actions.ts`).
+**Saat cabang ini dan cabang Proyek di-merge: tambahkan resource daftar proyek ke `touched()`.**
+Sampai itu, memulihkan sebuah proyek benar di layar Arsip, tapi layar Proyek yang masih terpasang
+tetap menampilkan baris lamanya (§2 dokumen pola).
+
+### 4.8 Form "Edit profile" masih data contoh
+
+`src/screens/settings/profile-edit.screen.tsx` dan `src/data/settings.ts` ada di area **Settings**,
+bukan wilayah gelombang ini, jadi formnya masih mengisi dirinya dari `me(role)` data contoh dan
+tidak memanggil `PATCH /api/app/profile`. Pemetaannya 1:1 dan sudah ditulis di
+`phase2-map-home-inbox-team.md` §1.6. Akibatnya **kelihatan**: modal Profil menampilkan data server,
+tombol "Edit profile" membuka form berisi nama data contoh. Perlu satu pekerjaan Settings.
 
 ### 4.5 `role` sudah tidak dipakai Beranda dan Inbox
 

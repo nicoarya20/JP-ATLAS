@@ -1,5 +1,9 @@
-// My calendar day grid (prototype profile.calendar.jsx DayGrid): 24 hour rows, my events as blocks placed by their
-// start and end, and on today a red now line at the sample clock. Opens scrolled near the first thing to see.
+// My calendar day grid: 24 hour rows and my events as blocks placed by their start and end, opened
+// scrolled near the first thing to see.
+//
+// The prototype's red "now" line is gone: it sat at the sample's frozen 9:41, and the server's
+// clock gives this app today's date and the team's zone but no instant to put a line at. A line
+// drawn at a made-up minute reads as the time, which is worse than none.
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ScrollView, type ScrollViewInstance, View } from 'react-native';
@@ -8,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import type { CalendarBlock, CalendarTone } from '@/data/profile';
-import { clock, HOUR_PX, hourLabel, NOW_MIN } from '@/data/profile.calendar.dates';
+import { HOUR_PX, hourLabel } from '@/data/profile.calendar.dates';
 
 import { type BlockSlop, blockSlops } from './day-grid.slop';
 
@@ -58,7 +62,6 @@ function Block({ b, slop }: { b: CalendarBlock; slop: BlockSlop }) {
 
 type DayGridProps = {
   blocks: CalendarBlock[];
-  today: boolean;
   /** Where to open; a new day jumps there without animation. */
   scrollY: number;
   /** The picked day, so a change scrolls again. */
@@ -66,7 +69,7 @@ type DayGridProps = {
 };
 
 /** The scrolling hours of one day. */
-export function DayGrid({ blocks, today, scrollY, day }: DayGridProps) {
+export function DayGrid({ blocks, scrollY, day }: DayGridProps) {
   const scroll = useRef<ScrollViewInstance>(null);
   const bottom = useSafeAreaInsets().bottom;
   const slops = blockSlops(blocks.map(spanOf), HOURS.length * HOUR_PX);
@@ -99,23 +102,6 @@ export function DayGrid({ blocks, today, scrollY, day }: DayGridProps) {
             <Block key={b.id} b={b} slop={slops[i]} />
           ))}
         </View>
-        {today && (
-          <View
-            testID="now-line"
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={{ top: px(NOW_MIN) }}
-            className="absolute left-0 right-0 flex-row items-center"
-          >
-            <Text
-              style={{ width: GUTTER_PX }}
-              className="-mt-px pr-2 text-right text-footnote font-semibold text-destructive"
-            >
-              {clock(NOW_MIN)}
-            </Text>
-            <View className="h-0.5 flex-1 bg-destructive" />
-          </View>
-        )}
       </View>
     </ScrollView>
   );

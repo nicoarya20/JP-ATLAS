@@ -1,5 +1,6 @@
-// Archive ④ Delete forever (Admin; prototype archive.delete.jsx) as a formSheet: what goes, that it cannot be undone,
-// and T3 — the button unlocks once the item's name is typed exactly.
+// Archive ④ Delete forever as a formSheet: what goes, that it cannot be undone, and T3 — the button
+// unlocks once the item's name is typed exactly. Who may do it is the item's own `can.purge`
+// (Admin and Super-admin), not a role test of this app's own.
 import { router } from 'expo-router';
 import { useState } from 'react';
 
@@ -11,23 +12,20 @@ import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { deleteForever, getArchiveDelete } from '@/data/archive';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { allowedScreen } from '@/navigation/screen-roles';
 
 import { DELETE_FOREVER } from './archive.strings';
 
-const note = <Text className="rounded-card bg-muted p-3 text-footnote">{DELETE_FOREVER.note}</Text>;
-
 const errorText = (e: unknown) => DELETE_FOREVER.failed(e instanceof Error ? e.message : String(e));
 
-/** Delete entry `entryKey` forever. role: who is signed in (K12); only an Admin gets the action. */
-export function DeleteScreen({ entryKey, role = SESSION_ROLE }: { entryKey: string; role?: Role }) {
+/** Delete the item card `entryKey` names, for good. */
+export function DeleteScreen({ entryKey }: { entryKey: string }) {
   const notice = useNotice();
   const [typed, setTyped] = useState('');
   const d = getArchiveDelete(entryKey);
   const { busy, error, run } = useConfirmAction(
-    () => deleteForever(entryKey),
+    async () => {
+      await deleteForever(entryKey);
+    },
     () => {
       notice(DELETE_FOREVER.done);
       router.back();
@@ -39,10 +37,12 @@ export function DeleteScreen({ entryKey, role = SESSION_ROLE }: { entryKey: stri
       <ButtonText>{DELETE_FOREVER.cancel}</ButtonText>
     </Button>
   );
-  if (!d || !allowedScreen('archive.delete', role)) {
+  if (!d?.allowed) {
     return (
       <SheetFrame testID="screen-archive-delete" title={DELETE_FOREVER.title} actions={cancel}>
-        <Text className="text-subhead">{d ? DELETE_FOREVER.note : DELETE_FOREVER.missing}</Text>
+        <Text className="text-subhead">
+          {!d ? DELETE_FOREVER.missing : (d.reason ?? DELETE_FOREVER.refused)}
+        </Text>
       </SheetFrame>
     );
   }
@@ -70,7 +70,6 @@ export function DeleteScreen({ entryKey, role = SESSION_ROLE }: { entryKey: stri
       }
     >
       <Text className="text-subhead">{d.message}</Text>
-      {note}
       <TypeToConfirm name={d.title} value={typed} onChangeText={setTyped} disabled={busy} />
       {error && (
         <Text accessibilityLiveRegion="polite" className="text-footnote text-destructive">
