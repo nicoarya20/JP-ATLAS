@@ -181,6 +181,9 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/admin/permissions-matrix')) return read ? 'settings:read' : null;
   // Bulk CSV export of the whole directory (P11 §5): no scope may reach it, whatever the method.
   if (p.startsWith('/api/admin/export')) return null;
+  // The Admin project console (P11 AD-11..AD-13) is a management view, not a data feed: no scope
+  // reaches it, and handing a project to another Pengelola is also in PM_KEY_DENY. Session only.
+  if (p.startsWith('/api/admin/projects')) return null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;
