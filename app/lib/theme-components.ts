@@ -50,7 +50,9 @@ export const themeComponents: MantineThemeComponents = {
   Switch: LARGE,
   ActionIcon: { defaultProps: { size: 'xl' } },
   // Card 14 px and modal 16 px (RADIUS); anything else follows the 10 px control default.
-  Paper: { defaultProps: { radius: RADIUS.card } },
+  // A card is bordered unless it opts out: 116 of 121 call sites asked for it by hand. `Card`
+  // renders a `Paper` and inherits this; Modal, Drawer, Menu and Popover dropdowns do not.
+  Paper: { defaultProps: { radius: RADIUS.card, withBorder: true } },
   Card: { defaultProps: { radius: RADIUS.card } },
   Modal: { defaultProps: { radius: RADIUS.modal, overlayProps: OVERLAY } },
   Drawer: { defaultProps: { radius: RADIUS.modal, overlayProps: OVERLAY } },

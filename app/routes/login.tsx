@@ -27,7 +27,7 @@ export default function Login({ loaderData }: Route.ComponentProps) {
       bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-8))"
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
-      <Paper radius="lg" shadow="xl" maw={1080} w="100%" style={{ overflow: 'hidden' }}>
+      <Paper withBorder={false} radius="lg" shadow="xl" maw={1080} w="100%" style={{ overflow: 'hidden' }}>
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing={0}>
           <Box p={{ base: 'lg', sm: 'xl' }} style={{ alignSelf: 'center' }}>
             <LoginForm appName={branding.appName} supportUrl={branding.supportUrl} {...auth} />

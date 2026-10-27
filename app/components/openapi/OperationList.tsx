@@ -92,7 +92,7 @@ export function OperationList({
             </Group>
           </Accordion.Control>
           <Accordion.Panel>
-            <Paper p={0} bg="transparent">
+            <Paper withBorder={false} p={0} bg="transparent">
               <GroupPanel group={group} components={components} baseUrl={baseUrl} />
             </Paper>
           </Accordion.Panel>

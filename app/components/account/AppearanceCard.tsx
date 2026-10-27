@@ -51,7 +51,7 @@ export function AppearanceCard({ textSize }: { textSize: TextSize }) {
           pending={save.isPending ? (save.variables ?? null) : null}
           onPick={(size) => save.mutate(size)}
         />
-        <Paper bg="var(--mantine-color-default-hover)" radius="sm" p="sm">
+        <Paper withBorder={false} bg="var(--mantine-color-default-hover)" radius="sm" p="sm">
           <Text>{APPEARANCE_COPY.sample}</Text>
         </Paper>
       </Stack>

@@ -50,7 +50,7 @@ function AnalyticsCard() {
   const data = SHOWCASE_DATA[range];
   const line = linePath(data.values, CHART_W, CHART_H);
   return (
-    <Paper radius="md" p="md" shadow="md" mr={48}>
+    <Paper withBorder={false} radius="md" p="md" shadow="md" mr={48}>
       <Group justify="space-between" align="center" wrap="wrap" gap="xs" mb="xs">
         <Text fw={700} size="sm">
           {SHOWCASE_COPY.analyticsTitle}
@@ -96,7 +96,7 @@ function AnalyticsCard() {
 
 function DonutCard() {
   return (
-    <Paper aria-hidden radius="md" p="sm" shadow="lg" pos="absolute" right={0} bottom={0} w={150}>
+    <Paper withBorder={false} aria-hidden radius="md" p="sm" shadow="lg" pos="absolute" right={0} bottom={0} w={150}>
       <Text fw={700} size="sm" mb={4}>
         {SHOWCASE_COPY.donutTitle}
       </Text>
