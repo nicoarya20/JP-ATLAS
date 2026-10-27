@@ -18,6 +18,13 @@ describe('requiredScope', () => {
     expect(requiredScope('POST', '/api/admin/users/x/ban')).toBe('users:write');
     expect(requiredScope('GET', '/api/settings')).toBe('settings:read');
     expect(requiredScope('PUT', '/api/settings/rate-limit')).toBe('settings:write');
+    // AD-05/AD-06 routes ride the one /api/settings scope: reachable only by a super-admin key
+    // (settings:write is level 3), never an Admin key — the session path is what AD-03 widened.
+    expect(requiredScope('GET', '/api/settings/announcement')).toBe('settings:read');
+    expect(requiredScope('PUT', '/api/settings/announcement')).toBe('settings:write');
+    expect(requiredScope('DELETE', '/api/settings/announcement')).toBe('settings:write');
+    expect(requiredScope('GET', '/api/settings/access-policy')).toBe('settings:read');
+    expect(requiredScope('PUT', '/api/settings/access-policy')).toBe('settings:write');
     expect(requiredScope('POST', '/api/posts')).toBe('posts:write');
     expect(requiredScope('GET', '/api/me/logins')).toBe('me:read');
     expect(requiredScope('GET', '/api/app/whoami')).toBe('app:read');

@@ -1,8 +1,10 @@
 /**
- * Guard sweep for every /api/settings endpoint (P13 RD-02, §9 R2). RD-02 loosens exactly one
- * route — `PUT /settings/branding`, now Admin + super-admin — so this file is the proof that
- * nothing else moved with it: the route table is swept, every row declares the roles allowed to
- * write it, and every other role is checked to be turned away without the row being touched.
+ * Guard sweep for every /api/settings endpoint (P13 RD-02, AD-03, §9 R2). Three groups are an
+ * Admin's to write — `PUT /settings/branding` (RD-02), the announcement banner and the sign-in
+ * policy (AD-03) — so this file is the proof that nothing *else* moved with them: the route table
+ * is swept, every row declares the roles allowed to call it, and every other role is checked to be
+ * turned away without the row being touched. The technical switches (rate-limit, retention,
+ * features, maintenance) stay super-admin, which is the boundary AD-03 promised to keep.
  *
  * Adding a settings endpoint means adding its row to ALLOWED below, or this suite goes red — a
  * new write must state who may call it instead of inheriting the sweep silently.
@@ -54,6 +56,17 @@ const BODY: Record<string, unknown> = {
   'PUT /settings/features': { flags: [] },
   'PUT /settings/branding': { appName: null, appTagline: null, supportUrl: null },
   'PUT /settings/maintenance': { enabled: false, message: null, allowRoles: null },
+  'PUT /settings/announcement': {
+    text: 'Halo',
+    level: 'info',
+    active: false,
+    dismissibleUntil: null,
+  },
+  'PUT /settings/access-policy': {
+    requiresApproval: null,
+    defaultRole: null,
+    invitationTtlDays: null,
+  },
 };
 
 /**
@@ -72,6 +85,11 @@ const ALLOWED: Record<string, readonly string[] | null> = {
   'PUT /settings/features': SUPER_ADMIN_ONLY,
   'PUT /settings/branding': [ROLES.ADMIN, ROLES.SUPER_ADMIN],
   'PUT /settings/maintenance': SUPER_ADMIN_ONLY,
+  'GET /settings/announcement': [ROLES.ADMIN, ROLES.SUPER_ADMIN],
+  'PUT /settings/announcement': [ROLES.ADMIN, ROLES.SUPER_ADMIN],
+  'DELETE /settings/announcement': [ROLES.ADMIN, ROLES.SUPER_ADMIN],
+  'GET /settings/access-policy': [ROLES.ADMIN, ROLES.SUPER_ADMIN],
+  'PUT /settings/access-policy': [ROLES.ADMIN, ROLES.SUPER_ADMIN],
 };
 
 type Row = { method: string; path: string };

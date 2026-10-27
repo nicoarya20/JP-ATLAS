@@ -30,6 +30,8 @@ export const AUDIT_ACTIONS = {
   SETTINGS_MAINTENANCE_UPDATE: 'settings.maintenance.update',
   SETTINGS_FEATURES_UPDATE: 'settings.features.update',
   SETTINGS_BRANDING_UPDATE: 'settings.branding.update',
+  SETTINGS_ANNOUNCEMENT_UPDATE: 'settings.announcement.update',
+  SETTINGS_ACCESS_POLICY_UPDATE: 'settings.access_policy.update',
   SETTINGS_DEMO_UPDATE: 'settings.demo.update',
   OPS_RESET: 'ops.reset',
   POST_UPDATE: 'post.update',

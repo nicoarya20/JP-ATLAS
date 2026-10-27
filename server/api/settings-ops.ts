@@ -1,7 +1,9 @@
 /**
  * Settings groups beyond auth/rate-limit: retention, feature flags, branding, access modes.
- * Super-admin everywhere except `PUT /branding`, which Admin may write too (P13 RD-02): the app's
- * own name is the one setting an Admin owns, and the rest stay out of reach on purpose.
+ * Super-admin everywhere except the three groups an Admin owns (AD-03): `PUT /branding` (RD-02),
+ * and the announcement banner and sign-in policy nested under `./settings-announcement` and
+ * `./settings-access`. The technical switches — retention, feature flags, maintenance — stay out
+ * of reach on purpose.
  */
 import { Elysia, t } from 'elysia';
 import { AUDIT_ACTIONS, audit } from '../audit';
@@ -16,11 +18,13 @@ import {
   upsertRetention,
 } from '../settings-retention';
 import { settingsAccessApi } from './settings-access';
+import { settingsAnnouncementApi } from './settings-announcement';
 
 const Days = t.Nullable(t.Integer({ minimum: RETENTION_MIN_DAYS, maximum: RETENTION_MAX_DAYS }));
 
 export const settingsOpsApi = new Elysia({ prefix: '/settings' })
   .use(settingsAccessApi)
+  .use(settingsAnnouncementApi)
   .put(
     '/retention',
     async ({ request, body }) => {
