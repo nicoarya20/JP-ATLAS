@@ -168,6 +168,10 @@ export const CREATE = {
   create: 'Create project',
   created: 'Project created',
   ai: 'AI-assisted',
+  /** Fallback only: a refusal normally arrives with the server's own sentence. */
+  failed: 'Could not create the project. Try again.',
+  /** `caps.createProject` is off (A-17): the route would refuse this form. */
+  mayNot: 'You can\u2019t create a project.',
 } as const;
 
 export const FORM = {
