@@ -17,18 +17,23 @@ import {
 import { FiArrowRight, FiCheck, FiCopy, FiGithub, FiZap } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { GITHUB_URL, QUICK_START } from './landing.content';
+import { CODE_FONT_SIZE, COPY_BUTTON_CLEARANCE, SECTION_SCROLL_MARGIN } from './landing.layout';
 
 export function QuickStartSection() {
   return (
     <Box
       component="section"
       py={{ base: 40, md: 72 }}
-      style={{ background: 'var(--mantine-color-default-hover)' }}
+      bg="var(--mantine-color-default-hover)"
     >
       <Container size="lg">
+        {/* Mantine has no `alignItems` style prop and SimpleGrid takes no align prop, so this
+            stays a `style`: the copy centres against the taller code block. */}
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl" style={{ alignItems: 'center' }}>
-          <Stack gap="sm" id="mulai" style={{ scrollMarginTop: 80 }}>
-            <Text size="xs" c="blue" fw={700} tt="uppercase" lts={1}>
+          {/* Mantine has no `scrollMarginTop` style prop: `#mulai` must land below the sticky
+              header rather than under it. */}
+          <Stack gap="sm" id="mulai" style={{ scrollMarginTop: SECTION_SCROLL_MARGIN }}>
+            <Text size="xs" c="atlas" fw={700} tt="uppercase" lts={1}>
               Mulai
             </Text>
             <Title order={2} fz={{ base: 28, md: 36 }} lh={1.15}>
@@ -44,7 +49,7 @@ export function QuickStartSection() {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                leftSection={<FiGithub size={16} />}
+                leftSection={<FiGithub size="1.25em" aria-hidden />}
               >
                 Clone repo
               </Button>
@@ -60,7 +65,7 @@ export function QuickStartSection() {
             </Group>
           </Stack>
           <Box pos="relative">
-            <Code block style={{ fontSize: 12.5, lineHeight: 1.6, paddingRight: 44 }}>
+            <Code block fz={CODE_FONT_SIZE} lh={1.6} pr={COPY_BUTTON_CLEARANCE}>
               {QUICK_START}
             </Code>
             <CopyButton value={QUICK_START} timeout={1500}>
@@ -68,14 +73,18 @@ export function QuickStartSection() {
                 <Tooltip label={copied ? 'Tersalin' : 'Salin perintah'} withArrow>
                   <ActionIcon
                     variant="light"
-                    color={copied ? 'teal' : 'gray'}
+                    color={copied ? 'ok' : 'gray'}
                     onClick={copy}
                     aria-label="Salin perintah"
                     pos="absolute"
                     top={8}
                     right={8}
                   >
-                    {copied ? <FiCheck size={14} /> : <FiCopy size={14} />}
+                    {copied ? (
+                      <FiCheck size="1.25em" aria-hidden />
+                    ) : (
+                      <FiCopy size="1.25em" aria-hidden />
+                    )}
                   </ActionIcon>
                 </Tooltip>
               )}
@@ -103,7 +112,7 @@ export function CtaSection({ signedIn, homePath }: { signedIn: boolean; homePath
             component={Link}
             to={signedIn ? homePath : '/login'}
             size="md"
-            rightSection={<FiArrowRight size={16} />}
+            rightSection={<FiArrowRight size="1.25em" aria-hidden />}
             prefetch="intent"
           >
             {signedIn ? 'Buka konsol' : 'Masuk ke konsol'}
@@ -115,7 +124,7 @@ export function CtaSection({ signedIn, homePath }: { signedIn: boolean; homePath
             rel="noopener noreferrer"
             size="md"
             variant="default"
-            leftSection={<FiGithub size={16} />}
+            leftSection={<FiGithub size="1.25em" aria-hidden />}
           >
             Star di GitHub
           </Button>
@@ -138,12 +147,13 @@ export function LandingFooter({
     <Box
       component="footer"
       py="xl"
+      // `bd` sets all four sides; a footer rule needs only the top, which has no Mantine prop.
       style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
     >
       <Container size="lg">
         <Group justify="space-between" wrap="wrap" gap="md">
-          <Group gap={8}>
-            <FiZap size={16} />
+          <Group gap="xs">
+            <FiZap size="1.25em" aria-hidden />
             <Text fw={700}>{appName}</Text>
             <Text size="sm" c="dimmed">
               v{version} · MIT License
