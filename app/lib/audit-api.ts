@@ -125,6 +125,7 @@ const ACTION_META: Record<string, { label: string; color: string }> = {
   'event.restore': { label: 'Pulihkan acara', color: 'teal' },
   'project.condition.set': { label: 'Atur kondisi proyek', color: 'orange' },
   'project.condition.clear': { label: 'Cabut kondisi proyek manual', color: 'gray' },
+  'project.manager.set': { label: 'Ganti Pengelola proyek', color: 'blue' },
   'trash.purge': { label: 'Hapus selamanya dari Sampah', color: 'red' },
   'trash.retention': { label: 'Pembersihan Sampah otomatis', color: 'gray' },
   'leave.set': { label: 'Catat cuti', color: 'indigo' },

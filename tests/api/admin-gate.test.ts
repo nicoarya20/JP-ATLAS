@@ -49,6 +49,8 @@ const ROUTES: RouteRow[] = (adminApi.routes as Array<{ method: string; path: str
  */
 const BODY_BY_PATH: Readonly<Record<string, unknown>> = {
   '/admin/users/:id/leave': { startDate: '2026-11-01', endDate: '2026-11-02' },
+  // AD-13: the manager route validates its body before the gate, so give it a valid one.
+  '/admin/projects/:id/manager': { userId: 'any-id' },
 };
 const bodyFor = (r: { method: string; path: string }) =>
   r.method === 'GET' ? undefined : (BODY_BY_PATH[r.path] ?? { role: 'member' });

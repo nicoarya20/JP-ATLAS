@@ -126,6 +126,16 @@ describe('requiredScope', () => {
       expect(isPublicRead(method, '/api/admin/activity')).toBe(false);
     }
   });
+
+  it('never lets an API key reach the Admin project console (P11 AD-11..AD-13)', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/projects')).toBeNull();
+      expect(requiredScope(method, '/api/admin/projects/p1')).toBeNull();
+      expect(requiredScope(method, '/api/admin/projects/p1/manager')).toBeNull();
+    }
+    // The neighbouring directory routes keep their scope: only the project prefix is cut off.
+    expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
+  });
 });
 
 describe('role ceiling', () => {

@@ -60,10 +60,11 @@ describe('/dashboard area', () => {
   });
 
   test('the Admin sidebar lists its entries in reading order', () => {
-    // Aktivitas (AD-18) sits right after Pengguna; the five AD-20 entries keep their order.
+    // Pengguna → Proyek (AD-12) → Aktivitas (AD-18) → the AD-20 entries.
     expect(NAV.map((n) => [n.label, n.to])).toEqual([
       ['Dashboard', '/dashboard'],
       ['Pengguna', '/dashboard/users'],
+      ['Proyek', '/dashboard/projects'],
       ['Aktivitas', '/dashboard/activity'],
       ['Peran & izin', '/dashboard/permissions'],
       ['Ekspor data', '/dashboard/export'],

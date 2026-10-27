@@ -21,6 +21,7 @@ import { adminLeaveApi } from './admin-leave';
 import { adminModerationApi } from './admin-moderation';
 import { adminOverviewApi } from './admin-overview';
 import { adminPermissionsApi } from './admin-permissions';
+import { adminProjectsApi } from './admin-projects';
 import { adminUserStats, findUserTarget, listAdminUsers, UserListQuery } from './admin-users.query';
 
 const Params = t.Object({ id: t.String() });
@@ -36,6 +37,7 @@ export const adminApi = new Elysia({ prefix: '/admin' })
   .use(adminExportApi)
   .use(adminInvitationsApi)
   .use(adminPermissionsApi)
+  .use(adminProjectsApi)
   .get('/users', ({ query }) => listAdminUsers(query), { query: UserListQuery })
   .get('/users/stats', () => adminUserStats())
   .post(

@@ -188,6 +188,9 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   // The Admin activity reading (P11 AD-18) is a console-only, PII-masked human view: session only,
   // no scope may reach it, like the export beside it.
   if (p.startsWith('/api/admin/activity')) return null;
+  // The Admin project console (P11 AD-11..AD-13) is a management view, not a data feed: no scope
+  // reaches it, and handing a project to another Pengelola is also in PM_KEY_DENY. Session only.
+  if (p.startsWith('/api/admin/projects')) return null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;

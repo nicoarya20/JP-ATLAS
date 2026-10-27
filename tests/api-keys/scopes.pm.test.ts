@@ -159,6 +159,30 @@ describe('Leave routes', () => {
   });
 });
 
+describe('Admin Ganti Pengelola (P11 AD-13)', () => {
+  test.each([
+    '/api/admin/projects/p1/manager',
+    '/api/admin/projects/p1/manager/',
+    '/api/admin/projects/a/b/manager',
+    '/api/admin/PROJECTS/p1/MANAGER',
+  ])('PUT %s is session only, whatever scopes the key holds', (p) => {
+    expect(isPmKeyDenied('PUT', p)).toBe(true);
+    expect(requiredScope('PUT', p)).toBeNull();
+  });
+
+  test('the manager pattern does not swallow the list or a lookalike path', () => {
+    expect(isPmKeyDenied('PUT', '/api/admin/projects/managership')).toBe(false);
+    expect(isPmKeyDenied('GET', '/api/admin/projects/p1/manager')).toBe(false);
+  });
+
+  test('the route really exists, so the deny pattern is not guarding thin air', () => {
+    expect(PM_DENY_OWNER['PUT admin projects/*/manager']).toBe('admin-projects.manager.ts');
+    expect(
+      adminRoutes.some((r) => r.method === 'PUT' && r.path === '/api/admin/projects/:id/manager'),
+    ).toBe(true);
+  });
+});
+
 describe('Team routes (S6 M03/M04)', () => {
   test.each(['/api/app/team', '/api/app/team/u1', '/api/app/team/picker'])(
     'GET %s is open to a key with app:read',

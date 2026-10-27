@@ -6,6 +6,7 @@ import { adminSidebarBadges } from '@server/sidebar-badges';
 import {
   FiActivity,
   FiDownload,
+  FiFolder,
   FiGrid,
   FiHome,
   FiLayers,
@@ -31,6 +32,7 @@ export function meta(_: Route.MetaArgs) {
 export const NAV: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: FiHome },
   { to: '/dashboard/users', label: 'Pengguna', icon: FiUsers },
+  { to: '/dashboard/projects', label: 'Proyek', icon: FiFolder },
   { to: '/dashboard/activity', label: 'Aktivitas', icon: FiActivity },
   { to: '/dashboard/permissions', label: 'Peran & izin', icon: FiShield },
   { to: '/dashboard/export', label: 'Ekspor data', icon: FiDownload },

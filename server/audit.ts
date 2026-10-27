@@ -50,6 +50,8 @@ export const AUDIT_ACTIONS = {
   // The manager's manual project condition (S5a): set or cleared by hand, session only.
   PROJECT_CONDITION_SET: 'project.condition.set',
   PROJECT_CONDITION_CLEAR: 'project.condition.clear',
+  // An Admin hands a project to another Pengelola from /dashboard/projects (P11 AD-13); session only.
+  PROJECT_MANAGER_SET: 'project.manager.set',
   // Permanent delete by an Admin; `trash.retention` is the same thing done by the purge job.
   TRASH_PURGE: 'trash.purge',
   TRASH_RETENTION: 'trash.retention',
