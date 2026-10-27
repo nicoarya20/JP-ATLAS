@@ -49,14 +49,11 @@ export const TASKS_TAB = {
 } as const;
 
 export const PHASES = {
-  addPhase: '+ Phase',
-  addPhaseNotice: 'Add phase',
   milestone: 'Milestone',
-  addMilestone: '+ Milestone',
-  addMilestoneNotice: 'Add milestone',
-  noProgress: 'No progress yet',
+  looseMilestones: 'Other milestones',
   history: 'Deadline history',
   none: 'No phases yet.',
+  failed: 'Could not save that. Try again.',
 } as const;
 
 export const MEMBERS = {
