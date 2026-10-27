@@ -85,6 +85,19 @@ export const CANCEL_CATEGORIES: readonly WireCancelCategory[] = [
   'other',
 ];
 
+/**
+ * The five reasons as the sheet words them, in the same order. The one source for them: the sheet
+ * shows these, and a detail that reads `cancel.category` back from the server shows the same words
+ * for it rather than a second wording of its own.
+ */
+export const CANCEL_WORDS = [
+  'Duplicate / already exists',
+  'No longer needed',
+  'Outside the project scope',
+  'Created by mistake',
+  'Other',
+] as const;
+
 /** The category a radio index picks, or null when nothing valid is picked. */
 export const cancelCategoryOf = (pick: number): WireCancelCategory | null =>
   CANCEL_CATEGORIES[pick] ?? null;
@@ -92,6 +105,10 @@ export const cancelCategoryOf = (pick: number): WireCancelCategory | null =>
 /** The radio index a category the server sent back stands for; -1 when it is one we do not know. */
 export const cancelPickOf = (category: WireCancelCategory): number =>
   CANCEL_CATEGORIES.indexOf(category);
+
+/** The words of a category the server sent back, or null for one this app has not learnt. */
+export const cancelWordOf = (category: WireCancelCategory): string | null =>
+  CANCEL_WORDS[cancelPickOf(category)] ?? null;
 
 /**
  * The schedule groups My tasks asks for, in the order it shows them, with the title of each.

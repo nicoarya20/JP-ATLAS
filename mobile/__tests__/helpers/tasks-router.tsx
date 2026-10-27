@@ -14,6 +14,7 @@ import { resetArchive } from '../../src/data/archive.store';
 import { forgetAllResources } from '../../src/data/resource';
 import type { Role } from '../../src/data/sample';
 import { forgetTaskResources } from '../../src/data/tasks.api';
+import type { WireTaskDetail, WireTaskListItem } from '../../src/data/tasks.api.types';
 import { resetQueries } from '../../src/data/tasks.query-state';
 import { resetTasks } from '../../src/data/tasks.store';
 import { CsvScreen } from '../../src/screens/tasks/csv/csv.screen';
@@ -24,10 +25,12 @@ import { TasksScreen } from '../../src/screens/tasks/list/tasks.screen';
 import { TaskFormScreen } from '../../src/screens/tasks/new/form.screen';
 import { TaskWriteScreen } from '../../src/screens/tasks/new/write.screen';
 import { CancelScreen } from '../../src/screens/tasks/sheets/cancel.screen';
+import { ReopenScreen } from '../../src/screens/tasks/sheets/reopen.screen';
 import { ReturnScreen } from '../../src/screens/tasks/sheets/return.screen';
 import { serveAuth } from './auth-server';
 import { resetSessionForTest, seedSession } from './session-fixtures';
-import { SAMPLE_ROWS, taskApiRoutes, taskListRoute } from './tasks-api-server';
+import { SAMPLE_ROWS } from './tasks-api-server';
+import { type FakeTaskApi, fakeTaskApi } from './tasks-api-state';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
 jest.mock('expo-font', () => ({
@@ -45,12 +48,16 @@ function routes(role: Role) {
     '(tabs)/(home)/_layout': HomeStack,
     '(tabs)/(home)/index': stub('screen-home'),
     '(tabs)/tasks/_layout': TasksStack,
-    '(tabs)/tasks/index': () => <TasksScreen role={role} />,
+    // Neither the list nor the board takes a role: what may be done is the server's answer.
+    '(tabs)/tasks/index': TasksScreen,
     '(tabs)/tasks/filter': TasksFilterScreen,
-    '(tabs)/tasks/[id]/index': () => <TaskDetailScreen role={role} />,
+    // The detail and the Cancel sheet take no role: what may be done to a task is the server's
+    // answer now (can{}), not the screen's guess from who is signed in.
+    '(tabs)/tasks/[id]/index': TaskDetailScreen,
     '(tabs)/tasks/[id]/edit': () => <TaskEditScreen role={role} />,
     '(tabs)/tasks/[id]/return': () => <ReturnScreen role={role} />,
-    '(tabs)/tasks/[id]/cancel': () => <CancelScreen role={role} />,
+    '(tabs)/tasks/[id]/cancel': CancelScreen,
+    '(tabs)/tasks/[id]/reopen': ReopenScreen,
     'tasks/new/_layout': NewTaskStack,
     'tasks/new/index': TaskWriteScreen,
     'tasks/new/form': () => <TaskFormScreen role={role} />,
@@ -59,17 +66,32 @@ function routes(role: Role) {
 }
 
 /**
- * The task API, stubbed for a screen test. The lists read `/api/app/tasks` now, so a test that does
- * not serve it sees the honest "couldn't load" state instead of the screen it meant to look at.
- * Rows are the fixture in `tasks-api-server.ts`; a test that cares about other rows installs its
- * own with `serveTasks()`.
+ * The task API, stubbed for a screen test. The lists, the board and the detail all read
+ * `/api/app/tasks` now, so a test that does not serve it sees the honest "couldn't load" state
+ * instead of the screen it meant to look at.
+ *
+ * It remembers what was written to it (`tasks-api-state.ts`), because that is the only way a test
+ * can tell a write that worked from one that silently did nothing. Rows are the fixture in
+ * `tasks-api-server.ts`; a test that cares about other rows, or about a detail with steps on it,
+ * installs its own with `serveTasks()`.
  */
 let server: ReturnType<typeof serveAuth> | null = null;
+let api: FakeTaskApi | null = null;
 
-export function serveTasks(rows = SAMPLE_ROWS) {
+export function serveTasks(
+  rows: readonly WireTaskListItem[] = SAMPLE_ROWS,
+  details: Record<number, Partial<WireTaskDetail>> = {},
+) {
   server?.restore();
-  server = serveAuth({ ...taskApiRoutes(rows), ...taskListRoute(rows) });
+  api = fakeTaskApi(rows, details);
+  server = serveAuth(api.routes);
   return server;
+}
+
+/** The server's own state, for an assertion about what a write really left behind. */
+export function taskApi(): FakeTaskApi {
+  if (!api) throw new Error('No task API is being served: call serveTasks() first');
+  return api;
 }
 
 /** Render the app at `url` as `role` (default: the session's Project Manager). */
@@ -106,5 +128,6 @@ export function resetTaskStores() {
     });
     server?.restore();
     server = null;
+    api = null;
   });
 }

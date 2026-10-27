@@ -7,7 +7,8 @@ import { AvatarStack } from '@/components/avatar/avatar-stack';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import type { TaskCard } from '@/data/tasks';
+
+import type { BoardCardData } from './board-cards';
 
 const FLAG: Record<string, string> = {
   High: 'text-destructive',
@@ -41,7 +42,7 @@ function Chip({
 }
 
 /** The chips under a card's title. */
-export function BoardCardChips({ card: t }: { card: TaskCard }) {
+export function BoardCardChips({ card: t }: { card: BoardCardData }) {
   return (
     <HStack className="mt-1 flex-wrap items-center gap-1">
       <AvatarStack

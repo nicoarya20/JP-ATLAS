@@ -1,17 +1,19 @@
 // The Kanban board (prototype tasks.board.jsx Board): a column per status, scrolled sideways freely with the next
 // column peeking; hold a card to move it with the radial menu. Select turns taps into picking cards, and holding a
-// picked card moves them all. A Member moves and picks only their own tasks; a Manager or Admin any. Shared with a
-// project's Tasks tab (W4), so the caller keeps its own header and re-renders it on store changes.
+// picked card moves them all.
+//
+// Who may move what is no longer this screen's guess. The Tasks tab hands over rows from /api/app/tasks together with
+// `serverMoves`, where a side of the move menu is that card's own `can{}` and a move is one request per task; a
+// project's Tasks tab still hands over sample rows and gets `sampleMoves` by default, until its own module moves to
+// the API. Both are the same component with the same cards (board-cards.ts).
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import { useNotice } from '@/components/notice/use-notice';
-import { me } from '@/data/people';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
-import type { TaskCard } from '@/data/tasks';
 import {
   type BoardStatus,
   COLUMNS,
@@ -19,66 +21,69 @@ import {
   selectionHint,
   sharedStatus,
 } from '@/data/tasks.columns';
-import { deniedNotice } from '@/data/tasks.shared';
-import { getTask } from '@/data/tasks.state';
-import { moveOnBoard } from '@/data/tasks.store';
 import { SPACING } from '@/theme/tokens';
 
 import { S } from '../tasks.strings';
+import type { BoardCardData, BoardMoves } from './board-cards';
 import { BoardColumn } from './board-column';
+import { sampleMoves } from './board-moves.sample';
 import { RadialMenu } from './radial-menu';
 import { useMoveMenu } from './use-move-menu';
 
 type TaskBoardProps = {
-  /** The board's cards (getTasksList view 'board'), in the query's order. */
-  tasks: readonly TaskCard[];
+  /** The board's cards, in the query's order. */
+  tasks: readonly BoardCardData[];
   role?: Role;
   /** Cards show their project instead of their type (My tasks). */
   mine: boolean;
+  /** How this board moves its cards; the sample store's way by default. */
+  moves?: BoardMoves;
 };
 
 /** Kanban columns of `tasks` with select mode and the move menu. */
-export function TaskBoard({ tasks, role = SESSION_ROLE, mine }: TaskBoardProps) {
+export function TaskBoard({ tasks, role = SESSION_ROLE, mine, moves }: TaskBoardProps) {
   const notice = useNotice();
   const [selecting, setSelecting] = useState(false);
   const [picked, setPicked] = useState<number[]>([]);
+  const how = moves ?? sampleMoves(role);
   const chosen = picked.filter((no) => tasks.some((t) => t.no === no));
   const endSelect = () => {
     setSelecting(false);
     setPicked([]);
   };
-  const menu = useMoveMenu({ role, cards: tasks, picked: chosen, onGroupMoved: endSelect });
+  const menu = useMoveMenu({ cards: tasks, picked: chosen, moves: how, onGroupMoved: endSelect });
 
   const hint = selecting ? selectionHint(chosen.length) : '';
   useEffect(() => {
     if (hint) AccessibilityInfo.announceForAccessibility(hint);
   }, [hint]);
 
-  const toggle = (card: TaskCard) => {
-    if (card.mayChange) {
+  const toggle = (card: BoardCardData) => {
+    if (how.sidesFor(card).length) {
       setPicked((old) =>
         old.includes(card.no) ? old.filter((n) => n !== card.no) : [...old, card.no],
       );
       return;
     }
-    const task = getTask(card.no);
-    if (!task) throw new Error(`Cannot pick task #${card.no}: it is not in the store`);
-    notice(deniedNotice(task));
+    notice(how.denied(card));
   };
   const pickAll = (nos: number[], all: boolean) =>
     setPicked((old) =>
       all ? old.filter((n) => !nos.includes(n)) : [...new Set([...old, ...nos])],
     );
   const groupOf = (no: number) => holdGroup(no, chosen);
+  const cardsOf = (nos: readonly number[]) => tasks.filter((t) => nos.includes(t.no));
   const moveSet = (no: number) => {
     const nos = groupOf(no);
-    return { n: nos.length, from: sharedStatus(tasks.filter((t) => nos.includes(t.no))) };
+    return { n: nos.length, from: sharedStatus(cardsOf(nos)) };
   };
-  /** A named "Move to …": the same group and store call as releasing the move menu (useMoveMenu.pick). */
+  /** A named "Move to …": the same group and the same write as releasing the move menu (useMoveMenu.pick). */
   const move = (no: number, status: BoardStatus) => {
     const nos = groupOf(no);
-    const { notice: text } = moveOnBoard(me(role), nos, status);
-    if (text) notice(text);
+    void (async () => {
+      const said = await how.move(cardsOf(nos), nos, status);
+      if (said) notice(said);
+    })();
     if (nos.length > 1) endSelect();
   };
   return (

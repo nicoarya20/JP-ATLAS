@@ -1,6 +1,8 @@
 // One status of the move menu (prototype tasks.radial.menu.jsx, tasks.css .tk-radial-opt): a pill on its side of the
 // ring that pops in after the ones before it, grows and fills with its tone while aimed at, and on close folds back
-// into the ring, or swells away when it is the status picked. The task's own status is marked Now and is off.
+// into the ring, or swells away when it is the status picked. The task's own status is marked Now and is off, and so
+// is a status the server has no step to for this task (`shut`) — the board decides that before the ring is drawn
+// rather than letting the gesture earn a 409.
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -24,6 +26,8 @@ type RadialOptionProps = {
   column: BoardColumn;
   group: boolean;
   now: boolean;
+  /** No step leads there from this task's status, so it takes no aim and no tap. */
+  shut: boolean;
   /** Filled: aimed at while open, the picked status while closing. */
   lit: boolean;
   closing: boolean;
@@ -36,15 +40,17 @@ export function RadialOption({
   column,
   group,
   now,
+  shut,
   lit,
   closing,
   reduced,
   onPick,
 }: RadialOptionProps) {
+  const off = now || shut;
   const r = group ? OPTION_RADIUS.group : OPTION_RADIUS.one;
   const [ux, uy] = UNIT[column.side];
-  const tone = lit && !now ? TONE_FILL[column.tone] : TONE_SOFT[column.tone];
-  const scale = lit && !now && !reduced ? MOTION.aimScale : 1;
+  const tone = lit && !off ? TONE_FILL[column.tone] : TONE_SOFT[column.tone];
+  const scale = lit && !off && !reduced ? MOTION.aimScale : 1;
   const motion = reduced
     ? null
     : closing
@@ -81,10 +87,10 @@ export function RadialOption({
           testID={`radial-${column.status}`}
           accessibilityRole="button"
           accessibilityLabel={now ? SPOKEN.current(column.status) : column.status}
-          accessibilityState={{ disabled: now, selected: now }}
-          disabled={now}
+          accessibilityState={{ disabled: off, selected: now }}
+          disabled={off}
           onPress={onPick}
-          className={`shadow-md ${tone.bg} ${now ? 'opacity-60' : ''} ${
+          className={`shadow-md ${tone.bg} ${off ? 'opacity-60' : ''} ${
             group
               ? 'min-h-[52px] items-center justify-center rounded-card px-3 py-2'
               : 'min-h-11 rounded-full px-3'

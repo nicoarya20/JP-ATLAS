@@ -1,6 +1,7 @@
 import { today } from './clock';
 import { me } from './people';
 import type { Role, TaskStatus } from './sample';
+import { CANCEL_WORDS } from './tasks.api.values';
 import { buildTaskDetail, type TaskActionKey, type TaskMenuKey } from './tasks.detail';
 import { getTasksState, taskInfo } from './tasks.state';
 import { archiveTask, moveTask, unarchiveTask } from './tasks.store';
@@ -24,14 +25,8 @@ const STATUS_ACTION: Record<TaskActionKey, { to: TaskStatus; notice: string; log
 /** Return sheet quick picks (fill the reason). */
 export const RETURN_QUICK = ['Still has errors', 'Not as requested', 'Evidence unclear'] as const;
 
-/** Cancel sheet reasons; the last one (Other) needs a note. */
-export const CANCEL_REASONS = [
-  'Duplicate / already exists',
-  'No longer needed',
-  'Outside the project scope',
-  'Created by mistake',
-  'Other',
-] as const;
+/** Cancel sheet reasons; the last one (Other) needs a note. The words live with the server's enum. */
+export const CANCEL_REASONS = CANCEL_WORDS;
 export const CANCEL_OTHER = CANCEL_REASONS.length - 1;
 
 function detailOrThrow(role: Role, no: number, what: string) {
