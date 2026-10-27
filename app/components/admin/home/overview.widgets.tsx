@@ -23,7 +23,7 @@ import { EmptyState } from '~/components/ui/EmptyState';
 import { ROLE_LABEL } from '~/lib/admin-users-api';
 import { EVENT_KIND_LABELS } from '~/lib/events-format';
 import { PROJECT_STATUS_LABELS } from '~/lib/pm-labels';
-import { formatRelative } from '~/lib/visits-format';
+import { useTimeFormat } from '~/lib/time-format';
 import { OVERVIEW_COPY } from './overview.copy';
 
 const nf = new Intl.NumberFormat('id-ID');
@@ -252,6 +252,8 @@ export function RoleChangesWidget({
   retry: Retry;
 }) {
   const COPY = OVERVIEW_COPY.roles;
+  // Format through the root clock, not the runtime zone, so SSR and the browser agree.
+  const { relative: formatRelative } = useTimeFormat();
   return (
     <HomeSection title={COPY.title} subtitle={COPY.subtitle} widget={widget} retry={retry}>
       {(d) =>
