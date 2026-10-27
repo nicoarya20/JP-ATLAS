@@ -20,6 +20,8 @@ import { resetArchive } from '../../src/data/archive.store';
 import { resetProjects } from '../../src/data/projects.store';
 import type { Role } from '../../src/data/sample';
 import { resetQueries } from '../../src/data/tasks.query-state';
+import { serveAuth } from './auth-server';
+import { projectApiRoutes } from './projects-api-server';
 import { resetTasks } from '../../src/data/tasks.store';
 import { ProjectDetailScreen } from '../../src/screens/projects/detail/project-detail.screen';
 import { ProjectEditScreen } from '../../src/screens/projects/edit/project-edit.screen';
@@ -79,8 +81,34 @@ function routes(role: Role) {
 export const openProjects = (url: string, role: Role = 'pm'): Promise<RenderRouterResult> =>
   renderRouter(routes(role), { initialUrl: url, wrapper: GluestackUIProvider });
 
-/** Every store a Projects screen writes, back to the sample after each test. */
+let server: ReturnType<typeof serveAuth> | null = null;
+
+/**
+ * Answer `/api/app/projects*` differently for the test running now.
+ *
+ * Call it **before** opening a screen: these screens fetch on mount, so routes installed afterwards
+ * would miss the first request and the screen would settle on a failure instead.
+ */
+export function answerProjects(o: Parameters<typeof projectApiRoutes>[0]): void {
+  server?.use(projectApiRoutes(o));
+}
+
+/** The URLs the stub was asked for, in order; how a write's address is asserted (K4). */
+export const projectCalls = (): readonly string[] => server?.calls ?? [];
+
+/** True when some request's URL contains `fragment`. */
+export const asked = (fragment: string): boolean =>
+  projectCalls().some((u) => u.includes(fragment));
+
+/**
+ * The stubbed server, plus every store a Projects screen writes, back to its starting point around
+ * each test. The resources themselves are forgotten by the global `resetSessionForTest()`, which
+ * runs first — without that a project read from the previous test would still look fresh.
+ */
 export function resetProjectStores() {
+  beforeEach(() => {
+    server = serveAuth(projectApiRoutes());
+  });
   afterEach(async () => {
     await act(async () => {
       resetProjects();
@@ -89,5 +117,7 @@ export function resetProjectStores() {
       resetQueries();
       resetSnack();
     });
+    server?.restore();
+    server = null;
   });
 }
