@@ -11,7 +11,6 @@ import {
   Stack,
   Text,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { listPosts, postStats } from '@server/api/posts.query';
@@ -23,6 +22,7 @@ import { FiAlertCircle, FiPlus, FiRefreshCw, FiSearch } from 'react-icons/fi';
 import { PostStatsCards } from '~/components/posts/PostStatsCards';
 import { PostCardList, PostTable } from '~/components/posts/PostTable';
 import { usePostActions } from '~/components/posts/usePostActions';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { VisitEmptyState } from '~/components/visits/VisitEmptyState';
 import { toJson } from '~/lib/loader-json';
 import {
@@ -111,31 +111,29 @@ export default function PostsPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>Posts</Title>
-          <Text size="sm" c="dimmed">
-            Konten contoh dari template. Pola CRUD ini bisa disalin untuk entitas nyata.
-          </Text>
-        </div>
-        <Group gap="xs">
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<FiRefreshCw size={14} />}
-            loading={list.isFetching}
-            onClick={() => {
-              list.refetch();
-              stats.refetch();
-            }}
-          >
-            Refresh
-          </Button>
-          <Button size="sm" leftSection={<FiPlus size={14} />} onClick={() => openForm(null)}>
-            Post baru
-          </Button>
-        </Group>
-      </Group>
+      <PageHeader
+        title="Posts"
+        description="Konten contoh dari template. Pola CRUD ini bisa disalin untuk entitas nyata."
+        actions={
+          <>
+            <Button
+              size="sm"
+              variant="light"
+              leftSection={<FiRefreshCw size={14} />}
+              loading={list.isFetching}
+              onClick={() => {
+                list.refetch();
+                stats.refetch();
+              }}
+            >
+              Refresh
+            </Button>
+            <Button size="sm" leftSection={<FiPlus size={14} />} onClick={() => openForm(null)}>
+              Post baru
+            </Button>
+          </>
+        }
+      />
       <PostStatsCards stats={stats.data} />
       <Paper withBorder radius="md" p="sm">
         <Group gap="xs" wrap="wrap" align="center">

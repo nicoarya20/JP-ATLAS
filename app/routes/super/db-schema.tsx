@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { Alert, Button, Group, Loader, Paper, Stack, Text } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { introspectDrizzleSchema } from '@server/db/schema-introspect';
 import { schemaStats } from '@server/db/schema-stats';
@@ -11,6 +11,7 @@ import type { Direction } from '~/components/db-schema/erd.layout';
 import { SchemaStatsCards } from '~/components/db-schema/SchemaStatsCards';
 import { SchemaToolbar } from '~/components/db-schema/SchemaToolbar';
 import { TableDetailDrawer } from '~/components/db-schema/TableDetailDrawer';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { useTimeFormat } from '~/lib/time-format';
 import type { Route } from './+types/db-schema';
 
@@ -50,24 +51,21 @@ export default function DbSchemaPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>DB Schema</Title>
-          <Text size="sm" c="dimmed">
-            Diagram relasi dari definisi Drizzle, dipadukan dengan jumlah baris dan ukuran nyata di
-            database. Statistik {formatDateTime(stats.generatedAt)}.
-          </Text>
-        </div>
-        <Button
-          size="sm"
-          variant="light"
-          leftSection={<FiRefreshCw size={14} />}
-          loading={revalidator.state === 'loading'}
-          onClick={() => revalidator.revalidate()}
-        >
-          Muat ulang statistik
-        </Button>
-      </Group>
+      <PageHeader
+        title="DB Schema"
+        description={`Diagram relasi dari definisi Drizzle, dipadukan dengan jumlah baris dan ukuran nyata di database. Statistik ${formatDateTime(stats.generatedAt)}.`}
+        actions={
+          <Button
+            size="sm"
+            variant="light"
+            leftSection={<FiRefreshCw size={14} />}
+            loading={revalidator.state === 'loading'}
+            onClick={() => revalidator.revalidate()}
+          >
+            Muat ulang statistik
+          </Button>
+        }
+      />
 
       {pending > 0 && (
         <Alert

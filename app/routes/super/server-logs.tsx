@@ -1,4 +1,4 @@
-import { Affix, Alert, Button, Group, Paper, Stack, Switch, Text, Title } from '@mantine/core';
+import { Affix, Alert, Button, Paper, Stack, Switch } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { requireRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
@@ -11,6 +11,7 @@ import { ServerLogList } from '~/components/server-logs/ServerLogList';
 import { ServerLogPager } from '~/components/server-logs/ServerLogPager';
 import { ServerLogStatsCards } from '~/components/server-logs/ServerLogStatsCards';
 import { LOG_PAGE_SIZE, useLiveServerLogs } from '~/components/server-logs/useLiveServerLogs';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { VisitEmptyState } from '~/components/visits/VisitEmptyState';
 import {
   DEFAULT_LOG_FILTERS,
@@ -42,35 +43,32 @@ export default function ServerLogsPage() {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>Server Logs</Title>
-          <Text size="sm" c="dimmed">
-            Log proses server dari buffer memori (info ke atas). Hilang saat restart; log persisten
-            ada di file / stdout.
-          </Text>
-        </div>
-        <Group gap="sm" wrap="wrap">
-          <Switch
-            size="sm"
-            label={live && !connected ? 'Live (menyambung…)' : 'Live'}
-            checked={live}
-            onChange={(e) => setLive(e.currentTarget.checked)}
-          />
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<FiRefreshCw size={14} />}
-            loading={logs.isFetching}
-            onClick={() => {
-              logs.refetch();
-              stats.refetch();
-            }}
-          >
-            Refresh
-          </Button>
-        </Group>
-      </Group>
+      <PageHeader
+        title="Server Logs"
+        description="Log proses server dari buffer memori (info ke atas). Hilang saat restart; log persisten ada di file / stdout."
+        actions={
+          <>
+            <Switch
+              size="sm"
+              label={live && !connected ? 'Live (menyambung…)' : 'Live'}
+              checked={live}
+              onChange={(e) => setLive(e.currentTarget.checked)}
+            />
+            <Button
+              size="sm"
+              variant="light"
+              leftSection={<FiRefreshCw size={14} />}
+              loading={logs.isFetching}
+              onClick={() => {
+                logs.refetch();
+                stats.refetch();
+              }}
+            >
+              Refresh
+            </Button>
+          </>
+        }
+      />
 
       <ServerLogStatsCards stats={stats.data} />
 

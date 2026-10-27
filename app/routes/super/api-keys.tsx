@@ -8,7 +8,6 @@ import {
   SegmentedControl,
   Stack,
   Text,
-  Title,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { keyStats, listKeys } from '@server/api-keys/query';
@@ -27,6 +26,7 @@ import { ApiKeyCardList, ApiKeyTable } from '~/components/api-keys/ApiKeyTable';
 import { RevealKeyModal } from '~/components/api-keys/RevealKeyModal';
 import { UsageLogSection } from '~/components/api-keys/UsageLogSection';
 import { useApiKeyActions } from '~/components/api-keys/useApiKeyActions';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { VisitEmptyState } from '~/components/visits/VisitEmptyState';
 import {
   type ApiKeyListResponse,
@@ -126,32 +126,33 @@ export default function ApiKeysPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>API Keys</Title>
-          <Text size="sm" c="dimmed">
-            Akses terprogram ke API dengan scope, kedaluwarsa, rotasi, dan jejak pemakaian. Kirim
-            lewat header X-API-Key.
-          </Text>
-        </div>
-        <Group gap="xs" wrap="wrap" justify="flex-end">
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<FiRefreshCw size={14} />}
-            loading={list.isFetching}
-            onClick={() => {
-              list.refetch();
-              stats.refetch();
-            }}
-          >
-            Refresh
-          </Button>
-          <Button size="sm" leftSection={<FiPlus size={14} />} onClick={() => actions.openCreate()}>
-            Buat kunci
-          </Button>
-        </Group>
-      </Group>
+      <PageHeader
+        title="API Keys"
+        description="Akses terprogram ke API dengan scope, kedaluwarsa, rotasi, dan jejak pemakaian. Kirim lewat header X-API-Key."
+        actions={
+          <>
+            <Button
+              size="sm"
+              variant="light"
+              leftSection={<FiRefreshCw size={14} />}
+              loading={list.isFetching}
+              onClick={() => {
+                list.refetch();
+                stats.refetch();
+              }}
+            >
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              leftSection={<FiPlus size={14} />}
+              onClick={() => actions.openCreate()}
+            >
+              Buat kunci
+            </Button>
+          </>
+        }
+      />
 
       <ApiKeyStatsCards stats={stats.data} />
 

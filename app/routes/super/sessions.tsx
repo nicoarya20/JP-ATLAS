@@ -12,7 +12,6 @@ import {
   Switch,
   Text,
   TextInput,
-  Title,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { listSessions, sessionStats } from '@server/api/sessions.query';
@@ -25,6 +24,7 @@ import { FiAlertCircle, FiRefreshCw, FiSearch } from 'react-icons/fi';
 import { SessionStatsCards } from '~/components/sessions/SessionStatsCards';
 import { SessionCardList, SessionTable } from '~/components/sessions/SessionTable';
 import { useSessionActions } from '~/components/sessions/useSessionActions';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { VisitEmptyState } from '~/components/visits/VisitEmptyState';
 import { toJson } from '~/lib/loader-json';
 import {
@@ -104,27 +104,24 @@ export default function SessionsPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>Sessions</Title>
-          <Text size="sm" c="dimmed">
-            Semua perangkat yang sedang masuk, lintas user. Cabut sesi yang mencurigakan atau
-            keluarkan satu user dari semua perangkat.
-          </Text>
-        </div>
-        <Button
-          size="sm"
-          variant="light"
-          leftSection={<FiRefreshCw size={14} />}
-          loading={list.isFetching}
-          onClick={() => {
-            list.refetch();
-            stats.refetch();
-          }}
-        >
-          Refresh
-        </Button>
-      </Group>
+      <PageHeader
+        title="Sessions"
+        description="Semua perangkat yang sedang masuk, lintas user. Cabut sesi yang mencurigakan atau keluarkan satu user dari semua perangkat."
+        actions={
+          <Button
+            size="sm"
+            variant="light"
+            leftSection={<FiRefreshCw size={14} />}
+            loading={list.isFetching}
+            onClick={() => {
+              list.refetch();
+              stats.refetch();
+            }}
+          >
+            Refresh
+          </Button>
+        }
+      />
 
       <SessionStatsCards stats={stats.data} />
 

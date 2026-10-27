@@ -72,7 +72,7 @@ export default function OverviewPage({ loaderData: data }: Route.ComponentProps)
       <Group justify="space-between" align="flex-start" wrap="wrap">
         <div>
           <Group gap="xs">
-            <Title order={3}>Overview</Title>
+            <Title order={1}>Overview</Title>
             <Badge variant="light" color={data.runtime.nodeEnv === 'production' ? 'red' : 'teal'}>
               {data.runtime.nodeEnv}
             </Badge>

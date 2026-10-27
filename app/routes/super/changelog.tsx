@@ -77,7 +77,7 @@ export default function ChangelogPage({ loaderData: cl }: Route.ComponentProps) 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
       <div>
-        <Title order={3}>Changelog</Title>
+        <Title order={1}>Changelog</Title>
         <Text size="sm" c="dimmed">
           Riwayat perubahan dari <Code>CHANGELOG.md</Code>, ditulis dari sudut pandang user. Agent
           mencatat perubahan di bagian <Code>Unreleased</Code> lalu memberinya nomor versi saat

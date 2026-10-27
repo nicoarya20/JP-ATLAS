@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Pagination, Stack, Text, ThemeIcon, Title } from '@mantine/core';
+import { Alert, Button, Group, Pagination, Stack, Text, ThemeIcon } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -7,6 +7,7 @@ import { FileHealthFilters } from '~/components/file-health/FileHealthFilters';
 import { FileHealthHazards } from '~/components/file-health/FileHealthHazards';
 import { FileHealthStats } from '~/components/file-health/FileHealthStats';
 import { FileHealthTable } from '~/components/file-health/FileHealthTable';
+import { PageHeader } from '~/components/ui/PageHeader';
 import {
   DEFAULT_FILE_FILTERS,
   FILE_PAGE_SIZE,
@@ -61,30 +62,29 @@ export default function FileHealthPage() {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <div>
-          <Title order={3}>File Health</Title>
-          <Text size="sm" c="dimmed">
-            Ukuran file vs. limit baris per peran, plus file yang berbahaya bagi konteks AI agent.
-          </Text>
-        </div>
-        <Group gap="xs" wrap="wrap" justify="flex-end">
-          {data && (
-            <Text size="xs" c="dimmed">
-              Dipindai {new Date(data.scannedAt).toLocaleTimeString('id-ID')} · {data.durationMs} ms
-            </Text>
-          )}
-          <Button
-            size="sm"
-            variant="light"
-            leftSection={<FiRefreshCw size={14} />}
-            loading={q.isFetching}
-            onClick={() => setRefresh((n) => n + 1)}
-          >
-            Pindai ulang
-          </Button>
-        </Group>
-      </Group>
+      <PageHeader
+        title="File Health"
+        description="Ukuran file vs. limit baris per peran, plus file yang berbahaya bagi konteks AI agent."
+        actions={
+          <>
+            {data && (
+              <Text size="xs" c="dimmed">
+                Dipindai {new Date(data.scannedAt).toLocaleTimeString('id-ID')} · {data.durationMs}{' '}
+                ms
+              </Text>
+            )}
+            <Button
+              size="sm"
+              variant="light"
+              leftSection={<FiRefreshCw size={14} />}
+              loading={q.isFetching}
+              onClick={() => setRefresh((n) => n + 1)}
+            >
+              Pindai ulang
+            </Button>
+          </>
+        }
+      />
 
       {data && !data.available && (
         <Alert color="yellow" icon={<FiAlertCircle size={16} />} title="Pemindaian tidak tersedia">
