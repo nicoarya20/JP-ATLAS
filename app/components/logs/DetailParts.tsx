@@ -1,15 +1,20 @@
-import { ActionIcon, CopyButton, Group, Stack, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, CopyButton, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { FiCheck, FiCopy } from 'react-icons/fi';
 import { TruncatedText } from './TruncatedText';
+
+/** Label column width in px, so every row in a drawer breaks at the same place. */
+const LABEL_WIDTH = 110;
 
 /** Label/value row used inside detail drawers. */
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
-      <Text size="sm" c="dimmed" style={{ flexShrink: 0, width: 110 }}>
+      <Text size="sm" c="dimmed" flex="0 0 auto" w={LABEL_WIDTH}>
         {label}
       </Text>
-      <div style={{ minWidth: 0, flex: 1, textAlign: 'right' }}>{children}</div>
+      <Box miw={0} flex={1} ta="right">
+        {children}
+      </Box>
     </Group>
   );
 }
@@ -29,7 +34,7 @@ export function Section({ title, children }: { title: string; children: React.Re
 export function Copyable({ value }: { value: string }) {
   return (
     <Group gap={4} wrap="nowrap" justify="flex-end">
-      <TruncatedText ff="monospace" size="sm" style={{ minWidth: 0 }}>
+      <TruncatedText ff="monospace" size="sm" miw={0}>
         {value}
       </TruncatedText>
       <CopyButton value={value} timeout={1500}>

@@ -1,4 +1,4 @@
-import { Group, Paper, SimpleGrid, Skeleton, Text, ThemeIcon } from '@mantine/core';
+import { Box, Group, Paper, SimpleGrid, Skeleton, Text, ThemeIcon } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import { TruncatedText } from './TruncatedText';
 
@@ -15,9 +15,9 @@ const SKELETON_KEYS = ['s0', 's1', 's2', 's3', 's4', 's5'];
 /** One KPI tile: uppercase label, big value, dimmed hint, tinted icon. */
 export function StatTile({ label, value, hint, icon: Icon, color = 'blue' }: StatTileProps) {
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder p="md">
       <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-        <div style={{ minWidth: 0 }}>
+        <Box miw={0}>
           <TruncatedText size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
             {label}
           </TruncatedText>
@@ -25,12 +25,12 @@ export function StatTile({ label, value, hint, icon: Icon, color = 'blue' }: Sta
             {value}
           </Text>
           {hint && (
-            <TruncatedText size="xs" c="dimmed" mt={2}>
+            <TruncatedText size="xs" c="dimmed" mt={4}>
               {hint}
             </TruncatedText>
           )}
-        </div>
-        <ThemeIcon variant="light" color={color} size="lg" radius="md" style={{ flexShrink: 0 }}>
+        </Box>
+        <ThemeIcon variant="light" color={color} size="lg" radius="md" flex="0 0 auto">
           <Icon size={16} />
         </ThemeIcon>
       </Group>

@@ -21,6 +21,8 @@ export function TimeCell({ iso }: { iso: string }) {
   return (
     <Tooltip label={formatDateTime(iso)} withArrow openDelay={300}>
       <Stack gap={0}>
+        {/* No `whiteSpace` prop in Mantine: a timestamp on two lines would make the row taller
+            than its neighbours, so both lines stay unbroken. */}
         <Text size="sm" lh={1.3} style={{ whiteSpace: 'nowrap' }}>
           {formatRelative(iso)}
         </Text>
@@ -36,7 +38,7 @@ export function TimeCell({ iso }: { iso: string }) {
 export function ClientCell({ row }: { row: ClientRow }) {
   const flag = countryFlag(row.country);
   return (
-    <Stack gap={0} style={{ minWidth: 0 }}>
+    <Stack gap={0} miw={0}>
       <TruncatedText ff="monospace" size="sm" lh={1.3}>
         {row.ip ?? '—'}
       </TruncatedText>
@@ -67,7 +69,7 @@ export function DeviceCell({ row }: { row: DeviceRow }) {
   return (
     <Group gap="xs" wrap="nowrap">
       <DeviceIcon type={row.deviceType} />
-      <Stack gap={0} style={{ minWidth: 0 }}>
+      <Stack gap={0} miw={0}>
         <TruncatedText size="sm" lh={1.3} maw={200}>
           {deviceSummary(row)}
         </TruncatedText>
@@ -101,7 +103,7 @@ export function UserCell({
       <Avatar src={row.userImage} size={compact ? 20 : 26} radius="xl">
         {row.userName ? row.userName.charAt(0).toUpperCase() : '?'}
       </Avatar>
-      <Stack gap={0} style={{ minWidth: 0 }}>
+      <Stack gap={0} miw={0}>
         <TruncatedText size="sm" fw={500} lh={1.3} maw={180}>
           {row.userName ?? '—'}
         </TruncatedText>
