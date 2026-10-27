@@ -165,6 +165,7 @@ function Frame({
       env={data.env}
       branding={data.branding}
       maintenance={data.maintenance}
+      announcement={data.announcement}
       version={data.version}
       initialCollapsed={data.collapsed}
     >

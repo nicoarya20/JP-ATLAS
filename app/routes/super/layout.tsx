@@ -189,6 +189,7 @@ function Frame({
       env={data.env}
       branding={data.branding}
       maintenance={data.maintenance}
+      announcement={data.announcement}
       version={data.version}
       role={data.role}
       user={data.user}
