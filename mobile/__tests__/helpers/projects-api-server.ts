@@ -155,6 +155,11 @@ export function memberIdOf(url: string): string | null {
   return decodeURIComponent((after.split('?')[0] ?? '').trim()) || null;
 }
 
+const projectIdOfTrash = (url: string) => {
+  const after = url.split('/api/app/trash/project/')[1] ?? '';
+  return decodeURIComponent((after.split('/')[0] ?? '').split('?')[0] ?? '');
+};
+
 const projectIdOf = (url: string) => {
   const after = url.split('/api/app/projects/')[1] ?? '';
   return decodeURIComponent((after.split('?')[0] ?? '').split('/')[0] ?? '');
@@ -164,14 +169,27 @@ type Opts = {
   rows?: readonly WireProjectListItem[];
   /** Overrides merged into every `GET /projects/:id`, e.g. an empty `can` for a read-only project. */
   detail?: Parameters<typeof wireDetail>[0];
-  /** The member list every read answers; defaults to the Lead plus one plain member. */
-  members?: readonly WireMemberItem[];
+  /**
+   * The member list every read answers; defaults to the Lead plus one plain member. Pass a function
+   * to keep it mutable, so a write's own answer survives the reload that follows it.
+   */
+  members?: readonly WireMemberItem[] | (() => readonly WireMemberItem[]);
   /** The project's task rows; defaults to the three the Overview's attention sections read. */
   tasks?: readonly WireTaskListItem[];
   /** Overrides merged into `GET /projects/:id/plan`, e.g. a `nextMilestone`. */
   plan?: Parameters<typeof wirePlan>[0];
   /** Fail `GET /projects/:id` with the server's own sentence, for the retry path. */
   failDetail?: boolean;
+  /**
+   * Fail `POST /projects/:id/status`, with the server's sentence.
+   *
+   * This is the write surface a refusal is tested through, because it has a URL of its own: a
+   * PATCH to the project and the GET of the project are the same URL, and `serveAuth` hands a route
+   * no method, so refusing "the write" there would refuse the read that opens the screen too.
+   */
+  failStatus?: { status: number; error: string; code?: string };
+  /** Fail `POST /trash/project/:id/restore`: past the window, or already deleted forever. */
+  failRestore?: { status: number; error: string; code?: string };
   /**
    * What `/members/:userId` answers. Given the userId in the path, it returns the list the server
    * would answer with — so a test shows the removal or the role change it is asserting.
@@ -185,7 +203,10 @@ type Opts = {
  */
 export function projectApiRoutes(o: Opts = {}): AuthRoutes {
   const rows = o.rows ?? SAMPLE_PROJECTS;
-  const roster = o.members ?? DEFAULT_MEMBERS;
+  const roster = () => {
+    const m = o.members ?? DEFAULT_MEMBERS;
+    return typeof m === 'function' ? m() : m;
+  };
   return {
     '/api/app/whoami': { body: wireWhoami() },
     '/api/app/team/picker': { body: wirePicker() },
@@ -196,14 +217,26 @@ export function projectApiRoutes(o: Opts = {}): AuthRoutes {
     '/activity': { body: wireActivity() },
     '/members': (url: string) => {
       const userId = memberIdOf(url);
-      if (!userId) return { body: wireMembers(roster) };
+      if (!userId) return { body: wireMembers(roster()) };
       const answered = o.memberWrite?.(userId);
-      if (!answered) return { body: wireMembers(roster) };
+      if (!answered) return { body: wireMembers(roster()) };
       return 'items' in answered ? { body: answered } : answered;
     },
     '/extend-deadline': { body: wireDetail(o.detail) },
-    '/status': { body: wireDetail(o.detail) },
+    '/status': o.failStatus
+      ? {
+          status: o.failStatus.status,
+          body: { error: o.failStatus.error, code: o.failStatus.code ?? 'UNPROCESSABLE' },
+        }
+      : { body: wireDetail(o.detail) },
     '/lead': { body: wireDetail(o.detail) },
+    '/api/app/trash/project/': (url: string) =>
+      o.failRestore
+        ? {
+            status: o.failRestore.status,
+            body: { error: o.failRestore.error, code: o.failRestore.code ?? 'CONFLICT' },
+          }
+        : { body: { id: projectIdOfTrash(url), tasks: 5 } },
     '/api/app/projects?': (url: string) => ({ body: wirePage(rowsFor(url, rows)) }),
     '/api/app/projects/': (url: string) => {
       if (o.failDetail) {

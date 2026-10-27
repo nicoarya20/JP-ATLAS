@@ -139,6 +139,8 @@ export const ARCHIVE = {
   undo: 'Undo',
   restored: 'Project restored',
   goneForever: "This project was deleted forever and can't be restored.",
+  /** Fallback only: a refusal normally arrives with the server's own sentence. */
+  failed: 'Could not move it to Archive. Try again.',
 } as const;
 
 export const CREATE = {
