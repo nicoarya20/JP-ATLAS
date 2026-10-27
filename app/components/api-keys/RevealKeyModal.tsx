@@ -51,7 +51,8 @@ function RevealBody({ reveal, onClose }: { reveal: Reveal; onClose: () => void }
         </Alert>
         <Paper withBorder radius="md" p="sm" bg="var(--mantine-color-default-hover)">
           <Group justify="space-between" wrap="nowrap" gap="xs">
-            <Text ff="monospace" size="sm" style={{ wordBreak: 'break-all', minWidth: 0 }}>
+            <Text ff="monospace" size="sm" miw={0}
+              style={{ wordBreak: 'break-all' }}>
               {reveal.key}
             </Text>
             <CopyButton value={reveal.key} timeout={1500}>

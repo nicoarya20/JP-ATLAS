@@ -24,7 +24,7 @@ function Item({
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
         {label}
       </Text>
-      <Text fw={600} c={warn ? 'orange' : undefined} style={{ overflowWrap: 'anywhere' }}>
+      <Text fw={600} c={warn ? 'warn' : undefined} style={{ overflowWrap: 'anywhere' }}>
         {value}
       </Text>
       {hint && (

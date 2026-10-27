@@ -200,7 +200,7 @@ export default function SessionsPage({ loaderData }: Route.ComponentProps) {
         </Alert>
       )}
 
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
         <SessionTable
           rows={rows}
           loading={list.isPending}

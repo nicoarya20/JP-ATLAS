@@ -1,6 +1,7 @@
 import {
   Alert,
   Badge,
+  Box,
   Group,
   Paper,
   SimpleGrid,
@@ -21,6 +22,15 @@ import { TruncatedText } from '../logs/TruncatedText';
 const nf = new Intl.NumberFormat('id-ID');
 const SKELETON_KEYS = ['s0', 's1', 's2', 's3'];
 const RECENT_LIMIT = 20;
+
+/**
+ * The 90-day sparkline is drawn by hand, so its geometry has no design-system equivalent: the
+ * strip height, bar width/radius, and the floor that keeps a one-request day visible.
+ */
+const SPARKLINE_HEIGHT = 64;
+const SPARKLINE_BAR_WIDTH = 10;
+const SPARKLINE_BAR_RADIUS = 2;
+const SPARKLINE_MIN_BAR_PERCENT = 6;
 
 function Tile({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -50,22 +60,19 @@ function DailyBars({ daily }: { daily: UsageBreakdown['daily'] }) {
     );
   const max = Math.max(...daily.map((d) => d.count), 1);
   return (
-    <Group gap={3} align="flex-end" wrap="nowrap" h={64} style={{ overflowX: 'auto' }}>
+    <Group gap={4} align="flex-end" wrap="nowrap" h={SPARKLINE_HEIGHT} style={{ overflowX: 'auto' }}>
       {daily.map((d) => (
         <Tooltip
           key={d.day}
           label={`${d.day}: ${nf.format(d.count)} request, ${nf.format(d.errors)} error`}
           withArrow
         >
-          <div
-            style={{
-              width: 10,
-              flexShrink: 0,
-              height: `${Math.max(6, (d.count / max) * 100)}%`,
-              borderRadius: 2,
-              background:
-                d.errors > 0 ? 'var(--mantine-color-red-5)' : 'var(--mantine-color-blue-5)',
-            }}
+          <Box
+            w={SPARKLINE_BAR_WIDTH}
+            flex="0 0 auto"
+            h={`${Math.max(SPARKLINE_MIN_BAR_PERCENT, (d.count / max) * 100)}%`}
+            bdrs={SPARKLINE_BAR_RADIUS}
+            bg={d.errors > 0 ? 'danger.5' : 'atlas.5'}
           />
         </Tooltip>
       ))}
@@ -172,7 +179,7 @@ export function ApiKeyUsagePanel({
         total={total30d}
         render={(k) => (k ? `${countryFlag(k)} ${countryName(k)}` : 'Tidak diketahui')}
       />
-      <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+      <Paper withBorder style={{ overflow: 'hidden' }}>
         <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} p="sm" pb={4}>
           Request terakhir
         </Text>

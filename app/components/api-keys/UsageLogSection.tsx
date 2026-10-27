@@ -79,7 +79,8 @@ function Rows({ rows, onKey }: { rows: UsageLogRow[]; onKey: (id: string) => voi
             </Tooltip>
           </Table.Td>
           <Table.Td>
-            <Box onClick={() => onKey(r.keyId)} style={{ cursor: 'pointer', minWidth: 0 }}>
+            <Box onClick={() => onKey(r.keyId)} miw={0}
+              style={{ cursor: 'pointer' }}>
               <TruncatedText size="sm" fw={500} maw={160}>
                 {r.keyName ?? '(tanpa nama)'}
               </TruncatedText>
@@ -244,7 +245,7 @@ export function UsageLogSection() {
           {(log.error as Error).message}
         </Alert>
       )}
-      <Paper withBorder radius="md" style={{ overflow: 'hidden' }}>
+      <Paper withBorder style={{ overflow: 'hidden' }}>
         <Box style={{ overflowX: 'auto' }}>
           <Table
             highlightOnHover

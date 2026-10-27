@@ -107,7 +107,8 @@ export function RateLimitDetailDrawer({ row, onClose, onDelete, onFilterIp, dele
               <Text size="sm" c="dimmed">
                 User agent
               </Text>
-              <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
+              <Code block fz="xs"
+              style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
                 {dash(row.userAgent)}
               </Code>
             </Stack>

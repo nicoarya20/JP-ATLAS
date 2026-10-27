@@ -198,7 +198,7 @@ export default function LoginLogsPage({ loaderData }: Route.ComponentProps) {
         onDelete={() => actions.deleteMany([...selected])}
       />
 
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
         <LoginTable
           rows={rows}
           loading={list.isPending}

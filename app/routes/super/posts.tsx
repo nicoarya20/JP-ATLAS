@@ -209,7 +209,7 @@ export default function PostsPage({ loaderData }: Route.ComponentProps) {
           {(list.error as Error).message}
         </Alert>
       )}
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
         <PostTable
           rows={rows}
           loading={list.isPending}

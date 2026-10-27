@@ -121,7 +121,8 @@ export function LoginDetailDrawer({ row, onClose, onDelete, onFilterUser, deleti
               <Text size="sm" c="dimmed">
                 User agent
               </Text>
-              <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
+              <Code block fz="xs"
+              style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
                 {dash(row.userAgent)}
               </Code>
             </Stack>

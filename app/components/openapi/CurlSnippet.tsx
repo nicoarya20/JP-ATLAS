@@ -31,7 +31,8 @@ export function CurlSnippet({ command }: { command: string }) {
           )}
         </CopyButton>
       </Group>
-      <Code block style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 12 }}>
+      <Code block fz="xs"
+              style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
         {command}
       </Code>
       <Text size="xs" c="dimmed">

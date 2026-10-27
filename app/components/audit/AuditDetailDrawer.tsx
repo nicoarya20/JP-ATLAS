@@ -47,7 +47,8 @@ export function AuditDetailDrawer({ row, onClose }: { row: AuditRow | null; onCl
           </Section>
           <Divider />
           <Section title="Detail">
-            <Code block style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            <Code block fz="xs"
+            style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
               {row.meta ? JSON.stringify(row.meta, null, 2) : '(tidak ada data tambahan)'}
             </Code>
           </Section>

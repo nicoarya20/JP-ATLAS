@@ -192,7 +192,7 @@ export default function VisitsPage({ loaderData }: Route.ComponentProps) {
         onDelete={() => actions.deleteMany([...selected])}
       />
 
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
         <VisitTable
           rows={rows}
           loading={list.isPending}

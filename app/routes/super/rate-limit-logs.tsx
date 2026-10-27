@@ -213,7 +213,7 @@ export default function RateLimitLogsPage({ loaderData }: Route.ComponentProps) 
         onDelete={() => actions.deleteMany([...selected])}
       />
 
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper withBorder visibleFrom="sm" style={{ overflow: 'hidden' }}>
         <RateLimitTable
           rows={rows}
           loading={list.isPending}

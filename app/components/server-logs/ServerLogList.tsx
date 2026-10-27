@@ -33,7 +33,8 @@ function Row({ row }: { row: ServerLogRow }) {
     >
       <UnstyledButton
         onClick={() => hasExtras && setOpen((o) => !o)}
-        style={{ width: '100%', cursor: hasExtras ? 'pointer' : 'default' }}
+        w="100%"
+        style={{ cursor: hasExtras ? 'pointer' : 'default' }}
         aria-expanded={open}
       >
         <Group gap="sm" wrap="nowrap" align="flex-start">
@@ -62,7 +63,8 @@ function Row({ row }: { row: ServerLogRow }) {
           <Code
             block
             mt="xs"
-            style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+            fz="xs"
+            style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
           >
             {JSON.stringify(extras, null, 2)}
           </Code>
