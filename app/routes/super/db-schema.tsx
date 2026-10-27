@@ -1,4 +1,4 @@
-import { Alert, Button, Center, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core';
+import { Alert, Button, Group, Loader, Paper, Stack, Text, Title } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { introspectDrizzleSchema } from '@server/db/schema-introspect';
 import { schemaStats } from '@server/db/schema-stats';
@@ -29,6 +29,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const stats = await schemaStats(schema.tables.map((t) => t.id));
   return { schema, stats };
 }
+
+/** The ERD canvas fills most of the viewport but never collapses below a usable height. */
+const CANVAS_HEIGHT = 'min(72vh, 820px)';
+const CANVAS_MIN_HEIGHT = 420;
 
 export default function DbSchemaPage({ loaderData }: Route.ComponentProps) {
   const { dateTime: formatDateTime } = useTimeFormat();
@@ -90,19 +94,17 @@ export default function DbSchemaPage({ loaderData }: Route.ComponentProps) {
         onFit={() => setFitKey((k) => k + 1)}
       />
 
-      <Paper
-        withBorder
-        radius="md"
-        style={{ overflow: 'hidden', height: 'min(72vh, 820px)', minHeight: 420 }}
-      >
+      {/* Mantine has no `overflow` style prop, so this stays a `style`: it clips the React Flow
+          canvas to the card's rounded corners. */}
+      <Paper withBorder h={CANVAS_HEIGHT} mih={CANVAS_MIN_HEIGHT} style={{ overflow: 'hidden' }}>
         <Suspense
           fallback={
-            <Center h="100%" style={{ gap: 8 }}>
+            <Group h="100%" justify="center" gap="xs">
               <Loader size="sm" />
               <Text size="sm" c="dimmed">
                 Menyiapkan diagram…
               </Text>
-            </Center>
+            </Group>
           }
         >
           <SchemaGraph

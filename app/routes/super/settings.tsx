@@ -72,6 +72,8 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
         </Alert>
       )}
       <Tabs defaultValue="auth" keepMounted={false} variant="outline">
+        {/* Mantine has no `flexWrap` style prop: eight tabs must wrap rather than overflow a
+            375 px screen (CLAUDE.md mobile §3). */}
         <Tabs.List style={{ flexWrap: 'wrap' }}>
           {TABS.map((t) => (
             <Tabs.Tab key={t.value} value={t.value}>

@@ -58,11 +58,16 @@ function ItemText({ text, query }: { text: string; query: string }) {
   );
 }
 
+/** Keeps an anchored release heading clear of the sticky console header. */
+const ANCHOR_SCROLL_MARGIN = 72;
+
 function ReleaseTitle({ release, current }: { release: ChangelogRelease; current: string }) {
   const anchor = releaseAnchor(release.version);
   return (
     <Group gap="xs" wrap="wrap">
-      <Title order={4} id={anchor} style={{ scrollMarginTop: 72 }}>
+      {/* Mantine has no `scrollMarginTop` style prop: a `#v1.2.3` jump must land below the
+          sticky console header rather than under it. */}
+      <Title order={3} id={anchor} style={{ scrollMarginTop: ANCHOR_SCROLL_MARGIN }}>
         {release.unreleased ? 'Belum dirilis' : `v${release.version}`}
       </Title>
       {release.version === current && (
@@ -121,12 +126,14 @@ export function ChangelogTimeline({
             {r.sections.map((s) => {
               const meta = sectionMeta(s.type);
               return (
-                <Stack key={s.type} gap={6}>
+                <Stack key={s.type} gap="xs">
                   <Badge color={meta.color} variant="light" w="fit-content">
                     {meta.label}
                   </Badge>
                   <List size="sm" spacing={4} withPadding>
                     {s.items.map((item) => (
+                      // Mantine has no `overflowWrap` prop; changelog lines carry long paths
+                      // and identifiers that must break rather than widen the page.
                       <List.Item key={item} style={{ overflowWrap: 'anywhere' }}>
                         <ItemText text={item} query={query} />
                       </List.Item>
