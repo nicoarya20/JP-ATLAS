@@ -84,9 +84,9 @@ export function FiturPanel() {
         {q.isSuccess && (
           <Stack gap="xs">
             {rows.map((f) => (
-              <Paper key={f.key} withBorder p="sm" radius="md">
+              <Paper key={f.key} withBorder p="sm">
                 <Group justify="space-between" align="flex-start" wrap="nowrap" gap="sm">
-                  <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+                  <Stack gap={4} miw={0} flex={1}>
                     <Text fw={600}>{f.label}</Text>
                     <Text size="sm" c="dimmed">
                       {f.description}
@@ -101,11 +101,7 @@ export function FiturPanel() {
                     )}
                   </Stack>
                   {/* Text as well as colour: the state must survive a colour-blind reader. */}
-                  <Badge
-                    variant="light"
-                    color={f.enabled ? 'ok' : 'gray'}
-                    style={{ flexShrink: 0 }}
-                  >
+                  <Badge variant="light" color={f.enabled ? 'ok' : 'gray'} flex="0 0 auto">
                     {f.enabled ? COPY.on : COPY.off}
                   </Badge>
                 </Group>

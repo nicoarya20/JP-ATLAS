@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Button, Group, Menu, Text, Title, Tooltip } from '@mantine/core';
 import { FiDownload, FiMoreVertical, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 
 const nf = new Intl.NumberFormat('id-ID');
@@ -21,12 +21,12 @@ type Props = {
 export function LogPageHeader(p: Props) {
   return (
     <Group justify="space-between" align="flex-start" wrap="wrap">
-      <div>
-        <Title order={3}>{p.title}</Title>
+      <Box>
+        <Title order={1}>{p.title}</Title>
         <Text size="sm" c="dimmed">
           {p.description}
         </Text>
-      </div>
+      </Box>
       <Group gap="xs" wrap="wrap" justify="flex-end">
         <Tooltip
           label={`Unduh CSV sesuai filter aktif (maks. ${nf.format(p.exportMaxRows)} baris)`}

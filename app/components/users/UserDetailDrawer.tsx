@@ -53,7 +53,9 @@ export function UserDetailDrawer({ user, onClose, perms, actions }: Props) {
               color="initials"
               imageProps={{ referrerPolicy: 'no-referrer' }}
             />
-            <Stack gap={4} style={{ minWidth: 0 }}>
+            <Stack gap={4} miw={0}>
+              {/* A detail view shows the whole value (K-5), and Mantine has no `wordBreak` prop:
+                  a long name wraps between words, an address anywhere since it has none. */}
               <Text fw={600} size="lg" lh={1.2} style={{ wordBreak: 'break-word' }}>
                 {user.name}
               </Text>

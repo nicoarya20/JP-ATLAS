@@ -1,7 +1,8 @@
-import { Stack, Text, Title } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { PeranIzinPanel } from '~/components/admin/permissions/peran-izin';
+import { PageHeader } from '~/components/ui/PageHeader';
 import type { Route } from './+types/permissions';
 
 export const PERMISSIONS_PAGE_COPY = {
@@ -28,12 +29,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function AdminPermissionsPage() {
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      <div>
-        <Title order={1}>{PERMISSIONS_PAGE_COPY.title}</Title>
-        <Text size="sm" c="dimmed">
-          {PERMISSIONS_PAGE_COPY.description}
-        </Text>
-      </div>
+      <PageHeader
+        title={PERMISSIONS_PAGE_COPY.title}
+        description={PERMISSIONS_PAGE_COPY.description}
+      />
       <PeranIzinPanel />
     </Stack>
   );

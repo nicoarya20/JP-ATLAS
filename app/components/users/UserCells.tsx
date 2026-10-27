@@ -24,7 +24,7 @@ export function RoleBadge({
       disabled={r !== ROLES.SUPER_ADMIN}
       withArrow
     >
-      <Badge variant="light" color={roleColor(r)} size={size} style={{ flexShrink: 0 }}>
+      <Badge variant="light" color={roleColor(r)} size={size} flex="0 0 auto">
         {ROLE_LABEL[r] ?? r}
       </Badge>
     </Tooltip>
@@ -43,7 +43,7 @@ export function StatusBadge({ user, size = 'sm' }: { user: AdminUser; size?: 'xs
         multiline
         maw={280}
       >
-        <Badge color="red" variant="filled" size={size} style={{ flexShrink: 0 }}>
+        <Badge color="red" variant="filled" size={size} flex="0 0 auto">
           {status.label}
         </Badge>
       </Tooltip>
@@ -53,7 +53,7 @@ export function StatusBadge({ user, size = 'sm' }: { user: AdminUser; size?: 'xs
     status.key === 'rejected' && user.approvalReason ? `Alasan: ${user.approvalReason}` : undefined;
   return (
     <Tooltip label={reason} disabled={!reason} withArrow multiline maw={280}>
-      <Badge color={status.color} variant="light" size={size} style={{ flexShrink: 0 }}>
+      <Badge color={status.color} variant="light" size={size} flex="0 0 auto">
         {status.label}
       </Badge>
     </Tooltip>
@@ -63,7 +63,7 @@ export function StatusBadge({ user, size = 'sm' }: { user: AdminUser; size?: 'xs
 /** Avatar + name (+ verified check) + email. */
 export function IdentityCell({ user, isSelf }: { user: AdminUser; isSelf: boolean }) {
   return (
-    <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+    <Group gap="sm" wrap="nowrap" miw={0}>
       <Avatar
         src={user.image}
         radius="xl"
@@ -72,20 +72,20 @@ export function IdentityCell({ user, isSelf }: { user: AdminUser; isSelf: boolea
         color="initials"
         imageProps={{ referrerPolicy: 'no-referrer' }}
       />
-      <Stack gap={0} style={{ minWidth: 0 }}>
+      <Stack gap={0} miw={0}>
         <Group gap={4} wrap="nowrap">
           <TruncatedText size="sm" fw={500} lh={1.3} maw={220}>
             {user.name}
           </TruncatedText>
           {user.emailVerified && (
             <Tooltip label="Email terverifikasi" withArrow>
-              <Text c="teal" lh={0} style={{ flexShrink: 0 }}>
+              <Text c="teal" lh={0} flex="0 0 auto">
                 <FiCheckCircle size={13} />
               </Text>
             </Tooltip>
           )}
           {isSelf && (
-            <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
+            <Badge size="xs" variant="outline" color="gray" flex="0 0 auto">
               Anda
             </Badge>
           )}

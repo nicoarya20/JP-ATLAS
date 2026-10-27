@@ -8,7 +8,7 @@
  * import for a `Widget { ok }` section of `GET /api/admin/overview`, adding the "Coba lagi"
  * button that a soft-failing section needs.
  */
-import { Anchor, Badge, Group, Progress, Stack, Text } from '@mantine/core';
+import { Anchor, Badge, Box, Group, Progress, Stack, Text } from '@mantine/core';
 import { Link } from 'react-router';
 import { PratinjauBadge } from '~/components/admin/pratinjau/pratinjau';
 import { SectionCard } from '~/components/ui/SectionCard';
@@ -56,7 +56,7 @@ function PreviewCard({
 function Row({ label, hint, value }: { label: string; hint: string; value: React.ReactNode }) {
   return (
     <Group justify="space-between" wrap="nowrap" gap="sm" align="flex-start">
-      <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+      <Stack gap={0} miw={0} flex={1}>
         <Text size="sm" fw={500} truncate>
           {label}
         </Text>
@@ -64,7 +64,7 @@ function Row({ label, hint, value }: { label: string; hint: string; value: React
           {hint}
         </Text>
       </Stack>
-      <div style={{ flexShrink: 0 }}>{value}</div>
+      <Box flex="0 0 auto">{value}</Box>
     </Group>
   );
 }
@@ -101,7 +101,7 @@ export function ProjectsWidget() {
           <Progress.Section key={s.label} value={(s.count / total) * 100} color={s.color} />
         ))}
       </Progress.Root>
-      <Stack gap={6}>
+      <Stack gap="xs">
         {SAMPLE_PROJECTS.map((s) => (
           <Row
             key={s.label}
@@ -150,6 +150,8 @@ export function AgendaWidget() {
             label={a.title}
             hint={`${a.project} · ${a.attendees} peserta`}
             value={
+              // No `whiteSpace` prop in Mantine; the date stays on one line so the label
+              // beside it is the part that truncates.
               <Text size="sm" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
                 {a.when}
               </Text>
@@ -171,6 +173,7 @@ export function RoleChangesWidget() {
             label={`${c.who}: ${c.from} → ${c.to}`}
             hint={`oleh ${c.by}`}
             value={
+              // Same reason as the agenda card: the timestamp never wraps, the label does.
               <Text size="xs" c="dimmed" style={{ whiteSpace: 'nowrap' }}>
                 {c.when}
               </Text>

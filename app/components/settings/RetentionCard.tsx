@@ -142,7 +142,7 @@ export function RetentionCard({ state }: { state: RetentionState }) {
           />
         );
       })}
-      <Stack gap={2}>
+      <Stack gap={4}>
         <Text size="sm" c="dimmed">
           {state.lastRunAt
             ? `Terakhir jalan ${formatRelative(state.lastRunAt)} (${formatDateTime(state.lastRunAt)}, ${last?.trigger === 'manual' ? 'manual' : 'terjadwal'})`

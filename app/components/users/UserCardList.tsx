@@ -20,9 +20,7 @@ export function UserCardList({ rows, loading, perms, actions, onOpen, empty }: U
   }
   if (rows.length === 0)
     return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
+      <Paper withBorder>{empty}</Paper>
     );
   return (
     <Stack gap="xs">
@@ -31,12 +29,12 @@ export function UserCardList({ rows, loading, perms, actions, onOpen, empty }: U
           key={u.id}
           withBorder
           p="sm"
-          radius="md"
           onClick={() => onOpen(u)}
+          // No `cursor` style prop in Mantine; the whole card opens the detail drawer.
           style={{ cursor: 'pointer' }}
         >
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap="xs" miw={0} flex={1}>
               <IdentityCell user={u} isSelf={u.id === perms.currentUserId} />
               <Group gap="xs" wrap="wrap">
                 <RoleBadge role={u.role} size="xs" />

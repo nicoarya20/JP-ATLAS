@@ -129,6 +129,8 @@ export function UserActionsMenu({ user, perms, actions, onOpen }: Props) {
         )}
         {/* Reason as plain text, never a tooltip: it must be readable on touch screens. */}
         {!anyAction && can.blockedReason && (
+          // No `whiteSpace` style prop in Mantine; a menu label is nowrap by default and this
+          // reason is a sentence, so it has to be allowed to wrap.
           <Menu.Label style={{ whiteSpace: 'normal' }}>{can.blockedReason}</Menu.Label>
         )}
       </Menu.Dropdown>

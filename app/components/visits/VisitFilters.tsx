@@ -46,7 +46,7 @@ export function VisitFilters({ filters, onChange, onReset, countries, matchCount
   const active = hasActiveFilters(filters);
 
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari IP, path, kota, browser, referer, atau nama user…"
@@ -63,7 +63,8 @@ export function VisitFilters({ filters, onChange, onReset, countries, matchCount
           value={filters.search}
           onChange={(e) => onChange({ search: e.currentTarget.value })}
           size="sm"
-          style={{ flex: '1 1 240px', minWidth: 0 }}
+          flex="1 1 240px"
+          miw={0}
         />
         <SegmentedControl
           size="sm"

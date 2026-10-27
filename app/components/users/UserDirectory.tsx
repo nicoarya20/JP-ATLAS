@@ -95,14 +95,25 @@ export function UserDirectory({
         <Alert color="red" icon={<FiAlertCircle size={16} />} title="Gagal memuat daftar pengguna">
           <Group justify="space-between" wrap="wrap" gap="xs">
             <Text size="sm">{(list.error as Error).message}</Text>
-            <Button size="xs" variant="light" color="red" onClick={() => list.refetch()}>
+            <Button
+              size="xs"
+              variant="light"
+              color="red"
+              loading={list.isFetching}
+              onClick={() => list.refetch()}
+            >
               Coba lagi
             </Button>
           </Group>
         </Alert>
       )}
 
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        // No `overflow` style prop in Mantine; it clips the table's corners to the card radius.
+        style={{ overflow: 'hidden' }}
+      >
         <UserTable {...listProps} fetching={list.isFetching} />
       </Paper>
       <Box hiddenFrom="sm">

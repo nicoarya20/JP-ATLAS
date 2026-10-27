@@ -62,8 +62,9 @@ export function PengumumanPreview() {
             value={text}
             onChange={(e) => setText(e.currentTarget.value)}
           />
-          <div>
-            <Text size="sm" fw={500} mb={6}>
+          {/* A Stack carries the label/control gap, so it comes off the spacing scale (was 6px). */}
+          <Stack gap={4}>
+            <Text size="sm" fw={500}>
               Nada
             </Text>
             <SegmentedControl
@@ -71,7 +72,7 @@ export function PengumumanPreview() {
               onChange={setLevel}
               data={LEVELS.map((l) => ({ value: l.value, label: l.label }))}
             />
-          </div>
+          </Stack>
           <SettingRow
             label="Boleh ditutup pembaca"
             description="Setelah ditutup, banner tidak muncul lagi untuk orang itu sampai isinya diubah."

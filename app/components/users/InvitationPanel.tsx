@@ -73,7 +73,7 @@ function RevokeControl({ inv, now, perms, actions }: RowProps) {
       ? 'Hanya super-admin yang dapat mencabut undangan Admin.'
       : DENY_UI[decision.code].message;
   return (
-    <Stack gap={2} align="flex-start">
+    <Stack gap={4} align="flex-start">
       <Button
         size="xs"
         variant="light"
@@ -97,12 +97,7 @@ function RevokeControl({ inv, now, perms, actions }: RowProps) {
 function StateBadge({ inv, now }: { inv: AdminInvitation; now: number }) {
   const state = invitationState(inv, now);
   return (
-    <Badge
-      variant="light"
-      color={INVITATION_STATE_COLOR[state]}
-      size="sm"
-      style={{ flexShrink: 0 }}
-    >
+    <Badge variant="light" color={INVITATION_STATE_COLOR[state]} size="sm" flex="0 0 auto">
       {INVITATION_STATE_LABEL[state]}
     </Badge>
   );
@@ -113,9 +108,15 @@ function InvitationRows(props: Omit<RowProps, 'inv'> & { rows: AdminInvitation[]
   const when = useWhen();
   return (
     <>
-      <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+      <Paper
+        withBorder
+        visibleFrom="sm"
+        // No `overflow` style prop in Mantine; it clips the table's corners to the card radius.
+        style={{ overflow: 'hidden' }}
+      >
+        {/* Nor an `overflowX` one: five columns scroll sideways instead of widening the page. */}
         <Box style={{ overflowX: 'auto' }}>
-          <Table highlightOnHover verticalSpacing="xs" fz="sm" style={{ minWidth: 640 }}>
+          <Table highlightOnHover verticalSpacing="xs" fz="sm" miw={640}>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Email</Table.Th>
@@ -128,10 +129,12 @@ function InvitationRows(props: Omit<RowProps, 'inv'> & { rows: AdminInvitation[]
             <Table.Tbody>
               {rows.map((inv) => (
                 <Table.Tr key={inv.id}>
+                  {/* An address has no spaces to wrap at, and Mantine has no `wordBreak` prop;
+                      forcing the break keeps the column narrow instead of stretching the table. */}
                   <Table.Td style={{ wordBreak: 'break-all' }}>{inv.email}</Table.Td>
                   <Table.Td>{ROLE_LABEL[normalizeRole(inv.role)] ?? inv.role}</Table.Td>
                   <Table.Td>
-                    <Stack gap={2} align="flex-start">
+                    <Stack gap={4} align="flex-start">
                       <StateBadge inv={inv} now={rest.now} />
                       <Text size="xs" c="dimmed">
                         {when(inv, rest.now)}
@@ -150,10 +153,11 @@ function InvitationRows(props: Omit<RowProps, 'inv'> & { rows: AdminInvitation[]
       </Paper>
       <Stack gap="xs" hiddenFrom="sm">
         {rows.map((inv) => (
-          <Paper key={inv.id} withBorder p="sm" radius="md">
-            <Stack gap={6}>
+          <Paper key={inv.id} withBorder p="sm">
+            <Stack gap="xs">
               <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-                <Text size="sm" fw={500} style={{ minWidth: 0, wordBreak: 'break-all' }}>
+                {/* Truncated, not wrapped: every card in the list keeps the same height (K-5). */}
+                <Text size="sm" fw={500} miw={0} truncate>
                   {inv.email}
                 </Text>
                 <StateBadge inv={inv} now={rest.now} />
@@ -192,7 +196,7 @@ export function InvitationPanel({ initial, loadedAt, perms }: Props) {
 
   return (
     <Stack gap="md">
-      <Paper withBorder radius="md" p="md">
+      <Paper withBorder p="md">
         <Text size="sm" c="dimmed" mb="sm">
           Undang orang yang sudah kamu kenal. Begitu mereka masuk dengan Google memakai email ini,
           akunnya langsung disetujui tanpa antre.
@@ -220,7 +224,13 @@ export function InvitationPanel({ initial, loadedAt, perms }: Props) {
         <Alert color="red" icon={<FiAlertCircle size={16} />} title="Gagal memuat undangan">
           <Group justify="space-between" wrap="wrap" gap="xs">
             <Text size="sm">{(list.error as Error).message}</Text>
-            <Button size="xs" variant="light" color="red" onClick={() => list.refetch()}>
+            <Button
+              size="xs"
+              variant="light"
+              color="red"
+              loading={list.isFetching}
+              onClick={() => list.refetch()}
+            >
               Coba lagi
             </Button>
           </Group>
@@ -234,7 +244,7 @@ export function InvitationPanel({ initial, loadedAt, perms }: Props) {
         </Stack>
       )}
       {!list.isPending && rows.length === 0 && (
-        <Paper withBorder radius="md">
+        <Paper withBorder>
           <Stack align="center" gap="xs" py="xl">
             <ThemeIcon variant="light" color="gray" size={48} radius="xl">
               <FiMail size={22} />

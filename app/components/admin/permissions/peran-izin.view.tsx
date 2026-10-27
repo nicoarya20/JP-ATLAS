@@ -30,7 +30,7 @@ function CellValue({ cell }: { cell: MatrixCell }) {
 
 function CapabilityLabel({ label, description }: { label: string; description: string }) {
   return (
-    <Stack gap={2} style={{ minWidth: 0 }}>
+    <Stack gap={4} miw={0}>
       <Text size="sm" fw={600}>
         {label}
       </Text>
@@ -43,18 +43,24 @@ function CapabilityLabel({ label, description }: { label: string; description: s
 
 function MatrixTable({ matrix }: { matrix: PermissionsMatrix }) {
   return (
-    <Paper withBorder radius="md" visibleFrom="sm" style={{ overflow: 'hidden' }}>
+    <Paper
+      withBorder
+      visibleFrom="sm"
+      // No `overflow` style prop in Mantine; it clips the table's corners to the card radius.
+      style={{ overflow: 'hidden' }}
+    >
+      {/* Nor an `overflowX` one: five columns scroll sideways instead of widening the page. */}
       <Box style={{ overflowX: 'auto' }}>
         <Table
           highlightOnHover
           verticalSpacing="sm"
           fz="sm"
-          style={{ minWidth: 720 }}
+          miw={720}
           aria-label={MATRIX_COPY.tableLabel}
         >
           <Table.Thead>
             <Table.Tr>
-              <Table.Th style={{ minWidth: 260 }}>{MATRIX_COPY.capabilityHeader}</Table.Th>
+              <Table.Th miw={260}>{MATRIX_COPY.capabilityHeader}</Table.Th>
               {matrix.roles.map((role) => (
                 <Table.Th key={role.id}>{role.label}</Table.Th>
               ))}
@@ -85,15 +91,15 @@ function MatrixCards({ matrix }: { matrix: PermissionsMatrix }) {
   return (
     <Stack gap="xs" hiddenFrom="sm">
       {matrix.capabilities.map((cap) => (
-        <Paper key={cap.id} withBorder p="sm" radius="md">
+        <Paper key={cap.id} withBorder p="sm">
           <Stack gap="xs">
             <CapabilityLabel label={cap.label} description={cap.description} />
             {cap.cells.map((cell) => (
               <Group key={cell.role} justify="space-between" wrap="nowrap" gap="xs">
-                <Text size="sm" style={{ minWidth: 0 }} truncate>
+                <Text size="sm" miw={0} truncate>
                   {labelOf(cell.role)}
                 </Text>
-                <Box style={{ flexShrink: 0 }}>
+                <Box flex="0 0 auto">
                   <CellValue cell={cell} />
                 </Box>
               </Group>

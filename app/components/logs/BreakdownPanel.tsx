@@ -1,4 +1,4 @@
-import { Group, Paper, Progress, Stack, Text, UnstyledButton } from '@mantine/core';
+import { Box, Group, Paper, Progress, Stack, Text, UnstyledButton } from '@mantine/core';
 import { percent } from '~/lib/visits-format';
 import { TruncatedText } from './TruncatedText';
 
@@ -17,25 +17,22 @@ type RowProps = {
 
 function BreakdownRow({ label, count, pct, mono, onClick, ariaLabel }: RowProps) {
   const body = (
-    <Stack gap={4} style={{ width: '100%' }}>
+    <Stack gap={4} w="100%">
       <Group justify="space-between" wrap="nowrap" gap="xs">
-        <TruncatedText size="sm" ff={mono ? 'monospace' : undefined} style={{ minWidth: 0 }}>
+        <TruncatedText size="sm" ff={mono ? 'monospace' : undefined} miw={0}>
           {label}
         </TruncatedText>
-        <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+        <Text size="xs" c="dimmed" flex="0 0 auto">
           {nf.format(count)} · {pct}%
         </Text>
       </Group>
       <Progress value={pct} size="xs" radius="xl" />
     </Stack>
   );
-  if (!onClick) return <div>{body}</div>;
+  // A plain row and a pressable row must occupy the same block box, so both get a wrapper.
+  if (!onClick) return <Box>{body}</Box>;
   return (
-    <UnstyledButton
-      onClick={onClick}
-      aria-label={ariaLabel}
-      style={{ display: 'block', width: '100%' }}
-    >
+    <UnstyledButton onClick={onClick} aria-label={ariaLabel} display="block" w="100%">
       {body}
     </UnstyledButton>
   );
@@ -62,7 +59,7 @@ export function BreakdownPanel({
   emptyText,
 }: BreakdownPanelProps) {
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder p="md">
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} mb="sm">
         {title}
       </Text>

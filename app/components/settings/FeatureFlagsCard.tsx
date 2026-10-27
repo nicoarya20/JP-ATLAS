@@ -76,11 +76,11 @@ export function FeatureFlagsCard({ flags }: { flags: FeatureFlag[] }) {
       <Stack gap="xs">
         {list.map((f, i) => (
           <Group key={f.key} justify="space-between" wrap="nowrap" gap="sm">
-            <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+            <Stack gap={0} miw={0} flex={1}>
               <Group gap="xs" wrap="nowrap">
                 <Code>{f.key}</Code>
                 {featureLabel(f.key) && (
-                  <Text size="xs" c="dimmed" truncate style={{ minWidth: 0 }}>
+                  <Text size="xs" c="dimmed" truncate miw={0}>
                     {featureLabel(f.key)}
                   </Text>
                 )}
@@ -131,7 +131,7 @@ export function FeatureFlagsCard({ flags }: { flags: FeatureFlag[] }) {
           value={newKey}
           onChange={(e) => setNewKey(e.currentTarget.value.toLowerCase())}
           error={keyError}
-          style={{ flex: '1 1 160px' }}
+          flex="1 1 160px"
           aria-label="Kunci flag baru"
           onKeyDown={(e) => e.key === 'Enter' && add()}
         />
@@ -141,7 +141,7 @@ export function FeatureFlagsCard({ flags }: { flags: FeatureFlag[] }) {
           value={newDesc}
           onChange={(e) => setNewDesc(e.currentTarget.value)}
           maxLength={200}
-          style={{ flex: '2 1 220px' }}
+          flex="2 1 220px"
           aria-label="Deskripsi flag baru"
         />
         <Button
