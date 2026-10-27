@@ -9,12 +9,11 @@ import {
   FiUser,
 } from 'react-icons/fi';
 import { Link } from 'react-router';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { PRIORITY_LABELS } from '~/lib/pm-labels';
 import { longDate } from './task-draft';
 import { WRITE_COPY as COPY } from './task-draft.copy';
 import type { DraftItem } from './task-draft.state';
-
-const WRAP_TEXT = { overflowWrap: 'anywhere' } as const;
 
 type Props = {
   item: DraftItem;
@@ -34,7 +33,7 @@ export function TaskDraftCard({ item, assigneeName, kindName, busy, onToggle, on
   const priority = PRIORITY_LABELS[values.priority];
   const PriorityIcon = priority.icon;
   return (
-    <Paper withBorder p="sm" radius="md" data-draft-status={status}>
+    <Paper withBorder p="sm" data-draft-status={status}>
       {/* nowrap is safe: the text column below has minWidth 0 and the box and Ubah do not shrink. */}
       <Group align="flex-start" wrap="nowrap" gap="sm">
         <Checkbox
@@ -42,24 +41,25 @@ export function TaskDraftCard({ item, assigneeName, kindName, busy, onToggle, on
           onChange={onToggle}
           disabled={locked}
           aria-label={COPY.pickDraft(values.title)}
-          mt={2}
+          mt={4}
         />
-        <Stack gap={6} style={{ minWidth: 0, flex: 1 }}>
-          <Text fw={600} style={{ overflowWrap: 'anywhere' }}>
+        <Stack gap="xs" miw={0} flex={1}>
+          {/* A draft the user is about to save: the whole title must be readable, so it wraps. */}
+          <Text fw={600} style={WRAP_ANYWHERE}>
             {values.title}
           </Text>
           <Group gap="xs" wrap="wrap">
-            <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
+            <Group gap={4} wrap="nowrap" miw={0}>
               <FiUser size="1.25em" aria-hidden />
               <Text
                 size="sm"
                 c={assigneeName || !item.note ? undefined : 'warn.8'}
-                style={WRAP_TEXT}
+                style={WRAP_ANYWHERE}
               >
                 {assigneeName ?? item.note ?? COPY.assigneeNone}
               </Text>
             </Group>
-            <Group gap={4} wrap="nowrap" style={{ minWidth: 0 }}>
+            <Group gap={4} wrap="nowrap" miw={0}>
               <FiCalendar size="1.25em" aria-hidden />
               <Text size="sm">{values.dueDate ? longDate(values.dueDate) : COPY.dueNone}</Text>
             </Group>
@@ -80,7 +80,7 @@ export function TaskDraftCard({ item, assigneeName, kindName, busy, onToggle, on
           disabled={locked}
           aria-label={COPY.editDraft(values.title)}
           leftSection={<FiEdit2 size="1.25em" aria-hidden />}
-          style={{ flexShrink: 0 }}
+          flex="0 0 auto"
         >
           {COPY.edit}
         </Button>
@@ -93,7 +93,7 @@ export function TaskDraftCard({ item, assigneeName, kindName, busy, onToggle, on
 function CardStatus({ item }: { item: DraftItem }) {
   if (item.status === 'saving') {
     return (
-      <Group gap={4} wrap="nowrap" role="status" style={{ minWidth: 0 }}>
+      <Group gap={4} wrap="nowrap" role="status" miw={0}>
         <FiLoader size="1.25em" aria-hidden />
         <Text size="sm">{COPY.saving}</Text>
       </Group>
@@ -114,6 +114,7 @@ function CardStatus({ item }: { item: DraftItem }) {
   if (item.status === 'failed' && item.error) {
     return (
       <Group gap={4} wrap="nowrap" align="flex-start" role="alert">
+        {/* A react-icons SVG takes no Mantine style props. */}
         <FiAlertTriangle size="1.25em" aria-hidden style={{ flexShrink: 0 }} />
         <Text size="sm" c="danger">
           {COPY.failed(item.error)}

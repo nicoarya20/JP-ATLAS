@@ -60,7 +60,7 @@ export function TaskFilterSelects({ filters, onChange, projects, people, locked 
           value={filters.tenggat ?? ANY}
           allowDeselect={false}
           onChange={(v) => onChange({ [P.due]: v || null })}
-          style={{ flex: '1 1 12rem' }}
+          flex="1 1 12rem"
         />
       )}
       {!locked && (
@@ -71,7 +71,7 @@ export function TaskFilterSelects({ filters, onChange, projects, people, locked 
           searchable
           allowDeselect={false}
           onChange={(v) => onChange({ [P.project]: v || null })}
-          style={{ flex: '1 1 12rem' }}
+          flex="1 1 12rem"
         />
       )}
       {personApplies(filters, Boolean(locked)) && (
@@ -82,7 +82,7 @@ export function TaskFilterSelects({ filters, onChange, projects, people, locked 
           searchable
           allowDeselect={false}
           onChange={(v) => onChange({ [P.person]: v || null })}
-          style={{ flex: '1 1 12rem' }}
+          flex="1 1 12rem"
         />
       )}
       <MultiSelect
@@ -94,7 +94,7 @@ export function TaskFilterSelects({ filters, onChange, projects, people, locked 
         // The theme sizes the other inputs `lg` but has no MultiSelect default, so match them here.
         size="lg"
         onChange={(v) => onChange({ [P.priority]: v })}
-        style={{ flex: '1 1 12rem' }}
+        flex="1 1 12rem"
       />
     </Group>
   );

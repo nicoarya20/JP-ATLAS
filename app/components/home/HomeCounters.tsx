@@ -13,14 +13,14 @@ const reasonFor = (c: Counters) =>
 export function HomeCounters({ widget, retry }: { widget: Widget<Counters>; retry: Retry }) {
   if (!widget.ok) {
     return (
-      <Paper withBorder p="md" radius="md">
+      <Paper withBorder p="md">
         <WidgetError {...retry} />
       </Paper>
     );
   }
   if (widget.data.managedProjects === 0) {
     return (
-      <Paper withBorder p="md" radius="md">
+      <Paper withBorder p="md">
         <Text size="sm" c="dimmed">
           {reasonFor(widget.data)}
         </Text>
@@ -30,7 +30,7 @@ export function HomeCounters({ widget, retry }: { widget: Widget<Counters>; retr
   return (
     <SimpleGrid cols={{ base: 1, xs: 3 }} spacing="sm">
       {TILES.map((key) => (
-        <Paper key={key} withBorder p="md" radius="md">
+        <Paper key={key} withBorder p="md">
           <Text size="sm" fw={600}>
             {HOME_COPY.counters[key].label}
           </Text>

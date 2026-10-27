@@ -1,4 +1,4 @@
-import { Paper, Stack, Text, Title } from '@mantine/core';
+import { Box, Paper, Stack, Text, Title } from '@mantine/core';
 import { requireUser } from '@server/guard';
 import { toPrincipal } from '@server/project/membership.query';
 import { requestClock } from '@server/task/task.clock';
@@ -6,6 +6,7 @@ import type { TaskDetail } from '@server/task/task.dto';
 import { getTaskDetail } from '@server/task/task-detail.query';
 import { useQuery } from '@tanstack/react-query';
 import { data, useNavigate } from 'react-router';
+import { WRAP_PRE_ANYWHERE } from '~/components/pm/text-wrap';
 import { TaskChecklist } from '~/components/tasks/TaskChecklist';
 import { TaskHeader } from '~/components/tasks/TaskHeader';
 import { TaskTimeline } from '~/components/tasks/TaskTimeline';
@@ -60,20 +61,18 @@ export default function TaskDetailPage({ loaderData, params }: Route.ComponentPr
   });
   return (
     <PageContainer>
-      <div>
+      <Box>
         <BackLink fallback={back} label={DETAIL_COPY.back} />
-      </div>
+      </Box>
       {/* The task is gone after a delete: leave for the list it was opened from (the toast offers Urungkan). */}
       <TaskHeader task={task} today={today} afterDelete={() => navigate(back)} />
       <Stack gap="lg">
-        <Paper withBorder p={{ base: 'sm', md: 'md' }} radius="md">
+        <Paper withBorder p={{ base: 'sm', md: 'md' }}>
           <Stack gap="xs">
             <Title order={3}>{DETAIL_COPY.description}</Title>
             {task.description ? (
               // User text: keep line breaks, render as plain text (never HTML).
-              <Text style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                {task.description}
-              </Text>
+              <Text style={WRAP_PRE_ANYWHERE}>{task.description}</Text>
             ) : (
               <Text c="dimmed">{DETAIL_COPY.noDescription}</Text>
             )}

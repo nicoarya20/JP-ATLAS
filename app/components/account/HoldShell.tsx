@@ -1,9 +1,10 @@
-import { Button, Container, Group, Paper, Stack, Text, ThemeIcon, Title } from '@mantine/core';
+import { Box, Button, Container, Group, Paper, Stack, Text, ThemeIcon, Title } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { notifications } from '@mantine/notifications';
 import { type ReactNode, useState } from 'react';
 import { FiLogOut } from 'react-icons/fi';
 import { useNavigate } from 'react-router';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { signOut } from '~/lib/auth-client';
 
 type HoldShellProps = {
@@ -20,28 +21,23 @@ type HoldShellProps = {
 export function HoldShell({ icon, color, title, subtitle, children, actions }: HoldShellProps) {
   return (
     <Container size="xs" py={{ base: 32, sm: 64 }} px={{ base: 'sm', sm: 'md' }}>
-      <Paper withBorder p={{ base: 'md', md: 'xl' }} radius="md" shadow="sm">
+      <Paper withBorder p={{ base: 'md', md: 'xl' }} shadow="sm">
         <Stack gap="md">
           <Group gap="md" wrap="nowrap" align="flex-start">
-            <ThemeIcon
-              size={56}
-              radius="md"
-              variant="light"
-              color={color}
-              style={{ flexShrink: 0 }}
-            >
+            {/* `radius="md"` is not the ThemeIcon default (10 px), so it stays. */}
+            <ThemeIcon size={56} radius="md" variant="light" color={color} flex="0 0 auto">
               {icon}
             </ThemeIcon>
-            <div style={{ minWidth: 0 }}>
+            <Box miw={0}>
               <Title order={2} lh={1.2}>
                 {title}
               </Title>
               {subtitle && (
-                <Text size="sm" c="dimmed" mt={4} style={{ overflowWrap: 'anywhere' }}>
+                <Text size="sm" c="dimmed" mt={4} style={WRAP_ANYWHERE}>
                   {subtitle}
                 </Text>
               )}
-            </div>
+            </Box>
           </Group>
           {children}
           {actions && (

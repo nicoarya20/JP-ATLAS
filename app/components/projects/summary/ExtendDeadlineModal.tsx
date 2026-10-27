@@ -1,5 +1,5 @@
 /** "Perpanjang tenggat" dialog: a later due date, a reason category and a written reason (S5). */
-import { Alert, Button, Group, Select, Stack, Text, Textarea } from '@mantine/core';
+import { Alert, Box, Button, Group, Select, Stack, Text, Textarea } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { modals } from '@mantine/modals';
 import type { IsoDate } from '@server/metrics/types';
@@ -62,8 +62,8 @@ export function ExtendDeadlineView(p: ViewProps) {
         onChange={(newDueDate) => p.onChange({ newDueDate })}
         clearable
       />
-      <div>
-        <Text size="sm" c="dimmed" mb={6} id="extend-quick-label">
+      <Box>
+        <Text size="sm" c="dimmed" mb="xs" id="extend-quick-label">
           {EXTEND_COPY.quickLabel}
         </Text>
         <Group gap="xs" wrap="wrap" role="group" aria-labelledby="extend-quick-label">
@@ -77,7 +77,7 @@ export function ExtendDeadlineView(p: ViewProps) {
             </Button>
           ))}
         </Group>
-      </div>
+      </Box>
       <Select
         label={EXTEND_COPY.category}
         placeholder={EXTEND_COPY.categoryPlaceholder}

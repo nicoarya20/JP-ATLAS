@@ -75,7 +75,7 @@ export function EventDetailMenu({ event, status, afterDelete, afterRestore }: Pr
             disabled={event.can.update !== true}
             onClick={() => void navigate(eventEditHref(event.id))}
           >
-            <Stack gap={2}>
+            <Stack gap={4}>
               <Text inherit>{ACTION_COPY.editItem}</Text>
               <Text size="xs" c="dimmed">
                 {cannotEdit ?? ACTION_COPY.editHint}
@@ -92,7 +92,7 @@ export function EventDetailMenu({ event, status, afterDelete, afterRestore }: Pr
               disabled={!cancelState.enabled}
               onClick={openCancel}
             >
-              <Stack gap={2}>
+              <Stack gap={4}>
                 <Text inherit>{ACTION_COPY.cancelItem}</Text>
                 <Text size="xs" c="dimmed">
                   {cancelState.reason ?? ACTION_COPY.cancelHint}
@@ -110,7 +110,7 @@ export function EventDetailMenu({ event, status, afterDelete, afterRestore }: Pr
               disabled={event.can.trash !== true}
               onClick={() => void remove.run({ id: event.id })}
             >
-              <Stack gap={2}>
+              <Stack gap={4}>
                 <Text inherit>{ACTION_COPY.deleteItem}</Text>
                 <Text size="xs" c="dimmed">
                   {blocked ?? ACTION_COPY.deleteHint}

@@ -3,7 +3,7 @@
  * and "Isi form". Only the open way is mounted, because the router allows one unsaved-changes guard
  * at a time and each way brings its own. The story and drafts live here, so switching keeps them.
  */
-import { SegmentedControl, Stack, Text } from '@mantine/core';
+import { Box, SegmentedControl, Stack, Text } from '@mantine/core';
 import type { IsoDate } from '@server/metrics/types';
 import type { TaskFormProject } from '@server/task/task-form.query';
 import { useQuery } from '@tanstack/react-query';
@@ -116,7 +116,7 @@ export function TaskCreateModes(props: TaskCreateModesProps) {
 
   return (
     <Stack gap="md">
-      <Stack gap={6}>
+      <Stack gap="xs">
         <SegmentedControl
           fullWidth
           value={mode}
@@ -158,7 +158,7 @@ export function TaskCreateModes(props: TaskCreateModesProps) {
           />
         </>
       ) : (
-        <div onInput={() => (formTouched.current = true)}>
+        <Box onInput={() => (formTouched.current = true)}>
           <TaskCreateForm
             key={seed.key}
             projects={projects}
@@ -171,7 +171,7 @@ export function TaskCreateModes(props: TaskCreateModesProps) {
             cancelTo={cancelTo}
             onSubmitted={props.onSubmitted}
           />
-        </div>
+        </Box>
       )}
     </Stack>
   );

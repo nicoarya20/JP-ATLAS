@@ -8,6 +8,7 @@ import { FiArrowLeft, FiClock, FiInfo } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { ConditionPill } from '~/components/pm/ConditionPill';
 import { StatusBadge } from '~/components/pm/StatusBadge';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import { DateText } from '~/components/ui/DateText';
 import { PROJECT_STATUS_LABELS } from '~/lib/pm-labels';
 import { BANNER_COPY, HEADER_COPY, LABEL_LEAD } from './projects.copy';
@@ -46,8 +47,8 @@ export function isReadOnly(p: Pick<ProjectDetail, 'can'>): boolean {
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <Group gap={6} wrap="nowrap" style={{ minWidth: 0 }}>
-      <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
+    <Group gap="xs" wrap="nowrap" miw={0}>
+      <Text size="sm" c="dimmed" flex="0 0 auto">
         {`${label}:`}
       </Text>
       {children}
@@ -71,14 +72,18 @@ export function ProjectHeader({ project, today }: Props) {
         variant="subtle"
         size="sm"
         px="xs"
+        // Mantine has no `align-self` style prop, and aligning the Stack would move every child.
         style={{ alignSelf: 'flex-start' }}
         leftSection={<FiArrowLeft size="1.25em" aria-hidden />}
       >
         {HEADER_COPY.back}
       </Button>
       <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-        <Group gap="sm" wrap="wrap" align="center" style={{ minWidth: 0, flex: 1 }}>
-          <Title order={2} style={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+        <Group gap="sm" wrap="wrap" align="center" miw={0} flex={1}>
+          {/* The page title of a detail page: 32 px like every PageHeader page (K-1), and it
+              wraps in full rather than being truncated (K-5) - at 32 px a long project name
+              overflows more easily, not less. */}
+          <Title order={1} miw={0} style={WRAP_ANYWHERE}>
             {project.name}
           </Title>
           <StatusBadge status={project.status} />

@@ -31,6 +31,14 @@ type Props = {
   timelineRem: number;
 };
 
+/** Sizes of the bar and the due-only diamond, in em so they follow the text scale. */
+const DIAMOND_SIZE_EM = '1.1em';
+const BAR_RADIUS_EM = '0.25em';
+const BAR_BORDER_PX = 2;
+const TODAY_LINE_PX = 2;
+/** The progress fill sits on the bar's own light background, so it is slightly see-through. */
+const FILL_OPACITY = 0.85;
+
 const progressText = (p: ProjectListItem) =>
   p.progress.percent === null ? GANTT_COPY.noTasks : GANTT_COPY.progress(p.progress.percent);
 
@@ -50,9 +58,12 @@ function LabelCell({ project: p, row }: Pick<Props, 'project' | 'row'>) {
       className="mk-gantt-label"
       w={LABEL_WIDTH}
       p="xs"
-      style={{ flex: '0 0 auto', borderRight: GRID_LINE, minWidth: 0 }}
+      flex="0 0 auto"
+      miw={0}
+      // `bd` sets all four sides; only the right-hand grid line belongs here.
+      style={{ borderRight: GRID_LINE }}
     >
-      <Stack gap={2} style={{ minWidth: 0 }}>
+      <Stack gap={4} miw={0}>
         <Anchor
           component={Link}
           to={projectHref(p.id)}
@@ -103,16 +114,16 @@ function Track({ project: p, row }: Pick<Props, 'project' | 'row'>) {
         {...common}
         aria-label={label}
         title={label}
-        style={{
-          position: 'absolute',
-          left: `${row.leftPct}%`,
-          top: '50%',
-          width: '1.1em',
-          height: '1.1em',
-          transform: 'translate(-50%, -50%) rotate(45deg)',
-          background: filled(color),
-          zIndex: 1,
-        }}
+        pos="absolute"
+        left={`${row.leftPct}%`}
+        top="50%"
+        w={DIAMOND_SIZE_EM}
+        h={DIAMOND_SIZE_EM}
+        bg={filled(color)}
+        // The timeline is a painted coordinate system: Mantine has no prop for `transform`,
+        // `overflow`, `pointer-events` or `z-index`, and every length here is already em/%/calc
+        // so it follows the text scale without going through `rem()` (docs/ui-pola.md §3).
+        style={{ transform: 'translate(-50%, -50%) rotate(45deg)', zIndex: 1 }}
       />
     );
   }
@@ -128,30 +139,27 @@ function Track({ project: p, row }: Pick<Props, 'project' | 'row'>) {
       {...common}
       aria-label={label}
       title={label}
-      style={{
-        position: 'absolute',
-        left: `${row.leftPct}%`,
-        width: `${row.widthPct}%`,
-        minWidth: BAR_MIN_WIDTH,
-        top: '50%',
-        height: barHeight(hasStages),
-        transform: 'translateY(-50%)',
-        borderRadius: '0.25em',
-        overflow: 'hidden',
-        background: light(color),
-        border: `2px solid ${filled(color)}`,
-        zIndex: 1,
-      }}
+      pos="absolute"
+      left={`${row.leftPct}%`}
+      w={`${row.widthPct}%`}
+      miw={BAR_MIN_WIDTH}
+      top="50%"
+      h={barHeight(hasStages)}
+      bdrs={BAR_RADIUS_EM}
+      bg={light(color)}
+      bd={`${BAR_BORDER_PX}px solid ${filled(color)}`}
+      // The timeline is a painted coordinate system: Mantine has no prop for `transform`,
+      // `overflow`, `pointer-events` or `z-index`, and every length here is already em/%/calc
+      // so it follows the text scale without going through `rem()` (docs/ui-pola.md §3).
+      style={{ transform: 'translateY(-50%)', overflow: 'hidden', zIndex: 1 }}
     >
       <Box
         aria-hidden
-        style={{
-          position: 'absolute',
-          inset: '0 auto 0 0',
-          width: `${percent}%`,
-          background: filled(color),
-          opacity: 0.85,
-        }}
+        pos="absolute"
+        inset="0 auto 0 0"
+        w={`${percent}%`}
+        bg={filled(color)}
+        opacity={FILL_OPACITY}
       />
     </Box>
   );
@@ -163,33 +171,36 @@ export function GanttRow({ project, row, months, todayPct, timelineRem }: Props)
   // One painted layer for the whole month grid; drawing a Box per month per row did not scale (PD-01).
   const grid = useMemo(() => monthGridImage(months, GRID_LINE_COLOR), [months]);
   return (
-    <Box className="mk-gantt-row" style={{ display: 'flex', borderBottom: GRID_LINE }}>
+    <Box
+      className="mk-gantt-row"
+      display="flex"
+      // `bd` sets all four sides; only the bottom grid line belongs here.
+      style={{ borderBottom: GRID_LINE }}
+    >
       <LabelCell project={project} row={row} />
       <Box
-        style={{
-          position: 'relative',
-          flex: `1 0 ${scaledRem(timelineRem)}`,
-          minHeight: rowMinHeight(hasStages || row.milestones.length > 0),
-        }}
+        pos="relative"
+        flex={`1 0 ${scaledRem(timelineRem)}`}
+        mih={rowMinHeight(hasStages || row.milestones.length > 0)}
       >
         <Box
           aria-hidden
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: grid,
-            pointerEvents: 'none',
-          }}
+          pos="absolute"
+          inset={0}
+          // One painted layer for the whole grid; Mantine has no `background-image` or
+          // `pointer-events` prop (docs/ui-pola.md §3).
+          style={{ backgroundImage: grid, pointerEvents: 'none' }}
         />
         {todayPct !== null && (
           <Box
             aria-hidden
+            pos="absolute"
+            top={0}
+            bottom={0}
+            left={`${todayPct}%`}
+            // A single dashed edge, so `bd` (all four sides) does not fit; no prop for the rest.
             style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: `${todayPct}%`,
-              borderLeft: `2px dashed ${filled('danger')}`,
+              borderLeft: `${TODAY_LINE_PX}px dashed ${filled('danger')}`,
               pointerEvents: 'none',
               zIndex: 2,
             }}

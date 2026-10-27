@@ -1,7 +1,8 @@
-import { Anchor, Button, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Button, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { FiExternalLink } from 'react-icons/fi';
 import { Link } from 'react-router';
+import { WRAP_ANYWHERE } from '~/components/pm/text-wrap';
 import type { EventDetail } from '~/lib/events-api';
 import {
   formatEventDay,
@@ -13,7 +14,7 @@ import { DETAIL_COPY } from './event-detail.copy';
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <Stack gap={2} style={{ minWidth: 0 }}>
+    <Stack gap={4} miw={0}>
       <Text size="sm" c="dimmed">
         {label}
       </Text>
@@ -37,16 +38,18 @@ export function EventDetailFacts({ event, timeZone }: Props) {
         <Text size="sm">{formatTimeRange(event, timeZone)}</Text>
       </Fact>
       <Fact label={DETAIL_COPY.place}>
-        <Text fw={500} style={{ overflowWrap: 'anywhere' }}>
+        {/* A detail page: the place and the raw link are what the reader came for, so they
+            wrap in full rather than being cut short (K-5). */}
+        <Text fw={500} style={WRAP_ANYWHERE}>
           {place ?? DETAIL_COPY.noPlace}
         </Text>
         {rawLink && !link && (
-          <Text size="sm" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
+          <Text size="sm" c="dimmed" style={WRAP_ANYWHERE}>
             {rawLink}
           </Text>
         )}
         {link && (
-          <div>
+          <Box>
             <Button
               component="a"
               href={link}
@@ -58,7 +61,7 @@ export function EventDetailFacts({ event, timeZone }: Props) {
             >
               {DETAIL_COPY.openLink}
             </Button>
-          </div>
+          </Box>
         )}
       </Fact>
       <Fact label={DETAIL_COPY.project}>
@@ -67,7 +70,7 @@ export function EventDetailFacts({ event, timeZone }: Props) {
             component={Link}
             to={`/app/projects/${encodeURIComponent(event.project.id)}`}
             fw={500}
-            style={{ overflowWrap: 'anywhere' }}
+            style={WRAP_ANYWHERE}
           >
             {event.project.name}
           </Anchor>
@@ -76,9 +79,7 @@ export function EventDetailFacts({ event, timeZone }: Props) {
         )}
       </Fact>
       <Fact label={DETAIL_COPY.creator}>
-        <Text style={{ overflowWrap: 'anywhere' }}>
-          {event.creator?.name ?? DETAIL_COPY.noCreator}
-        </Text>
+        <Text style={WRAP_ANYWHERE}>{event.creator?.name ?? DETAIL_COPY.noCreator}</Text>
       </Fact>
     </Stack>
   );

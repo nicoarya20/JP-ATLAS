@@ -117,10 +117,11 @@ export function SessionsCard({
           const Icon = d.device === 'Mobile' || d.device === 'Tablet' ? FiSmartphone : FiMonitor;
           return (
             <Group key={s.id} justify="space-between" wrap="wrap" gap="xs">
-              <Group gap="sm" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+              <Group gap="sm" wrap="nowrap" miw={0} flex={1}>
+                {/* A react-icons SVG takes no Mantine style props. */}
                 <Icon size="1.25em" style={{ flexShrink: 0, opacity: 0.7 }} />
-                <Stack gap={0} style={{ minWidth: 0 }}>
-                  <Group gap={6} wrap="wrap">
+                <Stack gap={0} miw={0}>
+                  <Group gap="xs" wrap="wrap">
                     <Text size="sm" fw={500} lh={1.3}>
                       {d.summary}
                     </Text>

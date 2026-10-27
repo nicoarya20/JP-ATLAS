@@ -56,12 +56,13 @@ export function PhaseCard({
   );
 
   return (
-    <Paper component="li" withBorder p="md" radius="md" data-phase={phase.id}>
+    <Paper component="li" withBorder p="md" data-phase={phase.id}>
       <Stack gap="sm">
         <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
-          <Stack gap={4} style={{ minWidth: 0, flex: 1 }}>
+          <Stack gap={4} miw={0} flex={1}>
             <Group gap="xs" wrap="wrap">
-              <Text fw={600} style={{ overflowWrap: 'anywhere' }}>
+              {/* Clamped, not wrapped: every phase card keeps the same height (K-5). */}
+              <Text fw={600} lineClamp={2}>
                 {phase.name}
               </Text>
               <PhaseStatusBadge status={phase.status} />
@@ -69,12 +70,12 @@ export function PhaseCard({
             <Text size="xs" c="dimmed">
               {PLAN_COPY.position(index + 1, total)}
             </Text>
-            <Group gap={6} wrap="wrap" c="dimmed">
+            <Group gap="xs" wrap="wrap" c="dimmed">
               <FiCalendar size="1.25em" aria-hidden />
               <Text size="sm">{describeRange(phase.startDate, phase.endDate)}</Text>
             </Group>
             {phase.description && (
-              <Text size="sm" style={{ overflowWrap: 'anywhere' }}>
+              <Text size="sm" lineClamp={3}>
                 {phase.description}
               </Text>
             )}

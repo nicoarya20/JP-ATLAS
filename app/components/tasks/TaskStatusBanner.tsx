@@ -38,7 +38,7 @@ export function TaskStatusBanner({ task }: { task: TaskBannerTask }) {
           variant="light"
           icon={<FiXCircle size="1.25em" aria-hidden />}
           title={DETAIL_COPY.cancelReason}
-          // Notes are user text: keep line breaks, never render HTML.
+          // Notes are user text: keep line breaks, never render HTML. Mantine has no prop for it.
           style={{ whiteSpace: 'pre-wrap' }}
         >
           {canceled}

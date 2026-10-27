@@ -28,7 +28,7 @@ export function HomeProjectList({ items }: { items: HomeProject[] }) {
           p.dueDate ? HOME_COPY.agenda.due(formatCalendarDate(p.dueDate)) : null,
         ].filter(Boolean);
         return (
-          <Stack key={p.id} gap={6}>
+          <Stack key={p.id} gap="xs">
             <Group justify="space-between" wrap="wrap" gap="xs">
               <Anchor component={Link} to={`${HOME_LINKS.projects}/${p.id}`} fw={600} c="inherit">
                 {p.name}

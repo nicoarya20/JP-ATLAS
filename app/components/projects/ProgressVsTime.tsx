@@ -58,9 +58,9 @@ function TimeBody({ elapsed }: { elapsed: ElapsedResult | null }) {
 export function ProgressVsTime({ progress, elapsed, startDate, dueDate, today }: Props) {
   const dates = scheduleLine({ startDate, dueDate }, today);
   return (
-    <Paper withBorder p="md" radius="md">
+    <Paper withBorder p="md">
       <Stack gap="md">
-        <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+        <Group gap="xs" wrap="nowrap" miw={0}>
           <FiTrendingUp size="1.25em" aria-hidden />
           <Text fw={600}>{SUMMARY_COPY.progressTitle}</Text>
         </Group>

@@ -76,8 +76,11 @@ describe('app scale safety (S1-16)', () => {
       return ls.flatMap((l, i) => {
         if (!/wrap="nowrap"/.test(l)) return [];
         const near = ls.slice(Math.max(0, i - 2), i + 4).join('\n');
-        // `miw={0}` is the Mantine prop spelling of `minWidth: 0` — same guarantee (docs/ui-pola.md).
-        return /minWidth: 0|miw=\{0\}|nowrap is safe|flexShrink/.test(near) ? [] : [`${f}:${i + 1}`];
+        // `miw={0}` and `flex="0 0 auto"` are the Mantine prop spellings of `minWidth: 0` and
+        // `flexShrink: 0` — same guarantee in the new form (docs/ui-pola.md §2).
+        return /minWidth: 0|miw=\{0\}|nowrap is safe|flexShrink|flex="0 0 auto"/.test(near)
+          ? []
+          : [`${f}:${i + 1}`];
       });
     });
     // Icon + wrapping text, no buttons. Pinned so a new one is reviewed (see PINNED_NOWRAP).

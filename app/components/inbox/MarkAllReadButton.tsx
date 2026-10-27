@@ -1,5 +1,5 @@
 /** "Tandai semua dibaca" of the news tab; disabled with its reason when nothing is unread. */
-import { Button, Tooltip } from '@mantine/core';
+import { Box, Button, Tooltip } from '@mantine/core';
 import { FiCheck } from 'react-icons/fi';
 import { INBOX_COPY } from './inbox.copy';
 
@@ -10,7 +10,7 @@ export function MarkAllReadButton({ unread, loading, onClick }: Props) {
   return (
     <Tooltip label={INBOX_COPY.markAllNone} disabled={!none} withArrow>
       {/* Mantine does not show a tooltip on a disabled button itself, so the wrapper carries it. */}
-      <span>
+      <Box component="span">
         <Button
           variant="default"
           leftSection={<FiCheck size="1.25em" aria-hidden />}
@@ -20,7 +20,7 @@ export function MarkAllReadButton({ unread, loading, onClick }: Props) {
         >
           {INBOX_COPY.markAll}
         </Button>
-      </span>
+      </Box>
     </Tooltip>
   );
 }

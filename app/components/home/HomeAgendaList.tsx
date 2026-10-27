@@ -37,10 +37,10 @@ export function HomeAgendaList({ items, timeZone }: Props) {
             </Text>
             {rows.map((e) => (
               <Group key={e.id} gap="md" align="flex-start" wrap="nowrap">
-                <Text fw={700} style={{ flexShrink: 0 }}>
+                <Text fw={700} flex="0 0 auto">
                   {formatEventTime(e.startsAt, timeZone)}
                 </Text>
-                <Stack gap={2} style={{ minWidth: 0 }}>
+                <Stack gap={4} miw={0}>
                   <Anchor component={Link} to={eventHref(e.id)} fw={600} c="inherit">
                     {e.title}
                   </Anchor>

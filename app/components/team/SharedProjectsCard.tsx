@@ -12,15 +12,18 @@ export function SharedProjectsCard({ projects }: { projects: readonly TeamProjec
       {projects.length === 0 ? (
         <Text c="dimmed">{DETAIL_COPY.noProjects}</Text>
       ) : (
-        <Stack gap="xs" component="ul" m={0} p={0} style={{ listStyle: 'none' }}>
+        <Stack
+          gap="xs"
+          component="ul"
+          m={0}
+          p={0}
+          // Mantine has no `list-style` style prop; `List` would change the markup of the rows.
+          style={{ listStyle: 'none' }}
+        >
           {projects.map((p) => (
             <Group key={p.id} component="li" justify="space-between" gap="xs" wrap="wrap">
-              <Anchor
-                component={Link}
-                to={`/app/projects/${p.id}`}
-                fw={600}
-                style={{ minWidth: 0, overflowWrap: 'anywhere' }}
-              >
+              {/* Truncated, not wrapped: every row in the list keeps the same height (K-5). */}
+              <Anchor component={Link} to={`/app/projects/${p.id}`} fw={600} miw={0} truncate>
                 {p.name}
               </Anchor>
               <Text size="sm" c="dimmed">

@@ -23,7 +23,10 @@ export function TeamList({ people, total, empty, hasMore, loadingMore, onMore }:
         component="ul"
         gap="xs"
         aria-label={TEAM_COPY.listLabel}
-        style={{ listStyle: 'none', margin: 0, padding: 0 }}
+        m={0}
+        p={0}
+        // Mantine has no `list-style` style prop; `List` would change the markup of the rows.
+        style={{ listStyle: 'none' }}
       >
         {people.map((person) => (
           <li key={person.id}>

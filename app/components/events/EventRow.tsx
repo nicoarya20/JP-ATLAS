@@ -18,19 +18,20 @@ export function EventRow({ event, clock }: { event: EventListItem; clock: Events
   const place = locationLabel(event);
   const canceled = status === 'canceled';
   return (
-    <Paper withBorder p="sm" radius="md" className={CLICK_CARD}>
+    <Paper withBorder p="sm" className={CLICK_CARD}>
       <Group gap="sm" align="flex-start" wrap="wrap">
         <Text fw={700} size="sm" miw="6.5rem" td={canceled ? 'line-through' : undefined}>
           {formatTimeRange(event, clock.timeZone)}
         </Text>
-        <Stack gap={6} style={{ flex: '1 1 14rem', minWidth: 0 }}>
+        {/* Truncated, not wrapped: every card in the list keeps the same height (K-5). */}
+        <Stack gap="xs" flex="1 1 14rem" miw={0}>
           <Anchor
             component={Link}
             to={eventHref(event.id)}
             className={ROW_LINK}
             fw={700}
             td={canceled ? 'line-through' : undefined}
-            style={{ overflowWrap: 'anywhere' }}
+            lineClamp={2}
           >
             {event.title}
           </Anchor>
@@ -40,15 +41,15 @@ export function EventRow({ event, clock }: { event: EventListItem; clock: Events
           </Group>
           <Group gap="sm" wrap="wrap">
             {place && (
-              <Group gap={4} wrap="nowrap" c="dimmed" style={{ minWidth: 0 }}>
+              <Group gap={4} wrap="nowrap" c="dimmed" miw={0}>
                 <FiMapPin size="1.25em" aria-hidden />
-                <Text size="xs" c="inherit" style={{ overflowWrap: 'anywhere' }}>
+                <Text size="xs" c="inherit" truncate>
                   {place}
                 </Text>
               </Group>
             )}
             {event.project && (
-              <Text size="xs" c="dimmed" style={{ overflowWrap: 'anywhere' }}>
+              <Text size="xs" c="dimmed" truncate>
                 {event.project.name}
               </Text>
             )}

@@ -1,5 +1,5 @@
 /** One Inbox card: unread dot, who did it, the sentence, what it is about, and its one button. */
-import { Avatar, Button, Group, Paper, Stack, Text } from '@mantine/core';
+import { Avatar, Box, Button, Group, Paper, Stack, Text } from '@mantine/core';
 import { FiBell } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { MemberAvatar } from '~/components/ui/MemberAvatar';
@@ -14,19 +14,22 @@ export type InboxCardProps = {
   onOpen: (item: InboxItem) => void;
 };
 
+/** Width and height in px; Mantine's `w`/`h` scale them with the user's text size. */
+const DOT_SIZE = 8;
+
 /** A dot with a spoken label, so "unread" is not carried by colour alone. */
 function UnreadDot({ unread }: { unread: boolean }) {
   return (
-    <span
+    <Box
+      component="span"
       {...(unread ? { role: 'img', 'aria-label': INBOX_COPY.unread } : { 'aria-hidden': true })}
-      style={{
-        width: 8,
-        height: 8,
-        marginTop: 18,
-        flexShrink: 0,
-        borderRadius: '50%',
-        background: unread ? 'var(--mantine-primary-color-filled)' : 'transparent',
-      }}
+      w={DOT_SIZE}
+      h={DOT_SIZE}
+      // Drops the dot onto the headline's line rather than the top of the card.
+      mt="md"
+      flex="0 0 auto"
+      bdrs="50%"
+      bg={unread ? 'var(--mantine-primary-color-filled)' : 'transparent'}
     />
   );
 }
@@ -53,9 +56,9 @@ export function InboxCard(props: InboxCardProps) {
   const { item, clock } = props;
   const lines = detailLines(item, clock);
   return (
-    <Paper withBorder p="sm" radius="md" component="article" aria-label={headlineOf(item)}>
+    <Paper withBorder p="sm" component="article" aria-label={headlineOf(item)}>
       <Group justify="space-between" wrap="wrap" gap="sm" align="center">
-        <Group gap="sm" wrap="nowrap" align="flex-start" style={{ minWidth: 0, flex: '1 1 280px' }}>
+        <Group gap="sm" wrap="nowrap" align="flex-start" miw={0} flex="1 1 280px">
           <UnreadDot unread={!item.read} />
           {item.actor ? (
             <MemberAvatar name={item.actor.name} image={item.actor.image} size="md" />
@@ -64,7 +67,7 @@ export function InboxCard(props: InboxCardProps) {
               <FiBell size="1.25em" />
             </Avatar>
           )}
-          <Stack gap={2} style={{ minWidth: 0 }}>
+          <Stack gap={4} miw={0}>
             <Text fw={700}>{headlineOf(item)}</Text>
             {lines.map((line) => (
               <Text key={line} size="sm" lineClamp={2}>

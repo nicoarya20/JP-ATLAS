@@ -7,6 +7,15 @@ import { type GanttLayout, monthLabel } from './gantt-layout';
 import { filled, GRID_LINE, LABEL_WIDTH, light, scaledRem } from './gantt-style';
 import { GANTT_COPY } from './projects.copy';
 
+/** Legend swatch and header sizes, in em/rem so they follow the user's text scale. */
+const SWATCH_WIDTH_EM = '1.5em';
+const SWATCH_HEIGHT_EM = '0.9em';
+const SWATCH_RADIUS_EM = '0.2em';
+const SWATCH_BORDER_PX = 2;
+const HEADER_HEIGHT_REM = 2.5;
+const MONTH_PADDING_EM = '0.5em';
+const TODAY_PADDING_EM = '0.4em';
+
 const LEGEND = [
   ['on_track', 'ok'],
   ['at_risk', 'warn'],
@@ -22,16 +31,14 @@ export function GanttLegend({ layout, today }: { layout: GanttLayout; today: Iso
         {LEGEND.map(([level, color]) => {
           const { label, icon: Icon } = CONDITION_LABELS[level];
           return (
-            <Group key={level} gap={6} wrap="wrap">
+            <Group key={level} gap="xs" wrap="wrap">
               <Box
                 aria-hidden
-                style={{
-                  width: '1.5em',
-                  height: '0.9em',
-                  background: light(color),
-                  border: `2px solid ${filled(color)}`,
-                  borderRadius: '0.2em',
-                }}
+                w={SWATCH_WIDTH_EM}
+                h={SWATCH_HEIGHT_EM}
+                bg={light(color)}
+                bd={`${SWATCH_BORDER_PX}px solid ${filled(color)}`}
+                bdrs={SWATCH_RADIUS_EM}
               />
               <Icon size="1.25em" aria-hidden />
               <Text size="sm">{label}</Text>
@@ -51,40 +58,44 @@ export function GanttLegend({ layout, today }: { layout: GanttLayout; today: Iso
 
 export function GanttHeader({ layout }: { layout: GanttLayout }) {
   return (
-    <Box style={{ display: 'flex', borderBottom: GRID_LINE }}>
+    <Box
+      display="flex"
+      // `bd` sets all four sides; only the bottom grid line belongs here.
+      style={{ borderBottom: GRID_LINE }}
+    >
       <Box
         className="mk-gantt-label"
         w={LABEL_WIDTH}
         p="xs"
-        style={{ flex: '0 0 auto', borderRight: GRID_LINE, cursor: 'default' }}
+        flex="0 0 auto"
+        // `bd` sets all four sides, and Mantine has no `cursor` prop: the header cell is not
+        // clickable even though `mk-gantt-label` gives the row cells a pointer.
+        style={{ borderRight: GRID_LINE, cursor: 'default' }}
       >
         <Text size="sm" fw={700}>
           {GANTT_COPY.rowsHeader}
         </Text>
       </Box>
       <Box
-        style={{
-          position: 'relative',
-          flex: `1 0 ${scaledRem(layout.timelineRem)}`,
-          minHeight: scaledRem(2.5),
-        }}
+        pos="relative"
+        flex={`1 0 ${scaledRem(layout.timelineRem)}`}
+        mih={scaledRem(HEADER_HEIGHT_REM)}
       >
         {layout.months.map((m) => (
           <Text
             key={m.key}
             size="xs"
             fw={600}
-            style={{
-              position: 'absolute',
-              top: 0,
-              bottom: 0,
-              left: `${m.leftPct}%`,
-              width: `${m.widthPct}%`,
-              padding: '0.5em',
-              borderLeft: GRID_LINE,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-            }}
+            pos="absolute"
+            top={0}
+            bottom={0}
+            left={`${m.leftPct}%`}
+            w={`${m.widthPct}%`}
+            p={MONTH_PADDING_EM}
+            // A single left grid line, so `bd` (all four sides) does not fit; a month name is
+            // kept on one line and clipped rather than widening its column, and Mantine has no
+            // `white-space` or `overflow` prop (docs/ui-pola.md §3).
+            style={{ borderLeft: GRID_LINE, whiteSpace: 'nowrap', overflow: 'hidden' }}
           >
             {monthLabel(m)}
           </Text>
@@ -93,17 +104,16 @@ export function GanttHeader({ layout }: { layout: GanttLayout }) {
           <Text
             size="xs"
             fw={700}
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: `${layout.todayPct}%`,
-              transform: 'translateX(-50%)',
-              padding: '0 0.4em',
-              color: filled('danger'),
-              background: 'var(--mantine-color-body)',
-              whiteSpace: 'nowrap',
-              zIndex: 2,
-            }}
+            pos="absolute"
+            bottom={0}
+            left={`${layout.todayPct}%`}
+            py={0}
+            px={TODAY_PADDING_EM}
+            c={filled('danger')}
+            bg="var(--mantine-color-body)"
+            // The tag is centred on the line it marks and stays on one line; Mantine has no
+            // `transform`, `white-space` or `z-index` prop (docs/ui-pola.md §3).
+            style={{ transform: 'translateX(-50%)', whiteSpace: 'nowrap', zIndex: 2 }}
           >
             {GANTT_COPY.today}
           </Text>

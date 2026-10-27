@@ -19,7 +19,7 @@ export function TaskDeleteItem({ cap, onDelete }: Props) {
       disabled={cap !== true}
       onClick={onDelete}
     >
-      <Stack gap={2}>
+      <Stack gap={4}>
         <Text inherit>{DELETE_COPY.menuItem}</Text>
         <Text size="xs" c="dimmed">
           {capReason(cap) ?? DELETE_COPY.hint}

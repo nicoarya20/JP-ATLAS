@@ -2,6 +2,7 @@
 import { ActionIcon, Button, Group, Menu, Paper, Stack, Text, Textarea } from '@mantine/core';
 import { useState } from 'react';
 import { FiEdit2, FiMoreHorizontal, FiTrash2 } from 'react-icons/fi';
+import { WRAP_PRE_ANYWHERE } from '~/components/pm/text-wrap';
 import { confirmAction } from '~/components/ui/confirmAction';
 import { DateText } from '~/components/ui/DateText';
 import type { TimelineEntry } from '~/lib/tasks-api';
@@ -14,7 +15,7 @@ type Props = { entry: TimelineEntry; taskRef: string; viewerId: string; canComme
 
 function Byline({ entry, extra }: { entry: TimelineEntry; extra?: string }) {
   return (
-    <Group gap={6} wrap="wrap">
+    <Group gap="xs" wrap="wrap">
       <Text size="sm" fw={600}>
         {entry.author.name}
       </Text>
@@ -53,8 +54,8 @@ function CommentView({
       onConfirm: () => void remove.run(entry.id),
     });
   return (
-    <Paper withBorder p="sm" radius="md">
-      <Stack gap={6}>
+    <Paper withBorder p="sm">
+      <Stack gap="xs">
         {/* nowrap is safe: the byline wraps itself beside one 44px icon button. */}
         <Group justify="space-between" wrap="nowrap" align="flex-start" gap="xs">
           <Byline entry={entry} extra={entry.editedAt ? COPY.edited : undefined} />
@@ -65,7 +66,7 @@ function CommentView({
                   variant="subtle"
                   color="gray"
                   aria-label={COPY.commentMenu}
-                  style={{ flexShrink: 0 }}
+                  flex="0 0 auto"
                 >
                   <FiMoreHorizontal size="1.25em" aria-hidden />
                 </ActionIcon>
@@ -128,8 +129,8 @@ export function TimelineItem({ entry, taskRef, viewerId, canComment }: Props) {
   }
   const detail = activityDetail(entry);
   return (
-    <Stack gap={2} px="xs">
-      <Group gap={6} wrap="wrap">
+    <Stack gap={4} px="xs">
+      <Group gap="xs" wrap="wrap">
         <Text size="sm" c="dimmed">
           <Text span fw={600} inherit>
             {entry.author.name}
@@ -139,7 +140,7 @@ export function TimelineItem({ entry, taskRef, viewerId, canComment }: Props) {
         <DateText value={entry.at} mode="relative" />
       </Group>
       {detail && (
-        <Text size="xs" c="dimmed" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+        <Text size="xs" c="dimmed" style={WRAP_PRE_ANYWHERE}>
           {detail}
         </Text>
       )}

@@ -128,7 +128,7 @@ export function DeleteAccountCard({
   return (
     <SettingsCard title={COPY.cardTitle} description={COPY.cardDescription}>
       <Group justify="space-between" wrap="wrap" gap="sm">
-        <Stack gap={2} style={{ flex: '1 1 260px' }}>
+        <Stack gap={4} flex="1 1 260px">
           <Group gap="xs">
             <FiAlertTriangle size="1.25em" color="var(--mantine-color-red-6)" />
             <Text fw={500}>{COPY.cardTitle}</Text>

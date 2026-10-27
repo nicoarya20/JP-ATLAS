@@ -9,7 +9,7 @@ import { LEAVE_COPY } from './leave.copy';
 
 export function LeaveCard({ onLeaveUntil }: { onLeaveUntil: string | null }) {
   return (
-    <Paper withBorder radius="md" p={{ base: 'md', md: 'lg' }}>
+    <Paper withBorder p={{ base: 'md', md: 'lg' }}>
       <Stack gap="xs">
         <Group gap="xs" wrap="wrap">
           <Text fw={700}>{LEAVE_COPY.cardTitle}</Text>
