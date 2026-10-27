@@ -40,9 +40,19 @@ import type {
  * is far cheaper than a number that is quietly wrong.
  */
 export function touchedBy(ref: string | number): Resource<unknown>[] {
+  return [taskDetail(ref), taskTimeline(ref), ...everyTaskStore()] as Resource<unknown>[];
+}
+
+/**
+ * Everything a write names when it cannot name one task: every list, detail and timeline fetched so
+ * far, the counts and Home.
+ *
+ * Undo of a trashed task is the case. It is addressed by the trash entry's **id** while the screens
+ * hold the task by its number (B1), so asking `touchedBy(id)` would build a detail and a timeline
+ * under a key nothing ever reads — and still have to invalidate the number-keyed ones anyway.
+ */
+export function everyTaskStore(): Resource<unknown>[] {
   return [
-    taskDetail(ref),
-    taskTimeline(ref),
     ...taskLists(),
     ...taskDetails(),
     ...taskTimelines(),
@@ -134,5 +144,5 @@ export const trashTask = (ref: string | number) =>
 export const restoreTrashedTask = (id: string) =>
   send(
     () => apiPost<{ id: string; number: number }>(`/api/app/trash/task/${encodeURIComponent(id)}/restore`),
-    touchedBy(id),
+    everyTaskStore(),
   );

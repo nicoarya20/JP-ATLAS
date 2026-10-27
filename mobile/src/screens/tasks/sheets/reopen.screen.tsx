@@ -32,7 +32,10 @@ export function ReopenScreen() {
   const task = view.task;
   // While the detail is still loading there is nothing to reopen yet; once it has arrived without
   // the capability, the step is not this viewer's to take and the sheet has no business being open.
-  if (view.missing || (task && !task.actions.some((a) => a.key === 'reopen')))
+  // Not while the reopen is out, though: it succeeds by taking the task out of Done, which drops
+  // the very capability this guard reads, and the sheet must close with `back()` rather than be
+  // sent home by its own success.
+  if (view.missing || (task && !sending && !task.actions.some((a) => a.key === 'reopen')))
     return <Redirect href="/" />;
   const send = async () => {
     setSending(true);
@@ -41,8 +44,9 @@ export function ReopenScreen() {
       notice(S.detail.done.reopen);
       router.back();
     } catch (cause) {
+      // Only a refusal gives the sheet back: on success it is closing, and clearing `sending`
+      // would hand the guard above a task that no longer offers Reopen and send it home.
       notice(whyFailed(cause));
-    } finally {
       setSending(false);
     }
   };
