@@ -57,6 +57,8 @@ export const S = {
     history: 'Chat & history',
     comment: 'Write a comment… (@name to mention)',
     commentLabel: 'Comment',
+    /** The Edit form still lists evidence from the sample store; the detail no longer shows any (A5). */
+    photo: 'Photo',
     undo: 'Undo',
     /** Nobody is working on the task; the fact says so instead of being left blank. */
     unassigned: 'Unassigned',

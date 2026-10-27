@@ -24,6 +24,7 @@ import { TasksScreen } from '../../src/screens/tasks/list/tasks.screen';
 import { TaskFormScreen } from '../../src/screens/tasks/new/form.screen';
 import { TaskWriteScreen } from '../../src/screens/tasks/new/write.screen';
 import { CancelScreen } from '../../src/screens/tasks/sheets/cancel.screen';
+import { ReopenScreen } from '../../src/screens/tasks/sheets/reopen.screen';
 import { ReturnScreen } from '../../src/screens/tasks/sheets/return.screen';
 import { serveAuth } from './auth-server';
 import { resetSessionForTest, seedSession } from './session-fixtures';
@@ -47,10 +48,13 @@ function routes(role: Role) {
     '(tabs)/tasks/_layout': TasksStack,
     '(tabs)/tasks/index': () => <TasksScreen role={role} />,
     '(tabs)/tasks/filter': TasksFilterScreen,
-    '(tabs)/tasks/[id]/index': () => <TaskDetailScreen role={role} />,
+    // The detail and the Cancel sheet take no role: what may be done to a task is the server's
+    // answer now (can{}), not the screen's guess from who is signed in.
+    '(tabs)/tasks/[id]/index': TaskDetailScreen,
     '(tabs)/tasks/[id]/edit': () => <TaskEditScreen role={role} />,
     '(tabs)/tasks/[id]/return': () => <ReturnScreen role={role} />,
-    '(tabs)/tasks/[id]/cancel': () => <CancelScreen role={role} />,
+    '(tabs)/tasks/[id]/cancel': CancelScreen,
+    '(tabs)/tasks/[id]/reopen': ReopenScreen,
     'tasks/new/_layout': NewTaskStack,
     'tasks/new/index': TaskWriteScreen,
     'tasks/new/form': () => <TaskFormScreen role={role} />,

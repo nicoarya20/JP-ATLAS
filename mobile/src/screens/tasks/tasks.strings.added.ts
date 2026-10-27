@@ -24,6 +24,7 @@ export const SPOKEN = {
   /** The buttons whose visible text starts with "+" or ends with "✦". */
   compose: 'Compose',
   addStep: 'Add step',
+  attach: 'Attach evidence',
   addType: 'Add type',
 } as const;
 
