@@ -79,10 +79,13 @@ export type TeamPersonProfileWire = {
   phone?: string;
 };
 
+/** `server/pm/enums.ts` `TASK_STATUSES`; a value outside it is a server this app has not learnt. */
+export type TaskStatusWire = 'todo' | 'in_progress' | 'in_review' | 'done' | 'canceled';
+
 export type TeamTaskRefWire = {
   number: number;
   title: string;
-  status: string;
+  status: TaskStatusWire;
   /** `YYYY-MM-DD` or null. */
   dueDate: string | null;
   projectId: string;

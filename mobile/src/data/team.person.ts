@@ -76,7 +76,7 @@ export function taskRow(
     no: task.number,
     title: `#${task.number} ${task.title}`,
     sub: [name, due].filter(Boolean).join(' · '),
-    pill: overdue ? 'Overdue' : statusWord(task.status as Parameters<typeof statusWord>[0]),
+    pill: overdue ? 'Overdue' : statusWord(task.status),
   };
 }
 
