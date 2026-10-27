@@ -92,19 +92,15 @@ export const EXTEND = {
   next: 'New deadline',
   after: (date: string) => `New deadline must be after ${date}.`,
   why: 'Why extend?',
-  reasons: [
-    'Scope increased',
-    'Waiting on third party',
-    'Estimate was off',
-    'Short-staffed',
-    'Other',
-  ],
+  // The reason words come from EXTENSION_REASONS now: they are the server's four categories, not a
+  // list of their own that could drift from the enum.
   reason: 'Reason',
-  impact: 'Impact of change',
   recorded: 'Recorded in Deadline history and Project activity.',
   cancel: 'Cancel',
   save: 'Save',
   saved: 'Deadline extended',
+  /** Fallback only: a refusal normally arrives with the server's own sentence. */
+  failed: 'Could not save that. Try again.',
 } as const;
 
 export const EDIT = {
@@ -126,6 +122,10 @@ export const EDIT = {
   cancel: 'Cancel',
   save: 'Save changes',
   saved: 'Project updated',
+  /** Fallback only: a refusal normally arrives with the server's own sentence. */
+  failed: 'Could not save that. Try again.',
+  /** `can.update` is off: the server would refuse this form's Save. */
+  mayNot: 'You can\u2019t edit this project.',
 } as const;
 
 export const ARCHIVE = {

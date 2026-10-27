@@ -9,6 +9,8 @@ export const WHY = {
   story: 'Write your story first.',
   next: 'Pick a new deadline.',
   reason: 'Enter a reason.',
+  /** Save sends only what changed, so with nothing changed there is nothing to send. */
+  unchanged: 'Change something first.',
 } as const;
 
 /** Accessible names of the buttons whose visible text carries a symbol. */
