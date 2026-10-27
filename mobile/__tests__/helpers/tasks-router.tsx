@@ -46,7 +46,8 @@ function routes(role: Role) {
     '(tabs)/(home)/_layout': HomeStack,
     '(tabs)/(home)/index': stub('screen-home'),
     '(tabs)/tasks/_layout': TasksStack,
-    '(tabs)/tasks/index': () => <TasksScreen role={role} />,
+    // Neither the list nor the board takes a role: what may be done is the server's answer.
+    '(tabs)/tasks/index': TasksScreen,
     '(tabs)/tasks/filter': TasksFilterScreen,
     // The detail and the Cancel sheet take no role: what may be done to a task is the server's
     // answer now (can{}), not the screen's guess from who is signed in.

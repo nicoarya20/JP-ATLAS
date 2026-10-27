@@ -1,6 +1,7 @@
 // The Tasks tab (prototype tasks.list.jsx ListScreen, tasks.board.jsx TasksBoard): the stacked header with the search
 // and the Filter & sort icon, the My tasks / All tasks and List / Kanban switches pinned under it (route params `scope`
-// and `view`), then the list or the board. Switching My / All starts the other list from its own default query; List /
+// and `view`), then the list or the board. Both read /api/app/tasks — the board as one request per column, with its
+// moves going to the server a step at a time (board/board-moves.server.ts). Switching My / All starts the other list from its own default query; List /
 // Kanban keeps it. New task lives on the tab bar's "+". A board emptied by the filters or search says so with Reset, as
 // the list does (UX §4; the prototype leaves its columns empty).
 import { router, useLocalSearchParams } from 'expo-router';
@@ -13,19 +14,17 @@ import { StackedScreen } from '@/components/screen/stacked-screen';
 import { NoMatch } from '@/components/state/no-match';
 import { FailedState, LoadingState } from '@/components/state/section-state';
 import { HStack } from '@/components/ui/hstack';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { getTasksList } from '@/data/tasks';
 import {
   ensureTaskListView,
   moreTaskListGroup,
   reloadTaskListView,
   type TaskListOptions,
+  useTaskBoardView,
   useTaskRowsView,
 } from '@/data/tasks.api.view';
 import { resetQuery, useQuery } from '@/data/tasks.query-state';
-import { useTasks } from '@/data/tasks.state';
 
+import { serverMoves } from '../board/board-moves.server';
 import { TaskBoard } from '../board/task-board';
 import { TasksSearchField } from '../filter/tasks-search';
 import { S } from '../tasks.strings';
@@ -35,22 +34,28 @@ import { TaskList } from './task-list';
 const SCOPES = ['mine', 'all'] as const;
 const VIEWS = ['list', 'board'] as const;
 
-/** The Tasks tab for `role` (who is signed in). */
-export function TasksScreen({ role = SESSION_ROLE }: { role?: Role }) {
+/**
+ * The Tasks tab.
+ *
+ * No `role` any more: both the list and the board read what the server allows this account —
+ * `caps.createTask` for New task and each card's own `can{}` for its moves — so who is signed in is
+ * not something this screen has to be told (the same step Beranda and Inbox took, §4.5 of
+ * docs/phase2-gap-disembunyikan.md).
+ */
+export function TasksScreen() {
   const params = useLocalSearchParams<{ scope?: string; view?: string }>();
   const scope = params.scope === 'all' ? 'all' : 'mine';
   const view = params.view === 'board' ? 'board' : 'list';
   const [search, setSearch] = useState('');
   const query = useQuery(scope);
-  const state = useTasks((s) => s);
-  // The board still reads the sample store: its move menu writes there, so swapping only what it
-  // shows would make a move look like it did nothing. Listed in the Gelombang 1 handover.
-  const board = getTasksList(role, { scope, view, query, search }, state);
+  // One options object per view: the board asks the server by column and the list by schedule
+  // group, so they are two different sets of requests and two different stores.
   const options = useMemo<TaskListOptions>(
-    () => ({ scope, view: 'list', query, search }),
-    [scope, query, search],
+    () => ({ scope, view, query, search }),
+    [scope, view, query, search],
   );
-  const list = useTaskRowsView(options);
+  const list = useTaskRowsView({ ...options, view: 'list' });
+  const board = useTaskBoardView({ ...options, view: 'board' });
   // Idempotent by rule 1: `ensure()` fetches only what is not fresh, so every mount may ask.
   useEffect(() => {
     void ensureTaskListView(options);
@@ -94,15 +99,24 @@ export function TasksScreen({ role = SESSION_ROLE }: { role?: Role }) {
       }
     >
       {view === 'board' ? (
-        board.empty === 'noMatch' && board.view === 'board' ? (
+        board.phase === 'failed' && !board.columns.some((c) => c.cards.length) ? (
+          // The server's own sentence, shown as it came (K5).
+          <FailedState
+            testID="board-failed"
+            message={board.error?.message}
+            onRetry={() => void reloadTaskListView(options)}
+          />
+        ) : board.empty === 'noMatch' ? (
           <NoMatch title={S.noMatch.title} text={S.noMatch.text} onReset={reset} />
-        ) : board.view === 'board' ? (
+        ) : board.empty === null && !board.columns.some((c) => c.cards.length) ? (
+          <LoadingState testID="board-loading" />
+        ) : (
           <TaskBoard
-            role={role}
             mine={scope === 'mine'}
+            moves={serverMoves}
             tasks={board.columns.flatMap((c) => c.cards)}
           />
-        ) : null
+        )
       ) : list.phase === 'failed' && list.groups.length === 0 ? (
         // The server's own sentence, shown as it came (K5): not translated, and not replaced by a
         // guess of our own about what went wrong.

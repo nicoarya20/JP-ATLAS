@@ -7,13 +7,13 @@ import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import type { TaskCard } from '@/data/tasks';
 import type { BoardStatus, BoardColumn as Column } from '@/data/tasks.columns';
 
 import { S } from '../tasks.strings';
 import { SPOKEN } from '../tasks.strings.added';
 import { STATUS_ICON, TONE_SOFT } from './board.tones';
 import { BoardCard, type MoveSet } from './board-card';
+import type { BoardCardData } from './board-cards';
 import { SelectControl } from './select-control';
 import type { MoveMenu } from './use-move-menu';
 
@@ -22,14 +22,14 @@ export const COLUMN_PX = 272;
 
 type BoardColumnProps = {
   column: Column;
-  cards: readonly TaskCard[];
+  cards: readonly BoardCardData[];
   mine: boolean;
   menu: MoveMenu;
   selecting: boolean;
   picked: readonly number[];
   onSelect: () => void;
-  onToggle: (card: TaskCard) => void;
-  /** Pick (or drop, when all are picked) the cards the viewer may change. */
+  onToggle: (card: BoardCardData) => void;
+  /** Pick (or drop, when all are picked) the cards that can be moved somewhere. */
   onAll: (nos: number[], all: boolean) => void;
   onOpen: (no: number) => void;
   /** What a named move of card `no` carries. */
@@ -42,7 +42,7 @@ type BoardColumnProps = {
 export function BoardColumn(p: BoardColumnProps) {
   const { column, cards, menu } = p;
   const tone = TONE_SOFT[column.tone];
-  const mayPick = cards.filter((c) => c.mayChange).map((c) => c.no);
+  const mayPick = cards.filter((c) => menu.sidesFor(c).length > 0).map((c) => c.no);
   const all = mayPick.length > 0 && mayPick.every((no) => p.picked.includes(no));
   return (
     <View

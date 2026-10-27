@@ -90,7 +90,18 @@ async function send<T>(run: () => Promise<T>, touched: Resource<unknown>[]): Pro
  * is expected to have offered only what `can{}` allowed, so a refusal here is worth showing.
  */
 export const runStep = (ref: string | number, step: string, body?: unknown) =>
-  send(() => apiPost<WireTransition>(stepPath(ref, step), body), touchedBy(ref));
+  send(() => postStep(ref, step, body), touchedBy(ref));
+
+/**
+ * The same request without naming what it made stale.
+ *
+ * For a caller that takes a step on several tasks at once — the board's move menu, which the server
+ * has no bulk route for — so the whole move invalidates once instead of once per task. Such a
+ * caller owes the stores the same naming afterwards (`everyTaskStore()`); nobody else should use
+ * this.
+ */
+export const postStep = (ref: string | number, step: string, body?: unknown) =>
+  apiPost<WireTransition>(stepPath(ref, step), body);
 
 /** Reopen a finished task. The reason is the server's requirement, 3–200 characters. */
 export const reopenTask = (ref: string | number, reason: string) =>

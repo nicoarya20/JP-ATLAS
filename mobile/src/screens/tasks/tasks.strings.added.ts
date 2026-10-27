@@ -38,6 +38,17 @@ export const MISSING = {
   reopen: 'Enter a reason of at least 3 characters.',
 } as const;
 
+/**
+ * The board's own lines. Both are this app's, not the server's: `can{}` carries the deny code but
+ * the sentence for it lives in server code the web imports and mobile cannot, and K5 forbids a
+ * second English wording of it here (G1-T2).
+ */
+export const BOARD = {
+  cannotMove: 'This task cannot be moved from here.',
+  /** The server accepted no step at all and gave no reason of its own. */
+  notMoved: 'Nothing moved. Try again.',
+} as const;
+
 export const DELETE_TAG = {
   title: (tag: string) => `Delete tag ${tag}?`,
   message: 'Tasks keep their other tags. This cannot be undone.',
