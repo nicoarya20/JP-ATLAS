@@ -1,18 +1,10 @@
-// Profile ① (prototype profile.main.jsx), a full-height modal from the More panel's profile card: hero, Edit profile,
-// shortcut rows, general info, Sign out (T2). Rows leading to a tab close the modal first.
+// Profile ① , a full-height modal from the More panel's profile card: who I am as the server has
+// me, the shortcut rows, the two notification switches it really keeps, and Sign out (T2). Rows
+// leading to a tab close the modal first.
 import * as Clipboard from 'expo-clipboard';
 import { type Href, router } from 'expo-router';
-import {
-  BellOff,
-  CalendarDays,
-  CircleHelp,
-  Copy,
-  Inbox,
-  ListChecks,
-  Pencil,
-  Settings,
-} from 'lucide-react-native';
-import { useState } from 'react';
+import { Bell, CalendarDays, CircleHelp, Copy, Inbox, ListChecks, Pencil, Settings } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 
 import { SectionLabel } from '@/components/form/section-label';
 import { Row, Rows } from '@/components/list/rows';
@@ -23,18 +15,25 @@ import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Switch } from '@/components/ui/switch';
+import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
+import { ensureInboxCount } from '@/data/inbox.api';
 import { getProfile } from '@/data/profile';
-import { setProfile, useProfile } from '@/data/profile.store';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { useDecisions } from '@/data/users';
+import {
+  ensureNotificationPrefs,
+  ensureProfile,
+  type NotificationPrefsWire,
+  notificationPrefsResource,
+  profileResource,
+  saveNotificationPrefs,
+} from '@/data/profile.api';
+import { ensureWhoami, whoamiResource } from '@/data/whoami.api';
 
 import { SignOutDialog } from '../auth/sign-out';
 import { EDIT_FROM_PROFILE } from '../settings/profile-edit.screen';
 import { PROFILE as P } from './profile.strings';
 import { Tile } from './profile.tiles';
-import { PresenceDot, ProfileHero } from './profile-hero';
+import { ProfileHero } from './profile-hero';
 
 /** Close the profile modal, then open `href` in the tabs under it. */
 function leaveTo(href: Href) {
@@ -42,12 +41,74 @@ function leaveTo(href: Href) {
   router.navigate(href);
 }
 
-/** The profile modal. role: who is signed in (K12). */
-export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
+/**
+ * The two switches the server keeps. A card in the action lane is never silenced — somebody has to
+ * answer it — so the note under them says which notifications these two cover and which arrive
+ * whatever happens.
+ */
+function Notifications() {
   const notice = useNotice();
-  const { online, muted } = useProfile();
-  const d = getProfile(role, useDecisions());
+  const state = notificationPrefsResource.use();
+  const [saving, setSaving] = useState<keyof NotificationPrefsWire | null>(null);
+  const prefs = state.data;
+  const flip = async (key: keyof NotificationPrefsWire, value: boolean) => {
+    setSaving(key);
+    try {
+      await saveNotificationPrefs({ [key]: value });
+    } catch (e) {
+      // The server's own sentence, as it came (K5); the switch snaps back because what is drawn is
+      // the stored value, not the finger's intent.
+      notice(P.saveFailed(e instanceof Error ? e.message : String(e)));
+    } finally {
+      setSaving(null);
+    }
+  };
+  const row = (
+    key: keyof NotificationPrefsWire,
+    title: string,
+    sub: string,
+  ) => (
+    <Row
+      lead={<Tile icon={Bell} tone="indigo" />}
+      title={title}
+      sub={sub}
+      right={
+        <Switch
+          accessibilityLabel={title}
+          accessibilityState={{ busy: saving === key, disabled: !prefs || saving !== null }}
+          isDisabled={!prefs || saving !== null}
+          value={prefs?.[key] ?? false}
+          onValueChange={(v) => void flip(key, v)}
+        />
+      }
+    />
+  );
+  return (
+    <VStack className="gap-2">
+      <SectionLabel>{P.notifications}</SectionLabel>
+      <Rows>
+        {row('eventReminder', P.eventReminder, P.eventReminderSub)}
+        {row('inboxNews', P.inboxNews, P.inboxNewsSub)}
+      </Rows>
+      <Text className="text-footnote text-muted-foreground">{P.alwaysOn}</Text>
+    </VStack>
+  );
+}
+
+/** The profile modal. */
+export function ProfileScreen() {
+  const notice = useNotice();
+  // Subscribed so the modal fills in as each answer lands; the data itself is read synchronously.
+  profileResource.use();
+  whoamiResource.use();
+  const d = getProfile();
   const [signingOut, setSigningOut] = useState(false);
+  useEffect(() => {
+    void ensureProfile();
+    void ensureWhoami();
+    void ensureNotificationPrefs();
+    void ensureInboxCount();
+  }, []);
   const copyEmail = () =>
     Clipboard.setStringAsync(d.me.email).then(
       (ok) => notice(ok ? P.copied : P.copyFailed(P.clipboardRefused)),
@@ -55,7 +116,7 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
     );
   return (
     <DetailPage testID="screen-profile" title="" modal>
-      <ProfileHero d={d} online={online} />
+      <ProfileHero d={d} />
       <Button size="lg" onPress={() => leaveTo(EDIT_FROM_PROFILE)}>
         <ButtonIcon as={Pencil} />
         <ButtonText>{P.editProfile}</ButtonText>
@@ -83,17 +144,6 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
           onPress={() => leaveTo('/more/inbox')}
         />
         <Row
-          lead={<Tile icon={BellOff} tone="indigo" />}
-          title={P.mute}
-          right={
-            <Switch
-              accessibilityLabel={P.mute}
-              value={muted}
-              onValueChange={(v) => setProfile({ muted: v })}
-            />
-          }
-        />
-        <Row
           lead={<Tile icon={Settings} />}
           title={P.settings}
           onPress={() => leaveTo('/more/settings')}
@@ -104,21 +154,10 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
           onPress={() => notice(P.helpNotice)}
         />
       </Rows>
+      <Notifications />
       <VStack className="gap-2">
         <SectionLabel>{P.general}</SectionLabel>
         <Rows>
-          <Row
-            lead={<PresenceDot online={online} small />}
-            title={P.showOnline}
-            sub={P.seenAs(online)}
-            right={
-              <Switch
-                accessibilityLabel={P.showOnline}
-                value={online}
-                onValueChange={(v) => setProfile({ online: v })}
-              />
-            }
-          />
           <Row
             title={d.me.email}
             sub={P.email}
