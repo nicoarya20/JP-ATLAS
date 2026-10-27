@@ -1,4 +1,4 @@
-import { SimpleGrid, Stack, Text } from '@mantine/core';
+import { SimpleGrid, Stack } from '@mantine/core';
 import { adminUserStats } from '@server/api/admin-users.query';
 import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
@@ -41,14 +41,14 @@ export default function Dashboard({ loaderData }: Route.ComponentProps) {
 
   return (
     <Stack gap="md" p={{ base: 'sm', md: 'md' }}>
-      {/* `gap={4}` rather than the Stack's `md`: the identity line belongs to the header. It is
-          a sibling instead of part of `description` because PageHeader takes a plain string. */}
-      <Stack gap={4}>
-        <PageHeader title={BERANDA_COPY.title} description={BERANDA_COPY.description} />
-        <Text size="sm" c="dimmed">
-          Masuk sebagai <b>{user.email}</b>.
-        </Text>
-      </Stack>
+      <PageHeader
+        title={BERANDA_COPY.title}
+        description={
+          <>
+            {BERANDA_COPY.description} Masuk sebagai <b>{user.email}</b>.
+          </>
+        }
+      />
 
       <PratinjauAlert owner="AD-14/AD-15">
         Hanya kartu <b>Antrean persetujuan</b> yang berisi data sungguhan. Lima kartu lain bertanda{' '}

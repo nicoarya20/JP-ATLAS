@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 
 type Props = {
   title: string;
-  description?: string;
+  description?: ReactNode;
   /** Buttons on the right; they wrap under the title on narrow screens. */
   actions?: ReactNode;
   back?: { to: string; label: string };
