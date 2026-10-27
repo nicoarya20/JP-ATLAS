@@ -42,7 +42,7 @@ function options(items: Breakdown[], current: string | null, label: (k: string) 
 export function LoginFilters({ filters, onChange, onReset, stats, matchCount, userLabel }: Props) {
   const active = hasActiveLoginFilters(filters);
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari nama, email, user ID, IP, kota, browser…"

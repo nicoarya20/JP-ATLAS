@@ -58,7 +58,7 @@ function ActorRow({
 function TopActors({ stats, onActor }: { stats: AuditStats; onActor: (id: string) => void }) {
   const total = Math.max(1, stats.total);
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder p="md">
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} mb="sm">
         Aktor paling aktif
       </Text>

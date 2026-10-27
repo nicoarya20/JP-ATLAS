@@ -34,7 +34,7 @@ const SPARKLINE_MIN_BAR_PERCENT = 6;
 
 function Tile({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
         {label}
       </Text>
@@ -163,7 +163,7 @@ export function ApiKeyUsagePanel({
         <Tile label="Error 24 jam" value={nf.format(summary.errors24h)} hint="status ≥ 400" />
         <Tile label="Rata-rata" value={`${nf.format(summary.avgMs)} ms`} hint="durasi 24 jam" />
       </SimpleGrid>
-      <Paper withBorder radius="md" p="md">
+      <Paper withBorder p="md">
         <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} mb="sm">
           Harian (90 hari)
         </Text>

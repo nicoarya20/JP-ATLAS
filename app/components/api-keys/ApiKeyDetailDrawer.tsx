@@ -40,7 +40,7 @@ export function ApiKeyDetailDrawer({ keyRow: k, onClose, soonDays, fetchUsage, h
       {k && (
         <Stack gap="md">
           <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-            <Stack gap={2} miw={0}>
+            <Stack gap={4} miw={0}>
               <Text
                 fw={600}
                 size="lg"

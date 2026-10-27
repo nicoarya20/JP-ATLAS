@@ -129,12 +129,7 @@ export function AuditCardList({ rows, loading, onOpen, empty }: Props) {
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
     <Stack gap="xs">
       {rows.map((r) => (
@@ -142,7 +137,6 @@ export function AuditCardList({ rows, loading, onOpen, empty }: Props) {
           key={r.id}
           withBorder
           p="sm"
-          radius="md"
           onClick={() => onOpen(r)}
           style={{
             // Mantine has no `cursor` prop; clicking here opens the detail view.

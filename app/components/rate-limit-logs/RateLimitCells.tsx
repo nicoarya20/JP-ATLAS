@@ -34,7 +34,7 @@ export function MethodBadge({
 /** Method badge + path (truncated with tooltip) for a blocked request. */
 export function RequestCell({ row, maw = 280 }: { row: RateLimitRow; maw?: number }) {
   return (
-    <Stack gap={2} miw={0}>
+    <Stack gap={4} miw={0}>
       <MethodBadge method={row.method} size="xs" />
       <TruncatedText ff="monospace" size="sm" lh={1.3} maw={maw}>
         {row.path}

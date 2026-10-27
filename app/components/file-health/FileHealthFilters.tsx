@@ -52,7 +52,7 @@ export function FileHealthFilters({ filters, onChange, summary, matchCount }: Pr
     filters.hazard !== null;
 
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari path file…"

@@ -38,7 +38,7 @@ export function AuditFilters({ filters, onChange, stats, matchCount }: Props) {
     ? stats?.topActors.find((a) => a.actorId === filters.actorId)
     : null;
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari ringkasan, aktor, target, IP…"

@@ -93,7 +93,7 @@ export function SchemaToolbar({
   onFit,
 }: Props) {
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <Select
           size="sm"

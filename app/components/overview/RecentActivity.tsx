@@ -18,7 +18,7 @@ function Panel({
   empty: string;
 }) {
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder p="md">
       <Group justify="space-between" mb="sm">
         <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3}>
           {title}

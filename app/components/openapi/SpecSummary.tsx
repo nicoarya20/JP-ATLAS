@@ -17,7 +17,7 @@ export function SpecSummary({
   baseUrl: string;
 }) {
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder p="md">
       <Stack gap="xs">
         <Group gap="xs" wrap="wrap" align="baseline">
           <Text fw={600}>{spec.info?.title ?? 'API'}</Text>
@@ -48,7 +48,7 @@ export function SpecSummary({
           muat. Kunci dengan scope lain akan melihat daftar yang berbeda.
         </Text>
         {scopes.length > 0 && (
-          <Group gap={6} wrap="wrap">
+          <Group gap="xs" wrap="wrap">
             {scopes.map((s) => (
               <Badge key={s} size="sm" variant="outline" color="grape">
                 {s}

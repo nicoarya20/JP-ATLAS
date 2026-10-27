@@ -57,7 +57,7 @@ function Chip({ label, onClear }: { label: string; onClear: () => void }) {
 export function RateLimitFilters({ filters, onChange, onReset, stats, matchCount }: Props) {
   const active = hasActiveRateLimitFilters(filters);
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari IP, path, kota, browser, nama/email user…"

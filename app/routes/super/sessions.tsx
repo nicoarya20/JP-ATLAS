@@ -125,7 +125,7 @@ export default function SessionsPage({ loaderData }: Route.ComponentProps) {
 
       <SessionStatsCards stats={stats.data} />
 
-      <Paper withBorder radius="md" p="sm">
+      <Paper withBorder p="sm">
         <Group gap="xs" wrap="wrap" align="center">
           <TextInput
             placeholder="Cari nama, email, IP, atau perangkat…"

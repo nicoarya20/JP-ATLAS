@@ -135,7 +135,7 @@ export default function PostsPage({ loaderData }: Route.ComponentProps) {
         }
       />
       <PostStatsCards stats={stats.data} />
-      <Paper withBorder radius="md" p="sm">
+      <Paper withBorder p="sm">
         <Group gap="xs" wrap="wrap" align="center">
           <TextInput
             placeholder="Cari judul, isi, atau penulis…"

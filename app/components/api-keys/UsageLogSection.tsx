@@ -159,7 +159,7 @@ export function UsageLogSection() {
 
   return (
     <Stack gap="md">
-      <Paper withBorder radius="md" p="sm">
+      <Paper withBorder p="sm">
         <Group gap="xs" wrap="wrap" align="center">
           <TextInput
             placeholder="Cari path atau IP…"

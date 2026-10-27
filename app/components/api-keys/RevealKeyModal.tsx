@@ -49,7 +49,7 @@ function RevealBody({ reveal, onClose }: { reveal: Reveal; onClose: () => void }
           Simpan kunci ini sekarang di secret manager atau env integrasi Anda. Setelah jendela ini
           ditutup, kunci tidak bisa dilihat lagi — hanya bisa dirotasi.
         </Alert>
-        <Paper withBorder radius="md" p="sm" bg="var(--mantine-color-default-hover)">
+        <Paper withBorder p="sm" bg="var(--mantine-color-default-hover)">
           <Group justify="space-between" wrap="nowrap" gap="xs">
             <Text
               ff="monospace"

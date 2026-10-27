@@ -32,7 +32,7 @@ export function ApiKeyFilterBar({
   ownerLabel,
 }: Props) {
   return (
-    <Paper withBorder radius="md" p="sm">
+    <Paper withBorder p="sm">
       <Group gap="xs" wrap="wrap" align="center">
         <TextInput
           placeholder="Cari nama kunci, prefix, pemilik, catatan…"

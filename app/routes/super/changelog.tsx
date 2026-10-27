@@ -48,7 +48,7 @@ const EXAMPLE = `## [Unreleased]
 
 function EmptyState({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Paper withBorder radius="md" p="xl">
+    <Paper withBorder p="xl">
       <Stack align="center" gap="xs" ta="center">
         <ThemeIcon variant="light" color="gray" size={48} radius="xl">
           <FiBookOpen size={22} />
@@ -157,7 +157,7 @@ export default function ChangelogPage({ loaderData: cl }: Route.ComponentProps) 
               w={{ base: '100%', sm: 280 }}
             />
             <Chip.Group value={type ?? 'all'} onChange={(v) => setType(v === 'all' ? null : v)}>
-              <Group gap={6} wrap="wrap">
+              <Group gap="xs" wrap="wrap">
                 <Chip value="all" size="sm">
                   Semua
                 </Chip>
@@ -197,7 +197,7 @@ export default function ChangelogPage({ loaderData: cl }: Route.ComponentProps) 
               </Button>
             </EmptyState>
           ) : (
-            <Paper withBorder radius="md" p={{ base: 'sm', md: 'lg' }}>
+            <Paper withBorder p={{ base: 'sm', md: 'lg' }}>
               <ChangelogTimeline
                 releases={shown}
                 currentVersion={cl.currentVersion}

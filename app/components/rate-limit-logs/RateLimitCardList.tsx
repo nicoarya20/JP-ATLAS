@@ -28,12 +28,7 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
 
   return (
     <Stack gap="xs">
@@ -44,7 +39,6 @@ export function RateLimitCardList({ rows, loading, empty, selected, deletingId, 
             key={r.id}
             withBorder
             p="sm"
-            radius="md"
             bg={selected.has(r.id) ? 'var(--mantine-primary-color-light)' : undefined}
             onClick={() => h.onOpen(r)}
             style={{

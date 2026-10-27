@@ -86,12 +86,7 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
 
   return (
     <>
@@ -163,8 +158,8 @@ export function FileHealthTable({ rows, loading, empty }: Props) {
 
       <Stack gap="xs" hiddenFrom="sm">
         {rows.map((r) => (
-          <Paper key={r.path} withBorder p="sm" radius="md">
-            <Stack gap={6}>
+          <Paper key={r.path} withBorder p="sm">
+            <Stack gap="xs">
               <Text
                 ff="monospace"
                 size="sm"

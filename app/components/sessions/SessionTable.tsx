@@ -201,18 +201,13 @@ export function SessionCardList({ rows, loading, empty, ...h }: Props) {
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
     <Stack gap="xs">
       {rows.map((s) => (
-        <Paper key={s.id} withBorder p="sm" radius="md">
+        <Paper key={s.id} withBorder p="sm">
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={6} miw={0} flex={1}>
+            <Stack gap="xs" miw={0} flex={1}>
               <UserCell row={s} subtitle={s.userEmail} />
               <DeviceCell s={s} />
               <Flags s={s} currentSessionId={h.currentSessionId} />

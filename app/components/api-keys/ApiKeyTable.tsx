@@ -190,12 +190,7 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
     <Stack gap="xs">
       {rows.map((k) => (
@@ -203,7 +198,6 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
           key={k.id}
           withBorder
           p="sm"
-          radius="md"
           onClick={() => h.onOpen(k)}
           style={{
             // Mantine has no `cursor` prop; clicking here opens the detail view.
@@ -211,7 +205,7 @@ export function ApiKeyCardList({ rows, loading, empty, soonDays, ...h }: Props) 
           }}
         >
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-            <Stack gap={6} miw={0} flex={1}>
+            <Stack gap="xs" miw={0} flex={1}>
               <Group gap="xs" wrap="nowrap" justify="space-between">
                 <KeyIdentityCell k={k} />
                 <KeyStatusBadge status={k.status} size="xs" />

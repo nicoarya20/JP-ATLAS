@@ -179,16 +179,11 @@ export function PostCardList({ rows, loading, empty, ...h }: Props) {
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
     <Stack gap="xs">
       {rows.map((p) => (
-        <Paper key={p.id} withBorder p="sm" radius="md">
+        <Paper key={p.id} withBorder p="sm">
           <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
             <Stack gap={4} miw={0} flex={1}>
               <Text size="sm" fw={500} lineClamp={2}>

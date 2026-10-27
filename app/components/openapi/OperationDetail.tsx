@@ -15,7 +15,7 @@ import { SchemaFields } from './SchemaFields';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Stack gap={6}>
+    <Stack gap="xs">
       <Text size="xs" fw={700} tt="uppercase" c="dimmed">
         {title}
       </Text>
@@ -26,7 +26,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function ParamRow({ param, components }: { param: SpecParameter; components: Components }) {
   return (
-    <Stack gap={2}>
+    <Stack gap={4}>
       <Group gap="xs" wrap="wrap" align="baseline">
         <Code
           style={{
@@ -134,7 +134,7 @@ export function OperationDetail({
 
       {bodySchema && (
         <Section title={`Request body${op.operation.requestBody?.required ? ' (wajib)' : ''}`}>
-          <Stack gap={6}>
+          <Stack gap="xs">
             {bodyTypes.length > 1 && (
               <Text size="xs" c="dimmed">
                 Diterima sebagai: {bodyTypes.join(', ')}

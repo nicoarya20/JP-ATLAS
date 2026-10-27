@@ -26,7 +26,7 @@ type Props = {
 function TopUsers({ stats, onUser }: { stats: LoginStats; onUser: (id: string) => void }) {
   const total = Math.max(1, stats.total);
   return (
-    <Paper withBorder radius="md" p="md">
+    <Paper withBorder p="md">
       <Text size="xs" c="dimmed" tt="uppercase" fw={600} lts={0.3} mb="sm">
         User paling sering login
       </Text>

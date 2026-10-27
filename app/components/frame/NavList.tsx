@@ -41,7 +41,7 @@ function itemHint(item: NavItem): React.ReactNode {
   const lines = [item.description, item.badge?.tooltip].filter(Boolean);
   if (lines.length === 0) return item.label;
   return (
-    <Stack gap={2}>
+    <Stack gap={4}>
       {lines.map((l) => (
         <Text key={l} size="xs" lh={1.3}>
           {l}
@@ -82,7 +82,7 @@ function CollapsedItem({
   return (
     <Tooltip
       label={
-        <Stack gap={2}>
+        <Stack gap={4}>
           <Text size="xs" fw={600} lh={1.3}>
             {item.label}
             {b ? ` · ${badgeValue(b.value)}` : ''}

@@ -72,7 +72,7 @@ export default function ServerLogsPage() {
 
       <ServerLogStatsCards stats={stats.data} />
 
-      <Paper withBorder radius="md" p="sm">
+      <Paper withBorder p="sm">
         <ServerLogFilterBar filters={filters} onChange={setFilters} />
         {logs.data && (
           <TruncatedText size="xs" c="dimmed" mt="xs">

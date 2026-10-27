@@ -62,7 +62,7 @@ export function SchemaFields({ fields }: { fields: SchemaField[] }) {
       </Text>
     );
   return (
-    <Stack gap={6}>
+    <Stack gap="xs">
       {fields.map((f) => (
         <FieldRow key={f.key} field={f} />
       ))}

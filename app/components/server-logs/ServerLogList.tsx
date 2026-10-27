@@ -120,14 +120,9 @@ export function ServerLogList({
       </Stack>
     );
   }
-  if (rows.length === 0)
-    return (
-      <Paper withBorder radius="md">
-        {empty}
-      </Paper>
-    );
+  if (rows.length === 0) return <Paper withBorder>{empty}</Paper>;
   return (
-    <Stack gap={6}>
+    <Stack gap="xs">
       {rows.map((r) => (
         <Row key={r.seq ?? `${r.time}-${r.msg}`} row={r} />
       ))}

@@ -23,7 +23,7 @@
  *    Being super-admin does not reveal more here, and the key is never
  *    persisted or logged (app/lib/openapi-client.ts).
  */
-import { Alert, Button, Group, Paper, Stack, Text, TextInput, Title } from '@mantine/core';
+import { Alert, Button, Code, Paper, Stack, Text, TextInput, Title } from '@mantine/core';
 import { requireRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { useMemo, useState } from 'react';
@@ -102,18 +102,17 @@ export default function OpenApiPage() {
 
   return (
     <Stack gap="md">
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <Stack gap={4} miw={0}>
-          <Title order={1}>Spec OpenAPI</Title>
-          <Text size="sm" c="dimmed">
-            Penampil spec buatan sendiri (bukan Swagger UI) di atas{' '}
-            <code>GET /api/openapi.json</code>. Read-only: halaman ini tidak pernah memanggil
-            endpoint yang ditampilkan.
-          </Text>
-        </Stack>
-      </Group>
+      {/* Not `PageHeader`: its `description` is typed `string` and this one carries a <Code>
+          element. The title still uses the page step (see /tmp/sp-ui-handover/ui-area-dev.md). */}
+      <Stack gap={4} miw={0}>
+        <Title order={1}>Spec OpenAPI</Title>
+        <Text size="sm" c="dimmed">
+          Penampil spec buatan sendiri (bukan Swagger UI) di atas <Code>GET /api/openapi.json</Code>
+          . Read-only: halaman ini tidak pernah memanggil endpoint yang ditampilkan.
+        </Text>
+      </Stack>
 
-      <Paper withBorder radius="md" p="md">
+      <Paper withBorder p="md">
         <SpecKeyForm
           value={keyInput}
           onChange={setKeyInput}
@@ -131,7 +130,7 @@ export default function OpenApiPage() {
       )}
 
       {!spec && !error && (
-        <Paper withBorder radius="md" p="xl">
+        <Paper withBorder p="xl">
           <Stack align="center" gap="xs" ta="center">
             <FiBookOpen size="2em" />
             <Text fw={600}>Belum ada spec yang dimuat</Text>
@@ -161,7 +160,7 @@ export default function OpenApiPage() {
             onChange={(e) => setSearch(e.currentTarget.value)}
           />
           {groups.length === 0 ? (
-            <Paper withBorder radius="md" p="xl">
+            <Paper withBorder p="xl">
               <Text ta="center" c="dimmed">
                 Tidak ada operasi yang cocok dengan “{search}”.
               </Text>

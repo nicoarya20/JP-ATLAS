@@ -77,7 +77,9 @@ function Inner({ schema, direction, compact, selectedId, onSelect, fitKey }: Sch
       maxZoom={2}
       aria-label="Diagram relasi tabel"
     >
-      <Background gap={20} size={1} color="var(--mantine-color-default-border)" />
+      {/* React Flow's `gap` is the canvas dot pitch in px, not Mantine spacing: leave it off the
+          spacing scale. */}
+      <Background gap={BACKGROUND_DOT_PITCH} size={1} color="var(--mantine-color-default-border)" />
       <Controls showInteractive={false} position="bottom-right" />
       <MiniMap
         pannable
@@ -90,6 +92,9 @@ function Inner({ schema, direction, compact, selectedId, onSelect, fitKey }: Sch
     </ReactFlow>
   );
 }
+
+/** Dot pitch of the canvas grid, in graph pixels. */
+const BACKGROUND_DOT_PITCH = 20;
 
 /** Dims the off-screen area of the minimap; a neutral wash, not a palette colour. */
 const MINIMAP_MASK = 'rgba(0,0,0,0.08)';
