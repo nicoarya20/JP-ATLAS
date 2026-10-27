@@ -209,6 +209,8 @@ export function requiredScope(method: string, pathname: string): Scope | null {
 /**
  * Public reads (e.g. GET /api/posts, /api/hello, /api/version) need no scope but may still carry a key for tracking.
  * /api/openapi.json is listed so any valid key passes the plugin; its handler then rejects callers without a key.
+ * /api/docs(+/json) is the dev-only Scalar UI (see api/docs.ts): no key needed, so a key-bearing caller must
+ * not be refused 403 by the plugin.
  */
 export function isPublicRead(method: string, pathname: string): boolean {
   return (
@@ -217,7 +219,9 @@ export function isPublicRead(method: string, pathname: string): boolean {
       pathname.startsWith('/api/storage/avatars/') ||
       pathname === '/api/hello' ||
       pathname === '/api/version' ||
-      pathname === '/api/openapi.json')
+      pathname === '/api/openapi.json' ||
+      pathname === '/api/docs' ||
+      pathname === '/api/docs/json')
   );
 }
 
