@@ -181,6 +181,10 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   if (p.startsWith('/api/admin/permissions-matrix')) return read ? 'settings:read' : null;
   // Bulk CSV export of the whole directory (P11 §5): no scope may reach it, whatever the method.
   if (p.startsWith('/api/admin/export')) return null;
+  // The Admin Beranda summary (P11 AD-14) is a read-only view across the admin console (users,
+  // projects, tasks, events, audit); no single resource scope fits, so it rides the admin console's
+  // cross-cutting read scope `settings:read` (the same one the role matrix uses), and never writes.
+  if (p.startsWith('/api/admin/overview')) return read ? 'settings:read' : null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;

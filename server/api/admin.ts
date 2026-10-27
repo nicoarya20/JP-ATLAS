@@ -18,6 +18,7 @@ import { adminExportApi } from './admin-export';
 import { adminInvitationsApi } from './admin-invitations';
 import { adminLeaveApi } from './admin-leave';
 import { adminModerationApi } from './admin-moderation';
+import { adminOverviewApi } from './admin-overview';
 import { adminPermissionsApi } from './admin-permissions';
 import { adminUserStats, findUserTarget, listAdminUsers, UserListQuery } from './admin-users.query';
 
@@ -27,6 +28,7 @@ const KNOWN_ROLES: readonly string[] = Object.values(ROLES);
 
 export const adminApi = new Elysia({ prefix: '/admin' })
   .use(adminContext)
+  .use(adminOverviewApi)
   .use(adminModerationApi)
   .use(adminLeaveApi)
   .use(adminExportApi)

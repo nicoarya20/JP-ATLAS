@@ -22,8 +22,6 @@ const MARKER = /^\/\/ PRATINJAU\(([^)]+)\): .+$/m;
 
 /** Every marked file, with the task that owns it. Delete a line here when its preview goes. */
 const PREVIEW_FILES: Record<string, string> = {
-  'app/components/admin/home/beranda.content.ts': 'AD-14',
-  'app/components/admin/home/beranda.widgets.tsx': 'AD-15',
   'app/components/admin/settings/pemberitahuan.tsx': 'P9 G-02',
 };
 

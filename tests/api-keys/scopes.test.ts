@@ -72,6 +72,16 @@ describe('requiredScope', () => {
     expect(roleAllowsScope(ROLES.ADMIN, 'settings:read')).toBe(false);
     expect(roleAllowsScope(ROLES.SUPER_ADMIN, 'settings:read')).toBe(true);
   });
+  it('lets a key read the Admin Beranda summary with settings:read, and never write it (AD-14)', () => {
+    expect(requiredScope('GET', '/api/admin/overview')).toBe('settings:read');
+    expect(requiredScope('HEAD', '/api/admin/overview')).toBe('settings:read');
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/overview')).toBeNull();
+    }
+    // Reading the summary is a settings read, so only a super-admin's key can carry it.
+    expect(roleAllowsScope(ROLES.ADMIN, 'settings:read')).toBe(false);
+    expect(roleAllowsScope(ROLES.SUPER_ADMIN, 'settings:read')).toBe(true);
+  });
   it('blocks auth, key management (admin and personal), resets and unknown routes', () => {
     expect(requiredScope('POST', '/api/auth/sign-in/email')).toBeNull();
     expect(requiredScope('GET', '/api/api-keys')).toBeNull();
