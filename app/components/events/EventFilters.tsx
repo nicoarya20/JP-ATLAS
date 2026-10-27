@@ -61,7 +61,7 @@ export function EventFilters({ filters, projects, onChange }: Props) {
           setSearch(e.currentTarget.value);
           commitSearch(e.currentTarget.value);
         }}
-        style={{ flex: '2 1 14rem' }}
+        flex="2 1 14rem"
       />
       <Select
         aria-label={EVENTS_COPY.kindLabel}
@@ -70,7 +70,7 @@ export function EventFilters({ filters, projects, onChange }: Props) {
         value={filters.jenis || null}
         onChange={(v) => onChange({ [P.kind]: (v as EventKind | null) ?? null })}
         clearable
-        style={{ flex: '1 1 10rem' }}
+        flex="1 1 10rem"
       />
       {projects.length > 0 && (
         <Select
@@ -81,7 +81,7 @@ export function EventFilters({ filters, projects, onChange }: Props) {
           onChange={(v) => onChange({ [P.project]: v })}
           clearable
           searchable
-          style={{ flex: '1 1 12rem' }}
+          flex="1 1 12rem"
         />
       )}
     </Group>

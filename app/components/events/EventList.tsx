@@ -10,6 +10,9 @@ import { EventLoadError } from './EventLoadError';
 import { EventRow } from './EventRow';
 import { EVENTS_COPY } from './events.copy';
 
+/** The previous answer stays readable but visibly out of date while the new one loads. */
+const STALE_OPACITY = 0.6;
+
 type Props = {
   filters: EventFilters;
   seed: EventsSeed;
@@ -52,7 +55,7 @@ export function EventList({ filters, seed, clock, canCreate, onResetFilters }: P
         <Stack
           gap="md"
           aria-busy={pages.isPlaceholderData}
-          style={{ opacity: pages.isPlaceholderData ? 0.6 : 1 }}
+          opacity={pages.isPlaceholderData ? STALE_OPACITY : 1}
         >
           {groupByDay(items, clock).map((group) => (
             <Stack key={group.key} gap="xs" component="section" aria-label={group.heading}>
