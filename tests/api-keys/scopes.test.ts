@@ -119,6 +119,13 @@ describe('requiredScope', () => {
     // The neighbouring directory routes keep their scope: only the export prefix is cut off.
     expect(requiredScope('GET', '/api/admin/users')).toBe('users:read');
   });
+
+  it('never lets an API key read the Admin activity log (P11 AD-18)', () => {
+    for (const method of ['GET', 'HEAD', 'POST', 'DELETE']) {
+      expect(requiredScope(method, '/api/admin/activity')).toBeNull();
+      expect(isPublicRead(method, '/api/admin/activity')).toBe(false);
+    }
+  });
 });
 
 describe('role ceiling', () => {

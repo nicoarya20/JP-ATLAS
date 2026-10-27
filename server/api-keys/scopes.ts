@@ -185,6 +185,9 @@ export function requiredScope(method: string, pathname: string): Scope | null {
   // projects, tasks, events, audit); no single resource scope fits, so it rides the admin console's
   // cross-cutting read scope `settings:read` (the same one the role matrix uses), and never writes.
   if (p.startsWith('/api/admin/overview')) return read ? 'settings:read' : null;
+  // The Admin activity reading (P11 AD-18) is a console-only, PII-masked human view: session only,
+  // no scope may reach it, like the export beside it.
+  if (p.startsWith('/api/admin/activity')) return null;
   if (p.startsWith('/api/admin/users')) return read ? 'users:read' : 'users:write';
   if (p.startsWith('/api/sessions')) return read ? 'sessions:read' : 'sessions:write';
   if (p.startsWith('/api/audit')) return read ? 'audit:read' : null;

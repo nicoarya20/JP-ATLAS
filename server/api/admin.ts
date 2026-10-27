@@ -13,6 +13,7 @@ import { db } from '../db';
 import { user as userTable } from '../db/schema';
 import { ROLES, type Role } from '../permissions';
 import { fail } from '../pm/respond';
+import { adminActivityApi } from './admin-activity';
 import { adminContext, callerOf } from './admin-context';
 import { adminExportApi } from './admin-export';
 import { adminInvitationsApi } from './admin-invitations';
@@ -29,6 +30,7 @@ const KNOWN_ROLES: readonly string[] = Object.values(ROLES);
 export const adminApi = new Elysia({ prefix: '/admin' })
   .use(adminContext)
   .use(adminOverviewApi)
+  .use(adminActivityApi)
   .use(adminModerationApi)
   .use(adminLeaveApi)
   .use(adminExportApi)
