@@ -10,16 +10,12 @@ function Answer({ answer }: { answer: AskAnswer }) {
       <Text size="sm">{answer.answer}</Text>
       {answer.bars.map((b) => (
         <Group key={b.label} gap="sm" wrap="nowrap">
-          <Text size="sm" truncate style={{ flex: '0 0 7.5rem', minWidth: 0 }}>
+          {/* A fixed basis lines the labels up into a column; `miw={0}` lets `truncate` bite. */}
+          <Text size="sm" truncate flex="0 0 7.5rem" miw={0}>
             {b.label}
           </Text>
-          <Progress
-            value={b.pct}
-            color="ok"
-            style={{ flex: 1 }}
-            aria-label={`${b.label} ${b.display}`}
-          />
-          <Text size="sm" fw={600} ta="right" style={{ flex: '0 0 4.5rem' }}>
+          <Progress value={b.pct} color="ok" flex={1} aria-label={`${b.label} ${b.display}`} />
+          <Text size="sm" fw={600} ta="right" flex="0 0 4.5rem">
             {b.display}
           </Text>
         </Group>

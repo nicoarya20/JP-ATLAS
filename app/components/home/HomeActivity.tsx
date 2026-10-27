@@ -1,4 +1,4 @@
-import { Anchor, Group, Text } from '@mantine/core';
+import { Anchor, Box, Group, Text } from '@mantine/core';
 import type { HomeActivityItem, Widget } from '@server/home/home.dto';
 import { FiActivity } from 'react-icons/fi';
 import { Link } from 'react-router';
@@ -11,15 +11,17 @@ function ActivityRow({ item }: { item: HomeActivityItem }) {
   const time = useTimeFormat();
   return (
     <Group gap="sm" wrap="nowrap" align="flex-start">
-      <FiActivity size="1.25em" aria-hidden style={{ flexShrink: 0, marginTop: 3 }} />
-      <div style={{ minWidth: 0 }}>
+      {/* A react-icons SVG takes no Mantine style props; the em nudge keeps the glyph on the
+          first text line at every text size, which a pixel offset would not. */}
+      <FiActivity size="1.25em" aria-hidden style={{ flexShrink: 0, marginTop: '0.2em' }} />
+      <Box miw={0}>
         <Anchor component={Link} to={`/app/tasks/${item.taskNumber}`} size="sm" c="inherit">
           {item.text}
         </Anchor>
         <Text size="xs" c="dimmed">
           {`${item.projectName} · ${time.relative(item.at)}`}
         </Text>
-      </div>
+      </Box>
     </Group>
   );
 }

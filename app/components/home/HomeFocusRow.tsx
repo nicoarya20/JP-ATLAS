@@ -15,9 +15,9 @@ export function HomeFocusRow({ task, today }: Props) {
   const due = task.dueDate && !overdue ? describeDue(task.dueDate, today).text : null;
   const action = task.action;
   return (
-    <Group justify="space-between" wrap="wrap" gap="xs" py={6}>
+    <Group justify="space-between" wrap="wrap" gap="xs" py="xs">
       {/* The flex basis lets the button drop under the title on a narrow phone instead of squeezing it. */}
-      <Stack gap={2} style={{ minWidth: 0, flex: '1 1 14rem' }}>
+      <Stack gap={4} miw={0} flex="1 1 14rem">
         <Anchor component={Link} to={`/app/tasks/${task.number}`} fw={600} c="inherit">
           {task.title}
         </Anchor>
@@ -40,7 +40,7 @@ export function HomeFocusRow({ task, today }: Props) {
       {action && (
         <Button
           variant={action === 'complete' ? 'default' : 'light'}
-          style={{ flexShrink: 0 }}
+          flex="0 0 auto"
           loading={step.loading}
           // Every row says the same word, so the name carries the task for screen readers.
           aria-label={`${action === 'complete' ? HOME_COPY.focus.done : HOME_COPY.focus.start}: ${task.title}`}

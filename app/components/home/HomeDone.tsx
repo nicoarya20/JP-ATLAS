@@ -1,4 +1,4 @@
-import { Anchor, Divider, Group, Stack, Text } from '@mantine/core';
+import { Anchor, Box, Divider, Group, Stack, Text } from '@mantine/core';
 import type { HomeDone as Done, Widget } from '@server/home/home.dto';
 import { Link } from 'react-router';
 import { HomeSection, type Retry } from './HomeSection';
@@ -17,10 +17,10 @@ export function HomeDone({ widget, retry }: { widget: Widget<Done>; retry: Retry
           <>
             <Stack gap={0}>
               {items.map((t, i) => (
-                <div key={t.id}>
+                <Box key={t.id}>
                   {i > 0 && <Divider />}
                   <Group justify="space-between" wrap="wrap" gap="xs" py="xs">
-                    <Stack gap={0} style={{ minWidth: 0, flex: '1 1 12rem' }}>
+                    <Stack gap={0} miw={0} flex="1 1 12rem">
                       <Anchor component={Link} to={`/app/tasks/${t.number}`} c="inherit">
                         {t.title}
                       </Anchor>
@@ -32,7 +32,7 @@ export function HomeDone({ widget, retry }: { widget: Widget<Done>; retry: Retry
                       {`${t.byName} · ${t.dayLabel}`}
                     </Text>
                   </Group>
-                </div>
+                </Box>
               ))}
             </Stack>
             <Anchor component={Link} to={HOME_LINKS.doneTasks} fw={600} size="sm">

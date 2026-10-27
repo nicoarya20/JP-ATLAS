@@ -56,6 +56,7 @@ export function InboxList({ lane, seed, clock, onOpen, onShowNews }: Props) {
           variant="default"
           loading={pages.isFetchingNextPage}
           onClick={() => void pages.fetchNextPage()}
+          // Mantine has no `alignSelf` style prop, and centring the Stack would move every child.
           style={{ alignSelf: 'center' }}
         >
           {INBOX_COPY.loadMore}
