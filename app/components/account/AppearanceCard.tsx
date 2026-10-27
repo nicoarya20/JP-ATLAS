@@ -38,7 +38,7 @@ export function AppearanceCard({ textSize }: { textSize: TextSize }) {
   });
 
   return (
-    <Paper withBorder radius="md" p={{ base: 'md', md: 'lg' }}>
+    <Paper withBorder p={{ base: 'md', md: 'lg' }}>
       <Stack gap="sm">
         <div>
           <Text fw={700}>{APPEARANCE_COPY.sizeTitle}</Text>

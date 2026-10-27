@@ -69,7 +69,7 @@ export default function ProjectMembersPage({ loaderData }: Route.ComponentProps)
   return (
     <Stack gap="md">
       <Group justify="space-between" align="flex-start" wrap="wrap">
-        <Stack gap={2}>
+        <Stack gap={4}>
           <Title order={2} size="h3">
             {MEMBERS_COPY.title}
           </Title>

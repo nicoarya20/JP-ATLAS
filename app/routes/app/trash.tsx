@@ -45,7 +45,8 @@ export default function TrashPageRoute({ loaderData }: Route.ComponentProps) {
         <Title order={2}>{TRASH_PAGE_COPY.title}</Title>
         <Text c="dimmed">{TRASH_PAGE_COPY.description}</Text>
       </Group>
-      {/* Scrolls sideways on a narrow phone instead of squeezing four labels together. */}
+      {/* Mantine has no `overflow` style prop: the tabs scroll sideways on a narrow phone
+          instead of squeezing four labels together (CLAUDE.md mobile §2). */}
       <Box style={{ overflowX: 'auto' }}>
         <SegmentedControl
           color="gray.7"

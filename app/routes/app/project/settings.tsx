@@ -51,7 +51,7 @@ export default function ProjectSettingsPage({ loaderData }: Route.ComponentProps
   }, [done, navigate, projectId]);
 
   const heading = (
-    <Stack gap={2}>
+    <Stack gap={4}>
       <Title order={2} size="h3">
         {EDIT_COPY.title}
       </Title>
