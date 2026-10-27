@@ -28,11 +28,12 @@ async function renderHome(role: Role) {
   return onOpen;
 }
 
+// Stat chips are the buttons labelled "<label>, <sub>"; the avatar ("<name>, open profile") shares the shape.
 const chipLabels = () =>
   screen
     .getAllByRole('button')
     .map((b) => b.props.accessibilityLabel as string | undefined)
-    .filter((l) => l?.includes(', '));
+    .filter((l) => l?.includes(', ') && !l.endsWith(', open profile'));
 
 describe('HomeScreen · Project Manager', () => {
   test('greeting, stat chips and the six sections', async () => {
@@ -141,6 +142,13 @@ describe('HomeScreen · Project Manager', () => {
     await fireEvent.press(screen.getByRole('search', { name: 'Search or ask anything…' }));
     expect(await screen.findByText('Search is coming soon.')).toBeTruthy();
     expect(onOpen).toHaveBeenCalledTimes(7);
+  });
+
+  test('my avatar opens my profile, like the More panel profile card', async () => {
+    const onOpen = await renderHome('pm');
+    await fireEvent.press(screen.getByRole('button', { name: 'Nico Pratama, open profile' }));
+    expect(onOpen).toHaveBeenCalledWith('/profile');
+    expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
   test('agenda shows the next meeting and my four projects', async () => {
