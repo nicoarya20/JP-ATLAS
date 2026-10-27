@@ -78,8 +78,8 @@ describe('role guard', () => {
 });
 
 describe('the reading', () => {
-  const actionsOf = (res: { body: { rows: Array<{ action: string }> } }) =>
-    res.body.rows.map((r) => r.action);
+  const actionsOf = (res: { body: unknown }) =>
+    (res.body as { rows: Array<{ action: string }> }).rows.map((r) => r.action);
 
   it('returns only whitelisted actions, never the technical ones', async () => {
     const base = Date.now();
