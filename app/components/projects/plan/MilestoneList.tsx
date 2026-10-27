@@ -168,7 +168,10 @@ export function MilestoneList({ milestones, phases, today, canManage, busy, onAd
           component="ol"
           gap="sm"
           aria-label={PLAN_COPY.milestonesLabel}
-          style={{ listStyle: 'none', margin: 0, padding: 0 }}
+          m={0}
+          p={0}
+          // Mantine has no `list-style` style prop; `List` would change the markup of the cards.
+          style={{ listStyle: 'none' }}
         >
           {milestones.map((m) => (
             <MilestoneRow
