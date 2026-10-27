@@ -9,6 +9,7 @@ import { AUDIT_ACTIONS, audit } from '../audit';
 import { requireAnyRole, requireRole } from '../guard';
 import { ROLES } from '../permissions';
 import {
+  type AccessPolicySettings,
   getAccessPolicySettings,
   INVITATION_TTL_DAYS_MAX,
   upsertAccessPolicy,
@@ -74,7 +75,13 @@ export const settingsAccessApi = new Elysia()
       const actor = await requireAnyRole(request, [ROLES.ADMIN, ROLES.SUPER_ADMIN]);
       if (actor.impersonatedBy) return fail(status, 'IMPERSONATING');
       try {
-        const saved = await upsertAccessPolicy(body);
+        // `defaultRole` is a free string in the body on purpose (see AccessPolicyBody); the cast is
+        // safe because normalizeAccessPolicy refuses any role outside SIGNUP_ROLES at runtime.
+        const saved = await upsertAccessPolicy({
+          requiresApproval: body.requiresApproval,
+          defaultRole: body.defaultRole as AccessPolicySettings['defaultRole'],
+          invitationTtlDays: body.invitationTtlDays,
+        });
         void audit({
           actor: actor.user,
           headers: request.headers,
