@@ -3,9 +3,12 @@
 import { ApiError } from '../../src/api/errors';
 import { inboxCountResource } from '../../src/data/inbox.api';
 import { calendarRange, getMyCalendar, getProfile, greetingName } from '../../src/data/profile';
+import {
+  notificationPrefsResource,
+  profileResource,
+  saveNotificationPrefs,
+} from '../../src/data/profile.api';
 import { myEventsRange } from '../../src/data/profile.calendar.api';
-import { profileResource, saveNotificationPrefs } from '../../src/data/profile.api';
-import { notificationPrefsResource } from '../../src/data/profile.api';
 import {
   dayLabel,
   eventsFor,
@@ -32,7 +35,10 @@ const server = serveAppApi(({ path, method }) => {
   if (path === '/api/app/whoami') return { body: whoami() };
   if (path === '/api/app/inbox/count') return { body: { action: 3, infoUnread: 1 } };
   if (path === '/api/app/events') return events;
-  return { status: 500, body: { error: `no stub for ${path} (${method})`, code: 'X', status: 500 } };
+  return {
+    status: 500,
+    body: { error: `no stub for ${path} (${method})`, code: 'X', status: 500 },
+  };
 });
 
 beforeEach(() => {
@@ -50,7 +56,9 @@ describe('the greeting name, ported from the server', () => {
 
   it('falls back to the first word of the display name, then of the account name', () => {
     expect(greetingName({ nickname: null, displayName: 'Nico Pratama', name: 'X Y' })).toBe('Nico');
-    expect(greetingName({ nickname: '  ', displayName: null, name: 'Rina Wulandari' })).toBe('Rina');
+    expect(greetingName({ nickname: '  ', displayName: null, name: 'Rina Wulandari' })).toBe(
+      'Rina',
+    );
   });
 });
 
@@ -212,8 +220,16 @@ describe('the calendar week', () => {
   it('places rows by their start minute, earliest first', async () => {
     events = {
       body: page([
-        listItem({ id: 'late', startsAt: '2026-10-07T07:00:00.000Z', endsAt: '2026-10-07T08:00:00.000Z' }),
-        listItem({ id: 'early', startsAt: '2026-10-07T02:00:00.000Z', endsAt: '2026-10-07T03:00:00.000Z' }),
+        listItem({
+          id: 'late',
+          startsAt: '2026-10-07T07:00:00.000Z',
+          endsAt: '2026-10-07T08:00:00.000Z',
+        }),
+        listItem({
+          id: 'early',
+          startsAt: '2026-10-07T02:00:00.000Z',
+          endsAt: '2026-10-07T03:00:00.000Z',
+        }),
       ]),
     };
     await myEventsRange('2026-10-04', '2026-10-10').ensure();

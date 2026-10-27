@@ -118,9 +118,7 @@ describe('TeamScreen', () => {
     await render(<TeamScreen />, { wrapper: GluestackUIProvider });
     await settled('team-loading');
     await fireEvent.press(screen.getByTestId('team-more'));
-    await waitFor(() =>
-      expect(server.to('/api/app/team').at(-1)?.search.get('offset')).toBe('1'),
-    );
+    await waitFor(() => expect(server.to('/api/app/team').at(-1)?.search.get('offset')).toBe('1'));
   });
 
   it('takes the closing note from whoami, not from a role of its own', async () => {

@@ -17,7 +17,14 @@ const server = serveAppApi(({ path, search }) => {
     return { body: teamBody(all.slice(offset, offset + limit), { total: all.length + 10 }) };
   }
   if (path === '/api/app/team/u-rina') {
-    return { body: { person: { id: 'u-rina', name: 'Rina', jobTitle: null, department: null, email: 'r@k.id' }, projects: [], availability: null, tasksVisible: false } };
+    return {
+      body: {
+        person: { id: 'u-rina', name: 'Rina', jobTitle: null, department: null, email: 'r@k.id' },
+        projects: [],
+        availability: null,
+        tasksVisible: false,
+      },
+    };
   }
   if (path === '/api/app/team/u-gone') {
     return { status: 404, body: { error: 'Tidak ditemukan.', code: 'NOT_FOUND', status: 404 } };
@@ -41,7 +48,9 @@ describe('the list request', () => {
   });
 
   test('two queries are two resources, so changing the filter does not reuse the rows', () => {
-    expect(teamQueryKey({ q: 'a', sort: 'name' })).not.toBe(teamQueryKey({ q: 'a', sort: 'active' }));
+    expect(teamQueryKey({ q: 'a', sort: 'name' })).not.toBe(
+      teamQueryKey({ q: 'a', sort: 'active' }),
+    );
     expect(teamList({ q: 'a', sort: 'name' })).toBe(teamList({ q: 'a', sort: 'name' }));
   });
 

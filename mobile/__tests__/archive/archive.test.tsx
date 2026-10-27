@@ -2,7 +2,7 @@
 // the controls its `can{}` allows, and the two writes.
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
-
+import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import {
   archiveCard,
   archiveOf,
@@ -12,9 +12,8 @@ import {
   parseCardKey,
   retentionText,
 } from '../../src/data/archive';
-import { trashList } from '../../src/data/archive.api';
 import type { TrashCountsWire, TrashItemWire } from '../../src/data/archive.api';
-import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
+import { trashList } from '../../src/data/archive.api';
 import { ArchiveScreen } from '../../src/screens/archive/archive.screen';
 import { DeleteScreen } from '../../src/screens/archive/delete.screen';
 import {
@@ -34,7 +33,9 @@ drainToastTimers();
 /** What the stub answers next. */
 let trash: Reply = { body: trashBody([]) };
 let restore: Reply = { body: { id: 'p-old', tasks: 5 } };
-let purge: Reply = { body: { kind: 'project', id: 'p-old', purged: { projects: 1, tasks: 5, events: 1 } } };
+const purge: Reply = {
+  body: { kind: 'project', id: 'p-old', purged: { projects: 1, tasks: 5, events: 1 } },
+};
 
 const server = serveAppApi(({ path, method }) => {
   if (path === '/api/app/trash') return trash;
@@ -96,10 +97,16 @@ describe('one card', () => {
 
   it('names the project a blocked row waits for only when the viewer may see it', () => {
     const visible = archiveCard(
-      trashTask({ blockedBy: { projectId: 'p-atlas', name: 'Atlas', visible: true }, projectInTrash: true }) as never,
+      trashTask({
+        blockedBy: { projectId: 'p-atlas', name: 'Atlas', visible: true },
+        projectInTrash: true,
+      }) as never,
     );
     const hidden = archiveCard(
-      trashTask({ blockedBy: { projectId: 'p-x', name: 'Secret', visible: false }, projectInTrash: true }) as never,
+      trashTask({
+        blockedBy: { projectId: 'p-x', name: 'Secret', visible: false },
+        projectInTrash: true,
+      }) as never,
     );
     expect(visible.blocked).toContain('Atlas');
     expect(hidden.blocked).not.toContain('Secret');
@@ -145,7 +152,12 @@ describe('the list', () => {
   });
 
   it('asks the server for the kind, and for a page rather than an offset', async () => {
-    trash = { body: trashBody(Array.from({ length: 25 }, () => trashTask()), { total: 40 }) };
+    trash = {
+      body: trashBody(
+        Array.from({ length: 25 }, () => trashTask()),
+        { total: 40 },
+      ),
+    };
     const list = trashList('task');
     await list.ensure();
     expect(server.to('/api/app/trash')[0]?.search.get('kind')).toBe('task');
@@ -210,8 +222,12 @@ describe('the Archive screen', () => {
     await render(<ArchiveScreen />, { wrapper: GluestackUIProvider });
     await settled();
     await fireEvent.press(screen.getByLabelText('Restore: Old Client Portal'));
-    await waitFor(() => expect(screen.getByText('Project restored with 5 tasks')).toBeOnTheScreen());
-    expect(server.calls().some((c) => c.path === '/api/app/trash/project/p-old/restore')).toBe(true);
+    await waitFor(() =>
+      expect(screen.getByText('Project restored with 5 tasks')).toBeOnTheScreen(),
+    );
+    expect(server.calls().some((c) => c.path === '/api/app/trash/project/p-old/restore')).toBe(
+      true,
+    );
   });
 
   it("reports a refused restore with the server's own sentence", async () => {
@@ -229,9 +245,7 @@ describe('the Archive screen', () => {
     await fireEvent.press(screen.getByLabelText('Restore: #21 Duplicate login test'));
     await waitFor(() =>
       expect(
-        screen.getByText(
-          'Could not restore it: Proyeknya ada di Sampah. Pulihkan proyeknya dulu.',
-        ),
+        screen.getByText('Could not restore it: Proyeknya ada di Sampah. Pulihkan proyeknya dulu.'),
       ).toBeOnTheScreen(),
     );
   });
@@ -256,7 +270,9 @@ describe('Delete forever', () => {
     await fireEvent.press(screen.getByTestId('confirm-action'));
     await waitFor(() =>
       expect(
-        server.calls().some((c) => c.method === 'DELETE' && c.path === '/api/app/trash/project/p-old'),
+        server
+          .calls()
+          .some((c) => c.method === 'DELETE' && c.path === '/api/app/trash/project/p-old'),
       ).toBe(true),
     );
   });

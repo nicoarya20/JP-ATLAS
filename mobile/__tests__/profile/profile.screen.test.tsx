@@ -26,7 +26,10 @@ serveAppApi(({ path, method }) => {
   if (path === '/api/app/whoami') return { body: whoami() };
   if (path === '/api/app/inbox/count') return { body: { action: 3, infoUnread: 1 } };
   if (path.includes('/sign-out')) return signOut;
-  return { status: 500, body: { error: `no stub for ${path} (${method})`, code: 'X', status: 500 } };
+  return {
+    status: 500,
+    body: { error: `no stub for ${path} (${method})`, code: 'X', status: 500 },
+  };
 });
 
 beforeEach(() => {
@@ -52,7 +55,9 @@ describe('ProfileScreen', () => {
 
   it('claims no presence and offers no note, since the server keeps neither', async () => {
     await show();
-    expect(screen.queryByTestId('presence-dot', { includeHiddenElements: true })).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('presence-dot', { includeHiddenElements: true }),
+    ).not.toBeOnTheScreen();
     expect(screen.queryByTestId('profile-note')).not.toBeOnTheScreen();
     expect(screen.queryByText(/Teammates see you as/)).not.toBeOnTheScreen();
   });

@@ -1,6 +1,6 @@
 // The Team mapping: a server DTO turned into what the two screens draw. The privacy contract is an
 // absent key, so most of these tests are about a key that is *not* there (server/team/team.dto.ts).
-import { teamOf, type TeamData } from '../../src/data/team';
+import { type TeamData, teamOf } from '../../src/data/team';
 import type { TeamPersonWire, TeamSummaryWire } from '../../src/data/team.api';
 import { personOf, taskRow } from '../../src/data/team.person';
 import { personBody, teamMember } from '../helpers/team-trash-server';
@@ -102,7 +102,18 @@ describe('the summary line', () => {
 
 describe('one person', () => {
   test('facts leave out what the server did not send', () => {
-    const d = personOf(personBody({ person: { id: 'u-rina', name: 'Rina', jobTitle: null, department: null, email: 'rina@kantor.id' } }) as never, 'pm');
+    const d = personOf(
+      personBody({
+        person: {
+          id: 'u-rina',
+          name: 'Rina',
+          jobTitle: null,
+          department: null,
+          email: 'rina@kantor.id',
+        },
+      }) as never,
+      'pm',
+    );
     expect(d?.facts).toEqual([['Email', 'rina@kantor.id']]);
   });
 
@@ -123,7 +134,9 @@ describe('one person', () => {
   });
 
   test('tasksVisible false is not "no tasks": tasks is null', () => {
-    expect(personOf(personBody({ tasksVisible: false, tasks: undefined }) as never, 'member')?.tasks).toBeNull();
+    expect(
+      personOf(personBody({ tasksVisible: false, tasks: undefined }) as never, 'member')?.tasks,
+    ).toBeNull();
     expect(personOf(personBody({ tasks: [] }) as never, 'pm')?.tasks).toEqual({
       load: undefined,
       rows: [],
@@ -148,7 +161,13 @@ describe('a task row of one person', () => {
 
   test('the project name comes from the projects beside it, matched on id', () => {
     const row = taskRow(
-      { number: 15, title: 'Review the design', status: 'todo', dueDate: '2026-10-09', projectId: 'p-atlas' },
+      {
+        number: 15,
+        title: 'Review the design',
+        status: 'todo',
+        dueDate: '2026-10-09',
+        projectId: 'p-atlas',
+      },
       projects,
     );
     expect(row.title).toBe('#15 Review the design');

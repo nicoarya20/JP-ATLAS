@@ -3,9 +3,12 @@
 // (T1), Undo after Delete forever says so; a Member is sent away from edit, extend and archive.
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
-import { deleteForever } from '../../src/data/archive';
-import { listEntries } from '../../src/data/archive.store';
-import { findProject, listArchivedProjects } from '../../src/data/projects.store';
+import { listEntries, removeEntry } from '../../src/data/archive.store';
+import {
+  findProject,
+  forgetArchivedProject,
+  listArchivedProjects,
+} from '../../src/data/projects.store';
 import { getTasksState } from '../../src/data/tasks.store';
 import { openProjects, resetProjectStores } from '../helpers/projects-router';
 import { drainToastTimers } from '../helpers/toast-timers';
@@ -117,7 +120,14 @@ describe('Move to Archive', () => {
     await archiveAtlas();
     const entry = listEntries().find((x) => x.ref === 'atlas');
     if (!entry) throw new Error('archiving atlas wrote no Archive entry');
-    await act(async () => deleteForever(entry.key));
+    // The permanent delete of the Archive screen now calls `DELETE /api/app/trash/:kind/:id`
+    // (Gelombang 2), which has nothing to do with this sample store. What this test is about is the
+    // Projects store's Undo after the project is gone for good, so the two sample-store steps that
+    // a purge used to do are done directly here.
+    await act(async () => {
+      forgetArchivedProject(entry.key);
+      removeEntry(entry.key);
+    });
     expect(listEntries().some((x) => x.ref === 'atlas')).toBe(false);
     expect(listArchivedProjects().map((p) => p.id)).not.toContain('atlas');
     await press('Undo');
