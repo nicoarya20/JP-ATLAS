@@ -21,7 +21,7 @@ export function SettingsCard({
       <Stack gap="md">
         <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
           <Box>
-            <Title order={5}>{title}</Title>
+            <Title order={3}>{title}</Title>
             {description && (
               <Text size="sm" c="dimmed">
                 {description}

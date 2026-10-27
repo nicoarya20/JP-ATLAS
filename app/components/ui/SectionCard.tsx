@@ -30,7 +30,7 @@ export function SectionCard({ title, subtitle, children, accent }: Props) {
     >
       <Stack gap="sm">
         <Box>
-          <Title order={5}>{title}</Title>
+          <Title order={3}>{title}</Title>
           {subtitle && (
             <Text size="sm" c="dimmed">
               {subtitle}

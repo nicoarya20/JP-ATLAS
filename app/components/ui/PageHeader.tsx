@@ -28,7 +28,7 @@ export function PageHeader({ title, description, actions, back }: Props) {
       <Group justify="space-between" align="flex-start" wrap="wrap">
         {/* `miw={0}` lets a long title shrink and ellipsise rather than widen the row. */}
         <Box miw={0}>
-          <Title order={3}>{title}</Title>
+          <Title order={1}>{title}</Title>
           {description && (
             <Text size="sm" c="dimmed">
               {description}
