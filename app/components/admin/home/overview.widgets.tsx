@@ -16,14 +16,7 @@ import type {
   RoleChangesSummary,
   Widget,
 } from '@server/admin/overview/overview.dto';
-import {
-  FiCalendar,
-  FiCheckCircle,
-  FiClock,
-  FiFolder,
-  FiUserCheck,
-  FiUsers,
-} from 'react-icons/fi';
+import { FiCalendar, FiCheckCircle, FiFolder, FiUserCheck, FiUsers } from 'react-icons/fi';
 import { Link } from 'react-router';
 import { HomeSection, type Retry } from '~/components/home/HomeSection';
 import { EmptyState } from '~/components/ui/EmptyState';
@@ -81,13 +74,7 @@ function Row({ label, hint, value }: { label: string; hint: string; value: React
   );
 }
 
-export function MembersWidget({
-  widget,
-  retry,
-}: {
-  widget: Widget<MembersSummary>;
-  retry: Retry;
-}) {
+export function MembersWidget({ widget, retry }: { widget: Widget<MembersSummary>; retry: Retry }) {
   const COPY = OVERVIEW_COPY.members;
   return (
     <HomeSection title={COPY.title} subtitle={COPY.subtitle} widget={widget} retry={retry}>
@@ -157,7 +144,11 @@ export function ProjectsWidget({
                     label={PROJECT_STATUS_LABELS[s.status].label}
                     hint={`${Math.round((s.count / d.total) * 100)}% dari ${nf.format(d.total)} proyek`}
                     value={
-                      <Badge variant="light" color={PROJECT_STATUS_LABELS[s.status].color} size="sm">
+                      <Badge
+                        variant="light"
+                        color={PROJECT_STATUS_LABELS[s.status].color}
+                        size="sm"
+                      >
                         {nf.format(s.count)}
                       </Badge>
                     }

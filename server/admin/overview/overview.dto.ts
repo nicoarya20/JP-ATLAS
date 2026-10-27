@@ -7,8 +7,8 @@
  * in one soft-failing call, and the Admin Beranda is the same idea scoped to the workspace.
  */
 import type { IsoDate } from '../../metrics/types';
-import type { EventKind, ProjectStatus } from '../../pm/enums';
 import type { Role } from '../../permissions';
+import type { EventKind, ProjectStatus } from '../../pm/enums';
 
 /** A section that loaded, or one that failed softly (the cause is logged server-side, never sent). */
 export type Widget<T> = { ok: true; data: T } | { ok: false };

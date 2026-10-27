@@ -33,7 +33,10 @@ function overviewNow(at: Date, timeZone: string): OverviewNow {
   return { iso: at.toISOString(), today: isoDateIn(at, timeZone), timeZone };
 }
 
-export async function getOverview(at: Date = new Date(), exec: Executor = db): Promise<OverviewData> {
+export async function getOverview(
+  at: Date = new Date(),
+  exec: Executor = db,
+): Promise<OverviewData> {
   const now = overviewNow(at, getMetrics().TIME_ZONE);
   const [pending, members, projects, overdue, agenda, roles] = await Promise.all([
     safely('pending', () => getPendingApprovals(exec)),

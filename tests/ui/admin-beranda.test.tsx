@@ -127,11 +127,36 @@ const ROLES: Widget<RoleChangesSummary> = {
 };
 
 const CARDS = [
-  { name: 'Anggota', node: <MembersWidget widget={MEMBERS} retry={retry} />, copy: OVERVIEW_COPY.members, to: '/dashboard/users' },
-  { name: 'Proyek per status', node: <ProjectsWidget widget={PROJECTS} retry={retry} />, copy: OVERVIEW_COPY.projects, to: '/app/projects' },
-  { name: 'Tugas telat', node: <LateTasksWidget widget={OVERDUE} retry={retry} />, copy: OVERVIEW_COPY.overdue, to: '/app/tasks' },
-  { name: 'Agenda', node: <AgendaWidget widget={AGENDA} retry={retry} timeZone="Asia/Jakarta" />, copy: OVERVIEW_COPY.agenda, to: '/app/events' },
-  { name: 'Perubahan peran', node: <RoleChangesWidget widget={ROLES} retry={retry} />, copy: OVERVIEW_COPY.roles, to: '/dashboard/users' },
+  {
+    name: 'Anggota',
+    node: <MembersWidget widget={MEMBERS} retry={retry} />,
+    copy: OVERVIEW_COPY.members,
+    to: '/dashboard/users',
+  },
+  {
+    name: 'Proyek per status',
+    node: <ProjectsWidget widget={PROJECTS} retry={retry} />,
+    copy: OVERVIEW_COPY.projects,
+    to: '/app/projects',
+  },
+  {
+    name: 'Tugas telat',
+    node: <LateTasksWidget widget={OVERDUE} retry={retry} />,
+    copy: OVERVIEW_COPY.overdue,
+    to: '/app/tasks',
+  },
+  {
+    name: 'Agenda',
+    node: <AgendaWidget widget={AGENDA} retry={retry} timeZone="Asia/Jakarta" />,
+    copy: OVERVIEW_COPY.agenda,
+    to: '/app/events',
+  },
+  {
+    name: 'Perubahan peran',
+    node: <RoleChangesWidget widget={ROLES} retry={retry} />,
+    copy: OVERVIEW_COPY.roles,
+    to: '/dashboard/users',
+  },
 ];
 
 describe('Admin Beranda widgets (loaded)', () => {
@@ -148,11 +173,17 @@ describe('Admin Beranda widgets (loaded)', () => {
   it('shows the real figures, not an empty shell', () => {
     expect(shows(render(<MembersWidget widget={MEMBERS} retry={retry} />), '31')).toBe(true);
     expect(
-      shows(render(<LateTasksWidget widget={OVERDUE} retry={retry} />), 'Finalisasi kontrak vendor'),
+      shows(
+        render(<LateTasksWidget widget={OVERDUE} retry={retry} />),
+        'Finalisasi kontrak vendor',
+      ),
     ).toBe(true);
     // The overdue list says how many more there are behind its link.
     expect(
-      shows(render(<LateTasksWidget widget={OVERDUE} retry={retry} />), OVERVIEW_COPY.overdue.more(7)),
+      shows(
+        render(<LateTasksWidget widget={OVERDUE} retry={retry} />),
+        OVERVIEW_COPY.overdue.more(7),
+      ),
     ).toBe(true);
   });
 
@@ -165,23 +196,26 @@ describe('Admin Beranda widgets (loaded)', () => {
 describe('Admin Beranda widgets (empty)', () => {
   it('shows an informative empty state when there are no overdue tasks', () => {
     const empty: Widget<OverdueTasksSummary> = { ok: true, data: { total: 0, items: [] } };
-    expect(shows(render(<LateTasksWidget widget={empty} retry={retry} />), OVERVIEW_COPY.overdue.empty)).toBe(
-      true,
-    );
+    expect(
+      shows(render(<LateTasksWidget widget={empty} retry={retry} />), OVERVIEW_COPY.overdue.empty),
+    ).toBe(true);
   });
 
   it('shows an empty state for an agenda with nothing upcoming', () => {
     const empty: Widget<AgendaSummary> = { ok: true, data: { total: 0, items: [] } };
-    expect(shows(render(<AgendaWidget widget={empty} retry={retry} timeZone="Asia/Jakarta" />), OVERVIEW_COPY.agenda.empty)).toBe(
-      true,
-    );
+    expect(
+      shows(
+        render(<AgendaWidget widget={empty} retry={retry} timeZone="Asia/Jakarta" />),
+        OVERVIEW_COPY.agenda.empty,
+      ),
+    ).toBe(true);
   });
 
   it('shows an empty state for no recent role changes', () => {
     const empty: Widget<RoleChangesSummary> = { ok: true, data: { items: [] } };
-    expect(shows(render(<RoleChangesWidget widget={empty} retry={retry} />), OVERVIEW_COPY.roles.empty)).toBe(
-      true,
-    );
+    expect(
+      shows(render(<RoleChangesWidget widget={empty} retry={retry} />), OVERVIEW_COPY.roles.empty),
+    ).toBe(true);
   });
 });
 

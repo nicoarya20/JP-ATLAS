@@ -11,8 +11,7 @@ export const OVERVIEW_COPY = {
     title: 'Antrean persetujuan',
     subtitle: 'Ada yang menunggu dipersilakan masuk?',
     waiting: (n: string) => `${n} menunggu persetujuan`,
-    waitingHint:
-      'Orang yang baru mendaftar belum bisa memakai aplikasi sampai kamu menyetujuinya.',
+    waitingHint: 'Orang yang baru mendaftar belum bisa memakai aplikasi sampai kamu menyetujuinya.',
     empty: 'Tidak ada yang menunggu persetujuan',
     emptyHint: 'Pendaftar baru akan muncul di sini.',
     review: 'Tinjau sekarang',

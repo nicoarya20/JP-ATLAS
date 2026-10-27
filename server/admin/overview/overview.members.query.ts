@@ -4,9 +4,9 @@
  * as member — so the numbers here and in the directory can never disagree.
  */
 import { sql } from 'drizzle-orm';
+import { realUser } from '../../api/admin-users.query';
 import { db } from '../../db';
 import { user } from '../../db/schema';
-import { realUser } from '../../api/admin-users.query';
 import { ROLES } from '../../permissions';
 import type { Executor } from '../../pm/tx';
 import type { MembersSummary } from './overview.dto';
