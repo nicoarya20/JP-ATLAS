@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { type ComponentRef, useEffect, useRef } from 'react';
 import { AccessibilityInfo, type HostInstance, View } from 'react-native';
 
+import { CountBadge } from '@/components/badge/count-badge';
 import { PanelRise } from '@/components/tab-bar/panel-rise';
 import { PANEL } from '@/components/tab-bar/tab-bar.motion';
 import { usePanel } from '@/components/tab-bar/tab-panel';
@@ -22,7 +23,7 @@ const TONE: Record<MoreTone, { tile: string; icon: string }> = {
   blue: { tile: 'bg-accent', icon: 'text-accent-foreground' },
   green: { tile: 'bg-success-soft', icon: 'text-success' },
   orange: { tile: 'bg-warning-soft', icon: 'text-warning' },
-  teal: { tile: 'bg-info-soft', icon: 'text-info' },
+  red: { tile: 'bg-danger-soft', icon: 'text-destructive' },
   gray: { tile: 'bg-muted', icon: 'text-muted-foreground' },
 };
 
@@ -39,11 +40,10 @@ function Tile({ tile, onOpen }: { tile: MoreTile; onOpen: () => void }) {
         {/* 24 px like the prototype's ICON (the gluestack Icon types no numeric size) */}
         <Icon as={tile.Icon} className={`h-6 w-6 ${tone.icon}`} />
         {tile.badge ? (
-          <View className="absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full border-2 border-card bg-destructive px-[5px]">
-            <Text className="text-[11px] font-semibold text-destructive-foreground">
-              {tile.badge}
-            </Text>
-          </View>
+          <CountBadge
+            count={tile.badge}
+            className="absolute -right-1 -top-1 border-2 border-card"
+          />
         ) : null}
       </View>
       <Text className="text-footnote">{tile.label}</Text>

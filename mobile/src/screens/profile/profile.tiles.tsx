@@ -4,10 +4,12 @@ import { View } from 'react-native';
 
 import { Icon } from '@/components/ui/icon';
 
+/** One Atlas pair per hue, so neighbouring rows never share a colour (info and selected are the same violet). */
 const TONE = {
-  blue: 'bg-info-soft text-info',
+  violet: 'bg-accent text-accent-foreground',
+  green: 'bg-success-soft text-success',
+  amber: 'bg-warning-soft text-warning',
   red: 'bg-danger-soft text-destructive',
-  indigo: 'bg-accent text-accent-foreground',
   gray: 'bg-muted text-muted-foreground',
 } as const;
 

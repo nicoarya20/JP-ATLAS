@@ -14,11 +14,11 @@ import {
 } from 'lucide-react-native';
 import { useState } from 'react';
 
+import { CountBadge } from '@/components/badge/count-badge';
 import { SectionLabel } from '@/components/form/section-label';
 import { Row, Rows } from '@/components/list/rows';
 import { useNotice } from '@/components/notice/use-notice';
 import { DetailPage } from '@/components/screen/detail-page';
-import { Badge, BadgeText } from '@/components/ui/badge';
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
@@ -62,7 +62,7 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
       </Button>
       <Rows>
         <Row
-          lead={<Tile icon={ListChecks} tone="blue" />}
+          lead={<Tile icon={ListChecks} tone="green" />}
           title={P.myTasks}
           onPress={() => leaveTo('/tasks')}
         />
@@ -72,18 +72,14 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
           onPress={() => router.push('/profile/calendar')}
         />
         <Row
-          lead={<Tile icon={Inbox} tone="blue" />}
+          lead={<Tile icon={Inbox} tone="violet" />}
           title={P.inbox}
           accessibilityLabel={`${P.inbox}, ${d.inbox}`}
-          right={
-            <Badge variant="info">
-              <BadgeText>{String(d.inbox)}</BadgeText>
-            </Badge>
-          }
+          right={<CountBadge count={d.inbox} />}
           onPress={() => leaveTo('/more/inbox')}
         />
         <Row
-          lead={<Tile icon={BellOff} tone="indigo" />}
+          lead={<Tile icon={BellOff} tone="amber" />}
           title={P.mute}
           right={
             <Switch
@@ -99,7 +95,7 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
           onPress={() => leaveTo('/more/settings')}
         />
         <Row
-          lead={<Tile icon={CircleHelp} />}
+          lead={<Tile icon={CircleHelp} tone="violet" />}
           title={P.help}
           onPress={() => notice(P.helpNotice)}
         />
