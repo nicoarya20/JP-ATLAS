@@ -15,6 +15,7 @@ export default function TasksStack() {
       <Stack.Screen name="[id]/edit" />
       <Stack.Screen name="[id]/return" options={SHEET} />
       <Stack.Screen name="[id]/cancel" options={SHEET} />
+      <Stack.Screen name="[id]/reopen" options={SHEET} />
     </Stack>
   );
 }

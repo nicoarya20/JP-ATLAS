@@ -57,15 +57,26 @@ export const S = {
     history: 'Chat & history',
     comment: 'Write a comment… (@name to mention)',
     commentLabel: 'Comment',
-    addStep: '+ Add step',
-    stepAdded: 'Step added',
-    attach: '+ Attach evidence',
-    attached: 'Evidence attached',
-    photo: 'Photo',
     undo: 'Undo',
+    /** Nobody is working on the task; the fact says so instead of being left blank. */
+    unassigned: 'Unassigned',
+    /** After a step the server accepted. */
+    done: {
+      start: 'Task started',
+      markDone: 'Marked as done',
+      reopen: 'Task reopened',
+      restore: 'Task restored',
+      canceled: 'Task canceled',
+      archived: 'Task moved to Archive',
+      unarchived: 'Task restored',
+      commented: 'Comment added',
+    },
+    /** When the server refused and sent no sentence of its own to show. */
+    failed: 'Could not do that. Try again.',
+    send: 'Send',
     // Not in the prototype, which never opens a task that is gone: a deep link to one deleted from Archive.
     missing: 'This task is no longer here.',
-    missingText: 'It may have been deleted from Archive.',
+    missingText: 'It may have been deleted, or moved to Archive.',
   },
   sheet: {
     returnTitle: 'Return task',
@@ -87,6 +98,11 @@ export const S = {
       'The task stays in the project, marked Canceled, and can be restored from its detail.',
     back: 'Back',
     cancelAction: 'Cancel task',
+    reopenTitle: 'Reopen task',
+    reopenAction: 'Reopen',
+    reopenHint: 'Say what still needs doing…',
+    reopenNote:
+      'The task goes back to In progress with this reason in its history. Everyone following it is notified.',
   },
 } as const;
 

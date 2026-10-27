@@ -1,37 +1,46 @@
 // Description and "Chat & history" of the detail (prototype tasks.detail.jsx TaskDetail, Log): the text or "No
-// description yet.", then each history line with the avatar of the person it starts with and when it happened.
+// description yet.", then the timeline — comments and activity in one stream, newest first as the server pages it,
+// with Load more for the older ones.
 
 import { View } from 'react-native';
 import { AvatarStack } from '@/components/avatar/avatar-stack';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
-import type { TaskDetailView } from '@/data/tasks.detail';
+import type { TaskDetailTask } from '@/data/tasks.api.detail';
+import type { TaskHistoryLine } from '@/data/tasks.api.timeline';
 
-import { Sec } from '../parts/task-parts';
+import { Act, Sec } from '../parts/task-parts';
 import { S } from '../tasks.strings';
 import { spoken } from '../tasks.strings.added';
 
 /** Description section. */
-export function DetailDescription({ view }: { view: TaskDetailView }) {
+export function DetailDescription({ task }: { task: TaskDetailTask }) {
   return (
     <Sec title={S.detail.description}>
       <Text
-        className={`text-subhead ${view.hasDescription ? 'text-foreground' : 'text-muted-foreground'}`}
+        className={`text-subhead ${task.hasDescription ? 'text-foreground' : 'text-muted-foreground'}`}
       >
-        {view.description}
+        {task.description}
       </Text>
     </Sec>
   );
 }
 
+type DetailHistoryProps = {
+  history: readonly TaskHistoryLine[];
+  /** The server has older entries than the ones loaded. */
+  hasMore: boolean;
+  onMore: () => void;
+};
+
 /** History section. */
-export function DetailHistory({ history }: { history: TaskDetailView['history'] }) {
+export function DetailHistory({ history, hasMore, onMore }: DetailHistoryProps) {
   return (
     <Sec title={S.detail.history}>
       {history.map((e) => (
-        // One stop per line; its text starts with the person the avatar shows.
+        // One stop per line; its text names the person the avatar shows.
         <HStack
-          key={`${e.text}-${e.when}`}
+          key={e.id}
           accessible
           accessibilityLabel={spoken(e.text, e.when)}
           className="items-center gap-3"
@@ -45,6 +54,7 @@ export function DetailHistory({ history }: { history: TaskDetailView['history'] 
           <Text className="text-footnote text-muted-foreground">{e.when}</Text>
         </HStack>
       ))}
+      {hasMore && <Act testID="task-history-more" kind="link" label={S.more} onPress={onMore} />}
     </Sec>
   );
 }

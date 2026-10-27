@@ -11,7 +11,9 @@
  * server, so nothing on screen is out of date — and the error is thrown on, not swallowed, for the
  * screen to show.
  */
-import { apiPatch, apiPost } from '@/api/client';
+import { apiDelete, apiPatch, apiPost } from '@/api/client';
+import { isApiError } from '@/api/errors';
+import { applyApiError } from '@/session/session.state';
 
 import { homeResource } from './home.api';
 import { type Resource, write } from './resource';
@@ -23,7 +25,12 @@ import {
   taskTimeline,
   taskTimelines,
 } from './tasks.api';
-import type { WireCancelCategory, WireChecklistItem, WireTransition } from './tasks.api.types';
+import type {
+  WireCancelCategory,
+  WireChecklistItem,
+  WireTransition,
+  WireTrashed,
+} from './tasks.api.types';
 
 /**
  * Everything a write to task `ref` may have changed.
@@ -48,6 +55,24 @@ const stepPath = (ref: string | number, step: string) =>
   `/api/app/tasks/${encodeURIComponent(String(ref))}/${step}`;
 
 /**
+ * One write: it invalidates what it touched when it succeeds, and a failure about the *session* is
+ * routed to the gate before it is thrown on.
+ *
+ * `resource()` does that routing for every read, but a write is made outside one, so §3 of
+ * `docs/phase2-pola-data.md` asks each write to do it itself: an approval withdrawn mid-session
+ * must move the screen, not just colour one button red. Everything else is thrown on untouched, so
+ * the screen can show the server's own sentence (K5).
+ */
+async function send<T>(run: () => Promise<T>, touched: Resource<unknown>[]): Promise<T> {
+  try {
+    return await write(run, touched);
+  } catch (cause) {
+    if (isApiError(cause)) applyApiError(cause);
+    throw cause;
+  }
+}
+
+/**
  * One workflow step: `start`, `unstart`, `complete`, `reopen`, `cancel` or `uncancel`. The answer
  * carries the row as it now is and its fresh `can{}`, which the invalidated detail picks up too.
  *
@@ -55,7 +80,7 @@ const stepPath = (ref: string | number, step: string) =>
  * is expected to have offered only what `can{}` allowed, so a refusal here is worth showing.
  */
 export const runStep = (ref: string | number, step: string, body?: unknown) =>
-  write(() => apiPost<WireTransition>(stepPath(ref, step), body), touchedBy(ref));
+  send(() => apiPost<WireTransition>(stepPath(ref, step), body), touchedBy(ref));
 
 /** Reopen a finished task. The reason is the server's requirement, 3–200 characters. */
 export const reopenTask = (ref: string | number, reason: string) =>
@@ -82,15 +107,32 @@ const checklistPath = (ref: string | number, itemId?: string) =>
 
 /** Add a step to a task's checklist. */
 export const addChecklistItem = (ref: string | number, text: string) =>
-  write(() => apiPost<WireChecklistResult>(checklistPath(ref), { text }), touchedBy(ref));
+  send(() => apiPost<WireChecklistResult>(checklistPath(ref), { text }), touchedBy(ref));
 
 /** Tick or untick a step, or rename it. */
 export const editChecklistItem = (
   ref: string | number,
   itemId: string,
   fields: { text?: string; isDone?: boolean },
-) => write(() => apiPatch<WireChecklistResult>(checklistPath(ref, itemId), fields), touchedBy(ref));
+) => send(() => apiPatch<WireChecklistResult>(checklistPath(ref, itemId), fields), touchedBy(ref));
 
 /** A comment on a task; it shows up in the timeline the invalidation refetches. */
 export const addComment = (ref: string | number, body: string) =>
-  write(() => apiPost<unknown>(stepPath(ref, 'comments'), { body }), touchedBy(ref));
+  send(() => apiPost<unknown>(stepPath(ref, 'comments'), { body }), touchedBy(ref));
+
+/**
+ * Move a task to the Trash (the "Move to Archive" of the menu, A14): it leaves every list, and the
+ * server keeps it for 30 days.
+ *
+ * The answer carries the trash entry's **id**, which Undo needs: `POST /trash/task/:id/restore`
+ * takes an id where every other task route also takes a number (B1).
+ */
+export const trashTask = (ref: string | number) =>
+  send(() => apiDelete<WireTrashed>(`/api/app/tasks/${encodeURIComponent(String(ref))}`), touchedBy(ref));
+
+/** Undo of a trashed task, by the id the delete answered with. */
+export const restoreTrashedTask = (id: string) =>
+  send(
+    () => apiPost<{ id: string; number: number }>(`/api/app/trash/task/${encodeURIComponent(id)}/restore`),
+    touchedBy(id),
+  );

@@ -18,14 +18,12 @@ export const SPOKEN = {
   addTo: (status: string) => `Add task to ${status}`,
   selectTask: (no: number, title: string) => `Select #${no} ${title}`,
   include: (title: string) => `Include ${title}`,
-  noTags: 'No tags',
   scope: 'Scope',
   view: 'View',
   source: 'Source',
   /** The buttons whose visible text starts with "+" or ends with "✦". */
   compose: 'Compose',
   addStep: 'Add step',
-  attach: 'Attach evidence',
   addType: 'Add type',
 } as const;
 
@@ -35,6 +33,8 @@ export const MISSING = {
   reason: 'Enter a reason to return the task.',
   why: 'Pick why to cancel the task.',
   note: 'Add a note to cancel for Other.',
+  /** The server asks for 3–200 characters, so the hint says the shortest it takes. */
+  reopen: 'Enter a reason of at least 3 characters.',
 } as const;
 
 export const DELETE_TAG = {
