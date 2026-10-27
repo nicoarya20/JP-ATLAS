@@ -5,11 +5,11 @@ import { requireAnyRole } from '@server/guard';
 import { ROLES } from '@server/permissions';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
+import { PageHeader } from '~/components/ui/PageHeader';
 import { INVITATION_LIMIT, InvitationPanel } from '~/components/users/InvitationPanel';
 import { PendingApprovalList } from '~/components/users/PendingApprovalList';
 import { UserDirectory } from '~/components/users/UserDirectory';
 import { useUserActions } from '~/components/users/useUserActions';
-import { PageHeader } from '~/components/ui/PageHeader';
 import {
   fetchUserStats,
   PENDING_LIMIT,

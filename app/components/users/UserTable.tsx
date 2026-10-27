@@ -31,15 +31,14 @@ export function UserTable({
 }: UserListProps) {
   const { dateTime: formatDateTime, relative: formatRelative } = useTimeFormat();
   return (
-    <Box pos="relative" style={{ overflowX: 'auto' }}>
+    <Box
+      pos="relative"
+      // No `overflow` style prop in Mantine; six columns scroll sideways rather than widening
+      // the page (CLAUDE.md mobile §2).
+      style={{ overflowX: 'auto' }}
+    >
       <LoadingOverlay visible={fetching && !loading} zIndex={5} overlayProps={{ blur: 1 }} />
-      <Table
-        highlightOnHover
-        withTableBorder
-        verticalSpacing="xs"
-        fz="sm"
-        style={{ minWidth: 720 }}
-      >
+      <Table highlightOnHover withTableBorder verticalSpacing="xs" fz="sm" miw={720}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Pengguna</Table.Th>
@@ -63,6 +62,7 @@ export function UserTable({
             ))}
           {!loading &&
             rows.map((u) => (
+              // No `cursor` style prop in Mantine; the whole row opens the detail drawer.
               <Table.Tr key={u.id} style={{ cursor: 'pointer' }} onClick={() => onOpen(u)}>
                 <Table.Td>
                   <IdentityCell user={u} isSelf={u.id === perms.currentUserId} />
