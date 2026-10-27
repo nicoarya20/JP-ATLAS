@@ -64,8 +64,9 @@ export function TaskHeader({ task, today, afterDelete }: Props) {
       <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
         <Stack gap={4} miw={0}>
           <Text size="sm" c="dimmed">{`#${task.number}`}</Text>
-          {/* The page title of a detail page: it wraps in full, never truncated (K-5). */}
-          <Title order={2} style={WRAP_ANYWHERE}>
+          {/* The page title of a detail page: 32 px like every PageHeader page (K-1), and it
+              wraps in full rather than being truncated (K-5). */}
+          <Title order={1} style={WRAP_ANYWHERE}>
             {task.title}
           </Title>
         </Stack>

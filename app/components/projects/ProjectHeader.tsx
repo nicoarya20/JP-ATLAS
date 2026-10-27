@@ -80,8 +80,10 @@ export function ProjectHeader({ project, today }: Props) {
       </Button>
       <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
         <Group gap="sm" wrap="wrap" align="center" miw={0} flex={1}>
-          {/* The page title of a detail page: it wraps in full, never truncated (K-5). */}
-          <Title order={2} miw={0} style={WRAP_ANYWHERE}>
+          {/* The page title of a detail page: 32 px like every PageHeader page (K-1), and it
+              wraps in full rather than being truncated (K-5) - at 32 px a long project name
+              overflows more easily, not less. */}
+          <Title order={1} miw={0} style={WRAP_ANYWHERE}>
             {project.name}
           </Title>
           <StatusBadge status={project.status} />

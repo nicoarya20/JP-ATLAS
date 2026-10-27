@@ -66,7 +66,9 @@ export function EventDetailView({ event, clock }: Props) {
       <Stack gap="sm">
         {/* nowrap is safe: the only button is one icon and the title wraps inside its own column. */}
         <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
-          <Title order={2} miw={0} style={WRAP_ANYWHERE}>
+          {/* The page title of a detail page: 32 px like every PageHeader page (K-1), and it
+              wraps in full rather than being truncated (K-5). */}
+          <Title order={1} miw={0} style={WRAP_ANYWHERE}>
             {event.title}
           </Title>
           <EventDetailMenu
