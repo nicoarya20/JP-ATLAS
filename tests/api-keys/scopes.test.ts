@@ -96,6 +96,12 @@ describe('requiredScope', () => {
     expect(requiredScope('GET', '/api/openapi.json')).toBeNull();
     expect(isPublicRead('GET', '/api/openapi.json')).toBe(true);
     expect(isPublicRead('POST', '/api/openapi.json')).toBe(false);
+    // Dev-only Scalar docs (api/docs.ts): public reads so a key-bearing caller is not refused 403.
+    expect(requiredScope('GET', '/api/docs')).toBeNull();
+    expect(requiredScope('GET', '/api/docs/json')).toBeNull();
+    expect(isPublicRead('GET', '/api/docs')).toBe(true);
+    expect(isPublicRead('GET', '/api/docs/json')).toBe(true);
+    expect(isPublicRead('POST', '/api/docs')).toBe(false);
     expect(requiredScope('POST', '/api/app/avatar')).toBeNull(); // session-only since S0B-19 (D10)
     expect(requiredScope('DELETE', '/api/app/avatar')).toBeNull();
     expect(isPublicRead('GET', '/api/storage/avatars/u1/a.png')).toBe(true);
