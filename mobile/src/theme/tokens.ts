@@ -16,6 +16,18 @@ export const SPACING = { xs: 8, sm: 12, md: 16, lg: 24, xl: 32 } as const;
  */
 export const MIN_TARGET = 44;
 
+/**
+ * Mobile only, like MIN_TARGET (the web tokens have no counterpart, so the sync test leaves it out): iOS-style status
+ * colours where the phone's own UI sets the expectation. Atlas danger and success are darker than an iOS badge, Sign
+ * out or presence dot (device QA 2026-10-27), so `alert` is Apple's increased-contrast system red and `presence` a
+ * brighter green; both still pass the Atlas contrast rules (__tests__/theme/contrast.test.ts). Status messages, chips
+ * and destructive dialogs keep the Atlas pairs.
+ */
+export const MOBILE_STATUS = {
+  light: { alert: '#d70015', presence: '#1e9e5a' },
+  dark: { alert: '#ff6961', presence: '#30d158' },
+} as const;
+
 /** Page title: 32 px on desktop, 26 px on mobile. Section title: 20 px. Body line height 1.5. */
 export const TYPE = { pageMobile: 26, page: 32, section: 20, bodyLeading: '1.5' } as const;
 

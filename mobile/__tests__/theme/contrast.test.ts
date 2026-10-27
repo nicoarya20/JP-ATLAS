@@ -50,6 +50,10 @@ const PAIRS: Pair[] = [
   ['ring', 'background', NON_TEXT_MIN],
   ['atlas', 'muted', NON_TEXT_MIN],
   ['success', 'card', NON_TEXT_MIN],
+  ['alert-foreground', 'alert', TEXT_MIN],
+  ['alert', 'card', NON_TEXT_MIN],
+  ['presence', 'card', NON_TEXT_MIN],
+  ['presence', 'background', NON_TEXT_MIN],
   ['snack-foreground', 'snack', TEXT_MIN],
   ['snack-action', 'snack', TEXT_MIN],
 ];

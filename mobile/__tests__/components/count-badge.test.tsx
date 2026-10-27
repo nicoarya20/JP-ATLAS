@@ -10,10 +10,10 @@ import { moreTiles } from '../../src/screens/more/more.tiles';
 const ADMIN: Role = 'admin';
 
 describe('CountBadge', () => {
-  test('draws the count in white on the danger red and stays out of the screen reader', async () => {
+  test('draws the count in white on the iOS alert red and stays out of the screen reader', async () => {
     await render(<CountBadge count={3} />, { wrapper: GluestackUIProvider });
     const figure = screen.getByText('3', { includeHiddenElements: true });
-    expect(figure.props.className).toContain('text-destructive-foreground');
+    expect(figure.props.className).toContain('text-alert-foreground');
     expect(screen.queryByText('3')).not.toBeOnTheScreen();
   });
 });

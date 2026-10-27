@@ -1,4 +1,4 @@
-// New-item count (iOS badge style): white figures on the danger red, as on the More panel tiles and the Profile Inbox row.
+// New-item count (iOS badge style): white figures on the iOS alert red (MOBILE_STATUS), as on the More panel tiles and the Profile Inbox row.
 import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
@@ -9,9 +9,9 @@ export function CountBadge({ count, className = '' }: { count: number; className
     <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      className={`h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-[5px] ${className}`}
+      className={`h-5 min-w-5 items-center justify-center rounded-full bg-alert px-[5px] ${className}`}
     >
-      <Text className="text-[11px] font-semibold text-destructive-foreground">{count}</Text>
+      <Text className="text-[11px] font-semibold text-alert-foreground">{count}</Text>
     </View>
   );
 }

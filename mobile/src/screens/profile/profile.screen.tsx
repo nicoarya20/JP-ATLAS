@@ -131,7 +131,13 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
           />
         </Rows>
       </VStack>
-      <Button size="lg" variant="destructive" onPress={() => setSigningOut(true)}>
+      {/* iOS alert red (MOBILE_STATUS), not the darker Atlas danger; the confirm dialog keeps its destructive button. */}
+      <Button
+        size="lg"
+        variant="destructive"
+        className="bg-alert data-[active=true]:bg-alert/90"
+        onPress={() => setSigningOut(true)}
+      >
         <ButtonText>{P.signOut}</ButtonText>
       </Button>
       <SignOutDialog open={signingOut} onClose={() => setSigningOut(false)} />

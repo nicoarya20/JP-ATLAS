@@ -97,6 +97,13 @@ describe('ProfileScreen', () => {
     expect(screen.getByLabelText('Note: Heads down until noon. Edit note')).toBeOnTheScreen();
   });
 
+  test('Sign out is the iOS alert red, the Inbox count a red badge (MOBILE_STATUS, not the darker Atlas danger)', async () => {
+    await show();
+    expect(screen.getByRole('button', { name: 'Sign out' }).props.className).toContain('bg-alert');
+    const count = screen.getByText('3', { includeHiddenElements: true });
+    expect(count.props.className).toContain('text-alert-foreground');
+  });
+
   test('Sign out asks first (T2), then returns to the login screen', async () => {
     await show();
     await fireEvent.press(screen.getByText('Sign out'));
