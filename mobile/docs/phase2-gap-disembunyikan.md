@@ -41,6 +41,11 @@ setiap baris di bawah berstatus `rencana`. Id GAP merujuk tabel di `phase2-map-*
 | **Filter Project** di tab Tugas (baris Project + "All projects") | Filter & sort tab Tugas | **G1-T1** (baru) | Daftar proyek masih data contoh (`projects.state`, milik Gelombang 2) dan id-nya **bukan** id server. Mengirim `projectId=<id contoh>` berarti daftar yang kosong tanpa sebab yang terlihat pengguna — lebih buruk daripada tidak ada filternya. Server **punya** `projectId`; yang kurang hanya daftar proyek dari API | **disembunyikan** `src/screens/tasks/filter/tasks-filter.screen.tsx`; tab proyek memakai Assignee seperti sebelumnya. Hidup lagi begitu modul Proyek memakai `/api/app/projects` |
 | `kind`/Type di baris kartu All tasks (segmen `· type ·`) | daftar All tasks, `cardName` | A3 | `TaskListItem` tidak punya `kind`; hanya detail punya | **disembunyikan** `src/screens/tasks/list/all-card.tsx` — segmennya dihilangkan, bukan dirender kosong |
 | Alasan **kenapa** sebuah kontrol disabled (`capMessage`) | semua kontrol ber-`can{}` | **G1-T2** (baru) | `can{}` hanya membawa kode deny; kalimatnya hidup di `server/access/decision.ts` yang hanya bisa diimpor web. Menulis salinan Inggris per kode di mobile = sumber kalimat kedua, dilarang K5 | **digantikan** satu baris jujur milik mobile sendiri (`CAP_DISABLED_REASON`, "Not available for this task."). Butuh keputusan: kirim `capMessage` di DTO, atau terima satu baris umum |
+| Segmen `· type ·` di baris kartu **board** All tasks | board | A3 | Sama seperti kartu daftar: `TaskListItem` tidak punya `kind`. Baris kartu board menampilkan proyeknya saat tidak ada jenis, bukan pemisah yang menggantung | **disembunyikan** `src/screens/tasks/board/board-cards.ts` (`cardPlace`) |
+| Sisi **In review** di menu radial board | board | A6 | Langkah ke In review adalah `requestReview`, yang rutenya 404 sampai S4. Sisinya digambar mati, bukan dicoba lalu ditolak `409` | **disembunyikan** `src/data/tasks.api.board.ts` (`movableTo` hanya menawarkan sisi yang `can{}`-nya ada) |
+| **Edit task** di menu ⋯ detail tugas | detail | **G2-T1** (baru) | Detail sudah membaca server, sementara form Edit masih **menulis** ke store contoh (langkah 8 `phase2-map-tasks.md` §6, butuh A12 dipakai). Dari detail ber-data server, Edit adalah form yang tidak bisa menyimpan apa yang ditampilkan layar di atasnya. Layarnya tetap ada di pohon rute dan tetap diuji di `tasks.screen.form.test.tsx` | **disembunyikan** `src/screens/tasks/detail/task-detail.screen.tsx` (`MENU` tidak punya entri `edit`) |
+| **"+ Add step"** di bagian Steps detail | detail | **G2-T2** (baru) | Tulis checklist sudah tersambung (tombol centang menulis ke server), tapi *menambah* langkah butuh kolom isian yang gelombang ini tidak membangun. Tombol yang melaporkan langkah yang tidak pernah ia tambahkan lebih buruk daripada tidak ada | **disembunyikan** `src/screens/tasks/detail/detail-steps.tsx` |
+| Tombol **Return** dan kotak **Evidence** di detail | detail | A6, A5 | Rute `return` 404 sampai S4; tidak ada lampiran di DTO maupun skema. Layar Return sendiri masih ada di pohon rute dan masih data contoh | **disembunyikan** `src/screens/tasks/detail/detail-actions.tsx`, `detail-facts.tsx` (berkas `detail-evidence.tsx` dihapus) |
 
 ## 2. Acara (Events) — `phase2-map-events.md` §2.1
 
@@ -128,19 +133,15 @@ beberapa baris di sini, karena satu GAP menyentuh beberapa kontrol.
 
 ## 4. Hutang yang bukan GAP server
 
-### 4.0 "Move to Archive" di detail tugas disembunyikan
+### 4.0 "Move to Archive" di detail tugas disembunyikan — SELESAI (Gelombang 2)
 
-**Berkas:** `src/screens/tasks/detail/task-detail.screen.tsx` (entri `archive` dihapus dari `MENU`).
-
-**Kenapa:** daftar tugas sudah membaca server, sementara tulisan Archive masih menulis store
-contoh. Akibatnya baris tetap tampil setelah menu bilang tugasnya sudah pindah ke Archive —
-kontrol yang melaporkan pekerjaan yang tidak ia lakukan lebih buruk daripada kontrol yang tidak
-ada. Ini **bukan GAP server**: endpointnya sudah ada (`DELETE /api/app/tasks/:ref` + Undo lewat
-`POST /api/app/trash/task/:id/restore`).
-
-**Kapan dibuka lagi:** langkah 7 `phase2-map-tasks.md` §6, bersama Sampah/Undo di gelombang
-berikutnya. Tesnya (`__tests__/tasks/tasks.screen.detail.test.tsx`) sekarang menegaskan kontrolnya
-**tidak** ditawarkan, jadi membukanya kembali akan menabrak tes itu — itu disengaja.
+Hutangnya lunas, jadi entri ini tinggal catatan (pola yang sama dengan §4.3). Kontrolnya **kembali**
+ke `MENU` di `src/screens/tasks/detail/task-detail.screen.tsx`: `DELETE /api/app/tasks/:ref` benar-benar
+dipanggil, snack Undo memanggil `POST /api/app/trash/task/:id/restore` dengan **id** dari jawaban
+DELETE (B1), dan `tasks.api.write.ts` menyebut setiap store yang ikut basi. Tesnya di
+`__tests__/tasks/tasks.screen.detail.test.tsx` sekarang membuktikan **barisnya benar-benar hilang**
+dari daftar — dibaca dari keadaan server palsu, bukan dari store yang aplikasi ini tulis sendiri —
+lalu kembali setelah Undo.
 
 ### 4.1 Parameter `role` masih dioper ke seluruh modul data
 
@@ -166,10 +167,15 @@ Begitu salah satunya ada, `viewer()` mengisi `role` dari situ dan parameternya b
 
 ### 4.2 `moveOnBoard()` masih menerima `PersonInfo` dari layar
 
-`src/data/tasks.store.ts` `moveOnBoard(viewer: PersonInfo, …)` dipanggil dua berkas layar
-(`screens/tasks/board/task-board.tsx`, `screens/tasks/board/use-move-menu.ts`) yang mengoper
-`me(role)`. Identitasnya diselesaikan di dalam (`viewerOf()`), jadi hasilnya benar — tapi layar
-seharusnya tidak perlu mengoper orang sama sekali. Dibereskan bersama 4.1, oleh worker Tasks.
+`src/data/tasks.store.ts` `moveOnBoard(viewer: PersonInfo, …)` mengoper `me(role)`. Identitasnya
+diselesaikan di dalam (`viewerOf()`), jadi hasilnya benar — tapi layar seharusnya tidak perlu
+mengoper orang sama sekali.
+
+**Dipersempit di Gelombang 2:** pemanggilnya sekarang **satu**, `screens/tasks/board/board-moves.sample.ts`,
+dan hanya untuk tab Tugas proyek yang masih membaca store contoh. Tab Tugas sendiri memakai
+`board-moves.server.ts`, yang tidak tahu apa pun soal orang: sisi mana yang boleh adalah jawaban
+`can{}`. Berkas `board-moves.sample.ts` ikut pergi bersama `tasks.store.ts` saat modul Proyek pindah
+ke API, dan hutang ini pergi dengannya.
 
 ### 4.3 Greeting Beranda masih teks mati — SELESAI (Gelombang 1)
 
@@ -202,3 +208,13 @@ menerima argumen: apa yang boleh tampil adalah jawaban server, bukan terkaan lay
 hilang dari daftar ~40 di §4.1. `respondCards(_role?, _decided?)` **masih** menerima dua parameter
 yang diabaikan, semata agar `src/data/profile.ts` dan `src/screens/more/more.tiles.ts` (wilayah
 Gelombang 2) tetap ter-compile; keduanya dicabut bersama §4.1.
+
+### 4.6 `role` sudah tidak dipakai tab Tugas dan papannya
+
+`TasksScreen` tidak lagi menerima prop `role`, dan `TaskBoard`/`useMoveMenu` tidak lagi memakainya
+untuk memutuskan apa pun: tombol New task mengikuti `caps.createTask`, dan sisi menu radial per
+kartu mengikuti `can{}` kartu itu. `role` masih ada sebagai prop **opsional** di `TaskBoard` semata
+untuk `sampleMoves(role)`, yaitu jalur store contoh tab Tugas proyek (§4.2) — bukan untuk sebuah
+keputusan izin.
+
+Tiga berkas layar lagi hilang dari daftar ~40 di §4.1.
