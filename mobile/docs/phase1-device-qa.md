@@ -244,10 +244,9 @@ Daftar ini untuk user, dicek di HP sungguhan di akhir Fase 1. Isinya hal yang ti
   - Tiap hari bisa difokus satu per satu, dan terbaca nama hari + tanggal + status terpilih.
   - Aksi "Previous week" / "Next week" di tiap hari memindah pekan. iOS: geser atas/bawah di rotor Actions. Android: menu Actions TalkBack.
 - [ ] **Baris Team** `[keduanya]`
-  - Satu baris orang terbaca sekali dengan lengkap: nama, role · proyek, status, dan angka "N active" / "N overdue".
+  - Satu baris orang terbaca sekali dengan lengkap: nama, role · proyek, dan angka "N active" / "N overdue".
   - Baris tugas di halaman orang terbaca: judul, status, proyek · kapan.
 - [ ] **Tidak dibaca dua kali** `[keduanya]`
-  - Leave → label "From date"/"To date" hanya terbaca sekali, dari tombol tanggalnya.
   - Approval → "Starting role" hanya terbaca sekali, dari pemilihnya.
 - [ ] **Nama tombol** `[keduanya]`
   - Tombol Approval terbaca "Approve Sari Wulandari" / "Reject …" / "Cancel rejecting …".

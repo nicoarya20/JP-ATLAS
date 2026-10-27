@@ -50,7 +50,6 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="(auth)" options={NO_SWIPE} />
             <Stack.Screen name="create" options={SHEET} />
-            <Stack.Screen name="leave" options={SHEET} />
             <Stack.Screen name="tasks/new" options={MODAL} />
             <Stack.Screen name="tasks/csv" options={MODAL} />
             <Stack.Screen name="projects/new" options={MODAL} />

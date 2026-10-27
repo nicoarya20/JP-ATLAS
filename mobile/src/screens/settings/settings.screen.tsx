@@ -1,4 +1,4 @@
-// Settings ① (prototype settings.main.jsx): my account, notifications, leave, Admin-only team settings, Sign out (T2).
+// Settings ① (prototype settings.main.jsx): my account, notifications, Admin-only team settings, Sign out (T2).
 import { router } from 'expo-router';
 import { useState } from 'react';
 
@@ -16,7 +16,7 @@ import { getSettings, type SettingsData } from '@/data/settings';
 
 import { SignOutDialog } from '../auth/sign-out';
 import { SETTINGS as S } from './settings.strings';
-import { Group, Setting, TeamSettings } from './team-settings';
+import { Group, TeamSettings } from './team-settings';
 
 function Account({ d }: { d: SettingsData }) {
   return (
@@ -61,13 +61,6 @@ export function SettingsScreen({ role = SESSION_ROLE }: { role?: Role }) {
           value={updates}
           onChange={setUpdates}
         />
-      </Group>
-      <Group label={S.availability}>
-        <Setting title={S.leave} hint={S.leaveHint}>
-          <Button size="sm" variant="outline" onPress={() => router.push('/leave')}>
-            <ButtonText>{d.leaveAction}</ButtonText>
-          </Button>
-        </Setting>
       </Group>
       {d.team && <TeamSettings />}
       <Button size="lg" variant="destructive" onPress={() => setSigningOut(true)}>

@@ -27,6 +27,7 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 | 2026-10-25 | Ikuti prototipe: layar awal = `(tabs)` (auth ada sebagai route, gerbang login di Fase 2); detail proyek selain Atlas = header + empty state; `profile.me` = modal penuh; Restore di Archive = toast seperti prototipe (pemulihan nyata di Fase 2 bersama API) | Aturan user: ikuti prototipe 1:1 |
 | 2026-10-25 | Linter mobile = biome (bukan ESLint expo) | Konsisten dengan root; biome root mengecualikan `mobile/` |
 | 2026-10-25 | Fase 0: Tabs Expo Router standar; gelembung, drag, panel More, dan sheet Create menyusul | Butuh Reanimated + Gesture Handler; di luar tujuan spike |
+| 2026-10-27 | **Leave dihapus dari mobile**: sheet `/leave` (`settings.leave`), baris Request/Set leave di Create, bagian Availability di Settings, toggle "Leave needs approval", dan baris status ("Available"/catatan cuti) di Team | Keputusan user setelah koordinasi dengan rekan; menyimpang dari prototipe. Sisi server/desktop tidak disentuh |
 
 ## 2. Batas Wilayah
 

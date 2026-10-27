@@ -2,8 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react-native
 import { router } from 'expo-router';
 
 import type { Role } from '../../src/data/sample';
-import { getLeave, getSettings, LEAVE } from '../../src/data/settings';
-import { LeaveScreen } from '../../src/screens/settings/leave.screen';
+import { getSettings } from '../../src/data/settings';
 import { ProfileEditScreen } from '../../src/screens/settings/profile-edit.screen';
 import { SettingsScreen } from '../../src/screens/settings/settings.screen';
 import { Providers } from '../helpers/providers';
@@ -30,30 +29,21 @@ describe('settings data', () => {
     expect(getSettings('admin').team).toBe(true);
     expect(getSettings('pm').team).toBe(false);
   });
-
-  test('the leave copy per role, which the Create sheet reads as LEAVE[role].title', () => {
-    expect([LEAVE.member.title, LEAVE.pm.title, LEAVE.admin.title]).toEqual([
-      'Request leave',
-      'Request leave',
-      'Set leave',
-    ]);
-    expect(getLeave('admin')).toMatchObject({ save: 'Save leave', notice: 'Leave saved' });
-  });
 });
 
 describe('SettingsScreen', () => {
-  test('Edit profile and the leave action open their screens', async () => {
+  test('Edit profile opens its screen; there is no leave anywhere', async () => {
     await show(<SettingsScreen role={PM} />);
     await fireEvent.press(screen.getByText('Edit profile'));
     expect(router.push).toHaveBeenCalledWith('/more/settings/profile');
-    await fireEvent.press(screen.getByText('Request leave'));
-    expect(router.push).toHaveBeenCalledWith('/leave');
+    expect(screen.queryByText(/leave/i)).not.toBeOnTheScreen();
     expect(screen.queryByText('Team settings (Admin only)')).not.toBeOnTheScreen();
   });
 
   test('Admin: the team settings group', async () => {
     await show(<SettingsScreen role={ADMIN} />);
     expect(screen.getByText('Team settings (Admin only)')).toBeOnTheScreen();
+    expect(screen.queryByText(/leave/i)).not.toBeOnTheScreen();
     // Named after what it opens; the chevron is an icon, not a "›" read aloud.
     await fireEvent.press(screen.getByRole('button', { name: 'View roles and permissions' }));
     expect(screen.getByText('Roles and permissions — not in the prototype yet')).toBeOnTheScreen();
@@ -115,23 +105,4 @@ describe('ProfileEditScreen', () => {
       expect(router.navigate).toHaveBeenCalledWith('/profile');
     },
   );
-});
-
-describe('LeaveScreen', () => {
-  test.each<[Role, string, string, string]>([
-    ['member', 'Request leave', 'Send request', 'Leave request sent'],
-    ['pm', 'Request leave', 'Save', 'Leave request sent'],
-    ['admin', 'Set leave', 'Save leave', 'Leave saved'],
-  ])('%s: "%s", saved with "%s"', async (role, title, save, notice) => {
-    await show(<LeaveScreen role={role} />);
-    expect(screen.getByRole('header', { name: title })).toBeOnTheScreen();
-    expect(screen.getByText(LEAVE[role].hint)).toBeOnTheScreen();
-    expect(screen.getByTestId('leave-from')).toBeOnTheScreen();
-    // The dates are named by their buttons; the labels above them are not read again as headers.
-    expect(screen.getAllByLabelText('From date')).toHaveLength(1);
-    expect(screen.queryByRole('header', { name: 'From date' })).not.toBeOnTheScreen();
-    await fireEvent.press(screen.getByText(save));
-    expect(screen.getByText(notice)).toBeOnTheScreen();
-    expect(router.back).toHaveBeenCalledTimes(1);
-  });
 });

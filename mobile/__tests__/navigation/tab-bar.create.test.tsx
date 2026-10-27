@@ -94,12 +94,13 @@ describe('the "+" beside the tab bar', () => {
 });
 
 describe('Create sheet', () => {
-  it('lets a Manager pick task, project, event, import or leave', async () => {
+  it('lets a Manager pick task, project, event or import', async () => {
     const sheet = await openCreate('pm');
 
-    for (const name of ['Task', 'Project', 'Event', 'Import tasks', 'Request leave']) {
+    for (const name of ['Task', 'Project', 'Event', 'Import tasks']) {
       expect(within(sheet).getByText(name)).toBeOnTheScreen();
     }
+    expect(within(sheet).queryByText(/leave/i)).not.toBeOnTheScreen();
     expect(within(sheet).getByRole('header')).toHaveTextContent('Create');
     expect(within(sheet).getByText('What do you want to add?')).toBeOnTheScreen();
   });
@@ -111,11 +112,10 @@ describe('Create sheet', () => {
     expect(within(sheet).queryByText('Project')).not.toBeOnTheScreen();
   });
 
-  it('names leave for an Admin as setting it, not requesting it', async () => {
+  it('offers no leave to an Admin either', async () => {
     const sheet = await openCreate('admin');
 
-    expect(within(sheet).getByText('Set leave')).toBeOnTheScreen();
-    expect(within(sheet).queryByText('Request leave')).not.toBeOnTheScreen();
+    expect(within(sheet).queryByText(/leave/i)).not.toBeOnTheScreen();
   });
 
   it('closes with the X', async () => {

@@ -141,9 +141,8 @@ Layar lain (detail tugas, form, flow modal) tidak menampilkan bar. Jadi tiap tab
 | `projects.new` | Project | From a story, a template or a form |
 | `events.new` | Event | Meeting, review or team event |
 | `tasks.csv` | Import tasks | Add many tasks from a CSV file |
-| `settings.leave` | `LEAVE[role].title` | Days you will be away |
 
-- Ikon baris 18 px dalam ubin bernada (blue, green, orange, gray, gray). Member tidak melihat Project. RN memakai ubin lembut Atlas seperti panel More (§2.5).
+- Ikon baris 18 px dalam ubin bernada (blue, green, orange, gray). Baris Leave prototipe dihapus 2026-10-27 (keputusan user). Member tidak melihat Project. RN memakai ubin lembut Atlas seperti panel More (§2.5).
 - Memilih baris menutup sheet, lalu membuka target. RN: `router.replace(createHref(go))`, sheet diganti target, sehingga menutup target kembali ke tempat "+" ditekan.
 
 ### 2.8 Reduced motion (`prefers-reduced-motion`)
@@ -228,7 +227,7 @@ Diverifikasi di docs Expo dan types SDK 58 terpasang (`expo-router` 58.0.26):
     - **Android:** `presentation: 'formSheet'`, `sheetAllowedDetents: 'fitToContents'`, `sheetGrabberVisible: true`, `sheetCornerRadius: 16` (radius modal JP Atlas `lg`); sudah edge-to-edge. Swipe-down, tap dim, dan escape native; isi = `NativeSheetBody` (ScrollView sebagai root). transparentModal tidak dipakai di sini karena di stack tab ia tergambar di bawah tab bar.
   - `MODAL`: `presentation: 'modal'`.
   - `NO_SWIPE`: `gestureEnabled: false` (grup `(auth)`, rekaman event).
-- Create (`app/create.tsx`) dan Leave (`app/leave.tsx`) = `SHEET` di root Stack.
+- Create (`app/create.tsx`) = `SHEET` di root Stack.
 - `tasks/new`, `tasks/csv`, `projects/new`, `events/new`, `profile` = `MODAL` di root Stack, dengan chevron bawah berlabel "Cancel" (BRIEF.md: layar modal).
 - Semua Stack `headerShown: false`; back = header sendiri (`DetailHeader`: chevron berlabel "Back", atau "Cancel" di modal).
 - `profile.me` = modal setinggi penuh (`app/profile/_layout.tsx`, `calendar` di-push di dalamnya).
@@ -255,7 +254,7 @@ Tidak dipakai: `expo-haptics` (keputusan §1), `expo-blur`, `@gorhom/bottom-shee
 
 ```
 app/
-  _layout.tsx                 Stack root (anchor (tabs)): (tabs); (auth) NO_SWIPE; create, leave SHEET;
+  _layout.tsx                 Stack root (anchor (tabs)): (tabs); (auth) NO_SWIPE; create SHEET;
                               tasks/new, tasks/csv, projects/new, events/new, profile MODAL
   create.tsx                  → src/screens/create/create.screen.tsx
   (tabs)/_layout.tsx          js-tabs Tabs + GlassTabBar + MorePanelProvider/BehindMorePanel + SnackHost

@@ -84,7 +84,6 @@ const ROUTES = {
   'tasks/csv': stub('screen-task-csv'),
   'projects/new': stub('screen-project-new'),
   'events/new': stub('screen-event-new'),
-  leave: stub('screen-leave'),
   'profile/_layout': ProfileStack,
   'profile/index': stub('screen-profile'),
   'profile/calendar': stub('screen-calendar'),

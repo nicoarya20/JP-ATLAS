@@ -21,7 +21,6 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 | `users.approve`, `users.roles` (admin) | `app/(tabs)/more/users.tsx` — param `tab=approval\|roles` | push | ya |
 | `settings.main` | `app/(tabs)/more/settings/index.tsx` | push | tidak |
 | `settings.profile` | `app/(tabs)/more/settings/profile.tsx` | push | tidak |
-| `settings.leave` | `app/leave.tsx` (root, juga dari sheet Create) | SHEET | — |
 | `profile.me` | `app/profile/index.tsx` | modal setinggi penuh (§2 main doc) | — |
 | `profile.calendar` | `app/profile/calendar.tsx` | push di Stack modal | — |
 
@@ -62,7 +61,7 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 | admin | "All projects · 6 people · <total>" | Ayu (You, "Admin · No project", tanpa hitungan), Nico ("Project Manager · Atlas Project, Internal Tools"), Rina, Dodi, Sri ("Observer · Atlas Project", tanpa hitungan) | "Approving new users and changing roles happens in More › Users." |
 | member | "Project Atlas Project · n people" | Dodi (You), Nico & Rina tanpa hitungan | "Task counts per person are visible only to that person, the project Manager and Admin." |
 
-- Baris: avatar, nama lengkap + "(You)", role, status ("Available" hijau), extra, "n active" + "n overdue" (merah) dari store tugas langsung (`team.load`), "View". Tap → `/more/team/<key>`.
+- Baris: avatar, nama lengkap + "(You)", role, extra (tanpa status "Available"/catatan cuti; Leave dihapus 2026-10-27), "n active" + "n overdue" (merah) dari store tugas langsung (`team.load`), "View". Tap → `/more/team/<key>`.
 - **Person**: judul **"Team member"**; fakta Job title / Division / Email / Account role; proyek bersama ("No shared projects."); **Active tasks** ("No active tasks.") dengan aturan lihat: Member melihat tugas orang lain → "Other people's task lists are visible only to the project Manager and Admin."
 - **Empty** (Member tanpa proyek): ikon `Users`, **"No team yet"** / "You haven't joined any project yet. Your team will show up once a Manager adds you to a project."
 
@@ -94,20 +93,11 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 - **Main** (`settings.main`, **"Settings"**, back, tanpa tab bar):
   - **My account**: avatar lg, nama, "<title> · <division> division", email, **Edit profile** → `settings/profile`.
   - **Notifications**: switch **Event reminders** ("1 day and 30 minutes before the event starts"), **Inbox updates** ("Comments, task changes, and event invites"); catatan "Requests that need your response always appear in Inbox and can't be turned off."
-  - **Availability**: **Leave** ("Not on leave. Teammates see you as Available.") + tombol **Set leave** (admin) / **Request leave** → `/leave`.
-  - **Team settings (Admin only)**: AI features (switch), Recording retention (select "30 days"), Default event reminder ("1 day & 30 min"), Leave needs approval (switch), Roles and permissions (**View ›**, toast "Roles and permissions — not in the prototype yet").
+  - **Team settings (Admin only)**: AI features (switch), Recording retention (select "30 days"), Default event reminder ("1 day & 30 min"), Roles and permissions (**View ›**, toast "Roles and permissions — not in the prototype yet").
   - **Sign out** (danger, block) → AlertDialog T2 → `router.replace('/login')`.
 - **Edit profile** (`settings.profile`, **"Edit profile"**): foto + **Change photo** (toast "Change photo — not in the prototype yet"); Full name (wajib; kosong → "Enter your full name."), Nickname (for greetings), Job title, Division; Role disabled ("Your role is set by an Admin."); Email disabled ("Email comes from your Google account and can't be changed."); **Cancel** / **Save** ("Profile saved").
   - Dibuka dari modal profil dengan param `from=profile`: Cancel/Save = `router.back()` lalu `router.navigate('/profile')`, sehingga kembali ke modal profil (`dismissTo` ditolak karena mengganti root dan tab bar hilang).
-- **Leave** (`/leave`, `LEAVE[role]`):
-
-| Role | Judul | Hint | Tombol | Notice |
-|---|---|---|---|---|
-| member | Request leave | Request is sent to your project Manager or Admin. | Send request | Leave request sent |
-| pm | Request leave | Request is sent to Admin. | Save | Leave request sent |
-| admin | Set leave | Admin leave applies immediately, no approval. | Save leave | Leave saved |
-
-  Field **From date** / **To date** (DateField; contoh Mon, Oct 12 – Wed, Oct 14, 2026), **Note (optional)**; **Cancel** + tombol role.
+- **Leave** (`settings.leave`, bagian Availability, toggle "Leave needs approval", status cuti di Team): **dihapus 2026-10-27** atas keputusan user setelah koordinasi dengan rekan; tidak ada route `/leave`.
 
 ## 8. Profile
 
@@ -139,7 +129,7 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 | `inbox.links.ts` | `inbox.shared.js` | `actor(title, meta)`, `link(text)` → Href bertipe, dibaca dari store tugas/event |
 | `profile.calendar.dates.ts` | `profile.calendar.dates.js` | `weekOf` (Minggu), `monthLabel`, `dayLabel`, `hourLabel`, `clock`, `eventsFor`, `occursOn`, `itemsOn`, `initialScroll` |
 | `profile.calendar.swipe.ts` | `profile.calendar.swipe.js` | Konstanta + `pageOf(dx, vx, width)` (worklet, murni, dites) |
-| `inbox.ts`, `team.ts`, `team.person.ts`, `archive.ts`, `settings.ts`, `profile.ts`, `auth.ts` | — | Titik tukar API: `getInbox(role, allRead, decided?)`, `getTeam(role, src?)`, `getTeamPerson(role, key, src?)`, `getArchive(role, entries, filter?)`, `getArchiveDelete(key)`, `deleteForever(key)`, `getSettings(role)`, `getProfileEdit(role)`, `getLeave(role)`, `getProfile(role, decided?)`, `getMyCalendar(role, day, events)`, `getAuth()` |
+| `inbox.ts`, `team.ts`, `team.person.ts`, `archive.ts`, `settings.ts`, `profile.ts`, `auth.ts` | — | Titik tukar API: `getInbox(role, allRead, decided?)`, `getTeam(role, src?)`, `getTeamPerson(role, key, src?)`, `getArchive(role, entries, filter?)`, `getArchiveDelete(key)`, `deleteForever(key)`, `getSettings(role)`, `getProfileEdit(role)`, `getProfile(role, decided?)`, `getMyCalendar(role, day, events)`, `getAuth()` |
 | `users.ts` | `users.approve.jsx`, `users.roles.jsx` | Store keputusan approval (satu sumber semua hitungan approval): `decide(key, 'approved'\|'rejected')`, `getDecisions()`, `useDecisions()`, `waitingUsers(decided?)`, `resetDecisions()`; getter `getApproval(decided?)`, `getRoles()`, `getUsers(tab)`. Home membacanya lewat `HomeSources.decisions` |
 
 - Email dan peran akun orang (`people[].email/role`) dari `src/data/people.ts` + `sample/people.extra.ts` (W0).
@@ -147,7 +137,7 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 
 ## 10. Berkas layar (tiap ≤ 150 baris)
 
-`src/screens/auth/{auth.strings.ts, auth-parts.tsx, sign-out.tsx, login.screen.tsx, account.screen.tsx, denied.screen.tsx, pending.screen.tsx}`; `src/screens/inbox/{inbox.strings.ts, inbox.screen.tsx, respond.tab.tsx, updates.tab.tsx, inbox-card.tsx}`; `src/screens/team/{team.strings.ts, team.screen.tsx, person-row.tsx, person.screen.tsx}`; `src/screens/users/{users.strings.ts, users.screen.tsx, users.confirm.tsx, approval.tab.tsx, approval.cards.tsx, roles.tab.tsx, info-box.tsx}`; `src/screens/archive/{archive.strings.ts, archive.screen.tsx, archive-card.tsx, delete.screen.tsx}`; `src/screens/settings/{settings.strings.ts, settings.screen.tsx, team-settings.tsx, profile-edit.screen.tsx, leave.screen.tsx}`; `src/screens/profile/{profile.strings.ts, profile.screen.tsx, profile.tiles.tsx, profile-hero.tsx, profile-note.tsx, calendar.screen.tsx, week-strip.tsx, day-grid.tsx, day-grid.slop.ts}`.
+`src/screens/auth/{auth.strings.ts, auth-parts.tsx, sign-out.tsx, login.screen.tsx, account.screen.tsx, denied.screen.tsx, pending.screen.tsx}`; `src/screens/inbox/{inbox.strings.ts, inbox.screen.tsx, respond.tab.tsx, updates.tab.tsx, inbox-card.tsx}`; `src/screens/team/{team.strings.ts, team.screen.tsx, person-row.tsx, person.screen.tsx}`; `src/screens/users/{users.strings.ts, users.screen.tsx, users.confirm.tsx, approval.tab.tsx, approval.cards.tsx, roles.tab.tsx, info-box.tsx}`; `src/screens/archive/{archive.strings.ts, archive.screen.tsx, archive-card.tsx, delete.screen.tsx}`; `src/screens/settings/{settings.strings.ts, settings.screen.tsx, team-settings.tsx, profile-edit.screen.tsx}`; `src/screens/profile/{profile.strings.ts, profile.screen.tsx, profile.tiles.tsx, profile-hero.tsx, profile-note.tsx, calendar.screen.tsx, week-strip.tsx, day-grid.tsx, day-grid.slop.ts}`.
 
 ## 11. Risiko
 
@@ -163,6 +153,6 @@ Bagian dari `phase1-screens.md`. Sumber: `riset-keano/prototype-react/src/screen
 
 - **Unit**: `team.load` (active/overdue dari store tugas; berubah setelah `moveTask`), `profile.calendar.dates` (Minggu-pertama, `dayLabel`, `hourLabel(0)` = "12 AM", initialScroll tiga cabang), `profile.calendar.swipe.pageOf` (seperempat lebar, minimum 40, flick), `inbox.store`, `profile.store`, `archive.store`.
 - **Port tes prototipe**: `inbox.updates` (Mark all as read bertahan setelah keluar-masuk), `archive.undo` (tiga jenis, tugas ke All tasks), `archive.settings`, `users` (chip angka berubah setelah keputusan, kartu pending/menolak, Reject tanpa alasan ditolak, empty state, Roles: saya tanpa select), `settings.profile` (Role/Email disabled, Save), `profile` (baris, switch online mengubah sub dan titik, Copy email memanggil clipboard), `profile.calendar` (swipe ke pekan berikutnya, garis sekarang, warna per tipe), `roles.gating` (users/archive.delete hanya admin; team.empty/events.empty member).
-- **Varian role**: Team tiga varian, Inbox Admin dengan Approvals, Leave tiga copy.
+- **Varian role**: Team tiga varian, Inbox Admin dengan Approvals.
 - **Dialog**: Sign out (settings, profile, pending) membuka AlertDialog dan baru pindah ke `/login` setelah konfirmasi; Approve/Reject/Deactivate/ubah role lewat AlertDialog; Delete forever disabled sampai judul diketik persis; snack Undo hilang setelah 10 detik (timer palsu).
 - **Auth**: alur login → account → pending (replace) / denied; Check status → `/`.
