@@ -11,7 +11,9 @@
  *
  * `write()` invalidates only on success. A refused write changed nothing on the server, so nothing
  * on screen is out of date, and the error is thrown on — never swallowed — for the screen to show
- * with the server's own sentence (K5).
+ * with the server's own sentence (K5). On the way out it passes `sent()`, which hands a `401` or a
+ * withdrawn approval to the session the way `resource()` does for reads (pattern §3): without that,
+ * a session that ended mid-write would be noticed only by the next read.
  *
  * **No client-side guards.** The prototype refused a rename that clashed with another project, the
  * removal of the last manager and the Lead's own removal before asking. The server has no unique
@@ -20,6 +22,8 @@
  * ends up refusing something the server would have allowed.
  */
 import { apiDelete, apiJson, apiPatch, apiPost } from '@/api/client';
+import { isApiError } from '@/api/errors';
+import { applyApiError } from '@/session/session.state';
 
 import { homeResource } from './home.api';
 import {
@@ -46,6 +50,21 @@ import { type Resource, write } from './resource';
 import { taskCounts, taskLists } from './tasks.api';
 
 const path = (id: string, rest = '') => `/api/app/projects/${encodeURIComponent(id)}${rest}`;
+
+/**
+ * One request of a write. A write happens outside a `resource`, so nothing else would route its
+ * failure to the session: a `401`, or an approval withdrawn between opening the screen and pressing
+ * Save, has to reach the gate from here (pattern §3). The error is re-thrown unchanged, so the
+ * screen still shows the server's own sentence.
+ */
+async function sent<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (failure) {
+    if (isApiError(failure)) applyApiError(failure);
+    throw failure;
+  }
+}
 
 /**
  * Everything a write to project `id` may have changed.
@@ -101,15 +120,18 @@ export type ProjectEditInput = ProjectPatch & {
 export async function saveProject(id: string, input: ProjectEditInput): Promise<void> {
   const { status, leadId, ...fields } = input;
   try {
-    if (Object.keys(fields).length > 0) {
-      await apiPatch<WireProjectDetail>(path(id), fields);
-    }
-    if (status) await apiPost<WireProjectDetail>(path(id, '/status'), { status });
-    if (leadId)
-      await apiJson<WireProjectDetail>(path(id, '/lead'), {
-        method: 'PUT',
-        body: { userId: leadId },
-      });
+    await sent(async () => {
+      if (Object.keys(fields).length > 0) {
+        await apiPatch<WireProjectDetail>(path(id), fields);
+      }
+      if (status) await apiPost<WireProjectDetail>(path(id, '/status'), { status });
+      if (leadId) {
+        await apiJson<WireProjectDetail>(path(id, '/lead'), {
+          method: 'PUT',
+          body: { userId: leadId },
+        });
+      }
+    });
   } finally {
     // Whatever landed before the refusal is saved, so the stores are stale either way.
     for (const r of touchedBy(id)) r.invalidate();
@@ -118,7 +140,10 @@ export async function saveProject(id: string, input: ProjectEditInput): Promise<
 
 /** Moves the project to one of the five statuses. */
 export const setProjectStatus = (id: string, status: WireProjectStatus): Promise<unknown> =>
-  write(() => apiPost<WireProjectDetail>(path(id, '/status'), { status }), touchedBy(id));
+  write(
+    () => sent(() => apiPost<WireProjectDetail>(path(id, '/status'), { status })),
+    touchedBy(id),
+  );
 
 /** Adds an approved person with a project role. An existing member is refused with a sentence. */
 export const addProjectMember = (
@@ -126,7 +151,10 @@ export const addProjectMember = (
   userId: string,
   role: WireProjectMemberRole,
 ): Promise<WireMemberList> =>
-  write(() => apiPost<WireMemberList>(path(id, '/members'), { userId, role }), touchedBy(id));
+  write(
+    () => sent(() => apiPost<WireMemberList>(path(id, '/members'), { userId, role })),
+    touchedBy(id),
+  );
 
 /** Changes one member's project role. The last manager and the Lead stay managers (the server says so). */
 export const changeProjectMemberRole = (
@@ -135,14 +163,17 @@ export const changeProjectMemberRole = (
   role: WireProjectMemberRole,
 ): Promise<WireMemberList> =>
   write(
-    () => apiPatch<WireMemberList>(path(id, `/members/${encodeURIComponent(userId)}`), { role }),
+    () =>
+      sent(() =>
+        apiPatch<WireMemberList>(path(id, `/members/${encodeURIComponent(userId)}`), { role }),
+      ),
     touchedBy(id),
   );
 
 /** Removes a member. Not yourself, not the last manager, not the Lead — all decided by the server. */
 export const removeProjectMember = (id: string, userId: string): Promise<WireMemberList> =>
   write(
-    () => apiDelete<WireMemberList>(path(id, `/members/${encodeURIComponent(userId)}`)),
+    () => sent(() => apiDelete<WireMemberList>(path(id, `/members/${encodeURIComponent(userId)}`))),
     touchedBy(id),
   );
 
@@ -154,7 +185,7 @@ export type ExtendInput = {
 
 /** Moves the deadline later with a reason; writes the history row and an activity line with it. */
 export const extendProjectDeadline = (id: string, input: ExtendInput): Promise<unknown> =>
-  write(() => apiPost(path(id, '/extend-deadline'), input), touchedBy(id));
+  write(() => sent(() => apiPost(path(id, '/extend-deadline'), input)), touchedBy(id));
 
 /** Starts or completes a phase. Its task counts feed the project's progress, so tasks are named too. */
 export const setPhaseStatus = (
@@ -163,7 +194,7 @@ export const setPhaseStatus = (
   status: WirePhaseStatus,
 ): Promise<unknown> =>
   write(
-    () => apiPatch(path(id, `/phases/${encodeURIComponent(phaseId)}`), { status }),
+    () => sent(() => apiPatch(path(id, `/phases/${encodeURIComponent(phaseId)}`), { status })),
     touchedWithTasks(id),
   );
 
@@ -172,7 +203,7 @@ export const setPhaseStatus = (
  * what the Undo snack and the sheet both talk about.
  */
 export const trashProject = (id: string): Promise<WireTrashResult> =>
-  write(() => apiDelete<WireTrashResult>(path(id)), touchedWithTasks(id));
+  write(() => sent(() => apiDelete<WireTrashResult>(path(id))), touchedWithTasks(id));
 
 /**
  * Brings a trashed project back, tasks and all. This is what Undo does: there is no local "held"
@@ -181,7 +212,10 @@ export const trashProject = (id: string): Promise<WireTrashResult> =>
  */
 export const restoreProject = (id: string): Promise<WireTrashResult> =>
   write(
-    () => apiPost<WireTrashResult>(`/api/app/trash/project/${encodeURIComponent(id)}/restore`),
+    () =>
+      sent(() =>
+        apiPost<WireTrashResult>(`/api/app/trash/project/${encodeURIComponent(id)}/restore`),
+      ),
     touchedWithTasks(id),
   );
 
@@ -202,7 +236,7 @@ export type CreateProjectInput = {
  * become managers server-side.
  */
 export const createProject = (input: CreateProjectInput): Promise<WireProjectDetail> =>
-  write(() => apiPost<WireProjectDetail>('/api/app/projects', input), [
+  write(() => sent(() => apiPost<WireProjectDetail>('/api/app/projects', input)), [
     ...projectLists(),
     homeResource,
   ] as Resource<unknown>[]);

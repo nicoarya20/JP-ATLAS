@@ -8,8 +8,8 @@
 import { useEffect, useState } from 'react';
 
 import { useNotice } from '@/components/notice/use-notice';
-import { StatusPill } from '@/components/status/status-pill';
 import { FailedState, LoadingState } from '@/components/state/section-state';
+import { StatusPill } from '@/components/status/status-pill';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';

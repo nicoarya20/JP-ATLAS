@@ -16,7 +16,7 @@ import { FailedState, LoadingState } from '@/components/state/section-state';
 import { ensureProjectHeader, reloadProjectHeader, useProjectHeader } from '@/data/projects';
 
 import { DETAIL } from '../projects.strings';
-import { type DetailTab, DetailHead, DetailTabs, projectMenu, TABS } from './detail-header';
+import { DetailHead, type DetailTab, DetailTabs, projectMenu, TABS } from './detail-header';
 import { MembersTab } from './members.tab';
 import { OverviewTab } from './overview.tab';
 import { PhasesTab } from './phases.tab';

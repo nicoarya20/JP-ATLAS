@@ -27,9 +27,8 @@ import {
 } from '@/data/projects';
 import { BASE_QUERY } from '@/data/projects.query';
 import { setProjectsQuery, useProjectsQuery } from '@/data/projects.store';
-
-import { ADDED } from '../projects.strings.added';
 import { LIST } from '../projects.strings';
+import { ADDED } from '../projects.strings.added';
 import { ProjectCard } from './project-card';
 
 /** The Projects tab. */
@@ -85,7 +84,11 @@ export function ProjectsScreen() {
             <ProjectCard key={c.id} card={c} onOpen={(id) => router.push(`/projects/${id}`)} />
           ))}
           {data.hasMore && (
-            <Button testID="projects-more" variant="outline" onPress={() => void moreProjects(options)}>
+            <Button
+              testID="projects-more"
+              variant="outline"
+              onPress={() => void moreProjects(options)}
+            >
               <ButtonText>{ADDED.more}</ButtonText>
             </Button>
           )}

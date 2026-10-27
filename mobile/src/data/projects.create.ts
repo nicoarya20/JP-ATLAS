@@ -23,12 +23,11 @@ import { appWhoami, projectDetail, projectMembers, projectPicker } from './proje
 import { type CapState, capState } from './projects.api.map';
 import { leadOptions, type PickerOption, pickerOptions } from './projects.api.members';
 import type { WireProjectPriority, WireProjectStatus } from './projects.api.types';
+import type { ProjectPriorityWord } from './projects.api.values';
 import { priorityWord, statusWord } from './projects.api.values';
 import { longDate } from './projects.dates';
-import type { ResourcePhase } from './resource';
+import type { ResourcePhase, ResourceState } from './resource';
 import type { ProjectStatus } from './sample/projects';
-import type { ProjectPriorityWord } from './projects.api.values';
-import type { ResourceState } from './resource';
 import { viewer } from './viewer';
 
 /** The Edit form's own copy of the project, in the words the form shows. */
@@ -60,7 +59,7 @@ export type Loaded<T> = {
   notFound: boolean;
 };
 
-const loaded = <T,>(state: ResourceState<unknown>, view: T | null): Loaded<T> => ({
+const loaded = <T>(state: ResourceState<unknown>, view: T | null): Loaded<T> => ({
   view,
   phase: state.phase,
   error: state.error,
