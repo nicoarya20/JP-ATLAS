@@ -3,8 +3,28 @@
 import { act, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
+import { forgetAllResources } from '../../src/data/resource';
 import { EDIT_FROM_PROFILE } from '../../src/screens/settings/profile-edit.screen';
 import { openApp } from '../helpers/app-router';
+import { serveAuth } from '../helpers/auth-server';
+import { countRoutes, homeRoutes } from '../helpers/home-fixtures';
+import { whoamiRoute } from '../helpers/whoami-fixtures';
+
+// The tabs read the server on mount; empty answers keep those reads in jest (only the route tree is under test).
+let server: ReturnType<typeof serveAuth> | null = null;
+beforeEach(() => {
+  forgetAllResources();
+  server = serveAuth({
+    ...homeRoutes(),
+    ...countRoutes(0, 0),
+    ...whoamiRoute('pm'),
+    '/api/app/tasks?': { body: { items: [], nextCursor: null, caps: {} } },
+  });
+});
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
 
 describe('Edit profile opened from the profile modal', () => {
   it('goes back over the tabs, then reopens the modal', async () => {

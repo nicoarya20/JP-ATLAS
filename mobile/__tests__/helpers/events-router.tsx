@@ -12,6 +12,7 @@ import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { resetArchive } from '../../src/data/archive.store';
 import { resetEvents } from '../../src/data/events.store';
+import { forgetAllResources } from '../../src/data/resource';
 import type { Role } from '../../src/data/sample';
 import { resetTasks } from '../../src/data/tasks.store';
 import { EventDetailScreen } from '../../src/screens/events/detail/event-detail.screen';
@@ -24,6 +25,8 @@ import { RecordingScreen } from '../../src/screens/events/record/recording.scree
 import { EventResultsScreen } from '../../src/screens/events/results/results.screen';
 import { ArchiveEventScreen } from '../../src/screens/events/sheets/archive.screen';
 import { CancelEventScreen } from '../../src/screens/events/sheets/cancel.screen';
+import { serveAuth } from './auth-server';
+import { whoamiRoute } from './whoami-fixtures';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
 jest.mock('expo-font', () => ({
@@ -61,9 +64,22 @@ function routes(role: Role) {
 export const openEvents = (url: string, role: Role = 'pm'): Promise<RenderRouterResult> =>
   renderRouter(routes(role), { initialUrl: url, wrapper: GluestackUIProvider });
 
-/** Every store an Events screen writes, back to the sample after each test. */
+/**
+ * Every store an Events screen writes, back to the sample after each test. The tab bar reads whoami and the Inbox
+ * count on mount; they are answered here, so no read leaves jest.
+ */
 export function resetEventStores() {
+  let server: ReturnType<typeof serveAuth> | null = null;
+  beforeEach(() => {
+    forgetAllResources();
+    server = serveAuth({
+      ...whoamiRoute('pm'),
+      '/api/app/inbox/count': { body: { action: 0, infoUnread: 0 } },
+    });
+  });
   afterEach(async () => {
+    server?.restore();
+    server = null;
     await act(async () => {
       resetEvents();
       resetTasks();

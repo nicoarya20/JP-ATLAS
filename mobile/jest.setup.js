@@ -65,3 +65,17 @@ jest.mock('expo-network', () => require('./__tests__/helpers/expo-session-mocks'
 // The API client refuses to run without a server address (src/api/client.ts), on purpose: a silent default would send a
 // real session somewhere unexpected. Tests get one and never reach it — fetch is always stubbed. test-only
 process.env.EXPO_PUBLIC_API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:3005';
+
+// That address is also where a developer's own server runs, so a request no test stubbed must never leave jest. This
+// default fails the way a dead network does and names the request, so the missing stub is easy to add; serveAuth
+// (__tests__/helpers/auth-server.ts) and the other doubles replace it per test and put it back after. test-only
+globalThis.fetch = async (input, init) => {
+  const url =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.href
+        : (input?.url ?? String(input));
+  const method = init?.method ?? input?.method ?? 'GET';
+  throw new TypeError(`no stub: ${method} ${url}`);
+};
