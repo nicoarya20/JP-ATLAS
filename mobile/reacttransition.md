@@ -28,6 +28,8 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 | 2026-10-25 | Linter mobile = biome (bukan ESLint expo) | Konsisten dengan root; biome root mengecualikan `mobile/` |
 | 2026-10-25 | Fase 0: Tabs Expo Router standar; gelembung, drag, panel More, dan sheet Create menyusul | Butuh Reanimated + Gesture Handler; di luar tujuan spike |
 | 2026-10-27 | **Leave dihapus dari mobile**: sheet `/leave` (`settings.leave`), baris Request/Set leave di Create, bagian Availability di Settings, toggle "Leave needs approval", dan baris status ("Available"/catatan cuti) di Team | Keputusan user setelah koordinasi dengan rekan; menyimpang dari prototipe. Sisi server/desktop tidak disentuh |
+| 2026-10-28 | **Fase 2 ditulis ulang** di `feature/mobile-api-wiring`; kode `2a985b7^` hanya acuan | Keputusan user (Nico membatalkan Fase 2 lama agar disambung ulang dari titik bersih) |
+| 2026-10-28 | **Default GAP W3 (koordinator, sementara, user boleh mengubah):** kebenaran = server. Yang tidak ada datanya di server **disembunyikan** (bukan dipalsukan) dan dicatat di `docs/phase2-gap-disembunyikan.md`: chip Beranda mengikuti arti server + copy disesuaikan (H-3/4/6), lead kartu proyek (H-8), kartu Inbox AI (I-1), note/presence/Mute di profil (P-1..3), Phone (P-4), grup Team settings (S-1), avatar anggota/filter pemilik/cari deskripsi di Projects, fitur AI (Story→Draft, Template, rekaman/outcomes), type di kartu tugas, CSV, Note-taker, cari lokasi (E-3/E-5). Sort/filter = yang didukung server. Satu pengerja per tugas (T-2, sama dengan web). Archive → **Trash** + sisa hari (A-1/T-11). Unggah foto (P-5) ditunda: butuh dependensi baru. Alasan `can{}` → katalog kode→kalimat Inggris di mobile (E-6). Reopen tugas → sheet alasan 3–200 karakter | Fase 2 tidak boleh tertunda oleh keputusan produk; semuanya reversibel. Fitur server yang belum ada (review S4, tags, evidence, recurrence, outcomes, task kinds) = urusan Nico, disembunyikan sampai rutenya ada |
 
 ## 2. Batas Wilayah
 
@@ -158,11 +160,13 @@ Koordinator `pm-dashboard-b1` memegang papan ini dan commit; peer tidak menyentu
 
 | ID | Task | Pemilik | Status | Bergantung |
 |---|---|---|---|---|
-| W1-A | Fondasi API + logika sesi: `src/api/*`, `src/session/*` (kecuali gerbang), dependensi Expo Better Auth, `.env.example`, mock native di `jest.setup.js`, tes | `pm-dashboard-50` | ✅ | — |
-| W1-B | Gerbang login + layar: `use-session-gate.ts`, `app/_layout.tsx`, `app/(auth)/*`, form masuk email+sandi, pending/denied, Cannot reach server, sign out sungguhan, tes | `pm-dashboard-d7` | ✅ | kontrak W1-A |
-| W2 | Fondasi data: jam server (`GET /api/app/home`), helper instan, identitas `userId`, pola `fetch → store → invalidate`, cabut `TODAY` ambient | `pm-dashboard-50` | ✅ | W1 (`fc0ab4ed`) |
-| W3-prep | Peta layar ↔ endpoint per modul (diverifikasi ke server sekarang) di `docs/phase2-map-*.md` | `pm-dashboard-d7` | 🔄 | W1 |
-| W3 | Ganti data contoh per modul: Home, Inbox, Projects, Tasks, Events, Profile, Archive, Team | — | ⏳ | W2, W3-prep |
+| W1-A | Fondasi API + logika sesi: `src/api/*`, `src/session/*` (kecuali gerbang), dependensi Expo Better Auth, `.env.example`, mock native di `jest.setup.js`, tes | `pm-dashboard-50` | ✅ `fc0ab4ed` | — |
+| W1-B | Gerbang login + layar: `use-session-gate.ts`, `app/_layout.tsx`, `app/(auth)/*`, form masuk email+sandi, pending/denied, Cannot reach server, sign out sungguhan, tes | `pm-dashboard-d7` | ✅ `fc0ab4ed` | kontrak W1-A |
+| W2 | Fondasi data: jam server (`GET /api/app/home`), helper instan, identitas `userId`, pola `fetch → store → invalidate`, cabut `TODAY` ambient | `pm-dashboard-50` | ✅ `a3bc2943` | W1 (`fc0ab4ed`) |
+| W3-prep | Peta layar ↔ endpoint per modul (diverifikasi ke server sekarang) di `docs/phase2-map-*.md` | `pm-dashboard-d7` | ✅ | W1 |
+| W3-Home | Beranda dari `GET /api/app/home` (widget gagal-lunak, aksi Focus sungguhan) | `pm-dashboard-50` | 🔄 | W2, peta home |
+| W3-Inbox+Team | Inbox (`inbox.api.ts`, count, tandai dibaca) + Team | `pm-dashboard-d7` | 🔄 | peta home-inbox-team |
+| W3 (sisa) | Tasks (→ `pm-dashboard-50` setelah Home), Projects, Events, Profile/Archive/Users | — | ⏳ | W3-prep |
 
 ## 7. Pertanyaan Terbuka
 
