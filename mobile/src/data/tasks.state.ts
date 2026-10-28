@@ -26,11 +26,7 @@ export type TasksState = {
 /** Where tasks taken by takeProjectTasks sat, for putTasksBack. */
 export type TakenTasks = readonly { at: number; no: number }[];
 
-/** Edit task fields that live on the task itself. */
-export type TaskFields = Partial<
-  Pick<TaskItem, 'title' | 'who' | 'also' | 'due' | 'priority' | 'type' | 'tags'>
->;
-/** Edit task fields that live in the detail extras. */
+/** Detail extras a status move sets (asked, canceled, returned) or a new task starts with. */
 export type TaskExtras = Partial<
   Pick<
     TaskInfo,

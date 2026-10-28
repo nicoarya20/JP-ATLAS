@@ -1,6 +1,6 @@
 /**
- * The Tasks tab's lists from the server: My tasks grouped by when they are due, All tasks as one
- * list, or the board's four columns (map `phase2-map-tasks.md` §1).
+ * The task lists from the server: My tasks grouped by when they are due, All tasks or a project's
+ * Tasks tab as one list, or the board's four columns (map `phase2-map-tasks.md` §1).
  *
  * My tasks is **one** paged request, not one per group: the server sorts by due date with no date
  * last, so the groups come in order and a page boundary only ever splits the last one. The group of
@@ -25,11 +25,11 @@ import {
   isFiltered,
   listParams,
   queryStatuses,
-  type ServerScope,
   SORT_DUE,
   SORTS,
   STATUSES,
   type TaskQuery,
+  type TaskScope,
 } from './tasks.query';
 import {
   type ScheduleGroupWire,
@@ -62,7 +62,7 @@ export type BoardColumnView = BoardColumn & {
 };
 
 type ViewBase = {
-  scope: ServerScope;
+  scope: TaskScope;
   query: TaskQuery;
   /** The dot on the filter icon. */
   filtered: boolean;
@@ -112,7 +112,7 @@ const pageOf = (params: string, s: ResourceState<TaskListPageWire>): PageView =>
 const narrowed = (q: TaskQuery, search: string) => isFiltered(q) || !!search.trim();
 
 /** "My tasks, nothing narrowed": the only list the server's counts describe. */
-const plainMine = (scope: ServerScope, q: TaskQuery, search: string) =>
+const plainMine = (scope: TaskScope, q: TaskQuery, search: string) =>
   scope === 'mine' && !narrowed(q, search);
 
 function myGroups(
@@ -160,7 +160,7 @@ const columnStatus = (q: TaskQuery, c: BoardColumn) => {
   return q.status && !queryStatuses(q).includes(wire) ? null : [wire];
 };
 
-type ListOptions = { scope: ServerScope; query: TaskQuery; search: string };
+type ListOptions = { scope: TaskScope; query: TaskQuery; search: string };
 
 /** My tasks or All tasks as a list, kept up to date: fetches what is missing. */
 export function useTasksList({

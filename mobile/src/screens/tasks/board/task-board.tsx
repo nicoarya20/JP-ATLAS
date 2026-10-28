@@ -1,17 +1,13 @@
 // The Kanban board (prototype tasks.board.jsx Board): a column per status, scrolled sideways freely with the next
 // column peeking; hold a card to move it with the radial menu. Select turns taps into picking cards, and holding a
-// picked card moves them all. Each card says where it may go (`moves`: the server's `can{}`, or the sample's role rule).
-// Shared with a project's Tasks tab (W4), which passes no `onMove` and so still moves the sample tasks; the Tasks tab
-// moves on the server and passes each column's count and Load more.
+// picked card moves them all. Each card says where it may go (`moves`: the server's `can{}`). Shared by the Tasks tab
+// and a project's Tasks tab: both move on the server (`onMove`) and pass each column's count and Load more.
 import { router } from 'expo-router';
 import { type ReactNode, useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import { useNotice } from '@/components/notice/use-notice';
-import { me } from '@/data/people';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
 import { CARD_TEXT, type TaskCard } from '@/data/tasks.card';
 import {
   type BoardStatus,
@@ -20,7 +16,6 @@ import {
   selectionHint,
   sharedStatus,
 } from '@/data/tasks.columns';
-import { moveOnBoard } from '@/data/tasks.store';
 import { SPACING } from '@/theme/tokens';
 
 import { S } from '../tasks.strings';
@@ -40,24 +35,26 @@ export type ColumnExtra = { count?: string; footer?: ReactNode };
 type TaskBoardProps = {
   /** The board's cards, in the query's order. */
   tasks: readonly TaskCard[];
-  role?: Role;
   /** Cards show their project instead of their type (My tasks). */
   mine: boolean;
-  /** Default: the sample store (a project's Tasks tab). */
-  onMove?: BoardMove;
+  onMove: BoardMove;
   columns?: Partial<Record<BoardStatus, ColumnExtra>>;
   /** Add task under each column; default shown. */
   canAdd?: boolean;
+  /** Where Add task goes; default New task · Fill form on no particular project. */
+  onAdd?: () => void;
 };
+
+const newTask = () => router.push('/tasks/new/form');
 
 /** Kanban columns of `tasks` with select mode and the move menu. */
 export function TaskBoard({
   tasks,
-  role = SESSION_ROLE,
   mine,
   onMove,
   columns = {},
   canAdd = true,
+  onAdd = newTask,
 }: TaskBoardProps) {
   const notice = useNotice();
   const [selecting, setSelecting] = useState(false);
@@ -70,17 +67,9 @@ export function TaskBoard({
   };
   const runMove = (cards: readonly TaskCard[], to: BoardStatus) => {
     const nos = cards.map((c) => c.no);
-    const move: BoardMove =
-      onMove ??
-      ((cs, status) =>
-        moveOnBoard(
-          me(role),
-          cs.map((c) => c.no),
-          status,
-        ).notice);
     setMoving((old) => [...old, ...nos]);
     Promise.resolve()
-      .then(() => move(cards, to))
+      .then(() => onMove(cards, to))
       .then(
         (text) => {
           if (text) notice(text);
@@ -161,7 +150,7 @@ export function TaskBoard({
             onOpen={(no) => router.push(`/tasks/${no}`)}
             moveSet={moveSet}
             onMove={move}
-            onAdd={() => router.push('/tasks/new/form')}
+            onAdd={onAdd}
           />
         ))}
       </ScrollView>

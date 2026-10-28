@@ -126,11 +126,4 @@ describe('moveOnServer', () => {
     expect(await moveOnServer(cards, 'Done')).toEqual({ moved: 0, failed: [], skipped: 1 });
     expect(lists()).toHaveLength(1);
   });
-
-  test('a card without a server id is a bug, not a refusal', async () => {
-    const card = { ...apiCard(row(1)), id: null };
-    await expect(moveOnServer([card], 'Done')).rejects.toThrow(
-      'Cannot move task #1 on the server: it has no id',
-    );
-  });
 });

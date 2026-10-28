@@ -2,35 +2,14 @@ import { listEntries } from './archive.store';
 import { today } from './clock';
 
 import { nowStamp, type TaskInfo, type TaskItem, whenFromDue } from './tasks.shared';
-import {
-  type NewTaskExtras,
-  type NewTaskFields,
-  put,
-  record,
-  tasksStore as store,
-  type TaskExtras,
-  type TaskFields,
-  taskOrThrow,
-} from './tasks.state';
+import { type NewTaskExtras, type NewTaskFields, tasksStore as store } from './tasks.state';
 
-/* Edit task and New task writes of the Tasks module (prototype tasks.store.js editTask, addTask). */
+/* Adding a task to the sample store (prototype tasks.store.js addTask): what a meeting's outcomes create (Events). */
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Due note after the due date changed: kept for Done tasks, else counted from the new date. */
 const whenOfDue = (t: TaskItem) => (t.status === 'Done' ? t.when : whenFromDue(t.due, true));
-
-/** Save Edit task for task #no; the history logs who edited it. */
-export function editTask(no: number, fields: TaskFields, extras: TaskExtras, editor: string) {
-  const s = store.get();
-  const t = taskOrThrow(s, no, 'edit');
-  const edited = { ...t, ...fields, updated: nowStamp() };
-  const next =
-    fields.due !== undefined && fields.due !== t.due
-      ? { ...edited, when: whenOfDue(edited) }
-      : edited;
-  store.set({ ...s, ...put(s, next), info: record(s, no, `${editor} edited this task`, extras) });
-}
 
 /** Task numbers Archive already lists ("task-21"), which a new task must not take. */
 const archivedNos = () =>

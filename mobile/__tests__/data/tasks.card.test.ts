@@ -1,7 +1,7 @@
 // A `GET /api/app/tasks` row as a card (tasks.card.ts), the board moves its `can{}` allows, and the English reason a
 // disabled capability gives (caps.messages.ts, E-6). The test clock's today is Wed Oct 7, 2026.
 import { CAP_UNKNOWN, capMessage, capReason } from '../../src/data/caps.messages';
-import { apiCard, boardMoves, CARD_TEXT, moveActionOf } from '../../src/data/tasks.card';
+import { apiCard, boardMoves, CARD_TEXT, cardStep, moveActionOf } from '../../src/data/tasks.card';
 import { DODI, locked, row } from '../helpers/tasks-fixtures';
 
 describe('apiCard', () => {
@@ -34,6 +34,7 @@ describe('apiCard', () => {
       steps: '2/3',
       moves: ['To do', 'Done'],
       denied: null,
+      step: null,
     });
   });
 
@@ -55,6 +56,21 @@ describe('apiCard', () => {
     expect(apiCard(row(5, { assignee: DODI })).people).toEqual([
       { name: 'Dodi', full: 'Dodi Hartono' },
     ]);
+  });
+});
+
+describe('cardStep', () => {
+  test("a card's button runs the server's primary step when it is one a tap can run and allowed", () => {
+    expect(cardStep({ primary: 'start', can: { start: true } })).toBe('start');
+    expect(cardStep({ primary: 'complete', can: { complete: true } })).toBe('complete');
+    expect(cardStep({ primary: 'uncancel', can: { uncancel: true } })).toBe('uncancel');
+  });
+
+  test('a refused step, a step that needs a reason or a review, or no primary: View instead', () => {
+    expect(cardStep({ primary: 'start', can: { start: 'IMPERSONATING' } })).toBeNull();
+    expect(cardStep({ primary: 'start', can: {} })).toBeNull();
+    expect(cardStep({ primary: 'reopen', can: { reopen: true } })).toBeNull();
+    expect(cardStep({ primary: null, can: { start: true } })).toBeNull();
   });
 });
 

@@ -8,7 +8,7 @@ import { FailedState, LoadingState } from '@/components/state/section-state';
 import { moveOnServer, taskListResource } from '@/data/tasks.api';
 import { serverMoveNotice } from '@/data/tasks.columns';
 import { useTasksBoard, useTasksList } from '@/data/tasks.list';
-import type { ServerScope, TaskQuery } from '@/data/tasks.query';
+import type { TaskQuery, TaskScope } from '@/data/tasks.query';
 
 import { type BoardMove, type ColumnExtra, TaskBoard } from '../board/task-board';
 import { S } from '../tasks.strings';
@@ -16,11 +16,11 @@ import { PageFooter } from './page-footer';
 import { TaskList } from './task-list';
 
 /** Moves cards on the server and words the outcome. */
-const moveCards: BoardMove = async (cards, to) =>
+export const moveCards: BoardMove = async (cards, to) =>
   serverMoveNotice(cards.length > 1, to, await moveOnServer(cards, to));
 
 export type BodyProps = {
-  scope: ServerScope;
+  scope: TaskScope;
   query: TaskQuery;
   search: string;
   onReset: () => void;

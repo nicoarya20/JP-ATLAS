@@ -96,7 +96,8 @@ export const CANCEL_REASONS: readonly (readonly [TaskCancelCategoryWire, string]
 export const cancelLabel = (c: TaskCancelCategoryWire): string =>
   CANCEL_REASONS.find(([k]) => k === c)?.[1] ?? c;
 
-const LABEL: Record<DetailActionKey, string> = {
+/** The words of each workflow button, on the detail and on a project's task cards. */
+export const STEP_LABEL: Record<DetailActionKey, string> = {
   start: 'Start working',
   unstart: 'Stop working',
   complete: 'Mark done',
@@ -115,7 +116,7 @@ function action(
   primary: PrimaryActionWire | null,
 ): DetailAction | null {
   const a = allowed(can[key as TaskCapKeyWire]);
-  return a && { key, label: LABEL[key], primary: primary === key, off: a.off };
+  return a && { key, label: STEP_LABEL[key], primary: primary === key, off: a.off };
 }
 
 const isOpen = (t: TaskDetailWire) => t.status !== 'done' && t.status !== 'canceled';

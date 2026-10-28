@@ -28,7 +28,7 @@ export const DETAIL = {
   trash: 'Move to Trash',
   leadDue: (lead: string, due: string) => `Lead: ${lead} · Due: ${due}`,
   extend: 'Extend deadline',
-  tabs: ['Overview', 'Phases', 'Members'],
+  tabs: ['Overview', 'Tasks', 'Phases', 'Members'],
   missingTitle: 'Project not found',
   missingText: 'It may have been moved to the Trash, or you are not in it.',
 } as const;
@@ -51,6 +51,8 @@ export const TASKS_TAB = {
   views: ['List', 'Kanban'],
   newTask: '+ New task',
   noMatch: 'No tasks match these filters.',
+  empty: 'No tasks in this project yet',
+  emptyText: 'Tasks added to this project show here.',
 } as const;
 
 export const PHASES = {
@@ -151,32 +153,9 @@ export const TRASH = {
 } as const;
 
 export const CREATE = {
-  title: 'New project',
-  heading: 'Create a new project',
-  lead: 'Choose the easiest way for you.',
-  choose: 'Choose',
-  recommended: 'Recommended',
-  ways: {
-    story: {
-      title: 'Tell us about the project',
-      desc: 'Describe the project like telling a friend. AI drafts the phases and tasks.',
-      hint: 'You still review the draft before the project is created.',
-    },
-    form: {
-      title: 'Fill in the form yourself',
-      desc: 'Enter the project name, dates, and members one by one.',
-      hint: 'Good if you already know the project details.',
-    },
-    template: {
-      title: 'Use a template',
-      desc: 'Start from a project structure you made before.',
-      hint: 'Good for projects similar to a previous one.',
-    },
-  },
   cancel: 'Cancel',
   create: 'Create project',
   created: 'Project created',
-  ai: 'AI-assisted',
 } as const;
 
 export const FORM = {
@@ -211,49 +190,4 @@ export const PICKER = {
   noneYet: 'Everyone is already in the project.',
   add: 'Add',
   addLabel: (name: string) => `Add ${name}`,
-} as const;
-
-export const STORY = {
-  title: 'Tell us about the project ✦',
-  lead: 'Write it like telling a friend. AI will draft the project for you to review.',
-  label: 'Your story',
-  count: (n: number, max: number) => `${n} / ${max} characters`,
-  speak: 'Speak',
-  soon: 'Not active yet · coming soon',
-  mention: 'To get a good draft, mention:',
-  mentions: ["The project's goal", 'When it must be done', 'Who is involved'],
-  build: 'Build draft',
-} as const;
-
-export const DRAFT = {
-  title: 'Review draft',
-  banner: 'This is an AI draft. Review it before creating.',
-  notYet: 'Not a project yet',
-  info: 'Project info',
-  edit: 'Edit',
-  name: 'Project name',
-  desc: 'Description',
-  dates: 'Dates',
-  priority: 'Priority · Initial status',
-  priorityValue: 'Medium · Draft',
-  members: 'Members',
-  phases: 'Phases, milestones & initial tasks',
-  phase: (n: number, name: string) => `${n}. ${name}`,
-  milestone: (name: string) => `◆ Milestone: ${name}`,
-  type: (title: string) => `Task type of ${title}`,
-  types: ['Task', 'Bug', 'Idea'],
-  typesNote: 'AI picked the type from Task · Bug · Idea, tap to change. Uncheck to discard.',
-  saveTemplate: 'Also save as template',
-  saveTemplateSub: "So similar projects don't need the story again.",
-  rebuild: 'Rebuild',
-} as const;
-
-export const TEMPLATE = {
-  title: 'Use template',
-  choose: 'Choose template',
-  fill: 'Fill in project data',
-  name: 'Project name',
-  start: 'Start date',
-  end: 'Estimated end',
-  note: 'Phase and milestone dates are calculated automatically from the start date. The creator automatically becomes Manager and Lead.',
 } as const;

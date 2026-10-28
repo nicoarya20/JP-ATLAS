@@ -1,11 +1,10 @@
 // The Tasks tab (prototype tasks.list.jsx ListScreen, tasks.board.jsx TasksBoard), read from /api/app/tasks: the
 // stacked header with the search and the Filter & sort icon, the My tasks / All tasks and List / Kanban switches pinned
 // under it (route params `scope` and `view`), then the list or the board (tasks-body.tsx). Switching My / All starts the
-// other list from its own default query; List / Kanban keeps it. Typing searches once the text rests (SEARCH_WAIT_MS),
-// so a word is one request, not one per letter.
+// other list from its own default query; List / Kanban keeps it. Typing searches once the text rests (use-settled.ts).
 import { router, useLocalSearchParams } from 'expo-router';
 import { List, SquareKanban } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Seg } from '@/components/form/seg';
@@ -14,24 +13,13 @@ import { HStack } from '@/components/ui/hstack';
 import { resetQuery, useQuery } from '@/data/tasks.query-state';
 
 import { TasksSearchField } from '../filter/tasks-search';
+import { useSettled } from '../filter/use-settled';
 import { S } from '../tasks.strings';
 import { SPOKEN } from '../tasks.strings.added';
 import { ServerBoard, ServerList } from './tasks-body';
 
 const SCOPES = ['mine', 'all'] as const;
 const VIEWS = ['list', 'board'] as const;
-/** How long typing must pause before the search is sent. */
-export const SEARCH_WAIT_MS = 300;
-
-/** `value`, once it has stayed the same for `ms`. */
-function useSettled(value: string, ms: number): string {
-  const [settled, setSettled] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(value), ms);
-    return () => clearTimeout(timer);
-  }, [value, ms]);
-  return settled;
-}
 
 /** The Tasks tab of whoever is signed in. */
 export function TasksScreen() {
@@ -39,7 +27,7 @@ export function TasksScreen() {
   const scope = params.scope === 'all' ? 'all' : 'mine';
   const view = params.view === 'board' ? 'board' : 'list';
   const [search, setSearch] = useState('');
-  const sent = useSettled(search, SEARCH_WAIT_MS);
+  const sent = useSettled(search);
   const query = useQuery(scope);
   const reset = () => {
     resetQuery(scope);

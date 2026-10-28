@@ -13,13 +13,7 @@ import {
 } from './projects.state';
 
 import type { ProjectRole } from './sample/projects.extra';
-import {
-  forgetProjectTasks,
-  getTasksState,
-  putTasksBack,
-  renameProjectTasks,
-  takeProjectTasks,
-} from './tasks.store';
+import { getTasksState, putTasksBack, renameProjectTasks, takeProjectTasks } from './tasks.store';
 
 // Callers keep importing the reads from here; they live in projects.state so Tasks can read them without a cycle.
 export {
@@ -156,26 +150,6 @@ export function restoreProject(id: string, key?: string): void {
     held: s.held.filter((x) => x !== h),
   });
   putTasksBack(h.taken);
-}
-
-/**
- * Archive › Delete forever of entry `key` (call before removeEntry): the project is gone for good, findProject no
- * longer finds it and restoreProject throws "not in Archive", and the tasks it took along are forgotten too. A key
- * this store does not hold (the sample entries, which no list ever had) is left alone.
- */
-export function forgetArchivedProject(key: string): void {
-  const s = store.get();
-  const h = s.held.find((x) => x.key === key);
-  // An entry that came with the Archive sample (no project of the store behind it) has nothing to forget here.
-  if (!h) return;
-  forgetProjectTasks(h.taken);
-  const { [h.id]: _, ...activity } = s.activity;
-  store.set({
-    ...s,
-    archived: s.archived.filter((p) => p.id !== h.id),
-    held: s.held.filter((x) => x !== h),
-    activity,
-  });
 }
 
 /** Every project back to the sample; Archive and Tasks have their own resets. test-only */

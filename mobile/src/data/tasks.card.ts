@@ -3,7 +3,7 @@
  * (map `phase2-map-tasks.md` §2a).
  *
  * Nothing about permission is decided here: which statuses a card may move to comes from the row's
- * `can{}` (the client rule `mayChange` is gone for server rows), and a greyed-out move says why in
+ * `can{}` (the client rule `mayChange` is gone), and a greyed-out move says why in
  * the server's terms through `caps.messages.ts`. Dates are calendar days compared with the server's
  * "today" (K1); the type is not on list rows (T-3), so a server card has none.
  */
@@ -23,8 +23,8 @@ import {
 
 export type TaskCard = {
   no: number;
-  /** The server's id (Trash and writes need it); null on the sample path Projects still reads. */
-  id: string | null;
+  /** The server's id (Trash and writes need it). */
+  id: string;
   title: string;
   project: string;
   /** Task type; null for a server row, whose list item does not carry it (T-3). */
@@ -49,7 +49,22 @@ export type TaskCard = {
   moves: readonly BoardStatus[];
   /** Why holding it moves nothing (a notice), or null when it has a move. */
   denied: string | null;
+  /** The step a card's own button takes (a project's Tasks tab), or null: the card then only opens. */
+  step: CardStep | null;
 };
+
+/**
+ * Steps a card's button may take: the server's `primary` when `can{}` allows it now. Reopen needs a
+ * reason (its sheet is on the detail) and the review steps wait for S4 (T-1), so those cards open.
+ */
+export type CardStep = 'start' | 'complete' | 'uncancel';
+const CARD_STEPS: readonly string[] = ['start', 'complete', 'uncancel'] satisfies CardStep[];
+
+/** The step of a row's button, or null. */
+export const cardStep = (t: Pick<TaskListItemWire, 'primary' | 'can'>): CardStep | null =>
+  t.primary && CARD_STEPS.includes(t.primary) && t.can[t.primary as CardStep] === true
+    ? (t.primary as CardStep)
+    : null;
 
 /** The workflow step a board move takes; a pair not listed has no single step (reopen needs a reason). */
 export type MoveAction = 'start' | 'unstart' | 'complete';
@@ -120,5 +135,6 @@ export function apiCard(t: TaskListItemWire): TaskCard {
     lateBy: late ? daysLate(-days) : null,
     steps: t.checklist.total ? `${t.checklist.done}/${t.checklist.total}` : null,
     ...boardMoves(t.status, t.can),
+    step: cardStep(t),
   };
 }

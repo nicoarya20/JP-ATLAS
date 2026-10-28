@@ -1,6 +1,6 @@
 // Projects ⑧–⑪ detail against stubbed `/api/app/projects/:id*` reads: the header from the detail, each Overview part
 // from its own read (and failing on its own), the Phases and Members tabs, a project that is not there, and the
-// Tasks tab not offered while it is still on the sample data. The view rules are in __tests__/data/projects.view.test.ts.
+// four tabs (the Tasks tab itself: projects.tasks-tab.test.tsx). The view rules are in __tests__/data/projects.view.test.ts.
 import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
@@ -36,7 +36,7 @@ const open = (tab?: string) => {
 };
 
 describe('Project detail header', () => {
-  test('status, condition and its reason, Lead and deadline, the extension pill; three tabs, no Tasks', async () => {
+  test('status, condition and its reason, Lead and deadline, the extension pill; four tabs', async () => {
     serve(atlasRoutes());
     await open();
     expect(await screen.findByTestId('screen-project')).toBeOnTheScreen();
@@ -47,8 +47,8 @@ describe('Project detail header', () => {
     expect(screen.getByText('Lead: Nico Pratama · Due: Oct 31, 2026')).toBeOnTheScreen();
     expect(screen.getByText('Extended ×1')).toBeOnTheScreen();
     const tabs = within(screen.getByTestId('project-tabs'));
-    expect(tabs.getAllByRole('tab')).toHaveLength(3);
-    expect(tabs.queryByRole('tab', { name: 'Tasks' })).not.toBeOnTheScreen();
+    expect(tabs.getAllByRole('tab')).toHaveLength(4);
+    expect(tabs.getByRole('tab', { name: 'Tasks' })).toBeOnTheScreen();
     await fireEvent.press(tabs.getByRole('tab', { name: 'Members' }));
     expect(router.setParams).toHaveBeenCalledWith({ tab: 'members' });
   });
@@ -72,9 +72,9 @@ describe('Project detail header', () => {
     expect(screen.getByText('Vendor mundur')).toBeOnTheScreen();
   });
 
-  test('tab=tasks (an old link) opens the Overview', async () => {
+  test('an unknown tab opens the Overview', async () => {
     serve(atlasRoutes());
-    await open('tasks');
+    await open('files');
     expect(await screen.findByText('Recent activity')).toBeOnTheScreen();
   });
 

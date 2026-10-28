@@ -1,18 +1,16 @@
 // Search field with the Filter & sort icon above a task list (prototype TasksSearch); its dot shows while the scope's
-// query narrows the list. Shared with a project's Tasks tab (W4), which opens its own filter route.
+// query narrows the list. Shared with a project's Tasks tab, which opens its own filter route.
 import { router } from 'expo-router';
 
 import { SearchFilter } from '@/components/filter/filter-button';
-import { isFiltered, projectOfScope, type TaskScope } from '@/data/tasks.query';
+import { isFiltered, type TaskScope } from '@/data/tasks.query';
 import { useQuery } from '@/data/tasks.query-state';
 
 import { S } from '../tasks.strings';
 
 type TasksSearchFieldProps = {
   scope: TaskScope;
-  /** A project's Tasks tab: its filter swaps Project for Assignee (TasksFilterPanel inProject). */
-  inProject?: boolean;
-  /** Search text: title or exact number on the Tasks tab (T-5), also a tag on a project's tab (sample path). */
+  /** Search text: the title, or the exact number (T-5). */
   value: string;
   onChangeText: (text: string) => void;
   /** Opens the filter sheet; default: the Tasks tab's /tasks/filter. A project's tab passes its task-filter route. */
@@ -26,7 +24,7 @@ export function TasksSearchField({ scope, value, onChangeText, onFilter }: Tasks
   return (
     <SearchFilter
       testID="tasks-filter"
-      placeholder={projectOfScope(scope) ? S.search : S.searchServer}
+      placeholder={S.searchServer}
       value={value}
       onChangeText={onChangeText}
       on={isFiltered(query)}

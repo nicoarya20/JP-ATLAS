@@ -4,8 +4,6 @@
 /** Shown under the field (and read as the disabled primary's hint) while the form can't be sent. */
 export const WHY = {
   name: 'Enter a project name.',
-  template: 'Choose a template.',
-  story: 'Write your story first.',
   next: 'Pick a new deadline.',
   reason: 'Enter a reason.',
   dueBeforeStart: 'The deadline must be on or after the start date.',
@@ -15,7 +13,6 @@ export const WHY = {
 export const NAMES = {
   newTask: 'New task',
   addMember: 'Add member',
-  choose: (way: string) => `Choose: ${way}`,
   view: 'View',
   allPhases: 'See all phases',
 } as const;
@@ -30,7 +27,6 @@ export const STEP_STATE = {
 } as const satisfies Record<PhaseStatusWire, string>;
 
 export const ADDED = {
-  archivedTasks: 'Tasks are in Archive with the project.',
   leadStays: "The Lead stays Manager and can't be removed.",
   progress: (percent: string) => `Progress ${percent}`,
 } as const;

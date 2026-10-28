@@ -1,16 +1,11 @@
-import { findEntry, listEntries, removeEntry, resetArchive } from '../../src/data/archive.store';
-import { me } from '../../src/data/people';
+import { findEntry, listEntries, resetArchive } from '../../src/data/archive.store';
 import { getTasksState } from '../../src/data/tasks.state';
 import {
   addTask,
   archiveTask,
-  editTask,
-  forgetArchivedTask,
   getTask,
   listArchivedTasks,
-  moveOnBoard,
   moveTask,
-  moveTasks,
   putTasksBack,
   renameProjectTasks,
   resetTasks,
@@ -63,36 +58,6 @@ describe('moveTask', () => {
     expect(getTasksState()).toBe(before);
     expect(() => moveTask(99, 'Done')).toThrow('Cannot move task #99: no such task');
   });
-
-  test('moveTasks moves only those in another status', () => {
-    expect(moveTasks([14, 12, 15], 'In progress')).toEqual([14, 15]);
-    expect(getTask(15)?.status).toBe('In progress');
-  });
-});
-
-describe('moveOnBoard', () => {
-  test('one card: "Moved to <status>", none when let go on its own status', () => {
-    expect(moveOnBoard(me('pm'), [15], 'In progress')).toEqual({
-      moved: [15],
-      notice: 'Moved to In progress',
-    });
-    expect(moveOnBoard(me('pm'), [12], 'In progress')).toEqual({ moved: [], notice: null });
-  });
-
-  test('a group counts only the tasks that changed', () => {
-    expect(moveOnBoard(me('admin'), [12, 17, 8], 'Done')).toEqual({
-      moved: [12, 17],
-      notice: 'Moved 2 tasks to Done',
-    });
-  });
-
-  test("a Member may not move a teammate's task", () => {
-    expect(moveOnBoard(me('member'), [16], 'In progress').notice).toBe('Moved to In progress');
-    expect(() => moveOnBoard(me('member'), [16, 12], 'Done')).toThrow(
-      'Cannot move task #12: Dodi may not change it',
-    );
-    expect(getTask(16)?.status).toBe('In progress');
-  });
 });
 
 describe('Archive', () => {
@@ -128,36 +93,6 @@ describe('Archive', () => {
   });
 });
 
-describe('forgetArchivedTask (Archive › Delete forever)', () => {
-  test('a task archived on its own is gone for good, and Undo then throws', () => {
-    archiveTask(14, 'Nico');
-    forgetArchivedTask('task-14');
-    removeEntry('task-14');
-    expect(getTask(14)).toBeUndefined();
-    expect(listArchivedTasks()).toEqual([]);
-    expect(getTasksState().info[14]).toBeUndefined();
-    expect(getTasksState().at[14]).toBeUndefined();
-    expect(() => unarchiveTask(14)).toThrow('Cannot restore task #14: not in Archive');
-  });
-
-  test('keys the store does not hold are left alone', () => {
-    takeProjectTasks('Atlas Project');
-    const before = getTasksState();
-    forgetArchivedTask('task-21');
-    forgetArchivedTask('task-14');
-    forgetArchivedTask('event-3');
-    expect(getTasksState()).toBe(before);
-  });
-
-  test('the number of a deleted task is not given out again', () => {
-    const no = addTask(NEW, { desc: '' }, 'Nico');
-    archiveTask(no, 'Nico');
-    forgetArchivedTask(`task-${no}`);
-    removeEntry(`task-${no}`);
-    expect(addTask(NEW, { desc: '' }, 'Nico')).toBe(no + 1);
-  });
-});
-
 describe('project changes', () => {
   test('an archived project takes its tasks along and brings them back in place', () => {
     const before = listed();
@@ -181,16 +116,7 @@ describe('project changes', () => {
   });
 });
 
-describe('editTask and addTask', () => {
-  test('edit writes fields and extras, recounts the note from a new due date and logs the editor', () => {
-    editTask(15, { title: 'New title', due: '2026-10-08', tags: ['ux'] }, { desc: 'Why' }, 'Nico');
-    expect(getTask(15)).toMatchObject({ title: 'New title', when: 'Tomorrow', tags: ['ux'] });
-    expect(taskInfo(getTasksState(), 15)).toMatchObject({ desc: 'Why', by: 'Nico' });
-    expect(lastLog(15)?.text).toBe('Nico edited this task');
-    editTask(8, { due: '2026-10-01' }, {}, 'Nico');
-    expect(getTask(8)?.when).toBe('Done Sep 20');
-  });
-
+describe('addTask', () => {
   test('a task without extras gets its project lead as creator', () => {
     expect(taskInfo(getTasksState(), 9)).toEqual({
       desc: '',

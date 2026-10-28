@@ -112,7 +112,6 @@ export async function moveOnServer(
   const steps = cards.flatMap((c) => {
     const action = c.moves.includes(to) ? moveActionOf(STATUS_WIRE[c.status], to) : null;
     if (!action) return [];
-    if (!c.id) throw new Error(`Cannot move task #${c.no} on the server: it has no id`);
     return [`/api/app/tasks/${encodeURIComponent(c.id)}/${action}`];
   });
   const done = await Promise.allSettled(steps.map((path) => postTask<TaskTransitionWire>(path)));

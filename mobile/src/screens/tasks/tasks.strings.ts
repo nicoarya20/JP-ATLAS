@@ -4,7 +4,6 @@ import { countedTasks } from '@/data/tasks.columns';
 
 export const S = {
   title: 'Tasks',
-  search: 'Search title, #number, or tag…',
   /** What `q` matches on the server: part of the title, or a task number exactly, "12" or "#12" (T-5). */
   searchServer: 'Search title or #number…',
   scopes: ['My tasks', 'All tasks'],

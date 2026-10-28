@@ -1,16 +1,17 @@
 // Projects ⑧–⑪ detail (prototype projects.detail.jsx / projects.tabs.jsx) from the server: the project in the route
-// param `id`, its header with the ⋯ menu and Extend deadline, and the tab in the param `tab` (overview, phases,
-// members). The project's Tasks tab is not offered until the Tasks module reads the server, so `tab=tasks` opens the
-// Overview (GAP: Projects Tasks tab).
+// param `id`, its header with the ⋯ menu and Extend deadline, and the tab in the param `tab` (overview, tasks, phases,
+// members). On the Tasks tab the search and List / Kanban row (param `view`) stick under the nav bar; the search is
+// sent once typing rests.
 import { router, useLocalSearchParams } from 'expo-router';
 import { FolderX } from 'lucide-react-native';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { DetailPage } from '@/components/screen/detail-page';
 import { EmptyState } from '@/components/state/empty-state';
 import { FailedState, LoadingState } from '@/components/state/section-state';
 import { projectResource } from '@/data/projects.api';
 import { getProjectHead } from '@/data/projects.view';
+import { useSettled } from '@/screens/tasks';
 
 import { DETAIL } from '../projects.strings';
 import { DetailHead, type DetailTab, DetailTabs, TABS } from './detail-header';
@@ -19,6 +20,7 @@ import { OverviewTab } from './overview.tab';
 import { PhasesTab } from './phases.tab';
 import { ExtendButton, ProjectMenu } from './project-menu';
 import { ProjectPage } from './project-page';
+import { TasksBody, TasksTools, type TasksView } from './tasks.tab';
 
 const asTab = (t?: string): DetailTab => TABS.find((x) => x === t) ?? 'overview';
 
@@ -46,8 +48,10 @@ function NoProject({ id }: { id: string }) {
 
 /** The detail of the project in the route. */
 export function ProjectDetailScreen() {
-  const params = useLocalSearchParams<{ id: string; tab?: string }>();
+  const params = useLocalSearchParams<{ id: string; tab?: string; view?: string }>();
   const id = params.id;
+  const [search, setSearch] = useState('');
+  const settled = useSettled(search);
   projectResource(id).use();
   useEffect(() => {
     void projectResource(id).ensure();
@@ -55,10 +59,36 @@ export function ProjectDetailScreen() {
   const h = getProjectHead(id);
   if (!h) return <NoProject id={id} />;
   const tab = asTab(params.tab);
+  const page = { testID: 'screen-project', title: h.name, right: <ProjectMenu h={h} /> };
+  const top = [
+    <DetailHead key="head" h={h} extra={h.canExtend ? <ExtendButton id={h.id} /> : undefined} />,
+    <DetailTabs key="tabs" tab={tab} />,
+  ];
+  if (tab === 'tasks') {
+    const view: TasksView = params.view === 'board' ? 'board' : 'list';
+    return (
+      <ProjectPage {...page} sticky={top.length}>
+        {top}
+        <TasksTools
+          id={h.id}
+          view={view}
+          search={search}
+          onSearch={setSearch}
+          create={h.can.createTask}
+        />
+        <TasksBody
+          id={h.id}
+          view={view}
+          search={settled}
+          canAdd={h.can.createTask === true}
+          onReset={() => setSearch('')}
+        />
+      </ProjectPage>
+    );
+  }
   return (
-    <ProjectPage testID="screen-project" title={h.name} right={<ProjectMenu h={h} />}>
-      <DetailHead h={h} extra={h.canExtend ? <ExtendButton id={h.id} /> : undefined} />
-      <DetailTabs tab={tab} />
+    <ProjectPage {...page}>
+      {top}
       {tab === 'overview' && (
         <OverviewTab id={h.id} onPhases={() => router.setParams({ tab: 'phases' })} />
       )}

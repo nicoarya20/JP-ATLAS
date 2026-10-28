@@ -49,7 +49,7 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 |---|---|---|
 | My tasks `(tabs)/tasks/index` (list) → `list/tasks.screen.tsx` | `getTasksList` → `myGroups` (`tasks.groups.ts`) | Satu daftar **per grup jadwal**: `scope=mine&due=<grup>&status=todo&status=in_progress&status=in_review`; grup Done/Canceled: `status=done` / `status=canceled`; judul + kosong dari `GET /tasks/counts` |
 | All tasks (list) | sama | `scope=all&projectId?&status…&sort` |
-| Kanban (board) → `board/**` | `boardColumns`, `moveOnBoard`, `tasks.radial.ts` | **Satu kursor per kolom** (`status=todo\|in_progress\|in_review\|done`); geser = `POST /:ref/<aksi>` per tugas |
+| Kanban (board) → `board/**` | `boardColumns`, `moveCards` (`list/tasks-body.tsx`), `tasks.radial.ts` | **Satu kursor per kolom** (`status=todo\|in_progress\|in_review\|done`); geser = `POST /:ref/<aksi>` per tugas |
 | Filter `(tabs)/tasks/filter` | `tasks.query.ts`, `tasks.query-state.ts` | Menulis `status`, `projectId`, `assigneeId`, `priority`, `sort`; cari → `q` |
 | Detail `[id]/index` → `detail/**` | `getTaskDetail` → `buildTaskDetail` | `GET /tasks/:ref` + `GET /:ref/timeline` |
 | Tombol detail | `runTaskAction` (`tasks.actions.ts`) | `start`/`complete`/`reopen`/`uncancel`; `primary` server menentukan tombol utama |
@@ -61,7 +61,7 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 | Just write ✦ `tasks/new/index` → `new/write.screen.tsx` | `getQuickWrite` (`tasks.write.ts`) | `POST /tasks/draft` → `POST /tasks` per draf |
 | Import CSV `tasks/csv` → `csv/**` | `getCsvImport` | **Tak ada endpoint** — GAP T-6 |
 | Project settings `projects/[id]/settings` → `settings/**` | `getTaskSettings` | Baca kinds dari `form-options`; switch review, CRUD kinds, tag **tak ada** — GAP T-7 |
-| Tab Tasks proyek + `task-filter` | `getProjectTasks` (peta Proyek) | `scope=project&projectId` |
+| Tab Tasks proyek + `task-filter` | ✓ `useTasksList` / `useTasksBoard` (scope `project:<id>`) + `moveCards`; `cardStep` (`tasks.card.ts`) memilih tombol kartu | `scope=project&projectId` (+ `assigneeId=<akun>` untuk Assignee Me); `getTasksList`/`taskCard`/`applyQuery`/`searchTasks`/`moveOnBoard`/`editTask` dihapus |
 
 ---
 

@@ -6,7 +6,6 @@ import {
   canRestoreProject,
   editProject,
   findProject,
-  forgetArchivedProject,
   getProjectByName,
   isArchivedProject,
   listArchivedProjects,
@@ -120,14 +119,6 @@ describe('archive', () => {
     expect(tasksOf('Atlas Project')).toHaveLength(count);
     expect(findEntry(key)).toBeUndefined();
     expect(isArchivedProject('atlas')).toBe(false);
-  });
-
-  it('Delete forever ends the Undo', () => {
-    const key = archiveProject('sinar', 'Nico');
-    forgetArchivedProject(key);
-    expect(canRestoreProject('sinar', key)).toBe(false);
-    expect(isArchivedProject('sinar')).toBe(false);
-    expect(() => restoreProject('sinar', key)).toThrow('Cannot restore project "sinar"');
   });
 
   it('resetProjects brings the sample back', () => {

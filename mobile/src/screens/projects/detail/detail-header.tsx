@@ -1,6 +1,5 @@
 // Project detail header (prototype projects.detail.jsx DetailScreen) from the server: status and condition, the
 // server's reason as it came (K5), who set a manual condition, Lead and deadline, the extension pill, then the tabs.
-// The project's Tasks tab is not offered until the Tasks module reads the server (legacy rows are sample ids).
 import { router } from 'expo-router';
 
 import { Seg } from '@/components/form/seg';
@@ -14,7 +13,7 @@ import { ConditionPill } from '@/screens/home/parts/condition-pill';
 import { Note } from '../parts/display';
 import { DETAIL } from '../projects.strings';
 
-export const TABS = ['overview', 'phases', 'members'] as const;
+export const TABS = ['overview', 'tasks', 'phases', 'members'] as const;
 export type DetailTab = (typeof TABS)[number];
 
 /** Status block of the header; `extra` sits beside the extension pill (Extend deadline). */

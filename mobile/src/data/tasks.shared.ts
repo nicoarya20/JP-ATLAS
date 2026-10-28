@@ -1,11 +1,10 @@
 import { today } from './clock';
 import { daysBetween, monthDay } from './dates';
-import { type PersonInfo, person } from './people';
 import type { Task, TaskStatus } from './sample';
 
 /*
- * Tasks module shared types and logic, ported from the prototype (tasks.shared.js): the wide task the module keeps,
- * due-date maths against the sample "today", review notes and which detail variant opens a task.
+ * Tasks module shared types and logic, ported from the prototype (tasks.shared.js): the wide task the sample store
+ * keeps (still fed by Events and Archive, gap §4.4) and its due notes against the sample "today".
  */
 
 /** Task types of the module; the shared sample only uses Task and Bug ("Improvement" has no tasks yet). */
@@ -59,8 +58,6 @@ export const todayLabel = () => monthDay(today());
 /** Id of the sample project All tasks starts on. */
 export const ATLAS_ID = 'atlas';
 
-/** Edit / form priority chips (the filter has its own list in tasks.query). */
-export const PRIORITIES: readonly TaskPriority[] = ['Low', 'Medium', 'High', 'Critical'];
 /** [type, base category label]. */
 export const TYPES: readonly (readonly [TaskType, string])[] = [
   ['Task', 'Task (task)'],
@@ -68,64 +65,8 @@ export const TYPES: readonly (readonly [TaskType, string])[] = [
   ['Improvement', 'Idea (idea)'],
 ];
 
-/** Days from today to the due date (negative = overdue). */
-export const dueIn = (t: Pick<TaskItem, 'due'>) => daysBetween(today(), t.due);
-
-/** Everyone assigned to a task: `who` first, then `also`. */
-export const assignees = (t: Pick<TaskItem, 'who' | 'also'>) => [t.who, ...(t.also ?? [])];
-
-/** True when `name` is one of the task's assignees. */
-export const assigned = (t: Pick<TaskItem, 'who' | 'also'>, name: string) =>
-  assignees(t).includes(name);
-
-/** Full name of a first name, or the name itself for someone outside the sample people. */
-export const fullName = (name: string) => person(name)?.full ?? name;
-
-/** First assignee's full name, plus "+N" for the others. */
-export const whoLabel = (t: Pick<TaskItem, 'who' | 'also'>) =>
-  `${fullName(t.who)}${t.also?.length ? ` +${t.also.length}` : ''}`;
-
-/** A Member changes (moves, edits, cancels) only tasks assigned to them; Managers and Admins change any task. */
-export const mayChange = (me: PersonInfo, t: Pick<TaskItem, 'who' | 'also'>) =>
-  me.role !== 'Member' || assigned(t, me.name);
-
-/** Notice when a Member may not change a task: "Only Nico or Rina can change this task". */
-export const deniedNotice = (t: Pick<TaskItem, 'who' | 'also'>) =>
-  `Only ${assignees(t).join(' or ')} can change this task`;
-
-/** Done and Canceled tasks are closed: lists hide them unless a status filter picks them. */
-export const isOpen = (t: Pick<TaskItem, 'status'>) =>
-  t.status !== 'Done' && t.status !== 'Canceled';
-
 /** "1 day late", "3 days late": the facts' due note, and the text a late card shows beside its red date. */
 export const daysLate = (n: number) => `${n} ${n === 1 ? 'day' : 'days'} late`;
-
-/** Reviewer first name of a task, falling back to `fallback` (#17's, as the prototype does) when it has none. */
-const reviewerOf = (x: TaskInfo | undefined, fallback: string) =>
-  x?.reviewer?.split(' ')[0] || fallback;
-
-/** True when `name` (a first name, or "Admin" for any Admin) is the signed-in person. */
-const isMe = (name: string, me: PersonInfo) =>
-  name === me.name || (name === 'Admin' && me.role === 'Admin');
-
-/**
- * Card note for the signed-in person `me`: an In review note names the reviewer unless that is them; any other status
- * shows the task's own note. `fallback` = reviewer of a task without one (#17's in the sample).
- */
-export function note(
-  t: Pick<TaskItem, 'status' | 'when'>,
-  x: TaskInfo | undefined,
-  me: PersonInfo,
-  fallback: string,
-): string {
-  if (t.status !== 'In review') return t.when;
-  const r = reviewerOf(x, fallback);
-  return isMe(r, me) ? 'Waiting for my review' : `Awaiting review by ${r}`;
-}
-
-/** Steps progress "2/3", or null when the task has no steps. */
-export const stepsDone = (steps: readonly TaskStep[]) =>
-  steps.length ? `${steps.filter((s) => s.done).length}/${steps.length}` : null;
 
 /** Due note from a due date: "N days overdue", "Today", "Tomorrow" (when `tomorrow`) or "Due X". */
 export function whenFromDue(due: string, tomorrow: boolean): string {

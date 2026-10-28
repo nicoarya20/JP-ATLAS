@@ -1,9 +1,7 @@
 import { addEntry, entryKey, findEntry, removeEntry } from './archive.store';
 import { today } from './clock';
-import type { PersonInfo } from './people';
 import { TASKS, type TaskStatus } from './sample';
-import { movedNotice } from './tasks.columns';
-import { mayChange, nowStamp, type TaskItem, todayLabel, whenFromDue } from './tasks.shared';
+import { nowStamp, type TaskItem, todayLabel, whenFromDue } from './tasks.shared';
 import {
   put,
   record,
@@ -14,9 +12,9 @@ import {
 } from './tasks.state';
 
 /*
- * Task changes (prototype tasks.store.js): a Kanban move or a detail action writes the new status, Edit task writes its
- * fields (tasks.store.edit), New task adds one, Cancel task is a move to Canceled (the task stays listed) and Move to
- * Archive takes it out of every list into Archive (archive.store). Screens read the state through useTasks().
+ * Task changes of the sample store (prototype tasks.store.js), kept while Events and Archive still read it (gap §4.4):
+ * a status move, a meeting outcome adding a task (tasks.store.edit) and Move to Archive, which takes a task out of every
+ * list into Archive (archive.store). The Tasks screens themselves write to the server.
  */
 
 export {
@@ -27,12 +25,11 @@ export {
   type NewTaskFields,
   type TakenTasks,
   type TaskExtras,
-  type TaskFields,
   type TasksState,
   taskInfo,
   useTasks,
 } from './tasks.state';
-export { addTask, editTask } from './tasks.store.edit';
+export { addTask } from './tasks.store.edit';
 
 const ORIGINAL = new Map(TASKS.map((t) => [t.no, t]));
 
@@ -58,38 +55,6 @@ export function moveTask(
   if (t.status === status) return;
   const next = { ...t, status, when: whenOf(t, status), updated: nowStamp() };
   store.set({ ...s, ...put(s, next), info: log || extras ? record(s, no, log, extras) : s.info });
-}
-
-/**
- * Move several tasks to `status` at once (a Kanban group move); only those in another status change.
- * Returns the numbers that moved.
- */
-export function moveTasks(nos: readonly number[], status: TaskStatus): number[] {
-  const s = store.get();
-  const moving = nos.filter((no) => taskOrThrow(s, no, 'move').status !== status);
-  for (const no of moving) moveTask(no, status);
-  return moving;
-}
-
-/**
- * Kanban move by `viewer` of the held card (nos = [no]) or a group (held card first) to `status`, also the "Move to …"
- * accessibility action. A Member moves only tasks assigned to them; the board checks mayChange() before opening the
- * menu, so a refused task here is a bug and throws. Returns the numbers that moved and the notice to show (null when
- * one card was let go on its own status).
- */
-export function moveOnBoard(
-  viewer: PersonInfo,
-  nos: readonly number[],
-  status: TaskStatus,
-): { moved: number[]; notice: string | null } {
-  const s = store.get();
-  const refused = nos.find((no) => !mayChange(viewer, taskOrThrow(s, no, 'move')));
-  if (refused != null) {
-    throw new Error(`Cannot move task #${refused}: ${viewer.name} may not change it`);
-  }
-  const moved = moveTasks(nos, status);
-  const group = nos.length > 1;
-  return { moved, notice: group || moved.length ? movedNotice(group, moved.length, status) : null };
 }
 
 /** Move task #no to Archive: it leaves every list and Archive lists it as archived by `by`, until Undo. */
@@ -130,20 +95,6 @@ export function unarchiveTask(no: number) {
   store.set({ ...s, tasks, archived: s.archived.filter((x) => x !== t), at });
 }
 
-/**
- * Archive › Delete forever of entry `key` (call before removeEntry): a task archived on its own is gone for good, so
- * getTask() no longer finds it and unarchiveTask() throws "not in Archive". Its number is not given out again. A key
- * this store does not hold (the sample entries, a task taken along by its project) is left alone.
- */
-export function forgetArchivedTask(key: string): void {
-  const s = store.get();
-  const t = s.archived.find((x) => s.at[x.no] != null && entryKey('TASK', x.no) === key);
-  if (!t) return;
-  const { [t.no]: _at, ...at } = s.at;
-  const { [t.no]: _info, ...info } = s.info;
-  store.set({ ...s, archived: s.archived.filter((x) => x !== t), info, at });
-}
-
 /** Archived tasks: one by one or with their project. */
 export const listArchivedTasks = () => store.get().archived;
 
@@ -174,19 +125,6 @@ export function putTasksBack(taken: TakenTasks) {
     tasks.splice(Math.min(at, tasks.length), 0, t);
   }
   store.set({ ...s, tasks, archived: s.archived.filter((t) => !nos.has(t.no)) });
-}
-
-/**
- * Archive › Delete forever of a project: the tasks takeProjectTasks took along are gone for good, like a task deleted
- * on its own (getTask no longer finds them, putTasksBack throws, their numbers are not given out again).
- */
-export function forgetProjectTasks(taken: TakenTasks): void {
-  const s = store.get();
-  const nos = new Set(taken.map((x) => x.no));
-  const missing = taken.find(({ no }) => !s.archived.some((t) => t.no === no));
-  if (missing) throw new Error(`Cannot forget task #${missing.no}: it is not out of the lists`);
-  const info = Object.fromEntries(Object.entries(s.info).filter(([no]) => !nos.has(Number(no))));
-  store.set({ ...s, archived: s.archived.filter((t) => !nos.has(t.no)), info });
 }
 
 /** A project was renamed: its tasks, listed and archived, follow the new name. */

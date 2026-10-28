@@ -1,5 +1,5 @@
-import { findProject } from './projects.state';
-import { assigned, dueIn, isOpen, type TaskItem, type TaskPriority } from './tasks.shared';
+import { sessionStore } from '@/session/session.state';
+
 import {
   OPEN_STATUSES,
   PRIORITY_WIRE,
@@ -9,9 +9,9 @@ import {
 } from './tasks.wire';
 
 /*
- * Filter & sort of the task lists (prototype tasks.query.js): the options, the default query per scope, the request a
- * query makes to /api/app/tasks (Tasks tab), and applying a query to the sample tasks (a project's Tasks tab, until
- * Projects is wired). The query itself is kept per scope in tasks.query-state.
+ * Filter & sort of the task lists (prototype tasks.query.js): the options, the default query per scope, and the request
+ * a query makes to /api/app/tasks (the Tasks tab and a project's Tasks tab). The query itself is kept per scope in
+ * tasks.query-state.
  */
 
 /** Overlay options; index 0 is the default. */
@@ -58,9 +58,6 @@ export const baseQuery = (_scope: TaskScope): TaskQuery => ({
 /** The server's sort for each of SORTS. */
 const SORT_WIRE: readonly TaskSortWire[] = ['due', 'priority', 'updated'];
 
-/** The scopes the Tasks tab reads from the server; a project's tab still reads the sample. */
-export type ServerScope = 'mine' | 'all';
-
 /**
  * Statuses a query asks the server for. "All active" names the three open ones: an empty `status`
  * means every status, Done and Canceled included (map §0).
@@ -70,13 +67,33 @@ export const queryStatuses = (q: TaskQuery): readonly TaskStatusWire[] =>
     ? [STATUS_WIRE[STATUSES[q.status] as Exclude<(typeof STATUSES)[number], 'All active'>]]
     : OPEN_STATUSES;
 
+/** `scope` (and `projectId`) of a list: a project's tab is `scope=project` of that project, whatever `q.project` says. */
+function scopePairs(scope: TaskScope, q: TaskQuery): [string, string][] {
+  const id = projectOfScope(scope);
+  if (id)
+    return [
+      ['scope', 'project'],
+      ['projectId', id],
+    ];
+  return [['scope', scope], ...(q.project ? [['projectId', q.project] as [string, string]] : [])];
+}
+
+/**
+ * Assignee "Me" (a project's tab) as the signed-in account's id. Only a signed-in person reaches a
+ * list; were there no account, the filter is left out instead of asking for nobody's tasks.
+ */
+function assigneePairs(q: TaskQuery): [string, string][] {
+  const me = q.who ? sessionStore.get().user?.id : undefined;
+  return me ? [['assigneeId', me]] : [];
+}
+
 /**
  * The query string of `GET /api/app/tasks` for a scope's query and search, without paging. `status`
  * overrides the query's statuses (a board column asks for its own). Parameters keep one order, so
  * the same list is always the same request and the same cached resource.
  */
 export function listParams(
-  scope: ServerScope,
+  scope: TaskScope,
   q: TaskQuery,
   search: string,
   status: readonly TaskStatusWire[] = queryStatuses(q),
@@ -86,12 +103,12 @@ export function listParams(
   const priority = PRIORITIES[q.priority];
   const text = search.trim();
   const pairs: [string, string][] = [
-    ['scope', scope],
-    ...(q.project ? [['projectId', q.project] as [string, string]] : []),
+    ...scopePairs(scope, q),
     ...status.map((s) => ['status', s] as [string, string]),
     ...(q.priority && priority !== 'All'
       ? [['priority', PRIORITY_WIRE[priority]] as [string, string]]
       : []),
+    ...assigneePairs(q),
     ...(text ? [['q', text] as [string, string]] : []),
     ['sort', sort],
   ];
@@ -100,53 +117,3 @@ export function listParams(
 
 /** True when the query narrows the list (the dot on the filter icon); the sort order alone does not count. */
 export const isFiltered = (q: TaskQuery) => !!(q.status || q.project || q.priority || q.who);
-
-/** Priority order of the Priority sort; Critical (not offered by the filter) ranks above High. */
-const RANK: Record<TaskPriority, number> = { Critical: -1, High: 0, Medium: 1, Low: 2 };
-
-type Compare = (a: TaskItem, b: TaskItem) => number;
-const byDue: Compare = (a, b) => dueIn(a) - dueIn(b);
-const COMPARE: Compare[] = [
-  byDue,
-  (a, b) => RANK[a.priority] - RANK[b.priority] || byDue(a, b),
-  (a, b) => b.updated.localeCompare(a.updated),
-];
-
-/**
- * Filter and sort tasks by a query. All active hides Done and Canceled on the lists; the board keeps every column
- * (board = true). `me` = first name of the signed-in person, for the Assignee filter.
- */
-export function applyQuery(
-  tasks: readonly TaskItem[],
-  q: TaskQuery,
-  { board = false, me }: { board?: boolean; me: string },
-): TaskItem[] {
-  // By id in the projects store, so a renamed project still filters to its tasks.
-  const name = q.project && findProject(q.project)?.name;
-  const status = STATUSES[q.status];
-  const priority = PRIORITIES[q.priority];
-  const compare = COMPARE[q.sort];
-  if (!compare) throw new Error(`Cannot sort tasks: no sort #${q.sort}`);
-  return tasks
-    .filter((t) => (q.status ? t.status === status : board || isOpen(t)))
-    .filter((t) => !name || t.project === name)
-    .filter((t) => !q.priority || t.priority === priority)
-    .filter((t) => !q.who || assigned(t, me))
-    .sort(compare);
-}
-
-/**
- * Tasks matching the search text by title, "#number" or tag, case-insensitive; blank text keeps them all.
- * "12" and "#12" both find task #12 ("#1" finds every number starting with 1).
- */
-export function searchTasks(tasks: readonly TaskItem[], text: string): TaskItem[] {
-  const q = text.trim().toLowerCase();
-  if (!q) return [...tasks];
-  const no = q.startsWith('#') ? q.slice(1) : q;
-  return tasks.filter(
-    (t) =>
-      t.title.toLowerCase().includes(q) ||
-      (/^\d+$/.test(no) && String(t.no).startsWith(no)) ||
-      t.tags.some((tag) => tag.toLowerCase().includes(q)),
-  );
-}
