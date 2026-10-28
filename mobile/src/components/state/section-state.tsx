@@ -1,6 +1,6 @@
-// What Home shows while its payload is out, and when it failed. EmptyState already covers "there is
-// nothing"; these two cover "not yet" and "it went wrong". Kept with Home until a second screen
-// reads `/api/app/*`, when they move to src/components/state (Fase 2 pattern §6).
+// What a screen shows while its `/api/app/*` data is out, and when it failed. EmptyState already covers
+// "there is nothing"; these two cover "not yet" and "it went wrong". Shared by every screen that
+// reads the API (Fase 2 pattern §6).
 import { CloudOff } from 'lucide-react-native';
 
 import { EmptyState } from '@/components/state/empty-state';

@@ -5,16 +5,15 @@ import { isApiError } from '@/api/errors';
 import { PersonAvatar } from '@/components/avatar/person-avatar';
 import { useNotice } from '@/components/notice/use-notice';
 import { StackedScreen } from '@/components/screen/stacked-screen';
+import { FailedState, LoadingState } from '@/components/state/section-state';
 import { Pressable } from '@/components/ui/pressable';
 import { getHome } from '@/data/home';
 import { runFocusAction } from '@/data/home.actions';
 import { homeResource } from '@/data/home.api';
 import type { FocusTask } from '@/data/home.types';
 import { PROFILE_PATH } from '@/screens/more/more.tiles';
-
 import { S } from './home.strings';
 import { HomeSearch, HomeStats } from './parts/home-header';
-import { FailedState, LoadingState } from './parts/section-state';
 import { statFold } from './parts/stat-chip';
 import { AgendaSection } from './sections/agenda.section';
 import { AskSection } from './sections/ask.section';

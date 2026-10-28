@@ -2,9 +2,9 @@
 // failing query shows "Try again" on its own card instead of blanking the screen (map §1b).
 import type { LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
+import { FailedState } from '@/components/state/section-state';
 import type { Widget } from '@/data/home.types';
 import { SectionCard } from './section-card';
-import { FailedState } from './section-state';
 
 type WidgetPartProps<T> = {
   section: Widget<T>;
