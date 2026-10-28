@@ -1,7 +1,8 @@
 // The fields of New task · Fill form: the project (from form-options), the title, one assignee among the project's
 // people, priority and due date, then under Show more the description, type and phase (the project's own) and the
 // start date. Save sends POST /tasks with what is set and opens the new task; a refusal stays on the form in the
-// server's words. Picking another project keeps what still fits it (tasks.form.ts pickFormProject).
+// server's words. Picking another project keeps what still fits it (tasks.form.ts pickFormProject). Just write's
+// fallback opens it with the story as the title.
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
@@ -18,6 +19,7 @@ import {
   newTaskForm,
   phaseOptions,
   pickFormProject,
+  TITLE_MAX,
 } from '@/data/tasks.form';
 import type { FormProjectWire } from '@/data/tasks.form.api';
 import { createTask } from '@/data/tasks.form.write';
@@ -39,17 +41,20 @@ import {
 import { ModeSwitch } from './mode-switch';
 import { saveHint, TitleField } from './title-field';
 
-type Props = { projects: readonly FormProjectWire[]; initialId?: string };
+type Props = { projects: readonly FormProjectWire[]; initialId?: string; initialTitle?: string };
 
 /** The form over `projects`, opened on `initialId` when it is one of them, else on the first. */
-export function NewTaskForm({ projects, initialId }: Props) {
+export function NewTaskForm({ projects, initialId, initialTitle }: Props) {
   const notice = useNotice();
   const today = useToday();
   const [projectId, setProjectId] = useState(
     () => (projects.find((p) => p.id === initialId) ?? projects[0]).id,
   );
   const project = projects.find((p) => p.id === projectId) ?? projects[0];
-  const { f, setF, set } = useTaskForm(() => newTaskForm(project, today));
+  const { f, setF, set } = useTaskForm(() => ({
+    ...newTaskForm(project, today),
+    title: initialTitle?.slice(0, TITLE_MAX) ?? '',
+  }));
   const [more, setMore] = useState(true);
   const people = useTaskPeople(project.id);
   const { busy, error, save } = useFormSave();
@@ -86,7 +91,7 @@ export function NewTaskForm({ projects, initialId }: Props) {
   );
   return (
     <TaskPage modal title={F.newTitle} foot={foot} testID="screen-task-form">
-      <ModeSwitch />
+      <ModeSwitch value={1} project={project.id} />
       <Labelled required label={F.project}>
         <SelectField
           required

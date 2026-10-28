@@ -69,6 +69,18 @@ describe('buildTaskDetail', () => {
     expect(t.comment).toBeNull();
   });
 
+  test('Move to Trash follows `can.trash`: allowed, greyed out with its reason, or hidden', () => {
+    const of = (trash?: true | 'PROJECT_IN_TRASH') =>
+      buildTaskDetail(detailOf(row(14, { can: trash ? { trash } : {} }))).trash;
+    expect(of(true)).toEqual({ off: null });
+    expect(of('PROJECT_IN_TRASH')).toEqual({
+      off: 'Its project is in the Trash. Restore the project first.',
+    });
+    expect(of()).toBeNull();
+    // Trash alone is still a change the viewer may make.
+    expect(buildTaskDetail(detailOf(row(14, { can: { trash: true } }))).viewOnly).toBe(false);
+  });
+
   test('a canceled task says why and offers only Restore', () => {
     const r = row(14, { status: 'canceled' });
     const t = buildTaskDetail(

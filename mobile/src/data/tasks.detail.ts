@@ -11,9 +11,8 @@ import { capReason } from './caps.messages';
 import { today } from './clock';
 import { daysBetween, monthDay } from './dates';
 import { instantDate } from './instant';
-import type { TaskStatus } from './sample';
 import type { TaskDetailWire } from './tasks.detail.wire';
-import { daysLate } from './tasks.shared';
+import { daysLate, type TaskStatus } from './tasks.shared';
 import {
   type CapValueWire,
   PRIORITY_LABEL,
@@ -65,6 +64,8 @@ export type TaskDetailView = {
   edit: Allowed | null;
   /** ⋯ › Cancel task; null when hidden. */
   cancel: Allowed | null;
+  /** ⋯ › Move to Trash (`can.trash`); null when hidden. */
+  trash: Allowed | null;
   facts: DetailFact[];
   description: string | null;
   steps: {
@@ -187,6 +188,7 @@ export function buildTaskDetail(t: TaskDetailWire): TaskDetailView {
   const actions = canceled ? [] : ORDER.flatMap((key) => action(key, t.can, t.primary) ?? []);
   const cancel = allowed(t.can.cancel);
   const edit = allowed(t.can.update);
+  const trash = allowed(t.can.trash);
   const done = t.checklist.items.filter((i) => i.isDone).length;
   return {
     id: t.id,
@@ -198,10 +200,11 @@ export function buildTaskDetail(t: TaskDetailWire): TaskDetailView {
       .join(' · '),
     due: dueLine(t),
     actions,
-    viewOnly: !actions.length && !canceled?.restore && !cancel && !edit,
+    viewOnly: !actions.length && !canceled?.restore && !cancel && !edit && !trash,
     canceled,
     edit,
     cancel,
+    trash,
     facts: factsOf(t),
     description: t.description?.trim() || null,
     steps: {

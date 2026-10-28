@@ -1,8 +1,9 @@
 // Task detail (prototype tasks.detail.jsx TaskDetail, tasks.detail.screens.jsx ⑧–⑩), read from GET /api/app/tasks/:ref
-// and its timeline: one screen for every status. The buttons, the ⋯ menu (Edit task, Cancel task), the steps and the comment box
-// are what the task's `can{}` shows; a step runs on the server and the screen redraws from the refreshed task. Reopen
-// asks for a reason in its sheet, Cancel task for a category in its own. A task the viewer cannot see, or that is not
-// there (in the Trash, or never was), reads as not found: the server answers both with 404 and does not say which.
+// and its timeline: one screen for every status. The buttons, the ⋯ menu (Edit task, Cancel task, Move to Trash), the
+// steps and the comment box are what the task's `can{}` shows; a step runs on the server and the screen redraws from
+// the refreshed task. Reopen asks for a reason in its sheet, Cancel task for a category in its own. A task the viewer
+// cannot see, or that is not there (in the Trash, or never was), reads as not found: the server answers both with 404
+// and does not say which.
 import { router, useLocalSearchParams } from 'expo-router';
 import { ListX } from 'lucide-react-native';
 import { useEffect } from 'react';
@@ -26,6 +27,7 @@ import { DetailFacts } from './detail-facts';
 import { DetailDescription, DetailHistory } from './detail-history';
 import { DetailSteps } from './detail-steps';
 import { useDetailRun } from './use-detail-run';
+import { useTaskTrash } from './use-task-trash';
 
 const NOT_FOUND = 404;
 
@@ -49,6 +51,7 @@ function Detail({ no }: { no: number }) {
   const state = res.use();
   const { busy, run } = useDetailRun();
   const notice = useNotice();
+  const trash = useTaskTrash(no, state.data?.id ?? '');
   useEffect(() => {
     void taskDetailResource(no).ensure();
     void taskTimelineResource(no).ensure();
@@ -78,8 +81,8 @@ function Detail({ no }: { no: number }) {
     }
     void run(key, () => runTaskStep(view.id, key));
   };
-  // Edit task and Cancel task, each where `can{}` shows it; Move to Archive waits for the Trash. The menu has no
-  // disabled item, so one the server greys out says why when picked (E-6).
+  // Edit task, Cancel task and Move to Trash, each where `can{}` shows it. The menu has no disabled item, so one the
+  // server greys out says why when picked (E-6). Move to Trash acts at once, with Undo (T1).
   const item = (
     allowed: { off: string | null },
     label: string,
@@ -92,6 +95,11 @@ function Detail({ no }: { no: number }) {
     view.edit && item(view.edit, S.detail.menuItem.edit, `/tasks/${no}/edit`),
     view.cancel && {
       ...item(view.cancel, S.detail.menuItem.cancel, `/tasks/${no}/cancel`),
+      danger: true,
+    },
+    view.trash && {
+      label: S.detail.menuItem.trash,
+      onPress: () => (view.trash?.off ? notice(view.trash.off) : void trash()),
       danger: true,
     },
   ].filter((x) => !!x);

@@ -1,135 +1,143 @@
-// Tasks ⑤ New task · Just write ✦ (prototype tasks.new.jsx TasksWrite): a story becomes AI-drafted tasks. Phase 1 has
-// no LLM, so the drafts are sample data shown from the start and Compose, Speak, Edit text and Save only toast.
-import { router } from 'expo-router';
-import { Check, Sparkles } from 'lucide-react-native';
+// Tasks ⑤ New task · Just write ✦ (prototype tasks.new.jsx TasksWrite), on POST /api/app/tasks/draft: the person
+// picks a project from form-options, writes what needs doing, and Compose turns it into drafts to check, fix or drop
+// before Save adds the kept ones. Speak is left out (gap: it needs a speech dependency). The state is use-just-write.
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
-import { Chips } from '@/components/form/chips';
-import { Seg } from '@/components/form/seg';
+import { Field } from '@/components/form/field';
+import { FormError } from '@/components/form/form-error';
 import { SelectField } from '@/components/form/select-field';
-import { useNotice } from '@/components/notice/use-notice';
-import { Badge, BadgeText } from '@/components/ui/badge';
-import { Checkbox, CheckboxIcon, CheckboxIndicator } from '@/components/ui/checkbox';
 import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { Textarea, TextareaInput } from '@/components/ui/textarea';
-import { VStack } from '@/components/ui/vstack';
-import { getQuickWrite } from '@/data/tasks';
+import { DRAFT_TEXT_MAX, draftsProblem } from '@/data/tasks.draft';
+import type { FormProjectWire } from '@/data/tasks.form.api';
+
+import { Labelled } from '../parts/labelled';
 import { TaskPage } from '../parts/task-page';
 import { Act, Foot, Soft } from '../parts/task-parts';
+import { useTaskPeople } from '../parts/use-task-people';
 import { F } from '../tasks.strings';
-import { MODE_NAMES, SPOKEN } from '../tasks.strings.added';
+import { SPOKEN } from '../tasks.strings.added';
 import { W } from '../tasks.strings.more';
+import { FormProjectsGate } from './form.screen';
+import { ModeSwitch } from './mode-switch';
+import { useJustWrite } from './use-just-write';
+import { AiHead, DraftCard, DraftQuestion } from './write-drafts';
 
-type Draft = ReturnType<typeof getQuickWrite>['drafts'][number];
-
-function DraftCard({ d }: { d: Draft }) {
-  const [on, setOn] = useState(true);
-  const pills = [
-    `${W.pill.who}: ${d.who}`,
-    `${W.pill.due}: ${d.dueLabel}`,
-    `${W.pill.priority}: ${d.priority}`,
-    `${W.pill.type}: ${d.type}`,
-  ];
+/** Just write ✦ on the project in the route (`/tasks/new?project=<id>`) when the server offers it. */
+export function TaskWriteScreen() {
+  const { project } = useLocalSearchParams<{ project?: string }>();
   return (
-    <HStack className="items-start gap-3 rounded-card bg-card p-4" testID="write-draft">
-      <Checkbox
-        value={d.title}
-        aria-label={SPOKEN.include(d.title)}
-        isChecked={on}
-        onChange={setOn}
-        className="min-h-11 min-w-11"
-      >
-        <CheckboxIndicator>
-          <CheckboxIcon as={Check} />
-        </CheckboxIndicator>
-      </Checkbox>
-      <VStack className="min-w-0 flex-1 gap-2">
-        <Text className="text-headline font-semibold text-foreground">{d.title}</Text>
-        <HStack className="flex-wrap gap-2">
-          {pills.map((p) => (
-            <Badge key={p} variant="outline">
-              <BadgeText>{p}</BadgeText>
-            </Badge>
-          ))}
-        </HStack>
-      </VStack>
-    </HStack>
+    <FormProjectsGate mode={0} testID="screen-task-write">
+      {(projects) => <JustWrite projects={projects} initialId={project} />}
+    </FormProjectsGate>
   );
 }
 
-/** ✦ headline of an AI part; `named`: the control under it carries the same words, so screen readers skip it. */
-const AiHead = ({ children, named }: { children: string; named?: boolean }) => (
-  <HStack
-    accessibilityElementsHidden={named}
-    importantForAccessibility={named ? 'no-hide-descendants' : 'auto'}
-    className="min-w-0 flex-1 items-center gap-1"
-  >
-    <Icon as={Sparkles} size="sm" className="text-atlas" />
-    <Text className="text-footnote font-bold text-foreground">{children}</Text>
-  </HStack>
-);
+const SAVE_HINT = { none: W.pickOne, title: W.needTitle } as const;
 
-/** Just write ✦ (the ask can be answered, but the drafts stay sample): nothing is saved before Save, which (Phase 1) only toasts and goes to My tasks. */
-export function TaskWriteScreen() {
-  const notice = useNotice();
-  const [qw] = useState(getQuickWrite);
-  const [text, setText] = useState(qw.text);
-  const [asked, setAsked] = useState(-1);
-  const save = () => {
-    notice(W.saved);
-    router.dismiss();
-    router.navigate({ pathname: '/tasks', params: { scope: 'mine' } });
+function JustWrite({
+  projects,
+  initialId,
+}: {
+  projects: readonly FormProjectWire[];
+  initialId?: string;
+}) {
+  const [projectId, setProjectId] = useState(
+    () => (projects.find((p) => p.id === initialId) ?? projects[0]).id,
+  );
+  const project = projects.find((p) => p.id === projectId) ?? projects[0];
+  const w = useJustWrite(project.id);
+  const people = useTaskPeople(project.id);
+  const rows = w.drafts?.rows ?? [];
+  const kept = rows.filter((r) => r.keep).length;
+  const problem = draftsProblem(rows);
+  const blank = !w.text.trim();
+  const pick = (id: string) => {
+    if (id === project.id) return;
+    setProjectId(id);
+    w.reset();
   };
   const foot = (
     <Foot>
-      <Act grow label={W.editText} onPress={() => notice(W.editing)} />
-      <Act wide kind="primary" label={qw.saveLabel} onPress={save} testID="write-save" />
+      <Act grow label={F.cancel} onPress={() => router.back()} />
+      <Act
+        wide
+        kind="primary"
+        label={W.save(kept)}
+        disabled={!!problem || w.busy === 'compose'}
+        hint={problem ? SAVE_HINT[problem] : undefined}
+        loading={w.busy === 'save'}
+        onPress={() => void w.save()}
+        testID="write-save"
+      />
     </Foot>
   );
   return (
-    <TaskPage modal title={F.newTitle} foot={foot} testID="screen-task-write">
-      <Seg
-        items={F.modes}
-        names={MODE_NAMES}
-        value={0}
-        onChange={(i) => i === 1 && router.replace('/tasks/new/form')}
-        testID="new-mode"
+    <TaskPage
+      modal
+      title={F.newTitle}
+      foot={w.drafts ? foot : undefined}
+      testID="screen-task-write"
+    >
+      <ModeSwitch value={0} project={project.id} />
+      <Labelled required label={W.project}>
+        <SelectField
+          required
+          label={W.project}
+          options={projects.map((p) => ({ value: p.id, label: p.name }))}
+          value={project.id}
+          onChange={pick}
+          testID="write-project"
+        />
+      </Labelled>
+      <Field
+        multiline
+        required
+        label={W.textLabel}
+        value={w.text}
+        placeholder={W.textHint}
+        hint={W.length(w.text.length, DRAFT_TEXT_MAX)}
+        onChangeText={(t) => w.setText(t.slice(0, DRAFT_TEXT_MAX))}
+        testID="write-text"
       />
-      <SelectField
-        label={W.project}
-        options={[{ value: qw.project, label: qw.project }]}
-        value={qw.project}
-        onChange={() => undefined}
-        disabled
-      />
-      <Textarea>
-        <TextareaInput aria-label={W.textLabel} value={text} onChangeText={setText} />
-      </Textarea>
-      <HStack className="items-center justify-between gap-3">
-        <Text className="text-footnote text-muted-foreground">{W.speak}</Text>
+      <HStack className="justify-end">
         <Act
+          kind={w.drafts ? 'outline' : 'primary'}
           label={W.compose}
           name={SPOKEN.compose}
-          onPress={() => notice(W.composed)}
+          disabled={blank || w.busy === 'save'}
+          hint={blank ? W.composeHint : undefined}
+          loading={w.busy === 'compose'}
+          onPress={() => void w.compose()}
           testID="write-compose"
         />
       </HStack>
-      <Soft>
-        <HStack className="items-center justify-between gap-2">
-          <AiHead>{W.draftNote}</AiHead>
-          <Text className="text-footnote text-muted-foreground">{W.count(qw.drafts.length)}</Text>
-        </HStack>
-      </Soft>
-      {qw.drafts.map((d) => (
-        <DraftCard key={d.title} d={d} />
+      {w.drafts && (
+        <Soft>
+          <HStack className="items-center justify-between gap-2">
+            <AiHead>{W.draftNote}</AiHead>
+            <Text className="text-footnote text-muted-foreground">{W.count(rows.length)}</Text>
+          </HStack>
+          {!rows.length && (
+            <Text className="text-footnote text-muted-foreground">{W.noDrafts}</Text>
+          )}
+        </Soft>
+      )}
+      {rows.map((d, i) => (
+        <DraftCard
+          key={d.key}
+          d={d}
+          n={i + 1}
+          people={people}
+          kind={project.kinds.find((k) => k.id === d.kindId)?.name}
+          onChange={(change) => w.edit(d.key, change)}
+        />
       ))}
-      <Text className="text-footnote text-muted-foreground">{W.askNote}</Text>
-      <Soft>
-        <AiHead named>{qw.askTitle}</AiHead>
-        <Chips label={qw.askTitle} items={qw.ask} value={asked} onChange={setAsked} />
-      </Soft>
+      {w.drafts?.question && (
+        <DraftQuestion q={w.drafts.question} answer={w.drafts.answer} onAnswer={w.answer} />
+      )}
+      {w.error && <FormError testID="write-error">{w.error}</FormError>}
     </TaskPage>
   );
 }

@@ -1,7 +1,8 @@
 // The Reopen and Cancel sheets of a task's detail against a stubbed /api/app/tasks (tasks-fixtures): Reopen asks for a
 // reason of 3 to 200 characters and a refusal stays in the sheet in the server's words; Cancel takes a reason (a note
 // for Other) and the detail then says why with Restore; Cancel greyed out by the server says why instead of opening;
-// and a sheet the server does not allow opens the detail. The detail itself is tasks.screen.detail.test.tsx.
+// a sheet the server does not allow opens the detail; and Move to Trash from the ⋯ menu acts at once with Undo (T1).
+// The detail itself is tasks.screen.detail.test.tsx.
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
@@ -168,5 +169,63 @@ describe('cancel sheet', () => {
     await act(() => router.push('/tasks/8/cancel'));
     await waitFor(() => expect(screen).toHavePathname('/tasks/8'));
     expect(screen.queryByTestId('screen-task-cancel')).not.toBeOnTheScreen();
+  });
+});
+
+describe('Move to Trash', () => {
+  const trashable = row(14, {
+    title: 'Write the API spec',
+    can: { update: true, start: true, cancel: true, comment: true, trash: true },
+  });
+
+  it('moves at once; the list comes back with Undo, which brings the task back', async () => {
+    const tasks = tasksServer([trashable]);
+    serve(tasks.routes);
+    await openTasks('/tasks/14');
+    await menuItem('Move to Trash');
+    await waitFor(() => expect(screen).toHavePathname('/tasks'));
+    expect(screen.getByText('Task moved to Trash')).toBeOnTheScreen();
+    expect(tasks.rows).toHaveLength(0);
+    await fireEvent.press(screen.getByRole('button', { name: 'Undo' }));
+    expect(await screen.findByText('Task back from the Trash')).toBeOnTheScreen();
+    expect(tasks.writes).toEqual([
+      { method: 'DELETE', path: 't-14', body: {} },
+      { method: 'POST', path: 'trash/t-14/restore', body: {} },
+    ]);
+    expect(tasks.rows.map((r) => r.number)).toEqual([14]);
+  });
+
+  it('a refusal stays on the task in the server’s words', async () => {
+    const refuse = {
+      't-14': {
+        status: 403,
+        body: { error: 'Hanya pembuat tugas yang bisa menghapusnya.', code: 'FORBIDDEN' },
+      },
+    };
+    const tasks = tasksServer([trashable], { refuse });
+    serve(tasks.routes);
+    await openTasks('/tasks/14');
+    await menuItem('Move to Trash');
+    expect(
+      await screen.findByText('Hanya pembuat tugas yang bisa menghapusnya.'),
+    ).toBeOnTheScreen();
+    expect(screen).toHavePathname('/tasks/14');
+    expect(tasks.rows).toHaveLength(1);
+  });
+
+  it('greyed out by the server says why; not offered, it is not in the menu', async () => {
+    const can = { update: true, cancel: true, comment: true, trash: 'PROJECT_IN_TRASH' } as const;
+    const tasks = tasksServer([row(14, { can }), row(15)]);
+    serve(tasks.routes);
+    await openTasks('/tasks/14');
+    await menuItem('Move to Trash');
+    expect(
+      await screen.findByText('Its project is in the Trash. Restore the project first.'),
+    ).toBeOnTheScreen();
+    expect(tasks.writes).toEqual([]);
+    await act(() => router.push('/tasks/15'));
+    await fireEvent.press(await screen.findByTestId('task-menu'));
+    expect(await screen.findByText('Edit task')).toBeOnTheScreen();
+    expect(screen.queryByText('Move to Trash')).not.toBeOnTheScreen();
   });
 });
