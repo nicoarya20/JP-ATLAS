@@ -2,31 +2,35 @@
 
 export const LIST = {
   title: 'Projects',
-  search: 'Search project name or description…',
-  people: 'Show projects of',
-  myProjects: 'My projects',
-  clear: 'Clear',
+  search: 'Search project name…',
   lead: (name: string) => `Lead: ${name}`,
   due: (date: string) => `Due ${date}`,
   progress: (name: string) => `Progress of ${name}`,
   empty: "You're not in any project yet.",
   noMatch: 'No projects match these filters.',
+  loadMore: 'Load more',
+  shown: (n: number, total: number) => `Showing ${n} of ${total}`,
+  refreshing: 'Updating the list…',
 } as const;
 
-export const FILTER = { status: 'Status', health: 'Health', sort: 'Sort by' } as const;
+export const FILTER = {
+  status: 'Status',
+  statusAll: 'All',
+  attention: 'Needs attention',
+  attentionSub: 'Only active projects that are at risk or off track.',
+  sort: 'Sort by',
+} as const;
 
 export const DETAIL = {
   actions: 'Project actions',
   edit: 'Edit project',
   settings: 'Project settings',
-  archive: 'Move to Archive',
-  inArchive: 'This project is in Archive.',
-  why: (why: string) => `Why: ${why}`,
+  trash: 'Move to Trash',
   leadDue: (lead: string, due: string) => `Lead: ${lead} · Due: ${due}`,
   extend: 'Extend deadline',
-  tabs: ['Overview', 'Tasks', 'Phases', 'Members'],
+  tabs: ['Overview', 'Phases', 'Members'],
   missingTitle: 'Project not found',
-  missingText: 'It may have been moved to Archive or deleted.',
+  missingText: 'It may have been moved to the Trash, or you are not in it.',
 } as const;
 
 export const OVERVIEW = {
@@ -50,12 +54,9 @@ export const TASKS_TAB = {
 } as const;
 
 export const PHASES = {
-  addPhase: '+ Phase',
-  addPhaseNotice: 'Add phase',
-  milestone: 'Milestone',
-  addMilestone: '+ Milestone',
-  addMilestoneNotice: 'Add milestone',
-  noProgress: 'No progress yet',
+  milestone: 'Milestones',
+  loose: 'Other milestones',
+  noProgress: 'No tasks in this phase yet',
   history: 'Deadline history',
   none: 'No phases yet.',
 } as const;

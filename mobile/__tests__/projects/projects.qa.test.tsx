@@ -1,7 +1,7 @@
-// Projects QA pass (W4e): Edit refuses another project's name, a primary says why it is off, a project in Archive has
-// no tasks to show or add, Create project ends on the list while Atlas is archived, and the screen-reader names (one
-// stop per card, step, bar and member; no "+" or "•"; the Lead's note; the remove dialog's tasks sentence).
-import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+// Projects QA pass (W4e) on the screens still on the sample data: Edit refuses another project's name, a primary says
+// why it is off, Create project ends on the list while Atlas is archived. The list and detail read the server now;
+// their screen-reader names are in projects.list.test.tsx and projects.detail.test.tsx.
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 
 import { archiveProject } from '../../src/data/projects.store';
 import { openProjects, resetProjectStores } from '../helpers/projects-router';
@@ -76,14 +76,6 @@ describe('names and reasons on the forms', () => {
 });
 
 describe('a project in Archive', () => {
-  it('its Tasks tab says where the tasks are, with no New task', async () => {
-    archiveAtlas();
-    await openProjects('/projects/atlas?tab=tasks');
-    expect(screen.getByText('Tasks are in Archive with the project.')).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'New task' })).not.toBeOnTheScreen();
-    expect(screen.queryByText('No tasks match these filters.')).not.toBeOnTheScreen();
-  });
-
   it('Create project ends on the Projects list, still saying "Project created"', async () => {
     archiveAtlas();
     await openProjects('/projects/new/form');
@@ -91,79 +83,5 @@ describe('a project in Archive', () => {
     await press('Create project');
     await waitFor(() => expect(screen).toHavePathname('/projects'));
     expect(screen.getByText('Project created')).toBeOnTheScreen();
-  });
-});
-
-describe('the project Tasks tab', () => {
-  it('a board emptied by the search says so, and Reset filters clears it', async () => {
-    await openProjects('/projects/atlas?tab=tasks&view=board');
-    const search = screen.getByPlaceholderText('Search title, #number, or tag…');
-    await fireEvent.changeText(search, 'zzz nothing');
-    expect(screen.getByText('No tasks match these filters.')).toBeOnTheScreen();
-    await press('Reset filters');
-    expect(screen.queryByText('No tasks match these filters.')).not.toBeOnTheScreen();
-  });
-
-  it('List / Kanban is a radio group named View; a task card reads what it shows', async () => {
-    await openProjects('/projects/atlas?tab=tasks');
-    const row = screen.getByTestId('project-task-view');
-    expect(row.props).toMatchObject({
-      accessibilityRole: 'radiogroup',
-      accessibilityLabel: 'View',
-    });
-    const view = within(row);
-    expect(view.getByRole('radio', { name: 'List' })).toBeChecked();
-    expect(button('New task')).toBeOnTheScreen();
-    expect(button(/^#14 Write the API spec, To do, \w+, \w+, \w+, \w+ \d+$/)).toBeOnTheScreen();
-  });
-});
-
-describe('one stop per card, step and bar', () => {
-  it('the project card reads name, status, Lead, health, progress, due and member count', async () => {
-    await openProjects('/projects');
-    expect(
-      button(/^Atlas Project, Active, Lead: Nico, .+, Progress 70%, Due Oct 31, 4 members$/),
-    ).toBeOnTheScreen();
-  });
-
-  it('Overview: each phase step and bar is one element; an attention row adds its sub and due', async () => {
-    await openProjects('/projects/atlas');
-    expect(screen.getByLabelText('Planning, done')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Development, current')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Testing, upcoming')).toBeOnTheScreen();
-    expect(screen.queryByText('✓')).not.toBeOnTheScreen();
-    const bar = screen.getByRole('progressbar', { name: 'Tasks done' });
-    expect(bar.props.accessibilityValue).toMatchObject({ min: 0, max: 100 });
-    expect(screen.queryByText('Tasks done')).not.toBeOnTheScreen();
-    expect(button('See all phases')).toBeOnTheScreen();
-    expect(button(/^Overdue: #12 Fix SSO login, .+, Due \w+ \d+$/)).toBeOnTheScreen();
-  });
-
-  it('Phases: the Milestone heading only where there is one or an editor can add one', async () => {
-    await openProjects('/projects/atlas?tab=phases');
-    expect(button('Add milestone to Testing')).toBeOnTheScreen();
-    expect(within(screen.getByTestId('phase-Testing')).getByText('Milestone')).toBeOnTheScreen();
-  });
-
-  it('Phases for a Member: no Milestone heading on a phase without one', async () => {
-    await openProjects('/projects/atlas?tab=phases', 'member');
-    const testing = within(screen.getByTestId('phase-Testing'));
-    expect(testing.queryByText('Milestone')).not.toBeOnTheScreen();
-    expect(within(screen.getByTestId('phase-Planning')).getByText('Milestone')).toBeOnTheScreen();
-  });
-});
-
-describe('Members', () => {
-  it('reads each member once; the Lead says why it stays; removing keeps their tasks theirs', async () => {
-    await openProjects('/projects/atlas?tab=members');
-    expect(button('Add member')).toBeOnTheScreen();
-    expect(screen.getByLabelText(/^Nico Pratama, \(You\), Lead, /)).toBeOnTheScreen();
-    expect(screen.getByText("The Lead stays Manager and can't be removed.")).toBeOnTheScreen();
-    expect(button('Remove Nico').props.accessibilityHint).toBe(
-      "The Lead stays Manager and can't be removed.",
-    );
-    await press('Remove Dodi');
-    const dialog = within(await screen.findByTestId('member-confirm'));
-    expect(dialog.getByText(/Their tasks stay assigned to them\.$/)).toBeOnTheScreen();
   });
 });

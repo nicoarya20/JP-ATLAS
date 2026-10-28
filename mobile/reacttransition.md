@@ -165,9 +165,10 @@ Koordinator `pm-dashboard-b1` memegang papan ini dan commit; peer tidak menyentu
 | W2 | Fondasi data: jam server (`GET /api/app/home`), helper instan, identitas `userId`, pola `fetch → store → invalidate`, cabut `TODAY` ambient | `pm-dashboard-50` | ✅ `a3bc2943` | W1 (`fc0ab4ed`) |
 | W3-prep | Peta layar ↔ endpoint per modul (diverifikasi ke server sekarang) di `docs/phase2-map-*.md` | `pm-dashboard-d7` | ✅ | W1 |
 | W3-Home | Beranda dari `GET /api/app/home` (widget gagal-lunak, aksi Focus sungguhan) | `pm-dashboard-50` | ✅ `1b368aff` | W2, peta home |
-| W3-Inbox+Team | Inbox (`inbox.api.ts`, count, tandai dibaca) + Team | `pm-dashboard-d7` | ✅ | peta home-inbox-team |
-| W3-Tasks | Daftar, board, counts, detail, tulis (form-options, start/complete/reopen + alasan), sambungan ke Home | `pm-dashboard-50` | 🔄 | W3-Home |
-| W3 (sisa) | Projects, Events, Profile/Archive/Users | — | ⏳ | W3-prep |
+| W3-Inbox+Team | Inbox (`inbox.api.ts`, count, tandai dibaca) + Team | `pm-dashboard-d7` | ✅ `0433e908` | peta home-inbox-team |
+| W3-Tasks | Daftar, board, counts, detail, tulis (form-options, start/complete/reopen + alasan), sambungan ke Home | `pm-dashboard-50` | 🔄 daftar+board ✅ `246c14ef`; detail+tulis 🔄 | W3-Home |
+| W3-Projects | Daftar, detail, anggota, tulis proyek (tab Tugas proyek tetap legacy sampai Tasks commit) | `pm-dashboard-d7` | 🔄 daftar+detail baca ✅ (commit berikut); tulis 🔄 | W3-Inbox+Team |
+| W3 (sisa) | Events, Profile/Archive(Trash)/Users, tab Tugas proyek → API, hapus sampel | — | ⏳ | Tasks, Projects |
 
 ## 7. Pertanyaan Terbuka
 

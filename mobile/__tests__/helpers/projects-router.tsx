@@ -1,4 +1,5 @@
-// The app's route tree with every Projects route, for the Projects screen tests; each screen gets the role under test.
+// The app's route tree with every Projects route, for the Projects screen tests. The list and the detail read the
+// server (stub it with serveAuth); the screens still on the sample data get the role under test.
 import { act } from '@testing-library/react-native';
 import { type RenderRouterResult, renderRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
@@ -54,9 +55,9 @@ function routes(role: Role) {
     'tasks/new/_layout': NewTaskStack,
     'tasks/new/form': stub('screen-task-form'),
     '(tabs)/projects/_layout': ProjectsStack,
-    '(tabs)/projects/index': () => <ProjectsScreen role={role} />,
+    '(tabs)/projects/index': ProjectsScreen,
     '(tabs)/projects/filter': ProjectsFilterScreen,
-    '(tabs)/projects/[id]/index': () => <ProjectDetailScreen role={role} />,
+    '(tabs)/projects/[id]/index': ProjectDetailScreen,
     '(tabs)/projects/[id]/edit': () => <ProjectEditScreen role={role} />,
     '(tabs)/projects/[id]/settings': () => <ProjectSettingsScreen role={role} />,
     '(tabs)/projects/[id]/extend': () => <ExtendProjectScreen role={role} />,

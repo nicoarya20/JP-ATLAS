@@ -14,26 +14,23 @@ export const WHY = {
 /** Accessible names of the buttons whose visible text carries a symbol. */
 export const NAMES = {
   newTask: 'New task',
-  addPhase: 'Add phase',
-  addMilestone: (phase: string) => `Add milestone to ${phase}`,
   addMember: 'Add member',
   choose: (way: string) => `Choose: ${way}`,
   view: 'View',
   allPhases: 'See all phases',
 } as const;
 
-import type { PhaseState } from '@/data/sample/projects.extra';
+import type { PhaseStatusWire } from '@/data/projects.wire';
 
 /** One phase step of the Overview, read as "<name>, done". */
 export const STEP_STATE = {
-  Done: 'done',
-  'In progress': 'current',
-  'Not started': 'upcoming',
-} as const satisfies Record<PhaseState, string>;
+  done: 'done',
+  in_progress: 'current',
+  not_started: 'upcoming',
+} as const satisfies Record<PhaseStatusWire, string>;
 
 export const ADDED = {
   archivedTasks: 'Tasks are in Archive with the project.',
   leadStays: "The Lead stays Manager and can't be removed.",
-  members: (n: number) => `${n} member${n === 1 ? '' : 's'}`,
   progress: (percent: string) => `Progress ${percent}`,
 } as const;

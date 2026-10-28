@@ -5,7 +5,6 @@
 
 import { addEntry, findEntry, removeEntry } from './archive.store';
 import { today } from './clock';
-import { BASE_QUERY, type ProjectsQuery } from './projects.query';
 import {
   findProject,
   type ProjectItem,
@@ -14,7 +13,6 @@ import {
 } from './projects.state';
 
 import type { ProjectRole } from './sample/projects.extra';
-import { createStore, useStore } from './store';
 import {
   forgetProjectTasks,
   getTasksState,
@@ -43,9 +41,6 @@ export type ProjectFields = Pick<
   'name' | 'desc' | 'lead' | 'status' | 'priority' | 'due'
 > &
   Partial<Pick<ProjectItem, 'started'>>;
-
-/** The list's Filter & sort query (phase1-screens.md K4). */
-const queryStore = createStore<ProjectsQuery>(BASE_QUERY);
 
 /** "1 task", "8 tasks". */
 export const taskCount = (n: number) => `${n} task${n === 1 ? '' : 's'}`;
@@ -183,14 +178,7 @@ export function forgetArchivedProject(key: string): void {
   });
 }
 
-/** Every project back to the sample and the query to its default; Archive and Tasks have their own resets. test-only */
+/** Every project back to the sample; Archive and Tasks have their own resets. test-only */
 export function resetProjects(): void {
   store.reset();
-  queryStore.reset();
 }
-
-/** Save the Filter & sort query (Apply / Reset filters). */
-export const setProjectsQuery = (q: ProjectsQuery) => queryStore.set(q);
-
-/** The query in a component. */
-export const useProjectsQuery = () => useStore(queryStore);

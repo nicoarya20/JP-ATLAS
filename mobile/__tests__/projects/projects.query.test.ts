@@ -1,68 +1,61 @@
-// Projects query, people row and dates (port of prototype projects.query.test / projects.people.test).
+// The project list's query as the server can answer it (listPath, isFiltered) and the dates the screens write.
 import { addMonths, daysLeftLabel, rangeLabel } from '../../src/data/projects.dates';
-import { ofWho, teammates, WHO_ME, whoLabel } from '../../src/data/projects.people';
-import { applyQuery, BASE_QUERY, isFiltered, searchProjects } from '../../src/data/projects.query';
-import { listProjects } from '../../src/data/projects.store';
+import {
+  BASE_QUERY,
+  isFiltered,
+  listPath,
+  PROJECT_SEARCH_MAX,
+} from '../../src/data/projects.query';
 
-const ids = (list: readonly { id: string }[]) => list.map((p) => p.id);
+const params = (path: string) => Object.fromEntries(new URL(path, 'http://x').searchParams);
 
-describe('applyQuery', () => {
-  it('sorts by the nearest deadline by default', () => {
-    expect(ids(applyQuery(listProjects(), BASE_QUERY))).toEqual([
-      'website',
-      'migration',
-      'sinar',
-      'atlas',
-      'attendance',
-      'tools',
-    ]);
+describe('listPath', () => {
+  test('every project the viewer may see, nearest deadline first, one page', () => {
+    expect(listPath(BASE_QUERY, 1, 25)).toBe(
+      '/api/app/projects?scope=all&sort=due&page=1&limit=25',
+    );
   });
 
-  it('filters by status and by health ("! Needs attention" matches Needs attention)', () => {
-    expect(ids(applyQuery(listProjects(), { ...BASE_QUERY, status: 2 }))).toEqual(['tools']);
-    expect(ids(applyQuery(listProjects(), { ...BASE_QUERY, health: 1 }))).toEqual([
-      'sinar',
-      'atlas',
-    ]);
+  test('status, Needs attention (perhatian=1) and the name search, trimmed and capped', () => {
+    const q = {
+      status: 'on_hold',
+      attention: true,
+      sort: 'recent',
+      q: ` ${'a'.repeat(120)} `,
+    } as const;
+    expect(params(listPath(q, 2, 50))).toEqual({
+      scope: 'all',
+      sort: 'recent',
+      page: '2',
+      limit: '50',
+      status: 'on_hold',
+      perhatian: '1',
+      q: 'a'.repeat(PROJECT_SEARCH_MAX),
+    });
   });
 
-  it('sorts by lowest progress and by name', () => {
-    expect(ids(applyQuery(listProjects(), { ...BASE_QUERY, sort: 1 }))[0]).toBe('attendance');
-    expect(ids(applyQuery(listProjects(), { ...BASE_QUERY, sort: 2 }))[0]).toBe('atlas');
-  });
-
-  it('only status and health count as filtered', () => {
-    expect(isFiltered({ ...BASE_QUERY, sort: 2 })).toBe(false);
-    expect(isFiltered({ ...BASE_QUERY, health: 2 })).toBe(true);
-  });
-
-  it('searches the name, case-insensitive; blank keeps all', () => {
-    expect(ids(searchProjects(listProjects(), 'ATLAS'))).toEqual(['atlas']);
-    expect(searchProjects(listProjects(), '  ')).toHaveLength(6);
+  test('a search is sent encoded; a blank one is not sent', () => {
+    expect(params(listPath({ ...BASE_QUERY, q: 'R&D #2' }, 1, 25)).q).toBe('R&D #2');
+    expect(listPath({ ...BASE_QUERY, q: '   ' }, 1, 25)).not.toContain('q=');
   });
 });
 
-describe('people row', () => {
-  it('My projects are the ones I am in; a teammate pick shows theirs', () => {
-    expect(ids(ofWho(listProjects(), WHO_ME, 'Dodi'))).toEqual(['atlas', 'migration', 'tools']);
-    expect(ids(ofWho(listProjects(), 'Lea', 'Nico'))).toEqual(['sinar', 'website']);
-    expect(teammates(listProjects(), 'Nico')).not.toContain('Nico');
-  });
-
-  it('names the pick; a Member sees shared projects', () => {
-    expect(whoLabel(WHO_ME, false)).toBe('My projects');
-    expect(whoLabel('Rina', false)).toBe("Rina's projects");
-    expect(whoLabel('Rina', true)).toBe('Projects with Rina');
+describe('isFiltered', () => {
+  test('a status or Needs attention narrows; the sort and the search do not light the dot', () => {
+    expect(isFiltered(BASE_QUERY)).toBe(false);
+    expect(isFiltered({ ...BASE_QUERY, sort: 'name', q: 'atlas' })).toBe(false);
+    expect(isFiltered({ ...BASE_QUERY, status: 'completed' })).toBe(true);
+    expect(isFiltered({ ...BASE_QUERY, attention: true })).toBe(true);
   });
 });
 
 describe('dates', () => {
-  it('adds months, clamped to the month end', () => {
+  test('adds months, clamped to the month end', () => {
     expect(addMonths('2026-10-07', 1)).toBe('2026-11-07');
     expect(addMonths('2026-01-31', 1)).toBe('2026-02-28');
   });
 
-  it('labels ranges and days left', () => {
+  test('labels ranges and days left', () => {
     expect(rangeLabel('2026-09-01', '2026-09-24')).toBe('Sep 1–24');
     expect(rangeLabel('2026-09-25', '2026-10-20')).toBe('Sep 25–Oct 20');
     expect(daysLeftLabel('2026-10-07', '2026-10-31')).toMatch(/24 days/);

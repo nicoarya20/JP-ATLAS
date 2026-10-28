@@ -1,33 +1,49 @@
-// Project detail ⑩ Phases (prototype projects.tabs.jsx ProjectsPhases): a card per phase with its range, status,
-// progress and milestone, then the deadline history. A Manager or Admin adds phases and milestones, completes the phase
-// in progress and starts the next one (notices only in Phase 1, like the prototype).
-import { useNotice } from '@/components/notice/use-notice';
+// Project detail ⑩ Phases (prototype projects.tabs.jsx ProjectsPhases) from the server's plan: a card per phase with
+// its range, status, progress and milestones, the milestones of no phase, then the deadline history (each extension's
+// category and the manager's own reason, as it came).
 import { StatusPill } from '@/components/status/status-pill';
 import { Badge, BadgeText } from '@/components/ui/badge';
-import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import type { getProjectPhases } from '@/data/projects';
+import { projectExtensionsResource, projectPlanResource } from '@/data/projects.api';
+import {
+  getDeadlineHistory,
+  getProjectPhases,
+  type PhaseCard as Phase,
+} from '@/data/projects.view.tabs';
 
 import { Bar, Note, Sec, Soft } from '../parts/display';
+import { Loaded } from '../parts/loaded';
 import { OVERVIEW, PHASES } from '../projects.strings';
-import { NAMES } from '../projects.strings.added';
 
-type Phases = ReturnType<typeof getProjectPhases>;
+type Milestone = Phase['milestones'][number];
 
-function PhaseCard({ ph, canEdit }: { ph: Phases['cards'][number]; canEdit: boolean }) {
-  const notice = useNotice();
-  const b = ph.button;
+function Milestones({ title, rows }: { title: string; rows: readonly Milestone[] }) {
   return (
-    <Sec strong={ph.now} testID={`phase-${ph.name}`}>
+    <VStack className="gap-1">
+      <Text className="text-subhead font-semibold">{title}</Text>
+      {rows.map((m) => (
+        <VStack key={m.id} accessible accessibilityLabel={`${m.name}, ${m.line}`}>
+          <Text className="text-subhead">{m.name}</Text>
+          <Note>{m.line}</Note>
+        </VStack>
+      ))}
+    </VStack>
+  );
+}
+
+function PhaseCard({ ph }: { ph: Phase }) {
+  const done = ph.status === 'done';
+  return (
+    <Sec strong={ph.now} testID={`phase-${ph.id}`}>
       <HStack className="items-center gap-3">
         <VStack
-          className={`h-8 w-8 items-center justify-center rounded-full ${ph.mark === '✓' ? 'bg-atlas' : 'bg-muted'}`}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          className={`h-8 w-8 items-center justify-center rounded-full ${done ? 'bg-atlas' : 'bg-muted'}`}
         >
-          <Text className={`text-subhead font-semibold ${ph.mark === '✓' ? 'text-card' : ''}`}>
-            {ph.mark}
-          </Text>
+          <Text className={`text-subhead font-semibold ${done ? 'text-card' : ''}`}>{ph.mark}</Text>
         </VStack>
         <VStack className="flex-1 gap-1">
           <Text className="text-headline font-semibold">{ph.name}</Text>
@@ -35,82 +51,71 @@ function PhaseCard({ ph, canEdit }: { ph: Phases['cards'][number]; canEdit: bool
         </VStack>
         <StatusPill status={ph.state} />
       </HStack>
-      {ph.pct ? (
-        <Bar value={ph.pct} label={ph.name} percent={OVERVIEW.percent(ph.pct)} />
-      ) : (
+      {ph.pct === null ? (
         <Note>{PHASES.noProgress}</Note>
+      ) : (
+        <Bar value={ph.pct} label={ph.name} percent={OVERVIEW.percent(ph.pct)} />
       )}
-      {/* No milestone and nothing to add: the heading would head nothing. */}
-      {(ph.milestone || canEdit) && (
-        <VStack className="gap-1">
-          <Text className="text-subhead font-semibold">{PHASES.milestone}</Text>
-          {ph.milestone && (
-            <>
-              <Text className="text-subhead">{ph.milestone.name}</Text>
-              <Note>{ph.milestone.line}</Note>
-            </>
-          )}
-          {canEdit && (
-            <Button
-              variant="link"
-              className="self-start"
-              accessibilityLabel={NAMES.addMilestone(ph.name)}
-              onPress={() => notice(PHASES.addMilestoneNotice)}
-            >
-              <ButtonText>{PHASES.addMilestone}</ButtonText>
-            </Button>
-          )}
-        </VStack>
-      )}
-      {b && (
-        <Button
-          size="sm"
-          variant={b.primary ? 'default' : 'outline'}
-          onPress={() => notice(b.notice)}
-        >
-          <ButtonText>{b.label}</ButtonText>
-        </Button>
-      )}
+      {ph.milestones.length > 0 && <Milestones title={PHASES.milestone} rows={ph.milestones} />}
     </Sec>
   );
 }
 
-/** The Phases tab of a project (`p` from getProjectPhases). */
-export function PhasesTab({ p, canEdit }: { p: Phases; canEdit: boolean }) {
-  const notice = useNotice();
+function Plan({ id }: { id: string }) {
+  const p = getProjectPhases(id);
+  if (!p) return null;
   return (
     <>
-      <HStack className="items-center justify-between gap-2">
-        <Note>{p.cards.length ? p.count : PHASES.none}</Note>
-        {canEdit && (
-          <Button
-            size="sm"
-            variant="outline"
-            accessibilityLabel={NAMES.addPhase}
-            onPress={() => notice(PHASES.addPhaseNotice)}
-          >
-            <ButtonText>{PHASES.addPhase}</ButtonText>
-          </Button>
-        )}
-      </HStack>
+      <Note>{p.cards.length ? p.count : PHASES.none}</Note>
       {p.cards.map((ph) => (
-        <PhaseCard key={ph.name} ph={ph} canEdit={canEdit} />
+        <PhaseCard key={ph.id} ph={ph} />
       ))}
-      {p.history && (
-        <Soft testID="deadline-history">
-          <Text accessibilityRole="header" className="text-headline font-semibold">
-            {PHASES.history}
-          </Text>
-          <Note>{p.history.original}</Note>
+      {p.loose.length > 0 && (
+        <Sec testID="phase-loose">
+          <Milestones title={PHASES.loose} rows={p.loose} />
+        </Sec>
+      )}
+    </>
+  );
+}
+
+/** Nothing when the deadline never moved. */
+function History({ id }: { id: string }) {
+  const h = getDeadlineHistory(id);
+  if (!h) return null;
+  return (
+    <Soft testID="deadline-history">
+      <Text accessibilityRole="header" className="text-headline font-semibold">
+        {PHASES.history}
+      </Text>
+      {h.original && <Note>{h.original}</Note>}
+      {h.rows.map((r) => (
+        <VStack key={r.id} className="gap-1">
           <HStack className="items-center justify-between gap-2">
-            <Text className="flex-1 font-semibold">{p.history.change}</Text>
+            <Text className="flex-1 font-semibold">{r.change}</Text>
             <Badge variant="outline">
-              <BadgeText>{p.history.reason}</BadgeText>
+              <BadgeText>{r.category}</BadgeText>
             </Badge>
           </HStack>
-          <Text className="text-subhead">{p.history.by}</Text>
-        </Soft>
-      )}
+          {!!r.reason && <Text className="text-subhead">{r.reason}</Text>}
+          <Note>{r.by}</Note>
+        </VStack>
+      ))}
+      {h.more && <Note>{h.more}</Note>}
+    </Soft>
+  );
+}
+
+/** The Phases tab of project id. */
+export function PhasesTab({ id }: { id: string }) {
+  return (
+    <>
+      <Loaded res={projectPlanResource(id)} testID="phases">
+        {() => <Plan id={id} />}
+      </Loaded>
+      <Loaded res={projectExtensionsResource(id)} testID="history">
+        {() => <History id={id} />}
+      </Loaded>
     </>
   );
 }
