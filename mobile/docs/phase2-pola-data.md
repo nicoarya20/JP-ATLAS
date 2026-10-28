@@ -7,7 +7,7 @@ dari sini, yang rusak bukan modulmu — yang rusak adalah modul orang lain yang 
 sama.
 
 Sumbernya: `mobile/src/data/resource.ts` (pola), `mobile/src/data/clock.ts` (jam),
-`mobile/src/data/instant.ts` (instan), `mobile/src/data/viewer.ts` (identitas),
+`mobile/src/data/instant.ts` (instan), `mobile/src/session` (identitas),
 `mobile/src/data/home.api.ts` (contoh lengkap). Diturunkan dari fondasi Fase 2 lama
 (`2a985b7^`, dibatalkan di `2a985b7`) dan ditulis ulang untuk mobile sekarang.
 
@@ -130,25 +130,22 @@ nilai yang tampak konstanta tapi berperilaku fungsi adalah jebakan untuk worker 
 
 ---
 
-## 5. Aturan: orang dicocokkan lewat `samePerson()`, titik
+## 5. Aturan: orang dicocokkan lewat `userId`, titik
 
 Identitas orang datang dari sesi (`user.id`), nama hanya untuk ditampilkan (K4).
 
 ```ts
-const who = viewer(role);
-tasks.filter((t) => samePerson(t.who, who));       // satu orang
-events.filter((e) => someSamePerson(e.attendees, who));  // daftar orang
+const me = sessionStore.get().user?.id;
+members.map((x) => ({ ...x, you: x.userId === me }));     // id dari DTO server
+events.filter((e) => e.participants.isParticipant);       // atau tanda dari server
 ```
 
 - **Jangan** membandingkan nama (`t.who === 'Nico'`, `members.includes(name)`). Begitu ada dua
   "Budi", pekerjaan menempel ke orang yang salah — dan itu kerusakan senyap, bukan error.
-- **Jangan** membandingkan `userId` dengan tangan sendiri. Saat modulmu pindah ke DTO server,
-  `samePerson` adalah satu-satunya tempat yang perlu tahu.
-- Orang **selain** yang login (rekan yang beban tugasnya dihitung): `identityOf(person)` /
-  `identityRef(ref)`, bukan `viewer()`.
-- `role` masih parameter opsional yang jatuh ke peran sesi. Itu **hutang yang tercatat**
-  (`phase2-gap-disembunyikan.md` §4.1), bukan pola untuk ditiru: payload sesi belum membawa peran dan
-  `AppCaps` belum dibangun.
+- Bila server sudah memberi tanda (`isParticipant`, `can{}`), pakai tanda itu, jangan hitung ulang.
+- Peran dan izin hanya dari server: `caps` whoami (`src/data/whoami.api.ts`) dan `can{}` per baris.
+  `viewer()`/`samePerson()`/`SESSION_ROLE` dari W2 sudah **dihapus** (28 Okt 2026; pulihkan dari
+  `09c01dd0`, lihat `phase2-gap-disembunyikan.md` §4.1).
 
 ---
 

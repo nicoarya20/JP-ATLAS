@@ -4,8 +4,8 @@
  * the server stores through `zonedInstant`, and an edit sends only what changed.
  */
 import { today } from './clock';
-import { daysBetween, monthDay } from './dates';
-import { addDays, clockMinutes, monthOf } from './events.dates';
+import { daysBetween } from './dates';
+import { addDays, clockMinutes } from './events.dates';
 import { KINDS } from './events.query';
 import { type EventType, TYPES } from './events.shared';
 import { clockOf, dayAndClock, zonedInstant } from './events.time';
@@ -36,14 +36,6 @@ export const TIMES: readonly string[] = Array.from(
 /** Time picks; an edited event at a time off the list (6:30 AM) keeps its own time on top. */
 export const timeOptions = (current: string) =>
   (TIMES.includes(current) ? TIMES : [current, ...TIMES]).map((t) => ({ value: t, label: t }));
-
-/** Due date picks of a Step 3 draft (sample outcomes): from today to the end of its month, "Oct 9" labels. */
-export const dueDates = () => {
-  const from = today();
-  return monthOf(from)
-    .filter((d) => d >= from)
-    .map((value) => ({ value, label: monthDay(value) }));
-};
 
 export type EventForm = {
   title: string;

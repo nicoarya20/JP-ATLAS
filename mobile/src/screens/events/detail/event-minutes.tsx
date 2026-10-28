@@ -1,5 +1,5 @@
 // The minutes of an event, as the server keeps them: their state and text, or "None yet". Read-only on the phone: the
-// minutes editor (`PUT /events/:id/note`) and the record / outcomes flow are not built yet (E-1, gap doc).
+// minutes editor (`PUT /events/:id/note`) and the record / outcomes flow are not built (E-1: removed, gap doc).
 import { StatusPill } from '@/components/status/status-pill';
 import { Text } from '@/components/ui/text';
 import { type EventDetailView, NONE_YET } from '@/data/events.detail';

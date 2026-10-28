@@ -55,8 +55,6 @@ export const DETAIL = {
   missingText: 'Go back to Events and pick another one.',
 } as const;
 
-export const AI_LABEL = 'AI-assisted';
-
 export const SHEETS = {
   cancelTitle: 'Cancel event?',
   cancelLead: (attendees: string) =>

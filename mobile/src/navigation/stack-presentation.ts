@@ -39,5 +39,5 @@ export const SHEET: NativeStackNavigationOptions = OWN_SHEET ? OWN_SHEET_ROUTE :
 /** A prototype modal screen (create and edit flows): slides up over the screen it opened from. */
 export const MODAL: NativeStackNavigationOptions = { presentation: 'modal' };
 
-/** A screen the person must not swipe away from (sign-in, a running recording). */
+/** A screen the person must not swipe away from (sign-in). */
 export const NO_SWIPE: NativeStackNavigationOptions = { gestureEnabled: false };

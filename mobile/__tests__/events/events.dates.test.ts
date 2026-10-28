@@ -3,30 +3,17 @@ import {
   clockMinutes,
   col,
   dayLabel,
-  eventsOn,
   groupLabel,
   monthOf,
   monthTitle,
-  occurrenceStatus,
-  occursOn,
-  startMinutes,
   stepMonth,
   weekOf,
   weekTitle,
 } from '../../src/data/events.dates';
-import type { EventItem } from '../../src/data/events.shared';
-import { eventsStore, findEvent, resetEvents } from '../../src/data/events.store';
 
 // Expected values are the prototype's calendar on its sample "today", Wed, Oct 7, 2026.
 
-const event = (id: string): EventItem => {
-  const e = findEvent(id);
-  if (!e) throw new Error(`test-only: no sample event ${id}`);
-  return e;
-};
 const day = (n: number) => `2026-10-${String(n).padStart(2, '0')}`;
-
-afterEach(resetEvents);
 
 describe('events dates', () => {
   test('October 2026 has 31 dates and starts on a Thursday column', () => {
@@ -78,29 +65,6 @@ describe('events dates', () => {
     expect(clockMinutes('2:00 PM')).toBe(840);
     expect(clockMinutes('12:00 PM')).toBe(720);
     expect(clockMinutes('12:15 AM')).toBe(15);
-    expect(startMinutes(event('daily'))).toBe(540);
-    expect(startMinutes(event('review'))).toBe(840);
     expect(() => clockMinutes('14:00')).toThrow('Not a clock time (h:mm AM/PM): 14:00');
-  });
-
-  test('a recurring event falls every 2 weeks after its first date, into November', () => {
-    const sprint = event('sprint');
-    expect([9, 23].map((n) => occursOn(sprint, day(n)))).toEqual([true, true]);
-    expect(occursOn(sprint, '2026-11-06')).toBe(true);
-    expect([2, 16, 30].map((n) => occursOn(sprint, day(n)))).toEqual([false, false, false]);
-    expect(occursOn(event('sinar'), day(15))).toBe(false);
-    expect(eventsOn(eventsStore.get().list, day(7)).map((e) => e.id)).toEqual(['review', 'daily']);
-  });
-
-  test('a series canceled as a whole stops repeating; one canceled occurrence does not', () => {
-    const sprint = event('sprint');
-    const all: EventItem = { ...sprint, canceled: { reason: 'Holiday', by: 'Nico', once: false } };
-    expect(occursOn(all, day(9))).toBe(true);
-    expect(occursOn(all, day(23))).toBe(false);
-    expect(occurrenceStatus(all, day(9))).toBe('Canceled');
-    const once: EventItem = { ...sprint, canceled: { reason: 'Holiday', by: 'Nico', once: true } };
-    expect(occursOn(once, day(23))).toBe(true);
-    expect(occurrenceStatus(once, day(9))).toBe('Canceled');
-    expect(occurrenceStatus(once, day(23))).toBe('Upcoming');
   });
 });

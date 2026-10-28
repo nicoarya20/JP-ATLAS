@@ -6,12 +6,11 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-
 import { router } from 'expo-router';
 
 import { forgetAllResources } from '../../src/data/resource';
-import type { Role } from '../../src/data/sample/people';
 import { CREATE_ROUTES, type CreateGo, createHref } from '../../src/navigation/create-href';
 import { openApp } from '../helpers/app-router';
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
 import { sheetGone } from '../helpers/sheet-gone';
-import { whoamiRoute } from '../helpers/whoami-fixtures';
+import { type Role, whoamiRoute } from '../helpers/whoami-fixtures';
 
 let server: ReturnType<typeof serveAuth> | null = null;
 beforeEach(() => {

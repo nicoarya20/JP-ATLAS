@@ -1,6 +1,5 @@
-// The app's route tree with every Events route, for the Events screen tests. The list, calendar, detail, form and
-// Cancel sheet read the server (answer it through `eventsServer().use`); the hidden record / outcomes / results flow
-// is still on the sample data and gets the role under test.
+// The app's route tree with every Events route, for the Events screen tests. Every Events screen reads the server
+// (answer it through `eventsServer().use`).
 import { act } from '@testing-library/react-native';
 import { type RenderRouterResult, renderRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
@@ -13,23 +12,15 @@ import * as ProjectsStack from '../../app/(tabs)/projects/_layout';
 import * as TasksStack from '../../app/(tabs)/tasks/_layout';
 import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
-import { resetArchive } from '../../src/data/archive.store';
 import { resetEventsQuery } from '../../src/data/events.api';
-import { resetEvents } from '../../src/data/events.store';
 import { forgetAllResources } from '../../src/data/resource';
-import type { Role } from '../../src/data/sample';
-import { resetTasks } from '../../src/data/tasks.store';
 import { EventDetailScreen } from '../../src/screens/events/detail/event-detail.screen';
 import { EventsFilterScreen } from '../../src/screens/events/filter/events-filter.screen';
 import { EventFormScreen } from '../../src/screens/events/form/event-form.screen';
 import { EventsScreen } from '../../src/screens/events/list/events.screen';
-import { OutcomesScreen } from '../../src/screens/events/outcomes/outcomes.screen';
-import { RecordReadyScreen } from '../../src/screens/events/record/record-ready.screen';
-import { RecordingScreen } from '../../src/screens/events/record/recording.screen';
-import { EventResultsScreen } from '../../src/screens/events/results/results.screen';
 import { CancelEventScreen } from '../../src/screens/events/sheets/cancel.screen';
 import { type AuthRoutes, serveAuth } from './auth-server';
-import { whoamiRoute } from './whoami-fixtures';
+import { type Role, whoamiRoute } from './whoami-fixtures';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
 jest.mock('expo-font', () => ({
@@ -40,34 +31,28 @@ jest.mock('expo-font', () => ({
 /** Stand-in for a screen another module ports: only its place in the route tree matters here. */
 const stub = (testID: string) => () => <Text testID={testID}>{testID}</Text>;
 
-function routes(role: Role) {
-  return {
-    _layout: RootLayout,
-    '(tabs)/_layout': TabsLayout,
-    '(tabs)/(home)/_layout': HomeStack,
-    '(tabs)/(home)/index': stub('screen-home'),
-    '(tabs)/tasks/_layout': TasksStack,
-    '(tabs)/tasks/index': stub('screen-tasks'),
-    '(tabs)/tasks/[no]': stub('screen-task'),
-    '(tabs)/projects/_layout': ProjectsStack,
-    '(tabs)/projects/index': stub('screen-projects'),
-    '(tabs)/projects/[id]/index': stub('screen-project'),
-    '(tabs)/events/_layout': EventsStack,
-    '(tabs)/events/index': EventsScreen,
-    '(tabs)/events/filter': EventsFilterScreen,
-    '(tabs)/events/[id]/index': EventDetailScreen,
-    '(tabs)/events/[id]/results': EventResultsScreen,
-    '(tabs)/events/[id]/record': RecordReadyScreen,
-    '(tabs)/events/[id]/recording': RecordingScreen,
-    '(tabs)/events/[id]/outcomes/[step]': () => <OutcomesScreen role={role} />,
-    '(tabs)/events/[id]/cancel': CancelEventScreen,
-    'events/new': EventFormScreen,
-  };
-}
+const ROUTES = {
+  _layout: RootLayout,
+  '(tabs)/_layout': TabsLayout,
+  '(tabs)/(home)/_layout': HomeStack,
+  '(tabs)/(home)/index': stub('screen-home'),
+  '(tabs)/tasks/_layout': TasksStack,
+  '(tabs)/tasks/index': stub('screen-tasks'),
+  '(tabs)/tasks/[no]': stub('screen-task'),
+  '(tabs)/projects/_layout': ProjectsStack,
+  '(tabs)/projects/index': stub('screen-projects'),
+  '(tabs)/projects/[id]/index': stub('screen-project'),
+  '(tabs)/events/_layout': EventsStack,
+  '(tabs)/events/index': EventsScreen,
+  '(tabs)/events/filter': EventsFilterScreen,
+  '(tabs)/events/[id]/index': EventDetailScreen,
+  '(tabs)/events/[id]/cancel': CancelEventScreen,
+  'events/new': EventFormScreen,
+};
 
-/** Render the app at `url`; `role` is for the sample outcomes screens (default: the session's Project Manager). */
-export const openEvents = (url: string, role: Role = 'pm'): Promise<RenderRouterResult> =>
-  renderRouter(routes(role), { initialUrl: url, wrapper: GluestackUIProvider });
+/** Render the app at `url`. */
+export const openEvents = (url: string): Promise<RenderRouterResult> =>
+  renderRouter(ROUTES, { initialUrl: url, wrapper: GluestackUIProvider });
 
 /** What every Events screen reads around it: who is signed in (the tab bar's "+") and the Inbox count. */
 const AROUND = (role: Role): AuthRoutes => ({
@@ -90,10 +75,7 @@ export function eventsServer() {
     server?.restore();
     server = null;
     await act(async () => {
-      resetEvents();
       resetEventsQuery();
-      resetTasks();
-      resetArchive();
       resetSnack();
     });
   });

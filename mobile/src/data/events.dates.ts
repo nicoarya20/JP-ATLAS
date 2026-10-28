@@ -1,5 +1,5 @@
 // Calendar maths and date labels of the Events module on ISO dates ("2026-10-07"), ported from the prototype's
-// events.calendar.jsx / events.query.js / events.store.js. Labels come from fixed English arrays and the maths runs in
+// events.calendar.jsx / events.query.js. Labels come from fixed English arrays and the maths runs in
 // UTC, never toLocaleDateString or the device clock, so Hermes, Jest and every time zone give the same strings.
 import { today } from './clock';
 import {
@@ -11,7 +11,6 @@ import {
   toUtc,
   weekdayMonthDay,
 } from './dates';
-import { type EventItem, eventStart, eventStatus, REPEAT_DAYS } from './events.shared';
 
 const MONTH_NAMES = [
   'January',
@@ -106,27 +105,3 @@ export function clockMinutes(time: string): number {
   if (!m) throw new Error(`Not a clock time (h:mm AM/PM): ${time}`);
   return (Number(m[1]) % 12) * 60 + Number(m[2]) + (m[3] === 'PM' ? 720 : 0);
 }
-
-/** Minutes since midnight of an event's start, to order the agenda. */
-export const startMinutes = (e: EventItem) => clockMinutes(eventStart(e));
-
-/** An event's own date (a recurring event's first occurrence). */
-export const firstDate = (e: EventItem) => e.date;
-
-/**
- * True when an event falls on iso: its own date, or (recurring) every REPEAT_DAYS after it, into any later month.
- * A series canceled as a whole stops repeating; its own date stays, marked Canceled.
- */
-export function occursOn(e: EventItem, iso: string): boolean {
-  const gap = daysBetween(firstDate(e), iso);
-  const step = e.canceled && !e.canceled.once ? 0 : e.repeat ? REPEAT_DAYS[e.repeat] : 0;
-  return gap === 0 || (step > 0 && gap > 0 && gap % step === 0);
-}
-
-/** Events falling on iso, for the calendar dots and agenda. */
-export const eventsOn = (events: readonly EventItem[], iso: string) =>
-  events.filter((e) => occursOn(e, iso));
-
-/** Status of one calendar occurrence: when only one occurrence was canceled, the later dates are still Upcoming. */
-export const occurrenceStatus = (e: EventItem, iso: string) =>
-  e.canceled?.once && iso !== firstDate(e) ? 'Upcoming' : eventStatus(e);

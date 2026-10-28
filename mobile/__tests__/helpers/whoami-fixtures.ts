@@ -2,8 +2,10 @@
 // (`server/access/capabilities.ts`): a Member may not start a project; everyone may make a personal event. test-only
 import type { AppCapsWire, WhoamiWire } from '@/data/whoami.api';
 
-import type { Role } from '../../src/data/sample/people';
 import type { AuthRoutes } from './auth-server';
+
+/** The three account roles a test signs in as: Member, Project Manager, Admin. */
+export type Role = 'member' | 'pm' | 'admin';
 
 export const CAPS: Record<Role, AppCapsWire> = {
   member: { createProject: false, createEvent: true, dashboard: false, dev: false },

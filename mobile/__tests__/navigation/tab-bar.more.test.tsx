@@ -4,21 +4,13 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { AccessibilityInfo, BackHandler } from 'react-native';
 
-import type { Role } from '../../src/data/sample/people';
 import { openApp } from '../helpers/app-router';
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
 import { counts } from '../helpers/inbox-fixtures';
 import { profileRoute } from '../helpers/profile-fixtures';
 import { usersStats } from '../helpers/users-fixtures';
-import { whoamiRoute } from '../helpers/whoami-fixtures';
+import { type Role, whoamiRoute } from '../helpers/whoami-fixtures';
 
-// The signed-in role, per test (the app reads it from src/data/session until Phase 2 signs in).
-let mockRole: Role = 'member';
-jest.mock('../../src/data/session', () => ({
-  get SESSION_ROLE() {
-    return mockRole;
-  },
-}));
 // Every tab the pill was rendered with, to see what the bubble was sent to on the way.
 const mockPillActive: number[] = [];
 jest.mock('../../src/components/tab-bar/glass-pill', () => {
@@ -32,7 +24,6 @@ jest.mock('../../src/components/tab-bar/glass-pill', () => {
   };
 });
 afterEach(() => {
-  mockRole = 'member';
   jest.restoreAllMocks();
 });
 
@@ -49,8 +40,8 @@ afterEach(() => {
 // The profile card names the account by its display name (profileWire), not the session's account name.
 const CARD = 'Nico, open profile';
 
+/** The app at `path`, signed in as `role` (whoami's caps). */
 async function open(path: string, role: Role = 'member', routes?: AuthRoutes) {
-  mockRole = role;
   server = serveAuth({
     ...whoamiRoute(role),
     ...profileRoute(),

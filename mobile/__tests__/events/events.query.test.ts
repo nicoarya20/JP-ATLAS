@@ -8,60 +8,9 @@ import {
   kindOf,
   TYPE_FILTERS,
 } from '../../src/data/events.query';
-import {
-  type EventItem,
-  eventEnd,
-  eventHref,
-  eventProject,
-  eventStart,
-  eventStatus,
-  eventWhere,
-  TYPES,
-} from '../../src/data/events.shared';
-import { findEvent } from '../../src/data/events.store';
+import { TYPES } from '../../src/data/events.shared';
 
-// The sample helpers (profile calendar, hidden outcomes) on Wed, Oct 7, 2026, and the query string the Events tab
-// sends to `GET /api/app/events` for each Filter & sort choice.
-
-const event = (id: string): EventItem => {
-  const e = findEvent(id);
-  if (!e) throw new Error(`test-only: no sample event ${id}`);
-  return e;
-};
-
-describe('events shared', () => {
-  test('status, times, place and project of an event', () => {
-    expect(['kickoff', 'review', 'sinar'].map((id) => eventStatus(event(id)))).toEqual([
-      'Done',
-      'Today',
-      'Upcoming',
-    ]);
-    expect(
-      eventStatus({ ...event('sinar'), canceled: { reason: 'x', by: 'Nico', once: false } }),
-    ).toBe('Canceled');
-    expect([eventStart(event('review')), eventEnd(event('review'))]).toEqual([
-      '2:00 PM',
-      '3:00 PM',
-    ]);
-    expect(eventStart(event('sinar'))).toBe('10:00 AM');
-    expect(eventStart({ ...event('sinar'), range: '11:00 AM–12:00 PM' })).toBe('11:00 AM');
-    expect(eventWhere(event('review'))).toBe('In person · Meeting Room 2');
-    expect(eventWhere(event('sinar'))).toBe('Online');
-    expect(eventProject(event('sinar'))).toBe('Atlas Project');
-    expect(eventProject({ ...event('sinar'), project: 'sinar' })).toBe('PT Sinar Client Portal');
-  });
-
-  test('an event opens its detail, its results once confirmed, else Step 3', () => {
-    expect(eventHref(event('review'))).toBe('/events/review');
-    expect(eventHref(event('kickoff'))).toBe('/events/kickoff/results');
-    expect(eventHref(event('daily'))).toBe('/events/daily/outcomes/3');
-    const confirmed = {
-      ...event('daily'),
-      outcomes: { tasks: [22], by: 'Nico', date: '2026-10-07' },
-    };
-    expect(eventHref(confirmed)).toBe('/events/daily/results');
-  });
-});
+// The query string the Events tab sends to `GET /api/app/events` for each Filter & sort choice.
 
 describe('events query', () => {
   test('the default asks for upcoming events of every type and project', () => {

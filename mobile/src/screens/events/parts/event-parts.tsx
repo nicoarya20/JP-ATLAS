@@ -1,17 +1,14 @@
 // Small layout pieces shared by the events screens (prototype events.parts.jsx): title + pills head, untinted section,
-// bullets, muted note, grey box, the AI-assisted mark, two buttons side by side, a labelled checkbox. Form groups:
+// bullets, muted note, grey box, two buttons side by side, a labelled checkbox. Form groups:
 // event-field.tsx.
-import { Check, Sparkles } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { Checkbox, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from '@/components/ui/checkbox';
 import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-
-import { AI_LABEL } from '../events.strings';
 
 /** Event title with its status pills. */
 export function EvHead({ title, children }: { title: string; children: ReactNode }) {
@@ -80,31 +77,6 @@ export function Box({ children, testID }: { children: ReactNode; testID?: string
   );
 }
 
-/** Marks an AI-assisted action. */
-export function Ai() {
-  return (
-    <View accessible accessibilityRole="image" accessibilityLabel={AI_LABEL}>
-      <Icon as={Sparkles} size="sm" className="text-atlas" />
-    </View>
-  );
-}
-
-/** A note led by the AI mark: "✦ = AI-assisted. …". One stop for screen readers, "AI-assisted. …", without the mark or "=". */
-export function AiNote({ children }: { children: string }) {
-  return (
-    <HStack
-      accessible
-      accessibilityLabel={children.replace(/^\s*=\s*/, '')}
-      className="items-center gap-1"
-    >
-      <Ai />
-      <View className="flex-1">
-        <Note>{children}</Note>
-      </View>
-    </HStack>
-  );
-}
-
 /** Two buttons side by side; wide = the second one larger. */
 export function Two({ wide, children }: { wide?: boolean; children: [ReactNode, ReactNode] }) {
   const [first, second] = children;
@@ -118,7 +90,7 @@ export function Two({ wide, children }: { wide?: boolean; children: [ReactNode, 
 
 type CheckRowProps = { label: string; value: boolean; onChange: (on: boolean) => void };
 
-/** Checkbox with its label (the replacement event, the recording consent); the label is its accessible name. */
+/** Checkbox with its label (the replacement event); the label is its accessible name. */
 export function CheckRow({ label, value, onChange }: CheckRowProps) {
   return (
     <Checkbox

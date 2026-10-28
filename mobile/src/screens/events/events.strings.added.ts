@@ -6,8 +6,6 @@ export { spoken } from '@/components/a11y/spoken';
 export const SPOKEN = {
   /** The Month / Week pick inside the Calendar tab. */
   calendarView: 'Calendar view',
-  /** A draft task's button with the task it acts on: "Remove Update the brief". */
-  draftAction: (action: string, title: string) => `${action} ${title}`,
 } as const;
 
 export const ADDED = {

@@ -43,7 +43,6 @@ export const THEME_ROLES: Record<string, Source> = {
   'danger-soft': 'dangerBg',
   alert: (scheme) => MOBILE_STATUS[scheme].alert,
   'alert-foreground': (scheme) => ON_DANGER[scheme],
-  presence: (scheme) => MOBILE_STATUS[scheme].presence,
   success: 'success',
   'success-soft': 'successBg',
   warning: 'warning',

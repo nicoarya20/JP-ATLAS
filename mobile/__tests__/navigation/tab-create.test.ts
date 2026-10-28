@@ -1,7 +1,6 @@
-import type { Role } from '../../src/data/sample/people';
 import { CREATE, CREATE_MENU, createFor } from '../../src/navigation/tab-create';
 import { createOptions } from '../../src/screens/create/create.options';
-import { CAPS } from '../helpers/whoami-fixtures';
+import { CAPS, type Role } from '../helpers/whoami-fixtures';
 
 // Port of the createFor cases in the prototype's src/test/tabbar.test.jsx, on the server's caps instead of a role.
 describe('createFor', () => {
