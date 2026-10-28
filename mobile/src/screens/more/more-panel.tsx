@@ -11,6 +11,7 @@ import { Avatar, AvatarFallbackText } from '@/components/ui/avatar';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
+import { inboxCountResource, useInboxActionCount } from '@/data/inbox.api';
 import { getProfile } from '@/data/profile';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
@@ -63,7 +64,12 @@ type MorePanelProps = {
  */
 export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
   const decided = useDecisions();
-  const { me, line } = getProfile(role, decided);
+  const { me, line } = getProfile(role);
+  // The Inbox tile's badge reads the server's count: subscribe to it, and ask for it once.
+  useInboxActionCount();
+  useEffect(() => {
+    void inboxCountResource.ensure();
+  }, []);
   const card = useRef<ComponentRef<typeof Pressable>>(null);
   const { open: unfolded } = usePanel();
   // A screen reader starts on the profile card once the panel has unfolded under it.

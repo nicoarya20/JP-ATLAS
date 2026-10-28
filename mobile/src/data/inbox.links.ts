@@ -1,27 +1,27 @@
-// Where an inbox item leads and who is behind it (prototype inbox.shared.js), read from the live task and event lists.
+/**
+ * Where an Inbox card's button goes in the app. The server sends the web path of the page
+ * (`server/notification/notification.query.ts` `hrefOf`); this maps the ones the app has a screen
+ * for and answers null for the rest, so such a card shows no button rather than one that opens the
+ * wrong screen. Who a card is about comes from its `actor`, never from its words.
+ */
 import type { Href } from 'expo-router';
 
-import { eventHref } from './events.shared';
-import { eventsStore } from './events.store';
-import { person } from './people';
-import { getTask } from './tasks.state';
+const ROUTES: readonly [RegExp, (m: RegExpExecArray) => Href][] = [
+  [/^\/app\/tasks\/(\d+)$/, (m) => `/tasks/${m[1]}`],
+  [/^\/app\/tasks$/, () => '/tasks'],
+  [/^\/app\/projects\/([^/?#]+)$/, (m) => `/projects/${m[1]}`],
+  [/^\/app\/events\/([^/?#]+)$/, (m) => `/events/${m[1]}`],
+  [/^\/dashboard\/users$/, () => '/more/users'],
+];
 
-/** Where an inbox item leads: a task, an event, a project, or Users. */
-export type InboxHref = Href;
-
-const ATLAS = 'Atlas Project';
-
-/** Person behind an item: the first word of the title, else "by <name>" in the meta. */
-export function actor(title: string, meta = ''): string {
-  const name = title.split(' ')[0] ?? '';
-  return person(name) ? name : (/by (\w+)/.exec(meta)?.[1] ?? '');
-}
-
-/** What an item opens: a task by its #number, an event by its title, Atlas by its name, else Projects. */
-export function link(text: string): InboxHref {
-  const no = /#(\d+)/.exec(text)?.[1];
-  if (no) return getTask(Number(no)) ? `/tasks/${Number(no)}` : '/tasks?scope=all';
-  const ev = eventsStore.get().list.find((e) => text.includes(e.title));
-  if (ev) return eventHref(ev);
-  return text.includes(ATLAS) ? '/projects/atlas' : '/projects';
+/**
+ * The app route of a web path, or null when the app has no screen for it. Unmapped today:
+ * `/app/settings` (leave cards: the app has no availability screen) and `/app/inbox` itself.
+ */
+export function appHref(web: string): Href | null {
+  for (const [pattern, to] of ROUTES) {
+    const m = pattern.exec(web);
+    if (m) return to(m);
+  }
+  return null;
 }

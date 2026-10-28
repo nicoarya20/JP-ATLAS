@@ -5,10 +5,12 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { AccessibilityInfo, BackHandler } from 'react-native';
 
 import { getProfile } from '../../src/data/profile';
-import { INBOX_RESPOND, USER_COUNTS } from '../../src/data/sample';
+import { USER_COUNTS } from '../../src/data/sample';
 import type { Role } from '../../src/data/sample/people';
 import { decide, resetDecisions } from '../../src/data/users';
 import { openApp } from '../helpers/app-router';
+import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
+import { counts } from '../helpers/inbox-fixtures';
 
 // The signed-in role, per test (the app reads it from src/data/session until Phase 2 signs in).
 let mockRole: Role = 'member';
@@ -35,8 +37,17 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-async function open(path: string, role: Role = 'member') {
+// The Inbox badge is the server's count (`GET /api/app/inbox/count`): every test serves one, so the panel never
+// reaches a real server; a test about the badge serves its own.
+let server: ReturnType<typeof serveAuth> | null = null;
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
+
+async function open(path: string, role: Role = 'member', routes?: AuthRoutes) {
   mockRole = role;
+  server = serveAuth(routes ?? { '/api/app/inbox/count': { body: counts(0) } });
   await openApp(path);
 }
 
@@ -50,7 +61,7 @@ const button = (name: string | RegExp) => screen.getByRole('button', { name });
 
 describe('More panel', () => {
   it('unfolds from the tab bar without leaving the screen', async () => {
-    await open('/');
+    await open('/', 'member', { '/api/app/inbox/count': { body: counts(2) } });
     expect(panel()).not.toBeOnTheScreen();
 
     await pick('More');
@@ -64,7 +75,7 @@ describe('More panel', () => {
     expect(tab('More')).toBeSelected(); // the bubble sits on More while it is open
     expect(tab('Home')).not.toBeSelected();
     expect(button('Close More')).toBeOnTheScreen(); // the dim
-    expect(button(`Inbox, ${INBOX_RESPOND.member.length} new`)).toBeOnTheScreen();
+    expect(await screen.findByRole('button', { name: 'Inbox, 2 new' })).toBeOnTheScreen();
     expect(screen.queryByRole('button', { name: 'Sign out' })).not.toBeOnTheScreen(); // Settings only
   });
 
@@ -216,17 +227,25 @@ describe('More panel', () => {
     expect(await screen.findByTestId('screen-users')).toBeOnTheScreen();
   });
 
-  it('counts down Users and Inbox as sign-ups are decided', async () => {
-    await open('/', 'admin');
+  it('counts down Users as sign-ups are decided; the Inbox badge stays the server count', async () => {
+    await open('/', 'admin', { '/api/app/inbox/count': { body: counts(3) } });
     await act(() => decide('sari', 'approved'));
     await pick('More');
     expect(button('Users, 1 new')).toBeOnTheScreen();
-    expect(button('Inbox, 3 new')).toBeOnTheScreen();
+    expect(await screen.findByRole('button', { name: 'Inbox, 3 new' })).toBeOnTheScreen();
 
-    // The panel stays open: the last decision takes the badge off Users and the approvals card out of Inbox.
+    // The panel stays open: the last decision takes the badge off Users. Inbox cards are the server's to resolve.
     await act(() => decide('budi', 'rejected'));
     expect(button('Users')).toBeOnTheScreen();
-    expect(button('Inbox, 2 new')).toBeOnTheScreen();
+    expect(button('Inbox, 3 new')).toBeOnTheScreen();
+  });
+
+  it('shows no Inbox badge while the count is not in, rather than a made-up 0', async () => {
+    await open('/', 'member', {
+      '/api/app/inbox/count': { throws: new TypeError('Network request failed') },
+    });
+    await pick('More');
+    expect(await screen.findByRole('button', { name: 'Inbox' })).toBeOnTheScreen();
   });
 
   it.each(['member', 'pm'] as const)('has no Users for %s', async (role) => {
@@ -234,6 +253,5 @@ describe('More panel', () => {
     await pick('More');
 
     expect(screen.queryByRole('button', { name: /^Users/ })).not.toBeOnTheScreen();
-    expect(button(`Inbox, ${INBOX_RESPOND[role].length} new`)).toBeOnTheScreen();
   });
 });

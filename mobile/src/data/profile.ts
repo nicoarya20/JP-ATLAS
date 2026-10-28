@@ -3,7 +3,7 @@
 import { today } from './clock';
 import type { EventHref, EventItem } from './events.shared';
 import { eventHref, eventWhere } from './events.shared';
-import { respondCards } from './inbox';
+import { inboxActionCount } from './inbox.api';
 import { me, type PersonInfo } from './people';
 import {
   type CalendarItem,
@@ -18,23 +18,21 @@ import {
 } from './profile.calendar.dates';
 import type { Role } from './sample';
 
-import { type Decisions, getDecisions } from './users';
-
 export type ProfileData = {
   me: PersonInfo;
   /** "Project Manager · Product", plus " · Admin" for an Admin. */
   line: string;
-  /** Items in Inbox › Needs your response. */
-  inbox: number;
+  /** Open cards in Inbox › Needs your response, from `GET /inbox/count`; null while it is not in (no badge). */
+  inbox: number | null;
 };
 
-/** Profile ① for `role`; `decided` (the Users decisions) sets the Admin's Inbox count. */
-export function getProfile(role: Role, decided: Decisions = getDecisions()): ProfileData {
+/** Profile ① for `role`. */
+export function getProfile(role: Role): ProfileData {
   const p = me(role);
   return {
     me: p,
     line: `${p.title} · ${p.division}${role === 'admin' ? ' · Admin' : ''}`,
-    inbox: respondCards(role, decided).length,
+    inbox: inboxActionCount(),
   };
 }
 

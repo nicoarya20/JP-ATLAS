@@ -35,7 +35,7 @@ export function moreTiles(role: Role, decided: Decisions = getDecisions()): More
       label: 'Inbox',
       Icon: Inbox,
       tone: 'blue',
-      badge: getProfile(role, decided).inbox,
+      badge: getProfile(role).inbox ?? undefined,
     },
     { path: '/more/team', label: 'Team', Icon: Users, tone: 'green' },
     role === 'admin' && {

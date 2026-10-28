@@ -12,7 +12,7 @@ import {
   Pencil,
   Settings,
 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { CountBadge } from '@/components/badge/count-badge';
 import { SectionLabel } from '@/components/form/section-label';
@@ -24,11 +24,11 @@ import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Switch } from '@/components/ui/switch';
 import { VStack } from '@/components/ui/vstack';
+import { inboxCountResource, useInboxActionCount } from '@/data/inbox.api';
 import { getProfile } from '@/data/profile';
 import { setProfile, useProfile } from '@/data/profile.store';
 import type { Role } from '@/data/sample';
 import { SESSION_ROLE } from '@/data/session';
-import { useDecisions } from '@/data/users';
 
 import { SignOutDialog } from '../auth/sign-out';
 import { EDIT_FROM_PROFILE } from '../settings/profile-edit.screen';
@@ -46,7 +46,12 @@ function leaveTo(href: Href) {
 export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const notice = useNotice();
   const { online, muted } = useProfile();
-  const d = getProfile(role, useDecisions());
+  // The Inbox row's count is the server's: subscribe to it, and ask for it once.
+  useInboxActionCount();
+  useEffect(() => {
+    void inboxCountResource.ensure();
+  }, []);
+  const d = getProfile(role);
   const [signingOut, setSigningOut] = useState(false);
   const copyEmail = () =>
     Clipboard.setStringAsync(d.me.email).then(
@@ -74,8 +79,8 @@ export function ProfileScreen({ role = SESSION_ROLE }: { role?: Role }) {
         <Row
           lead={<Tile icon={Inbox} tone="violet" />}
           title={P.inbox}
-          accessibilityLabel={`${P.inbox}, ${d.inbox}`}
-          right={<CountBadge count={d.inbox} />}
+          accessibilityLabel={d.inbox ? `${P.inbox}, ${d.inbox}` : P.inbox}
+          right={d.inbox ? <CountBadge count={d.inbox} /> : undefined}
           onPress={() => leaveTo('/more/inbox')}
         />
         <Row

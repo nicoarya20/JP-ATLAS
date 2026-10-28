@@ -1,113 +1,113 @@
-// Team for the screens (prototype team.list.jsx VARIANTS): who is on my team, their task load from the live task list,
-// and what each role may see of it; one person is team.person.ts. Phase 2 reads the API here.
+/**
+ * The Team list as the screens show it, read from `teamResource` (`team.api.ts`). Every line is
+ * built from what the server sent; a key it left out (the privacy contract) means the line is not
+ * there, not that it is zero. One person is `team.person.ts`.
+ */
+import { monthDay } from './dates';
+import {
+  type ProjectRoleWire,
+  type TeamAvailabilityWire,
+  type TeamListData,
+  type TeamPersonWire,
+  type TeamProjectWire,
+  type TeamSort,
+  teamResource,
+} from './team.api';
 
-import { listPeople, me, type PersonInfo, type PersonKey, person } from './people';
-import { PROJECTS, type Project, type Role } from './sample';
-import { TEAM_LIST, type TeamEntry } from './sample/team';
-import type { TaskItem } from './tasks.shared';
-import { getTasksState } from './tasks.state';
-import { type Load, loadOf, totalOf } from './team.load';
+export const PROJECT_ROLE: Record<ProjectRoleWire, string> = {
+  manager: 'Manager',
+  member: 'Member',
+  viewer: 'Viewer',
+};
 
-/** The live lists a team screen reads; tests pass their own. */
-export type TeamSource = { tasks?: readonly TaskItem[]; projects?: readonly Project[] };
+export type TeamLoad = { active: number; overdue: number };
 
 export type TeamRow = {
-  key: PersonKey;
+  /** The account id; the person route takes it. */
+  id: string;
   full: string;
   you: boolean;
+  jobTitle: string | null;
+  /** "Manager · Atlas Project, Internal Tools", or each project with its role when they differ. */
   role: string;
+  /** "Also on other projects": open work outside what the viewer may count, without naming it. */
   extra?: string;
-  /** Hidden (undefined) where the viewer may not see someone's task counts. */
-  load?: Load;
+  /** Absent where the viewer may not see the person's numbers. */
+  load?: TeamLoad;
+  /** "On leave until Oct 14"; absent when there is nothing to show (never "Available"). */
+  leave?: string;
 };
 
-export type TeamData =
-  | { empty: true }
-  | { empty: false; summary: string; people: TeamRow[]; note?: string };
-
-export type TeamTaskRow = { no: number; title: string; sub: string; pill: string };
-
-export type TeamPersonData = {
-  person: PersonInfo;
-  /** "Projects" for Admin (all of them), else "Shared projects". */
-  projectsTitle: string;
-  projects: { id: string; name: string }[];
-  /** null: a Member looking at someone else, who may not see their tasks. */
-  tasks: { load: Load; rows: TeamTaskRow[]; hidden: string[] } | null;
+export type TeamData = {
+  /** "5 people · 2 projects", plus the task numbers when they cover the whole list. */
+  summary: string;
+  people: TeamRow[];
+  total: number;
+  more: boolean;
+  /** The load sorts are offered only to a viewer who may see other people's numbers. */
+  sorts: readonly TeamSort[];
+  /** Why counts are missing, when the server left them out. */
+  note?: string;
 };
 
-type Variant = Partial<Omit<TeamEntry, 'key'>> & { key: PersonKey; you?: boolean; counts?: false };
+export const TEAM_NOTE =
+  'Task counts per person are visible only to that person, the project Manager and Admin.';
+export const ALSO_ELSEWHERE = 'Also on other projects';
+export const NO_PROJECT = 'No shared project';
 
-const entry = (key: TeamEntry['key']) => {
-  const found = TEAM_LIST.find((o) => o.key === key);
-  if (!found) throw new Error(`Team sample has no row for ${key}`);
-  return found;
-};
+/** "On leave until Oct 14", or undefined when the server says there is nothing to show. */
+export const leaveText = (a: TeamAvailabilityWire): string | undefined =>
+  a ? `On leave until ${monthDay(a.until)}` : undefined;
 
-const nameOf = (key: PersonKey) => person(key)?.name ?? key;
+/** One role for all of them reads "Manager · A, B"; mixed roles read "A (Manager), B (Member)". */
+export function roleLine(projects: readonly TeamProjectWire[]): string {
+  if (!projects.length) return NO_PROJECT;
+  const roles = new Set(projects.map((p) => p.role));
+  const [only] = [...roles];
+  if (roles.size === 1 && only)
+    return `${PROJECT_ROLE[only]} · ${projects.map((p) => p.name).join(', ')}`;
+  return projects.map((p) => `${p.name} (${PROJECT_ROLE[p.role]})`).join(', ');
+}
 
-function row(v: Variant, tasks: readonly TaskItem[]): TeamRow {
-  const p = person(v.key);
-  if (!p) throw new Error(`Team row ${v.key} is not a sample person`);
+export function toRow(p: TeamPersonWire): TeamRow {
   return {
-    key: v.key,
-    full: p.full,
-    you: !!v.you,
-    role: v.role ?? '',
-    extra: v.extra || undefined,
-    load: v.counts === false ? undefined : loadOf(p.name, tasks),
+    id: p.id,
+    full: p.name,
+    you: p.isSelf,
+    jobTitle: p.jobTitle,
+    role: roleLine(p.projects),
+    extra: p.load?.alsoElsewhere ? ALSO_ELSEWHERE : undefined,
+    load: p.load ? { active: p.load.active, overdue: p.load.overdue } : undefined,
+    leave: leaveText(p.availability),
   };
 }
 
-/** Team ① for `role`: summary line, people and closing note; a Member on no project gets the empty state. */
-export function getTeam(role: Role, src: TeamSource = {}): TeamData {
-  const tasks = src.tasks ?? getTasksState().tasks;
-  const projects = src.projects ?? PROJECTS;
-  const [nico, rina, dodi] = [entry('nico'), entry('rina'), entry('dodi')];
-  if (role === 'pm') {
-    const people = [{ ...nico, you: true }, rina, dodi].map((v) => row(v, tasks));
-    const total = totalOf(
-      people.map((p) => nameOf(p.key)),
-      tasks,
-    );
-    return {
-      empty: false,
-      summary: `Projects you manage · ${people.length} people · ${total}`,
-      people,
-    };
-  }
-  if (role === 'admin') {
-    const everyone = listPeople();
-    const total = totalOf(
-      everyone.map((p) => p.name),
-      tasks,
-    );
-    const variants: Variant[] = [
-      { key: 'ayu', you: true, role: 'Admin · No project', counts: false },
-      { ...nico, role: 'Project Manager · Atlas Project, Internal Tools' },
-      { ...rina, extra: '' },
-      dodi,
-      { key: 'sri', role: 'Observer · Atlas Project', counts: false },
-    ];
-    return {
-      empty: false,
-      summary: `All projects · ${everyone.length} people · ${total}`,
-      people: variants.map((v) => row(v, tasks)),
-      note: 'Approving new users and changing roles happens in More › Users.',
-    };
-  }
-  const mine = projects.filter((p) => p.members.includes(me(role).name));
-  const atlas = mine.find((p) => p.id === 'atlas') ?? mine[0];
-  if (!atlas) return { empty: true };
-  const variants: Variant[] = [
-    { ...dodi, you: true },
-    { ...nico, counts: false },
-    { ...rina, extra: '', counts: false },
-  ];
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * `people` and `projects` describe the whole filtered team. `active`/`overdue` sum one page only,
+ * so they are shown only while that page is the whole list (gap G2-TPA3).
+ */
+export function summaryLine(d: TeamListData): string {
+  const { people, projects, active, overdue } = d.summary;
+  const parts = [plural(people, 'person', 'people'), plural(projects, 'project', 'projects')];
+  const whole = !d.appended && d.people.length >= d.total;
+  if (whole && active !== undefined && overdue !== undefined)
+    parts.push(plural(active, 'active task', 'active tasks'), `${overdue} overdue`);
+  return parts.join(' · ');
+}
+
+/** The Team list as loaded so far, or null before its first answer. */
+export function getTeam(): TeamData | null {
+  const d = teamResource.current();
+  if (!d) return null;
+  const counts = d.summary.active !== undefined;
   return {
-    empty: false,
-    summary: `Project ${atlas.name} · ${atlas.members.length} people`,
-    people: variants.map((v) => row(v, tasks)),
-    note: 'Task counts per person are visible only to that person, the project Manager and Admin.',
+    summary: summaryLine(d),
+    people: d.people.map(toRow),
+    total: d.total,
+    more: d.people.length < d.total,
+    sorts: counts ? ['name', 'active', 'overdue'] : ['name'],
+    note: counts ? undefined : TEAM_NOTE,
   };
 }

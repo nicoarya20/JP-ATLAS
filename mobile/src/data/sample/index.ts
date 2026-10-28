@@ -2,7 +2,6 @@
 export * from './admin';
 export * from './archive';
 export * from './events';
-export * from './inbox';
 export * from './people';
 export * from './people.extra';
 export * from './projects';

@@ -7,9 +7,11 @@ import { sessionStore } from '@/session';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { getProfileState, resetProfile } from '../../src/data/profile.store';
+import { forgetAllResources } from '../../src/data/resource';
 import type { Role } from '../../src/data/sample';
 import { ProfileScreen } from '../../src/screens/profile/profile.screen';
-import { serveAuth } from '../helpers/auth-server';
+import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
+import { counts } from '../helpers/inbox-fixtures';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
@@ -23,6 +25,7 @@ drainToastTimers();
 let server: ReturnType<typeof serveAuth> | null = null;
 
 beforeEach(() => {
+  forgetAllResources();
   resetProfile();
   jest.clearAllMocks();
   resetAuthClient();
@@ -34,7 +37,14 @@ afterEach(() => {
   server = null;
 });
 
-const show = () => render(<ProfileScreen role={PM} />, { wrapper: GluestackUIProvider });
+// The Inbox row's count is the server's (`GET /api/app/inbox/count`), served with whatever else a test needs.
+const INBOX_COUNT: AuthRoutes = { '/api/app/inbox/count': { body: counts(3) } };
+const show = async (routes: AuthRoutes = {}) => {
+  server = serveAuth({ ...INBOX_COUNT, ...routes });
+  const shown = await render(<ProfileScreen role={PM} />, { wrapper: GluestackUIProvider });
+  await screen.findByLabelText('Inbox, 3');
+  return shown;
+};
 
 describe('ProfileScreen', () => {
   test('hero: name, role line, Online', async () => {
@@ -119,13 +129,13 @@ describe('ProfileScreen', () => {
 
   // Confirming really ends the session, and the gate takes it from there (no navigation here).
   test('Sign out asks first (T2), then really ends the session', async () => {
-    server = serveAuth({ '/sign-out': { body: { success: true } } });
-    await show();
+    await show({ '/sign-out': { body: { success: true } } });
+    const signOuts = () => server?.calls.filter((url) => url.includes('/sign-out')) ?? [];
     await fireEvent.press(screen.getByText('Sign out'));
     expect(within(screen.getByTestId('sign-out-dialog')).getByText('Sign out?')).toBeOnTheScreen();
-    expect(server.calls).toHaveLength(0);
+    expect(signOuts()).toHaveLength(0);
     await act(async () => fireEvent.press(screen.getByTestId('confirm-action')));
     await waitFor(() => expect(sessionStore.get().status).toBe('signed-out'));
-    expect(server.calls.some((url) => url.includes('/sign-out'))).toBe(true);
+    expect(signOuts().length).toBeGreaterThan(0);
   });
 });
