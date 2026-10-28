@@ -1,166 +1,200 @@
+// The values of New task · Fill form and Edit task on the server's terms (tasks.form.ts): the choices a project offers,
+// a blank form and a project switch, what keeps Save off, the POST body and the PATCH changes; then the sample-backed
+// Just write ✦, CSV preview and project settings, still Phase 1.
 import { resetArchive } from '../../src/data/archive.store';
-import { PROJECTS } from '../../src/data/sample';
+import type { ProjectMemberWire } from '../../src/data/projects.wire';
 import {
-  addTag,
-  canSave,
-  getTaskEdit,
-  getTaskForm,
-  phasesOf,
-  pickProject,
-  reviewerName,
-  reviewersOf,
-  saveNewTask,
-  saveTaskEdit,
-  shownReviewer,
-  type TaskForm,
+  assigneeOptions,
+  createBody,
+  defaultKind,
+  editChanges,
+  editFormOf,
+  formProblem,
+  kindOptions,
+  newTaskForm,
+  phaseOptions,
+  pickFormProject,
 } from '../../src/data/tasks.form';
 import { getTaskSettings } from '../../src/data/tasks.settings';
-import { getTasksState } from '../../src/data/tasks.state';
-import { getTask, resetTasks, taskInfo } from '../../src/data/tasks.store';
+import { resetTasks } from '../../src/data/tasks.store';
 import { getCsvImport, getQuickWrite } from '../../src/data/tasks.write';
+import { detailOf, row } from '../helpers/tasks-fixtures';
+import { FORM_PROJECTS, MEMBERS } from '../helpers/tasks-form-fixtures';
 
-const project = (id: string) => {
-  const p = PROJECTS.find((x) => x.id === id);
-  if (!p) throw new Error(`test-only: no project ${id}`);
-  return p;
-};
-const editForm = (role: 'member' | 'pm' | 'admin', no: number): TaskForm => {
-  const v = getTaskEdit(role, no);
-  if (!v?.allowed) throw new Error(`test-only: ${role} may not edit #${no}`);
-  return v.initial;
-};
+const [ATLAS_FORM, SINAR_FORM] = FORM_PROJECTS;
+const TODAY = '2026-10-07';
+const values = (o: { value: string }[] | null) => o?.map((x) => x.value) ?? null;
 
 afterEach(() => {
   resetTasks();
   resetArchive();
 });
 
-describe('form pickers', () => {
-  test('reviewers are the project Managers and every Admin, never an assignee', () => {
-    expect(reviewersOf(project('atlas'), ['Dodi'])).toEqual([
-      { value: 'Nico', label: 'Nico Pratama · Manager' },
-      { value: 'Ayu', label: 'Ayu Lestari · Admin' },
-    ]);
-    expect(reviewersOf(project('atlas'), ['Nico']).map((o) => o.value)).toEqual(['Ayu']);
-    expect(reviewerName('Ayu')).toBe('Ayu (Admin)');
-    expect(reviewerName('Rina')).toBeUndefined();
-    expect(shownReviewer(reviewersOf(project('atlas'), ['Nico']), 'Nico')).toBe('Ayu');
+describe('form choices', () => {
+  test('the default kind is the first of base kind "task", else the first kind', () => {
+    expect(defaultKind(ATLAS_FORM)).toBe('k-task');
+    const noTask = { ...ATLAS_FORM, kinds: ATLAS_FORM.kinds.filter((k) => k.baseKind !== 'task') };
+    expect(defaultKind(noTask)).toBe('k-bug');
+    expect(defaultKind({ ...ATLAS_FORM, kinds: [] })).toBe('');
   });
 
-  test('tags are lowercase without duplicates; Save needs a title and an assignee', () => {
-    expect(addTag(['sso'], ' Login ')).toEqual(['sso', 'login']);
-    expect(addTag(['sso'], 'SSO')).toEqual(['sso']);
-    expect(addTag(['sso'], '  ')).toEqual(['sso']);
-    expect(canSave({ title: ' ', who: ['Nico'] })).toBe(false);
-    expect(canSave({ title: 'x', who: [] })).toBe(false);
-    expect(canSave({ title: 'x', who: ['Nico'] })).toBe(true);
-    expect(phasesOf('atlas')?.map((o) => o.label)).toEqual([
-      'No phase',
-      'Planning',
-      'Development',
-      'Testing',
-      'Release',
+  test('a retired kind of the edited task stays a choice, first', () => {
+    expect(values(kindOptions(ATLAS_FORM))).toEqual(['k-task', 'k-bug', 'k-idea']);
+    expect(kindOptions(ATLAS_FORM, { id: 'k-old', name: 'Chore' })[0]).toEqual({
+      value: 'k-old',
+      label: 'Chore',
+    });
+    expect(kindOptions(ATLAS_FORM, { id: 'k-bug', name: 'Bug' })).toHaveLength(3);
+  });
+
+  test('"No phase" leads the phases; a project without phases has no Phase field', () => {
+    expect(phaseOptions(ATLAS_FORM, 'No phase')).toEqual([
+      { value: '', label: 'No phase' },
+      { value: 'ph-design', label: 'Design' },
+      { value: 'ph-dev', label: 'Development' },
     ]);
-    expect(phasesOf('sinar')).toBeNull();
+    expect(phaseOptions(SINAR_FORM, 'No phase')).toBeNull();
+  });
+
+  test('assignees are the Managers and Members after "Unassigned"; a Viewer is not one', () => {
+    const atlas = MEMBERS['p-atlas'];
+    expect(assigneeOptions(atlas, 'Unassigned')).toEqual([
+      { value: '', label: 'Unassigned' },
+      { value: 'u-nico', label: 'Nico Arya' },
+      { value: 'u-dodi', label: 'Dodi Hartono' },
+    ]);
+    // An edited task keeps its assignee as a choice even when they only watch now.
+    expect(
+      values(assigneeOptions(atlas, 'Unassigned', { id: 'u-rina', name: 'Rina Wulandari' })),
+    ).toEqual(['', 'u-rina', 'u-nico', 'u-dodi']);
+    expect(values(assigneeOptions(atlas, 'Unassigned', { id: 'u-dodi', name: 'Dodi' }))).toEqual([
+      '',
+      'u-nico',
+      'u-dodi',
+    ]);
+    expect(assigneeOptions([] as ProjectMemberWire[], 'Unassigned')).toHaveLength(1);
+  });
+});
+
+describe('New task', () => {
+  test('a blank form starts today, Medium, with the default kind and nobody assigned', () => {
+    expect(newTaskForm(ATLAS_FORM, TODAY)).toEqual({
+      title: '',
+      assigneeId: null,
+      priority: 'medium',
+      dueDate: null,
+      startDate: TODAY,
+      kindId: 'k-task',
+      phaseId: null,
+      description: '',
+    });
+  });
+
+  test('another project drops the assignee and phase, and a kind it does not have', () => {
+    const f = {
+      ...newTaskForm(ATLAS_FORM, TODAY),
+      assigneeId: 'u-dodi',
+      phaseId: 'ph-dev',
+      title: 'x',
+    };
+    expect(pickFormProject(f, SINAR_FORM)).toMatchObject({
+      title: 'x',
+      assigneeId: null,
+      phaseId: null,
+      kindId: 'k-sinar-task',
+    });
+    const shared = { ...ATLAS_FORM, id: 'p-copy' };
+    expect(pickFormProject({ ...f, kindId: 'k-idea' }, shared).kindId).toBe('k-idea');
+  });
+
+  test('Save needs a title and a start no later than the due date', () => {
+    expect(formProblem({ title: '  ', startDate: null, dueDate: null })).toBe('title');
+    expect(formProblem({ title: 'x', startDate: '2026-10-08', dueDate: '2026-10-07' })).toBe(
+      'dates',
+    );
+    expect(formProblem({ title: 'x', startDate: '2026-10-07', dueDate: '2026-10-07' })).toBeNull();
+    expect(formProblem({ title: 'x', startDate: '2026-10-08', dueDate: null })).toBeNull();
+  });
+
+  test('the POST body is trimmed and leaves out what is unset', () => {
+    const f = { ...newTaskForm(ATLAS_FORM, TODAY), title: ' Fix it ', description: '   ' };
+    expect(createBody('p-atlas', f)).toEqual({
+      projectId: 'p-atlas',
+      title: 'Fix it',
+      priority: 'medium',
+      startDate: TODAY,
+      kindId: 'k-task',
+    });
+    const full = {
+      ...f,
+      assigneeId: 'u-dodi',
+      dueDate: '2026-10-14',
+      phaseId: 'ph-dev',
+      description: ' Safari ',
+      priority: 'critical' as const,
+    };
+    expect(createBody('p-atlas', full)).toMatchObject({
+      assigneeId: 'u-dodi',
+      dueDate: '2026-10-14',
+      phaseId: 'ph-dev',
+      description: 'Safari',
+      priority: 'critical',
+    });
   });
 });
 
 describe('Edit task', () => {
-  test("opens prefilled; a Member may not edit a teammate's task", () => {
-    const v = getTaskEdit('pm', 17);
-    expect(v).toMatchObject({
-      allowed: true,
-      meta: '#17 · Atlas Project · In review',
-      reviewLocked: true,
-    });
-    expect(editForm('pm', 17)).toMatchObject({
-      who: ['Dodi'],
-      review: true,
-      reviewer: 'Nico',
-      tags: ['profile'],
-    });
-    expect(getTaskEdit('member', 12)).toEqual({
-      allowed: false,
-      title: "You can't edit this task",
-      text: 'Only Nico, the project Manager or an Admin can edit #12.',
-    });
-    expect(getTaskEdit('pm', 99)).toBeNull();
+  const task = detailOf(row(14, { dueDate: '2026-10-09' }), {
+    description: 'Draft it',
+    startDate: '2026-10-02',
   });
 
-  test('saves every field; an unchanged reviewer keeps its name, a new one is named with its role tag', () => {
-    const f = editForm('pm', 17);
+  test('opens on the task as the server sent it', () => {
+    expect(editFormOf(task)).toEqual({
+      title: 'Task 14',
+      assigneeId: 'u-nico',
+      priority: 'medium',
+      dueDate: '2026-10-09',
+      startDate: '2026-10-02',
+      kindId: 'k-bug',
+      phaseId: 'ph-dev',
+      description: 'Draft it',
+    });
+    expect(editFormOf({ ...task, assignee: null, phase: null, description: null })).toMatchObject({
+      assigneeId: null,
+      phaseId: null,
+      description: '',
+    });
+  });
+
+  test('sends only what changed; nothing changed is null', () => {
+    const before = editFormOf(task);
+    expect(editChanges(before, before)).toBeNull();
     expect(
-      saveTaskEdit('pm', 17, { ...f, title: ' Fixed title ', who: ['Dodi', 'Rina'], tags: ['ux'] }),
-    ).toBe('Task updated');
-    expect(getTask(17)).toMatchObject({
-      title: 'Fixed title',
-      who: 'Dodi',
-      also: ['Rina'],
-      tags: ['ux'],
+      editChanges(before, { ...before, title: ' Task 14 ', description: 'Draft it ' }),
+    ).toBeNull();
+    expect(
+      editChanges(before, {
+        ...before,
+        title: 'Task 14 v2',
+        assigneeId: null,
+        phaseId: null,
+        dueDate: '2026-10-12',
+        kindId: 'k-task',
+      }),
+    ).toEqual({
+      title: 'Task 14 v2',
+      assigneeId: null,
+      phaseId: null,
+      dueDate: '2026-10-12',
+      kindId: 'k-task',
     });
-    expect(taskInfo(getTasksState(), 17).reviewer).toBe('Nico (creator, Manager)');
-    saveTaskEdit('pm', 17, { ...editForm('pm', 17), reviewer: 'Ayu' });
-    expect(taskInfo(getTasksState(), 17).reviewer).toBe('Ayu (Admin)');
   });
 
-  test('refuses an empty title or a role that may not edit', () => {
-    expect(() => saveTaskEdit('pm', 14, { ...editForm('pm', 14), title: ' ' })).toThrow(
-      'Cannot save task #14: title and assignee are required',
-    );
-    expect(() => saveTaskEdit('member', 12, editForm('pm', 12))).toThrow(
-      'Cannot edit task #12: not allowed for member',
-    );
-  });
-});
-
-describe('New task · Fill form', () => {
-  test('opens on Atlas from the first AI draft; a Member gets only their projects', () => {
-    const f = getTaskForm('pm');
-    expect(f.project.id).toBe('atlas');
-    expect(f.initial).toMatchObject({
-      title: 'Fix the login page',
-      who: ['Rina'],
-      due: '2026-10-08',
-      priority: 'High',
-      type: 'Bug',
-      phase: 'Development',
-      start: '2026-10-07',
-      hours: '4',
-      tags: ['login'],
-    });
-    expect(getTaskForm('member').projects.map((p) => p.id)).toEqual([
-      'atlas',
-      'migration',
-      'tools',
-    ]);
-    expect(getTaskForm('admin').projects).toHaveLength(PROJECTS.length);
-    expect(getTaskForm('pm', 'sinar').project.id).toBe('sinar');
-  });
-
-  test('switching project keeps only its members and drops the phase outside Atlas', () => {
-    const f = { ...getTaskForm('pm').initial, who: ['Rina', 'Dodi'] };
-    expect(pickProject(f, project('sinar'))).toMatchObject({ who: ['Rina'], phase: '' });
-  });
-
-  test('Save adds a To do task', () => {
-    const f = getTaskForm('pm');
-    const no = saveNewTask('pm', f.project, { ...f.initial, who: ['Rina', 'Dodi'] });
-    expect(getTask(no)).toMatchObject({
-      status: 'To do',
-      who: 'Rina',
-      also: ['Dodi'],
-      project: 'Atlas Project',
-    });
-    expect(getTask(no)).toMatchObject({ type: 'Bug' });
-    expect(taskInfo(getTasksState(), no).phase).toBe('Development');
-    expect(taskInfo(getTasksState(), no)).toMatchObject({
-      start: '2026-10-07',
-      hours: '4',
-      reviewer: undefined,
-    });
-    expect(() => saveNewTask('member', project('sinar'), f.initial)).toThrow(
-      'Cannot add a task to PT Sinar Client Portal: not allowed for member',
-    );
+  test('an emptied description is cleared; an empty kind is never sent', () => {
+    const before = editFormOf(task);
+    expect(editChanges(before, { ...before, description: '  ' })).toEqual({ description: null });
+    expect(editChanges(before, { ...before, kindId: '' })).toBeNull();
   });
 });
 

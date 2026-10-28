@@ -1,142 +1,47 @@
-// Tasks ⑥ New task · Fill form (prototype tasks.form.jsx): every field is live and Save adds a To do task, then opens
-// its detail. Values start from the first AI draft of Just write; Show more starts open, as in the prototype.
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { View } from 'react-native';
+// Tasks ⑥ New task · Fill form (prototype tasks.form.jsx), on GET /api/app/tasks/form-options: the projects the
+// viewer may add a task to, asked again each time the form opens. While they load the form waits; a failure offers
+// Try again; no project at all says so (the server decides who may add tasks where). The form is form-body.tsx.
+import { useLocalSearchParams } from 'expo-router';
+import { FolderX } from 'lucide-react-native';
+import { useEffect } from 'react';
 
-import { Field } from '@/components/form/field';
-import { Seg } from '@/components/form/seg';
-import { SelectField } from '@/components/form/select-field';
-import { useNotice } from '@/components/notice/use-notice';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { getTaskForm } from '@/data/tasks';
-import {
-  canSave,
-  phasesOf,
-  pickProject,
-  reviewersOf,
-  saveNewTask,
-  shownReviewer,
-} from '@/data/tasks.form';
-import { fullName } from '@/data/tasks.shared';
-import { Labelled } from '../parts/labelled';
+import { EmptyState } from '@/components/state/empty-state';
+import { FailedState, LoadingState } from '@/components/state/section-state';
+import { taskFormOptionsResource } from '@/data/tasks.form.api';
+
 import { TaskPage } from '../parts/task-page';
-import { Act, Foot } from '../parts/task-parts';
 import { F } from '../tasks.strings';
-import { MODE_NAMES } from '../tasks.strings.added';
-import { DateEdit, MoreToggle, PriorityEdit, TypePhaseEdit, useTaskForm } from './form-choices';
-import { AssigneeEdit, ReviewEdit } from './form-fields';
-import { TagsEdit } from './tags-edit';
-import { saveHint, TitleField } from './title-field';
+import { NewTaskForm } from './form-body';
+import { ModeSwitch } from './mode-switch';
 
-/** New task · Fill form for `role`, on the project in the route (`/tasks/new/form?project=<id>`) when allowed. */
-export function TaskFormScreen({ role = SESSION_ROLE }: { role?: Role }) {
-  const { project: projectId } = useLocalSearchParams<{ project?: string }>();
-  const notice = useNotice();
-  const [start] = useState(() => getTaskForm(role, projectId));
-  const [projectIdNow, setProjectId] = useState(start.project.id);
-  const { f, setF, set } = useTaskForm(() => start.initial);
-  const [more, setMore] = useState(true);
-  const project = start.projects.find((p) => p.id === projectIdNow) ?? start.project;
-  const reviewers = reviewersOf(project, f.who);
-  const pick = (id: string) => {
-    const next = start.projects.find((p) => p.id === id);
-    if (!next) throw new Error(`Cannot pick project "${id}" in New task: not offered to ${role}`);
-    setProjectId(id);
-    setF((s) => pickProject(s, next));
-  };
-  const save = () => {
-    const no = saveNewTask(role, project, f);
-    notice(F.created);
-    router.dismiss();
-    router.push(`/tasks/${no}`);
-  };
-  const foot = (
-    <Foot>
-      <Act grow label={F.cancel} onPress={() => router.back()} />
-      <Act
-        wide
-        kind="primary"
-        label={F.save}
-        disabled={!canSave(f)}
-        hint={saveHint(f)}
-        onPress={save}
-        testID="form-save"
-      />
-    </Foot>
-  );
+/** New task · Fill form, on the project in the route (`/tasks/new/form?project=<id>`) when the server offers it. */
+export function TaskFormScreen() {
+  const { project } = useLocalSearchParams<{ project?: string }>();
+  const res = taskFormOptionsResource();
+  const state = res.use();
+  useEffect(() => {
+    void res.reload();
+  }, [res]);
+  const projects = state.data?.projects;
+  if (projects?.length) return <NewTaskForm projects={projects} initialId={project} />;
   return (
-    <TaskPage modal title={F.newTitle} foot={foot} testID="screen-task-form">
-      <Seg
-        items={F.modes}
-        names={MODE_NAMES}
-        value={1}
-        onChange={(i) => i === 0 && router.replace('/tasks/new')}
-        testID="new-mode"
-      />
-      <Labelled required label={F.project}>
-        <SelectField
-          required
-          label={F.project}
-          options={start.projects.map((p) => ({ value: p.id, label: p.name }))}
-          value={project.id}
-          onChange={pick}
-          testID="form-project"
+    <TaskPage modal title={F.newTitle} testID="screen-task-form">
+      <ModeSwitch />
+      {projects ? (
+        <EmptyState
+          testID="form-no-projects"
+          icon={FolderX}
+          title={F.noProjects}
+          text={F.noProjectsText}
         />
-      </Labelled>
-      <TitleField value={f.title} onChange={set('title')} />
-      <AssigneeEdit
-        people={project.members.map((n) => ({ value: n, label: fullName(n) }))}
-        who={f.who}
-        onChange={set('who')}
-      />
-      <PriorityEdit value={f.priority} onChange={set('priority')} />
-      <DateEdit label={F.due} value={f.due} onChange={set('due')} />
-      <MoreToggle more={more} onToggle={() => setMore((m) => !m)} />
-      {more && (
-        <>
-          <View className="h-px bg-border" />
-          <Field
-            multiline
-            label={F.description}
-            value={f.desc}
-            placeholder={F.descHint}
-            onChangeText={set('desc')}
-          />
-          <TypePhaseEdit
-            type={f.type}
-            phase={f.phase}
-            phases={phasesOf(project.id)}
-            onType={set('type')}
-            onPhase={set('phase')}
-          />
-          <HStack className="gap-3">
-            <DateEdit label={F.start} value={f.start ?? ''} onChange={set('start')} />
-            <View className="min-w-0 flex-1">
-              <Field
-                label={F.hours}
-                value={f.hours ?? ''}
-                onChangeText={set('hours')}
-                keyboardType="numeric"
-              />
-            </View>
-          </HStack>
-          <TagsEdit tags={f.tags} onChange={set('tags')} />
-          <ReviewEdit
-            f={f}
-            reviewer={shownReviewer(reviewers, f.reviewer)}
-            options={reviewers}
-            member={start.member}
-            onReview={set('review')}
-            onReviewer={set('reviewer')}
-          />
-          <Text className="text-footnote text-muted-foreground">
-            {F.review.projectNote(project.name)}
-          </Text>
-        </>
+      ) : state.phase === 'failed' ? (
+        <FailedState
+          testID="form-failed"
+          message={state.error?.message}
+          onRetry={() => void res.reload()}
+        />
+      ) : (
+        <LoadingState testID="form-loading" />
       )}
     </TaskPage>
   );

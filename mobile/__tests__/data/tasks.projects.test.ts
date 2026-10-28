@@ -1,15 +1,12 @@
-// Tasks read projects from the projects store (W4b): a renamed project keeps its tasks, an archived one takes no new
-// tasks, and a project deleted forever takes the tasks it carried into Archive with it.
+// Tasks read projects from the projects store (W4b): a renamed project keeps its tasks, and a project deleted forever takes the tasks it carried into Archive with it.
 import { resetArchive } from '../../src/data/archive.store';
 import {
-  archiveProject,
   editProject,
   findProject,
   type ProjectFields,
   resetProjects,
 } from '../../src/data/projects.store';
 import { getQuickWrite, getTaskSettings, getTasksList } from '../../src/data/tasks';
-import { formProjects, getTaskForm } from '../../src/data/tasks.form';
 import { applyQuery, baseQuery } from '../../src/data/tasks.query';
 import { resetQueries } from '../../src/data/tasks.query-state';
 import { getTask, getTasksState, taskInfo } from '../../src/data/tasks.state';
@@ -58,9 +55,8 @@ describe('a renamed project', () => {
     expect(listed(projectTab())).toHaveLength(before);
   });
 
-  test('the forms, Project settings and Just write name it by its new name', () => {
+  test('Project settings and Just write name it by its new name', () => {
     rename('atlas', 'Atlas v2');
-    expect(getTaskForm('pm', 'atlas').project.name).toBe('Atlas v2');
     const settings = getTaskSettings('pm', 'atlas');
     expect(settings.allowed && settings.project).toBe('Atlas v2');
     expect(getQuickWrite().project).toBe('Atlas v2');
@@ -78,16 +74,6 @@ describe('a new Lead', () => {
       by: 'Rina',
       history: [{ text: 'Rina created this task', on: null }],
     });
-  });
-});
-
-describe('an archived project', () => {
-  test('is not offered in New task, for an Admin either', () => {
-    expect(formProjects('admin').map((p) => p.id)).toContain('atlas');
-    archiveProject('atlas', 'Ayu');
-    expect(formProjects('admin').map((p) => p.id)).not.toContain('atlas');
-    // Opening New task on it falls back to another project.
-    expect(getTaskForm('admin', 'atlas').project.id).not.toBe('atlas');
   });
 });
 

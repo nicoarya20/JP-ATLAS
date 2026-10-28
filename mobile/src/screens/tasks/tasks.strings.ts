@@ -57,7 +57,7 @@ export const S = {
   detail: {
     title: 'Task detail',
     menu: 'Task actions',
-    menuItem: { cancel: 'Cancel task' },
+    menuItem: { edit: 'Edit task', cancel: 'Cancel task' },
     description: 'Description',
     noDescription: 'No description yet.',
     history: 'Chat & history',
@@ -76,8 +76,6 @@ export const S = {
     saving: 'Saving',
     /** A task whose `can{}` offers nothing: no step, no change, no menu. */
     viewOnly: 'You can view this task, but not change it.',
-    /** Edit task's evidence photo (the detail shows no evidence until S5, T-9). */
-    photo: 'Photo',
     // Not in the prototype, which never opens a task that is gone: the server answers a missing, trashed or hidden
     // task the same way (404).
     missing: 'This task is no longer here.',
@@ -110,52 +108,34 @@ export const F = {
   modes: ['Just write ✦', 'Fill form'],
   title: 'Title',
   assignee: 'Assignee',
-  pickOne: 'Pick at least one person.',
+  unassigned: 'Unassigned',
+  /** Assignee's hint while the project's people load. */
+  peopleLoading: 'Loading the project’s people…',
   due: 'Due date',
   priority: 'Priority',
   type: 'Type',
   phase: 'Phase',
+  noPhase: 'No phase',
   project: 'Project',
   description: 'Description',
   descHint: 'What needs to be done…',
   start: 'Start date',
-  hours: 'Estimated hours',
   more: 'Show more',
   less: 'Show less',
-  review: {
-    title: 'Needs review',
-    yes: 'Yes',
-    locked: 'Locked while the task is in review.',
-    managerOnly: 'Only a Manager or Admin can turn it off.',
-    reviewer: 'Reviewer',
-    memberNote: 'A Manager or Admin of the project reviews it.',
-    projectNote: (project: string) =>
-      `Needs review starts from the project setting (${project.split(' ')[0]}: off).`,
-  },
-  tags: {
-    label: 'Tag',
-    add: 'Add tag',
-    hint: 'Type a tag, then Enter…',
-    remove: (t: string) => `Remove tag ${t}`,
-  },
-  steps: {
-    title: 'Steps',
-    done: (n: number) => `Step ${n} done`,
-    step: (n: number) => `Step ${n}`,
-    hint: 'Describe the step…',
-    remove: (n: number) => `Remove step ${n}`,
-    add: '+ Add step',
-  },
-  evidence: {
-    title: 'Evidence',
-    caption: (file: string) => `Caption for ${file}`,
-    hint: 'Add a caption…',
-    remove: (file: string) => `Remove ${file}`,
-    attach: '+ Attach evidence',
-  },
-  statusNote: "Status changes from the task's buttons or the Kanban board.",
+  /** Edit task: where the rest of a task changes. */
+  statusNote: "Status changes from the task's buttons or the Kanban board, and steps on its page.",
   cancel: 'Cancel',
   save: 'Save',
   created: 'Task created',
+  updated: 'Task updated',
   back: 'Back',
+  /** New task when form-options lists no project (the server decides who may add tasks where). */
+  noProjects: 'No project to add a task to',
+  noProjectsText: 'You can add tasks to projects you work in. Ask a project manager to add you.',
+  /** Edit task when `can.update` is absent or a deny code. */
+  locked: "You can't edit this task",
+  lockedText: 'You can view this task, but not change it.',
+  /** Edit task when form-options answers 404 for the task's project. */
+  noProject: 'This project is no longer here',
+  noProjectText: 'It may be in the Trash, or you no longer have access to it.',
 } as const;

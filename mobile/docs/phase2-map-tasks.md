@@ -39,7 +39,7 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 | `POST /tasks/:ref/comments` · `PATCH/DELETE …/:commentId` | komentar / `{ id }` |
 | `GET /tasks/:ref/timeline?limit&cursor` | `{ items: TimelineEntry[], nextCursor }`; `comment {author, body, editedAt}` atau `activity {author, action, payload}` |
 | `POST /tasks/draft` | `{ projectId, text (≤2000) }` → `{ drafts[], question }`; 503 `AI_DISABLED`, 502 `AI_UNAVAILABLE`, 429 + `retry-after` |
-| `GET /team/picker?projectId&q` | Opsi Assignee |
+| `GET /team/picker?projectId&q` | ~~Opsi Assignee~~ — picker **mengecualikan** anggota proyek (untuk Add member), jadi Assignee memakai `GET /projects/:id/members` (Manager + Member; Viewer bukan pengerja) |
 
 ---
 
@@ -56,8 +56,8 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 | Return `[id]/return` | `returnTask`, `nextReturnCount` | **404 (S4)** — GAP T-1 |
 | Cancel `[id]/cancel` | `cancelTask`, `cancelReason` | `POST /:ref/cancel {category, note}` |
 | ⋯ Move to Archive + Undo | `archiveFromDetail`, `undoArchive`, `archiveTask` | `DELETE /tasks/:ref` → `POST /trash/task/:id/restore` |
-| Edit `[id]/edit` → `edit/**` | `getTaskEdit`, `saveTaskEdit` | `GET /:ref` + `form-options?projectId` + `team/picker?projectId` → `PATCH /:ref` + checklist |
-| Fill form `tasks/new/form` | `getTaskForm`, `formProjects`, `pickProject`, `saveNewTask` | `form-options` (semua proyek) + `team/picker` → `POST /tasks` |
+| Edit `[id]/edit` → `edit/**` | ✓ `editFormOf`, `editChanges` (`tasks.form.ts`), `updateTask` (`tasks.form.write.ts`) | `GET /:ref` (`can.update`) + `form-options?projectId` (404 → "This project is no longer here") + `projects/:id/members` → `PATCH /:ref` hanya bidang berubah; langkah tetap di detail (checklist) |
+| Fill form `tasks/new/form` | ✓ `newTaskForm`, `pickFormProject`, `createBody`, `createTask` | `form-options` (semua proyek, dimuat ulang tiap buka) + `projects/:id/members` → `POST /tasks` → `/tasks/<number>` |
 | Just write ✦ `tasks/new/index` → `new/write.screen.tsx` | `getQuickWrite` (`tasks.write.ts`) | `POST /tasks/draft` → `POST /tasks` per draf |
 | Import CSV `tasks/csv` → `csv/**` | `getCsvImport` | **Tak ada endpoint** — GAP T-6 |
 | Project settings `projects/[id]/settings` → `settings/**` | `getTaskSettings` | Baca kinds dari `form-options`; switch review, CRUD kinds, tag **tak ada** — GAP T-7 |
@@ -124,18 +124,18 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 
 | Mobile | Server | Status |
 |---|---|---|
-| `project` + `formProjects(role)` | `form-options.projects[]` | **Hapus** cabang `role === 'admin'` |
+| `project` + `formProjects(role)` | `form-options.projects[]` | ✓ cabang role dihapus; kosong → "No project to add a task to" |
 | `type` (nama) | `kindId` dari `projects[i].kinds` | ✓ (GAP lama A12 tertutup) |
 | `phase` (nama), `phasesOf` | `phaseId` dari `projects[i].phases` | ✓ |
-| `who: string[]` | `assigneeId` tunggal | T-2 |
+| `who: string[]` | `assigneeId` tunggal | ✓ satu pengerja (T-2) dari `projects/:id/members`, "Unassigned" pertama |
 | `due`, `start`, `priority`, `desc`, `title` | `dueDate`, `startDate`, `priority`, `description`, `title` | ✓ (`start > due` → 422) |
 | `start` default = `TODAY` | `now.today` | Jam server |
 | `tags` | 422 | T-8 |
 | `hours` | 422 | **GAP T-10** |
 | `review`, `reviewer`, `reviewersOf` | `needsReview: false` saja; reviewer tak bisa diubah | T-1 |
-| `steps` (Fill form) | `checklist: string[]` di `POST` | ✓ |
-| `steps` (Edit) | Rute checklist terpisah | Simpan per langkah, bukan di `PATCH` |
-| `canSave` (judul + `who.length`) | `assigneeId` opsional | Aturan "wajib pengerja" klien: pertahankan atau lepas (copy) |
+| `steps` (Fill form) | `checklist: string[]` di `POST` | Belum dipasang: form tak menawarkan langkah (ditambah di detail sesudah dibuat) |
+| `steps` (Edit) | Rute checklist terpisah | ✓ di detail, tidak di Edit |
+| `canSave` (judul + `who.length`) | `assigneeId` opsional | `formProblem`: judul + `start ≤ due`; "wajib pengerja" **dilepas** mengikuti server (T-12, lihat gap doc) |
 | Setelah simpan → `/tasks/<no>` | 201 `TaskDetail.number` | ✓ |
 
 ### 2e. Just write ✦

@@ -61,6 +61,8 @@ export type TaskDetailView = {
   viewOnly: boolean;
   /** A canceled task: why, and Restore when the server offers it. */
   canceled: { text: string; restore: DetailAction | null } | null;
+  /** ⋯ › Edit task (`can.update`); null when hidden. */
+  edit: Allowed | null;
   /** ⋯ › Cancel task; null when hidden. */
   cancel: Allowed | null;
   facts: DetailFact[];
@@ -197,6 +199,7 @@ export function buildTaskDetail(t: TaskDetailWire): TaskDetailView {
     actions,
     viewOnly: !actions.length && !canceled?.restore && !cancel && !edit,
     canceled,
+    edit,
     cancel,
     facts: factsOf(t),
     description: t.description?.trim() || null,

@@ -1,8 +1,9 @@
 // A stubbed `/api/app/tasks` for the Tasks screens: rows as `server/task/task.dto.ts` sends them, and a small server
 // that answers the list (scope, project, status, priority, q, sort, limit, cursor), the counts, a task's detail and
-// timeline, and the writes (workflow steps, checklist, comments) the way the real one does (map `phase2-map-tasks.md`
-// §0), so a change shows up only because the screen asked again. test-only
+// timeline, and the writes (workflow steps, checklist, comments, and create and edit through tasks-form-fixtures) the way
+// the real one does (map `phase2-map-tasks.md` §0), so a change shows up only because the screen asked again. test-only
 import type { TaskDetailWire, TimelineEntryWire } from '@/data/tasks.detail.wire';
+import type { FormProjectWire } from '@/data/tasks.form.api';
 import { scheduleGroupOf } from '@/data/tasks.list';
 import type {
   ScheduleGroupWire,
@@ -14,12 +15,9 @@ import type {
 } from '@/data/tasks.wire';
 
 import type { AuthReply, AuthRoutes } from './auth-server';
+import { ATLAS, formServer, NICO, SINAR } from './tasks-form-fixtures';
 
-export const ATLAS = { id: 'p-atlas', name: 'Atlas Project', status: 'active' };
-export const SINAR = { id: 'p-sinar', name: 'PT Sinar Website', status: 'active' };
-/** The seeded session's account (session-fixtures). */
-export const NICO = { id: 'u-nico', name: 'Nico Arya' };
-export const DODI = { id: 'u-dodi', name: 'Dodi Hartono' };
+export { ATLAS, DODI, NICO, SINAR } from './tasks-form-fixtures';
 
 /** What the server lets the viewer do on a task of each status, when nothing stands in the way. */
 const CAN: Record<TaskStatusWire, TaskCapsWire> = {
@@ -97,7 +95,7 @@ const SEARCH_NUMBER = /^#?(\d+)$/;
 type Options = {
   /** `caps.createTask` of every list page; default: allowed. */
   createTask?: true | string | null;
-  /** Answer a step on task `id` with this instead of doing it. */
+  /** Answer a step or an edit on task `id` (or `create` for a new task) with this instead of doing it. */
   refuse?: Record<string, AuthReply>;
   /** Answer the counts with this; default: worked out from the rows. */
   counts?: TaskCountsWire;
@@ -105,6 +103,8 @@ type Options = {
   details?: Record<number, Partial<TaskDetailWire>>;
   /** A task's timeline, newest first, by task number; default: empty. */
   timeline?: Record<number, TimelineEntryWire[]>;
+  /** The projects New task offers (`GET /tasks/form-options`); default: FORM_PROJECTS. */
+  formProjects?: FormProjectWire[];
 };
 
 /** One write the server took: method, path after `/api/app/tasks/`, and the body as sent. */
@@ -275,16 +275,22 @@ export function tasksServer(initial: TaskListItemWire[], options: Options = {}) 
       body: { items: all.slice(from, to), nextCursor: to < all.length ? String(to) : null },
     };
   };
+  const form = formServer({ rows, extra, makeRow: row, detail, projects: options.formProjects });
   const task = (url: string, init?: RequestInit): AuthReply => {
     const path = new URL(url).pathname.replace(/^\/api\/app\/tasks\/?/, '');
+    const method = init?.method ?? 'GET';
+    const body = init?.body ? JSON.parse(String(init.body)) : {};
+    if (!path && method === 'POST') {
+      writes.push({ method, path, body });
+      return options.refuse?.create ?? form.create(body);
+    }
     if (!path) return { body: list(url) };
     const [ref, part, itemId] = path.split('/');
     const r = find(decodeURIComponent(ref));
     if (!r) return notFound;
-    const method = init?.method ?? 'GET';
     if (method === 'GET') return part === 'timeline' ? timeline(r, url) : { body: detail(r) };
-    const body = init?.body ? JSON.parse(String(init.body)) : {};
     writes.push({ method, path, body });
+    if (!part && method === 'PATCH') return options.refuse?.[r.id] ?? form.update(r, body);
     if (part === 'checklist') return checklist(r, itemId, body);
     if (part === 'comments') {
       log(r, comment(`m-${++made}`, String(body.body)));
@@ -297,7 +303,12 @@ export function tasksServer(initial: TaskListItemWire[], options: Options = {}) 
   };
   const routes: AuthRoutes = {
     '/api/app/tasks/counts': () => ({ body: options.counts ?? counts() }),
-    '/api/app/projects': { body: { items: [ATLAS, SINAR], total: 2, page: 1, limit: 100 } },
+    '/api/app/tasks/form-options': form.options,
+    '/api/app/projects': (url) => {
+      const members = /\/api\/app\/projects\/([^/]+)\/members$/.exec(new URL(url).pathname);
+      if (members) return form.members(decodeURIComponent(members[1]));
+      return { body: { items: [ATLAS, SINAR], total: 2, page: 1, limit: 100 } };
+    },
     '/api/app/tasks': task,
   };
   /** The status of task #no on the server now. */

@@ -1,5 +1,6 @@
-// Pickers New task · Fill form and Edit task share (prototype tasks.form.jsx, tasks.edit.jsx): due date, priority chips,
-// Type beside Phase (Phase only for a project with phases), the Show more / Show less link, and the form state hook.
+// Pickers New task · Fill form and Edit task share (prototype tasks.form.jsx, tasks.edit.jsx): the assignee, a date,
+// the priority chips, Type beside Phase (Phase only for a project with phases), the Show more / Show less link, and
+// the form state hook. The choices are the server's: the project's people, kinds and phases (tasks.form.ts).
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useState } from 'react';
 
@@ -10,14 +11,20 @@ import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
-import { today } from '@/data/clock';
-import type { Option, TaskForm } from '@/data/tasks.form';
-import { PRIORITIES, type TaskPriority, type TaskType, TYPES } from '@/data/tasks.shared';
+import { useToday } from '@/data/clock';
+import {
+  NONE,
+  type Option,
+  PRIORITY_OPTIONS,
+  priorityLabel,
+  type TaskForm,
+} from '@/data/tasks.form';
+import type { TaskPriorityWire } from '@/data/tasks.wire';
 
 import { Labelled } from '../parts/labelled';
 import { F } from '../tasks.strings';
 
-const TYPE_OPTIONS = TYPES.map(([value, label]) => ({ value, label }));
+const PRIORITY_NAMES = PRIORITY_OPTIONS.map(priorityLabel);
 
 /** Form state with a setter per field: `set('title')(text)`. */
 export function useTaskForm(initial: () => TaskForm) {
@@ -29,19 +36,49 @@ export function useTaskForm(initial: () => TaskForm) {
   return { f, setF, set };
 }
 
-/** A labelled date (the kit DateField has no visible label). */
+/** One assignee (T-2) from `people`, "Unassigned" first; disabled with `hint` while the people load. */
+export function AssigneeEdit({
+  people,
+  value,
+  onChange,
+  hint,
+}: {
+  people: readonly Option[];
+  value: string | null;
+  onChange: (id: string | null) => void;
+  hint?: string;
+}) {
+  return (
+    <Labelled label={F.assignee}>
+      <SelectField
+        label={F.assignee}
+        options={people}
+        value={value ?? NONE}
+        onChange={(id) => onChange(id === NONE ? null : id)}
+        disabled={!!hint}
+        hint={hint}
+        testID="field-assignee"
+      />
+    </Labelled>
+  );
+}
+
+/** A labelled date (the kit DateField has no visible label); the calendar opens on the server's today. */
 export function DateEdit({
   label,
   value,
   onChange,
+  testID,
 }: {
   label: string;
-  value: string;
+  value: string | null;
   onChange: (iso: string) => void;
+  testID?: string;
 }) {
+  const today = useToday();
   return (
     <Labelled label={label}>
-      <DateField label={label} value={value} onChange={onChange} initial={today()} />
+      <DateField label={label} value={value} onChange={onChange} initial={today} testID={testID} />
     </Labelled>
   );
 }
@@ -50,49 +87,52 @@ export function PriorityEdit({
   value,
   onChange,
 }: {
-  value: TaskPriority;
-  onChange: (p: TaskPriority) => void;
+  value: TaskPriorityWire;
+  onChange: (p: TaskPriorityWire) => void;
 }) {
   return (
     <Labelled label={F.priority}>
       <Chips
         label={F.priority}
-        items={PRIORITIES}
-        value={PRIORITIES.indexOf(value)}
-        onChange={(i) => onChange(PRIORITIES[i] ?? value)}
+        items={PRIORITY_NAMES}
+        value={PRIORITY_OPTIONS.indexOf(value)}
+        onChange={(i) => onChange(PRIORITY_OPTIONS[i] ?? value)}
       />
     </Labelled>
   );
 }
 
 type TypePhaseProps = {
-  type: TaskType;
-  phase: string;
+  kindId: string;
+  kinds: readonly Option[];
+  phaseId: string | null;
   /** null for a project without phases. */
   phases: readonly Option[] | null;
-  onType: (t: TaskType) => void;
-  onPhase: (p: string) => void;
+  onKind: (id: string) => void;
+  onPhase: (id: string | null) => void;
 };
 
-export function TypePhaseEdit({ type, phase, phases, onType, onPhase }: TypePhaseProps) {
+export function TypePhaseEdit({ kindId, kinds, phaseId, phases, onKind, onPhase }: TypePhaseProps) {
   return (
     <HStack className="gap-3">
-      <Labelled label={F.type}>
-        <SelectField
-          label={F.type}
-          options={TYPE_OPTIONS}
-          value={type}
-          onChange={onType}
-          testID="field-type"
-        />
-      </Labelled>
+      {kinds.length > 0 && (
+        <Labelled label={F.type}>
+          <SelectField
+            label={F.type}
+            options={kinds}
+            value={kindId}
+            onChange={onKind}
+            testID="field-type"
+          />
+        </Labelled>
+      )}
       {phases && (
         <Labelled label={F.phase}>
           <SelectField
             label={F.phase}
             options={phases}
-            value={phase}
-            onChange={onPhase}
+            value={phaseId ?? NONE}
+            onChange={(id) => onPhase(id === NONE ? null : id)}
             testID="field-phase"
           />
         </Labelled>

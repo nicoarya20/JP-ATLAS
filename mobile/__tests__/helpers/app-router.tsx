@@ -46,7 +46,7 @@ const ROUTES = {
   '(tabs)/tasks/filter': stub('screen-tasks-filter'),
   '(tabs)/tasks/[id]/index': stub('screen-task'),
   '(tabs)/tasks/[id]/edit': stub('screen-task-edit'),
-  '(tabs)/tasks/[id]/return': stub('screen-task-return'),
+  '(tabs)/tasks/[id]/reopen': stub('screen-task-reopen'),
   '(tabs)/tasks/[id]/cancel': stub('screen-task-cancel'),
   '(tabs)/projects/_layout': ProjectsStack,
   '(tabs)/projects/index': ProjectsRoute,

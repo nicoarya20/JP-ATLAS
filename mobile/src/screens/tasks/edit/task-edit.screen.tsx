@@ -1,33 +1,25 @@
-// Tasks ⑧b Edit task (detail ⋯ › Edit task, prototype tasks.edit.jsx): every field the detail shows, saved through the
-// task store. Status moves through the detail actions or the board, and Created by is a record, so neither is edited.
+// Tasks ⑧b Edit task (detail ⋯ › Edit task, prototype tasks.edit.jsx), on GET /api/app/tasks/:ref: the task the
+// detail reads (its `can.update` lets the viewer in, or a deny code says why not, E-6), then form-options for the
+// task's project (404 when that project is gone or hidden) and the form itself (edit-form.tsx). Status moves through
+// the detail's buttons or the board, steps on the detail, and Created by is a record, so none of them is edited here.
 import { router, useLocalSearchParams } from 'expo-router';
-import { ListX, Lock } from 'lucide-react-native';
+import { FolderX, ListX, Lock, type LucideIcon } from 'lucide-react-native';
+import { useEffect } from 'react';
 
-import { Field } from '@/components/form/field';
-import { useNotice } from '@/components/notice/use-notice';
 import { EmptyState } from '@/components/state/empty-state';
-import { Text } from '@/components/ui/text';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { getTaskEdit } from '@/data/tasks';
-import {
-  canSave,
-  reviewersOf,
-  saveTaskEdit,
-  shownReviewer,
-  type TaskEditView,
-} from '@/data/tasks.form';
+import { FailedState, LoadingState } from '@/components/state/section-state';
+import { capMessage } from '@/data/caps.messages';
+import type { ResourceState } from '@/data/resource';
+import { taskDetailResource } from '@/data/tasks.detail.api';
+import type { TaskDetailWire } from '@/data/tasks.detail.wire';
+import { taskFormOptionsResource } from '@/data/tasks.form.api';
 
-import { DateEdit, PriorityEdit, TypePhaseEdit, useTaskForm } from '../new/form-choices';
-import { AssigneeEdit, ReviewEdit } from '../new/form-fields';
-import { TagsEdit } from '../new/tags-edit';
-import { saveHint, TitleField } from '../new/title-field';
 import { TaskPage } from '../parts/task-page';
 import { Act, Foot } from '../parts/task-parts';
 import { F, S } from '../tasks.strings';
-import { EvidenceEdit, StepsEdit } from './edit-lists';
+import { EditForm } from './edit-form';
 
-type EditView = Extract<TaskEditView, { allowed: true }>;
+const NOT_FOUND = 404;
 
 const BackFoot = () => (
   <Foot>
@@ -35,82 +27,90 @@ const BackFoot = () => (
   </Foot>
 );
 
-/** Edit task for the task in the route (`/tasks/<no>/edit`); someone who may not change it gets the reason. */
-export function TaskEditScreen({ role = SESSION_ROLE }: { role?: Role }) {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const no = Number(id);
-  const view = getTaskEdit(role, no);
-  if (!view?.allowed) {
-    return (
-      <TaskPage title={F.editTitle} foot={<BackFoot />} testID="task-edit-denied">
-        {view ? (
-          <EmptyState icon={Lock} title={view.title} text={view.text} />
-        ) : (
-          <EmptyState icon={ListX} title={S.detail.missing} text={S.detail.missingText} />
-        )}
-      </TaskPage>
-    );
-  }
-  return <EditForm role={role} no={no} view={view} />;
-}
-
-function EditForm({ role, no, view }: { role: Role; no: number; view: EditView }) {
-  const notice = useNotice();
-  const { f, set } = useTaskForm(() => view.initial);
-  const reviewers = reviewersOf({ members: view.members }, f.who);
-  const reviewer = shownReviewer(reviewers, f.reviewer);
-  const save = () => {
-    notice(saveTaskEdit(role, no, f));
-    router.back();
-  };
-  const foot = (
-    <Foot>
-      <Act grow label={F.cancel} onPress={() => router.back()} />
-      <Act
-        wide
-        kind="primary"
-        label={F.save}
-        disabled={!canSave(f)}
-        hint={saveHint(f)}
-        onPress={save}
-        testID="edit-save"
-      />
-    </Foot>
-  );
+/** A page that only says why there is no form, with Back. */
+function Note({
+  icon,
+  title,
+  text,
+  testID,
+}: {
+  icon: LucideIcon;
+  title: string;
+  text: string;
+  testID: string;
+}) {
   return (
-    <TaskPage title={F.editTitle} foot={foot} testID="screen-task-edit">
-      <Text className="text-footnote text-muted-foreground">{view.meta}</Text>
-      <TitleField value={f.title} onChange={set('title')} />
-      <AssigneeEdit people={view.people} who={f.who} onChange={set('who')} />
-      <DateEdit label={F.due} value={f.due} onChange={set('due')} />
-      <PriorityEdit value={f.priority} onChange={set('priority')} />
-      <TypePhaseEdit
-        type={f.type}
-        phase={f.phase}
-        phases={view.phases}
-        onType={set('type')}
-        onPhase={set('phase')}
-      />
-      <ReviewEdit
-        f={f}
-        reviewer={reviewer}
-        options={reviewers}
-        locked={view.reviewLocked}
-        member={view.member}
-        onReview={set('review')}
-        onReviewer={set('reviewer')}
-      />
-      <TagsEdit tags={f.tags} onChange={set('tags')} />
-      <Field
-        multiline
-        label={F.description}
-        value={f.desc}
-        placeholder={F.descHint}
-        onChangeText={set('desc')}
-      />
-      <StepsEdit steps={f.steps} onChange={set('steps')} />
-      <EvidenceEdit proof={f.proof} onChange={set('proof')} />
-      <Text className="text-footnote text-muted-foreground">{F.statusNote}</Text>
+    <TaskPage title={F.editTitle} foot={<BackFoot />} testID={testID}>
+      <EmptyState icon={icon} title={title} text={text} />
     </TaskPage>
   );
+}
+
+const Missing = () => (
+  <Note
+    icon={ListX}
+    title={S.detail.missing}
+    text={S.detail.missingText}
+    testID="task-edit-missing"
+  />
+);
+
+/** Loading, or failed with Try again, while `state` has no data yet. */
+function Waiting({ state, onRetry }: { state: ResourceState<unknown>; onRetry: () => void }) {
+  return (
+    <TaskPage title={F.editTitle} testID="task-edit-loading">
+      {state.phase === 'failed' ? (
+        <FailedState testID="task-edit-failed" message={state.error?.message} onRetry={onRetry} />
+      ) : (
+        <LoadingState />
+      )}
+    </TaskPage>
+  );
+}
+
+/** Edit task for the task in the route (`/tasks/<no>/edit`). */
+export function TaskEditScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const no = Number(id);
+  return Number.isInteger(no) && no > 0 ? <EditGate no={no} /> : <Missing />;
+}
+
+function EditGate({ no }: { no: number }) {
+  const res = taskDetailResource(no);
+  const state = res.use();
+  useEffect(() => {
+    void res.ensure();
+  }, [res]);
+  const task = state.data;
+  if (!task) {
+    if (state.error?.status === NOT_FOUND) return <Missing />;
+    return <Waiting state={state} onRetry={() => void res.reload()} />;
+  }
+  const can = task.can.update;
+  if (can !== true) {
+    const text = typeof can === 'string' ? capMessage(can) : F.lockedText;
+    return <Note icon={Lock} title={F.locked} text={text} testID="task-edit-denied" />;
+  }
+  return <EditOptions task={task} />;
+}
+
+function EditOptions({ task }: { task: TaskDetailWire }) {
+  const res = taskFormOptionsResource(task.project.id);
+  const state = res.use();
+  useEffect(() => {
+    void res.reload();
+  }, [res]);
+  const project = state.data?.projects[0];
+  if (project) return <EditForm task={task} project={project} />;
+  if (state.data || state.error?.status === NOT_FOUND) {
+    return (
+      <Note
+        icon={FolderX}
+        title={F.noProject}
+        text={F.noProjectText}
+        testID="task-edit-no-project"
+      />
+    );
+  }
+  return <Waiting state={state} onRetry={() => void res.reload()} />;
 }

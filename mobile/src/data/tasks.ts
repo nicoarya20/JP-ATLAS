@@ -29,7 +29,6 @@ import { getTasksState, type TasksState } from './tasks.state';
  */
 
 export type { TaskCard } from './tasks.card';
-export { getTaskEdit, getTaskForm } from './tasks.form';
 export { getTaskSettings } from './tasks.settings';
 export { getCsvImport, getQuickWrite } from './tasks.write';
 
