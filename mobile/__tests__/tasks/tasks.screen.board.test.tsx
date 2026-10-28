@@ -5,6 +5,7 @@
 // Select picks cards and a held pick moves the whole group; the screen reader action "Move to …" moves without the
 // gesture; a refusal is said in the server's words; a column loads more; a board the search empties shows NoMatch.
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { createGestureController } from 'react-native-gesture-handler/jest-utils';
 
 import { capMessage } from '../../src/data/caps.messages';
@@ -109,6 +110,11 @@ describe('kanban move menu', () => {
     expect(screen.getByTestId('radial-To do')).toHaveAccessibleName('To do, current status');
     expect(screen.getByTestId('radial-In review')).toHaveAccessibleName('In review, not available');
     expect(screen.getByTestId('radial-In review')).toBeDisabled();
+    // Each label has room in its pill: a zero-size slot squeezes it out on a device, where jest does no layout.
+    for (const s of ['To do', 'In progress', 'In review', 'Done'])
+      expect(
+        StyleSheet.flatten(screen.getByTestId(`radial-slot-${s}`).props.style).width,
+      ).toBeGreaterThan(0);
     await fireEvent.press(screen.getByTestId('radial-Done'));
     await waitFor(() => expect(status(14)).toBe('done'));
   });

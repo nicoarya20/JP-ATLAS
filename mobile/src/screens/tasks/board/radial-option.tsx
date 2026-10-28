@@ -20,6 +20,11 @@ const ORDER = { up: 0, right: 1, down: 2, left: 3 } as const;
 const UNIT = { up: [0, -1], right: [1, 0], down: [0, 1], left: [-1, 0] } as const;
 /** Aim and fill changes (tasks.css .tk-radial-opt transition). */
 const AIM_MS = 120;
+/**
+ * Box each option is centred in, wide enough for the longest label with Now. A zero-size anchor lays the pill out
+ * against no width at all, which squeezes the label out and leaves a bare sliver around the icon.
+ */
+const SLOT = { w: 240, h: 120 } as const;
 
 type RadialOptionProps = {
   column: BoardColumn;
@@ -73,8 +78,16 @@ export function RadialOption({
         } as const);
   return (
     <View
-      className="absolute h-0 w-0 items-center justify-center"
-      style={{ transform: [{ translateX: ux * r }, { translateY: uy * r }] }}
+      testID={`radial-slot-${column.status}`}
+      pointerEvents="box-none"
+      className="absolute items-center justify-center"
+      style={{
+        width: SLOT.w,
+        height: SLOT.h,
+        left: -SLOT.w / 2,
+        top: -SLOT.h / 2,
+        transform: [{ translateX: ux * r }, { translateY: uy * r }],
+      }}
     >
       <Animated.View
         style={[
