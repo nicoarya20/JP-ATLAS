@@ -1,9 +1,9 @@
 // New event / Edit form options and checks, ported from the prototype's events.new.jsx (and the due picks of
 // events.outcomes.jsx): dates from today to the end of its month, times 7:00 AM–9:00 PM every 15 minutes.
+import { today } from './clock';
 import { monthDay } from './dates';
 import { clockMinutes, dateLabel, monthOf } from './events.dates';
 import type { EventFields } from './events.store';
-import { TODAY } from './sample';
 
 const FIRST_HOUR = 7;
 const LAST_HOUR = 21;
@@ -22,14 +22,20 @@ export const TIMES: readonly string[] = Array.from(
   (_, i) => clock(FIRST_HOUR * 60 + i * STEP_MIN),
 );
 
-/** Dates from today to the end of today's month (every sample event is in today's month). */
-const AHEAD = monthOf(TODAY).filter((d) => d >= TODAY);
+/**
+ * Dates from today to the end of today's month (every sample event is in today's month). Functions, not constants:
+ * the server's clock is not in yet when this module is imported, and `today()` throws until it is.
+ */
+const ahead = () => {
+  const from = today();
+  return monthOf(from).filter((d) => d >= from);
+};
 
 /** Date options of the form: ISO value, "Thu, Oct 8" label. */
-export const DATES = AHEAD.map((value) => ({ value, label: dateLabel(value) }));
+export const dates = () => ahead().map((value) => ({ value, label: dateLabel(value) }));
 
 /** Due date picks of a Step 3 draft: ISO value, "Oct 9" label (a task's due label). */
-export const DUE_DATES = AHEAD.map((value) => ({ value, label: monthDay(value) }));
+export const dueDates = () => ahead().map((value) => ({ value, label: monthDay(value) }));
 
 export type EventCheck = {
   /** Save is allowed: a title and an end after the start. */

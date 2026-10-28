@@ -1,5 +1,6 @@
 // Events ② calendar getter (prototype events.calendar.jsx): a month or week of dates with their dots and spoken
 // counts, and the picked date's agenda. Re-exported by events.ts.
+import { today } from './clock';
 import {
   addDays,
   col,
@@ -17,7 +18,7 @@ import {
 import { applyQuery, type EventsQuery, eventsFor, isFiltered } from './events.query';
 import { type EventHref, type EventItem, type EventStatusLabel, eventHref } from './events.shared';
 import { eventsStore } from './events.store';
-import { type Role, TODAY } from './sample';
+import type { Role } from './sample';
 
 export type CalendarView = 'month' | 'week';
 
@@ -55,7 +56,7 @@ export const stepCalendar = (view: CalendarView, picked: string, by: number) =>
 /** Calendar of `role` around the picked date; past and upcoming alike (the query's Show is ignored). */
 export function getEventsCalendar(
   role: Role,
-  { view, picked = TODAY, query }: { view: CalendarView; picked?: string; query: EventsQuery },
+  { view, picked = today(), query }: { view: CalendarView; picked?: string; query: EventsQuery },
 ): EventsCalendarData {
   const mine = eventsFor(role, eventsStore.get().list);
   const events = applyQuery(mine, { ...query, when: null });

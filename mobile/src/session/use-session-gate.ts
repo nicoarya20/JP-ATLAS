@@ -3,8 +3,15 @@
 // app comes up — before that, every /api/app/* request would go out without the session cookie.
 import { useEffect, useState } from 'react';
 
+import { ensureClock } from '@/data/home.api';
+
 import { connectSession, refreshSession } from './session.actions';
-import { type SessionState, sessionStore, useSession } from './session.state';
+import {
+  type SessionState,
+  sessionStore,
+  setSessionUnreachable,
+  useSession,
+} from './session.state';
 
 export type SessionGate = SessionState & {
   /** Reads the session again; used by the "Try again" button on the unreachable screen. */
@@ -13,14 +20,7 @@ export type SessionGate = SessionState & {
   retrying: boolean;
 };
 
-/**
- * The session gate: start the session on mount, then follow the store.
- *
- * TODO(mobile-W2): hold `status` on `loading` for an approved account until the server's clock
- * (`GET /api/app/home`, K1) is in, and turn a clock that cannot be fetched into `unreachable` —
- * the way `2a985b7^:mobile/src/session/use-session-gate.ts` did with `ensureClock`. Left out of W1
- * on purpose: the clock store belongs to W2 (reacttransition.md §6c), and W1 must not depend on it.
- */
+/** The session gate: start the session on mount, fetch the server's clock, then follow the store. */
 export function useSessionGate(): SessionGate {
   const session = useSession();
   const [retrying, setRetrying] = useState(false);
@@ -32,13 +32,38 @@ export function useSessionGate(): SessionGate {
     if (sessionStore.get().status === 'loading') void refreshSession();
   }, []);
 
+  // An approved account still has no date to show until the server's clock has arrived (K1), so
+  // fetch it here — at app start and again after a sign-in, which this effect sees as a status
+  // change. A failure that says nothing about the session gets the retry screen, the same as a
+  // session that could not be read: guessing a date is worse than asking again.
+  const needsClock = session.status === 'signed-in' && session.clock === null;
+  useEffect(() => {
+    if (!needsClock) return;
+    void ensureClock().then((state) => {
+      if (state.phase !== 'failed' || !state.error) return;
+      // A 401/403 has already moved the session on (applyApiError); only a failure that proved
+      // nothing about the account leaves an approved session with no clock, and that is the one
+      // worth offering a retry for.
+      const after = sessionStore.get();
+      if (after.status === 'signed-in' && after.clock === null) setSessionUnreachable(state.error);
+    });
+  }, [needsClock]);
+
   const retry = () => {
     if (retrying) return;
     setRetrying(true);
     // refreshSession records every failure in the store itself (`unreachable` + the reason), so
-    // there is nothing left to catch here; it only has to end the spinner either way.
+    // there is nothing left to catch here; it only has to end the spinner either way. A session
+    // read that lands on `signed-in` without a clock brings the effect above back to fetch it.
     void refreshSession().finally(() => setRetrying(false));
   };
 
-  return { ...session, retry, retrying };
+  return {
+    ...session,
+    // Held on `loading` until the clock is in: the root layout keeps the splash up for that, so no
+    // dated screen can draw a frame with a date the server has not given us.
+    status: needsClock ? 'loading' : session.status,
+    retry,
+    retrying,
+  };
 }

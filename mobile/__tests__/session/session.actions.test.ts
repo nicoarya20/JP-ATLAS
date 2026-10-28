@@ -12,6 +12,7 @@ import {
   sessionHeaders,
   setAuthHeaders,
 } from '@/api';
+import { resource } from '@/data/resource';
 import {
   connectSession,
   refreshSession,
@@ -204,6 +205,28 @@ describe('signOutEverywhere', () => {
     expect(out.calls.some((url) => url.includes('/sign-out'))).toBe(true);
     expect(sessionStore.get()).toMatchObject({ status: 'signed-out', user: null });
     await expect(sessionHeaders()).resolves.toEqual({});
+  });
+
+  it('drops what the last account loaded: no screen unmounts to drop it', async () => {
+    signedIn();
+    const tasks = resource('test-tasks', async () => ['a task of the last account']);
+    await tasks.ensure();
+    serve({ '/sign-out': { body: { success: true } } });
+
+    await signOutEverywhere();
+
+    expect(tasks.peek()).toMatchObject({ phase: 'empty', data: null });
+  });
+
+  it('keeps what is loaded when the sign-out could not be made', async () => {
+    signedIn();
+    const tasks = resource('test-tasks-kept', async () => ['still signed in']);
+    await tasks.ensure();
+    serve({ '/sign-out': { throws: new TypeError('Network request failed') } });
+
+    await signOutEverywhere().catch(() => undefined);
+
+    expect(tasks.current()).toEqual(['still signed in']);
   });
 
   it('empties the phone too when the server says the session was already gone', async () => {

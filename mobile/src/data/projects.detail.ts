@@ -1,11 +1,12 @@
 // Project detail tabs ⑧–⑪ (prototype projects.detail.jsx / projects.tabs.jsx): Overview, Tasks, Phases and Members of
 // one project. Only Atlas has phases, milestones and a deadline history in the sample; other projects show their
 // list data and say what they have none of.
+import { today } from './clock';
 import { daysBetween, monthDay } from './dates';
 import { me, person } from './people';
 import { daysLeftLabel, longDate, rangeLabel } from './projects.dates';
 import { findProject, getProjectsState, type ProjectItem } from './projects.store';
-import { type Role, TODAY } from './sample';
+import type { Role } from './sample';
 import { type PhaseState, PROJECT_DETAIL, type ProjectRole } from './sample/projects.extra';
 import { getTasksList, type TaskCard, taskCard } from './tasks';
 import { isOpen } from './tasks.shared';
@@ -32,7 +33,7 @@ export type AttentionRow = {
 };
 
 function reasonOf(t: TaskCard & { dueIso: string }): AttentionReason | null {
-  const d = daysBetween(TODAY, t.dueIso);
+  const d = daysBetween(today(), t.dueIso);
   if (d < 0) return 'Overdue';
   if (t.status === 'In review') return 'Awaiting review';
   return d === 0 ? 'Due today' : null;
@@ -66,11 +67,11 @@ function attention(s: TasksState, role: Role, name: string): AttentionRow[] {
 export function getProjectOverview(role: Role, id: string, s: TasksState = getTasksState()) {
   const p = projectOrThrow(id, 'overview');
   const d = PROJECT_DETAIL[id];
-  const left = daysLeftLabel(TODAY, p.due);
+  const left = daysLeftLabel(today(), p.due);
   const span = p.started ? daysBetween(p.started, p.due) : 0;
   const elapsed =
     p.started && span > 0
-      ? Math.min(PCT, Math.max(0, Math.round((daysBetween(p.started, TODAY) / span) * PCT)))
+      ? Math.min(PCT, Math.max(0, Math.round((daysBetween(p.started, today()) / span) * PCT)))
       : null;
   const now = d?.phases.find((ph) => ph.state === 'In progress');
   const next = d?.phases.find((ph) => ph.milestone && !ph.milestone.reached)?.milestone;
@@ -85,7 +86,7 @@ export function getProjectOverview(role: Role, id: string, s: TasksState = getTa
     milestone: next
       ? {
           name: `◆ Next milestone: ${next.name}`,
-          line: `${longDate(next.date)} · in ${daysBetween(TODAY, next.date)} days`,
+          line: `${longDate(next.date)} · in ${daysBetween(today(), next.date)} days`,
         }
       : null,
     attention: attention(s, role, p.name),

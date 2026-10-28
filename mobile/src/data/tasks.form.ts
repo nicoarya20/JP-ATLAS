@@ -1,6 +1,7 @@
+import { today } from './clock';
 import { listPeople, me, ROLE_TAG } from './people';
 import { getProjectByName, listProjects } from './projects.state';
-import { type Project, type Role, TODAY } from './sample';
+import type { Project, Role } from './sample';
 import { FORM_DESC, QUICK_WRITE } from './sample/tasks.extra';
 import { TASK_PHASES } from './sample/tasks.settings';
 import {
@@ -201,7 +202,7 @@ export function initialForm(project: Project): TaskForm {
     reviewer: '',
     steps: [],
     proof: [],
-    start: TODAY,
+    start: today(),
     hours: '4',
   };
 }

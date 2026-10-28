@@ -1,10 +1,11 @@
+import { today } from './clock';
 import { daysBetween, daysSinceMonday, sameMonth } from './dates';
 import type { EventItem } from './events.shared';
 import { doneOn } from './home.tasks';
 import type { HomeSources, HomeTarget, StatChip, StatKey, StatSub } from './home.types';
 import { respondCards } from './inbox';
 import type { ProjectItem } from './projects.state';
-import { type Role, TODAY } from './sample';
+import type { Role } from './sample';
 import { assigned, dueIn, isOpen, type TaskItem } from './tasks.shared';
 import { type Decisions, waitingUsers } from './users';
 
@@ -35,14 +36,14 @@ const chip = (key: StatKey, count: number | null, sub: StatSub, alert = false): 
 });
 
 /** True for a date from today to the end of this month. */
-const leftThisMonth = (iso: string) => sameMonth(iso, TODAY) && daysBetween(TODAY, iso) >= 0;
+const leftThisMonth = (iso: string) => sameMonth(iso, today()) && daysBetween(today(), iso) >= 0;
 
 /** Line under In Progress: the most urgent thing among the tasks being worked on. */
 function activeSub(active: Tasks): StatSub {
   const overdue = active.filter((t) => dueIn(t) < 0).length;
-  const today = active.filter((t) => dueIn(t) === 0).length;
+  const dueToday = active.filter((t) => dueIn(t) === 0).length;
   if (overdue) return { kind: 'overdue', n: overdue };
-  if (today) return { kind: 'dueToday', n: today };
+  if (dueToday) return { kind: 'dueToday', n: dueToday };
   if (!active.length) return { kind: 'noneStarted' };
   const next = [...active].sort((a, b) => dueIn(a) - dueIn(b))[0];
   return { kind: 'nextDue', date: next.due };
@@ -56,7 +57,7 @@ function taskChips(tasks: Tasks, me: string): StatChip[] {
   const active = mine.filter((t) => t.status === 'In progress');
   const done = mine.filter((t) => {
     const on = doneOn(t);
-    return on !== undefined && daysBetween(TODAY, on) >= -daysSinceMonday(TODAY);
+    return on !== undefined && daysBetween(today(), on) >= -daysSinceMonday(today());
   });
   return [
     chip(

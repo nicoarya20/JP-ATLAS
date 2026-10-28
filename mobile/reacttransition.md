@@ -160,8 +160,9 @@ Koordinator `pm-dashboard-b1` memegang papan ini dan commit; peer tidak menyentu
 |---|---|---|---|---|
 | W1-A | Fondasi API + logika sesi: `src/api/*`, `src/session/*` (kecuali gerbang), dependensi Expo Better Auth, `.env.example`, mock native di `jest.setup.js`, tes | `pm-dashboard-50` | ✅ | — |
 | W1-B | Gerbang login + layar: `use-session-gate.ts`, `app/_layout.tsx`, `app/(auth)/*`, form masuk email+sandi, pending/denied, Cannot reach server, sign out sungguhan, tes | `pm-dashboard-d7` | ✅ | kontrak W1-A |
-| W2 | Fondasi data: jam server (`GET /api/app/home`), helper instan, identitas `userId`, pola `fetch → store → invalidate`, cabut `TODAY` ambient | `pm-dashboard-50` | 🔄 file baru dulu; file lama setelah W1 commit | W1 |
-| W3 | Ganti data contoh per modul: Home, Inbox, Projects, Tasks, Events, Profile, Archive, Team | — | ⏳ | W2 |
+| W2 | Fondasi data: jam server (`GET /api/app/home`), helper instan, identitas `userId`, pola `fetch → store → invalidate`, cabut `TODAY` ambient | `pm-dashboard-50` | ✅ | W1 (`fc0ab4ed`) |
+| W3-prep | Peta layar ↔ endpoint per modul (diverifikasi ke server sekarang) di `docs/phase2-map-*.md` | `pm-dashboard-d7` | 🔄 | W1 |
+| W3 | Ganti data contoh per modul: Home, Inbox, Projects, Tasks, Events, Profile, Archive, Team | — | ⏳ | W2, W3-prep |
 
 ## 7. Pertanyaan Terbuka
 

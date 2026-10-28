@@ -8,4 +8,5 @@ export * from './people';
 export * from './people.extra';
 export * from './projects';
 export * from './tasks';
-export * from './today';
+// Nothing of './today' is re-exported: TODAY is the sample's own day and test-only now, because every date in the app
+// comes from the server's clock (src/data/clock.ts, K1). Home still reads GREETING from the file itself until W3.

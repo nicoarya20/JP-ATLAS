@@ -13,7 +13,7 @@ import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { dateLabel } from '@/data/events.dates';
-import { DATES, MODES, TIMES, validateEvent } from '@/data/events.form';
+import { dates, MODES, TIMES, validateEvent } from '@/data/events.form';
 import type { EventFields } from '@/data/events.store';
 import { listPeople } from '@/data/people';
 
@@ -27,8 +27,8 @@ const TIME_OPTIONS = TIMES.map((t) => ({ value: t, label: t }));
 export type FormProps = { f: EventFields; set: (patch: Partial<EventFields>) => void };
 
 /** Date picks; an edited event dated before today keeps its own date on top. */
-const dateOptions = (date: string) =>
-  DATES.some((d) => d.value === date) ? DATES : [{ value: date, label: dateLabel(date) }, ...DATES];
+const dateOptions = (date: string, ahead = dates()) =>
+  ahead.some((d) => d.value === date) ? ahead : [{ value: date, label: dateLabel(date) }, ...ahead];
 
 /** Attendee pill; tap removes the person, except the creator. */
 function Person({ name, onRemove }: { name: string; onRemove?: () => void }) {

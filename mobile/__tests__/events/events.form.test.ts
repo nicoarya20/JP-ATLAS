@@ -1,13 +1,14 @@
 import {
   agendaLines,
-  DATES,
-  DUE_DATES,
+  dates,
+  dueDates,
   MODES,
   savedFields,
   TIMES,
   validateEvent,
 } from '../../src/data/events.form';
 import type { EventFields } from '../../src/data/events.store';
+import { seedClock, TEST_CLOCK } from '../helpers/clock-fixtures';
 
 // The prototype's New event form (events.new.jsx) on Wed, Oct 7, 2026.
 
@@ -35,12 +36,20 @@ describe('events form', () => {
   });
 
   test('dates run from today to the end of October', () => {
-    expect(DATES).toHaveLength(25);
-    expect(DATES[0]).toEqual({ value: '2026-10-07', label: 'Wed, Oct 7' });
-    expect(DATES[1]).toEqual({ value: '2026-10-08', label: 'Thu, Oct 8' });
-    expect(DATES[24]).toEqual({ value: '2026-10-31', label: 'Sat, Oct 31' });
-    expect(DUE_DATES[2]).toEqual({ value: '2026-10-09', label: 'Oct 9' });
+    const options = dates();
+    expect(options).toHaveLength(25);
+    expect(options[0]).toEqual({ value: '2026-10-07', label: 'Wed, Oct 7' });
+    expect(options[1]).toEqual({ value: '2026-10-08', label: 'Thu, Oct 8' });
+    expect(options[24]).toEqual({ value: '2026-10-31', label: 'Sat, Oct 31' });
+    expect(dueDates()[2]).toEqual({ value: '2026-10-09', label: 'Oct 9' });
     expect(MODES).toEqual(['In person', 'Online']);
+  });
+
+  test("dates start from the server's today, read when asked, not when the app loaded", () => {
+    seedClock({ ...TEST_CLOCK, today: '2026-10-29' });
+
+    expect(dates().map((d) => d.value)).toEqual(['2026-10-29', '2026-10-30', '2026-10-31']);
+    expect(dueDates()[0]).toEqual({ value: '2026-10-29', label: 'Oct 29' });
   });
 
   test('needs a title and an end after the start', () => {

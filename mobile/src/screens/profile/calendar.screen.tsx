@@ -5,11 +5,11 @@ import { View } from 'react-native';
 
 import { DetailHeader } from '@/components/screen/detail-header';
 import { Text } from '@/components/ui/text';
+import { today } from '@/data/clock';
 import { addDays } from '@/data/events.dates';
 import { useEventsState } from '@/data/events.store';
 import { getMyCalendar } from '@/data/profile';
 import type { Role } from '@/data/sample';
-import { TODAY } from '@/data/sample/today';
 import { SESSION_ROLE } from '@/data/session';
 
 import { DayGrid } from './day-grid';
@@ -22,7 +22,7 @@ const WEEK_DAYS = 7;
 /** My calendar. role: who is signed in (K12). */
 export function CalendarScreen({ role = SESSION_ROLE }: { role?: Role }) {
   const { list } = useEventsState();
-  const [day, setDay] = useState(TODAY);
+  const [day, setDay] = useState(today);
   const d = getMyCalendar(role, day, list);
   return (
     <View testID="screen-profile-calendar" className="flex-1 bg-background">

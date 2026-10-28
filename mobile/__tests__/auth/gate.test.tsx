@@ -1,7 +1,8 @@
 /**
  * The gate, through the real route tree: what the app shows when it opens, for each thing the
- * server can say about the session, and how it follows the session store afterwards. `/api/auth` is
- * stubbed (helpers/auth-server.ts) — no request leaves the machine.
+ * server can say about the session, and how it follows the session store afterwards. `/api/auth` and
+ * `/api/app/home` (the server's clock, K1) are stubbed (helpers/auth-server.ts) — no request leaves
+ * the machine.
  */
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 
@@ -10,6 +11,7 @@ import { clearSession, resetSessionConnection, sessionStore, setSessionUser } fr
 
 import { openApp } from '../helpers/app-router';
 import { type AuthRoutes, serveAuth, sessionPayload } from '../helpers/auth-server';
+import { homePayload, TEST_CLOCK } from '../helpers/clock-fixtures';
 import {
   APPROVED_USER,
   PENDING_USER,
@@ -18,12 +20,20 @@ import {
   seedSession,
 } from '../helpers/session-fixtures';
 
+// An approved account is let in only once the server's clock has arrived, so every test that reaches
+// the app needs home to answer. A test about the clock overrides it.
+const WITH_CLOCK: AuthRoutes = { '/api/app/home': { body: homePayload() } };
+
 let server: ReturnType<typeof serveAuth> | null = null;
 const serve = (routes: AuthRoutes) => {
-  if (server) server.use(routes);
-  else server = serveAuth(routes);
+  const all = { ...WITH_CLOCK, ...routes };
+  if (server) server.use(all);
+  else server = serveAuth(all);
   return server;
 };
+
+const homeCalls = (stub: ReturnType<typeof serveAuth>) =>
+  stub.calls.filter((url) => url.includes('/api/app/home'));
 
 beforeEach(() => {
   // The global hook seeds a signed-in account; these tests want the read the app really does.
@@ -233,5 +243,115 @@ describe('when the server cannot be reached', () => {
     });
 
     await waitFor(() => expect(screen.getByTestId('tab-bar')).toBeOnTheScreen());
+  });
+});
+
+describe("the server's clock", () => {
+  it('keeps the splash up for an approved account until the clock has arrived', async () => {
+    let answer = () => {};
+    const parked = new Promise<void>((resolve) => {
+      answer = resolve;
+    });
+    serve({
+      '/get-session': { body: sessionPayload(APPROVED_USER) },
+      '/api/app/home': { body: homePayload(), wait: parked },
+    });
+
+    await openApp('/');
+
+    // The account is known, but no screen may draw a date the server has not given yet (K1).
+    await waitFor(() => expect(sessionStore.get().status).toBe('signed-in'));
+    expect(sessionStore.get().clock).toBeNull();
+    expect(screen.queryByTestId('tab-bar')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('screen-login')).not.toBeOnTheScreen();
+
+    await act(async () => {
+      answer();
+    });
+
+    expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
+    expect(sessionStore.get().clock).toEqual(TEST_CLOCK);
+  });
+
+  it('asks for it once on the way in', async () => {
+    const stub = serve({ '/get-session': { body: sessionPayload(APPROVED_USER) } });
+
+    await openApp('/');
+    expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
+
+    expect(homeCalls(stub)).toHaveLength(1);
+  });
+
+  it('does not ask for it for an account the app is closed to', async () => {
+    const stub = serve({ '/get-session': { body: sessionPayload(PENDING_USER) } });
+
+    await openApp('/');
+    expect(await screen.findByTestId('screen-pending')).toBeOnTheScreen();
+
+    expect(homeCalls(stub)).toHaveLength(0);
+  });
+
+  it('offers a retry when the clock cannot be fetched, instead of guessing a date', async () => {
+    serve({
+      '/get-session': { body: sessionPayload(APPROVED_USER) },
+      '/api/app/home': { throws: new TypeError('Network request failed') },
+    });
+
+    await openApp('/');
+
+    expect(await screen.findByTestId('screen-unreachable')).toBeOnTheScreen();
+    expect(screen.getByRole('alert')).toHaveTextContent(/Cannot reach the server/);
+    expect(screen.queryByTestId('tab-bar')).not.toBeOnTheScreen();
+  });
+
+  it('gets in once a retry brings the clock', async () => {
+    const stub = serve({
+      '/get-session': { body: sessionPayload(APPROVED_USER) },
+      '/api/app/home': { throws: new TypeError('Network request failed') },
+    });
+    await openApp('/');
+    const retry = await screen.findByTestId('unreachable-retry');
+
+    serve({ '/get-session': { body: sessionPayload(APPROVED_USER) } });
+    await act(async () => {
+      fireEvent.press(retry);
+    });
+
+    await waitFor(() => expect(screen.getByTestId('tab-bar')).toBeOnTheScreen());
+    expect(homeCalls(stub)).toHaveLength(2);
+  });
+
+  it('sends a session the clock request found ended to sign-in, not to the retry screen', async () => {
+    serve({
+      '/get-session': { body: sessionPayload(APPROVED_USER) },
+      '/api/app/home': {
+        status: 401,
+        body: { error: 'Silakan masuk terlebih dahulu.', code: 'UNAUTHORIZED', status: 401 },
+      },
+    });
+
+    await openApp('/');
+
+    expect(await screen.findByTestId('screen-login')).toBeOnTheScreen();
+    expect(screen.queryByTestId('screen-unreachable')).not.toBeOnTheScreen();
+  });
+
+  it('fetches it again for the next account after a sign-out', async () => {
+    const stub = serve({});
+    seedSession(APPROVED_USER);
+    await openApp('/');
+    expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
+
+    await act(async () => {
+      clearSession();
+    });
+    expect(await screen.findByTestId('screen-login')).toBeOnTheScreen();
+    await act(async () => {
+      setSessionUser(APPROVED_USER);
+    });
+
+    expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
+    expect(homeCalls(stub)).toHaveLength(1);
+    expect(sessionStore.get().clock).toEqual(TEST_CLOCK);
   });
 });

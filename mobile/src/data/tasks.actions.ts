@@ -1,6 +1,7 @@
+import { today } from './clock';
 import { me } from './people';
 import type { Role, TaskStatus } from './sample';
-import { TODAY } from './sample';
+
 import { buildTaskDetail, type TaskActionKey, type TaskMenuKey } from './tasks.detail';
 import { getTasksState, taskInfo } from './tasks.state';
 import { archiveTask, moveTask, unarchiveTask } from './tasks.store';
@@ -56,7 +57,7 @@ export function runTaskAction(role: Role, no: number, key: TaskActionKey): strin
   const log = key === 'requestReview' ? `${a.log} · reviewer: ${by}` : a.log;
   const extras =
     key === 'requestReview'
-      ? { asked: { by: viewer.name, on: TODAY } }
+      ? { asked: { by: viewer.name, on: today() } }
       : key === 'restore'
         ? { canceled: undefined }
         : undefined;

@@ -1,6 +1,7 @@
 // Calendar maths and date labels of the Events module on ISO dates ("2026-10-07"), ported from the prototype's
 // events.calendar.jsx / events.query.js / events.store.js. Labels come from fixed English arrays and the maths runs in
 // UTC, never toLocaleDateString or the device clock, so Hermes, Jest and every time zone give the same strings.
+import { today } from './clock';
 import {
   daysBetween,
   daysSinceMonday,
@@ -11,7 +12,6 @@ import {
   weekdayMonthDay,
 } from './dates';
 import { type EventItem, eventStart, eventStatus, REPEAT_DAYS } from './events.shared';
-import { TODAY } from './sample';
 
 const MONTH_NAMES = [
   'January',
@@ -64,7 +64,7 @@ export const weekOf = (iso: string) =>
 export function stepMonth(iso: string, by: number): string {
   const d = toUtc(iso);
   const first = isoOf(d.getUTCFullYear(), d.getUTCMonth() + by, 1);
-  return sameMonth(first, TODAY) ? TODAY : first;
+  return sameMonth(first, today()) ? today() : first;
 }
 
 /** "Thu, Oct 8" (the prototype's en-US weekday/month/day label). */
@@ -86,18 +86,18 @@ export function weekTitle(days: readonly string[]): string {
 
 /** Short day of an event's date in a card: "Today", else "Thu 8". */
 export function dayLabel(iso: string): string {
-  if (iso === TODAY) return 'Today';
+  if (iso === today()) return 'Today';
   const d = toUtc(iso);
   return `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()}`;
 }
 
 /** List group of a date: Earlier · / Today · / Tomorrow · <date>, This week (up to Sunday), else Later. */
 export function groupLabel(iso: string): string {
-  const gap = daysBetween(TODAY, iso);
+  const gap = daysBetween(today(), iso);
   if (gap < 0) return `Earlier · ${dateLabel(iso)}`;
   if (gap === 0) return `Today · ${dateLabel(iso)}`;
   if (gap === 1) return `Tomorrow · ${dateLabel(iso)}`;
-  return gap <= daysToSunday(TODAY) ? 'This week' : 'Later';
+  return gap <= daysToSunday(today()) ? 'This week' : 'Later';
 }
 
 /** Minutes since midnight of a clock time ("2:00 PM" → 840). */

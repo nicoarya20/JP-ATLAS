@@ -3,16 +3,9 @@ import { homeAgenda, homeFocus } from './home.focus';
 import { homeStats } from './home.stats';
 import type { HomeData, HomeSources } from './home.types';
 import { getProjectsState } from './projects.state';
-import {
-  ACTIVITY,
-  ASK,
-  BRIEFING,
-  DONE_THIS_WEEK,
-  GREETING,
-  ME_BY_ROLE,
-  PEOPLE,
-  type Role,
-} from './sample';
+import { ACTIVITY, ASK, BRIEFING, DONE_THIS_WEEK, ME_BY_ROLE, PEOPLE, type Role } from './sample';
+// Sample text until Home reads GET /api/app/home (W3), which sends `now.greeting`. Not a date: TODAY itself is test-only.
+import { GREETING } from './sample/today';
 import { getTasksState } from './tasks.state';
 import { getDecisions, waitingUsers } from './users';
 

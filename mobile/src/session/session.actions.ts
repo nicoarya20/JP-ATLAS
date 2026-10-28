@@ -6,6 +6,7 @@
  * failure shapes into the one `ApiError` the screens handle.
  */
 import { clearStoredSession, connectSessionToApi, getAuthClient, REQUEST_TIMEOUT_MS } from '@/api';
+import { forgetAllResources } from '@/data/resource';
 
 import { type AuthFailure, asApiError, authFailureError } from './session.errors';
 import {
@@ -119,8 +120,9 @@ export async function signOutEverywhere(): Promise<void> {
     if (error.status !== 401) throw error;
   }
   await clearStoredSession();
-  // TODO(mobile-W2): the data layer still serves sample rows, so nothing of an account is cached
-  // yet. Once modules load from /api/app (W2), their stores must be emptied here too — no screen
-  // unmounts on its own in this router, so the last account's data would outlive the sign-out.
   clearSession();
+  // No screen unmounts on its own in this router (see src/data/resource.ts), so whatever the last
+  // account loaded would otherwise still be on screen — and in memory — for the next one. Reaching
+  // `signed-out` already does this; said here too, so sign out does not depend on that subscription.
+  forgetAllResources();
 }
