@@ -1,6 +1,6 @@
 // One status of the move menu (prototype tasks.radial.menu.jsx, tasks.css .tk-radial-opt): a pill on its side of the
-// ring that pops in after the ones before it, grows and fills with its tone while aimed at, and on close folds back
-// into the ring, or swells away when it is the status picked. The task's own status is marked Now and is off; a status
+// ring that pops out of the ring's centre after the ones before it, grows and fills with its tone while aimed at, and
+// on close folds back into the centre, or swells away where it is when it is the status picked. The task's own status is marked Now and is off; a status
 // none of the held tasks may move to is off and faded, without Now.
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -55,21 +55,27 @@ export function RadialOption({
   const [ux, uy] = UNIT[column.side];
   const tone = lit && !now ? TONE_FILL[column.tone] : TONE_SOFT[column.tone];
   const scale = lit && !now && !reduced ? MOTION.aimScale : 1;
+  // The slot stays on its point of the ring (its touch area); the pill travels from and back to the ring's centre.
+  const at = (place: 'home' | 'centre', s: number) => [
+    { translateX: place === 'home' ? 0 : -ux * r },
+    { translateY: place === 'home' ? 0 : -uy * r },
+    { scale: s },
+  ];
   const motion = reduced
     ? null
     : closing
       ? ({
           animationName: lit
-            ? { to: { opacity: 0, transform: [{ scale: 1.3 }] } }
-            : { to: { opacity: 0, transform: [{ scale: 0.6 }] } },
+            ? { to: { opacity: 0, transform: at('home', 1.3) } }
+            : { to: { opacity: 0, transform: at('centre', 0.6) } },
           animationDuration: lit ? MOTION.swellMs : MOTION.foldMs,
           animationTimingFunction: lit ? 'ease-out' : 'ease-in',
           animationFillMode: 'forwards',
         } as const)
       : ({
           animationName: {
-            from: { opacity: 0, transform: [{ scale: 0.6 }] },
-            to: { opacity: 1, transform: [{ scale }] },
+            from: { opacity: 0, transform: at('centre', 0.6) },
+            to: { opacity: 1, transform: at('home', scale) },
           },
           animationDuration: MOTION.optionMs,
           animationDelay: ORDER[column.side] * MOTION.optionStaggerMs,
@@ -90,8 +96,13 @@ export function RadialOption({
       }}
     >
       <Animated.View
+        testID={`radial-pill-${column.status}`}
         style={[
-          { transform: [{ scale }], transitionProperty: 'transform', transitionDuration: AIM_MS },
+          {
+            transform: at('home', scale),
+            transitionProperty: 'transform',
+            transitionDuration: AIM_MS,
+          },
           motion,
         ]}
       >
