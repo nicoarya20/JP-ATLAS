@@ -1,8 +1,8 @@
 /**
  * Crawler files answered before SSR: /robots.txt and /sitemap.xml, both built
  * from APP_URL so they always point at the deployed origin.
- * Only the landing page is public; every other page is behind a role guard or
- * is an auth flow, so crawlers are kept out of them.
+ * Only the site root (the public login entry) is listed; every other page is
+ * behind a role guard or is an auth flow, so crawlers are kept out of them.
  */
 import { env } from './env';
 

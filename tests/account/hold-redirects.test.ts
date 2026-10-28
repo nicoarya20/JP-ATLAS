@@ -103,15 +103,17 @@ async function trail(start: string): Promise<string[]> {
 }
 
 // Expected final page per state; pages listed in `renders` stay put (0 hops), every other page settles on `home`.
+// `/` is the login screen: a signed-in visitor is funnelled through the same resolver as /go
+// (homeFor for approved, the hold page for held accounts), so it only renders in place with no session.
 const EXPECT: Record<StateName, { home: string; renders: string[] }> = {
   approved: {
     home: '/app',
-    renders: ['/', '/login', '/app'],
+    renders: ['/login', '/app'],
   },
-  pending: { home: '/waiting', renders: ['/', '/login', '/waiting'] },
-  rejected: { home: '/waiting', renders: ['/', '/login', '/waiting'] },
-  banned: { home: '/banned', renders: ['/', '/login', '/banned'] },
-  'expired ban + pending': { home: '/waiting', renders: ['/', '/login', '/waiting'] },
+  pending: { home: '/waiting', renders: ['/login', '/waiting'] },
+  rejected: { home: '/waiting', renders: ['/login', '/waiting'] },
+  banned: { home: '/banned', renders: ['/login', '/banned'] },
+  'expired ban + pending': { home: '/waiting', renders: ['/login', '/waiting'] },
   'no session': { home: '/login', renders: ['/', '/login'] },
 };
 

@@ -38,7 +38,7 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     contentType: 'application/json',
     bodyIncludes: '"version"',
   },
-  { name: 'landing SSR', path: '/', status: 200, contentType: 'text/html', bodyIncludes: '<html' },
+  { name: 'login di root SSR', path: '/', status: 200, contentType: 'text/html', bodyIncludes: '<html' },
   { name: 'halaman login', path: '/login', status: 200, contentType: 'text/html' },
   {
     // Pins the cookie → theme.scale chain through the real SSR build. Mantine writes `name: value;`
@@ -237,10 +237,11 @@ export const SMOKE_CHECKS: SmokeCheck[] = [
     bodyIncludes: '# Simple PM',
   },
   {
-    name: 'landing meta OG',
+    // The site root is the login screen now: its title/heading always renders, email auth or not.
+    name: 'login meta di root',
     path: '/',
     status: 200,
-    bodyIncludes: 'og.png',
+    bodyIncludes: 'Masuk',
   },
   {
     name: 'robots.txt',
@@ -319,7 +320,7 @@ export function evaluate(
   };
 }
 
-/** Run every check against a base URL; the hashed client asset is discovered from the landing HTML. */
+/** Run every check against a base URL; the hashed client asset is discovered from the root HTML. */
 export async function runChecks(base: string, checks = SMOKE_CHECKS): Promise<SmokeResult[]> {
   const results: SmokeResult[] = [];
   for (const c of checks) {
