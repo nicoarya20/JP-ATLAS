@@ -1,6 +1,8 @@
 import { createContext, type ReactNode, useContext } from 'react';
 import { View } from 'react-native';
 
+import { useInboxBadgeRefresh } from '@/navigation/use-inbox-badge-refresh';
+
 import { useMorePanel } from './use-more-panel';
 
 type MorePanelState = ReturnType<typeof useMorePanel>;
@@ -9,10 +11,12 @@ const MorePanelContext = createContext<MorePanelState | null>(null);
 
 /**
  * Holds the More panel's open state above the tabs (app/(tabs)/_layout.tsx), so the bar that opens it and the screens
- * it covers read the same state.
+ * it covers read the same state. Opening the panel, or coming back to the app, asks the Inbox badge count again.
  */
 export function MorePanelProvider({ children }: { children: ReactNode }) {
-  return <MorePanelContext.Provider value={useMorePanel()}>{children}</MorePanelContext.Provider>;
+  const state = useMorePanel();
+  useInboxBadgeRefresh(state.open);
+  return <MorePanelContext.Provider value={state}>{children}</MorePanelContext.Provider>;
 }
 
 /** The More panel's state; needs MorePanelProvider above. */

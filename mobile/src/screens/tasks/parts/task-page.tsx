@@ -9,7 +9,7 @@ import { SPACING } from '@/theme/tokens';
 
 type TaskPageProps = {
   title: string;
-  /** Opened as a modal route (New task, Import CSV). */
+  /** Opened as a modal route (New task). */
   modal?: boolean;
   /** Right side of the header (the ⋯ menu). */
   right?: ReactNode;

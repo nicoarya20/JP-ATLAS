@@ -8,17 +8,19 @@ export const USERS = {
   tabsLabel: 'Users sections',
   search: 'Search name or email…',
   noMatch: 'No one matches this search.',
+  loadMore: 'Load more',
+  // Not in the prototype: the counts' row name, and what a failed write says when the server gave no sentence.
+  countsLabel: 'Account counts',
+  failed: 'Could not finish. Try again.',
 } as const;
 
 export const APPROVAL = {
   intro: 'New users sign in with Google and wait for your decision. Only Admins can approve.',
-  position: (job: string, division: string) => `Position: ${job} · Division: ${division}`,
   startingRole: 'Starting role',
   reject: 'Reject',
   reasonFirst: 'Write a reason first',
   approve: 'Approve',
   approved: (role: string) => `User approved as ${role}`,
-  noProfile: 'Profile not filled in. Only name, email and photo from Google.',
   reason: 'Reason for rejecting (required)',
   reasonHint: 'The reason is shown to the user when they try to sign in.',
   cancel: 'Cancel',
@@ -34,6 +36,11 @@ export const APPROVAL = {
     title: 'No one is waiting for approval.',
     text: 'New sign-ins with Google show up here for an Admin to approve.',
   },
+  chips: (pending: number, deactivated: number) => [
+    `Pending ${pending}`,
+    `Deactivated ${deactivated}`,
+  ],
+  waiting: (n: number) => `${n} waiting`,
   infoTitle: 'After approval',
   info: [
     'Approved users become Members right away; their next sign-in goes straight to Home.',
@@ -48,10 +55,15 @@ export const ROLES = {
   role: 'Account role',
   deactivate: 'Deactivate',
   deactivated: 'User deactivated',
+  reactivate: 'Reactivate',
+  reactivated: 'User reactivated',
+  inactive: 'Deactivated',
+  count: (n: number) => `${n} ${n === 1 ? 'user' : 'users'}`,
   changed: (role: string) => `Role changed to ${role}`,
   infoTitle: 'Rules',
   info: [
-    "The last Admin can't be demoted or deactivated.",
+    // The server's rule (server/access/user.policy.ts), not the prototype's "last Admin" one.
+    'Only a Super-admin can change an Admin, and no one can change their own account here.',
     'Role changes take effect at the next sign-in.',
     "Project Managers see all projects and edit only the projects they manage. A Member appointed as a project's Manager can still manage that project.",
   ],
@@ -76,7 +88,12 @@ export const CONFIRM = {
   }),
   deactivate: (name: string, role: string) => ({
     title: `Deactivate ${name}?`,
-    message: `${name} (${role}) can no longer sign in.`,
+    message: `${name} (${role}) is signed out everywhere and can no longer sign in.`,
     label: 'Deactivate',
+  }),
+  reactivate: (name: string) => ({
+    title: `Reactivate ${name}?`,
+    message: `${name} can sign in again with the role they had.`,
+    label: 'Reactivate',
   }),
 } as const;

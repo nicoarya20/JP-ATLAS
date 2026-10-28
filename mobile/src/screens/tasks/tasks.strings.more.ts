@@ -1,65 +1,27 @@
-// Copy of New task · Just write ✦, Import CSV and Project settings, verbatim from the prototype (tasks.new.jsx,
-// tasks.settings.jsx). Their toasts stand in for features Phase 1 does not have yet.
+// Copy of New task · Just write ✦ (prototype tasks.new.jsx), on the server's drafts (POST /tasks/draft). What the
+// server writes (an assignee note, the question, a refusal) is shown as it comes (K5), so it has no entry here.
+
+const tasks = (n: number) => `${n} task${n === 1 ? '' : 's'}`;
 
 export const W = {
   project: 'Project',
   textLabel: 'What needs to be done',
-  speak: 'Speak · coming soon',
+  textHint: 'Who does what, and by when. AI turns it into tasks.',
+  /** Characters used of the server's limit. */
+  length: (n: number, max: number) => `${n}/${max}`,
   compose: 'Compose ✦',
-  composed: 'AI drafted the tasks',
+  composeHint: 'Write what needs to be done first.',
   draftNote: 'Draft from AI. Check before saving.',
-  count: (n: number) => `${n} tasks`,
-  pill: { who: 'Assignee', due: 'Due', priority: 'Priority', type: 'Type' },
-  askNote: 'Example when a name is ambiguous, AI asks one thing:',
-  editText: 'Edit text',
-  editing: 'Editing text',
-  saved: 'Tasks saved',
-} as const;
-
-export const C = {
-  title: 'Import CSV',
-  heading: 'Import tasks from CSV',
-  toProject: 'To project:',
-  sample: 'Download sample CSV',
-  sampleDone: 'Sample CSV downloaded',
-  modes: ['Upload file', 'Paste text'],
-  change: 'Change file',
-  changeDone: 'Choose another file',
-  preview: 'Preview',
-  row: (n: number) => `Row ${n}`,
-  footNote: 'Error rows are not imported. Rows with notes are still imported.',
-  cancel: 'Cancel',
-  imported: 'Tasks imported',
-} as const;
-
-export const P = {
-  title: 'Project settings',
-  lockedIcon: 'Not available',
-  locked: 'Not available for Member',
-  lockedText:
-    'Only Admins and this project\'s Manager can manage task types, tags and the "New tasks need review" setting.',
-  opened: 'Opened from Project detail ⋯ › Project settings. Managers & Admins only.',
-  review: 'New tasks need review',
-  off: 'Off',
-  on: 'On',
-  reviewText:
-    "Off: new tasks finish right away with Mark done. On: tasks must go through Request review. Existing tasks don't change.",
-  reviewNote: 'Per task, Managers/Admins can change it. Members can only turn it on.',
-  types: 'Task types',
-  addType: '+ Type',
-  newType: 'New type',
-  category: 'Base category',
-  categories: 'Task (task) · Issue (issue) · Idea (idea)',
-  rename: 'Rename',
-  renameType: 'Rename type',
-  archive: 'Archive',
-  archived: 'Type archived',
-  typesNote: 'Types already used by tasks can only be archived, not deleted.',
-  tags: 'Tags',
-  tagCount: (n: number) => `${n} tags`,
-  renameTag: 'Rename tag',
-  merge: 'Merge',
-  mergeTags: 'Merge tags',
-  delete: 'Delete',
-  deleted: 'Tag deleted',
+  count: tasks,
+  draft: (n: number) => `Draft ${n}`,
+  keep: (n: number) => `Keep draft ${n}`,
+  dropped: 'Not saved. Tick it to keep it.',
+  type: (name: string) => `Type: ${name}`,
+  noDrafts: 'No tasks yet. Answer below, or write more and compose again.',
+  save: (n: number) => `Save ${tasks(n)}`,
+  pickOne: 'Keep at least one draft to save.',
+  needTitle: 'Every kept draft needs a title.',
+  saved: (n: number) => `Saved ${tasks(n)}`,
+  partly: (saved: number, total: number, why: string) =>
+    `Saved ${saved} of ${tasks(total)}, then stopped: ${why}`,
 } as const;

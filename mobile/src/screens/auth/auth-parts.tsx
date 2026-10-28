@@ -10,16 +10,16 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { SPACING } from '@/theme/tokens';
 
-import { APP_NAME, BRAND, SIGN_IN } from './auth.strings';
+import { APP_NAME, BRAND, SIGN_IN, SIGN_IN_FORM } from './auth.strings';
 
 /** Grey box standing in for an image (prototype kit Media). */
-export function Media({ label, small }: { label: string; small?: boolean }) {
+export function Media({ label }: { label: string }) {
   return (
     <View
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
-      className={`items-center justify-center rounded-card border border-dashed border-input bg-muted ${small ? 'h-16 w-16' : 'h-48 w-full'}`}
+      className="h-48 w-full items-center justify-center rounded-card border border-dashed border-input bg-muted"
     >
       <Text className="text-footnote text-muted-foreground">{label}</Text>
     </View>
@@ -27,14 +27,14 @@ export function Media({ label, small }: { label: string; small?: boolean }) {
 }
 
 /** Google mark placeholder (wireframe: a round "G"). */
-export function GoogleMark({ big }: { big?: boolean }) {
+function GoogleMark() {
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      className={`items-center justify-center rounded-full border border-input bg-card ${big ? 'h-10 w-10' : 'h-6 w-6'}`}
+      className="h-6 w-6 items-center justify-center rounded-full border border-input bg-card"
     >
-      <Text className={`font-bold ${big ? 'text-headline' : 'text-footnote'}`}>G</Text>
+      <Text className="text-footnote font-bold">G</Text>
     </View>
   );
 }
@@ -56,17 +56,29 @@ export function Brand() {
   );
 }
 
-/** "Sign in to your account" with the Google button and the approval note. */
-export function SignIn({ onGoogle }: { onGoogle: () => void }) {
+/**
+ * The Google button, switched off with the reason next to it, and the approval note.
+ *
+ * Google sign-in cannot work in Expo Go: the deep-link scheme it would be called back on
+ * (`simplepm://`) is not registered there (Expo Go only owns `exp://`), and Google will not accept
+ * an `http` LAN address as a redirect URI. It stays visible rather than hidden, so nobody looks for
+ * a button that is simply missing, and the reason is a line of text, not a tooltip a phone cannot
+ * show.
+ */
+export function GoogleUnavailable() {
   return (
-    <VStack className="gap-4">
-      <Text accessibilityRole="header" className="text-section font-semibold">
-        {SIGN_IN.title}
-      </Text>
-      <Button size="lg" variant="outline" onPress={onGoogle} className="gap-3">
+    <VStack className="gap-4" testID="google-unavailable">
+      <Button
+        size="lg"
+        variant="outline"
+        isDisabled
+        className="gap-3"
+        accessibilityHint={SIGN_IN_FORM.googleUnavailable}
+      >
         <GoogleMark />
         <ButtonText>{SIGN_IN.google}</ButtonText>
       </Button>
+      <Text className="text-footnote text-muted-foreground">{SIGN_IN_FORM.googleUnavailable}</Text>
       <Text className="text-footnote text-muted-foreground">{SIGN_IN.note}</Text>
     </VStack>
   );

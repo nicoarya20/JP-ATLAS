@@ -28,7 +28,6 @@
       --danger-soft: 255 237 240;
       --alert: 215 0 21;
       --alert-foreground: 255 255 255;
-      --presence: 30 158 90;
       --success: 12 104 71;
       --success-soft: 229 246 236;
       --warning: 128 84 0;
@@ -67,7 +66,6 @@
       --danger-soft: 56 30 41;
       --alert: 255 105 97;
       --alert-foreground: 7 19 33;
-      --presence: 48 209 88;
       --success: 116 222 174;
       --success-soft: 20 56 46;
       --warning: 255 209 122;
@@ -109,7 +107,6 @@
   --color-danger-soft: rgb(var(--danger-soft));
   --color-alert: rgb(var(--alert));
   --color-alert-foreground: rgb(var(--alert-foreground));
-  --color-presence: rgb(var(--presence));
   --color-success: rgb(var(--success));
   --color-success-soft: rgb(var(--success-soft));
   --color-warning: rgb(var(--warning));

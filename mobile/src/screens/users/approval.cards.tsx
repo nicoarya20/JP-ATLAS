@@ -1,6 +1,6 @@
 // Users ① sign-up card (prototype users.approve.jsx Pending / Rejecting): Approve with a starting role, or Reject, which
-// opens the reason field first (the prototype's Reject on a pending card only said "Write a reason first"). Every
-// decision asks first (T2); once confirmed, the sign-up leaves the list.
+// opens the reason field first. Every decision asks first (T2) and goes to `/api/admin/users/:id/{approve,reject}`;
+// once the server took it, the lists are read again and the sign-up leaves this one.
 import { useState } from 'react';
 
 import { PersonAvatar } from '@/components/avatar/person-avatar';
@@ -12,46 +12,46 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import type { AccountRole } from '@/data/people';
-import { type ApprovalItem, decide, GRANTABLE_ROLES } from '@/data/users';
+import type { AccountRoleWire } from '@/data/team.api';
+import { ACCOUNT_ROLE } from '@/data/team.person';
+import type { SignUpCard } from '@/data/users.admin.view';
+import { GRANTABLE } from '@/data/users.admin.wire';
+import { approveUser, rejectUser } from '@/data/users.admin.write';
 
 import type { UserAsk } from './users.confirm';
 import { APPROVAL, CONFIRM } from './users.strings';
 
-const ROLE_OPTIONS = GRANTABLE_ROLES.map((r) => ({ value: r, label: r }));
+const ROLE_OPTIONS = GRANTABLE.map((r) => ({ value: r, label: ACCOUNT_ROLE[r] }));
 
-/** Sign-up header: avatar, name, request time, email, then the profile line. */
-function Who({ u }: { u: ApprovalItem }) {
+/** Sign-up header: avatar, name, when they asked, email. */
+function Who({ u }: { u: SignUpCard }) {
   return (
     <HStack className="items-start gap-3">
       <PersonAvatar name={u.full} />
       <VStack className="min-w-0 flex-1 gap-1">
         <HStack className="flex-wrap justify-between gap-1">
           <Text className="font-semibold">{u.full}</Text>
-          <Text className="text-footnote text-muted-foreground">{`${u.day} · ${u.time}`}</Text>
+          <Text className="text-footnote text-muted-foreground">{u.asked}</Text>
         </HStack>
         <Text className="text-footnote">{u.email}</Text>
-        <Text className="text-footnote text-muted-foreground">
-          {u.job && u.division ? APPROVAL.position(u.job, u.division) : APPROVAL.noProfile}
-        </Text>
       </VStack>
     </HStack>
   );
 }
 
 /** One sign-up waiting for a decision. */
-export function ApprovalCard({ u, ask }: { u: ApprovalItem; ask: (a: UserAsk) => void }) {
+export function ApprovalCard({ u, ask }: { u: SignUpCard; ask: (a: UserAsk) => void }) {
   const notice = useNotice();
-  const [rejecting, setRejecting] = useState(u.draft !== undefined);
-  const [role, setRole] = useState<AccountRole>('Member');
-  const [reason, setReason] = useState(u.draft ?? '');
+  const [rejecting, setRejecting] = useState(false);
+  const [role, setRole] = useState<AccountRoleWire>('member');
+  const [reason, setReason] = useState('');
   const [missing, setMissing] = useState(false);
   const approve = () =>
     ask({
-      ...CONFIRM.approve(u.full, role),
-      run: () => {
-        decide(u.key, 'approved');
-        notice(APPROVAL.approved(role));
+      ...CONFIRM.approve(u.full, ACCOUNT_ROLE[role]),
+      run: async () => {
+        await approveUser(u.id, role);
+        notice(APPROVAL.approved(ACCOUNT_ROLE[role]));
       },
     });
   const reject = () => {
@@ -61,8 +61,8 @@ export function ApprovalCard({ u, ask }: { u: ApprovalItem; ask: (a: UserAsk) =>
     ask({
       ...CONFIRM.reject(u.full, u.email),
       danger: true,
-      run: () => {
-        decide(u.key, 'rejected');
+      run: async () => {
+        await rejectUser(u.id, reason);
         notice(APPROVAL.rejected);
       },
     });
@@ -73,7 +73,7 @@ export function ApprovalCard({ u, ask }: { u: ApprovalItem; ask: (a: UserAsk) =>
     notice(APPROVAL.canceled);
   };
   return (
-    <SectionCard testID={`pending-${u.key}`}>
+    <SectionCard testID={`pending-${u.id}`}>
       <Who u={u} />
       {rejecting ? (
         <>

@@ -1,65 +1,82 @@
-// Events ① list getter (prototype events.list.jsx): the role's events narrowed by the query and the search, grouped,
-// each as a card with its status pill, time tile and results button. Re-exported by events.ts.
-import { dayLabel } from './events.dates';
-import {
-  applyQuery,
-  type EventGroup,
-  type EventsQuery,
-  eventsFor,
-  groupEvents,
-  isFiltered,
-  searchEvents,
-} from './events.query';
-import {
-  type EventHref,
-  type EventItem,
-  type EventStatusLabel,
-  eventHref,
-  eventStatus,
-  isConfirmed,
-} from './events.shared';
-import { eventsStore } from './events.store';
-import type { Role } from './sample';
+/**
+ * Events ① list from `GET /api/app/events` (map §1): the page the filters and the search ask for, grouped by schedule
+ * or type on the phone, with "Load more" while the server has more.
+ */
+import { useEffect } from 'react';
 
-/** A card of the list: where it opens, its status pill, the time tile and which results button it has. */
-export type EventCard = {
-  event: EventItem;
-  href: EventHref;
-  status: EventStatusLabel;
-  /** Time tile: the start time in the Today / Tomorrow groups, else the day ("Thu 8"). */
+import type { ApiError } from '@/api/errors';
+
+import { today } from './clock';
+import { daysBetween } from './dates';
+import { eventsListResource } from './events.api';
+import { dayLabel, groupLabel } from './events.dates';
+import { type EventsQuery, eventsParams, GROUP_TYPE, isFiltered } from './events.query';
+import { TYPES } from './events.shared';
+import { type EventRow, rowOf } from './events.view';
+import type { EventListItemWire } from './events.wire';
+import type { ResourcePhase } from './resource';
+
+/** A card of the list: its row, and the time tile. */
+export type EventCard = EventRow & {
+  /** The start time in the Today / Tomorrow groups, else the day ("Thu 8"). */
   when: string;
-  /** Done events: View results (confirmed, or a Member) or Check results (PM / Admin, not yet confirmed). */
-  results: 'view' | 'check' | null;
 };
 
-export type EventsListData = {
+export type EventsListView = {
+  /** The query string this list is, for "Load more". */
+  params: string;
+  phase: ResourcePhase;
+  error: ApiError | null;
+  /** Nothing to show yet: loading, or failed before any page came. */
+  blank: boolean;
   groups: { title: string; data: EventCard[] }[];
+  /** The server has more after these. */
+  more: boolean;
+  /** Why the list is empty: the filters or search left nothing, or there is nothing at all. */
+  empty: 'noMatch' | 'none' | null;
   /** The filter icon's dot. */
   filtered: boolean;
-  /** Nothing to list before any filter: a Member who attends no event (events.empty). */
-  empty: boolean;
 };
 
-function cardOf(role: Role, e: EventItem, group: string): EventCard {
-  const results =
-    e.status !== 'Done' ? null : isConfirmed(e) || role === 'member' ? 'view' : 'check';
-  const when = /^(Today|Tomorrow)/.test(group) ? e.time : dayLabel(e.date);
-  return { event: e, href: eventHref(e), status: eventStatus(e), when, results };
+/** Days ahead whose group shows the start time instead of the day: Today and Tomorrow. */
+const TIMED_GROUPS = [0, 1];
+
+function cardOf(e: EventListItemWire): EventCard {
+  const row = rowOf(e);
+  const near = TIMED_GROUPS.includes(daysBetween(today(), row.date));
+  return { ...row, when: near ? row.start : dayLabel(row.date) };
 }
 
-/** Events list of `role`: the store's events narrowed by the query and the search text, grouped. */
-export function getEventsList(
-  role: Role,
-  { query, search = '' }: { query: EventsQuery; search?: string },
-): EventsListData {
-  const mine = eventsFor(role, eventsStore.get().list);
-  const groups = groupEvents(searchEvents(applyQuery(mine, query), search), query);
+/** Sections: by schedule (each date's group, in the server's order) or by type (form order); none empty. */
+export function groupCards(cards: readonly EventCard[], group: number) {
+  const byType = group === GROUP_TYPE;
+  const of = (c: EventCard): string => (byType ? c.type : groupLabel(c.date));
+  const keys = byType
+    ? TYPES.filter((t) => cards.some((c) => c.type === t))
+    : [...new Set(cards.map(of))];
+  return keys.map((title) => ({ title, data: cards.filter((c) => of(c) === title) }));
+}
+
+/** The list for `query` and `search`, kept up to date: fetches what is missing. */
+export function useEventsList(query: EventsQuery, search: string): EventsListView {
+  const params = eventsParams(query, search);
+  const res = eventsListResource(params);
+  const state = res.useSnapshot();
+  useEffect(() => {
+    void res.ensure();
+  }, [res]);
+  const items = state.data?.items ?? [];
+  const blank = state.data === null;
+  const ready = state.phase === 'ready' || (state.phase === 'loading' && !blank);
+  const narrowed = isFiltered(query) || !!search.trim();
   return {
-    groups: groups.map((g: EventGroup) => ({
-      title: g.title,
-      data: g.data.map((e) => cardOf(role, e, g.title)),
-    })),
+    params,
+    phase: state.phase,
+    error: state.error,
+    blank,
+    groups: groupCards(items.map(cardOf), query.group),
+    more: !!state.data?.nextCursor,
+    empty: ready && !items.length ? (narrowed ? 'noMatch' : 'none') : null,
     filtered: isFiltered(query),
-    empty: mine.length === 0,
   };
 }

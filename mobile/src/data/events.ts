@@ -1,19 +1,12 @@
-// Events data per screen, the swap point to the API: today each getter reads the in-memory events store
-// (events.store.ts), in Phase 2 it becomes a fetch of /api/app/events… returning the same shape. Screens re-render
-// through useEventsState() / useEventsQuery() and call these getters for what they show. The getters live per screen
-// in events.list.ts, events.calendar.ts and events.detail.ts; outcomes and results: events.results.ts.
+// Events data per screen, from `/api/app/events` (map `phase2-map-events.md`): the list and the calendar are hooks that
+// fetch what they show (events.list.ts, events.calendar.ts), the detail a view of one event (events.detail.ts).
 export {
-  type AgendaItem,
   type CalendarDay,
   type CalendarView,
-  type EventsCalendarData,
-  getEventsCalendar,
+  type EventsCalendarView,
   stepCalendar,
+  useEventsCalendar,
 } from './events.calendar';
-export {
-  type EventAttendee,
-  type EventDetailData,
-  getEventDetail,
-  getEventForm,
-} from './events.detail';
-export { type EventCard, type EventsListData, getEventsList } from './events.list';
+export { type EventDetailView, type EventGuest, eventDetailOf } from './events.detail';
+export { type EventCard, type EventsListView, useEventsList } from './events.list';
+export type { EventRow } from './events.view';

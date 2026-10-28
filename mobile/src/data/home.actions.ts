@@ -1,25 +1,43 @@
-import { canMarkDone } from './home.focus';
-import { ME_BY_ROLE, PEOPLE, type Role } from './sample';
-import { getTasksState } from './tasks.state';
-import { moveTask } from './tasks.store';
-
 /*
- * What Home writes: My Focus' Done (prototype FocusRow: moveTask(no, 'Done', { log })). It goes through tasks.store, so
- * Tasks, the task's history and Home itself show the change. A row Home does not offer Done on throws.
+ * What Home writes: the one button a My Focus row may have.
+ *
+ * Which button that is, is the server's call (`focus.items[].action`, built from its own
+ * `canCompleteTask` / `canStartTask` policy), so there is no permission rule here — the row simply
+ * posts the step it was given. Both are task workflow routes (`server/api/app-tasks.workflow.ts`),
+ * the ones the web's Beranda uses.
+ *
+ * `write()` marks stale only after the server accepted the change. Named here: everything a task
+ * step can move (`taskWriteTargets`): Home itself (Focus, the chips, the briefing, Done this week
+ * and the activity feed), the Tasks lists, `tasks/counts` and the Inbox count.
  */
+import { apiPost } from '@/api/client';
+import { isApiError } from '@/api/errors';
+import { applyApiError } from '@/session/session.state';
 
-/** History line for a task marked done from Home, as the prototype writes it. */
-export const doneLog = (name: string) => `${name} marked this task done`;
+import type { FocusTask } from './home.types';
+import { write } from './resource';
+import { taskWriteTargets } from './tasks.api';
 
-/** My Focus' Done on task #no by the signed-in `role`. */
-export function markFocusDone(role: Role, no: number) {
-  const s = getTasksState();
-  const t = s.tasks.find((x) => x.no === no);
-  const name = PEOPLE[ME_BY_ROLE[role]].name;
-  if (!t || t.who !== name || !canMarkDone(s, t)) {
+/** A write outside a resource routes its own failure to the session, then re-throws (pattern §3). */
+async function step(id: string, action: 'complete' | 'start'): Promise<void> {
+  try {
+    await apiPost<unknown>(`/api/app/tasks/${id}/${action}`);
+  } catch (failure) {
+    if (isApiError(failure)) applyApiError(failure);
+    throw failure;
+  }
+}
+
+/**
+ * Runs a focus row's own button. A row the server offered no button on throws rather than guessing
+ * a step for it: that would be the client-side permission rule the map rules out.
+ */
+export function runFocusAction(task: Pick<FocusTask, 'id' | 'no' | 'action'>): Promise<void> {
+  const { action } = task;
+  if (!action) {
     throw new Error(
-      `Cannot mark task #${no} done from Home: My Focus does not offer it to ${name}`,
+      `Task #${task.no} has no action on Home: the server offered neither "complete" nor "start".`,
     );
   }
-  moveTask(no, 'Done', { log: doneLog(name) });
+  return write(() => step(task.id, action), taskWriteTargets());
 }

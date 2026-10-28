@@ -1,16 +1,12 @@
-// Read-only pieces the Projects screens share (prototype projects.parts.jsx and kit Section/Info): a titled card, a soft
-// box, a muted note, a headline, a label with its value, the progress bar with its percentage, and the AI mark.
-import { Sparkles } from 'lucide-react-native';
+// Read-only pieces the Projects screens share (prototype projects.parts.jsx and kit Section): a titled card, a soft
+// box, a muted note, a headline, and the progress bar with its percentage.
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
 import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
 import { Progress, ProgressFilledTrack } from '@/components/ui/progress';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-
-import { CREATE } from '../projects.strings';
 
 type SecProps = {
   title?: string;
@@ -20,7 +16,7 @@ type SecProps = {
   testID?: string;
 };
 
-/** Card with an optional headline and trailing part; strong = the violet-edged card (recommended, current phase). */
+/** Card with an optional headline and trailing part; strong = the violet-edged card (the current phase). */
 export function Sec({ title, right, strong, children, testID }: SecProps) {
   return (
     <VStack
@@ -65,21 +61,6 @@ export function Head({ children }: { children: string }) {
   );
 }
 
-/** A label over its value, read as one stop ("Dates: Oct 7 – Dec 7, 2026"). */
-export function Info({ label, value, testID }: { label: string; value: string; testID?: string }) {
-  return (
-    <VStack
-      testID={testID}
-      accessible
-      accessibilityLabel={`${label}: ${value}`}
-      className="gap-0.5"
-    >
-      <Text className="text-footnote text-muted-foreground">{label}</Text>
-      <Text className="text-body text-foreground">{value}</Text>
-    </VStack>
-  );
-}
-
 /** Progress bar with its percentage after it, read as one progress bar named `label` with its value (0–100). */
 export function Bar({ value, label, percent }: { value: number; label: string; percent: string }) {
   return (
@@ -97,14 +78,5 @@ export function Bar({ value, label, percent }: { value: number; label: string; p
       </View>
       <Text className="text-subhead font-semibold">{percent}</Text>
     </HStack>
-  );
-}
-
-/** Marks an AI-assisted action. */
-export function Ai() {
-  return (
-    <View accessible accessibilityRole="image" accessibilityLabel={CREATE.ai}>
-      <Icon as={Sparkles} size="sm" className="text-atlas" />
-    </View>
   );
 }

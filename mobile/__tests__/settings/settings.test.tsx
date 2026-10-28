@@ -1,108 +1,140 @@
-import { fireEvent, render, screen, within } from '@testing-library/react-native';
+// Settings ① against the server: my account from `GET /api/app/profile` + whoami, the two notification switches read
+// from and saved to `/api/app/profile/notifications` (a refused flip goes back, with the reason), no Team settings
+// group (GAP S-1), and Sign out (T2). Edit profile is `profile-edit.test.tsx`.
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import type { Role } from '../../src/data/sample';
-import { getSettings } from '../../src/data/settings';
-import { ProfileEditScreen } from '../../src/screens/settings/profile-edit.screen';
+import { resetAuthClient, setAuthHeaders } from '@/api';
+import { sessionStore } from '@/session';
+
+import { forgetAllResources } from '../../src/data/resource';
 import { SettingsScreen } from '../../src/screens/settings/settings.screen';
+import { type AuthReply, type AuthRoutes, serveAuth } from '../helpers/auth-server';
+import { recording, type Sent } from '../helpers/events-fixtures';
+import { profileRoute } from '../helpers/profile-fixtures';
 import { Providers } from '../helpers/providers';
 import { setParams } from '../helpers/router-mock';
 import { drainToastTimers } from '../helpers/toast-timers';
+import { whoamiRoute } from '../helpers/whoami-fixtures';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
 
-// The signed-in role, as a variable: biome reads a literal `role` prop as an ARIA role.
-const ADMIN: Role = 'admin';
-const PM: Role = 'pm';
-
 drainToastTimers();
 
+let server: ReturnType<typeof serveAuth> | null = null;
+
 beforeEach(() => {
+  forgetAllResources();
   jest.clearAllMocks();
   setParams({});
+  resetAuthClient();
+  setAuthHeaders(null);
 });
 
-const show = (ui: React.ReactElement) => render(ui, { wrapper: Providers });
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
 
-describe('settings data', () => {
-  test('only an Admin gets the team settings', () => {
-    expect(getSettings('admin').team).toBe(true);
-    expect(getSettings('pm').team).toBe(false);
+const PREFS = { eventReminder: true, inboxNews: true };
+
+/** Settings as `role`; `put` answers the switches' saves (each recorded in the returned log). */
+async function show(
+  role: 'pm' | 'admin' = 'pm',
+  put: (s: Sent) => AuthReply = (s) => ({ body: { ...PREFS, ...(s.body as object) } }),
+  more: AuthRoutes = {},
+) {
+  const sent: Sent[] = [];
+  const saves = recording(sent, '/api/app/profile/notifications', put)[
+    '/api/app/profile/notifications'
+  ];
+  server = serveAuth({
+    ...more,
+    // Before the profile's own route, which its path also contains.
+    '/api/app/profile/notifications': (url, init) =>
+      init?.method === 'PUT' && typeof saves === 'function' ? saves(url, init) : { body: PREFS },
+    ...profileRoute(),
+    ...whoamiRoute(role),
   });
-});
+  await render(<SettingsScreen />, { wrapper: Providers });
+  await screen.findByRole('switch', { name: 'Event reminders' });
+  return sent;
+}
+const reminders = () => screen.getByRole('switch', { name: 'Event reminders' });
+const inbox = () => screen.getByRole('switch', { name: 'Inbox updates' });
 
 describe('SettingsScreen', () => {
-  test('Edit profile opens its screen; there is no leave anywhere', async () => {
-    await show(<SettingsScreen role={PM} />);
+  test('my account from the server; Edit profile opens its screen; no team settings, no leave', async () => {
+    await show();
+    expect(await screen.findByText('Designer · Product')).toBeOnTheScreen();
+    expect(screen.getByText('Nico')).toBeOnTheScreen();
+    expect(screen.getByText('nico@kantor.id')).toBeOnTheScreen();
+    expect(screen.getByText('Project settings live inside each project.')).toBeOnTheScreen();
+    expect(screen.queryByText('Team settings (Admin only)')).not.toBeOnTheScreen();
+    expect(screen.queryByText(/leave/i)).not.toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Edit profile'));
     expect(router.push).toHaveBeenCalledWith('/more/settings/profile');
-    expect(screen.queryByText(/leave/i)).not.toBeOnTheScreen();
-    expect(screen.queryByText('Team settings (Admin only)')).not.toBeOnTheScreen();
   });
 
-  test('Admin: the team settings group', async () => {
-    await show(<SettingsScreen role={ADMIN} />);
-    expect(screen.getByText('Team settings (Admin only)')).toBeOnTheScreen();
-    expect(screen.queryByText(/leave/i)).not.toBeOnTheScreen();
-    // Named after what it opens; the chevron is an icon, not a "›" read aloud.
-    await fireEvent.press(screen.getByRole('button', { name: 'View roles and permissions' }));
-    expect(screen.getByText('Roles and permissions — not in the prototype yet')).toBeOnTheScreen();
+  test('with the dashboard cap the footer points to Users', async () => {
+    await show('admin');
+    expect(
+      await screen.findByText(
+        'Project settings live inside each project. Account roles are managed in Users (Admin).',
+      ),
+    ).toBeOnTheScreen();
   });
 
-  test('Sign out asks first (T2); Cancel stays, confirming goes to the login screen', async () => {
-    await show(<SettingsScreen role={PM} />);
+  test('the switches show the server’s values; a flip saves only that switch', async () => {
+    const sent = await show();
+    expect(reminders()).toHaveProp('value', true);
+    expect(inbox()).toHaveProp('value', true);
+    await act(async () => fireEvent(inbox(), 'valueChange', false));
+    expect(sent).toEqual([
+      { method: 'PUT', url: '/api/app/profile/notifications', body: { inboxNews: false } },
+    ]);
+    expect(inbox()).toHaveProp('value', false);
+    expect(reminders()).toHaveProp('value', true);
+  });
+
+  test('a refused flip goes back and says why', async () => {
+    const sent = await show('pm', () => ({
+      status: 400,
+      body: { error: 'Pengaturan tidak valid.', code: 'VALIDATION' },
+    }));
+    await act(async () => fireEvent(reminders(), 'valueChange', false));
+    expect(sent).toHaveLength(1);
+    expect(await screen.findByText('Pengaturan tidak valid.')).toBeOnTheScreen();
+    expect(reminders()).toHaveProp('value', true);
+  });
+
+  test('switches that could not be read say why', async () => {
+    server = serveAuth({
+      '/api/app/profile/notifications': {
+        status: 503,
+        body: { error: 'Sedang pemeliharaan.', code: 'MAINTENANCE' },
+      },
+      ...profileRoute(),
+      ...whoamiRoute('pm'),
+    });
+    await render(<SettingsScreen />, { wrapper: Providers });
+    expect(await screen.findByTestId('notifications-failed')).toBeOnTheScreen();
+    expect(screen.getByText('Sedang pemeliharaan.')).toBeOnTheScreen();
+  });
+
+  // Confirming really ends the session, and the gate takes it from there (no navigation here).
+  test('Sign out asks first (T2); Cancel stays, confirming ends the session', async () => {
+    await show('pm', undefined, { '/sign-out': { body: { success: true } } });
+    const signOuts = () => server?.calls.filter((u) => u.includes('/sign-out')) ?? [];
     await fireEvent.press(screen.getByText('Sign out'));
     const dialog = within(screen.getByTestId('sign-out-dialog'));
     expect(dialog.getByText("You'll be signed out of this account.")).toBeOnTheScreen();
     await fireEvent.press(dialog.getByText('Cancel'));
-    expect(router.replace).not.toHaveBeenCalled();
+    expect(signOuts()).toHaveLength(0);
+    expect(sessionStore.get().status).toBe('signed-in');
+
     await fireEvent.press(screen.getByText('Sign out'));
     await fireEvent.press(screen.getByTestId('confirm-action'));
-    expect(router.replace).toHaveBeenCalledWith('/login');
+    await waitFor(() => expect(sessionStore.get().status).toBe('signed-out'));
   });
-});
-
-describe('ProfileEditScreen', () => {
-  test('role and email are read-only with the reason; Save says so and closes', async () => {
-    await show(<ProfileEditScreen role={PM} />);
-    expect(screen.getByLabelText(/^Full name/)).toHaveDisplayValue('Nico Pratama');
-    // Read-only, yet still read out by a screen reader (a disabled gluestack input is hidden from it).
-    expect(screen.getByLabelText('Role')).toHaveProp('readOnly', true);
-    expect(screen.getByLabelText('Email')).toHaveProp('readOnly', true);
-    expect(
-      screen.getByText("Email comes from your Google account and can't be changed."),
-    ).toBeOnTheScreen();
-    await fireEvent.changeText(screen.getByLabelText('Nickname (for greetings)'), 'Nic');
-    await fireEvent.press(screen.getByText('Save'));
-    expect(screen.getByText('Profile saved')).toBeOnTheScreen();
-    expect(router.back).toHaveBeenCalledTimes(1);
-  });
-
-  test('a blank full name is refused with the reason, as on the sign-up screen', async () => {
-    await show(<ProfileEditScreen role={PM} />);
-    await fireEvent.changeText(screen.getByLabelText(/^Full name/), '   ');
-    await fireEvent.press(screen.getByText('Save'));
-    expect(screen.getByText('Enter your full name.')).toBeOnTheScreen();
-    expect(screen.queryByText('Profile saved')).not.toBeOnTheScreen();
-    expect(router.back).not.toHaveBeenCalled();
-  });
-
-  test('Cancel closes without saving', async () => {
-    await show(<ProfileEditScreen role={PM} />);
-    await fireEvent.press(screen.getByText('Cancel'));
-    expect(router.back).toHaveBeenCalledTimes(1);
-    expect(router.navigate).not.toHaveBeenCalled();
-    expect(screen.queryByText('Profile saved')).not.toBeOnTheScreen();
-  });
-
-  test.each(['Cancel', 'Save'])(
-    'opened from the profile modal, %s goes back to it',
-    async (button) => {
-      setParams({ from: 'profile' });
-      await show(<ProfileEditScreen role={PM} />);
-      await fireEvent.press(screen.getByText(button));
-      expect(router.back).toHaveBeenCalledTimes(1);
-      expect(router.navigate).toHaveBeenCalledWith('/profile');
-    },
-  );
 });

@@ -1,4 +1,5 @@
-// The app's route tree with every Projects route, for the Projects screen tests; each screen gets the role under test.
+// The app's route tree with every Projects route, for the Projects screen tests. The list, the detail and the write
+// screens read the server (stub it with serveAuth).
 import { act } from '@testing-library/react-native';
 import { type RenderRouterResult, renderRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
@@ -8,28 +9,16 @@ import TabsLayout from '../../app/(tabs)/_layout';
 import HomeStack from '../../app/(tabs)/(home)/_layout';
 import * as ProjectsStack from '../../app/(tabs)/projects/_layout';
 import * as TasksStack from '../../app/(tabs)/tasks/_layout';
-import NewProjectStack from '../../app/projects/new/_layout';
 import NewTaskStack from '../../app/tasks/new/_layout';
 import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
-import { resetArchive } from '../../src/data/archive.store';
-import { resetProjects } from '../../src/data/projects.store';
-import type { Role } from '../../src/data/sample';
 import { resetQueries } from '../../src/data/tasks.query-state';
-import { resetTasks } from '../../src/data/tasks.store';
 import { ProjectDetailScreen } from '../../src/screens/projects/detail/project-detail.screen';
 import { ProjectEditScreen } from '../../src/screens/projects/edit/project-edit.screen';
 import { ProjectsFilterScreen } from '../../src/screens/projects/filter/projects-filter.screen';
 import { ProjectsScreen } from '../../src/screens/projects/list/projects.screen';
-import { ProjectDraftScreen } from '../../src/screens/projects/new/draft.screen';
 import { ProjectFormScreen } from '../../src/screens/projects/new/form.screen';
-import { NewProjectScreen } from '../../src/screens/projects/new/new.screen';
-import { ProjectStoryScreen } from '../../src/screens/projects/new/story.screen';
-import { ProjectTemplateScreen } from '../../src/screens/projects/new/template.screen';
-import {
-  ProjectSettingsScreen,
-  ProjectTaskFilterScreen,
-} from '../../src/screens/projects/settings/project-tasks-routes';
+import { ProjectTaskFilterScreen } from '../../src/screens/projects/settings/project-tasks-routes';
 import { ArchiveProjectScreen } from '../../src/screens/projects/sheets/archive.screen';
 import { ExtendProjectScreen } from '../../src/screens/projects/sheets/extend.screen';
 
@@ -42,46 +31,35 @@ jest.mock('expo-font', () => ({
 /** Stand-in for a screen another module ports: only its place in the route tree matters here. */
 const stub = (testID: string) => () => <Text testID={testID}>{testID}</Text>;
 
-function routes(role: Role) {
-  return {
-    _layout: RootLayout,
-    '(tabs)/_layout': TabsLayout,
-    '(tabs)/(home)/_layout': HomeStack,
-    '(tabs)/(home)/index': stub('screen-home'),
-    '(tabs)/tasks/_layout': TasksStack,
-    '(tabs)/tasks/index': stub('screen-tasks'),
-    '(tabs)/tasks/[id]/index': stub('screen-task'),
-    'tasks/new/_layout': NewTaskStack,
-    'tasks/new/form': stub('screen-task-form'),
-    '(tabs)/projects/_layout': ProjectsStack,
-    '(tabs)/projects/index': () => <ProjectsScreen role={role} />,
-    '(tabs)/projects/filter': ProjectsFilterScreen,
-    '(tabs)/projects/[id]/index': () => <ProjectDetailScreen role={role} />,
-    '(tabs)/projects/[id]/edit': () => <ProjectEditScreen role={role} />,
-    '(tabs)/projects/[id]/settings': () => <ProjectSettingsScreen role={role} />,
-    '(tabs)/projects/[id]/extend': () => <ExtendProjectScreen role={role} />,
-    '(tabs)/projects/[id]/archive': () => <ArchiveProjectScreen role={role} />,
-    '(tabs)/projects/[id]/task-filter': ProjectTaskFilterScreen,
-    'projects/new/_layout': NewProjectStack,
-    'projects/new/index': () => <NewProjectScreen role={role} />,
-    'projects/new/form': () => <ProjectFormScreen role={role} />,
-    'projects/new/story': () => <ProjectStoryScreen role={role} />,
-    'projects/new/draft': () => <ProjectDraftScreen role={role} />,
-    'projects/new/template': () => <ProjectTemplateScreen role={role} />,
-  };
-}
+const ROUTES = {
+  _layout: RootLayout,
+  '(tabs)/_layout': TabsLayout,
+  '(tabs)/(home)/_layout': HomeStack,
+  '(tabs)/(home)/index': stub('screen-home'),
+  '(tabs)/tasks/_layout': TasksStack,
+  '(tabs)/tasks/index': stub('screen-tasks'),
+  '(tabs)/tasks/[id]/index': stub('screen-task'),
+  'tasks/new/_layout': NewTaskStack,
+  'tasks/new/form': stub('screen-task-form'),
+  '(tabs)/projects/_layout': ProjectsStack,
+  '(tabs)/projects/index': ProjectsScreen,
+  '(tabs)/projects/filter': ProjectsFilterScreen,
+  '(tabs)/projects/[id]/index': ProjectDetailScreen,
+  '(tabs)/projects/[id]/edit': ProjectEditScreen,
+  '(tabs)/projects/[id]/extend': ExtendProjectScreen,
+  '(tabs)/projects/[id]/archive': ArchiveProjectScreen,
+  '(tabs)/projects/[id]/task-filter': ProjectTaskFilterScreen,
+  'projects/new': ProjectFormScreen,
+};
 
-/** Render the app at `url` as `role` (default: the session's Project Manager). */
-export const openProjects = (url: string, role: Role = 'pm'): Promise<RenderRouterResult> =>
-  renderRouter(routes(role), { initialUrl: url, wrapper: GluestackUIProvider });
+/** Render the app at `url`. */
+export const openProjects = (url: string): Promise<RenderRouterResult> =>
+  renderRouter(ROUTES, { initialUrl: url, wrapper: GluestackUIProvider });
 
-/** Every store a Projects screen writes, back to the sample after each test. */
+/** Every cache and query a Projects screen keeps, emptied after each test. */
 export function resetProjectStores() {
   afterEach(async () => {
     await act(async () => {
-      resetProjects();
-      resetTasks();
-      resetArchive();
       resetQueries();
       resetSnack();
     });

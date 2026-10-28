@@ -13,32 +13,25 @@ export const SPOKEN = {
     n > 1 ? `Move ${n} tasks to ${status}` : `Move to ${status}`,
   /** The radial option of the status the task already has (drawn "Now"). */
   current: (status: string) => `${status}, current status`,
+  /** A radial option none of the held cards may move to (no step the server allows). */
+  off: (status: string) => `${status}, not available`,
   selectIn: (status: string) => `Select tasks in ${status}`,
   stopIn: (status: string) => `Stop selecting in ${status}`,
   addTo: (status: string) => `Add task to ${status}`,
   selectTask: (no: number, title: string) => `Select #${no} ${title}`,
-  include: (title: string) => `Include ${title}`,
-  noTags: 'No tags',
   scope: 'Scope',
   view: 'View',
-  source: 'Source',
   /** The buttons whose visible text starts with "+" or ends with "✦". */
   compose: 'Compose',
   addStep: 'Add step',
-  attach: 'Attach evidence',
-  addType: 'Add type',
 } as const;
 
 /** Why a primary button is disabled, shown once the field was touched and read as the button's hint. */
 export const MISSING = {
   title: 'Enter a title to save.',
-  reason: 'Enter a reason to return the task.',
+  dates: "The start date can't be after the due date.",
+  nothing: 'Change something to save.',
+  reopen: 'Write a reason of at least 3 characters.',
   why: 'Pick why to cancel the task.',
   note: 'Add a note to cancel for Other.',
-} as const;
-
-export const DELETE_TAG = {
-  title: (tag: string) => `Delete tag ${tag}?`,
-  message: 'Tasks keep their other tags. This cannot be undone.',
-  confirm: 'Delete tag',
 } as const;

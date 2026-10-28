@@ -70,7 +70,11 @@ export function RadialMenu({ menu: m }: { menu: MoveMenu }) {
           <Animated.View className="h-0 w-0 items-center justify-center" style={fade}>
             <RadialRing
               group={shown.group}
-              tone={lit ? (COLUMNS.find((c) => c.status === lit)?.tone ?? null) : null}
+              tone={
+                lit && shown.allowed.includes(lit)
+                  ? (COLUMNS.find((c) => c.status === lit)?.tone ?? null)
+                  : null
+              }
               angle={m.values.angle}
             />
           </Animated.View>
@@ -88,6 +92,7 @@ export function RadialMenu({ menu: m }: { menu: MoveMenu }) {
               column={c}
               group={shown.group}
               now={c.status === shown.from}
+              off={c.status !== shown.from && !shown.allowed.includes(c.status)}
               lit={lit === c.status}
               closing={closing}
               reduced={m.reduced}

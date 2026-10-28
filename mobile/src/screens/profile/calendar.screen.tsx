@@ -1,16 +1,15 @@
 // Profile ② My calendar (prototype profile.calendar.jsx), pushed inside the profile modal: month, the swipeable
-// Sunday-first week, the picked day with its event count, and the hour grid of my events on that day.
-import { useState } from 'react';
+// Sunday-first week, the picked day with its event count, and the hour grid of my events on that day. Each week is
+// one read of the server's events (`profile.calendar.ts`), kept while the modal is open.
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import { DetailHeader } from '@/components/screen/detail-header';
+import { FailedState, SECTION_STATE } from '@/components/state/section-state';
 import { Text } from '@/components/ui/text';
+import { today } from '@/data/clock';
 import { addDays } from '@/data/events.dates';
-import { useEventsState } from '@/data/events.store';
-import { getMyCalendar } from '@/data/profile';
-import type { Role } from '@/data/sample';
-import { TODAY } from '@/data/sample/today';
-import { SESSION_ROLE } from '@/data/session';
+import { getMyCalendar, myWeekResource } from '@/data/profile.calendar';
 
 import { DayGrid } from './day-grid';
 import { CALENDAR } from './profile.strings';
@@ -19,11 +18,16 @@ import { WeekStrip } from './week-strip';
 /** Days in a week: one page of the strip. */
 const WEEK_DAYS = 7;
 
-/** My calendar. role: who is signed in (K12). */
-export function CalendarScreen({ role = SESSION_ROLE }: { role?: Role }) {
-  const { list } = useEventsState();
-  const [day, setDay] = useState(TODAY);
-  const d = getMyCalendar(role, day, list);
+/** My calendar. */
+export function CalendarScreen() {
+  const [day, setDay] = useState(today);
+  const week = myWeekResource(day);
+  const state = week.useSnapshot();
+  useEffect(() => {
+    void week.ensure();
+  }, [week]);
+  const d = getMyCalendar(day, state.data?.items ?? []);
+  const failed = !state.data && state.phase === 'failed';
   return (
     <View testID="screen-profile-calendar" className="flex-1 bg-background">
       <DetailHeader title={CALENDAR.title} />
@@ -37,10 +41,18 @@ export function CalendarScreen({ role = SESSION_ROLE }: { role?: Role }) {
           onPage={(step) => setDay((x) => addDays(x, step * WEEK_DAYS))}
         />
         <Text testID="calendar-day" className="text-subhead font-semibold text-foreground">
-          {`${d.dayLabel} · ${d.count}`}
+          {`${d.dayLabel} · ${state.data ? d.count : SECTION_STATE.loading}`}
         </Text>
       </View>
-      <DayGrid blocks={d.blocks} today={d.today} scrollY={d.scrollY} day={day} />
+      {failed ? (
+        <FailedState
+          testID="calendar-failed"
+          message={state.error?.message}
+          onRetry={() => void week.reload()}
+        />
+      ) : (
+        <DayGrid blocks={d.blocks} scrollY={d.scrollY} day={day} />
+      )}
     </View>
   );
 }

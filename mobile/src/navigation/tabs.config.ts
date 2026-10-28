@@ -8,19 +8,17 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 
-import type { ScreenId } from './screen-roles';
-
 export type TabId = 'home' | 'tasks' | 'projects' | 'events' | 'more';
 
 /**
- * One tab. route = its route name in app/(tabs) (a folder with its own Stack); root = the prototype screen the tab
- * opens, null for More, which unfolds the More panel instead of opening a screen.
+ * One tab. route = its route name in app/(tabs) (a folder with its own Stack); root = the prototype screen id the
+ * tab opens (docs/phase1-navigation.md), null for More, which unfolds the More panel instead of opening a screen.
  */
 export type TabDef = {
   id: TabId;
   label: string;
   route: string;
-  root: ScreenId | null;
+  root: string | null;
   Icon: LucideIcon;
 };
 

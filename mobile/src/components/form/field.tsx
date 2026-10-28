@@ -1,6 +1,6 @@
 // Form field (prototype kit Field): label with a required star, one- or multi-line text, a hint and an error line.
 import type { ReactNode } from 'react';
-import type { KeyboardTypeOptions } from 'react-native';
+import type { KeyboardTypeOptions, TextInputProps } from 'react-native';
 
 import {
   FormControl,
@@ -36,6 +36,14 @@ type FieldProps = {
   /** Read-only (Role, Email): shown on a muted box and still read out, but not editable. */
   readOnly?: boolean;
   keyboardType?: KeyboardTypeOptions;
+  /** Which keyboard to raise ("email", "numeric"); preferred over keyboardType. */
+  inputMode?: TextInputProps['inputMode'];
+  /** Off for an email address or a password, so the phone does not capitalise the first letter. */
+  autoCapitalize?: TextInputProps['autoCapitalize'];
+  /** Lets the phone's password or email autofill offer the right value. */
+  autoComplete?: TextInputProps['autoComplete'];
+  /** A password: the characters are hidden and the phone keeps it out of its own suggestions. */
+  secureTextEntry?: boolean;
   /** Trailing element inside the box (an icon button). */
   right?: ReactNode;
   testID?: string;
@@ -82,6 +90,10 @@ export function Field(p: FieldProps) {
             onChangeText={p.onChangeText}
             placeholder={p.placeholder}
             keyboardType={p.keyboardType}
+            inputMode={p.inputMode}
+            autoCapitalize={p.autoCapitalize}
+            autoComplete={p.autoComplete}
+            secureTextEntry={p.secureTextEntry}
             className="text-body"
           />
           {p.right && (

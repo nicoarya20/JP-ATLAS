@@ -1,5 +1,4 @@
 import {
-  boardColumns,
   COLUMNS,
   holdGroup,
   movedNotice,
@@ -21,7 +20,6 @@ import {
   SLOP_PX,
   stackPose,
 } from '../../src/data/tasks.radial';
-import { getTasksState } from '../../src/data/tasks.state';
 
 describe('Kanban columns', () => {
   test('workflow order with fixed menu sides: To do up, In progress right, In review down, Done left', () => {
@@ -33,11 +31,6 @@ describe('Kanban columns', () => {
     ]);
     expect(STATUS_OF_SIDE.right).toBe('In progress');
     expect(SIDE_OF_STATUS.Done).toBe('left');
-  });
-
-  test('every listed task except Canceled lands in its status column', () => {
-    const cols = boardColumns(getTasksState().tasks);
-    expect(cols.map((c) => c.tasks.map((t) => t.no))).toEqual([[14, 15, 16, 9], [12], [17], [8]]);
   });
 
   test('a hold moves the selection only when the held card is one of several picks, held one first', () => {

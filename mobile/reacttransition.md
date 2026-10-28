@@ -28,6 +28,11 @@ Catatan kerja perpindahan aplikasi mobile Simple PM dari prototipe web (React + 
 | 2026-10-25 | Linter mobile = biome (bukan ESLint expo) | Konsisten dengan root; biome root mengecualikan `mobile/` |
 | 2026-10-25 | Fase 0: Tabs Expo Router standar; gelembung, drag, panel More, dan sheet Create menyusul | Butuh Reanimated + Gesture Handler; di luar tujuan spike |
 | 2026-10-27 | **Leave dihapus dari mobile**: sheet `/leave` (`settings.leave`), baris Request/Set leave di Create, bagian Availability di Settings, toggle "Leave needs approval", dan baris status ("Available"/catatan cuti) di Team | Keputusan user setelah koordinasi dengan rekan; menyimpang dari prototipe. Sisi server/desktop tidak disentuh |
+| 2026-10-28 | **Fase 2 ditulis ulang** di `feature/mobile-api-wiring`; kode `2a985b7^` hanya acuan | Keputusan user (Nico membatalkan Fase 2 lama agar disambung ulang dari titik bersih) |
+| 2026-10-28 | **Default GAP W3 (koordinator, sementara, user boleh mengubah):** kebenaran = server. Yang tidak ada datanya di server **disembunyikan** (bukan dipalsukan) dan dicatat di `docs/phase2-gap-disembunyikan.md`: chip Beranda mengikuti arti server + copy disesuaikan (H-3/4/6), lead kartu proyek (H-8), kartu Inbox AI (I-1), note/presence/Mute di profil (P-1..3), Phone (P-4), grup Team settings (S-1), avatar anggota/filter pemilik/cari deskripsi di Projects, fitur AI (Story→Draft, Template, rekaman/outcomes), type di kartu tugas, CSV, Note-taker, cari lokasi (E-3/E-5). Sort/filter = yang didukung server. Satu pengerja per tugas (T-2, sama dengan web). Archive → **Trash** + sisa hari (A-1/T-11). Unggah foto (P-5) ditunda: butuh dependensi baru. Alasan `can{}` → katalog kode→kalimat Inggris di mobile (E-6). Reopen tugas → sheet alasan 3–200 karakter | Fase 2 tidak boleh tertunda oleh keputusan produk; semuanya reversibel. Fitur server yang belum ada (review S4, tags, evidence, recurrence, outcomes, task kinds) = urusan Nico, disembunyikan sampai rutenya ada |
+| 2026-10-28 | **Users di mobile memakai `/api/admin/users*`** (koordinator, sementara; user 2026-10-28: tunggu Nico, biarkan dulu): tampil hanya bila `whoami.caps.dashboard`; modul `users.admin.*` terpisah | `/api/app` tidak punya padanan approve/reject/role; layar Users = padanan area admin web, role dijaga server (`adminContext`) |
+| 2026-10-28 | **Tugas boleh tanpa pengerja** (T-12): pilihan pertama "Unassigned" di Fill form dan Edit | Keputusan user; sama dengan server (`assigneeId` opsional) |
+| 2026-10-28 | **Copy login**: "No account yet? Ask your admin for an invite." | Keputusan user (saran koordinator); Google dimatikan di Expo Go, akun baru lewat undangan |
 
 ## 2. Batas Wilayah
 
@@ -147,6 +152,28 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | F1c | FAB + sheet Create (`router.replace` ke target) | Sesi A | ✅ | F1b |
 | F1d | Panel More (scrim, Escape a11y, Android back) | Sesi A | ✅ | F1c |
 | F1e | Kaca, reduced motion, a11y (+ aksi increment/decrement, bar sembunyi saat keyboard, hide-descendants Android), QA | Sesi A | ✅ | F1d |
+
+## 6c. Papan Task — Fase 2 (Sambung API, tulis ulang)
+
+Branch: `feature/mobile-api-wiring` (dari `main` `159827b`). Keputusan user 28 Okt 2026: kode Fase 2
+lama (dibatalkan Nico di `2a985b7`) hanya **acuan** — baca lewat `git show 2a985b7^:<path>`, pinjam
+yang terbukti, sesuaikan dengan mobile sekarang. Server tidak diubah: `expo()` + `MOBILE_TRUSTED_ORIGINS`
+sudah ada di `server/auth.ts`, endpoint sama dengan web (`/api/app/*`), kontrak di `/api/docs` (dev).
+Koordinator `pm-dashboard-b1` memegang papan ini dan commit; peer tidak menyentuh git.
+
+| ID | Task | Pemilik | Status | Bergantung |
+|---|---|---|---|---|
+| W1-A | Fondasi API + logika sesi: `src/api/*`, `src/session/*` (kecuali gerbang), dependensi Expo Better Auth, `.env.example`, mock native di `jest.setup.js`, tes | `pm-dashboard-50` | ✅ `fc0ab4ed` | — |
+| W1-B | Gerbang login + layar: `use-session-gate.ts`, `app/_layout.tsx`, `app/(auth)/*`, form masuk email+sandi, pending/denied, Cannot reach server, sign out sungguhan, tes | `pm-dashboard-d7` | ✅ `fc0ab4ed` | kontrak W1-A |
+| W2 | Fondasi data: jam server (`GET /api/app/home`), helper instan, identitas `userId`, pola `fetch → store → invalidate`, cabut `TODAY` ambient | `pm-dashboard-50` | ✅ `a3bc2943` | W1 (`fc0ab4ed`) |
+| W3-prep | Peta layar ↔ endpoint per modul (diverifikasi ke server sekarang) di `docs/phase2-map-*.md` | `pm-dashboard-d7` | ✅ | W1 |
+| W3-Home | Beranda dari `GET /api/app/home` (widget gagal-lunak, aksi Focus sungguhan) | `pm-dashboard-50` | ✅ `1b368aff` | W2, peta home |
+| W3-Inbox+Team | Inbox (`inbox.api.ts`, count, tandai dibaca) + Team | `pm-dashboard-d7` | ✅ `0433e908` | peta home-inbox-team |
+| W3-Tasks | Daftar, board, counts, detail, tulis (form-options, start/complete/reopen + alasan), sambungan ke Home | `pm-dashboard-34` | ✅ daftar+board `246c14ef`; detail+sheet ✅ `00da852d`; form New/Edit ✅ `106a33c3` | W3-Home |
+| W3-Projects | Daftar, detail, anggota, tulis proyek (tab Tugas proyek tetap legacy sampai Tasks commit) | `pm-dashboard-d7` | ✅ baca `0909d988`, tulis `374ef920` | W3-Inbox+Team |
+| W3-Plus | Tombol "+" tab bar + Create sheet dari `whoami caps` | `pm-dashboard-d7` | ✅ `5ed16620` | Projects |
+| W3-Events | Daftar, kalender `?from=&to=`, detail, tulis, gerbang `events/new` | `pm-dashboard-0b` | ✅ `c61eadc5`; guard fetch jest `f988ccb9` | W3-Plus |
+| W3 (sisa) | Tab Tugas proyek → API, Profile/Archive(Trash)/Users, buang layar & gerbang role sampel, CSV, project settings, Outcomes acara, dan seluruh `src/data/sample` (tersisa `today.ts` untuk tes) | `pm-dashboard-34`, `pm-dashboard-0b` | ✅ bersih-bersih `1b986665`, tab Tugas proyek `5ad61193`, Profile/Trash/Users `09c01dd0`; Pending `b6f431f6`, Events rekam `6b8c86c5`, Just write + Sampah tugas `52345689`, buang sampel `f8a78a1a` | Tasks, Projects |
 
 ## 7. Pertanyaan Terbuka
 

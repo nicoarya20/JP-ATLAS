@@ -1,8 +1,7 @@
-// The Tasks tab (prototype tasks.list.jsx ListScreen, tasks.board.jsx TasksBoard): the stacked header with the search
-// and the Filter & sort icon, the My tasks / All tasks and List / Kanban switches pinned under it (route params `scope`
-// and `view`), then the list or the board. Switching My / All starts the other list from its own default query; List /
-// Kanban keeps it. New task lives on the tab bar's "+". A board emptied by the filters or search says so with Reset, as
-// the list does (UX §4; the prototype leaves its columns empty).
+// The Tasks tab (prototype tasks.list.jsx ListScreen, tasks.board.jsx TasksBoard), read from /api/app/tasks: the
+// stacked header with the search and the Filter & sort icon, the My tasks / All tasks and List / Kanban switches pinned
+// under it (route params `scope` and `view`), then the list or the board (tasks-body.tsx). Switching My / All starts the
+// other list from its own default query; List / Kanban keeps it. Typing searches once the text rests (use-settled.ts).
 import { router, useLocalSearchParams } from 'expo-router';
 import { List, SquareKanban } from 'lucide-react-native';
 import { useState } from 'react';
@@ -10,32 +9,26 @@ import { View } from 'react-native';
 
 import { Seg } from '@/components/form/seg';
 import { StackedScreen } from '@/components/screen/stacked-screen';
-import { NoMatch } from '@/components/state/no-match';
 import { HStack } from '@/components/ui/hstack';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { getTasksList } from '@/data/tasks';
 import { resetQuery, useQuery } from '@/data/tasks.query-state';
-import { useTasks } from '@/data/tasks.state';
 
-import { TaskBoard } from '../board/task-board';
 import { TasksSearchField } from '../filter/tasks-search';
+import { useSettled } from '../filter/use-settled';
 import { S } from '../tasks.strings';
 import { SPOKEN } from '../tasks.strings.added';
-import { TaskList } from './task-list';
+import { ServerBoard, ServerList } from './tasks-body';
 
 const SCOPES = ['mine', 'all'] as const;
 const VIEWS = ['list', 'board'] as const;
 
-/** The Tasks tab for `role` (who is signed in). */
-export function TasksScreen({ role = SESSION_ROLE }: { role?: Role }) {
+/** The Tasks tab of whoever is signed in. */
+export function TasksScreen() {
   const params = useLocalSearchParams<{ scope?: string; view?: string }>();
   const scope = params.scope === 'all' ? 'all' : 'mine';
   const view = params.view === 'board' ? 'board' : 'list';
   const [search, setSearch] = useState('');
+  const sent = useSettled(search);
   const query = useQuery(scope);
-  const state = useTasks((s) => s);
-  const data = getTasksList(role, { scope, view, query, search }, state);
   const reset = () => {
     resetQuery(scope);
     setSearch('');
@@ -45,6 +38,7 @@ export function TasksScreen({ role = SESSION_ROLE }: { role?: Role }) {
     resetQuery(SCOPES[i]);
     router.setParams({ scope: SCOPES[i] });
   };
+  const Body = view === 'board' ? ServerBoard : ServerList;
   return (
     <StackedScreen
       testID="screen-tasks"
@@ -74,24 +68,7 @@ export function TasksScreen({ role = SESSION_ROLE }: { role?: Role }) {
         </HStack>
       }
     >
-      {data.empty === 'noMatch' && data.view === 'board' ? (
-        <NoMatch title={S.noMatch.title} text={S.noMatch.text} onReset={reset} />
-      ) : data.view === 'board' ? (
-        <TaskBoard
-          role={role}
-          mine={scope === 'mine'}
-          tasks={data.columns.flatMap((c) => c.cards)}
-        />
-      ) : (
-        <TaskList
-          mine={scope === 'mine'}
-          groups={data.groups}
-          empty={data.empty}
-          onOpen={(no) => router.push(`/tasks/${no}`)}
-          onNew={() => router.push('/tasks/new')}
-          onReset={reset}
-        />
-      )}
+      <Body scope={scope} query={query} search={sent} onReset={reset} />
     </StackedScreen>
   );
 }

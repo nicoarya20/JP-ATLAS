@@ -1,66 +1,72 @@
-// Projects ⑭ Move to Archive (prototype projects.edit.jsx ProjectsArchive): names what goes along; the project and its
-// tasks move to Archive at once and the Projects list comes back with the snack "Project moved to Archive" and its Undo
-// (T1, phase1-screens.md K5), unless Archive deleted it forever in the meantime.
-import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+// Projects ⑭ Move to Trash (T2, prototype projects.edit.jsx ProjectsArchive), from the detail ⋯ for whoever the
+// server lets trash the project (`can.trash`): it names the tasks that go along (`taskCounts.live`). Once the server
+// moved them, the Projects list comes back with "Project moved to Trash" and its Undo, which restores the project
+// with its tasks; a refusal stays on the sheet. The route keeps its old name, `archive`.
+import { router, useLocalSearchParams } from 'expo-router';
 
+import { isApiError } from '@/api/errors';
+import { useConfirmAction } from '@/components/confirm/use-confirm-action';
+import { FormError } from '@/components/form/form-error';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { showSnack } from '@/components/snack/use-snack';
-import { Button, ButtonText } from '@/components/ui/button';
+import { writeError } from '@/components/state/write-error';
+import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { me } from '@/data/people';
-import { getProjectArchive } from '@/data/projects';
-import { archiveProject, canRestoreProject, restoreProject } from '@/data/projects.store';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { allowedScreen } from '@/navigation/screen-roles';
-
+import type { ProjectDetailWire } from '@/data/projects.wire';
+import { restoreProject, trashProject } from '@/data/projects.write';
 import { Soft } from '../parts/display';
-import { ARCHIVE } from '../projects.strings';
+import { ProjectGate } from '../parts/project-gate';
+import { TRASH } from '../projects.strings';
 
-/** The archive sheet of the project in the route param `id`; a Member, or a project not listed, goes home. */
-export function ArchiveProjectScreen({ role = SESSION_ROLE }: { role?: Role }) {
-  const { id } = useLocalSearchParams<{ id: string }>();
+function Trash({ p }: { p: ProjectDetailWire }) {
   const notice = useNotice();
-  // Read once: archiving takes the project out of the list, which must not redirect the sheet while it closes.
-  const [p] = useState(() => getProjectArchive(id));
-  if (!p || !allowedScreen('projects.archive', role)) return <Redirect href="/" />;
-  const archive = () => {
-    const key = archiveProject(p.id, me(role).name);
-    router.dismissTo('/projects');
-    showSnack({
-      message: ARCHIVE.moved,
-      action: ARCHIVE.undo,
-      // The snack is already closed here. Deleted forever in Archive within the Undo window → say so, restore nothing.
-      onAction: () => {
-        if (!canRestoreProject(p.id, key)) {
-          notice(ARCHIVE.goneForever);
-          return;
-        }
-        restoreProject(p.id, key);
-        notice(ARCHIVE.restored);
-      },
-    });
+  // The snack is already closed here, and so is this sheet: the outcome goes to a notice.
+  const undo = async () => {
+    try {
+      await restoreProject(p.id);
+      notice(TRASH.restored);
+    } catch (e) {
+      notice(writeError(e));
+      if (!isApiError(e)) throw e;
+    }
   };
+  const trash = async () => {
+    await trashProject(p.id);
+    router.dismissTo('/projects');
+    showSnack({ message: TRASH.moved, action: TRASH.undo, onAction: () => void undo() });
+  };
+  const { busy, error, run } = useConfirmAction(trash, () => undefined, writeError);
   return (
     <SheetFrame
-      testID="project-archive"
-      title={ARCHIVE.title}
+      testID="project-trash"
+      title={TRASH.title}
       sub={p.name}
       actions={
         <>
-          <Button variant="destructive" onPress={archive}>
-            <ButtonText>{ARCHIVE.confirm}</ButtonText>
+          <Button variant="destructive" isDisabled={busy} onPress={() => void run()}>
+            {busy && <ButtonSpinner />}
+            <ButtonText>{TRASH.confirm}</ButtonText>
           </Button>
-          <Button variant="outline" onPress={() => router.back()}>
-            <ButtonText>{ARCHIVE.cancel}</ButtonText>
+          <Button variant="outline" isDisabled={busy} onPress={() => router.back()}>
+            <ButtonText>{TRASH.cancel}</ButtonText>
           </Button>
         </>
       }
     >
-      <Text className="text-subhead">{ARCHIVE.lead(p.name, p.tasks)}</Text>
-      <Soft>{ARCHIVE.box}</Soft>
+      <Text className="text-subhead">{TRASH.lead(p.name, p.taskCounts.live)}</Text>
+      <Soft>{TRASH.box}</Soft>
+      {error && <FormError testID="trash-error">{error}</FormError>}
     </SheetFrame>
+  );
+}
+
+/** The Move to Trash sheet of the project in the route param `id`; anyone it is not offered to goes back to it. */
+export function ArchiveProjectScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  return (
+    <ProjectGate id={id} allowed={(p) => p.can.trash === true}>
+      {(p) => <Trash p={p} />}
+    </ProjectGate>
   );
 }

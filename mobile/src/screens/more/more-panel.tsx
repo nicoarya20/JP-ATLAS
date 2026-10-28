@@ -7,14 +7,15 @@ import { CountBadge } from '@/components/badge/count-badge';
 import { PanelRise } from '@/components/tab-bar/panel-rise';
 import { PANEL } from '@/components/tab-bar/tab-bar.motion';
 import { usePanel } from '@/components/tab-bar/tab-panel';
-import { Avatar, AvatarFallbackText } from '@/components/ui/avatar';
+import { Avatar, AvatarFallbackText, AvatarImage } from '@/components/ui/avatar';
 import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
-import { getProfile } from '@/data/profile';
-import type { Role } from '@/data/sample';
-import { SESSION_ROLE } from '@/data/session';
-import { useDecisions } from '@/data/users';
+import { inboxCountResource } from '@/data/inbox.api';
+import { useProfileData } from '@/data/profile';
+import { profileResource } from '@/data/profile.api';
+import { usersStatsResource, useUsersPending } from '@/data/users.admin.api';
+import { useAppCaps, whoamiResource } from '@/data/whoami.api';
 
 import { type MoreTile, type MoreTone, moreTiles, PROFILE_PATH, tileLabel } from './more.tiles';
 
@@ -52,7 +53,6 @@ function Tile({ tile, onOpen }: { tile: MoreTile; onOpen: () => void }) {
 }
 
 type MorePanelProps = {
-  role?: Role;
   /** Folds the panel; every pick folds it first, so the bar is back to normal on the next screen. */
   close: () => void;
 };
@@ -61,9 +61,21 @@ type MorePanelProps = {
  * What the More tab unfolds from the tab bar (prototype screens/home/home.more.jsx): the profile card, then a grid of
  * the secondary destinations. Each child rises in after the one before (PanelRise order).
  */
-export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
-  const decided = useDecisions();
-  const { me, line } = getProfile(role, decided);
+export function MorePanel({ close }: MorePanelProps) {
+  const d = useProfileData();
+  const caps = useAppCaps();
+  const pending = useUsersPending();
+  // The card and the badges read the server: ask once for each (ensure() never asks twice).
+  useEffect(() => {
+    void profileResource.ensure();
+    void inboxCountResource.ensure();
+    void whoamiResource.ensure();
+  }, []);
+  // The Users count is the Admin console's: asked only of someone whoami lets in there.
+  const dashboard = caps?.dashboard === true;
+  useEffect(() => {
+    if (dashboard) void usersStatsResource.ensure();
+  }, [dashboard]);
   const card = useRef<ComponentRef<typeof Pressable>>(null);
   const { open: unfolded } = usePanel();
   // A screen reader starts on the profile card once the panel has unfolded under it.
@@ -86,28 +98,29 @@ export function MorePanel({ role = SESSION_ROLE, close }: MorePanelProps) {
         <Pressable
           ref={card}
           accessibilityRole="button"
-          accessibilityLabel={`${me.full}, open profile`}
+          accessibilityLabel={`${d.full}, open profile`}
           onPress={() => open(PROFILE_PATH)}
           className="flex-row items-center gap-3 rounded-[18px] bg-muted p-2 data-[active=true]:scale-[0.98]"
         >
           <Avatar className="h-11 w-11 bg-accent">
             <AvatarFallbackText className="text-subhead font-semibold text-accent-foreground">
-              {me.name}
+              {d.full}
             </AvatarFallbackText>
+            {d.image ? <AvatarImage source={{ uri: d.image }} /> : null}
           </Avatar>
           <View className="min-w-0 flex-1">
             <Text numberOfLines={1} className="text-body font-semibold">
-              {me.full}
+              {d.full}
             </Text>
             <Text numberOfLines={1} className="text-footnote text-muted-foreground">
-              {line}
+              {d.line}
             </Text>
           </View>
           <Icon as={ChevronRight} className="h-[18px] w-[18px] text-muted-foreground" />
         </Pressable>
       </PanelRise>
       <View className="flex-row flex-wrap gap-y-3">
-        {moreTiles(role, decided).map((tile, i) => (
+        {moreTiles(caps, { inbox: d.inbox, pending }).map((tile, i) => (
           <View key={tile.label} className="basis-1/3">
             <PanelRise i={i + 1}>
               <Tile tile={tile} onOpen={() => open(tile.path)} />

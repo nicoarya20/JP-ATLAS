@@ -1,18 +1,24 @@
 // Copy of the Tasks screens, verbatim from the prototype (screens/tasks/*.jsx). Copy that depends on data (notes, facts,
 // notices after an action) comes from src/data/tasks*.ts instead.
-import { tasksCount } from '@/data/tasks.columns';
+import { countedTasks } from '@/data/tasks.columns';
 
 export const S = {
   title: 'Tasks',
-  search: 'Search title, #number, or tag…',
+  /** What `q` matches on the server: part of the title, or a task number exactly, "12" or "#12" (T-5). */
+  searchServer: 'Search title or #number…',
   scopes: ['My tasks', 'All tasks'],
   views: ['List', 'Kanban'],
   due: (date: string) => `Due ${date}`,
+  /** A card's date line: "Due Oct 5", or this for a task without a due date. */
+  noDue: 'No due date',
   empty: {
     icon: 'No tasks',
     title: 'No tasks for you yet.',
     text: 'Tasks assigned to you will show up here.',
     action: 'New task',
+    /** All tasks with nothing in it: no task in any project the viewer can see. */
+    allTitle: 'No tasks yet.',
+    allText: 'Tasks in your projects will show up here.',
   },
   noMatch: {
     title: 'No tasks match these filters.',
@@ -28,12 +34,15 @@ export const S = {
   },
   board: {
     label: 'Kanban board',
-    column: (status: string, n: number) => `${status}, ${tasksCount(n)}`,
+    /** `count` is what the column shows by its name ("3", "25+"). */
+    column: (status: string, count: string) => `${status}, ${countedTasks(count)}`,
     select: 'Select',
     cancel: 'Cancel',
     selectAll: (all: boolean, status: string) =>
       `${all ? 'Deselect' : 'Select'} all ${status} tasks`,
     addTask: 'Add task',
+    moveFailed: 'Could not move. Try again.',
+    loadMore: 'Load more',
   },
   radial: {
     close: 'Close',
@@ -47,33 +56,40 @@ export const S = {
   detail: {
     title: 'Task detail',
     menu: 'Task actions',
-    menuItem: { edit: 'Edit task', cancel: 'Cancel task', archive: 'Move to Archive' },
-    returnTask: 'Return',
-    restore: 'Restore',
-    description: 'Description',
-    history: 'Chat & history',
-    comment: 'Write a comment… (@name to mention)',
-    commentLabel: 'Comment',
-    addStep: '+ Add step',
-    stepAdded: 'Step added',
-    attach: '+ Attach evidence',
-    attached: 'Evidence attached',
-    photo: 'Photo',
+    menuItem: { edit: 'Edit task', cancel: 'Cancel task', trash: 'Move to Trash' },
+    trashed: 'Task moved to Trash',
+    restored: 'Task back from the Trash',
     undo: 'Undo',
-    // Not in the prototype, which never opens a task that is gone: a deep link to one deleted from Archive.
+    description: 'Description',
+    noDescription: 'No description yet.',
+    history: 'Chat & history',
+    noHistory: 'Nothing has happened yet.',
+    loadMore: 'Load more',
+    comment: 'Write a comment…',
+    commentLabel: 'Comment',
+    commentMissing: 'Write a comment to send it.',
+    send: 'Send',
+    addStep: '+ Add step',
+    noSteps: 'No steps yet.',
+    stepLabel: 'New step',
+    stepHint: 'Describe the step…',
+    stepSave: 'Add',
+    stepMissing: 'Describe the step to add it.',
+    saving: 'Saving',
+    /** A task whose `can{}` offers nothing: no step, no change, no menu. */
+    viewOnly: 'You can view this task, but not change it.',
+    // Not in the prototype, which never opens a task that is gone: the server answers a missing, trashed or hidden
+    // task the same way (404).
     missing: 'This task is no longer here.',
-    missingText: 'It may have been deleted from Archive.',
+    missingText: 'It may have been deleted, or you no longer have access to it.',
   },
   sheet: {
-    returnTitle: 'Return task',
-    quick: 'Quick pick (fills the reason)',
     /** Field adds the star of 'Reason *'. */
     reason: 'Reason',
-    reasonHint: 'Explain what needs fixing…',
-    returnNote: (n: number, who: string) =>
-      `The task goes back to In progress and is logged as "Returned ×${n}". ${who} gets a notification.`,
-    cancel: 'Cancel',
-    returnAction: 'Return',
+    reopenTitle: 'Reopen task',
+    reopenHint: 'Why does it need more work?',
+    reopenNote: 'The task goes back to In progress, and the reason is kept in its history.',
+    reopenAction: 'Reopen',
     cancelTitle: 'Cancel task',
     /** Labelled adds the star of 'Why cancel? *'. */
     why: 'Why cancel?',
@@ -87,59 +103,41 @@ export const S = {
   },
 } as const;
 
-/** Edit task, New task (Just write ✦ / Fill form), Import CSV and Project settings. */
+/** Edit task and New task (Just write ✦ / Fill form). */
 export const F = {
   editTitle: 'Edit task',
   newTitle: 'New task',
   modes: ['Just write ✦', 'Fill form'],
   title: 'Title',
   assignee: 'Assignee',
-  pickOne: 'Pick at least one person.',
+  unassigned: 'Unassigned',
+  /** Assignee's hint while the project's people load. */
+  peopleLoading: 'Loading the project’s people…',
   due: 'Due date',
   priority: 'Priority',
   type: 'Type',
   phase: 'Phase',
+  noPhase: 'No phase',
   project: 'Project',
   description: 'Description',
   descHint: 'What needs to be done…',
   start: 'Start date',
-  hours: 'Estimated hours',
   more: 'Show more',
   less: 'Show less',
-  review: {
-    title: 'Needs review',
-    yes: 'Yes',
-    locked: 'Locked while the task is in review.',
-    managerOnly: 'Only a Manager or Admin can turn it off.',
-    reviewer: 'Reviewer',
-    memberNote: 'A Manager or Admin of the project reviews it.',
-    projectNote: (project: string) =>
-      `Needs review starts from the project setting (${project.split(' ')[0]}: off).`,
-  },
-  tags: {
-    label: 'Tag',
-    add: 'Add tag',
-    hint: 'Type a tag, then Enter…',
-    remove: (t: string) => `Remove tag ${t}`,
-  },
-  steps: {
-    title: 'Steps',
-    done: (n: number) => `Step ${n} done`,
-    step: (n: number) => `Step ${n}`,
-    hint: 'Describe the step…',
-    remove: (n: number) => `Remove step ${n}`,
-    add: '+ Add step',
-  },
-  evidence: {
-    title: 'Evidence',
-    caption: (file: string) => `Caption for ${file}`,
-    hint: 'Add a caption…',
-    remove: (file: string) => `Remove ${file}`,
-    attach: '+ Attach evidence',
-  },
-  statusNote: "Status changes from the task's buttons or the Kanban board.",
+  /** Edit task: where the rest of a task changes. */
+  statusNote: "Status changes from the task's buttons or the Kanban board, and steps on its page.",
   cancel: 'Cancel',
   save: 'Save',
   created: 'Task created',
+  updated: 'Task updated',
   back: 'Back',
+  /** New task when form-options lists no project (the server decides who may add tasks where). */
+  noProjects: 'No project to add a task to',
+  noProjectsText: 'You can add tasks to projects you work in. Ask a project manager to add you.',
+  /** Edit task when `can.update` is absent or a deny code. */
+  locked: "You can't edit this task",
+  lockedText: 'You can view this task, but not change it.',
+  /** Edit task when form-options answers 404 for the task's project. */
+  noProject: 'This project is no longer here',
+  noProjectText: 'It may be in the Trash, or you no longer have access to it.',
 } as const;

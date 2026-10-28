@@ -1,9 +1,7 @@
-// Users ② Roles (prototype users.roles.jsx): give or remove the Project Manager role, or deactivate a user. My own row
-// is read-only. A role change or deactivation asks first (T2).
-import { useState } from 'react';
-
+// Users ② Roles (prototype users.roles.jsx): every approved account (`/api/admin/users?approval=approved`, by name).
+// Give or remove the Project Manager role, deactivate or reactivate a user; each asks first (T2). A row the server
+// would refuse (yourself, a Super-admin, an Admin unless you are a Super-admin) is read-only.
 import { PersonAvatar } from '@/components/avatar/person-avatar';
-import { CountChips } from '@/components/form/chips';
 import { SelectField } from '@/components/form/select-field';
 import { Rows } from '@/components/list/rows';
 import { useNotice } from '@/components/notice/use-notice';
@@ -14,71 +12,93 @@ import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import type { AccountRole } from '@/data/people';
-import { GRANTABLE_ROLES, getRoles, type RoleRow } from '@/data/users';
+import type { AccountRoleWire } from '@/data/team.api';
+import { ACCOUNT_ROLE } from '@/data/team.person';
+import { type AccountRow, accountRow } from '@/data/users.admin.view';
+import { deactivateUser, reactivateUser, setUserRole } from '@/data/users.admin.write';
+import { whoamiResource } from '@/data/whoami.api';
 
 import { InfoBox } from './info-box';
 import { type UserAsk, useUserConfirm } from './users.confirm';
+import { ListState, LoadMore, useUsersList } from './users.list';
 import { CONFIRM, ROLES, USERS } from './users.strings';
 
-type PersonProps = { row: RoleRow; ask: (a: UserAsk) => void };
-
-/** One account: name and email; others get the role picker and Deactivate. */
-function Person({ row, ask }: PersonProps) {
+/** Deactivate or Reactivate, by what the account is now. */
+function Switcher({ row, ask }: { row: AccountRow; ask: (a: UserAsk) => void }) {
   const notice = useNotice();
-  const p = row.person;
-  const [role, setRole] = useState<AccountRole>(p.role);
-  const options = [...new Set<AccountRole>([...GRANTABLE_ROLES, p.role])].map((r) => ({
-    value: r,
-    label: r,
-  }));
-  const change = (to: AccountRole) =>
+  const reactivate = () =>
     ask({
-      ...CONFIRM.role(p.full, role, to),
-      run: () => {
-        setRole(to);
-        notice(ROLES.changed(to));
+      ...CONFIRM.reactivate(row.full),
+      run: async () => {
+        await reactivateUser(row.id);
+        notice(ROLES.reactivated);
       },
     });
   const deactivate = () =>
     ask({
-      ...CONFIRM.deactivate(p.full, role),
+      ...CONFIRM.deactivate(row.full, row.roleLabel),
       danger: true,
-      run: () => notice(ROLES.deactivated),
+      run: async () => {
+        await deactivateUser(row.id);
+        notice(ROLES.deactivated);
+      },
     });
+  const off = row.deactivated;
   return (
-    <VStack testID={`role-row-${p.key}`} className="gap-3 px-4 py-3">
+    <Button
+      size="sm"
+      variant="outline"
+      accessibilityLabel={`${off ? ROLES.reactivate : ROLES.deactivate} ${row.full}`}
+      onPress={off ? reactivate : deactivate}
+    >
+      <ButtonText className={off ? undefined : 'text-destructive'}>
+        {off ? ROLES.reactivate : ROLES.deactivate}
+      </ButtonText>
+    </Button>
+  );
+}
+
+/** One account: name and email; one that may be changed gets the role picker and Deactivate / Reactivate. */
+function Person({ row, ask }: { row: AccountRow; ask: (a: UserAsk) => void }) {
+  const notice = useNotice();
+  const change = (to: AccountRoleWire) => {
+    if (to === row.role) return;
+    ask({
+      ...CONFIRM.role(row.full, row.roleLabel, ACCOUNT_ROLE[to]),
+      run: async () => {
+        await setUserRole(row.id, to);
+        notice(ROLES.changed(ACCOUNT_ROLE[to]));
+      },
+    });
+  };
+  return (
+    <VStack testID={`role-row-${row.id}`} className="gap-3 px-4 py-3">
       <HStack className="items-center gap-3">
-        <PersonAvatar name={p.full} />
+        <PersonAvatar name={row.full} />
         <VStack className="min-w-0 flex-1 gap-1">
-          <Text className="text-body">{row.you ? `${p.full} ${ROLES.you}` : p.full}</Text>
-          <Text className="text-footnote text-muted-foreground">{p.email}</Text>
+          <Text className="text-body">{row.you ? `${row.full} ${ROLES.you}` : row.full}</Text>
+          <Text className="text-footnote text-muted-foreground">{row.email}</Text>
         </VStack>
-        {row.you && (
+        {(!row.editable || row.deactivated) && (
           <VStack className="items-end gap-1">
-            <StatusPill status={ROLES.active} />
-            <Text className="text-footnote font-semibold">{p.role}</Text>
+            <StatusPill status={row.deactivated ? ROLES.inactive : ROLES.active} />
+            <Text className="text-footnote font-semibold">{row.roleLabel}</Text>
           </VStack>
         )}
       </HStack>
-      {!row.you && (
+      {row.editable && (
         <HStack className="items-center gap-2">
-          <VStack className="flex-1">
-            <SelectField
-              label={`${ROLES.role}: ${p.full}`}
-              options={options}
-              value={role}
-              onChange={change}
-            />
-          </VStack>
-          <Button
-            size="sm"
-            variant="outline"
-            accessibilityLabel={`${ROLES.deactivate} ${p.full}`}
-            onPress={deactivate}
-          >
-            <ButtonText className="text-destructive">{ROLES.deactivate}</ButtonText>
-          </Button>
+          {!row.deactivated && (
+            <VStack className="flex-1">
+              <SelectField
+                label={`${ROLES.role}: ${row.full}`}
+                options={row.options}
+                value={row.role}
+                onChange={change}
+              />
+            </VStack>
+          )}
+          <Switcher row={row} ask={ask} />
         </HStack>
       )}
     </VStack>
@@ -87,32 +107,31 @@ function Person({ row, ask }: PersonProps) {
 
 /** The Roles tab. */
 export function RolesTab() {
-  const d = getRoles();
-  const [search, setSearch] = useState('');
+  const { state, search, setSearch } = useUsersList('roles');
+  const me = whoamiResource.useSnapshot().data;
   const [dialog, ask] = useUserConfirm();
-  const q = search.trim().toLowerCase();
-  const people = d.people.filter((r) =>
-    `${r.person.full} ${r.person.email}`.toLowerCase().includes(q),
-  );
+  const data = state.data;
+  const rows = data?.users.map((u) => accountRow(u, me)) ?? [];
   return (
     <>
       <Text className="text-subhead text-muted-foreground">{ROLES.intro}</Text>
-      <VStack className="gap-2">
-        <CountChips items={d.chips} />
-        <SearchField placeholder={USERS.search} value={search} onChangeText={setSearch} />
-      </VStack>
-      <VStack className="gap-2">
-        <Text className="text-footnote font-semibold">{d.count}</Text>
-        {people.length ? (
-          <Rows>
-            {people.map((r) => (
-              <Person key={r.person.key} row={r} ask={ask} />
-            ))}
-          </Rows>
-        ) : (
-          <NoMatch title={USERS.noMatch} onReset={() => setSearch('')} />
-        )}
-      </VStack>
+      <SearchField placeholder={USERS.search} value={search} onChangeText={setSearch} />
+      <ListState tab="roles" state={state} />
+      {data && (
+        <VStack className="gap-2">
+          <Text className="text-footnote font-semibold">{ROLES.count(data.total)}</Text>
+          {rows.length ? (
+            <Rows>
+              {rows.map((r) => (
+                <Person key={r.id} row={r} ask={ask} />
+              ))}
+            </Rows>
+          ) : (
+            <NoMatch title={USERS.noMatch} onReset={() => setSearch('')} />
+          )}
+          <LoadMore tab="roles" data={data} />
+        </VStack>
+      )}
       <InfoBox title={ROLES.infoTitle} items={ROLES.info} />
       {dialog}
     </>

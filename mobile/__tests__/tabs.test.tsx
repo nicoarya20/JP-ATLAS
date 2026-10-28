@@ -4,7 +4,30 @@ import { type RenderRouterResult, testRouter } from 'expo-router/testing-library
 import { Keyboard } from 'react-native';
 
 import { resetSnack, showSnack } from '../src/components/snack/use-snack';
+import { forgetAllResources } from '../src/data/resource';
 import { openApp as open } from './helpers/app-router';
+import { serveAuth } from './helpers/auth-server';
+import { countRoutes, homeRoutes } from './helpers/home-fixtures';
+import { page as projectsPage } from './helpers/projects-fixtures';
+import { whoamiRoute } from './helpers/whoami-fixtures';
+
+// Every tab screen reads the server on mount; these answers keep the reads in jest. Each test here is about the route
+// tree, not the data, so empty lists are enough.
+let server: ReturnType<typeof serveAuth> | null = null;
+beforeEach(() => {
+  forgetAllResources();
+  server = serveAuth({
+    ...homeRoutes(),
+    ...countRoutes(0, 0),
+    ...whoamiRoute('pm'),
+    '/api/app/tasks?': { body: { items: [], nextCursor: null, caps: {} } },
+    '/api/app/projects?': { body: projectsPage([]) },
+  });
+});
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
 
 type NavState = { routes: { name: string; state?: NavState }[] };
 /** Screens in the Tasks tab's stack (router state: root → (tabs) → tasks). */

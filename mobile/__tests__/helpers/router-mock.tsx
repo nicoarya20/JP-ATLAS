@@ -26,6 +26,9 @@ export function routerMock() {
     },
     useLocalSearchParams: () => params,
     usePreventRemove: jest.fn(),
+    // A screen rendered alone is in focus from its first frame.
+    useFocusEffect: (effect: () => undefined | (() => void)) =>
+      require('react').useEffect(effect, [effect]),
     Redirect: ({ href }: { href: string }) => <Text testID="redirect">{href}</Text>,
   };
 }

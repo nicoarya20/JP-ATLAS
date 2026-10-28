@@ -5,15 +5,15 @@ import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import type { AgendaItem } from '@/data/events';
+import type { EventRow } from '@/data/events';
 
 import { CALENDAR } from '../events.strings';
 import { spoken } from '../events.strings.added';
 
 type AgendaListProps = {
   date: string;
-  items: readonly AgendaItem[];
-  onOpen: (item: AgendaItem) => void;
+  items: readonly EventRow[];
+  onOpen: (row: EventRow) => void;
 };
 
 /** Heading and the picked date's events. */
@@ -30,31 +30,21 @@ export function AgendaList({ date, items, onOpen }: AgendaListProps) {
       {items.length === 0 && (
         <Text className="text-footnote text-muted-foreground">{CALENDAR.noEvents}</Text>
       )}
-      {items.map((item) => (
+      {items.map((row) => (
         <Pressable
-          key={item.event.id}
+          key={row.id}
+          testID={`agenda-${row.id}`}
           accessibilityRole="button"
-          accessibilityLabel={spoken(
-            item.event.title,
-            date,
-            item.event.range,
-            item.event.place,
-            item.event.type,
-            item.status,
-          )}
-          onPress={() => onOpen(item)}
+          accessibilityLabel={spoken(row.title, date, row.range, row.where, row.type, row.status)}
+          onPress={() => onOpen(row)}
           className="rounded-card border border-border bg-card p-3 data-[active=true]:bg-muted"
         >
           <HStack className="gap-3">
-            <Text className="min-w-12 text-subhead font-semibold text-foreground">
-              {item.event.time}
-            </Text>
+            <Text className="min-w-12 text-subhead font-semibold text-foreground">{row.start}</Text>
             <VStack className="min-w-0 flex-1 gap-1">
-              <Text className="text-headline font-semibold text-foreground">
-                {item.event.title}
-              </Text>
+              <Text className="text-headline font-semibold text-foreground">{row.title}</Text>
               <Text className="text-footnote text-muted-foreground">
-                {item.event.type} · {item.status}
+                {row.type} · {row.status}
               </Text>
             </VStack>
           </HStack>

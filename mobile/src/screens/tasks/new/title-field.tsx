@@ -3,16 +3,20 @@
 import { useState } from 'react';
 
 import { Field } from '@/components/form/field';
-import type { TaskForm } from '@/data/tasks.form';
+import { type FormProblem, formProblem, type TaskForm, TITLE_MAX } from '@/data/tasks.form';
 
 import { F } from '../tasks.strings';
 import { MISSING } from '../tasks.strings.added';
 
-/** Why Save is disabled: the title first, then the assignee (whose own "Pick at least one person." is on screen). */
-export const saveHint = (f: Pick<TaskForm, 'title' | 'who'>) =>
-  !f.title.trim() ? MISSING.title : !f.who.length ? F.pickOne : undefined;
+const PROBLEM: Record<FormProblem, string> = { title: MISSING.title, dates: MISSING.dates };
 
-/** The task's title field. */
+/** Why Save is disabled: a blank title, then a start after the due date; undefined when Save may send. */
+export const saveHint = (f: Pick<TaskForm, 'title' | 'startDate' | 'dueDate'>) => {
+  const problem = formProblem(f);
+  return problem ? PROBLEM[problem] : undefined;
+};
+
+/** The task's title field, kept to the server's TITLE_MAX. */
 export function TitleField({
   value,
   onChange,
@@ -28,7 +32,7 @@ export function TitleField({
       value={value}
       onChangeText={(title) => {
         setTouched(true);
-        onChange(title);
+        onChange(title.slice(0, TITLE_MAX));
       }}
       onBlur={() => setTouched(true)}
       error={touched && !value.trim() ? MISSING.title : undefined}

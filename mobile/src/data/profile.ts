@@ -1,129 +1,56 @@
-// Profile for the screens (prototype profile.main.jsx / profile.calendar.jsx): my hero line, the Inbox count, and my
-// calendar's week and day. Phase 2 reads the API here.
-import type { EventHref, EventItem } from './events.shared';
-import { eventHref, eventWhere } from './events.shared';
-import { respondCards } from './inbox';
-import { me, type PersonInfo } from './people';
-import {
-  type CalendarItem,
-  dayLabel,
-  eventsFor,
-  initialScroll,
-  itemsOn,
-  monthLabel,
-  WEEKDAYS,
-  weekday,
-  weekOf,
-} from './profile.calendar.dates';
-import type { Role } from './sample';
-import { TODAY } from './sample/today';
-import { type Decisions, getDecisions } from './users';
+// Profile ① for the screens (prototype profile.main.jsx): my name, hero line, photo and the Inbox count, from the
+// server (`GET /api/app/profile` + whoami's role + the session's photo). My calendar is `profile.calendar.ts`.
+import { type SessionUser, sessionStore } from '@/session/session.state';
+
+import { useInboxActionCount } from './inbox.api';
+import { type ProfileWire, profileResource } from './profile.api';
+import { useStore } from './store';
+import { ACCOUNT_ROLE } from './team.person';
+import { roleOf } from './users.admin.wire';
+import { type WhoamiWire, whoamiResource } from './whoami.api';
 
 export type ProfileData = {
-  me: PersonInfo;
-  /** "Project Manager · Product", plus " · Admin" for an Admin. */
+  /** `displayName`, else the account name; the session's name until the profile is in. */
+  full: string;
+  email: string;
+  /** "Project Manager · Product", plus " · Admin" for an Admin; parts the profile leaves empty are left out. */
   line: string;
-  /** Items in Inbox › Needs your response. */
-  inbox: number;
+  /** The account photo from the session (ProfileView has none, GAP P-6); null draws the initials. */
+  image: string | null;
+  /** Open cards in Inbox › Needs your response, from `GET /inbox/count`; null while it is not in (no badge). */
+  inbox: number | null;
 };
 
-/** Profile ① for `role`; `decided` (the Users decisions) sets the Admin's Inbox count. */
-export function getProfile(role: Role, decided: Decisions = getDecisions()): ProfileData {
-  const p = me(role);
+const ADMIN_ROLES = new Set(['admin', 'super-admin']);
+
+/** The hero line from the profile's job and division, and the account role for an Admin (or when nothing else). */
+function lineOf(p: ProfileWire | null, who: WhoamiWire | null): string {
+  const role = who ? ACCOUNT_ROLE[roleOf(who.role)] : null;
+  const parts = [p?.jobTitle, p?.department].filter((x): x is string => !!x);
+  if (role && (ADMIN_ROLES.has(who?.role ?? '') || !parts.length)) parts.push(role);
+  return parts.join(' · ');
+}
+
+/** Profile ① from what the server sent so far. */
+export function profileData(
+  p: ProfileWire | null,
+  who: WhoamiWire | null,
+  user: SessionUser | null,
+  inbox: number | null,
+): ProfileData {
   return {
-    me: p,
-    line: `${p.title} · ${p.division}${role === 'admin' ? ' · Admin' : ''}`,
-    inbox: respondCards(role, decided).length,
+    full: p?.displayName ?? p?.name ?? user?.name ?? '',
+    email: p?.email ?? user?.email ?? '',
+    line: lineOf(p, who),
+    image: user?.image ?? null,
+    inbox,
   };
 }
 
-/** Event colour on the day grid, per type (Other and unknown types: neutral). */
-export type CalendarTone = 'blue' | 'purple' | 'red' | 'green' | 'gray';
-
-const TONE: Record<string, CalendarTone> = {
-  Meeting: 'blue',
-  Review: 'purple',
-  Important: 'red',
-  'Team event': 'green',
-};
-
-export type CalendarDay = {
-  iso: string;
-  num: number;
-  /** First letter of the weekday ("W"). */
-  letter: string;
-  /** "Wednesday, Oct 7, 2026, today". */
-  label: string;
-  picked: boolean;
-  today: boolean;
-  weekend: boolean;
-  /** Has at least one of my events. */
-  marked: boolean;
-};
-
-export type CalendarBlock = {
-  id: string;
-  title: string;
-  /** "2:00–3:00 PM · In person · Meeting Room 2". */
-  meta: string;
-  start: number;
-  end: number;
-  tone: CalendarTone;
-  href: EventHref;
-};
-
-export type MyCalendarData = {
-  month: string;
-  week: CalendarDay[];
-  /** "Wednesday, Oct 7, 2026". */
-  dayLabel: string;
-  /** "2 events", "1 event" or "No events". */
-  count: string;
-  today: boolean;
-  blocks: CalendarBlock[];
-  /** Where the hour grid opens. */
-  scrollY: number;
-};
-
-const block = ({ e, start, end }: CalendarItem): CalendarBlock => ({
-  id: e.id,
-  title: e.title,
-  meta: `${e.range} · ${eventWhere(e)}`,
-  start,
-  end,
-  tone: TONE[e.type] ?? 'gray',
-  href: eventHref(e),
-});
-
-/** Week strip holding `day`, Sunday first. */
-export const weekDays = (items: readonly CalendarItem[], day: string): CalendarDay[] =>
-  weekOf(day).map((iso) => ({
-    iso,
-    num: Number(iso.slice(8)),
-    letter: WEEKDAYS[weekday(iso)].charAt(0),
-    label: `${dayLabel(iso)}${iso === TODAY ? ', today' : ''}`,
-    picked: iso === day,
-    today: iso === TODAY,
-    weekend: weekday(iso) % 6 === 0,
-    marked: itemsOn(items, iso).length > 0,
-  }));
-
-/** Profile ② My calendar for `role` on `day`, from the events list. */
-export function getMyCalendar(
-  role: Role,
-  day: string,
-  events: readonly EventItem[],
-): MyCalendarData {
-  const items = eventsFor(events, me(role).name);
-  const todays = itemsOn(items, day);
-  const n = todays.length;
-  return {
-    month: monthLabel(day),
-    week: weekDays(items, day),
-    dayLabel: dayLabel(day),
-    count: n ? `${n} event${n > 1 ? 's' : ''}` : 'No events',
-    today: day === TODAY,
-    blocks: todays.map(block),
-    scrollY: initialScroll(day === TODAY, todays),
-  };
+/** Profile ① in a component, redrawn as the profile, whoami, the session and the Inbox count come in. */
+export function useProfileData(): ProfileData {
+  const p = profileResource.useSnapshot().data;
+  const who = whoamiResource.useSnapshot().data;
+  const user = useStore(sessionStore, (s) => s.user);
+  return profileData(p, who, user, useInboxActionCount());
 }

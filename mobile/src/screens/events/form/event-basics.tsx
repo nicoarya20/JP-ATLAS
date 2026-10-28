@@ -1,63 +1,35 @@
-// Fields both event forms share (prototype events.new.jsx Basics): title, date, start and end, location, attendees.
-// Save stays disabled while the title is empty or the end is not after the start; both say why (UX §5): the title
-// once it was touched, the time range at once, with End marked invalid.
-import { X } from 'lucide-react-native';
+// Fields both event forms share (prototype events.new.jsx Basics): title, date, start and end, location. Save stays
+// disabled while the title is empty, the end is not after the start, or the meeting link is not a web address; each
+// says why (UX §5): the title once it was touched, the time and the link at once.
 import { useState } from 'react';
 
+import { DateField } from '@/components/form/date-field';
 import { Field } from '@/components/form/field';
 import { FormError } from '@/components/form/form-error';
 import { Seg } from '@/components/form/seg';
 import { SelectField } from '@/components/form/select-field';
-import { HStack } from '@/components/ui/hstack';
-import { Icon } from '@/components/ui/icon';
-import { Pressable } from '@/components/ui/pressable';
-import { Text } from '@/components/ui/text';
-import { dateLabel } from '@/data/events.dates';
-import { DATES, MODES, TIMES, validateEvent } from '@/data/events.form';
-import type { EventFields } from '@/data/events.store';
-import { listPeople } from '@/data/people';
+import { today } from '@/data/clock';
+import { monthDay } from '@/data/dates';
+import { addDays } from '@/data/events.dates';
+import { checkEvent, type EventForm, MODES, timeOptions } from '@/data/events.form';
+import {
+  EVENT_LOCATION_TEXT_MAX,
+  EVENT_MEETING_URL_MAX,
+  EVENT_TITLE_MAX,
+} from '@/data/events.wire';
 
 import { FORM } from '../events.strings';
 import { ADDED } from '../events.strings.added';
 import { EvField } from '../parts/event-field';
-import { Two } from '../parts/event-parts';
+import { Note, Two } from '../parts/event-parts';
 
-const TIME_OPTIONS = TIMES.map((t) => ({ value: t, label: t }));
+export type FormProps = { f: EventForm; set: (patch: Partial<EventForm>) => void };
 
-export type FormProps = { f: EventFields; set: (patch: Partial<EventFields>) => void };
-
-/** Date picks; an edited event dated before today keeps its own date on top. */
-const dateOptions = (date: string) =>
-  DATES.some((d) => d.value === date) ? DATES : [{ value: date, label: dateLabel(date) }, ...DATES];
-
-/** Attendee pill; tap removes the person, except the creator. */
-function Person({ name, onRemove }: { name: string; onRemove?: () => void }) {
-  const pill = 'min-h-11 flex-row items-center gap-1 rounded-full bg-muted px-3';
-  if (!onRemove) {
-    return (
-      <HStack className={pill}>
-        <Text className="text-subhead text-foreground">{name}</Text>
-      </HStack>
-    );
-  }
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={FORM.remove(name)}
-      onPress={onRemove}
-      className={`${pill} data-[active=true]:opacity-70`}
-    >
-      <Text className="text-subhead text-foreground">{name}</Text>
-      <Icon as={X} size="sm" className="text-muted-foreground" />
-    </Pressable>
-  );
-}
-
-/** Title through attendees; `creator` stays an attendee. */
-export function EventBasics({ f, set, creator }: FormProps & { creator: string }) {
-  const left = listPeople().filter((p) => !f.attendees.includes(p.name));
+/** Title through location; a new event cannot start before today (the server's). */
+export function EventBasics({ f, set, editing }: FormProps & { editing: boolean }) {
   const [touched, setTouched] = useState(false);
-  const { timeOk } = validateEvent(f);
+  const { titleOk, timeOk, linkOk } = checkEvent(f);
+  const online = f.mode === 'Online';
   return (
     <>
       <Field
@@ -67,34 +39,36 @@ export function EventBasics({ f, set, creator }: FormProps & { creator: string }
         placeholder={FORM.titlePlaceholder}
         onChangeText={(title) => {
           setTouched(true);
-          set({ title });
+          set({ title: title.slice(0, EVENT_TITLE_MAX) });
         }}
         onBlur={() => setTouched(true)}
-        error={touched && !f.title.trim() ? ADDED.titleMissing : undefined}
+        error={touched && !titleOk ? ADDED.titleMissing : undefined}
         testID="event-title"
       />
       <EvField label={FORM.date} required named>
-        <SelectField
+        <DateField
           label={FORM.date}
-          required
-          options={dateOptions(f.date)}
           value={f.date}
+          initial={f.date}
+          min={editing ? undefined : today()}
           onChange={(date) => set({ date })}
+          testID="event-date"
         />
       </EvField>
       <Two>
         <EvField label={FORM.start} named>
           <SelectField
             label={FORM.start}
-            options={TIME_OPTIONS}
+            options={timeOptions(f.start)}
             value={f.start}
             onChange={(start) => set({ start })}
+            testID="event-start"
           />
         </EvField>
         <EvField label={FORM.end} named>
           <SelectField
             label={FORM.end}
-            options={TIME_OPTIONS}
+            options={timeOptions(f.end)}
             value={f.end}
             onChange={(end) => set({ end })}
             error={timeOk ? undefined : FORM.timeError}
@@ -102,6 +76,7 @@ export function EventBasics({ f, set, creator }: FormProps & { creator: string }
           />
         </EvField>
       </Two>
+      {f.span > 0 && <Note>{FORM.endsOn(monthDay(addDays(f.date, f.span)))}</Note>}
       {!timeOk && <FormError testID="event-time-error">{FORM.timeError}</FormError>}
       <EvField label={FORM.location} hint={FORM.locationHint} named>
         <Seg
@@ -111,35 +86,22 @@ export function EventBasics({ f, set, creator }: FormProps & { creator: string }
           value={MODES.indexOf(f.mode)}
           onChange={(i) => set({ mode: MODES[i] ?? MODES[0] })}
         />
-        <Field
-          label={f.mode === 'Online' ? FORM.link : FORM.place}
-          value={f.place}
-          onChangeText={(place) => set({ place })}
-        />
-      </EvField>
-      <EvField label={FORM.attendees}>
-        <HStack className="flex-wrap gap-2">
-          {f.attendees.map((n) => (
-            <Person
-              key={n}
-              name={n}
-              onRemove={
-                n === creator
-                  ? undefined
-                  : () => set({ attendees: f.attendees.filter((x) => x !== n) })
-              }
-            />
-          ))}
-        </HStack>
-        {left.length > 0 && (
-          <SelectField
-            label={FORM.addPerson}
-            value=""
-            options={[
-              { value: '', label: FORM.addPerson },
-              ...left.map((p) => ({ value: p.name, label: p.name })),
-            ]}
-            onChange={(n) => n && set({ attendees: [...f.attendees, n] })}
+        {online ? (
+          <Field
+            label={FORM.link}
+            value={f.link}
+            inputMode="url"
+            autoCapitalize="none"
+            onChangeText={(link) => set({ link: link.slice(0, EVENT_MEETING_URL_MAX) })}
+            error={linkOk ? undefined : FORM.linkError}
+            testID="event-link"
+          />
+        ) : (
+          <Field
+            label={FORM.place}
+            value={f.place}
+            onChangeText={(place) => set({ place: place.slice(0, EVENT_LOCATION_TEXT_MAX) })}
+            testID="event-place"
           />
         )}
       </EvField>

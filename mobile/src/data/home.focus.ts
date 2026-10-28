@@ -1,85 +1,111 @@
-import { daysToSunday } from './dates';
-import { type EventItem, eventHref } from './events.shared';
-import type { AgendaEvent, AgendaProject, FocusTask, HomeFocus } from './home.types';
-import type { ProjectItem } from './projects.state';
-import { type Role, TODAY } from './sample';
-import { dueIn, isOpen, type TaskItem } from './tasks.shared';
-import type { TasksState } from './tasks.state';
+/*
+ * "My Focus" and "Agenda & Projects", mapped from the one `GET /api/app/home` payload.
+ *
+ * Nothing here decides anything: the server already chose which of my tasks are urgent, which
+ * button each row may have (`action`, from its own policy — the client permission rule the map
+ * forbids is gone), how a project is doing, and which events are coming. This only turns its shape
+ * into the screen's, and turns the event instants into a day and a time in the team zone (K2).
+ */
+import type {
+  HomeAgendaItemWire,
+  HomeFocusTaskWire,
+  HomeFocusWire,
+  HomeProjectWire,
+  HomeReviewTaskWire,
+} from './home.api';
+import type {
+  AgendaEvent,
+  AgendaProject,
+  FocusGroupKey,
+  FocusTask,
+  HomeFocus,
+  ReviewTask,
+} from './home.types';
+import { instantDate, instantTime } from './instant';
 
-/* "My Focus" and "Agenda & Projects", ported from the prototype (home.focus.jsx) on the live tasks and events. */
-
-/** Project statuses that leave Agenda & Projects. */
-const CLOSED_PROJECT = ['Done', 'Canceled'];
-
-/** Done is offered only for a task that is not in review and needs none (prototype: no reviewer in its detail). */
-export const canMarkDone = (s: TasksState, t: TaskItem) =>
-  t.status !== 'In review' && !s.info[t.no]?.reviewer;
-
-/** A focus row. */
-const focusTask = (s: TasksState, t: TaskItem): FocusTask => ({
-  no: t.no,
-  title: t.title,
-  project: t.project,
-  when: t.when,
-  status: t.status,
-  canMarkDone: canMarkDone(s, t),
-});
-
-/** My open tasks by Overdue / Today / This week (to Sunday); PM also gets others' tasks in review, Admin the approvals. */
-export function homeFocus(role: Role, s: TasksState, me: string, waiting: number): HomeFocus {
-  const open = s.tasks.filter((t) => t.who === me && isOpen(t));
-  const weekLeft = daysToSunday(TODAY);
-  const review =
-    role === 'pm' ? s.tasks.filter((t) => t.status === 'In review' && t.who !== me) : [];
-  const row = (t: TaskItem) => focusTask(s, t);
-  const groups = [
-    { key: 'overdue' as const, tasks: open.filter((t) => dueIn(t) < 0) },
-    { key: 'today' as const, tasks: open.filter((t) => dueIn(t) === 0) },
-    { key: 'thisWeek' as const, tasks: open.filter((t) => dueIn(t) > 0 && dueIn(t) <= weekLeft) },
-  ].map((g) => ({ key: g.key, tasks: g.tasks.map(row) }));
-  return {
-    // Once every sign-up is decided the Admin has nothing to approve, so the row goes.
-    pendingUsers: role === 'admin' && waiting ? waiting : null,
-    groups,
-    review: review.map(row),
-    openCount: open.length,
-    empty: groups.every((g) => !g.tasks.length) && !review.length,
-  };
-}
+/** Buckets in the order Home shows them; an empty one is dropped by the screen. */
+const ORDER: readonly FocusGroupKey[] = ['overdue', 'today', 'thisWeek', 'later', 'noDate'];
 
 /**
- * My next listed event that is not done or canceled, then my listed projects that are not closed (Admin: every such
- * one). Projects come from the Projects state, so an edit or an archive there shows here.
+ * The server's schedule group as Home words it: `tomorrow` and `week` are both "This week". A group
+ * a newer server adds falls into "Later" so the task is still shown rather than quietly dropped.
  */
-export function homeAgenda(
-  role: Role,
-  events: readonly EventItem[],
-  listed: readonly ProjectItem[],
-  me: string,
-): { next: AgendaEvent | null; projects: AgendaProject[] } {
-  const e = events.find((x) => x.attendees.includes(me) && x.status !== 'Done' && !x.canceled);
-  const projects = listed.filter(
-    (p) => !CLOSED_PROJECT.includes(p.status) && (role === 'admin' || p.members.includes(me)),
-  );
+function bucketOf(group: string): FocusGroupKey {
+  switch (group) {
+    case 'overdue':
+      return 'overdue';
+    case 'today':
+      return 'today';
+    case 'tomorrow':
+    case 'week':
+      return 'thisWeek';
+    case 'none':
+      return 'noDate';
+    default:
+      return 'later';
+  }
+}
+
+const focusTask = (t: HomeFocusTaskWire): FocusTask => ({
+  id: t.id,
+  no: t.number,
+  title: t.title,
+  project: t.project.name,
+  dueDate: t.dueDate,
+  overdueDays: t.overdueDays,
+  action: t.action,
+});
+
+const reviewTask = (t: HomeReviewTaskWire): ReviewTask => ({
+  id: t.id,
+  no: t.number,
+  title: t.title,
+  project: t.project.name,
+});
+
+/** My open tasks in their buckets, plus the tasks waiting for my review. */
+export function homeFocus(wire: HomeFocusWire): HomeFocus {
+  const groups = ORDER.map((key) => ({
+    key,
+    tasks: wire.items.filter((t) => bucketOf(t.group) === key).map(focusTask),
+  }));
+  const review = wire.awaitingReview.map(reviewTask);
   return {
-    next: e
-      ? {
-          id: e.id,
-          href: eventHref(e),
-          title: e.title,
-          time: e.time,
-          date: e.date,
-          mode: e.mode,
-          place: e.place,
-        }
-      : null,
-    projects: projects.map(({ id, name, lead, due, progress, status }) => ({
-      id,
-      name,
-      lead,
-      due,
-      progress,
-      status,
-    })),
+    groups,
+    review,
+    openCount: wire.total,
+    reviewCount: wire.awaitingReviewTotal,
+    empty: wire.items.length === 0 && review.length === 0,
   };
 }
+
+/** Where the event is, when it says: the two values the server has, worded for the screen. */
+const MODE: Record<string, AgendaEvent['mode']> = { offline: 'In person', online: 'Online' };
+
+/**
+ * My next meeting. The server sends today's and tomorrow's agenda in order, so the first row is the
+ * next one; the rest is not shown on Home (the Events menu is where the whole agenda lives).
+ */
+export function homeAgenda(items: readonly HomeAgendaItemWire[]): AgendaEvent | null {
+  const next = items[0];
+  if (!next) return null;
+  return {
+    id: next.id,
+    href: `/events/${next.id}`,
+    title: next.title,
+    time: instantTime(next.startsAt),
+    date: instantDate(next.startsAt),
+    mode: next.locationType === null ? null : (MODE[next.locationType] ?? null),
+  };
+}
+
+/** My projects as Home lists them; `percent` stays null for a project with no tasks yet. */
+export const homeProjects = (projects: readonly HomeProjectWire[]): AgendaProject[] =>
+  projects.map((p) => ({
+    id: p.id,
+    name: p.name,
+    due: p.dueDate,
+    progress: p.progress.percent,
+    condition: p.condition,
+    reason: p.reason,
+  }));
