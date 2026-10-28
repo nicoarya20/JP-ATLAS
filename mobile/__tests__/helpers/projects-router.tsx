@@ -9,7 +9,6 @@ import TabsLayout from '../../app/(tabs)/_layout';
 import HomeStack from '../../app/(tabs)/(home)/_layout';
 import * as ProjectsStack from '../../app/(tabs)/projects/_layout';
 import * as TasksStack from '../../app/(tabs)/tasks/_layout';
-import NewProjectStack from '../../app/projects/new/_layout';
 import NewTaskStack from '../../app/tasks/new/_layout';
 import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
@@ -18,7 +17,7 @@ import { ProjectDetailScreen } from '../../src/screens/projects/detail/project-d
 import { ProjectEditScreen } from '../../src/screens/projects/edit/project-edit.screen';
 import { ProjectsFilterScreen } from '../../src/screens/projects/filter/projects-filter.screen';
 import { ProjectsScreen } from '../../src/screens/projects/list/projects.screen';
-import { NewProjectIndex, ProjectFormScreen } from '../../src/screens/projects/new/form.screen';
+import { ProjectFormScreen } from '../../src/screens/projects/new/form.screen';
 import { ProjectTaskFilterScreen } from '../../src/screens/projects/settings/project-tasks-routes';
 import { ArchiveProjectScreen } from '../../src/screens/projects/sheets/archive.screen';
 import { ExtendProjectScreen } from '../../src/screens/projects/sheets/extend.screen';
@@ -50,9 +49,7 @@ const ROUTES = {
   '(tabs)/projects/[id]/extend': ExtendProjectScreen,
   '(tabs)/projects/[id]/archive': ArchiveProjectScreen,
   '(tabs)/projects/[id]/task-filter': ProjectTaskFilterScreen,
-  'projects/new/_layout': NewProjectStack,
-  'projects/new/index': NewProjectIndex,
-  'projects/new/form': ProjectFormScreen,
+  'projects/new': ProjectFormScreen,
 };
 
 /** Render the app at `url`. */

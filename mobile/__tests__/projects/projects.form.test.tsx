@@ -3,6 +3,7 @@
 // (blanks left out, a picked Lead sent as a Manager), the new project opened with "Project created", and a refusal
 // kept on the form in the server's words.
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { router } from 'expo-router';
 
 import { resetProjectsQuery } from '../../src/data/projects.api';
 import { forgetAllResources } from '../../src/data/resource';
@@ -40,7 +41,7 @@ afterEach(() => {
   server = null;
 });
 
-const FORM = '/projects/new/form';
+const FORM = '/projects/new';
 const button = (name: string | RegExp) => screen.getByRole('button', { name });
 const press = (name: string | RegExp) => fireEvent.press(button(name));
 
@@ -74,11 +75,12 @@ describe('Fill in project form', () => {
     await waitFor(() => expect(screen).toHavePathname('/'));
   });
 
-  test('/projects/new opens the form', async () => {
+  test('/projects/new is the form itself, with no blank screen redirecting to it', async () => {
     serve(routes());
-    await openProjects('/projects/new');
-    await waitFor(() => expect(screen).toHavePathname(FORM));
+    await openProjects('/projects');
+    await act(async () => router.push(FORM));
     expect(await screen.findByTestId('project-form')).toBeOnTheScreen();
+    expect(screen).toHavePathname(FORM);
   });
 
   test('a blank name says why once touched; Create sends what was filled in and opens the project', async () => {

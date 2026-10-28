@@ -154,7 +154,11 @@ function ProjectForm({ me }: { me: { id: string; name: string } }) {
   );
 }
 
-/** The project form once `whoami` says the caller may create projects; anyone else goes home. */
+/**
+ * `/projects/new`: the project form once `whoami` says the caller may create projects; anyone else goes home. One
+ * route, no way chooser in front: its story, AI draft and template ways were removed (no endpoint drafts or copies a
+ * project; gap doc §3, P-10).
+ */
 export function ProjectFormScreen() {
   const who = whoamiResource.useSnapshot();
   useEffect(() => {
@@ -181,9 +185,3 @@ export function ProjectFormScreen() {
     </View>
   );
 }
-
-/**
- * `/projects/new`: straight to the form, the only way to make a project. The way chooser and its story, AI draft and
- * template ways were removed (no endpoint drafts or copies a project; gap doc §3, P-10).
- */
-export const NewProjectIndex = () => <Redirect href="/projects/new/form" />;

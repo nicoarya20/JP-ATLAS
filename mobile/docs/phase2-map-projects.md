@@ -66,7 +66,7 @@ fase `not_started|in_progress|done`, kategori perpanjangan `scope_change|depende
 | Edit `[id]/edit` → `edit/project-edit.screen.tsx` | `getProjectEdit`, `editProject` | `PATCH /:id` + bila berubah `POST /:id/status` + `PUT /:id/lead` |
 | Move to Archive `[id]/archive` → `sheets/archive.screen.tsx` | `getProjectArchive`, `archiveProject`, `restoreProject` | `DELETE /projects/:id`, Undo = `POST /trash/project/:id/restore` |
 | Settings `[id]/settings` → `settings/project-tasks-routes.tsx` | `getTaskSettings` (`tasks.settings.ts`) | Baca kinds via `form-options`; **tulis tidak ada** (GAP P-9) |
-| Create `projects/new/{index,form}` | ✓ `form.screen.tsx` + `form-submit.ts`; story/draft/template, pemilih jalan, `getProjectCreate` dan `templateDates` dihapus (GAP P-10) | `POST /projects` (jalur Form saja) |
+| Create `projects/new` | ✓ `form.screen.tsx` + `form-submit.ts`, satu route (index Redirect + Stack bersarang dihapus: di dark mode memunculkan layar putih lalu form masuk dari samping); story/draft/template, pemilih jalan, `getProjectCreate` dan `templateDates` dihapus (GAP P-10) | `POST /projects` (jalur Form saja) |
 
 ---
 
