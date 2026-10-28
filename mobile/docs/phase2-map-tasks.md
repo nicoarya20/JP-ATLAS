@@ -55,12 +55,12 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 | Tombol detail | `runTaskAction` (`tasks.actions.ts`) | `start`/`complete`/`reopen`/`uncancel`; `primary` server menentukan tombol utama |
 | Return `[id]/return` | `returnTask`, `nextReturnCount` | **404 (S4)** — GAP T-1 |
 | Cancel `[id]/cancel` | `cancelTask`, `cancelReason` | `POST /:ref/cancel {category, note}` |
-| ⋯ Move to Archive + Undo | `archiveFromDetail`, `undoArchive`, `archiveTask` | `DELETE /tasks/:ref` → `POST /trash/task/:id/restore` |
+| ⋯ Move to Archive + Undo — **diganti** ⋯ Move to Trash + Undo (`52345689`) | ✓ `trashTask`, `restoreTask` (`tasks.trash.ts`), `useTaskTrash`; `archiveFromDetail`/`undoArchive`/`archiveTask` dihapus | `DELETE /tasks/:ref` → `POST /trash/task/:id/restore` |
 | Edit `[id]/edit` → `edit/**` | ✓ `editFormOf`, `editChanges` (`tasks.form.ts`), `updateTask` (`tasks.form.write.ts`) | `GET /:ref` (`can.update`) + `form-options?projectId` (404 → "This project is no longer here") + `projects/:id/members` → `PATCH /:ref` hanya bidang berubah; langkah tetap di detail (checklist) |
 | Fill form `tasks/new/form` | ✓ `newTaskForm`, `pickFormProject`, `createBody`, `createTask` | `form-options` (semua proyek, dimuat ulang tiap buka) + `projects/:id/members` → `POST /tasks` → `/tasks/<number>` |
 | Just write ✦ `tasks/new/index` → `new/write.screen.tsx` | ✓ `draftTasks`, `draftRows`, `answerQuestion`, `draftBody` (`tasks.draft.ts`), `createTasks` (`tasks.form.write.ts`); `getQuickWrite`/`tasks.write.ts` dihapus (`09c01dd0`) | `POST /tasks/draft` → `POST /tasks` per draf |
-| Import CSV `tasks/csv` → `csv/**` | `getCsvImport` | **Tak ada endpoint** — GAP T-6 |
-| Project settings `projects/[id]/settings` → `settings/**` | `getTaskSettings` | Baca kinds dari `form-options`; switch review, CRUD kinds, tag **tak ada** — GAP T-7 |
+| Import CSV `tasks/csv` → `csv/**` — **dihapus** (`f8a78a1a`; sebelumnya `09c01dd0`) | `getCsvImport` (dihapus) | **Tak ada endpoint** — GAP T-6 |
+| Project settings `projects/[id]/settings` → `settings/**` — **dihapus** (`f8a78a1a`; sebelumnya `09c01dd0`) | `getTaskSettings` (dihapus) | Baca kinds dari `form-options`; switch review, CRUD kinds, tag **tak ada** — GAP T-7 |
 | Tab Tasks proyek + `task-filter` | ✓ `useTasksList` / `useTasksBoard` (scope `project:<id>`) + `moveCards`; `cardStep` (`tasks.card.ts`) memilih tombol kartu | `scope=project&projectId` (+ `assigneeId=<akun>` untuk Assignee Me); `getTasksList`/`taskCard`/`applyQuery`/`searchTasks`/`moveOnBoard`/`editTask` dihapus |
 
 ---
