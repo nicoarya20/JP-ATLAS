@@ -3,7 +3,7 @@
 // and the sheets turn away who may not use them.
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
-import { getTask } from '../../src/data/tasks.state';
+import { getTask, getTasksState } from '../../src/data/tasks.state';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
 import { drainToastTimers } from '../helpers/toast-timers';
 
@@ -68,12 +68,14 @@ describe('task detail', () => {
     expect(
       within(screen.getByTestId('tasks-scope')).getByRole('tab', { name: 'All tasks' }),
     ).toBeSelected();
-    expect(screen.queryByTestId('task-card-14')).not.toBeOnTheScreen();
+    // The detail still archives in the sample store; the list it lands on reads the server, so the
+    // store is checked here rather than the cards (the detail moves to the server in the next step).
+    expect(getTasksState().tasks.some((t) => t.no === 14)).toBe(false);
     const snack = within(screen.getByTestId('snack'));
     expect(snack.getByText('Task moved to Archive')).toBeOnTheScreen();
     await fireEvent.press(snack.getByRole('button', { name: 'Undo' }));
     expect(await screen.findByText('Task restored')).toBeOnTheScreen();
-    expect(screen.getByTestId('task-card-14')).toBeOnTheScreen();
+    expect(status(14)).toBe('To do');
   });
 
   it('a task that is gone says so', async () => {

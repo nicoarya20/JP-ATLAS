@@ -13,6 +13,8 @@ export const SPOKEN = {
     n > 1 ? `Move ${n} tasks to ${status}` : `Move to ${status}`,
   /** The radial option of the status the task already has (drawn "Now"). */
   current: (status: string) => `${status}, current status`,
+  /** A radial option none of the held cards may move to (no step the server allows). */
+  off: (status: string) => `${status}, not available`,
   selectIn: (status: string) => `Select tasks in ${status}`,
   stopIn: (status: string) => `Stop selecting in ${status}`,
   addTo: (status: string) => `Add task to ${status}`,

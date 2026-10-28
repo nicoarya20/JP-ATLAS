@@ -1,16 +1,17 @@
-import { findProject, listProjects, type ProjectItem } from './projects.state';
+import { findProject } from './projects.state';
+import { assigned, dueIn, isOpen, type TaskItem, type TaskPriority } from './tasks.shared';
 import {
-  ATLAS_ID,
-  assigned,
-  dueIn,
-  isOpen,
-  type TaskItem,
-  type TaskPriority,
-} from './tasks.shared';
+  OPEN_STATUSES,
+  PRIORITY_WIRE,
+  STATUS_WIRE,
+  type TaskSortWire,
+  type TaskStatusWire,
+} from './tasks.wire';
 
 /*
- * Filter & sort of the task lists (prototype tasks.query.js): the options, the default query per scope, and applying a
- * query to a task list. The query itself is kept per scope in tasks.query-state.
+ * Filter & sort of the task lists (prototype tasks.query.js): the options, the default query per scope, the request a
+ * query makes to /api/app/tasks (Tasks tab), and applying a query to the sample tasks (a project's Tasks tab, until
+ * Projects is wired). The query itself is kept per scope in tasks.query-state.
  */
 
 /** Overlay options; index 0 is the default. */
@@ -23,7 +24,8 @@ export const STATUSES = [
   'Canceled',
 ] as const;
 export const PRIORITIES = ['All', 'High', 'Medium', 'Low'] as const;
-export const SORTS = ['Due date', 'Priority', 'Recently updated', 'Title (A–Z)'] as const;
+/** What the server sorts by; "Title (A–Z)" is gone with it (T-4). */
+export const SORTS = ['Due date', 'Priority', 'Recently updated'] as const;
 export const SORT_DUE = 0;
 /** Assignee filter, only offered on a project's Tasks tab (the Tasks tab has its own My / All switch). */
 export const ASSIGNEES = ['Anyone', 'Me'] as const;
@@ -44,28 +46,56 @@ export type TaskQuery = {
 export const projectOfScope = (scope: TaskScope) =>
   scope.startsWith('project:') ? scope.slice('project:'.length) : null;
 
-/** Query a list starts with: My tasks and a project's tab span every project, All tasks starts on Atlas. */
-export const baseQuery = (scope: TaskScope): TaskQuery => ({
+/** Query a list starts with: every project, open tasks, by due date. */
+export const baseQuery = (_scope: TaskScope): TaskQuery => ({
   status: 0,
-  project: scope === 'all' ? ATLAS_ID : '',
+  project: '',
   priority: 0,
   sort: SORT_DUE,
   who: 0,
 });
 
+/** The server's sort for each of SORTS. */
+const SORT_WIRE: readonly TaskSortWire[] = ['due', 'priority', 'updated'];
+
+/** The scopes the Tasks tab reads from the server; a project's tab still reads the sample. */
+export type ServerScope = 'mine' | 'all';
+
 /**
- * q with its project still listed: one moved to Archive gives way to the scope's default project, or to every project
- * when that one is in Archive too (W4g). The other filters stay. `listed`: the projects store's list.
+ * Statuses a query asks the server for. "All active" names the three open ones: an empty `status`
+ * means every status, Done and Canceled included (map §0).
  */
-export function withListedProject(
+export const queryStatuses = (q: TaskQuery): readonly TaskStatusWire[] =>
+  q.status
+    ? [STATUS_WIRE[STATUSES[q.status] as Exclude<(typeof STATUSES)[number], 'All active'>]]
+    : OPEN_STATUSES;
+
+/**
+ * The query string of `GET /api/app/tasks` for a scope's query and search, without paging. `status`
+ * overrides the query's statuses (a board column asks for its own). Parameters keep one order, so
+ * the same list is always the same request and the same cached resource.
+ */
+export function listParams(
+  scope: ServerScope,
   q: TaskQuery,
-  scope: TaskScope,
-  listed: readonly ProjectItem[] = listProjects(),
-): TaskQuery {
-  const isListed = (id: string) => !id || listed.some((p) => p.id === id);
-  if (isListed(q.project)) return q;
-  const base = baseQuery(scope).project;
-  return { ...q, project: isListed(base) ? base : '' };
+  search: string,
+  status: readonly TaskStatusWire[] = queryStatuses(q),
+): string {
+  const sort = SORT_WIRE[q.sort];
+  if (!sort) throw new Error(`Cannot list tasks: no sort #${q.sort}`);
+  const priority = PRIORITIES[q.priority];
+  const text = search.trim();
+  const pairs: [string, string][] = [
+    ['scope', scope],
+    ...(q.project ? [['projectId', q.project] as [string, string]] : []),
+    ...status.map((s) => ['status', s] as [string, string]),
+    ...(q.priority && priority !== 'All'
+      ? [['priority', PRIORITY_WIRE[priority]] as [string, string]]
+      : []),
+    ...(text ? [['q', text] as [string, string]] : []),
+    ['sort', sort],
+  ];
+  return pairs.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
 }
 
 /** True when the query narrows the list (the dot on the filter icon); the sort order alone does not count. */
@@ -80,7 +110,6 @@ const COMPARE: Compare[] = [
   byDue,
   (a, b) => RANK[a.priority] - RANK[b.priority] || byDue(a, b),
   (a, b) => b.updated.localeCompare(a.updated),
-  (a, b) => a.title.localeCompare(b.title),
 ];
 
 /**

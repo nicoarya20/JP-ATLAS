@@ -1,4 +1,5 @@
-// The app's route tree with every Tasks route, for the Tasks screen tests; each screen gets the role under test.
+// The app's route tree with every Tasks route, for the Tasks screen tests. The Tasks tab reads the stubbed server
+// (tasks-fixtures); the screens not yet on the API get the role under test.
 import { act } from '@testing-library/react-native';
 import { type RenderRouterResult, renderRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
@@ -11,7 +12,9 @@ import NewTaskStack from '../../app/tasks/new/_layout';
 import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
 import { resetArchive } from '../../src/data/archive.store';
+import { forgetAllResources } from '../../src/data/resource';
 import type { Role } from '../../src/data/sample';
+import { resetTaskLists } from '../../src/data/tasks.api';
 import { resetQueries } from '../../src/data/tasks.query-state';
 import { resetTasks } from '../../src/data/tasks.store';
 import { CsvScreen } from '../../src/screens/tasks/csv/csv.screen';
@@ -40,7 +43,7 @@ function routes(role: Role) {
     '(tabs)/(home)/_layout': HomeStack,
     '(tabs)/(home)/index': stub('screen-home'),
     '(tabs)/tasks/_layout': TasksStack,
-    '(tabs)/tasks/index': () => <TasksScreen role={role} />,
+    '(tabs)/tasks/index': TasksScreen,
     '(tabs)/tasks/filter': TasksFilterScreen,
     '(tabs)/tasks/[id]/index': () => <TaskDetailScreen role={role} />,
     '(tabs)/tasks/[id]/edit': () => <TaskEditScreen role={role} />,
@@ -64,6 +67,8 @@ export function resetTaskStores() {
       resetTasks();
       resetArchive();
       resetQueries();
+      resetTaskLists();
+      forgetAllResources();
       resetSnack();
     });
   });

@@ -1,6 +1,7 @@
 // One status of the move menu (prototype tasks.radial.menu.jsx, tasks.css .tk-radial-opt): a pill on its side of the
 // ring that pops in after the ones before it, grows and fills with its tone while aimed at, and on close folds back
-// into the ring, or swells away when it is the status picked. The task's own status is marked Now and is off.
+// into the ring, or swells away when it is the status picked. The task's own status is marked Now and is off; a status
+// none of the held tasks may move to is off and faded, without Now.
 import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -24,6 +25,8 @@ type RadialOptionProps = {
   column: BoardColumn;
   group: boolean;
   now: boolean;
+  /** No held task may move here. */
+  off?: boolean;
   /** Filled: aimed at while open, the picked status while closing. */
   lit: boolean;
   closing: boolean;
@@ -36,11 +39,13 @@ export function RadialOption({
   column,
   group,
   now,
-  lit,
+  off = false,
+  lit: aimed,
   closing,
   reduced,
   onPick,
 }: RadialOptionProps) {
+  const lit = aimed && !off;
   const r = group ? OPTION_RADIUS.group : OPTION_RADIUS.one;
   const [ux, uy] = UNIT[column.side];
   const tone = lit && !now ? TONE_FILL[column.tone] : TONE_SOFT[column.tone];
@@ -80,11 +85,13 @@ export function RadialOption({
         <Pressable
           testID={`radial-${column.status}`}
           accessibilityRole="button"
-          accessibilityLabel={now ? SPOKEN.current(column.status) : column.status}
-          accessibilityState={{ disabled: now, selected: now }}
-          disabled={now}
+          accessibilityLabel={
+            now ? SPOKEN.current(column.status) : off ? SPOKEN.off(column.status) : column.status
+          }
+          accessibilityState={{ disabled: now || off, selected: now }}
+          disabled={now || off}
           onPress={onPick}
-          className={`shadow-md ${tone.bg} ${now ? 'opacity-60' : ''} ${
+          className={`shadow-md ${tone.bg} ${now ? 'opacity-60' : off ? 'opacity-40' : ''} ${
             group
               ? 'min-h-[52px] items-center justify-center rounded-card px-3 py-2'
               : 'min-h-11 rounded-full px-3'

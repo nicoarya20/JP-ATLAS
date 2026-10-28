@@ -1,4 +1,4 @@
-import { CircleCheck, Inbox, type LucideIcon, UserCheck } from 'lucide-react-native';
+import { CircleCheck, Clock, Inbox, type LucideIcon, UserCheck } from 'lucide-react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { usePinnedProgress } from '@/components/screen/stacked-context';
@@ -12,6 +12,7 @@ import { STAT_LABEL, statSub } from '../home.strings';
 
 const STAT_ICON: Record<StatKey, LucideIcon> = {
   assigned: UserCheck,
+  inProgress: Clock,
   completed: CircleCheck,
   inbox: Inbox,
 };

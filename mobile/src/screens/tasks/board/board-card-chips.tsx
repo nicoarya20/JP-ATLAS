@@ -1,4 +1,4 @@
-// Chip row of a Kanban card (prototype tasks.board.jsx BoardCard): the assignees' avatars, the due date (red with
+// Chip row of a Kanban card (prototype tasks.board.jsx BoardCard): the assignee's avatar, the due date (red with
 // "N days late" once past, unless Done, so lateness is not told by colour alone), the priority and the steps.
 import { Calendar, Flag, ListChecks, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
@@ -7,7 +7,9 @@ import { AvatarStack } from '@/components/avatar/avatar-stack';
 import { HStack } from '@/components/ui/hstack';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import type { TaskCard } from '@/data/tasks';
+import type { TaskCard } from '@/data/tasks.card';
+
+import { S } from '../tasks.strings';
 
 const FLAG: Record<string, string> = {
   High: 'text-destructive',
@@ -49,7 +51,7 @@ export function BoardCardChips({ card: t }: { card: TaskCard }) {
         label={t.people.map((p) => p.full).join(', ')}
       />
       <Chip icon={Calendar} danger={t.lateOnBoard}>
-        {t.lateOnBoard && t.lateBy ? `${t.due} · ${t.lateBy}` : t.due}
+        {t.lateOnBoard && t.lateBy ? `${t.due} · ${t.lateBy}` : t.due || S.noDue}
       </Chip>
       <Chip icon={Flag} tint={FLAG[t.priority]}>
         {t.priority}

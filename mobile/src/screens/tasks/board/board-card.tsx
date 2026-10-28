@@ -11,7 +11,7 @@ import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import type { TaskStatus } from '@/data/sample';
-import type { TaskCard } from '@/data/tasks';
+import type { TaskCard } from '@/data/tasks.card';
 import { type BoardStatus, COLUMNS } from '@/data/tasks.columns';
 
 import { cardName } from '../list/card-name';
@@ -20,8 +20,8 @@ import { BoardCardChips } from './board-card-chips';
 import { useMoveGesture } from './use-move-gesture';
 import type { MoveMenu } from './use-move-menu';
 
-/** The cards a move of one card carries (holdGroup) and the status they share, null when mixed. */
-export type MoveSet = { n: number; from: TaskStatus | null };
+/** The cards a move of one card carries (holdGroup), the status they share (null when mixed) and where they may go. */
+export type MoveSet = { n: number; from: TaskStatus | null; allowed: readonly BoardStatus[] };
 
 type BoardCardProps = {
   card: TaskCard;
@@ -30,6 +30,8 @@ type BoardCardProps = {
   /** Select mode: whether it is picked, and the tap that toggles it. */
   select?: { on: boolean; toggle: () => void };
   lifted: boolean;
+  /** Its move is still out. */
+  busy: boolean;
   /** What "Move to …" carries from this card. */
   moveSet: MoveSet;
   onOpen: (no: number) => void;
@@ -41,7 +43,11 @@ type BoardCardProps = {
 export function BoardCard(p: BoardCardProps) {
   const { card: t, menu, select, moveSet } = p;
   const gesture = useMoveGesture(t.no, menu);
-  const moves = t.mayChange ? COLUMNS.filter((c) => c.status !== moveSet.from) : [];
+  const moves = COLUMNS.filter(
+    (c) => c.status !== moveSet.from && moveSet.allowed.includes(c.status),
+  );
+  // A server card has no type (T-3): the All tasks board names its project instead.
+  const place = p.mine ? t.project : (t.type ?? t.project);
   const press = () => {
     if (menu.takeTap()) return;
     if (select) select.toggle();
@@ -52,17 +58,17 @@ export function BoardCard(p: BoardCardProps) {
       <View
         ref={(el) => menu.register(t.no, el)}
         collapsable={false}
-        style={{ opacity: p.lifted ? 0 : 1 }}
+        style={{ opacity: p.lifted ? 0 : p.busy ? 0.5 : 1 }}
       >
         <Pressable
           testID={`board-card-${t.no}`}
           accessibilityRole="button"
           accessibilityLabel={cardName(t, {
-            place: p.mine ? t.project : t.type,
+            place,
             late: t.lateOnBoard,
             note: false,
           })}
-          accessibilityState={select ? { selected: select.on } : undefined}
+          accessibilityState={{ busy: p.busy, ...(select ? { selected: select.on } : {}) }}
           accessibilityActions={moves.map((c) => ({
             name: c.status,
             label: SPOKEN.moveTo(moveSet.n, c.status),
@@ -89,7 +95,7 @@ export function BoardCard(p: BoardCardProps) {
               {t.title}
             </Text>
             <Text className="text-footnote text-muted-foreground">
-              #{t.no} · {p.mine ? t.project : t.type}
+              #{t.no} · {place}
             </Text>
             <BoardCardChips card={t} />
           </VStack>

@@ -219,5 +219,19 @@ export const homeRoutes = (body: unknown = HOME_WIRE): AuthRoutes => ({
   '/api/app/home': { body },
 });
 
+/**
+ * The two counts the In Progress and Inbox chips read: my tasks in progress (`GET /api/app/tasks/counts`) and the
+ * Inbox's action count (`GET /api/app/inbox/count`).
+ */
+export const countRoutes = (inProgress: number, inboxAction: number): AuthRoutes => ({
+  '/api/app/tasks/counts': {
+    body: {
+      mine: { overdue: 1, today: 1, tomorrow: 0, week: 1, later: 0, none: 1 },
+      byStatus: { todo: 3, in_progress: inProgress, in_review: 0, done: 2, canceled: 0 },
+    },
+  },
+  '/api/app/inbox/count': { body: { action: inboxAction, infoUnread: 0 } },
+});
+
 /** Fills the home resource from the stubbed server, as the gate's own call would. */
 export const loadHome = (): Promise<unknown> => homeResource.ensure();

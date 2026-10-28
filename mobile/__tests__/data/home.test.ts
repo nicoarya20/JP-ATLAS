@@ -7,11 +7,19 @@ import { getHome } from '@/data/home';
 import { runFocusAction } from '@/data/home.actions';
 import { type HomeResponse, homeResource } from '@/data/home.api';
 import type { FocusGroupKey, HomeData, StatKey, Widget } from '@/data/home.types';
+import { inboxCountResource } from '@/data/inbox.api';
 import { instantDate } from '@/data/instant';
+import { tasksCountsResource } from '@/data/tasks.api';
 import { sessionStore } from '@/session/session.state';
 
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
-import { HOME_WIRE, homeRoutes, homeWithout, loadHome } from '../helpers/home-fixtures';
+import {
+  countRoutes,
+  HOME_WIRE,
+  homeRoutes,
+  homeWithout,
+  loadHome,
+} from '../helpers/home-fixtures';
 
 let server: ReturnType<typeof serveAuth>;
 
@@ -133,8 +141,33 @@ describe('the stat chips', () => {
 
   test('only the chips with a server number are offered: the rest are hidden with their GAPs', async () => {
     await load();
-    // In Progress, Upcoming and the Admin chips (H-1..H-6) and Inbox (until its count is wired).
+    // Upcoming and the Admin chips (H-4..H-6); In Progress and Inbox until their counts are in.
     expect(home().stats.map((s) => s.key)).toEqual(['assigned', 'completed']);
+  });
+
+  test('In Progress (my tasks in progress) and Inbox join once their counts are in', async () => {
+    await load({ ...homeRoutes(), ...countRoutes(2, 3) });
+    await Promise.all([tasksCountsResource.ensure(), inboxCountResource.ensure()]);
+    expect(home().stats.map((s) => s.key)).toEqual([
+      'assigned',
+      'inProgress',
+      'completed',
+      'inbox',
+    ]);
+    expect(stat('inProgress')).toMatchObject({
+      count: 2,
+      sub: { kind: 'mine' },
+      alert: false,
+      target: 'tasks.my',
+    });
+    expect(stat('inbox')).toMatchObject({ count: null, sub: { kind: 'toRespond', n: 3 } });
+  });
+
+  test('nothing in progress and nothing to answer are said, not hidden', async () => {
+    await load({ ...homeRoutes(), ...countRoutes(0, 0) });
+    await Promise.all([tasksCountsResource.ensure(), inboxCountResource.ensure()]);
+    expect(stat('inProgress')).toMatchObject({ count: 0, sub: { kind: 'noneStarted' } });
+    expect(stat('inbox')).toMatchObject({ sub: { kind: 'caughtUp' } });
   });
 });
 
@@ -274,6 +307,19 @@ describe("what a focus row's button marks stale", () => {
 
     expect(hits('/api/app/tasks/t-14/complete')).toBe(1);
     expect(hits('/api/app/home')).toBe(2);
+  });
+
+  test('the counts the Tasks tab and the chips read are read again too', async () => {
+    await load({
+      ...homeRoutes(),
+      ...countRoutes(1, 1),
+      '/api/app/tasks/t-14/complete': { body: { task: {}, can: {} } },
+    });
+    await Promise.all([tasksCountsResource.ensure(), inboxCountResource.ensure()]);
+    await runFocusAction(complete());
+    await Promise.all([tasksCountsResource.ensure(), inboxCountResource.ensure()]);
+    expect(hits('/api/app/tasks/counts')).toBe(2);
+    expect(hits('/api/app/inbox/count')).toBe(2);
   });
 
   test('Start posts the start step, not complete', async () => {

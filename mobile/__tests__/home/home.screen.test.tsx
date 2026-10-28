@@ -6,7 +6,13 @@ import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provid
 import { HomeScreen } from '../../src/screens/home/home.screen';
 import { TARGET_HREF } from '../../src/screens/home/home.targets';
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
-import { HOME_WIRE, homeRoutes, homeWithout, loadHome } from '../helpers/home-fixtures';
+import {
+  countRoutes,
+  HOME_WIRE,
+  homeRoutes,
+  homeWithout,
+  loadHome,
+} from '../helpers/home-fixtures';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 // Home is rendered on its own (the tab host mounts every tab, see tabs.test.tsx) on the fixture
@@ -52,6 +58,17 @@ describe('HomeScreen', () => {
     ]) {
       expect(screen.getByRole('header', { name: title })).toBeTruthy();
     }
+  });
+
+  test('In Progress and Inbox join the chips when their counts arrive', async () => {
+    await renderHome({ ...homeRoutes(), ...countRoutes(2, 3) });
+    expect(await screen.findByLabelText('In Progress 2, assigned to me')).toBeTruthy();
+    expect(chipLabels()).toEqual([
+      'Assigned 7, 1 overdue',
+      'In Progress 2, assigned to me',
+      'Completed 4, this week · my projects',
+      'Inbox, 3 to respond',
+    ]);
   });
 
   test("the briefing shows the server's lines and when it was built", async () => {

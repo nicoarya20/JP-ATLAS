@@ -11,6 +11,8 @@ import { getHome } from '@/data/home';
 import { runFocusAction } from '@/data/home.actions';
 import { homeResource } from '@/data/home.api';
 import type { FocusTask } from '@/data/home.types';
+import { inboxCountResource, useInboxActionCount } from '@/data/inbox.api';
+import { tasksCountsResource } from '@/data/tasks.api';
 import { PROFILE_PATH } from '@/screens/more/more.tiles';
 import { S } from './home.strings';
 import { HomeSearch, HomeStats } from './parts/home-header';
@@ -39,6 +41,9 @@ const go = (href: Href) => router.navigate(href);
  */
 export function HomeScreen({ onOpen = go }: HomeScreenProps) {
   const state = homeResource.use();
+  // The In Progress and Inbox chips read counts of their own: subscribed so they appear when they arrive.
+  tasksCountsResource.use();
+  useInboxActionCount();
   const [line, setLine] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
   const notice = useNotice();
@@ -46,6 +51,8 @@ export function HomeScreen({ onOpen = go }: HomeScreenProps) {
   // Idempotent by rule 1: the gate has usually asked for home already, and this adds no request.
   useEffect(() => {
     void homeResource.ensure();
+    void tasksCountsResource.ensure();
+    void inboxCountResource.ensure();
   }, []);
 
   const data = getHome();

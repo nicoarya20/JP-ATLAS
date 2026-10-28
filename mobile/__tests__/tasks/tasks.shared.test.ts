@@ -1,7 +1,5 @@
 import { me } from '../../src/data/people';
 import { TASKS } from '../../src/data/sample';
-import { GROUPS, groupOf, myGroups } from '../../src/data/tasks.groups';
-import { baseQuery } from '../../src/data/tasks.query';
 import {
   daysLate,
   deniedNotice,
@@ -17,60 +15,11 @@ import {
 } from '../../src/data/tasks.shared';
 import { getTasksState } from '../../src/data/tasks.state';
 
-// "Today" is Wednesday, Oct 7, 2026, so This week runs to Sunday, Oct 11.
-
 const task = (no: number) => {
   const t = getTasksState().tasks.find((x) => x.no === no);
   if (!t) throw new Error(`test-only: no sample task #${no}`);
   return t;
 };
-const at = (due: string, status: TaskItem['status'] = 'To do') => ({ due, status });
-
-describe('groupOf', () => {
-  test('each urgency boundary', () => {
-    const g = (due: string, status?: TaskItem['status']) => GROUPS[groupOf(at(due, status))];
-    expect(g('2026-10-06')).toBe('Overdue');
-    expect(g('2026-10-07')).toBe('Today');
-    expect(g('2026-10-08')).toBe('Tomorrow');
-    expect(g('2026-10-09')).toBe('This week');
-    expect(g('2026-10-11')).toBe('This week');
-    expect(g('2026-10-12')).toBe('Later');
-    expect(g('2026-10-01', 'Done')).toBe('Done');
-    expect(g('2026-10-01', 'Canceled')).toBe('Canceled');
-  });
-});
-
-describe('myGroups per role', () => {
-  const titles = (role: 'member' | 'pm' | 'admin') =>
-    myGroups(role, getTasksState().tasks, baseQuery('mine'), me(role).name).map((g) => [
-      g.title,
-      g.tasks.map((t) => t.no),
-    ]);
-
-  test('a Manager sees the review queue first, then their tasks by urgency', () => {
-    expect(titles('pm')).toEqual([
-      ['Waiting for my review', [17]],
-      ['Overdue', [12]],
-      ['Today', [14]],
-      ['Tomorrow', [9]],
-    ]);
-  });
-
-  test('an Admin gets "Waiting for review"; a Member has no queue and keeps their In review task', () => {
-    expect(titles('admin')).toEqual([['Waiting for review', [17]]]);
-    expect(titles('member')).toEqual([
-      ['Tomorrow', [17]],
-      ['Later', [16]],
-    ]);
-  });
-
-  test('any other sort is one list titled by the sort, review queue first', () => {
-    const q = { ...baseQuery('mine'), sort: 3 };
-    const groups = myGroups('pm', getTasksState().tasks, q, 'Nico');
-    expect(groups.map((g) => g.title)).toEqual(['Waiting for my review', 'Title (A–Z)']);
-    expect(groups[1].tasks.map((t) => t.no)).toEqual([12, 9, 14]);
-  });
-});
 
 describe('notes and labels', () => {
   const x17 = () => getTasksState().info[17];

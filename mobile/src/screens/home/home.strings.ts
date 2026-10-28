@@ -17,6 +17,7 @@ import type {
 
 export const STAT_LABEL: Record<StatKey, string> = {
   assigned: 'Assigned',
+  inProgress: 'In Progress',
   completed: 'Completed',
   inbox: 'Inbox',
 };
@@ -28,6 +29,11 @@ export function statSub(sub: StatSub): string {
       return `${sub.n} overdue`;
     case 'onTrack':
       return 'on track';
+    // tasks/counts says how many, not which is due next (GAP H-2): the line says whose they are.
+    case 'mine':
+      return 'assigned to me';
+    case 'noneStarted':
+      return 'none started';
     // done.total counts everyone's finished tasks in my projects, not only mine (GAP H-3).
     case 'thisWeekMyProjects':
       return 'this week · my projects';

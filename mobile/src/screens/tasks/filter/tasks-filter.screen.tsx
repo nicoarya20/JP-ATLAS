@@ -1,15 +1,16 @@
 // Filter & sort of a task list (prototype tasks.filter.jsx), the body of the filter formSheet: status, project (or,
 // on a project's Tasks tab, assignee) and priority, then the sort order, edited as a draft. Reset puts the draft back
-// to the scope's default; Apply hands it to the scope's query and closes the sheet.
+// to the scope's default; Apply hands it to the scope's query and closes the sheet. The projects offered are the ones
+// the server lists for the viewer, by name (`GET /api/app/projects`, at most 100: gap §4).
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { FilterField } from '@/components/filter/filter-field';
 import { FilterSheet } from '@/components/filter/filter-sheet';
 import { Chips } from '@/components/form/chips';
 import { RadioList } from '@/components/form/radio-list';
 import { SelectField } from '@/components/form/select-field';
-import { useProjectsState } from '@/data/projects.state';
+import { filterProjectsResource } from '@/data/tasks.api';
 import {
   ASSIGNEES,
   PRIORITIES,
@@ -22,11 +23,39 @@ import { defaultQuery, getQuery, setQuery } from '@/data/tasks.query-state';
 
 import { S } from '../tasks.strings';
 
-/** All projects, then each listed one by its current name (one in Archive is not offered). */
+/** All projects, then each one the server lists (one in Trash or Archive is not offered). */
 const projectOptions = (list: readonly { id: string; name: string }[]) => [
   { value: '', label: S.filter.allProjects },
   ...list.map((p) => ({ value: p.id, label: p.name })),
 ];
+
+/**
+ * `q` with a project the server no longer lists (moved to Trash or Archive since it was applied) dropped, as the
+ * picker shows it: All projects. Kept as is until the list has arrived.
+ */
+function listedProject(q: TaskQuery): TaskQuery {
+  const list = filterProjectsResource.current()?.items;
+  return !q.project || !list || list.some((p) => p.id === q.project) ? q : { ...q, project: '' };
+}
+
+/** The project picker: the server's projects, loaded when the sheet opens. */
+function ProjectField({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const list = filterProjectsResource.use().data?.items ?? [];
+  useEffect(() => {
+    void filterProjectsResource.ensure();
+  }, []);
+  // A project no longer listed (gone, or not yet loaded) reads as All projects rather than a blank field.
+  const shown = list.some((p) => p.id === value) ? value : '';
+  return (
+    <SelectField
+      testID="filter-project"
+      label={S.filter.project}
+      options={projectOptions(list)}
+      value={shown}
+      onChange={onChange}
+    />
+  );
+}
 
 type TasksFilterPanelProps = {
   scope: TaskScope;
@@ -43,10 +72,9 @@ export function TasksFilterPanel({
   onDone = router.back,
 }: TasksFilterPanelProps) {
   const [draft, setDraft] = useState<TaskQuery>(() => getQuery(scope));
-  const projects = useProjectsState().list;
   const set = (patch: Partial<TaskQuery>) => setDraft((d) => ({ ...d, ...patch }));
   const apply = () => {
-    setQuery(scope, draft);
+    setQuery(scope, inProject ? draft : listedProject(draft));
     onDone();
   };
   return (
@@ -70,13 +98,7 @@ export function TasksFilterPanel({
         </FilterField>
       ) : (
         <FilterField label={S.filter.project}>
-          <SelectField
-            testID="filter-project"
-            label={S.filter.project}
-            options={projectOptions(projects)}
-            value={draft.project}
-            onChange={(project) => set({ project })}
-          />
+          <ProjectField value={draft.project} onChange={(project) => set({ project })} />
         </FilterField>
       )}
       <FilterField label={S.filter.priority}>

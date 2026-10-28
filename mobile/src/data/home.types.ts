@@ -19,15 +19,18 @@ export type HomeTarget = 'tasks.all' | 'tasks.my' | 'projects.list' | 'inbox.res
 
 /**
  * The chips Home can honestly show: a chip is drawn only when the server sends a number that means
- * what its label says. In Progress, Upcoming and the three Admin chips are hidden with their GAPs
- * (`mobile/docs/phase2-gap-disembunyikan.md`); Inbox waits for the Inbox count resource.
+ * what its label says. Upcoming and the three Admin chips are hidden with their GAPs
+ * (`mobile/docs/phase2-gap-disembunyikan.md`); In Progress comes from `tasks/counts`, Inbox from the
+ * Inbox count.
  */
-export type StatKey = 'assigned' | 'completed' | 'inbox';
+export type StatKey = 'assigned' | 'inProgress' | 'completed' | 'inbox';
 
 /** The line under a stat chip's label. */
 export type StatSub =
   | { kind: 'overdue'; n: number }
   | { kind: 'onTrack' }
+  | { kind: 'mine' }
+  | { kind: 'noneStarted' }
   | { kind: 'thisWeekMyProjects' }
   | { kind: 'toRespond'; n: number }
   | { kind: 'caughtUp' };

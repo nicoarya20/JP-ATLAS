@@ -53,9 +53,29 @@ export function sharedStatus(tasks: readonly Pick<TaskItem, 'status'>[]): TaskSt
 /** "1 task", "3 tasks". */
 export const tasksCount = (n: number) => `${n} task${n === 1 ? '' : 's'}`;
 
+/** "1 task", "3 tasks", "25+ tasks", from a count as a heading shows it. */
+export const countedTasks = (count: string) => `${count} task${count === '1' ? '' : 's'}`;
+
 /** Notice after a move: "Moved to Done" for one card, "Moved 2 tasks to Done" for a group (counting those that moved). */
 export const movedNotice = (group: boolean, moved: number, status: TaskStatus) =>
   group ? `Moved ${tasksCount(moved)} to ${status}` : `Moved to ${status}`;
+
+/**
+ * Notice after a move on the server: what moved, and what did not. One refused card says why in the
+ * server's own words (K5); several name how many failed and the first reason.
+ */
+export function serverMoveNotice(
+  group: boolean,
+  to: TaskStatus,
+  r: { moved: number; failed: readonly { message: string }[] },
+): string | null {
+  const [first] = r.failed;
+  // Nothing moved and nothing refused: every card was skipped (already there), so there is nothing to say.
+  if (!first) return r.moved ? movedNotice(group, r.moved, to) : null;
+  if (!r.moved && r.failed.length === 1) return first.message;
+  const lead = r.moved ? `${movedNotice(group, r.moved, to)}. ` : '';
+  return `${lead}${tasksCount(r.failed.length)} could not be moved: ${first.message}`;
+}
 
 /** Live region text while selecting: "2 selected, hold one to move them" / "Tap tasks to select them". */
 export const selectionHint = (picked: number) =>

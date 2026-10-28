@@ -1,18 +1,25 @@
 // Copy of the Tasks screens, verbatim from the prototype (screens/tasks/*.jsx). Copy that depends on data (notes, facts,
 // notices after an action) comes from src/data/tasks*.ts instead.
-import { tasksCount } from '@/data/tasks.columns';
+import { countedTasks } from '@/data/tasks.columns';
 
 export const S = {
   title: 'Tasks',
   search: 'Search title, #number, or tag…',
+  /** What `q` matches on the server: part of the title, or a task number exactly, "12" or "#12" (T-5). */
+  searchServer: 'Search title or #number…',
   scopes: ['My tasks', 'All tasks'],
   views: ['List', 'Kanban'],
   due: (date: string) => `Due ${date}`,
+  /** A card's date line: "Due Oct 5", or this for a task without a due date. */
+  noDue: 'No due date',
   empty: {
     icon: 'No tasks',
     title: 'No tasks for you yet.',
     text: 'Tasks assigned to you will show up here.',
     action: 'New task',
+    /** All tasks with nothing in it: no task in any project the viewer can see. */
+    allTitle: 'No tasks yet.',
+    allText: 'Tasks in your projects will show up here.',
   },
   noMatch: {
     title: 'No tasks match these filters.',
@@ -28,12 +35,15 @@ export const S = {
   },
   board: {
     label: 'Kanban board',
-    column: (status: string, n: number) => `${status}, ${tasksCount(n)}`,
+    /** `count` is what the column shows by its name ("3", "25+"). */
+    column: (status: string, count: string) => `${status}, ${countedTasks(count)}`,
     select: 'Select',
     cancel: 'Cancel',
     selectAll: (all: boolean, status: string) =>
       `${all ? 'Deselect' : 'Select'} all ${status} tasks`,
     addTask: 'Add task',
+    moveFailed: 'Could not move. Try again.',
+    loadMore: 'Load more',
   },
   radial: {
     close: 'Close',

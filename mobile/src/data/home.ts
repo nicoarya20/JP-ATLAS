@@ -16,7 +16,9 @@ import { homeResource, mapWidget, widget } from './home.api';
 import { homeAgenda, homeFocus, homeProjects } from './home.focus';
 import { homeStats } from './home.stats';
 import type { ActivityRow, AskAnswer, DoneTask, HomeData } from './home.types';
+import { inboxActionCount } from './inbox.api';
 import { instantDate, instantIsOn, instantTime } from './instant';
+import { tasksCountsResource } from './tasks.api';
 
 /**
  * The part of the day the server decided, worded in English (K5: an enum is mapped, a sentence is
@@ -54,8 +56,13 @@ export function getHome(): HomeData | null {
   return {
     me: me(),
     greeting: GREETING[wire.now?.greeting] ?? '',
-    // The Inbox chip waits for the Inbox count resource (Inbox wave); null leaves it out.
-    stats: homeStats(focus, done, null),
+    // The two counts have resources of their own (the screen fetches them); null leaves a chip out.
+    stats: homeStats(
+      focus,
+      done,
+      tasksCountsResource.current()?.byStatus.in_progress ?? null,
+      inboxActionCount(),
+    ),
     briefing: mapWidget(widget(wire.briefing), (b) => ({
       lines: b.lines,
       updatedLabel: b.updatedLabel,

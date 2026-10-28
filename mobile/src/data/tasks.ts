@@ -2,22 +2,15 @@ import { monthDay } from './dates';
 import { me } from './people';
 import { findProject } from './projects.state';
 import { type Role, TASK_REVIEWERS } from './sample';
-import { boardColumns } from './tasks.columns';
+import type { TaskCard } from './tasks.card';
+import { boardColumns, COLUMNS } from './tasks.columns';
 import { buildTaskDetail, type TaskDetailView } from './tasks.detail';
-import { myGroups } from './tasks.groups';
-import {
-  applyQuery,
-  isFiltered,
-  projectOfScope,
-  searchTasks,
-  type TaskQuery,
-  type TaskScope,
-} from './tasks.query';
+import { applyQuery, isFiltered, searchTasks, type TaskQuery } from './tasks.query';
 import { getQuery } from './tasks.query-state';
 import {
-  assigned,
   assignees,
   daysLate,
+  deniedNotice,
   dueIn,
   fullName,
   mayChange,
@@ -29,52 +22,36 @@ import {
 import { getTasksState, type TasksState } from './tasks.state';
 
 /*
- * Tasks data in one call per screen, the swap point to the API: today built from the sample data in tasks.store,
- * later a fetch of /api/app/tasks returning the same shapes. Screens import their getters from here; a screen that
- * re-renders on changes passes the state it read with useTasks((s) => s) as `s`.
+ * Tasks data built from the sample store (tasks.store): the legacy path. The Tasks tab reads the server through
+ * tasks.list; what stays here feeds a project's Tasks tab and Overview, which read the sample until Projects is wired.
+ *
+ * TODO(mobile-W3-projects/events): delete this path (getTasksList, taskCard, the sample store) once Projects and
+ * Events read /api/app/tasks; its importers are listed in docs/phase2-gap-disembunyikan.md §4.
  */
 
+export type { TaskCard } from './tasks.card';
 export { getTaskEdit, getTaskForm } from './tasks.form';
 export { getTaskSettings } from './tasks.settings';
 export { getCsvImport, getQuickWrite } from './tasks.write';
 
-/** A task card as the lists and the board show it, from the viewer's side. */
-export type TaskCard = Pick<
-  TaskItem,
-  'no' | 'title' | 'project' | 'type' | 'priority' | 'status'
-> & {
-  people: { name: string; full: string }[];
-  /** "Nico Pratama +1". */
-  whoLabel: string;
-  note: string;
-  /** "Oct 5". */
-  due: string;
-  /** Lists: past due. Board: past due and not Done. */
-  late: boolean;
-  lateOnBoard: boolean;
-  /** "2 days late" when past due, shown with the red date so lateness is not told by colour alone. */
-  lateBy: string | null;
-  /** "2/3", or null without steps. */
-  steps: string | null;
-  /** The viewer may move, edit and cancel it (a Member only their own). */
-  mayChange: boolean;
-};
-
 export type TaskCardGroup = { title: string | null; tasks: TaskCard[] };
 
+const PROJECT_SCOPE = 'project:';
+type ProjectScope = `project:${string}`;
+
 export type TasksListOptions = {
-  scope: TaskScope;
+  scope: ProjectScope;
   view: 'list' | 'board';
   /** Defaults to the scope's applied query (tasks.query-state). */
   query?: TaskQuery;
   search?: string;
 };
 
-/** none = My tasks has no tasks at all (New task); noMatch = the query or search leaves nothing (Reset filters). */
-export type TasksEmpty = 'none' | 'noMatch' | null;
+/** noMatch = the project's tasks, narrowed by the query or search, leave nothing (Reset filters). */
+export type TasksEmpty = 'noMatch' | null;
 
 export type TasksList = {
-  scope: TaskScope;
+  scope: ProjectScope;
   query: TaskQuery;
   /** The dot on the filter icon. */
   filtered: boolean;
@@ -99,6 +76,7 @@ export function taskCard(s: TasksState, role: Role, t: TaskItem): TaskCard {
     type: t.type,
     priority: t.priority,
     status: t.status,
+    id: null,
     people: assignees(t).map((name) => ({ name, full: fullName(name) })),
     whoLabel: whoLabel(t),
     note: note(t, s.info[t.no], viewer, FALLBACK_REVIEWER),
@@ -107,22 +85,21 @@ export function taskCard(s: TasksState, role: Role, t: TaskItem): TaskCard {
     lateOnBoard: late && t.status !== 'Done',
     lateBy: late ? daysLate(-days) : null,
     steps: stepsDone(s.info[t.no]?.steps ?? []),
-    mayChange: mayChange(viewer, t),
+    // The sample rule: every other column, for a viewer who may change the task.
+    ...(mayChange(viewer, t)
+      ? { moves: COLUMNS.map((c) => c.status).filter((x) => x !== t.status), denied: null }
+      : { moves: [], denied: deniedNotice(t) }),
   };
 }
 
-/** Tasks a scope starts from: mine, every listed task, or one project's. */
-function sourceOf(s: TasksState, scope: TaskScope, name: string): readonly TaskItem[] {
-  if (scope === 'mine') return s.tasks.filter((t) => assigned(t, name));
-  const id = projectOfScope(scope);
-  if (!id) return s.tasks;
-  // By id in the projects store: a renamed project keeps its tasks.
+/** One project's tasks, by the project's id in the projects store: a renamed project keeps its tasks. */
+function sourceOf(s: TasksState, id: string): readonly TaskItem[] {
   const project = findProject(id);
   if (!project) throw new Error(`Cannot list the tasks of project "${id}": no such project`);
   return s.tasks.filter((t) => t.project === project.name);
 }
 
-/** My tasks / All tasks / a project's tasks, as a list or a board, for `role`. */
+/** A project's tasks, as a list or a board, for `role` (the Tasks tab itself reads tasks.list). */
 export function getTasksList(
   role: Role,
   options: TasksListOptions,
@@ -135,34 +112,16 @@ export function getTasksList(
   const filtered = isFiltered(query);
   const narrowed = filtered || !!search.trim();
   const base = { scope, query, filtered };
+  const source = searchTasks(sourceOf(s, scope.slice(PROJECT_SCOPE.length)), search);
   if (view === 'board') {
-    const source = searchTasks(sourceOf(s, scope, name), search);
     const tasks = applyQuery(source, query, { board: true, me: name });
     const columns = boardColumns(tasks).map((c) => ({ ...c, cards: c.tasks.map(card) }));
     // An empty board without filters keeps its empty columns (prototype); a narrowed one says so, with Reset (UX §4).
     return { ...base, view, columns, empty: !tasks.length && narrowed ? 'noMatch' : null };
   }
-  // My tasks reads every task: its review queue spans the team, myGroups picks the viewer's own.
-  const groups: TaskCardGroup[] =
-    scope === 'mine'
-      ? myGroups(role, searchTasks(s.tasks, search), query, name).map((g) => ({
-          title: g.title,
-          tasks: g.tasks.map(card),
-        }))
-      : [
-          {
-            title: null,
-            tasks: applyQuery(searchTasks(sourceOf(s, scope, name), search), query, {
-              me: name,
-            }).map(card),
-          },
-        ].filter((g) => g.tasks.length);
-  const empty: TasksEmpty = groups.length
-    ? null
-    : scope === 'mine' && !narrowed
-      ? 'none'
-      : 'noMatch';
-  return { ...base, view, groups, empty };
+  const tasks = applyQuery(source, query, { me: name }).map(card);
+  const groups: TaskCardGroup[] = tasks.length ? [{ title: null, tasks }] : [];
+  return { ...base, view, groups, empty: groups.length ? null : 'noMatch' };
 }
 
 /** Detail of task #no for `role`; null when there is no such task. */
