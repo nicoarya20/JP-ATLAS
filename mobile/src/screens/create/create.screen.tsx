@@ -4,8 +4,7 @@ import { View } from 'react-native';
 import { Row, Rows } from '@/components/list/rows';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { Icon } from '@/components/ui/icon';
-import type { Role } from '@/data/sample/people';
-import { SESSION_ROLE } from '@/data/session';
+import { useAppCaps } from '@/data/whoami.api';
 import { createHref } from '@/navigation/create-href';
 
 import { CREATE_SHEET, type CreateOption, type CreateTone, createOptions } from './create.options';
@@ -28,17 +27,17 @@ function Tile({ option }: { option: CreateOption }) {
   );
 }
 
-type CreateScreenProps = { role?: Role };
-
 /**
  * The Create sheet (prototype screens/home/home.create.jsx): the "+" on Home and More opens it to pick what to add.
- * Picking a row swaps the sheet for that screen, so closing the screen lands where the "+" was pressed.
+ * Picking a row swaps the sheet for that screen, so closing the screen lands where the "+" was pressed. The rows are
+ * what the server's caps allow (the tab bar has read them before its "+" shows).
  */
-export function CreateScreen({ role = SESSION_ROLE }: CreateScreenProps) {
+export function CreateScreen() {
+  const caps = useAppCaps();
   return (
     <SheetFrame testID="screen-create" title={CREATE_SHEET.title} sub={CREATE_SHEET.sub}>
       <Rows>
-        {createOptions(role).map((option) => (
+        {createOptions(caps).map((option) => (
           <Row
             key={option.go}
             title={option.title}

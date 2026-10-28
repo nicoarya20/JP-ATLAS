@@ -1,11 +1,14 @@
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { SESSION_ROLE } from '@/data/session';
+import { useStore } from '@/data/store';
+import { useAppCaps, whoamiResource } from '@/data/whoami.api';
 import { createFor } from '@/navigation/tab-create';
 import { MORE_ID, tabOfRoute } from '@/navigation/tabs.config';
 import { MORE_PANEL } from '@/screens/more/more.tiles';
 import { MorePanel } from '@/screens/more/more-panel';
+import { sessionStore } from '@/session/session.state';
 
 import { CreateFab } from './create-fab';
 import { GlassPill } from './glass-pill';
@@ -24,9 +27,15 @@ const EDGE = 16;
  * useTabBarInset(). A tab emits `tabPress` like the stock bar, so a tab's listener can take it over. More has no
  * screen: it unfolds the More panel over a dimmed screen, and More again, the dim, another tab or any navigation folds
  * it (docs/phase1-navigation.md §2.5; its state lives in MorePanelProvider). Beside the pill, the "+" creates what the
- * active tab holds, for the role. The keyboard hides the bar.
+ * active tab holds, as the server's caps allow; it stays folded until they are in. The keyboard hides the bar.
  */
 export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTabBarProps) {
+  const caps = useAppCaps();
+  const userId = useStore(sessionStore, (s) => s.user?.id ?? null);
+  // Signing out forgets every resource, so the caps are read again for whoever signs in next.
+  useEffect(() => {
+    if (userId) void whoamiResource.ensure();
+  }, [userId]);
   const visible = useTabBarVisible();
   const more = useMore();
   // Typing: the keyboard covers the bar's place, so it steps aside (tabBarHideOnKeyboard only serves the stock bar).
@@ -88,7 +97,7 @@ export function GlassTabBar({ state, emitter, navigateToTab, insets }: BottomTab
           <GlassPill tabs={tabs} active={more.open ? moreIndex : state.index} onPick={pick} />
         </TabShell>
         <CreateFab
-          target={createFor(tabs[state.index].id, SESSION_ROLE)}
+          target={createFor(tabs[state.index].id, caps)}
           onOpen={more.close}
           panelOpen={more.open}
         />

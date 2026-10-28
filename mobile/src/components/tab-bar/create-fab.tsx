@@ -18,7 +18,7 @@ import { GlassSurface } from './glass-surface';
 import { BUBBLE_MS, EASE, FAB, FAB_EASE } from './tab-bar.motion';
 
 type CreateFabProps = {
-  /** What the "+" creates on this tab; null folds it away (Member on Projects). */
+  /** What the "+" creates on this tab; null folds it away (caps not in yet, or no cap for it). */
   target: CreateTarget | null;
   /** Runs before it opens its screen (the bar folds the More panel first). */
   onOpen?: () => void;

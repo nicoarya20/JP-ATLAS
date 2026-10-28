@@ -167,8 +167,10 @@ Koordinator `pm-dashboard-b1` memegang papan ini dan commit; peer tidak menyentu
 | W3-Home | Beranda dari `GET /api/app/home` (widget gagal-lunak, aksi Focus sungguhan) | `pm-dashboard-50` | ✅ `1b368aff` | W2, peta home |
 | W3-Inbox+Team | Inbox (`inbox.api.ts`, count, tandai dibaca) + Team | `pm-dashboard-d7` | ✅ `0433e908` | peta home-inbox-team |
 | W3-Tasks | Daftar, board, counts, detail, tulis (form-options, start/complete/reopen + alasan), sambungan ke Home | `pm-dashboard-50` | 🔄 daftar+board ✅ `246c14ef`; detail+tulis 🔄 | W3-Home |
-| W3-Projects | Daftar, detail, anggota, tulis proyek (tab Tugas proyek tetap legacy sampai Tasks commit) | `pm-dashboard-d7` | ✅ baca `0909d988`, tulis (commit berikut); berikut: gerbang "+" dari caps | W3-Inbox+Team |
-| W3 (sisa) | Events, Profile/Archive(Trash)/Users, tab Tugas proyek → API, hapus sampel | — | ⏳ | Tasks, Projects |
+| W3-Projects | Daftar, detail, anggota, tulis proyek (tab Tugas proyek tetap legacy sampai Tasks commit) | `pm-dashboard-d7` | ✅ baca `0909d988`, tulis `374ef920` | W3-Inbox+Team |
+| W3-Plus | Tombol "+" tab bar + Create sheet dari `whoami caps` | `pm-dashboard-d7` | ✅ | Projects |
+| W3-Events | Daftar, kalender `?from=&to=`, detail, tulis, gerbang `events/new` | `pm-dashboard-d7` | 🔄 | W3-Plus |
+| W3 (sisa) | Tab Tugas proyek → API (`pm-dashboard-50` setelah Tasks), Profile/Archive(Trash)/Users, hapus sampel | — | ⏳ | Tasks, Projects |
 
 ## 7. Pertanyaan Terbuka
 

@@ -11,6 +11,7 @@ import { decide, resetDecisions } from '../../src/data/users';
 import { openApp } from '../helpers/app-router';
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
 import { counts } from '../helpers/inbox-fixtures';
+import { whoamiRoute } from '../helpers/whoami-fixtures';
 
 // The signed-in role, per test (the app reads it from src/data/session until Phase 2 signs in).
 let mockRole: Role = 'member';
@@ -38,7 +39,7 @@ afterEach(() => {
 });
 
 // The Inbox badge is the server's count (`GET /api/app/inbox/count`): every test serves one, so the panel never
-// reaches a real server; a test about the badge serves its own.
+// reaches a real server; a test about the badge serves its own. The bar reads whoami for its "+", served for the role.
 let server: ReturnType<typeof serveAuth> | null = null;
 afterEach(() => {
   server?.restore();
@@ -47,7 +48,10 @@ afterEach(() => {
 
 async function open(path: string, role: Role = 'member', routes?: AuthRoutes) {
   mockRole = role;
-  server = serveAuth(routes ?? { '/api/app/inbox/count': { body: counts(0) } });
+  server = serveAuth({
+    ...whoamiRoute(role),
+    ...(routes ?? { '/api/app/inbox/count': { body: counts(0) } }),
+  });
   await openApp(path);
 }
 
@@ -209,6 +213,7 @@ describe('More panel', () => {
 
   it('folds when the "+" opens what it creates', async () => {
     await open('/tasks');
+    await screen.findByRole('button', { name: 'New task' });
     await pick('More');
 
     await fireEvent.press(button('New task'));
