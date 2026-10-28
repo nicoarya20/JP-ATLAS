@@ -7,7 +7,6 @@ export const CREATE_ROUTES = {
   'tasks.write': '/tasks/new',
   'projects.new': '/projects/new',
   'events.new': '/events/new',
-  'tasks.csv': '/tasks/csv',
 } as const satisfies Record<string, Href>;
 
 export type CreateGo = keyof typeof CREATE_ROUTES;

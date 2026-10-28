@@ -14,7 +14,6 @@ const TONE: Record<CreateTone, { tile: string; icon: string }> = {
   blue: { tile: 'bg-info-soft', icon: 'text-info' },
   green: { tile: 'bg-success-soft', icon: 'text-success' },
   orange: { tile: 'bg-warning-soft', icon: 'text-warning' },
-  gray: { tile: 'bg-muted', icon: 'text-muted-foreground' },
 };
 
 function Tile({ option }: { option: CreateOption }) {

@@ -171,7 +171,7 @@ Koordinator `pm-dashboard-b1` memegang papan ini dan commit; peer tidak menyentu
 | W3-Projects | Daftar, detail, anggota, tulis proyek (tab Tugas proyek tetap legacy sampai Tasks commit) | `pm-dashboard-d7` | ✅ baca `0909d988`, tulis `374ef920` | W3-Inbox+Team |
 | W3-Plus | Tombol "+" tab bar + Create sheet dari `whoami caps` | `pm-dashboard-d7` | ✅ `5ed16620` | Projects |
 | W3-Events | Daftar, kalender `?from=&to=`, detail, tulis, gerbang `events/new` | `pm-dashboard-0b` | ✅ `c61eadc5`; guard fetch jest `f988ccb9` | W3-Plus |
-| W3 (sisa) | Tab Tugas proyek → API, Profile/Archive(Trash)/Users, buang layar & gerbang role sampel; sisa sampel (Settings/CSV/Just write tugas, Outcomes acara, project settings) tetap GAP | `pm-dashboard-34`, `pm-dashboard-0b` | ✅ bersih-bersih `1b986665`, tab Tugas proyek `5ad61193`, Profile/Trash/Users (commit ini) | Tasks, Projects |
+| W3 (sisa) | Tab Tugas proyek → API, Profile/Archive(Trash)/Users, buang layar & gerbang role sampel, CSV, project settings, Outcomes acara, dan seluruh `src/data/sample` (tersisa `today.ts` untuk tes) | `pm-dashboard-34`, `pm-dashboard-0b` | ✅ bersih-bersih `1b986665`, tab Tugas proyek `5ad61193`, Profile/Trash/Users `09c01dd0`; Pending `b6f431f6`, Events rekam `6b8c86c5`, Just write + Sampah tugas `52345689`, buang sampel (commit ini) | Tasks, Projects |
 
 ## 7. Pertanyaan Terbuka
 

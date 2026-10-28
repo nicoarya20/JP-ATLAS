@@ -13,7 +13,6 @@ export default function ProjectsStack() {
       <Stack.Screen name="filter" options={SHEET} />
       <Stack.Screen name="[id]/index" />
       <Stack.Screen name="[id]/edit" />
-      <Stack.Screen name="[id]/settings" />
       <Stack.Screen name="[id]/extend" options={SHEET} />
       <Stack.Screen name="[id]/archive" options={SHEET} />
       <Stack.Screen name="[id]/task-filter" options={SHEET} />

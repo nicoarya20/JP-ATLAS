@@ -11,14 +11,11 @@ import * as TasksStack from '../../app/(tabs)/tasks/_layout';
 import NewTaskStack from '../../app/tasks/new/_layout';
 import { resetSnack } from '../../src/components/snack/use-snack';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
-import { resetArchive } from '../../src/data/archive.store';
 import { forgetAllResources } from '../../src/data/resource';
 import { resetTaskLists } from '../../src/data/tasks.api';
 import { resetTaskDetails } from '../../src/data/tasks.detail.api';
 import { resetTaskForms } from '../../src/data/tasks.form.api';
 import { resetQueries } from '../../src/data/tasks.query-state';
-import { resetTasks } from '../../src/data/tasks.store';
-import { CsvScreen } from '../../src/screens/tasks/csv/csv.screen';
 import { TaskDetailScreen } from '../../src/screens/tasks/detail/task-detail.screen';
 import { TaskEditScreen } from '../../src/screens/tasks/edit/task-edit.screen';
 import { TasksFilterScreen } from '../../src/screens/tasks/filter/tasks-filter.screen';
@@ -52,19 +49,16 @@ const ROUTES = {
   'tasks/new/_layout': NewTaskStack,
   'tasks/new/index': TaskWriteScreen,
   'tasks/new/form': TaskFormScreen,
-  'tasks/csv': CsvScreen,
 };
 
 /** Render the app at `url`. */
 export const openTasks = (url: string): Promise<RenderRouterResult> =>
   renderRouter(ROUTES, { initialUrl: url, wrapper: GluestackUIProvider });
 
-/** Every store a Tasks screen writes, back to the sample after each test. */
+/** Every cache and query a Tasks screen keeps, emptied after each test. */
 export function resetTaskStores() {
   afterEach(async () => {
     await act(async () => {
-      resetTasks();
-      resetArchive();
       resetQueries();
       resetTaskLists();
       resetTaskDetails();

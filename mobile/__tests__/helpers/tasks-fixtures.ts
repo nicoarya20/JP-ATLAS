@@ -1,7 +1,8 @@
 // A stubbed `/api/app/tasks` for the Tasks screens: rows as `server/task/task.dto.ts` sends them, and a small server
 // that answers the list (scope, project, status, priority, q, sort, limit, cursor), the counts, a task's detail and
-// timeline, and the writes (workflow steps, checklist, comments, and create and edit through tasks-form-fixtures) the way
-// the real one does (map `phase2-map-tasks.md` §0), so a change shows up only because the screen asked again. test-only
+// timeline, and the writes (workflow steps, checklist, comments, Move to Trash and its Undo, and create and edit through
+// tasks-form-fixtures) the way the real one does (map `phase2-map-tasks.md` §0), so a change shows up only because the
+// screen asked again. test-only
 import type { TaskDetailWire, TimelineEntryWire } from '@/data/tasks.detail.wire';
 import type { FormProjectWire } from '@/data/tasks.form.api';
 import { scheduleGroupOf } from '@/data/tasks.list';
@@ -107,7 +108,7 @@ type Options = {
   formProjects?: FormProjectWire[];
 };
 
-/** One write the server took: method, path after `/api/app/tasks/`, and the body as sent. */
+/** One write the server took: method, path after `/api/app/tasks/` (`trash/<id>/restore` for an Undo), and the body as sent. */
 export type TaskWrite = { method: string; path: string; body: unknown };
 
 /** The detail of `row`: a Bug in the Development phase, created by Nico on Oct 1, unless `over` says otherwise. */
@@ -275,6 +276,24 @@ export function tasksServer(initial: TaskListItemWire[], options: Options = {}) 
       body: { items: all.slice(from, to), nextCursor: to < all.length ? String(to) : null },
     };
   };
+  // Move to Trash takes the row out of every list; Undo puts it back where it was.
+  const trashed = new Map<string, { row: TaskListItemWire; at: number }>();
+  const trash = (r: TaskListItemWire): AuthReply => {
+    const at = rows.indexOf(r);
+    rows.splice(at, 1);
+    trashed.set(r.id, { row: r, at });
+    const label = `#${r.number} ${r.title}`;
+    return { body: { trash: { kind: 'task', id: r.id, number: r.number, label } } };
+  };
+  const restore = (url: string): AuthReply => {
+    const id = decodeURIComponent(new URL(url).pathname.split('/').at(-2) ?? '');
+    const gone = trashed.get(id);
+    writes.push({ method: 'POST', path: `trash/${id}/restore`, body: {} });
+    if (!gone) return notFound;
+    trashed.delete(id);
+    rows.splice(gone.at, 0, gone.row);
+    return { body: { id, number: gone.row.number } };
+  };
   const form = formServer({ rows, extra, makeRow: row, detail, projects: options.formProjects });
   const task = (url: string, init?: RequestInit): AuthReply => {
     const path = new URL(url).pathname.replace(/^\/api\/app\/tasks\/?/, '');
@@ -291,6 +310,7 @@ export function tasksServer(initial: TaskListItemWire[], options: Options = {}) 
     if (method === 'GET') return part === 'timeline' ? timeline(r, url) : { body: detail(r) };
     writes.push({ method, path, body });
     if (!part && method === 'PATCH') return options.refuse?.[r.id] ?? form.update(r, body);
+    if (!part && method === 'DELETE') return options.refuse?.[r.id] ?? trash(r);
     if (part === 'checklist') return checklist(r, itemId, body);
     if (part === 'comments') {
       log(r, comment(`m-${++made}`, String(body.body)));
@@ -310,6 +330,7 @@ export function tasksServer(initial: TaskListItemWire[], options: Options = {}) 
       return { body: { items: [ATLAS, SINAR], total: 2, page: 1, limit: 100 } };
     },
     '/api/app/tasks': task,
+    '/api/app/trash/task/': restore,
   };
   /** The status of task #no on the server now. */
   const status = (no: number) => rows.find((r) => r.number === no)?.status;

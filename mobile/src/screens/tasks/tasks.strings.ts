@@ -56,7 +56,10 @@ export const S = {
   detail: {
     title: 'Task detail',
     menu: 'Task actions',
-    menuItem: { edit: 'Edit task', cancel: 'Cancel task' },
+    menuItem: { edit: 'Edit task', cancel: 'Cancel task', trash: 'Move to Trash' },
+    trashed: 'Task moved to Trash',
+    restored: 'Task back from the Trash',
+    undo: 'Undo',
     description: 'Description',
     noDescription: 'No description yet.',
     history: 'Chat & history',
@@ -100,7 +103,7 @@ export const S = {
   },
 } as const;
 
-/** Edit task, New task (Just write ✦ / Fill form), Import CSV and Project settings. */
+/** Edit task and New task (Just write ✦ / Fill form). */
 export const F = {
   editTitle: 'Edit task',
   newTitle: 'New task',

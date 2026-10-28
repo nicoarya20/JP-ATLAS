@@ -67,6 +67,12 @@ Id GAP merujuk peta `phase2-map-*.md`, yang belum dibawa ke cabang ini; baca dar
 | Langkah (steps) dan Evidence di **Edit**; langkah di **Fill form** | Edit, Fill form | T-9 (evidence) | Langkah punya rute checklist sendiri dan sudah ditulis dari detail; Edit tidak menggandakannya. `POST /tasks` menerima `checklist`, tetapi Fill form belum menawarkan langkah — ditambah di detail sesudah tugas dibuat | **disembunyikan** (sama) | — |
 | **Mengosongkan** tenggat / tanggal mulai di Edit | Edit | — (bukan GAP server: `PATCH` menerima `null`) | `DateField` kit belum punya tombol "Clear"; tanggal yang sudah terisi hanya bisa diganti, tidak dihapus. Hutang UI, bukan server | **hutang** (`src/components/form/date-field.tsx`) | — |
 | Opsi form dimuat ulang tiap form dibuka | Edit, Fill form | — (bukan GAP server) | Proyek, jenis, dan fase berubah di luar tulisan tugas (settings proyek, keanggotaan), jadi tak ada target invalidate yang tepat; layar meminta `form-options` lagi setiap dibuka. Proyek task yang tak terjangkau (404) → "This project is no longer here" | **diganti** (`src/data/tasks.form.api.ts`, `form.screen.tsx`, `edit/task-edit.screen.tsx`) | — |
+| **Impor CSV** dan baris **Import tasks** di Create sheet (menyusul dua baris A10 di atas) | `tasks/csv`, Create sheet | A10 | Tidak terjangkau dari layar mana pun (baris Create ber-`cap: () => false`) dan tidak ada endpoint impor, jadi **dihapus**, bukan disembunyikan | **dihapus** (W3-Tasks 28 Okt: `app/tasks/csv.tsx`, `src/screens/tasks/csv/`, sampel CSV di `src/data/sample/tasks.extra.ts`, string `C`, id `tasks.csv` di `create-href.ts`, baris Import tasks + nada `gray` di `create.options.ts`/`create.screen.tsx`; acuan pemulihan `09c01dd0`) | — |
+| **Just write ✦** disambung (menyusul baris B13) | `tasks/new` | B13 | Keputusan orkestrator 28 Okt (opsi B): rute dan kontraknya sudah ada (`server/ai/task-draft.types.ts`), jadi disambung, bukan disembunyikan. Proyek dari `form-options`; Compose → `POST /tasks/draft` (`DRAFT_TEXT_MAX` = salinan `TASK_DRAFT_TEXT_MAX` 2000); draf dan `assigneeNote` serta `question` tampil apa adanya (K5), opsi pertanyaan mengisi pengerja draf di `draftIndexes`; tiap draf bisa disunting (judul, pengerja, prioritas, tenggat) atau dibuang (Keep). Save = `POST /tasks` per draf secara berurutan, berhenti di penolakan pertama dan menyebut berapa yang tersimpan; yang tersimpan keluar dari daftar agar Save ulang tidak menggandakan. 503 `AI_DISABLED` / 502 `AI_UNAVAILABLE` → Fill form, cerita di Judul (dipotong `TITLE_MAX`) + notice server; 400/403/404/409/429 → pesan server di layar | **disambung** (`src/data/tasks.draft.ts`, `createTasks` di `src/data/tasks.form.write.ts`, `src/screens/tasks/new/{write.screen,write-drafts,use-just-write}.tsx`; sampel `QUICK_WRITE`/`getQuickWrite`/`src/data/tasks.write.ts`/`src/data/tasks.ts` **dihapus**) | — |
+| Simpan semua draf Just write **sekaligus** (atomik) | `tasks/new` | — (bukan GAP yang ditunda: tidak ada rute buat-banyak) | Server hanya punya `POST /tasks` satu per satu; Save menulis berurutan, jadi bisa tersimpan sebagian. Layar menyebut jumlahnya dan menyisakan draf yang belum masuk | diganti (`use-just-write.ts`) | — |
+| Pertanyaan **terbuka** Just write (tanpa `options`) | `tasks/new` | — (bukan GAP server) | Server tidak punya rute untuk menjawabnya; kontraknya hanya menawarkan pilihan anggota. Teks pertanyaan tampil apa adanya; menjawab = sunting cerita lalu Compose lagi | diganti (`write-drafts.tsx` `DraftQuestion`) | — |
+| **Speak** (input suara) di Just write | `tasks/new` | — (bukan GAP server) | Butuh dependensi pengenalan suara baru (Rule 10); prototipe pun hanya "coming soon" | **disembunyikan** (keputusan orkestrator 28 Okt: teks "Speak · coming soon" dicabut dari `write.screen.tsx`) | — |
+| **Hapus tugas** kembali (menyusul baris "Hapus tugas" di atas) | detail ⋯ | — (bukan GAP server) | Sampah mobile kini ada (W3-Sampah), jadi T1 terpenuhi: ⋯ › **Move to Trash** (`can.trash`: diizinkan, kelabu dengan alasan `capMessage`, atau tidak ada) → `DELETE /tasks/:ref`, kembali ke `/tasks`, snack **Undo** → `POST /trash/task/:id/restore` | **disambung** (`src/data/tasks.trash.ts`, `src/screens/tasks/detail/use-task-trash.ts`, `TaskDetailView.trash` di `tasks.detail.ts`) | — |
 
 ## 2. Acara (Events) — peta: `phase2-map-events.md` §2.1
 
@@ -76,7 +82,7 @@ Id GAP merujuk peta `phase2-map-*.md`, yang belum dibawa ke cabang ini; baca dar
 | Batal / arsip **satu kemunculan** ("hanya kemunculan ini") dan varian sheet `-recurring` | Cancel sheet, Archive sheet | A5 | Bergantung A4; route cancel tidak punya `scope: 'occurrence'｜'series'` | dihapus (W3-Events: `sheets/which-one.tsx` dan sheet Archive dihapus) | — |
 | Peran **Note-taker** di daftar hadir | detail, form | A6 | `event_participant` tidak punya kolom peran; `PersonRef` sengaja hanya `{id,name}` | disembunyikan (W3-Events 28 Okt: `detail/event-detail.screen.tsx` hanya menandai Creator) | — |
 | Kaki "Updated \<tanggal\> · by \<nama\>" | detail | A7 | `EventDetail` punya `updatedAt` tapi tidak `updatedBy` | diganti (W3-Events: kaki "Created by X · Updated <tgl>", `data/events.detail.ts`) | — |
-| Seluruh alur Rekaman → Outcomes → Results: transkrip, draf tugas, keputusan, open question, sumber, "confirmed by" | Events ⑤–⑨ | A8 | Tidak ada tabel outcomes/draf, `outcomes` ditolak `t.Never()`. Kelas "Could" (E-13) | disembunyikan (W3-Events 28 Okt: tautan dicabut dari kartu dan detail; rute `[id]/{record,recording,outcomes,results}` masih ada di atas data contoh) | — |
+| Seluruh alur Rekaman → Outcomes → Results: transkrip, draf tugas, keputusan, open question, sumber, "confirmed by" | Events ⑤–⑨ | A8 | Tidak ada tabel outcomes/draf, `outcomes` ditolak `t.Never()`. Kelas "Could" (E-13) | dihapus (28 Okt: tautan dicabut dari kartu dan detail; rute `[id]/{record,recording,outcomes/[step],results}`, layar `screens/events/{record,results,outcomes}/`, `events.strings.outcomes.ts`, `data/events.{store,results}.ts`, `sample/events{,.extra}.ts` dan tesnya dihapus. Pulihkan dari `09c01dd0`) | — |
 | Cari berdasarkan **lokasi** | kotak cari daftar | A10 | `q` server hanya judul. Menyaring di klien hanya benar untuk halaman yang sudah dimuat | diganti (W3-Events: placeholder "Search event title…", `list/events.screen.tsx`) | — |
 | Tulis notulen (editor notulensi, konfirmasi) | detail | — (`PUT /events/:id/note` ada) | Butuh layar editor + penanganan 409 `NOTE_CONFLICT`; di luar lingkup W3 | disembunyikan (W3-Events 28 Okt: `detail/event-minutes.tsx` hanya membaca) | — |
 | Pemilih **pengingat** | form | B7 | Bukan GAP server (`remindersMinutes` diterima); pemilihnya belum dirancang | disembunyikan (W3-Events 28 Okt: `form/event-details.tsx` menampilkan baca-saja; acara baru = bawaan server) | — |
@@ -139,7 +145,7 @@ Fase 2 lama menghapus 12 kontrol Acara (daftar per berkas: `2a985b7^:mobile/docs
 | Pilihan lingkup **"Semua / Punya saya"** (`scope=all`) di daftar proyek | Projects daftar | Projects **B-17** | Bukan GAP yang ditunda: parameternya **sudah ada dan jalan** (`server/api/app-projects.ts`), clamp Member di `access/project.policy.ts`. Ini kapabilitas server yang mobile belum ambil, seperti `sort=recent` (B-10). Daftar selalu mengirim `scope=mine` | **disambung** (`src/data/projects.query.ts` `listPath`: selalu `scope=all`; server mempersempit Member ke proyeknya sendiri) | **belum diambil** (`src/data/projects.ts` `listParams`) |
 | Jumlah **anggota** di kartu daftar proyek ("4 members") | Projects daftar | — (bukan GAP yang ditunda) | `ProjectListItem` tidak membawa daftar anggota; barisnya tentang proyek, bukan orangnya. Nama terbaca kartu kini berhenti di "Due …" | **dihapus** (`src/screens/projects/list/project-card.tsx`: tanpa jumlah dan tanpa avatar anggota — keputusan 28 Okt) | **dihapus** (`src/screens/projects/list/project-card.tsx`) |
 | Catatan gelembung di Profil (`note`) | Profil | Home A-21 | Tidak ada kolom maupun bidang di `ProfileView` | **disembunyikan** (W3-Profil 28 Okt: `src/screens/profile/profile-hero.tsx` tanpa gelembung; `profile-note.tsx` dan `src/data/profile.store.ts` dihapus) | **disembunyikan** (`src/screens/profile/profile-hero.tsx`; `profile-note.tsx` + `src/data/profile.store.ts` dihapus — catatan yang hanya hidup di satu ponsel bukan catatan profil) |
-| Presence **Online/Offline** dan klaim "Teammates see you as Online" | Profil | Home A-22 | Tidak ada presence di server. Menampilkannya sebagai lokal = klaim palsu | **disembunyikan** (W3-Profil 28 Okt: `src/screens/profile/profile-hero.tsx` tanpa titik presence, `profile.screen.tsx` tanpa baris "Show me as online"; token tema `presence` kini tak terpakai) | **disembunyikan** (`src/screens/profile/profile.screen.tsx`, `profile-hero.tsx`: titik presence, switch "Show me as online" dan barisnya dicabut) |
+| Presence **Online/Offline** dan klaim "Teammates see you as Online" | Profil | Home A-22 | Tidak ada presence di server. Menampilkannya sebagai lokal = klaim palsu | **disembunyikan** (W3-Profil 28 Okt: `src/screens/profile/profile-hero.tsx` tanpa titik presence, `profile.screen.tsx` tanpa baris "Show me as online"; token tema `presence` dihapus 28 Okt dari `src/theme/tokens.ts` `MOBILE_STATUS`, `theme-roles.ts`, `global.css` dan `contrast.test.ts`, pulihkan dari `09c01dd0`) | **disembunyikan** (`src/screens/profile/profile.screen.tsx`, `profile-hero.tsx`: titik presence, switch "Show me as online" dan barisnya dicabut) |
 | Satu switch "Mute notifications" | Profil | Home A-23 | Server punya **dua** switch dan kartu `action` tidak bisa dibisukan; satu switch akan bohong | **diganti** (W3-Profil 28 Okt: switch Mute dicabut dari `src/screens/profile/profile.screen.tsx`; dua switch `eventReminder`/`inboxNews` ada di Settings, `src/screens/settings/settings-parts.tsx` `NotificationSwitches`, `GET/PUT /api/app/profile/notifications`; flip tampil langsung dan kembali dengan alasan bila ditolak) | **diganti** (`src/screens/profile/profile.screen.tsx`: dua switch `eventReminder`/`inboxNews` dari `GET/PUT /api/app/profile/notifications`, plus catatan bahwa kartu yang butuh jawaban selalu datang) |
 | Baris fakta "Account role" untuk non-Admin | Tim person | Home A-19 | Server sengaja tidak mengirimnya (privasi) → sembunyikan saat kuncinya absen | **disembunyikan** (`src/data/team.person.ts` `toPerson()`: baris fakta hanya dibuat kalau kunci `accountRole` ada) | **disembunyikan** (`src/data/team.person.ts`: barisnya hanya dibuat kalau kunci `accountRole` ada) |
 | Pil hijau **"Available"** di baris Tim dan di Tim person | Tim | **G2-TPA1 (baru)** | `availability: null` berarti "tidak ada yang perlu ditampilkan", **bukan** "sedang ada" (`server/team/team.dto.ts`), dan catatan cuti Admin sengaja tidak dikirim (P14 D6). Mengarang "Available" dari kunci kosong = app ini menyatakan hal yang server menolak menyatakannya | **disembunyikan** (`src/data/team.ts` `leaveText()` — nama fungsinya kini `leaveText`, bukan `availabilityText()` — dan `src/screens/team/person-row.tsx`: hanya cuti yang tampil) | **disembunyikan** (`src/data/team.ts` `availabilityText()`, `src/screens/team/person-row.tsx`: cuti tampil muted, selain itu baris statusnya tidak ada) |
@@ -177,6 +183,8 @@ Fase 2 lama menghapus 12 kontrol Acara (daftar per berkas: `2a985b7^:mobile/docs
 | **Jabatan / divisi** pendaftar di kartu persetujuan | Users › Approval | **U-3 (baru)** | Daftar `/api/admin/users` tidak membawa `jobTitle`/`department` | **dihapus** (`src/screens/users/approval.cards.tsx`: nama, waktu daftar, email) | — |
 | Izin **per baris** di Users › Roles (pemilih peran, Deactivate/Reactivate) | Users › Roles | **U-4 (baru)** | Daftar admin tidak mengirim `can{}` per baris. Mobile **mencerminkan** `server/access/user.policy.ts` (bukan diri sendiri, bukan Super-admin, Admin hanya oleh Super-admin; Admin memberi Member/PM saja). Server tetap memutuskan; 403-nya ditampilkan apa adanya di dialog | **diganti** (`src/data/users.admin.view.ts` `accountRow`; baris yang ditolak tampil baca-saja) | — |
 | "Acara saya" di My calendar | Profil kalender | Profil C-1 | Server tidak punya "my events"; item daftar tidak membawa pembuat. Acara yang saya buat tapi tidak saya ikuti tidak muncul | **diganti** (`src/data/profile.calendar.ts` `blocksOn`: `participants.isParticipant`) | — |
+| Edit profil di layar **Pending** (Full name, Nickname, Job title, Division, Save profile) dan **Change photo** | Auth ③ Pending | — (bukan GAP yang ditunda: server sengaja menutupnya) | Akun berstatus pending ditolak di gerbang `/api/app/*` (`server/api/app-context.ts` → `403 ACCOUNT_PENDING`), jadi `PATCH /api/app/profile` tak bisa dipakai sebelum disetujui; halaman tunggu web (`app/routes/waiting.tsx`) juga tanpa form profil. Save sebelumnya hanya memunculkan notice tanpa menulis apa pun; Change photo ikut P-5 | **disembunyikan** (28 Okt: `src/screens/auth/pending.screen.tsx` tinggal kartu status, Check status, Sign out; string form dicabut dari `auth.strings.ts`; pulihkan dari `09c01dd0`) | — |
+| Project settings `projects/[id]/settings` (menyusul baris T-7 / P-9 di atas) | Project settings | T-7 / P-9 / A11 | Tidak terjangkau (⋯ menyembunyikannya) dan server tidak punya rute jenis tugas maupun PATCH default review, jadi **dihapus** | **dihapus** (W3-Tasks 28 Okt: `app/(tabs)/projects/[id]/settings.tsx` + entri `_layout`, `src/screens/tasks/settings/`, `src/data/tasks.settings.ts`, `src/data/sample/tasks.settings.ts`, string `P` dan `DETAIL.settings`; `project-tasks-routes.tsx` kini hanya `ProjectTaskFilterScreen`; acuan pemulihan `09c01dd0`) | — |
 
 ---
 
@@ -207,6 +215,16 @@ role per layar, `SCREEN_IDS`/`ScreenId`) dan tesnya **dihapus**: pemanggil terak
 rute di `app/`. `SESSION_ROLE` **masih** diimpor `src/data/viewer.ts`,
 `src/screens/tasks/settings/tasks-settings.screen.tsx`, `src/screens/projects/settings/project-tasks-routes.tsx`,
 `src/screens/events/outcomes/outcomes.screen.tsx` dan `__tests__/navigation/tab-bar.more.test.tsx`.
+
+**Lunas (28 Okt 2026, setelah `09c01dd0`).** Pemakai `SESSION_ROLE` yang tersisa sudah pergi
+(layar Outcomes dihapus di langkah Acara; layar sampel Tugas/Proyek dicabut 34). `viewer.ts` tak
+punya pemakai produksi lagi, jadi **dihapus** bersama `src/data/session.ts` (`SESSION_ROLE`),
+`src/data/people.ts` (`person`/`me`/`listPeople`/`ROLE_LABEL`/`ROLE_TAG`), `src/data/sample/people.ts`
+dan `people.extra.ts`, serta tesnya (`__tests__/data/viewer.test.ts`, `__tests__/kit/people.test.ts`);
+mock `SESSION_ROLE` di `tab-bar.more.test.tsx` dicabut. Peran kini hanya datang dari `caps` whoami;
+tipe `Role` uji pindah ke `__tests__/helpers/whoami-fixtures.ts`. Kontrak "cocokkan orang hanya
+lewat `samePerson`" (K4) tidak berlaku lagi: semua modul membandingkan `userId` dari DTO server.
+Pulihkan dari `09c01dd0`.
 
 ### 4.2 `moveOnBoard()` masih menerima `PersonInfo` dari layar
 
@@ -291,3 +309,38 @@ sampel" di atas tidak berlaku lagi: `TaskBoard` wajib `onMove`, `TasksSearchFiel
 `src/screens/archive/*` dan `__tests__/archive/archive.test.tsx` **sudah dihapus**; Profil tidak lagi
 mengimpor `CLOCK` (`profile.calendar.dates.ts` hanya tanggal dan label). `archive.store.ts` tetap
 hidup untuk `tasks.store.ts`, `tasks.store.edit.ts` dan `projects.store.ts`.
+
+**Acara lepas dari store contoh (28 Okt 2026, setelah `09c01dd0`).** Alur Rekaman → Outcomes →
+Results (A8) tak terjangkau lagi, jadi **dihapus**, bukan disembunyikan: rute
+`app/(tabs)/events/[id]/{record,recording,results}.tsx` + `outcomes/[step].tsx` (dan entrinya di
+`events/_layout.tsx`), layar `src/screens/events/{record,results,outcomes}/`,
+`src/screens/events/events.strings.outcomes.ts`, `src/data/events.store.ts`,
+`src/data/events.results.ts`, `src/data/sample/events.ts` + `events.extra.ts`; ikut dipangkas yang
+hanya dipakai alur itu: `eventHref`/`eventProject`/`eventStatus`/`eventStart`/`eventEnd`/
+`eventWhere`/`EventItem`/`REPEATS`/`REPEAT_DAYS` (`events.shared.ts` kini hanya `TYPES` dan tipe
+nama), `occursOn`/`eventsOn`/`occurrenceStatus`/`startMinutes`/`firstDate` (`events.dates.ts`),
+`dueDates` (`events.form.ts`), `Ai`/`AiNote` (`parts/event-parts.tsx`), `AI_LABEL`,
+`SPOKEN.draftAction`. Tes yang ikut pergi: `events.flow`, `events.outcomes`, `events.store`,
+`events.strings`; `events.dates`/`events.query` kehilangan kasus berbasis sampel. **Acara tidak lagi
+mengimpor `tasks.store`** (`addTask`/`getTask`/`useTasks`). Acuan pemulihan: `09c01dd0`
+(`git show 09c01dd0:mobile/<path>`).
+
+**`src/data/sample/` setelah langkah ini.** Yang tersisa: `projects.ts`/`projects.extra.ts` dan
+`tasks.ts`/`tasks.extra.ts` (milik Tugas/Proyek), `archive.ts` (hanya `archive.store.ts`, yang hanya
+dipakai `tasks.store*.ts`/`projects.store.ts` — pergi bersama store itu), dan `today.ts` (uji saja,
+`__tests__/helpers/clock-fixtures.ts`). Bagian Acara, Profil, Inbox, Tim dan Admin tidak punya sisa
+di `sample/`. Peta `phase1-screens.md` (K12, `MOBILE_STATUS.presence`) sengaja tidak disunting: itu
+catatan Fase 1.
+
+**Store contoh Tugas/Proyek dihapus (W3-Tasks, 28 Okt 2026, setelah `09c01dd0`).** Daftar pengimpor
+di atas sudah kosong: Acara lepas (0b), Project settings dan CSV dihapus, Just write membaca server.
+Karena itu **dihapus**: `src/data/tasks.store.ts`, `tasks.store.edit.ts`, `tasks.state.ts`,
+`archive.store.ts`, `projects.store.ts`, `projects.state.ts`, `tasks.write.ts`, `tasks.ts`, dan
+seluruh `src/data/sample/` kecuali `today.ts` (uji saja): `tasks.ts`, `tasks.extra.ts`,
+`projects.ts`, `projects.extra.ts`, `archive.ts`, `index.ts` (isinya tinggal re-export tiga berkas
+itu). `tasks.shared.ts` kini hanya `TaskStatus`, `TaskPriority` dan `daysLate` (tipe lebar
+`TaskItem`/`TaskInfo`, `nowStamp`, `whenFromDue`, `ATLAS_ID`, `TYPES` ikut pergi); `boardColumns`
+(`tasks.columns.ts`) dihapus karena hanya dipakai tesnya. Tes yang ikut pergi: `tasks.store`,
+`projects.store`, `kit/archive.store`, `data/tasks.projects`, kasus sampel di `tasks.shared`/
+`tasks.radial`/`tasks.form`; `resetTasks`/`resetArchive`/`resetProjects` hilang dari
+`tasks-router`/`projects-router`. Acuan pemulihan: `09c01dd0` (`git show 09c01dd0:mobile/<path>`).

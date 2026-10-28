@@ -10,9 +10,9 @@ import { Icon } from '@/components/ui/icon';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
-import type { TaskStatus } from '@/data/sample';
 import type { TaskCard } from '@/data/tasks.card';
 import { type BoardStatus, COLUMNS } from '@/data/tasks.columns';
+import type { TaskStatus } from '@/data/tasks.shared';
 
 import { cardName } from '../list/card-name';
 import { SPOKEN } from '../tasks.strings.added';

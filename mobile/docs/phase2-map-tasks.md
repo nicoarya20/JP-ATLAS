@@ -58,7 +58,7 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 | ⋯ Move to Archive + Undo | `archiveFromDetail`, `undoArchive`, `archiveTask` | `DELETE /tasks/:ref` → `POST /trash/task/:id/restore` |
 | Edit `[id]/edit` → `edit/**` | ✓ `editFormOf`, `editChanges` (`tasks.form.ts`), `updateTask` (`tasks.form.write.ts`) | `GET /:ref` (`can.update`) + `form-options?projectId` (404 → "This project is no longer here") + `projects/:id/members` → `PATCH /:ref` hanya bidang berubah; langkah tetap di detail (checklist) |
 | Fill form `tasks/new/form` | ✓ `newTaskForm`, `pickFormProject`, `createBody`, `createTask` | `form-options` (semua proyek, dimuat ulang tiap buka) + `projects/:id/members` → `POST /tasks` → `/tasks/<number>` |
-| Just write ✦ `tasks/new/index` → `new/write.screen.tsx` | `getQuickWrite` (`tasks.write.ts`) | `POST /tasks/draft` → `POST /tasks` per draf |
+| Just write ✦ `tasks/new/index` → `new/write.screen.tsx` | ✓ `draftTasks`, `draftRows`, `answerQuestion`, `draftBody` (`tasks.draft.ts`), `createTasks` (`tasks.form.write.ts`); `getQuickWrite`/`tasks.write.ts` dihapus (`09c01dd0`) | `POST /tasks/draft` → `POST /tasks` per draf |
 | Import CSV `tasks/csv` → `csv/**` | `getCsvImport` | **Tak ada endpoint** — GAP T-6 |
 | Project settings `projects/[id]/settings` → `settings/**` | `getTaskSettings` | Baca kinds dari `form-options`; switch review, CRUD kinds, tag **tak ada** — GAP T-7 |
 | Tab Tasks proyek + `task-filter` | ✓ `useTasksList` / `useTasksBoard` (scope `project:<id>`) + `moveCards`; `cardStep` (`tasks.card.ts`) memilih tombol kartu | `scope=project&projectId` (+ `assigneeId=<akun>` untuk Assignee Me); `getTasksList`/`taskCard`/`applyQuery`/`searchTasks`/`moveOnBoard`/`editTask` dihapus |
@@ -140,12 +140,15 @@ kategori batal `duplicate|not_needed|out_of_scope|created_by_mistake|other`; sor
 
 ### 2e. Just write ✦
 
-| Mobile (`tasks.write.ts`) | Server (`POST /tasks/draft`) | Status |
+| Mobile lama (`tasks.write.ts`, dihapus `09c01dd0`) | Server (`POST /tasks/draft`) | Status |
 |---|---|---|
 | proyek Atlas dipatok | `projectId` wajib | Pilih proyek dari `form-options` |
 | `drafts[].{title, who, due, priority, type}` | `drafts[].{title, assigneeId, assigneeNote, dueDate, priority, kindId, description}` | ✓ |
 | `ask[]` "Which Rina?" | `question {text, options[], draftIndexes[]}` | `text` Indonesia (K5) |
 | Data contoh tanpa LLM | AI nyata; 503/502 → jatuh ke Fill form dengan teks di Title | Wajib tangani |
+
+Keadaan sekarang: disambung di `src/data/tasks.draft.ts` + `createTasks` (`tasks.form.write.ts`) dan
+`src/screens/tasks/new/{write.screen,write-drafts,use-just-write}.tsx`; rinciannya di gap doc §1 (baris B13).
 
 ---
 
@@ -182,7 +185,7 @@ Setelah tulis: jawaban `{ task, can }` memperbarui kartu/detail langsung; `inval
 daftar proyek terkait. Aturan klien yang **dihapus**: `mayChange`, `mayArchive`, `deniedNotice`, `actionsOf`,
 `stateNoteOf` (notYours/waiting), `canReturn`, `reviewersOf`, `role === 'member'` di settings, `role === 'admin'`
 di `formProjects`, gerbang `mayChange` di `board/use-move-menu.ts`, serta `takeProjectTasks`/`putTasksBack`/
-`renameProjectTasks`/`forgetArchivedTask` di `tasks.store.ts`.
+`renameProjectTasks`/`forgetArchivedTask` di `tasks.store.ts` (store itu sendiri dihapus, `09c01dd0`).
 
 ---
 
@@ -190,11 +193,11 @@ di `formProjects`, gerbang `mayChange` di `board/use-move-menu.ts`, serta `takeP
 
 | Worker | Berkas milik | Isi |
 |---|---|---|
-| **A — Daftar + Kanban** | `data/tasks.ts`, `tasks.groups.ts`, `tasks.columns.ts`, `tasks.query.ts`, `tasks.query-state.ts`, `tasks.radial.ts`, `screens/tasks/{list,board,filter}/**`, `app/(tabs)/tasks/{index,filter}.tsx`, tes terkait | Resource daftar per grup/kolom ber-kursor, `counts`, filter → query, geser kartu (`POST` per tugas), `caps.createTask` |
-| **B — Detail + tulis** | `data/tasks.detail.ts`, `tasks.actions.ts`, `tasks.form.ts`, `tasks.write.ts`, `tasks.settings.ts`, `tasks.store.edit.ts`, `screens/tasks/{detail,sheets,edit,new,csv,settings,parts}/**`, `app/(tabs)/tasks/[id]/**`, `app/tasks/**`, tes terkait | Detail + timeline + checklist + komentar, transisi + Reopen sheet, Cancel, Sampah + Urungkan, Edit/Fill form via `form-options`, Just write AI |
+| **A — Daftar + Kanban** | `data/tasks.ts` (dihapus, `09c01dd0`), `tasks.groups.ts`, `tasks.columns.ts`, `tasks.query.ts`, `tasks.query-state.ts`, `tasks.radial.ts`, `screens/tasks/{list,board,filter}/**`, `app/(tabs)/tasks/{index,filter}.tsx`, tes terkait | Resource daftar per grup/kolom ber-kursor, `counts`, filter → query, geser kartu (`POST` per tugas), `caps.createTask` |
+| **B — Detail + tulis** | `data/tasks.detail.ts`, `tasks.actions.ts`, `tasks.form.ts`, `tasks.write.ts`, `tasks.settings.ts`, `tasks.store.edit.ts` (tiga terakhir dihapus, `09c01dd0`), `screens/tasks/{detail,sheets,edit,new,csv,settings,parts}/**`, `app/(tabs)/tasks/[id]/**`, `app/tasks/**`, tes terkait | Detail + timeline + checklist + komentar, transisi + Reopen sheet, Cancel, Sampah + Urungkan, Edit/Fill form via `form-options`, Just write AI |
 
 Berkas bersama yang perlu satu pemilik: `tasks.shared.ts` (pemetaan DTO → bentuk layar, label enum) dan
-`tasks.state.ts`/`tasks.store.ts` (store). Usul: **A** memiliki `tasks.state.ts`/`tasks.store.ts` (cache daftar),
+`tasks.state.ts`/`tasks.store.ts` (store; keduanya dihapus, `09c01dd0`). Usul: **A** memiliki `tasks.state.ts`/`tasks.store.ts` (cache daftar),
 **B** memiliki `tasks.shared.ts` (pemetaan + label) dan menulisnya **lebih dulu** sebagai langkah 0 yang
 di-review koordinator, lalu A mengimpornya. Aksi tulis B memanggil `invalidate` yang diekspor A.
 

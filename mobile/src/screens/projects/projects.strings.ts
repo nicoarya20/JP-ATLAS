@@ -24,7 +24,6 @@ export const FILTER = {
 export const DETAIL = {
   actions: 'Project actions',
   edit: 'Edit project',
-  settings: 'Project settings',
   trash: 'Move to Trash',
   leadDue: (lead: string, due: string) => `Lead: ${lead} · Due: ${due}`,
   extend: 'Extend deadline',

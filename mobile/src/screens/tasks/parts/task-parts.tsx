@@ -10,21 +10,10 @@ import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { SPACING } from '@/theme/tokens';
 
-/** Muted card for a note in place of actions (prototype `.tk-soft`); `strong` adds the accent ring (a CSV error row). */
-export function Soft({
-  children,
-  strong,
-  testID,
-}: {
-  children: ReactNode;
-  strong?: boolean;
-  testID?: string;
-}) {
+/** Muted card for a note in place of actions (prototype `.tk-soft`). */
+export function Soft({ children, testID }: { children: ReactNode; testID?: string }) {
   return (
-    <View
-      testID={testID}
-      className={`gap-2 rounded-card bg-muted p-4 ${strong ? 'border-2 border-atlas' : ''}`}
-    >
+    <View testID={testID} className="gap-2 rounded-card bg-muted p-4">
       {children}
     </View>
   );
@@ -76,7 +65,7 @@ type ActProps = {
   /** lime main action (default), outline, danger, or a violet text link. */
   kind?: 'primary' | 'outline' | 'danger' | 'link';
   disabled?: boolean;
-  /** Request in flight: spinner and no second press (Phase 2 fills it; Phase 1 writes are synchronous). */
+  /** Request in flight: spinner and no second press until the server answers (UX §2). */
   loading?: boolean;
   /** Share the row: grow to fill it (`wide` takes more room, like the prototype's last foot button). */
   grow?: boolean;

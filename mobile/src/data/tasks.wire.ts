@@ -3,8 +3,7 @@
  * `server/access/capabilities.ts` and the workflow route (map `phase2-map-tasks.md` §0). Types
  * only, plus the enum words the app shows in English: the server sends codes, never English text.
  */
-import type { TaskStatus } from './sample';
-import type { TaskPriority } from './tasks.shared';
+import type { TaskPriority, TaskStatus } from './tasks.shared';
 
 export type TaskStatusWire = 'todo' | 'in_progress' | 'in_review' | 'done' | 'canceled';
 export type TaskPriorityWire = 'low' | 'medium' | 'high' | 'critical';

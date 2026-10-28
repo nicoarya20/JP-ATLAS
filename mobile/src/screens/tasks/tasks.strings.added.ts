@@ -19,14 +19,11 @@ export const SPOKEN = {
   stopIn: (status: string) => `Stop selecting in ${status}`,
   addTo: (status: string) => `Add task to ${status}`,
   selectTask: (no: number, title: string) => `Select #${no} ${title}`,
-  include: (title: string) => `Include ${title}`,
   scope: 'Scope',
   view: 'View',
-  source: 'Source',
   /** The buttons whose visible text starts with "+" or ends with "✦". */
   compose: 'Compose',
   addStep: 'Add step',
-  addType: 'Add type',
 } as const;
 
 /** Why a primary button is disabled, shown once the field was touched and read as the button's hint. */
@@ -37,10 +34,4 @@ export const MISSING = {
   reopen: 'Write a reason of at least 3 characters.',
   why: 'Pick why to cancel the task.',
   note: 'Add a note to cancel for Other.',
-} as const;
-
-export const DELETE_TAG = {
-  title: (tag: string) => `Delete tag ${tag}?`,
-  message: 'Tasks keep their other tags. This cannot be undone.',
-  confirm: 'Delete tag',
 } as const;

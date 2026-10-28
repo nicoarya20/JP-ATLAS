@@ -1,7 +1,5 @@
 // The values of New task · Fill form and Edit task on the server's terms (tasks.form.ts): the choices a project offers,
-// a blank form and a project switch, what keeps Save off, the POST body and the PATCH changes; then the sample-backed
-// Just write ✦, CSV preview and project settings, still Phase 1.
-import { resetArchive } from '../../src/data/archive.store';
+// a blank form and a project switch, what keeps Save off, the POST body and the PATCH changes.
 import type { ProjectMemberWire } from '../../src/data/projects.wire';
 import {
   assigneeOptions,
@@ -15,20 +13,12 @@ import {
   phaseOptions,
   pickFormProject,
 } from '../../src/data/tasks.form';
-import { getTaskSettings } from '../../src/data/tasks.settings';
-import { resetTasks } from '../../src/data/tasks.store';
-import { getCsvImport, getQuickWrite } from '../../src/data/tasks.write';
 import { detailOf, row } from '../helpers/tasks-fixtures';
 import { FORM_PROJECTS, MEMBERS } from '../helpers/tasks-form-fixtures';
 
 const [ATLAS_FORM, SINAR_FORM] = FORM_PROJECTS;
 const TODAY = '2026-10-07';
 const values = (o: { value: string }[] | null) => o?.map((x) => x.value) ?? null;
-
-afterEach(() => {
-  resetTasks();
-  resetArchive();
-});
 
 describe('form choices', () => {
   test('the default kind is the first of base kind "task", else the first kind', () => {
@@ -195,52 +185,5 @@ describe('Edit task', () => {
     const before = editFormOf(task);
     expect(editChanges(before, { ...before, description: '  ' })).toEqual({ description: null });
     expect(editChanges(before, { ...before, kindId: '' })).toBeNull();
-  });
-});
-
-describe('Just write, CSV and project settings', () => {
-  test('Just write shows the sample drafts, never an LLM', () => {
-    const w = getQuickWrite();
-    expect(w.drafts.map((d) => d.dueLabel)).toEqual(['Oct 8 (tomorrow)', 'Oct 9 (Friday)']);
-    expect([w.askTitle, w.saveLabel]).toEqual(['Which Rina?', 'Save 2 tasks']);
-  });
-
-  test('CSV preview counts like the prototype', () => {
-    const c = getCsvImport();
-    expect(c.file).toBe('atlas-tasks.csv · 5 rows');
-    expect(c.summary).toBe('4 ready (1 with a note) · 1 error');
-    expect(c.importLabel).toBe('Import 4 tasks');
-    expect(c.rows.map((r) => r.label)).toEqual([
-      '✓ Ready',
-      '✕ Error',
-      'Note',
-      '✓ Ready',
-      '✓ Ready',
-    ]);
-    expect(c.rows[0].line).toBe('rina@kantor.id · Due Oct 15');
-    expect(c.rows[4].line).toBe('(empty → no assignee) · (empty → Medium) · (empty → no due date)');
-  });
-
-  test('project settings for Managers and Admins only, with type and tag counts', () => {
-    expect(getTaskSettings('member', 'atlas')).toEqual({ allowed: false });
-    const s = getTaskSettings('pm', 'atlas');
-    expect(s).toMatchObject({ allowed: true, project: 'Atlas Project', needsReview: false });
-    if (!s.allowed) throw new Error('test-only');
-    expect(s.types.map((t) => [t.name, t.category, t.count])).toEqual([
-      ['Task', 'Task (task)', '4 tasks'],
-      ['Bug', 'Issue (issue)', '2 tasks'],
-      ['Improvement', 'Idea (idea)', '0 tasks'],
-    ]);
-    expect(s.tags).toEqual([
-      { tag: 'sso', count: '1 task' },
-      { tag: 'login', count: '1 task' },
-      { tag: 'profile', count: '1 task' },
-      { tag: 'api', count: '1 task' },
-      { tag: 'design', count: '1 task' },
-      { tag: 'testing', count: '1 task' },
-    ]);
-    expect(() => getTaskSettings('pm', 'nope')).toThrow(
-      'Cannot open project settings: no project "nope"',
-    );
   });
 });

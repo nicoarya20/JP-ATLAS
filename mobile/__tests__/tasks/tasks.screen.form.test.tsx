@@ -1,7 +1,7 @@
 // New task · Fill form and Edit task against a stubbed /api/app/tasks (tasks-fixtures, tasks-form-fixtures): the form
 // offers the server's projects, people, kinds and phases; Save sends POST /tasks with what is set and opens the new
 // task, or PATCH /tasks/:ref with only what changed and goes back to the detail; a refusal stays on the form in the
-// server's words; `can.update` decides whether Edit opens. Just write ✦ and Import CSV are still the sample's.
+// server's words; `can.update` decides whether Edit opens. Just write ✦ has its own file (tasks.screen.write).
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
@@ -52,16 +52,18 @@ async function openForm(url = '/tasks/new/form') {
 }
 
 describe('new task · fill form', () => {
-  it('/tasks/new opens Just write ✦ as a modal, and the switch swaps to Fill form', async () => {
+  it('/tasks/new opens Just write ✦ as a modal, and the switch swaps to Fill form on the same project', async () => {
     serve(tasksServer(ROWS).routes);
-    await openTasks('/tasks/new');
-    expect(screen.getByTestId('screen-task-write')).toBeOnTheScreen();
-    expect(screen.getAllByTestId('write-draft')).toHaveLength(2);
+    await openTasks('/tasks/new?project=p-sinar');
+    expect(await screen.findByTestId('write-project')).toBeOnTheScreen();
     await fireEvent.press(
       within(screen.getByTestId('new-mode')).getByRole('tab', { name: 'Fill form' }),
     );
     expect(await screen.findByTestId('form-project')).toBeOnTheScreen();
     expect(screen).toHavePathname('/tasks/new/form');
+    expect(screen.getByTestId('form-project').props.accessibilityValue).toEqual({
+      text: 'PT Sinar Website',
+    });
   });
 
   it('opens on the first project; Save waits for a title, sends what is set and opens the new task', async () => {
@@ -213,25 +215,6 @@ describe('new task · fill form', () => {
     await fireEvent.press(screen.getByTestId('form-more'));
     expect(screen.getByTestId('form-more')).toBeCollapsed();
     expect(screen.queryByTestId('field-type')).not.toBeOnTheScreen();
-  });
-
-  it('Just write ✦ names each draft’s tick after it and reads the ask once', async () => {
-    serve(tasksServer(ROWS).routes);
-    await openTasks('/tasks/new');
-    expect(screen.getByRole('checkbox', { name: 'Include Fix the login page' })).toBeOnTheScreen();
-    expect(button('Compose')).toBeOnTheScreen();
-    expect(screen.queryByText(/^Which /)).not.toBeOnTheScreen();
-    expect(screen.getByText(/^Which /, { includeHiddenElements: true })).toBeOnTheScreen();
-  });
-
-  it('/tasks/csv previews the rows as cards and imports the ready ones', async () => {
-    serve(tasksServer(ROWS).routes);
-    await openTasks('/tasks/csv');
-    expect(screen.getByText('4 ready (1 with a note) · 1 error')).toBeOnTheScreen();
-    expect(screen.getAllByTestId(/^csv-row-/)).toHaveLength(5);
-    await fireEvent.press(screen.getByTestId('csv-import'));
-    await waitFor(() => expect(screen).toHavePathname('/tasks'));
-    expect(await screen.findByText('Tasks imported')).toBeOnTheScreen();
   });
 });
 

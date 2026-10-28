@@ -1,14 +1,14 @@
 // The rows of the Create sheet (prototype screens/home/home.create.jsx OPTIONS): everything a person can add, as the
 // server's app-wide `caps` (`GET /api/app/whoami`) allow.
-import { CalendarPlus, FileUp, FolderPlus, ListPlus, type LucideIcon } from 'lucide-react-native';
+import { CalendarPlus, FolderPlus, ListPlus, type LucideIcon } from 'lucide-react-native';
 
 import type { AppCapsWire } from '@/data/whoami.api';
 import type { CreateGo } from '@/navigation/create-href';
 
 export const CREATE_SHEET = { title: 'Create', sub: 'What do you want to add?' } as const;
 
-/** Tile colour behind a row's icon (prototype .hm-tile blue/green/orange/gray). */
-export type CreateTone = 'blue' | 'green' | 'orange' | 'gray';
+/** Tile colour behind a row's icon (prototype .hm-tile blue/green/orange). */
+export type CreateTone = 'blue' | 'green' | 'orange';
 
 export type CreateOption = {
   go: CreateGo;
@@ -43,15 +43,6 @@ const OPTIONS: readonly CreateOption[] = [
     Icon: CalendarPlus,
     tone: 'orange',
     cap: (c) => c.createEvent,
-  },
-  {
-    // Hidden: no server route imports tasks yet (gap doc §3, CSV).
-    go: 'tasks.csv',
-    title: 'Import tasks',
-    sub: 'Add many tasks from a CSV file',
-    Icon: FileUp,
-    tone: 'gray',
-    cap: () => false,
   },
 ];
 
