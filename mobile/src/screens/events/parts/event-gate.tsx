@@ -18,7 +18,7 @@ type EventGateProps = {
 /** The screen once the detail is in and allows it. */
 export function EventGate({ id, allowed, children }: EventGateProps) {
   const res = eventResource(id);
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);

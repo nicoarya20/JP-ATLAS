@@ -108,7 +108,7 @@ function Person({ row, ask }: { row: AccountRow; ask: (a: UserAsk) => void }) {
 /** The Roles tab. */
 export function RolesTab() {
   const { state, search, setSearch } = useUsersList('roles');
-  const me = whoamiResource.use().data;
+  const me = whoamiResource.useSnapshot().data;
   const [dialog, ask] = useUserConfirm();
   const data = state.data;
   const rows = data?.users.map((u) => accountRow(u, me)) ?? [];

@@ -42,7 +42,7 @@ type Key = keyof NotificationPrefsWire;
 /** Event reminders and Inbox updates; the cards that need an answer always come (the group's note says so). */
 export function NotificationSwitches() {
   const notice = useNotice();
-  const state = notificationsResource.use();
+  const state = notificationsResource.useSnapshot();
   // What the switches show while a flip is out, and after: the server's answer to it.
   const [shown, setShown] = useState<NotificationPrefsWire | null>(null);
   const [busy, setBusy] = useState(false);

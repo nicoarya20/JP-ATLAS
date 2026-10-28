@@ -43,7 +43,7 @@ function LoadMore({ no }: { no: number }) {
 /** History section of task #no. */
 export function DetailHistory({ task }: { task: TaskDetailWire }) {
   const res = taskTimelineResource(task.number);
-  const state = res.use();
+  const state = res.useSnapshot();
   const page = state.data;
   let body: ReactNode;
   if (!page) {

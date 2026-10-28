@@ -126,7 +126,7 @@ export const inboxActionCount = (): number | null => inboxCountResource.current(
 
 /** Same, in a component. */
 export const useInboxActionCount = (): number | null =>
-  inboxCountResource.use().data?.action ?? null;
+  inboxCountResource.useSnapshot().data?.action ?? null;
 
 /** A write outside a resource reports its failure to the session itself (pattern §3). */
 async function post<T>(path: string): Promise<T> {

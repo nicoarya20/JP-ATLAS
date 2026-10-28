@@ -26,4 +26,4 @@ export const whoamiResource = resource<WhoamiWire>('whoami', () =>
 export const appCaps = (): AppCapsWire | null => whoamiResource.current()?.caps ?? null;
 
 /** Same, in a component. */
-export const useAppCaps = (): AppCapsWire | null => whoamiResource.use().data?.caps ?? null;
+export const useAppCaps = (): AppCapsWire | null => whoamiResource.useSnapshot().data?.caps ?? null;

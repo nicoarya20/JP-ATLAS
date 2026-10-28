@@ -18,7 +18,7 @@ import { FILTER } from '../events.strings';
 
 /** "All projects", then each project the viewer can see; a picked one not (yet) among them keeps its place. */
 function useProjectOptions(picked: string) {
-  const state = filterProjectsResource.use();
+  const state = filterProjectsResource.useSnapshot();
   useEffect(() => {
     void filterProjectsResource.ensure();
   }, []);

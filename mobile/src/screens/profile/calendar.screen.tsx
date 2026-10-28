@@ -22,7 +22,7 @@ const WEEK_DAYS = 7;
 export function CalendarScreen() {
   const [day, setDay] = useState(today);
   const week = myWeekResource(day);
-  const state = week.use();
+  const state = week.useSnapshot();
   useEffect(() => {
     void week.ensure();
   }, [week]);

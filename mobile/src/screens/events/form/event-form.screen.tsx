@@ -116,7 +116,7 @@ function EditForm({ e, details }: { e: EventDetailWire; details: boolean }) {
 
 /** New event, once whoami says this viewer may create one. */
 function NewForm({ details }: { details: boolean }) {
-  const state = whoamiResource.use();
+  const state = whoamiResource.useSnapshot();
   useEffect(() => {
     void whoamiResource.ensure();
   }, []);

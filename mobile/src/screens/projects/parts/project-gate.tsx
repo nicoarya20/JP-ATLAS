@@ -19,7 +19,7 @@ type ProjectGateProps = {
 /** The screen once the detail is in and allows it. */
 export function ProjectGate({ id, allowed, children }: ProjectGateProps) {
   const res = projectResource(id);
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);

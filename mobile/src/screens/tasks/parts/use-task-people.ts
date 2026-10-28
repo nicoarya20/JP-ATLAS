@@ -11,7 +11,7 @@ import { F } from '../tasks.strings';
 /** `{ people, hint }` for AssigneeEdit; `current` stays a choice on Edit even when no longer a worker. */
 export function useTaskPeople(projectId: string, current?: { id: string; name: string } | null) {
   const res = projectMembersResource(projectId);
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);

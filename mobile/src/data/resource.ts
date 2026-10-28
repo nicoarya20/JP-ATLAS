@@ -47,8 +47,13 @@ export type Resource<T> = {
   readonly name: string;
   /** The state now, outside a component. */
   peek: () => ResourceState<T>;
-  /** The state in a component, re-rendering when it changes. */
-  use: () => ResourceState<T>;
+  /**
+   * The state in a component, re-rendering when it changes. A hook, so its name must start with `use` +
+   * a capital: the React Compiler treats a bare `.use()` member call as plain code and caches it after
+   * the first render, which skips the hooks inside and breaks hook order (`route-files`-style guard:
+   * `__tests__/node/compiler-hooks.test.ts`).
+   */
+  useSnapshot: () => ResourceState<T>;
   /** The data now, or null — what a synchronous `get<Module>()` reads. */
   current: () => T | null;
   /** Fetch unless fresh data is already there; safe to call from every screen, every mount. */
@@ -122,7 +127,7 @@ export function resource<T>(name: string, load: () => Promise<T>): Resource<T> {
   const self: Resource<T> = {
     name,
     peek: store.get,
-    use: () => useStore(store),
+    useSnapshot: () => useStore(store),
     current: () => store.get().data,
     ensure: () => {
       const state = store.get();

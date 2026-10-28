@@ -35,7 +35,7 @@ const cut = (max: number) => (set: (s: string) => void) => (text: string) =>
 function Form({ p, close }: { p: ProfileWire; close: () => void }) {
   const notice = useNotice();
   const d = useProfileData();
-  const who = whoamiResource.use().data;
+  const who = whoamiResource.useSnapshot().data;
   const [full, setFull] = useState(p.displayName ?? p.name);
   const [nickname, setNickname] = useState(p.nickname ?? '');
   const [title, setTitle] = useState(p.jobTitle ?? '');
@@ -126,7 +126,7 @@ function Form({ p, close }: { p: ProfileWire; close: () => void }) {
 /** Edit my profile. */
 export function ProfileEditScreen() {
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const state = profileResource.use();
+  const state = profileResource.useSnapshot();
   useEffect(() => {
     void profileResource.ensure();
     void whoamiResource.ensure();

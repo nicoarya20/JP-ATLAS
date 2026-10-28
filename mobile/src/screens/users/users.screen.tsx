@@ -19,7 +19,7 @@ const TABS: readonly UsersTab[] = ['approval', 'roles'];
 /** The Users screen. */
 export function UsersScreen() {
   const params = useLocalSearchParams<{ tab?: string }>();
-  const who = whoamiResource.use();
+  const who = whoamiResource.useSnapshot();
   const caps = who.data?.caps ?? null;
   useEffect(() => {
     void whoamiResource.ensure();

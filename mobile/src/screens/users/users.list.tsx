@@ -16,7 +16,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 /** The tab's list and its search box. */
 export function useUsersList(tab: UsersTab) {
   const list = usersListOf(tab);
-  const state = list.resource.use();
+  const state = list.resource.useSnapshot();
   const [search, setSearch] = useState(list.getSearch);
   const first = useRef(true);
   useEffect(() => {

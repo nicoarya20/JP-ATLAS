@@ -77,7 +77,7 @@ export function TaskEditScreen() {
 
 function EditGate({ no }: { no: number }) {
   const res = taskDetailResource(no);
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);
@@ -96,7 +96,7 @@ function EditGate({ no }: { no: number }) {
 
 function EditOptions({ task }: { task: TaskDetailWire }) {
   const res = taskFormOptionsResource(task.project.id);
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.reload();
   }, [res]);

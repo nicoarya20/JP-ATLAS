@@ -71,7 +71,7 @@ function Purge({ item }: { item: TrashItemWire }) {
 /** Delete forever for the Trash row in the route param `key` ("task-<id>"). */
 export function PurgeScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
-  trashResource.use();
+  trashResource.useSnapshot();
   useEffect(() => {
     void trashResource.ensure();
   }, []);

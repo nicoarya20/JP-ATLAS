@@ -48,7 +48,7 @@ export function TaskDetailScreen() {
 
 function Detail({ no }: { no: number }) {
   const res = taskDetailResource(no);
-  const state = res.use();
+  const state = res.useSnapshot();
   const { busy, run } = useDetailRun();
   const notice = useNotice();
   const trash = useTaskTrash(no, state.data?.id ?? '');

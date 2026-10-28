@@ -132,4 +132,5 @@ export const usersStatsResource = resource<AdminUserStatsWire>('admin-users:stat
 );
 
 /** Sign-ups waiting for a decision, in a component; null while the count is not in (no badge, not 0). */
-export const useUsersPending = (): number | null => usersStatsResource.use().data?.pending ?? null;
+export const useUsersPending = (): number | null =>
+  usersStatsResource.useSnapshot().data?.pending ?? null;

@@ -163,7 +163,7 @@ export const tasksResource = resource<TasksResponse>('tasks', loadTasks);
 // 3. get<Module>() tetap sinkron: baca store, jangan await apa pun.
 export function getTasks(role: Role): TasksList {
   const data = tasksResource.current();
-  if (!data) return EMPTY_TASKS;          // layar menampilkan keadaan memuat dari `use()`
+  if (!data) return EMPTY_TASKS;          // layar menampilkan keadaan memuat dari `useSnapshot()`
   return mapToScreenShape(data, viewer(role));
 }
 
@@ -172,8 +172,10 @@ export const saveTask = (ref: string, fields: TaskFields) =>
   write(() => apiPatch(`/api/app/tasks/${ref}`, fields), [tasksResource, homeResource]);
 ```
 
-Layar: `tasksResource.use()` untuk `phase`/`error`, `getTasks(role)` untuk datanya,
+Layar: `tasksResource.useSnapshot()` untuk `phase`/`error`, `getTasks(role)` untuk datanya,
 `void tasksResource.ensure()` di satu `useEffect`.
+
+**Nama hook wajib `use` + huruf kapital.** React Compiler (`reactCompiler` di `app.config.ts`) hanya mengenali `useFoo()` / `obj.useFoo()` sebagai hook. Fungsi lain yang di dalamnya memanggil hook (dulu `resource.use()`) dianggap kode biasa dan di-cache setelah render pertama. Akibatnya hook di dalamnya terlewat, urutan hook berubah, dan layar tidak lagi mengikuti datanya. Jest tidak menjalankan compiler, jadi `__tests__/node/compiler-hooks.test.ts` yang menjaga hal ini.
 
 ---
 

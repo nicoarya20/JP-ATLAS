@@ -22,7 +22,7 @@ import { LoadMore, useProjectsSearch } from './projects.controls';
 
 /** The Projects tab. */
 export function ProjectsScreen() {
-  const state = projectsResource.use();
+  const state = projectsResource.useSnapshot();
   const { search, setSearch, ask, pending } = useProjectsSearch();
   useEffect(() => {
     void projectsResource.ensure();

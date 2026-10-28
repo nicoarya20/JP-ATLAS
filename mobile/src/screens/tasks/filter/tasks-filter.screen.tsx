@@ -40,7 +40,7 @@ function listedProject(q: TaskQuery): TaskQuery {
 
 /** The project picker: the server's projects, loaded when the sheet opens. */
 function ProjectField({ value, onChange }: { value: string; onChange: (id: string) => void }) {
-  const list = filterProjectsResource.use().data?.items ?? [];
+  const list = filterProjectsResource.useSnapshot().data?.items ?? [];
   useEffect(() => {
     void filterProjectsResource.ensure();
   }, []);

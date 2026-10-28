@@ -40,7 +40,7 @@ function EditProject({ id, from }: { id: string; from: EditForm }) {
   const [f, setF] = useState(from);
   const [touched, setTouched] = useState(false);
   const [asking, setAsking] = useState(false);
-  projectMembersResource(id).use();
+  projectMembersResource(id).useSnapshot();
   useEffect(() => {
     void projectMembersResource(id).ensure();
   }, [id]);

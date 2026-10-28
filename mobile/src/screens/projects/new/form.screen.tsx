@@ -156,7 +156,7 @@ function ProjectForm({ me }: { me: { id: string; name: string } }) {
 
 /** The project form once `whoami` says the caller may create projects; anyone else goes home. */
 export function ProjectFormScreen() {
-  const who = whoamiResource.use();
+  const who = whoamiResource.useSnapshot();
   useEffect(() => {
     void whoamiResource.ensure();
   }, []);

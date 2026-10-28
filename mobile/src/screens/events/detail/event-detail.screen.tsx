@@ -83,7 +83,7 @@ function Detail({ d }: { d: EventDetailView }) {
 export function EventDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const res = eventResource(id);
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);

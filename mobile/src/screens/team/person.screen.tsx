@@ -69,7 +69,7 @@ function Tasks({ d }: { d: TeamPersonData }) {
 /** Team member `id`: the person's account id. */
 export function PersonScreen({ id }: { id: string }) {
   const res = teamPersonResource(id);
-  const state = res.use();
+  const state = res.useSnapshot();
   const d = getTeamPerson(id);
 
   useEffect(() => {

@@ -25,7 +25,7 @@ type GateProps = {
 /** New task's projects from form-options; until there are some, the page waits, offers Try again or says none. */
 export function FormProjectsGate({ mode, testID, children }: GateProps) {
   const res = taskFormOptionsResource();
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.reload();
   }, [res]);

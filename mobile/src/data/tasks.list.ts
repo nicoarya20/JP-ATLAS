@@ -170,9 +170,9 @@ export function useTasksList({
 }: ListOptions): TasksListView & { view: 'list' } {
   const params = listParams(scope, query, search);
   const res = taskListResource(params);
-  const state = res.use();
+  const state = res.useSnapshot();
   const plain = plainMine(scope, query, search);
-  const counts = tasksCountsResource.use().data;
+  const counts = tasksCountsResource.useSnapshot().data;
   useEffect(() => {
     void res.ensure();
   }, [res]);
@@ -219,9 +219,14 @@ export function useTasksBoard({
     return { c, status, params, res: taskListResource(params) };
   });
   // Always four, in column order: a fixed number of hooks.
-  const states = [asked[0].res.use(), asked[1].res.use(), asked[2].res.use(), asked[3].res.use()];
+  const states = [
+    asked[0].res.useSnapshot(),
+    asked[1].res.useSnapshot(),
+    asked[2].res.useSnapshot(),
+    asked[3].res.useSnapshot(),
+  ];
   const plain = plainMine(scope, query, search);
-  const counts = tasksCountsResource.use().data;
+  const counts = tasksCountsResource.useSnapshot().data;
   // The columns' requests, as one value an effect can depend on ('' = a column not asked).
   const keys = asked.map((a) => (a.status ? a.params : '')).join('\n');
   useEffect(() => {

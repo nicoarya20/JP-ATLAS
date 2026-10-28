@@ -73,7 +73,7 @@ export function useEventsCalendar({
   const first = dates[0] ?? picked;
   const last = dates[dates.length - 1] ?? picked;
   const res = eventsWindowResource(first, last, eventsParams(query, '', { calendar: true }));
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);

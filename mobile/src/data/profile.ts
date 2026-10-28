@@ -49,8 +49,8 @@ export function profileData(
 
 /** Profile ① in a component, redrawn as the profile, whoami, the session and the Inbox count come in. */
 export function useProfileData(): ProfileData {
-  const p = profileResource.use().data;
-  const who = whoamiResource.use().data;
+  const p = profileResource.useSnapshot().data;
+  const who = whoamiResource.useSnapshot().data;
   const user = useStore(sessionStore, (s) => s.user);
   return profileData(p, who, user, useInboxActionCount());
 }

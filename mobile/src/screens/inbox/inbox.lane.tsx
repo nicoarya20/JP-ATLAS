@@ -42,7 +42,7 @@ type LaneProps = { lane: InboxLane; children: (view: InboxLaneView) => ReactNode
 /** A lane's body: loading, failed with "Try again", or `children` with the cards and "Load more" under them. */
 export function Lane({ lane, children }: LaneProps) {
   const res = inboxLaneResource(lane);
-  const state = res.use();
+  const state = res.useSnapshot();
   const view = getInboxLane(lane);
   if (!view) {
     return state.phase === 'failed' ? (

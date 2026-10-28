@@ -40,9 +40,9 @@ const go = (href: Href) => router.navigate(href);
  * screen's guess.
  */
 export function HomeScreen({ onOpen = go }: HomeScreenProps) {
-  const state = homeResource.use();
+  const state = homeResource.useSnapshot();
   // The In Progress and Inbox chips read counts of their own: subscribed so they appear when they arrive.
-  tasksCountsResource.use();
+  tasksCountsResource.useSnapshot();
   useInboxActionCount();
   const [line, setLine] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);

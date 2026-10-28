@@ -20,7 +20,7 @@ const NO_PROJECT = '';
 
 /** The project pick of a new event: "Personal event", then each project the viewer can see. */
 function ProjectPick({ f, set }: FormProps) {
-  const state = filterProjectsResource.use();
+  const state = filterProjectsResource.useSnapshot();
   useEffect(() => {
     void filterProjectsResource.ensure();
   }, []);

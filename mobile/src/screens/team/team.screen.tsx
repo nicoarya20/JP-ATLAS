@@ -20,7 +20,7 @@ import { TEAM, TEAM_EMPTY } from './team.strings';
 
 /** The Team list. */
 export function TeamScreen() {
-  const state = teamResource.use();
+  const state = teamResource.useSnapshot();
   const data = getTeam();
   const { search, setSearch, sortBy, pending } = useTeamControls();
 

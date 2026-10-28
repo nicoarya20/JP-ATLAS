@@ -27,7 +27,7 @@ const asTab = (t?: string): DetailTab => TABS.find((x) => x === t) ?? 'overview'
 /** Loading, missing (404: not there, in the Trash or not the viewer's, all alike) or failed. */
 function NoProject({ id }: { id: string }) {
   const res = projectResource(id);
-  const state = res.use();
+  const state = res.useSnapshot();
   const failed = state.phase === 'failed';
   return (
     <DetailPage title={DETAIL.missingTitle} tabBar testID="project-missing">
@@ -52,7 +52,7 @@ export function ProjectDetailScreen() {
   const id = params.id;
   const [search, setSearch] = useState('');
   const settled = useSettled(search);
-  projectResource(id).use();
+  projectResource(id).useSnapshot();
   useEffect(() => {
     void projectResource(id).ensure();
   }, [id]);

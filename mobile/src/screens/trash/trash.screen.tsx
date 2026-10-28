@@ -84,7 +84,7 @@ function TrashList({ data }: { data: TrashData }) {
 
 /** The Trash: what the viewer may see of deleted projects, tasks and events. */
 export function TrashScreen() {
-  const state = trashResource.use();
+  const state = trashResource.useSnapshot();
   useFocusEffect(
     useCallback(() => {
       if (trashResource.peek().phase === 'empty') void trashResource.ensure();

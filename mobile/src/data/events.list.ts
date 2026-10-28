@@ -61,7 +61,7 @@ export function groupCards(cards: readonly EventCard[], group: number) {
 export function useEventsList(query: EventsQuery, search: string): EventsListView {
   const params = eventsParams(query, search);
   const res = eventsListResource(params);
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);

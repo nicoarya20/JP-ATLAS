@@ -20,7 +20,7 @@ import { APPROVAL, USERS } from './users.strings';
 
 /** The counts row, from `/users/stats`; hidden until it is in. */
 function Counts() {
-  const stats = usersStatsResource.use().data;
+  const stats = usersStatsResource.useSnapshot().data;
   useEffect(() => {
     void usersStatsResource.ensure();
   }, []);

@@ -15,7 +15,7 @@ type LoadedProps<T> = {
 
 /** The part's content once its resource has data; loading or failed until then. */
 export function Loaded<T>({ res, testID, children }: LoadedProps<T>) {
-  const state = res.use();
+  const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();
   }, [res]);

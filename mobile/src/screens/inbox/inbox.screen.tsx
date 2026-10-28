@@ -19,7 +19,7 @@ const LANE: Record<InboxTab, InboxLane> = { respond: 'action', updates: 'info' }
 export function InboxScreen() {
   const params = useLocalSearchParams<{ tab?: string }>();
   const tab: InboxTab = params.tab === 'updates' ? 'updates' : 'respond';
-  const count = inboxCountResource.use().data;
+  const count = inboxCountResource.useSnapshot().data;
   const show = (t: InboxTab) => router.setParams({ tab: t });
 
   // Idempotent (pattern rule 1): a lane already loaded is not fetched again when its tab returns.
