@@ -12,7 +12,7 @@ export const BRAND = {
 export const SIGN_IN = {
   title: 'Sign in to your account',
   google: 'Sign in with Google',
-  note: 'No account yet? Just sign in with Google.\nNew accounts need admin approval before they can be used.',
+  note: 'No account yet? Ask your admin for an invite.\nNew accounts need admin approval before they can be used.',
   footer: 'Help · Privacy Policy',
 } as const;
 
@@ -41,7 +41,7 @@ export const UNREACHABLE = {
 export const DENIED = {
   title: 'Access denied',
   reasonLabel: 'Reason from admin:',
-  note: 'This account was rejected / deactivated by an admin. You can still sign in with another Google account.',
+  note: 'This account was rejected / deactivated by an admin. You can still sign in with another account.',
   noReason: 'No reason was given.',
   signOut: 'Sign out and use another account',
 } as const;
