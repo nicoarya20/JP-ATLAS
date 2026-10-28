@@ -4,14 +4,13 @@ const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
 
 export const LIST = {
   title: 'Events',
-  search: 'Search title or location…',
+  search: 'Search event title…',
   views: ['List', 'Calendar'],
-  viewResults: 'View results',
-  checkResults: 'Check results',
   noMatch: 'No events match these filters.',
   emptyTitle: 'No events yet',
   emptyText: 'Meetings or events you attend will show up here.',
   newEvent: 'New event',
+  loadMore: 'Load more',
 } as const;
 
 export const CALENDAR = {
@@ -27,44 +26,31 @@ export const FILTER = {
   type: 'Event type',
   project: 'Project',
   group: 'Group by',
+  allProjects: 'All projects',
+  /** A project the filter holds that the viewer's project list does not (yet) name. */
+  pickedProject: 'Picked project',
 } as const;
 
 export const DETAIL = {
   title: 'Event detail',
   actions: 'Event actions',
   cancel: 'Cancel event',
-  archive: 'Move to Archive',
+  trash: 'Move to Trash',
   edit: 'Edit',
-  repeats: 'Repeats',
   time: 'Time',
   location: 'Location',
+  link: 'Meeting link',
+  linkFailed: "Couldn't open the meeting link. Copy it from the event instead.",
   project: 'Project',
-  repeat: 'Repeat',
   reminder: 'Reminder',
-  reminderValue: '1 day & 30 min before',
   attendees: (n: number) => `Attendees (${n})`,
   creator: 'Creator',
-  noteTaker: 'Note-taker',
   agenda: 'Agenda',
   noAgenda: 'No agenda yet',
   minutes: 'Minutes',
-  noneYet: 'None yet',
-  minutesLead: (start: string) =>
-    `Type and Photo work anytime. Voice is active from the start time (${start}) until the meeting ends.`,
-  type: 'Type',
-  photo: 'Photo',
-  photoNotice: 'Take a photo of the whiteboard or notes',
-  voice: (start: string) => `Voice · from ${start}`,
-  aiNote: ' = AI-assisted. The result is a text draft you can edit first.',
+  noMinutes: 'No minutes yet.',
+  canceled: 'Canceled',
   canceledBy: (by: string) => `Canceled by ${by}`,
-  canceledOnce: 'Only this occurrence; the next ones continue.',
-  youCreated: 'You created this event',
-  asAdmin: 'You can change this event as an Admin',
-  memberAccess: (creator: string) =>
-    `Only the creator (${creator}), the project manager or an Admin can change this event.`,
-  createdBy: (creator: string) => `Created by ${creator}`,
-  updated: (date: string) => `Updated ${date}`,
-  by: (name: string) => `by ${name}`,
   missingTitle: 'Event not found',
   missingText: 'Go back to Events and pick another one.',
 } as const;
@@ -73,7 +59,6 @@ export const AI_LABEL = 'AI-assisted';
 
 export const SHEETS = {
   cancelTitle: 'Cancel event?',
-  cancelRecurringTitle: 'Cancel recurring event?',
   cancelLead: (attendees: string) =>
     `The event stays visible, marked Canceled. All attendees (${attendees}) are notified.`,
   reason: 'Reason',
@@ -83,28 +68,9 @@ export const SHEETS = {
   back: 'Back',
   cancelEvent: 'Cancel event',
   canceled: 'Event canceled',
-  which: 'Which one?',
-  cancelWhich: [
-    ['Only this one', 'Other occurrences continue'],
-    ['All recurring', 'This occurrence and the following ones'],
-  ],
-  archiveTitle: 'Archive event?',
-  archiveRecurringTitle: 'Archive recurring event?',
-  archiveLead:
-    'The event moves to Archive and can be restored anytime. Minutes and meeting outcomes move with it. Tasks already created from the outcomes are not deleted.',
-  archiveHintBefore: 'Meeting not happening? Use ',
-  archiveHintLink: 'Cancel',
-  archiveHintAfter: ' so attendees know why.',
-  archiveWhich: [
-    ['Only this one', 'Moves to Archive, other occurrences stay'],
-    ['All recurring', 'Whole series moves to Archive as one item'],
-  ],
-  cancel: 'Cancel',
-  moveToArchive: 'Move to Archive',
-  archived: 'Event moved to Archive',
+  trashed: 'Event moved to Trash',
   undo: 'Undo',
   restored: 'Event restored',
-  goneForever: "This event was deleted forever and can't be restored.",
 } as const;
 
 export const FORM = {
@@ -116,25 +82,32 @@ export const FORM = {
   start: 'Start',
   end: 'End',
   timeError: 'The end time must be after the start time.',
+  endsOn: (date: string) => `Ends on ${date}.`,
   location: 'Location',
   locationHint: 'Online: paste the meeting link (Google Meet / Zoom).',
   link: 'Meeting link',
+  linkError: 'Start the link with http:// or https://.',
   place: 'Place',
   attendees: 'Attendees · picked from team members',
   remove: (name: string) => `Remove ${name}`,
   addPerson: 'Add person',
+  findPerson: 'Search by name…',
+  add: 'Add',
+  addGuest: (name: string) => `Add ${name}`,
+  nobodyFound: 'No one found with that name.',
+  nobodyLeft: 'Everyone is already invited.',
+  removeTitle: (n: number) => (n === 1 ? 'Remove guest?' : `Remove ${n} guests?`),
+  removeMessage: (names: string) =>
+    `${names} will be taken off the guest list and stop getting its reminders.`,
+  removeConfirm: 'Remove and save',
   type: 'Event type',
   project: 'Project',
-  projectHint: 'Meeting outcomes become tasks in this project.',
+  projectHint: 'Without a project, only its guests see the event.',
+  projectLocked: "An event can't move to another project.",
   agenda: 'Agenda · one item per line',
-  repeat: 'Repeat',
   reminder: 'Reminder',
-  reminderValue: '1 day & 30 min before',
-  reminderNotice: 'Pick reminder times',
-  minutesNote:
-    'Minutes are written during or after the meeting, from the event detail. Attendees get reminders automatically.',
-  autoSet: (repeat: string) =>
-    `Set automatically: reminder 1 day & 30 minutes before · ${repeat ? `repeats ${repeat}` : 'does not repeat'}`,
+  minutesNote: 'Attendees get reminders automatically.',
+  autoSet: (reminder: string) => `Set automatically: reminder ${reminder}`,
   more: 'Add more details',
   less: 'Hide details',
   cancel: 'Cancel',

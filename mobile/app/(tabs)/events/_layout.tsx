@@ -17,7 +17,6 @@ export default function EventsStack() {
       <Stack.Screen name="[id]/recording" options={NO_SWIPE} />
       <Stack.Screen name="[id]/outcomes/[step]" />
       <Stack.Screen name="[id]/cancel" options={SHEET} />
-      <Stack.Screen name="[id]/archive" options={SHEET} />
     </Stack>
   );
 }

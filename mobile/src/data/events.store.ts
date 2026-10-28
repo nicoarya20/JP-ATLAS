@@ -1,31 +1,16 @@
-// Event changes, ported from the prototype's events.store.js: New event / Edit save the form, ⋯ › Cancel marks the
-// event Canceled (one occurrence or the series), ⋯ › Move to Archive moves it (or one occurrence) to Archive until Undo
-// restores it, and Step 3 › Create tasks confirms its outcomes as tasks. Screens read through src/data/events.ts.
+// Sample events (Phase 1), kept for what is not on the server yet: the hidden record / outcomes / results flow (E-1;
+// Step 3 › Create tasks confirms its outcomes as tasks), the profile calendar, and Archive's sample event entries
+// (archive / restore / forget). The Events tab itself reads `/api/app/events` (events.api.ts) and writes through
+// events.write.ts.
 
 import { addEntry, removeEntry } from './archive.store';
 import { today } from './clock';
 import { addDays, dateLabel } from './events.dates';
-import { BASE_QUERY, type EventsQuery } from './events.query';
-import { type EventItem, type EventType, eventProject, REPEAT_DAYS } from './events.shared';
+import { type EventItem, eventProject, REPEAT_DAYS } from './events.shared';
 import { EVENTS, type SampleEvent } from './sample';
-import { type DraftTask, EVENT_EXTRA, type Repeat } from './sample/events.extra';
+import { type DraftTask, EVENT_EXTRA } from './sample/events.extra';
 import { createStore, useStore } from './store';
 import { addTask } from './tasks.store';
-
-/** What the New event / Edit form saves. `date` is ISO, `start`/`end` clock times ("2:00 PM"). */
-export type EventFields = {
-  title: string;
-  date: string;
-  start: string;
-  end: string;
-  mode: EventItem['mode'];
-  place: string;
-  attendees: string[];
-  type: EventType;
-  project: string;
-  agenda: string[];
-  repeat: Repeat | '';
-};
 
 /** An event (or one occurrence of it) in Archive: its entry key, and the date an archived occurrence had. */
 type Taken = { key: string; id: string; from?: string };
@@ -37,8 +22,6 @@ export type EventsState = {
   archived: readonly EventItem[];
   /** Archive moves Undo can take back, newest first. */
   taken: readonly Taken[];
-  /** Events added so far (their ids are new-1, new-2…). */
-  added: number;
 };
 
 function fromSample({ canceled, ...e }: SampleEvent): EventItem {
@@ -48,11 +31,9 @@ function fromSample({ canceled, ...e }: SampleEvent): EventItem {
   return { ...e, ...extra };
 }
 
-const INITIAL: EventsState = { list: EVENTS.map(fromSample), archived: [], taken: [], added: 0 };
+const INITIAL: EventsState = { list: EVENTS.map(fromSample), archived: [], taken: [] };
 
 export const eventsStore = createStore<EventsState>(INITIAL);
-/** The Filter & sort query, shared by the list and the calendar (phase1-screens.md K4). */
-export const eventsQueryStore = createStore<EventsQuery>(BASE_QUERY);
 
 /** Event id, listed or archived. */
 export function findEvent(id: string, s: EventsState = eventsStore.get()): EventItem | undefined {
@@ -74,61 +55,6 @@ function listed(id: string, action: string): EventItem {
 }
 
 const without = (list: readonly EventItem[], id: string) => list.filter((e) => e.id !== id);
-
-/** "2:00–3:00 PM", or "11:00 AM–12:00 PM" when the times cross noon. */
-const rangeOf = (start: string, end: string) =>
-  start.slice(-2) === end.slice(-2) ? `${start.slice(0, -3)}–${end}` : `${start}–${end}`;
-
-/** e with the form fields written in: time tile, range, date and repeat (none = no repeat key). */
-function write(e: EventItem, { start, end, repeat, ...rest }: EventFields): EventItem {
-  const { repeat: _old, ...base } = e;
-  const next: EventItem = {
-    ...base,
-    ...rest,
-    time: start.split(' ')[0] ?? start,
-    range: rangeOf(start, end),
-  };
-  return repeat ? { ...next, repeat } : next;
-}
-
-/** Add an upcoming event from the New event form; the creator is its first attendee. Returns the new event's id. */
-export function addEvent(fields: EventFields, creator: string): string {
-  const s = eventsStore.get();
-  const id = `new-${s.added + 1}`;
-  const blank: EventItem = {
-    id,
-    title: '',
-    date: fields.date,
-    time: '',
-    range: '',
-    place: '',
-    mode: fields.mode,
-    type: fields.type,
-    status: 'Upcoming',
-    attendees: [],
-    creator,
-    updated: today(),
-  };
-  const e = write(blank, fields);
-  const added = { ...e, attendees: [creator, ...e.attendees.filter((n) => n !== creator)] };
-  eventsStore.set({ ...s, list: insert(s.list, added), added: s.added + 1 });
-  return id;
-}
-
-/** Save the Edit form of event id (same fields as addEvent); the event moves if its date changed. */
-export function editEvent(id: string, fields: EventFields, editor: string): void {
-  const e = { ...write(listed(id, 'edit'), fields), updated: today(), editor };
-  eventsStore.set((s) => ({ ...s, list: insert(without(s.list, id), e) }));
-}
-
-/** Cancel event id: it stays listed, marked Canceled with the reason. once = only this occurrence of a recurring one. */
-export function cancelEvent(id: string, reason: string, by: string, { once = false } = {}): void {
-  const e = findEvent(id);
-  if (!e) throw new Error(`Cannot cancel event "${id}": no such event`);
-  const canceled = { ...e, canceled: { reason, by, once: once && !!e.repeat } };
-  const swap = (list: readonly EventItem[]) => list.map((x) => (x.id === id ? canceled : x));
-  eventsStore.set((s) => ({ ...s, list: swap(s.list), archived: swap(s.archived) }));
-}
 
 /**
  * Move event id to Archive. once (recurring only) archives just this occurrence: the series moves on to the next
@@ -256,14 +182,7 @@ export function forgetArchivedEvent(key: string): void {
 /** Every event back to the sample and the query to its default; Archive has its own resetArchive(). test-only */
 export function resetEvents(): void {
   eventsStore.reset();
-  eventsQueryStore.reset();
 }
-
-/** Save the Filter & sort query (Apply / Reset filters). */
-export const setEventsQuery = (q: EventsQuery) => eventsQueryStore.set(q);
 
 /** Event state in a component, re-rendered after every change. */
 export const useEventsState = () => useStore(eventsStore);
-
-/** The Filter & sort query in a component. */
-export const useEventsQuery = () => useStore(eventsQueryStore);

@@ -1,13 +1,11 @@
 import {
-  applyQuery,
   BASE_QUERY,
-  eventsFor,
+  eventsParams,
   GROUP_TYPE,
-  groupEvents,
   isFiltered,
-  isPast,
-  projectOptions,
-  searchEvents,
+  KIND_LABEL,
+  KINDS,
+  kindOf,
   TYPE_FILTERS,
 } from '../../src/data/events.query';
 import {
@@ -18,19 +16,18 @@ import {
   eventStart,
   eventStatus,
   eventWhere,
+  TYPES,
 } from '../../src/data/events.shared';
-import { eventsStore, findEvent } from '../../src/data/events.store';
+import { findEvent } from '../../src/data/events.store';
 
-// Expected values are the prototype's events list (events.filter.test.jsx) on Wed, Oct 7, 2026.
+// The sample helpers (profile calendar, hidden outcomes) on Wed, Oct 7, 2026, and the query string the Events tab
+// sends to `GET /api/app/events` for each Filter & sort choice.
 
-const all = () => eventsStore.get().list;
-const ids = (events: readonly EventItem[]) => events.map((e) => e.id);
 const event = (id: string): EventItem => {
   const e = findEvent(id);
   if (!e) throw new Error(`test-only: no sample event ${id}`);
   return e;
 };
-const UPCOMING = ['review', 'sinar', 'sprint', 'rehearsal', 'party'];
 
 describe('events shared', () => {
   test('status, times, place and project of an event', () => {
@@ -67,68 +64,34 @@ describe('events shared', () => {
 });
 
 describe('events query', () => {
-  test('past = done, or its first date is before today', () => {
-    expect(ids(all().filter(isPast))).toEqual(['kickoff', 'daily']);
-    expect(isPast({ ...event('sinar'), date: '2026-10-06' })).toBe(true);
-  });
-
-  test('the base query lists upcoming events; Past lists the rest', () => {
-    expect(ids(applyQuery(all(), BASE_QUERY))).toEqual(UPCOMING);
-    expect(ids(applyQuery(all(), { ...BASE_QUERY, when: 1 }))).toEqual(['kickoff', 'daily']);
-    expect(applyQuery(all(), { ...BASE_QUERY, when: null })).toHaveLength(7);
-  });
-
-  test('filters by type on top of Show, and by project', () => {
-    const meeting = TYPE_FILTERS.indexOf('Meeting');
-    expect(ids(applyQuery(all(), { ...BASE_QUERY, type: meeting }))).toEqual(['rehearsal']);
-    const review = TYPE_FILTERS.indexOf('Review');
-    expect(ids(applyQuery(all(), { ...BASE_QUERY, type: review, when: null }))).toEqual([
-      'review',
-      'sprint',
-    ]);
-    expect(applyQuery(all(), { ...BASE_QUERY, project: 'sinar' })).toEqual([]);
-    expect(ids(applyQuery(all(), { ...BASE_QUERY, project: 'atlas' }))).toEqual(UPCOMING);
-    expect(projectOptions()[0]).toEqual({ value: '', label: 'All projects' });
-  });
-
-  test('the filter dot ignores grouping', () => {
+  test('the default asks for upcoming events of every type and project', () => {
+    expect(eventsParams(BASE_QUERY)).toBe('tab=upcoming');
     expect(isFiltered(BASE_QUERY)).toBe(false);
+  });
+
+  test('Show, type, project and the search become tab, kind, projectId and q, in that order', () => {
+    const q = { ...BASE_QUERY, when: 1, type: TYPE_FILTERS.indexOf('Review'), project: 'p-atlas' };
+    expect(eventsParams(q, '  sync  ')).toBe('tab=past&kind=review&projectId=p-atlas&q=sync');
+    expect(isFiltered(q)).toBe(true);
+  });
+
+  test('the calendar sends neither Show nor the search: its window replaces them', () => {
+    const q = { ...BASE_QUERY, when: 1, type: TYPE_FILTERS.indexOf('Team event') };
+    expect(eventsParams(q, 'sync', { calendar: true })).toBe('kind=team');
+  });
+
+  test('a search longer than the server reads is cut at 100 characters', () => {
+    const sent = new URLSearchParams(eventsParams(BASE_QUERY, 'a'.repeat(140))).get('q');
+    expect(sent).toHaveLength(100);
+  });
+
+  test('grouping alone is not a filter', () => {
     expect(isFiltered({ ...BASE_QUERY, group: GROUP_TYPE })).toBe(false);
-    expect(isFiltered({ ...BASE_QUERY, when: 1 })).toBe(true);
-    expect(isFiltered({ ...BASE_QUERY, type: 2 })).toBe(true);
-    expect(isFiltered({ ...BASE_QUERY, project: 'atlas' })).toBe(true);
   });
 
-  test('groups by schedule in data order, or by type in form order', () => {
-    const upcoming = applyQuery(all(), BASE_QUERY);
-    const schedule = groupEvents(upcoming, BASE_QUERY);
-    expect(schedule.map((g) => g.title)).toEqual([
-      'Today · Wed, Oct 7',
-      'Tomorrow · Thu, Oct 8',
-      'This week',
-      'Later',
-    ]);
-    expect(ids(schedule[3]?.data ?? [])).toEqual(['rehearsal', 'party']);
-    const byType = groupEvents(upcoming, { ...BASE_QUERY, group: GROUP_TYPE });
-    expect(byType.map((g) => g.title)).toEqual(['Meeting', 'Review', 'Important', 'Team event']);
-    expect(ids(byType[1]?.data ?? [])).toEqual(['review', 'sprint']);
-  });
-
-  test('a Member sees only the events they attend', () => {
-    expect(ids(eventsFor('member', all()))).toEqual([
-      'kickoff',
-      'review',
-      'daily',
-      'sprint',
-      'party',
-    ]);
-    expect(eventsFor('pm', all())).toHaveLength(7);
-  });
-
-  test('search matches title or place, ignoring case', () => {
-    expect(ids(searchEvents(all(), 'room 2'))).toEqual(['review']);
-    expect(ids(searchEvents(all(), 'ONLINE'))).toEqual(['daily', 'sinar']);
-    expect(ids(searchEvents(all(), 'sprint'))).toEqual(['sprint']);
-    expect(searchEvents(all(), '  ')).toHaveLength(7);
+  test('each type filter names one server kind, in form order; All names none', () => {
+    expect(kindOf(0)).toBeNull();
+    expect(TYPES.map((_, i) => kindOf(i + 1))).toEqual(KINDS);
+    expect(KINDS.map((k) => KIND_LABEL[k])).toEqual([...TYPES]);
   });
 });

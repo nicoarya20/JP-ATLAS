@@ -1,6 +1,7 @@
 # Fase 2 — Peta layar ↔ endpoint: Acara (Events)
 
-Rujukan W3. Dokumen analisis, **bukan implementasi** (2026-10-28, `feature/mobile-api-wiring` @ `fc0ab4e`).
+Rujukan W3. Ditulis sebagai analisis (2026-10-28, `feature/mobile-api-wiring` @ `fc0ab4e`); **status
+implementasi W3-Events di §7** — tabel §1–§6 di bawah adalah rencana awal, §7 yang berlaku bila beda.
 Aturan lintas modul (galat seragam, K5, rate limit, `href` web, `can{}`) di kepala `phase2-map-home-inbox-team.md`.
 
 - **Sumber yang diverifikasi:** `server/api/app-events{,.write,.notes,.trash,.schema}.ts`,
@@ -44,7 +45,7 @@ pengingat bawaan `[1440, 30]` menit.
 |---|---|---|
 | Daftar `(tabs)/events/index?view=list` → `list/**` | `getEventsList` (`events.list.ts`) → `eventsFor`, `applyQuery`, `searchEvents`, `groupEvents` | `GET /events?tab&kind&projectId&q` + Load more |
 | Filter `(tabs)/events/filter` → `filter/**` | `events.query.ts` | Show → `tab`; Type → `kind`; Project → `projectId` (opsi dari `GET /projects`); Group by tetap klien |
-| Kalender `?view=calendar` → `calendar/**` | `getEventsCalendar`, `stepCalendar`, `events.dates.ts` | **Bulan:** `from=<tgl 1>&to=<akhir bulan>`; **pekan:** Minggu–Sabtu; ikuti `nextCursor` sampai habis (bulan padat > 100). `hiddenByFilters` = panggilan kedua tanpa filter (atau dihilangkan) |
+| Kalender `?view=calendar` → `calendar/**` | `getEventsCalendar`, `stepCalendar`, `events.dates.ts` | **Bulan:** `from=<tgl 1>&to=<akhir bulan>`; **pekan:** Senin–Minggu; ikuti `nextCursor` (maks 10 halaman). `hiddenByFilters` = filter aktif + jendela kosong, **tanpa** panggilan kedua (§7) |
 | Detail `[id]/index` → `detail/**` | `getEventDetail` | `GET /events/:id` |
 | Notulen (Type) | `detail/event-minutes.tsx` | `PUT /events/:id/note` |
 | Form New/Edit `events/new?event=<id>` → `form/**` | `getEventForm`, `addEvent`, `editEvent`, `validateEvent`, `dates`, `agendaLines` | `POST /events` / `PATCH /events/:id` + tamu lewat `participants` |
@@ -167,5 +168,35 @@ Nomor baru (E-*) dengan nomor lama di kurung.
 | E-6 (A12) | Semua modul | Kalimat alasan disabled tak dikirim (hanya kode) | Katalog kode → kalimat di mobile (Inggris, atau salin Indonesia dengan tes penjaga), **atau** server mengirim `capMessage` | **User/Nico** |
 | E-7 | Kalender | Bulan padat > 100 event = beberapa halaman; `hiddenByFilters` butuh panggilan kedua | Ikuti kursor; hilangkan petunjuk "hidden by filters" bila mahal | User (copy) |
 | E-8 | Form Edit | Proyek acara tidak bisa diganti setelah dibuat | Kunci pemilih proyek saat Edit | — |
+| E-9 | Form, cari tamu | `GET /events/people` tanpa `projectId` butuh `canCreateProject` (Member 403); dengan `projectId` anggota proyek dikeluarkan | Mobile tampilkan pesan server; server perlu mengizinkan semua yang boleh membuat acara | **Nico** |
 | — (A9) | Kalender | Rentang tanggal | **Tertutup**: `?from=&to=` | — |
 | — (A11) | Semua | `today`/`timeZone` | **Tertutup** oleh jam server W2 (`GET /home.now`) | — |
+
+---
+
+## 7. Status implementasi W3-Events (2026-10-28)
+
+Semua layar Acara kecuali alur Rekam/Outcomes/Results kini membaca server. Pola: `phase2-pola-data.md`.
+
+| Layar / aksi | Berkas | Endpoint | Catatan |
+|---|---|---|---|
+| Daftar + cari + Load more | `data/events.api.ts`, `events.list.ts`, `screens/events/list/**` | `GET /events?tab&kind&projectId&q&limit=25[&cursor]` | Cari = judul, debounce 300 ms (E-5). Group by tetap klien. Tombol New event di kosong mengikuti `caps.createEvent` |
+| Filter | `screens/events/filter/**` | idem + `GET /projects` (opsi) | Proyek terpilih yang tak dikenal tampil "Picked project" |
+| Kalender bulan/pekan | `data/events.calendar.ts`, `screens/events/calendar/**` | `GET /events?from&to[&kind&projectId]&limit=100` | Satu resource per jendela; pekan Senin–Minggu; panah = jendela baru; maks 10 halaman (E-7) |
+| Detail | `data/events.detail.ts`, `screens/events/detail/**` | `GET /events/:id` | Pembuat dulu; tautan proyek / "Personal event"; tautan rapat dibuka di luar app; 404 → "Event not found" |
+| Menu ⋯ | `detail/event-menu.tsx` | — | Dari `can{}`: `true` beraksi, kode tolak → notice `capMessage`, tak ada kunci → tidak tampil |
+| Batalkan acara | `sheets/cancel.screen.tsx` | `POST /events/:id/cancel {reason}` | Gerbang `can.cancel` + belum batal; alasan wajib (≤500); galat tetap di sheet |
+| Pindah ke Sampah | `detail/event-menu.tsx` | `DELETE /events/:id` → Urungkan `POST /trash/event/:id/restore` | **T1**: langsung, kembali ke daftar + snack Urungkan. Sheet Archive lama **dihapus** |
+| New event | `form/**`, `data/events.form.ts`, `events.write.ts` | `POST /events` | Gerbang `whoami.caps.createEvent`; `participantIds` hanya dikirim bila tidak kosong; membuka acara baru |
+| Edit | idem | `PATCH /events/:id` (hanya kunci yang berubah) → `POST …/participants {userIds}` → `DELETE …/participants/:userId` per tamu | Gerbang `can.update` + belum batal; proyek dikunci (E-8); mengeluarkan tamu = **T2** (`ConfirmDialog`); berhenti di langkah gagal pertama, invalidate bila ada yang tersimpan |
+| Cari tamu | `form/guest-picker.tsx` | `GET /events/people?q` | Debounce; menolak → pesan server di picker |
+
+Invalidate setelah tulis: daftar + semua jendela kalender + Beranda (`homeResource`), dan detail acaranya.
+
+**Yang sengaja tidak dibangun di W3:** editor notulen (`PUT /note`, notulen hanya dibaca), pemilih pengingat
+(hanya dibaca; acara baru memakai bawaan server), Repeat (E-2), Note-taker (E-3), alur Rekam/Outcomes/Results
+(E-1; rutenya masih ada di atas data contoh, tanpa tautan dari kartu/detail). Lihat `phase2-gap-disembunyikan.md` §2.
+
+**Celah kontrak baru (E-9):** `GET /events/people` tanpa `projectId` mensyaratkan `canCreateProject`, jadi Member
+mendapat 403 saat mencari tamu acara pribadi; dengan `projectId`, anggota proyek justru dikeluarkan dari kandidat.
+Mobile memanggil tanpa `projectId` dan menampilkan pesan server. Butuh keputusan server (Nico).

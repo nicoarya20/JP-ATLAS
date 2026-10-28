@@ -1,73 +1,127 @@
+// The New event / Edit form against the server (map §3): what Save waits for, the create body, and an edit that sends
+// only what changed. Times are the team's (Asia/Jakarta, UTC+7); today is Wed, Oct 7, 2026.
 import {
-  agendaLines,
-  dates,
-  dueDates,
-  MODES,
-  savedFields,
+  blankEvent,
+  checkEvent,
+  createBody,
+  type EventForm,
+  eventFormOf,
+  guestChange,
   TIMES,
-  validateEvent,
+  timeOptions,
+  updateBody,
 } from '../../src/data/events.form';
-import type { EventFields } from '../../src/data/events.store';
-import { seedClock, TEST_CLOCK } from '../helpers/clock-fixtures';
+import { DODI, NICO, RINA, reviewDetail } from '../helpers/events-fixtures';
 
-// The prototype's New event form (events.new.jsx) on Wed, Oct 7, 2026.
+const JAKARTA = 'Asia/Jakarta';
+const form = (over: Partial<EventForm> = {}): EventForm => ({
+  ...blankEvent(),
+  title: 'Design sync',
+  ...over,
+});
 
-const FORM: EventFields = {
-  title: '  Retro ',
-  date: '2026-10-09',
-  start: '11:00 AM',
-  end: '12:00 PM',
-  mode: 'In person',
-  place: ' Room 3 ',
-  attendees: ['Nico'],
-  type: 'Meeting',
-  project: 'atlas',
-  agenda: [],
-  repeat: '',
-};
-
-describe('events form', () => {
-  test('times run 7:00 AM to 9:00 PM every 15 minutes', () => {
-    expect(TIMES).toHaveLength(57);
-    expect(TIMES.slice(0, 3)).toEqual(['7:00 AM', '7:15 AM', '7:30 AM']);
-    expect(TIMES).toContain('12:00 PM');
-    expect(TIMES).toContain('12:45 PM');
-    expect(TIMES[TIMES.length - 1]).toBe('9:00 PM');
+describe('event form', () => {
+  test('a new event starts today 9–10 AM, in person, personal, with nobody else', () => {
+    expect(blankEvent()).toEqual({
+      title: '',
+      date: '2026-10-07',
+      start: '9:00 AM',
+      end: '10:00 AM',
+      span: 0,
+      mode: 'In person',
+      place: '',
+      link: '',
+      guests: [],
+      type: 'Meeting',
+      projectId: null,
+      agenda: '',
+    });
   });
 
-  test('dates run from today to the end of October', () => {
-    const options = dates();
-    expect(options).toHaveLength(25);
-    expect(options[0]).toEqual({ value: '2026-10-07', label: 'Wed, Oct 7' });
-    expect(options[1]).toEqual({ value: '2026-10-08', label: 'Thu, Oct 8' });
-    expect(options[24]).toEqual({ value: '2026-10-31', label: 'Sat, Oct 31' });
-    expect(dueDates()[2]).toEqual({ value: '2026-10-09', label: 'Oct 9' });
-    expect(MODES).toEqual(['In person', 'Online']);
+  test('times run 7 AM to 9 PM every 15 minutes; an edited time off the list stays on top', () => {
+    expect([TIMES.length, TIMES[0], TIMES[TIMES.length - 1]]).toEqual([57, '7:00 AM', '9:00 PM']);
+    expect(timeOptions('9:00 AM')).toHaveLength(57);
+    expect(timeOptions('6:40 AM')[0]).toEqual({ value: '6:40 AM', label: '6:40 AM' });
   });
 
-  test("dates start from the server's today, read when asked, not when the app loaded", () => {
-    seedClock({ ...TEST_CLOCK, today: '2026-10-29' });
-
-    expect(dates().map((d) => d.value)).toEqual(['2026-10-29', '2026-10-30', '2026-10-31']);
-    expect(dueDates()[0]).toEqual({ value: '2026-10-29', label: 'Oct 29' });
+  test('Save waits for a title, an end after the start, and a web link', () => {
+    expect(checkEvent(form()).ok).toBe(true);
+    expect(checkEvent(form({ title: '  ' }))).toMatchObject({ ok: false, titleOk: false });
+    expect(checkEvent(form({ end: '9:00 AM' }))).toMatchObject({ ok: false, timeOk: false });
+    // Past midnight the end is on a later day, so an earlier clock time is fine.
+    expect(checkEvent(form({ start: '10:00 PM', end: '1:00 AM', span: 1 })).timeOk).toBe(true);
+    const online = form({ mode: 'Online', link: 'meet.example.com' });
+    expect(checkEvent(online)).toMatchObject({ ok: false, linkOk: false });
+    expect(checkEvent({ ...online, link: 'https://meet.example.com' }).ok).toBe(true);
+    // A link typed in person is not sent, so it does not block Save.
+    expect(checkEvent(form({ link: 'nope' })).ok).toBe(true);
   });
 
-  test('needs a title and an end after the start', () => {
-    expect(validateEvent(FORM)).toEqual({ ok: true, timeOk: true });
-    expect(validateEvent({ ...FORM, title: '   ' })).toEqual({ ok: false, timeOk: true });
-    expect(validateEvent({ ...FORM, end: '11:00 AM' })).toEqual({ ok: false, timeOk: false });
-    expect(validateEvent({ ...FORM, start: '2:00 PM', end: '1:45 PM' }).timeOk).toBe(false);
+  test('create sends team-zone instants, the place or the link, and the guests only when there are some', () => {
+    expect(createBody(form({ place: ' Room 3 ', agenda: ' ' }), JAKARTA)).toEqual({
+      title: 'Design sync',
+      startsAt: '2026-10-07T02:00:00.000Z',
+      endsAt: '2026-10-07T03:00:00.000Z',
+      kind: 'meeting',
+      locationType: 'offline',
+      locationText: 'Room 3',
+      meetingUrl: null,
+      agenda: null,
+      projectId: null,
+    });
+    const online = form({
+      mode: 'Online',
+      place: 'Room 3',
+      link: 'https://meet.example.com',
+      guests: [RINA],
+      type: 'Team event',
+      projectId: 'p-atlas',
+    });
+    expect(createBody(online, JAKARTA)).toMatchObject({
+      kind: 'team',
+      locationType: 'online',
+      locationText: null,
+      meetingUrl: 'https://meet.example.com',
+      projectId: 'p-atlas',
+      participantIds: ['u-rina'],
+    });
   });
 
-  test('Save trims the fields and splits the agenda, one item per line', () => {
-    expect(agendaLines('1. Wins\n\n2.  Fixes \n  Next sprint')).toEqual([
-      'Wins',
-      'Fixes',
-      'Next sprint',
-    ]);
-    expect(savedFields(FORM)).toMatchObject({ title: 'Retro', place: 'Room 3' });
-    expect(savedFields({ ...FORM, mode: 'Online', place: 'meet.example/abc' }).place).toBe(
-      'Online',
-    );
+  test('an edit starts from the event, the creator left out of the guests', () => {
+    expect(eventFormOf(reviewDetail(), JAKARTA)).toEqual({
+      title: 'Onboarding design review',
+      date: '2026-10-07',
+      start: '2:00 PM',
+      end: '3:00 PM',
+      span: 0,
+      mode: 'In person',
+      place: 'Meeting Room 2',
+      link: '',
+      guests: [RINA, DODI],
+      type: 'Review',
+      projectId: 'p-atlas',
+      agenda: '1. Walk through the flow\n2. Decide the copy',
+    });
+  });
+
+  test('an edit sends only what changed; an untouched one sends nothing', () => {
+    const was = eventFormOf(reviewDetail(), JAKARTA);
+    expect(updateBody(was, { ...was }, JAKARTA)).toEqual({});
+    expect(updateBody(was, { ...was, title: 'Review v2', end: '3:30 PM' }, JAKARTA)).toEqual({
+      title: 'Review v2',
+      endsAt: '2026-10-07T08:30:00.000Z',
+    });
+    expect(updateBody(was, { ...was, date: '2026-10-09' }, JAKARTA)).toEqual({
+      startsAt: '2026-10-09T07:00:00.000Z',
+      endsAt: '2026-10-09T08:00:00.000Z',
+    });
+  });
+
+  test('guests who join and who leave', () => {
+    expect(guestChange([RINA, DODI], [DODI, NICO])).toEqual({
+      add: ['u-nico'],
+      remove: ['u-rina'],
+    });
+    expect(guestChange([RINA], [RINA])).toEqual({ add: [], remove: [] });
   });
 });

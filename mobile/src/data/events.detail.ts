@@ -1,107 +1,73 @@
-// Events ③ detail and form getters (prototype events.detail.jsx / events.new.jsx): who may change an event, its
-// attendees, and the initial New event / Edit form. Re-exported by events.ts.
-import { today } from './clock';
-import { addDays } from './events.dates';
-import {
-  DEFAULT_PROJECT,
-  type EventItem,
-  type EventStatusLabel,
-  eventEnd,
-  eventProject,
-  eventStart,
-  eventStatus,
-  TYPES,
-} from './events.shared';
-import { type EventFields, findEvent } from './events.store';
-import { me } from './people';
-import type { Role } from './sample';
+/**
+ * Events ④ detail from `GET /api/app/events/:id` (map §2b): the facts, the guests (creator first), the agenda, the
+ * minutes and the footer, in the app's words. What the viewer may do comes from the event's `can{}`, never the role.
+ */
+import { monthDay, weekdayMonthDay } from './dates';
+import { KIND_LABEL } from './events.query';
+import type { EventStatusLabel } from './events.shared';
+import { reminderLabel, timeRange } from './events.time';
+import { eventDays, eventStatusOf, NOTE_LABEL, whereOf } from './events.view';
+import type { EventCapsWire, EventDetailWire, EventProjectWire } from './events.wire';
+import { instantDate } from './instant';
 
-export type EventAttendee = { name: string; creator: boolean; noteTaker: boolean };
+export type EventGuest = { id: string; name: string; creator: boolean };
 
-export type EventDetailData = {
-  event: EventItem;
+export type EventDetailView = {
+  id: string;
+  title: string;
   status: EventStatusLabel;
-  project: string;
-  /** May change the event: everyone but a Member, or the Member who created it. */
-  editor: boolean;
-  /** ⋯ items for an editor: Cancel event (not yet canceled) and Move to Archive; none for others. */
-  menu: ('cancel' | 'archive')[];
-  /** Why the viewer may (or may not) change it; null for a PM who did not create it. */
-  access: 'creator' | 'admin' | 'member' | null;
-  /** Creator first. */
-  attendees: EventAttendee[];
+  type: string;
+  canceled: { by: string | null; reason: string } | null;
+  /** "Wed, Oct 7 · 2:00–3:00 PM". */
+  time: string;
+  where: string;
+  /** The meeting link of an online event, opened from the facts. */
+  link: string | null;
+  /** Null for a personal event. */
+  project: EventProjectWire | null;
+  reminder: string;
+  guests: EventGuest[];
+  agenda: string[];
+  minutes: { status: string; body: string } | null;
+  /** "Created by Nico Arya · Updated Oct 7" (the server does not say who updated it, E-4). */
+  footer: string;
+  can: EventCapsWire;
 };
 
-/** Detail of event id for `role`; null when no such event. */
-export function getEventDetail(role: Role, id: string): EventDetailData | null {
-  const e = findEvent(id);
-  if (!e) return null;
-  const name = me(role).name;
-  const editor = role !== 'member' || name === e.creator;
-  const access =
-    name === e.creator
-      ? 'creator'
-      : role === 'admin'
-        ? 'admin'
-        : role === 'member'
-          ? 'member'
-          : null;
-  const people = [e.creator, ...e.attendees.filter((n) => n !== e.creator)];
-  return {
-    event: e,
-    status: eventStatus(e),
-    project: eventProject(e),
-    editor,
-    menu: !editor ? [] : e.canceled ? ['archive'] : ['cancel', 'archive'],
-    access,
-    attendees: people.map((n) => ({
-      name: n,
-      creator: n === e.creator,
-      noteTaker: n === e.noteTaker,
-    })),
-  };
-}
+export const PERSONAL = 'Personal event';
+export const NONE_YET = 'None yet';
 
-/** Initial New event / Edit form: event id filled in, or a blank Meeting tomorrow 10–11 AM with me attending. */
-export function getEventForm(
-  role: Role,
-  id?: string,
-): { fields: EventFields; creator: string } | null {
-  const name = me(role).name;
-  if (id == null) {
-    return {
-      creator: name,
-      fields: {
-        title: '',
-        date: addDays(today(), 1),
-        start: '10:00 AM',
-        end: '11:00 AM',
-        mode: 'In person',
-        place: '',
-        attendees: [name],
-        type: TYPES[0],
-        project: DEFAULT_PROJECT,
-        agenda: [],
-        repeat: '',
-      },
-    };
-  }
-  const e = findEvent(id);
-  if (!e) return null;
+/** Agenda points, one per line; a leading "1. " numbering and blank lines are dropped. */
+export const agendaLines = (text: string | null) =>
+  (text ?? '')
+    .split('\n')
+    .map((a) => a.replace(/^\d+\.\s*/, '').trim())
+    .filter(Boolean);
+
+/** The detail of event e. */
+export function eventDetailOf(e: EventDetailWire): EventDetailView {
+  const creatorId = e.creator?.id;
+  const guests = [...e.participants].sort(
+    (a, b) => Number(b.id === creatorId) - Number(a.id === creatorId),
+  );
+  const created = e.creator ? `Created by ${e.creator.name}` : null;
   return {
-    creator: e.creator,
-    fields: {
-      title: e.title,
-      date: e.date,
-      start: eventStart(e),
-      end: eventEnd(e),
-      mode: e.mode,
-      place: e.place === 'Online' ? '' : e.place,
-      attendees: e.attendees,
-      type: e.type,
-      project: e.project ?? DEFAULT_PROJECT,
-      agenda: e.agenda ?? [],
-      repeat: e.repeat ?? '',
-    },
+    id: e.id,
+    title: e.title,
+    status: eventStatusOf(e),
+    type: KIND_LABEL[e.kind],
+    canceled: e.canceledAt
+      ? { by: e.canceledBy?.name ?? null, reason: e.cancelReason ?? '' }
+      : null,
+    time: `${weekdayMonthDay(eventDays(e).start)} · ${timeRange(e.startsAt, e.endsAt)}`,
+    where: whereOf(e),
+    link: e.locationType === 'online' ? e.meetingUrl : null,
+    project: e.project,
+    reminder: reminderLabel(e.remindersMinutes),
+    guests: guests.map((p) => ({ id: p.id, name: p.name, creator: p.id === creatorId })),
+    agenda: agendaLines(e.agenda),
+    minutes: e.note ? { status: NOTE_LABEL[e.note.status], body: e.note.body } : null,
+    footer: [created, `Updated ${monthDay(instantDate(e.updatedAt))}`].filter(Boolean).join(' · '),
+    can: e.can,
   };
 }

@@ -72,12 +72,17 @@ Id GAP merujuk peta `phase2-map-*.md`, yang belum dibawa ke cabang ini; baca dar
 
 | Kontrol / bidang | Layar | GAP | Kenapa ditunda | Status | Penanganan di Fase 2 lama (`2a985b7^`, dibatalkan) |
 |---|---|---|---|---|---|
-| Pengulangan: badge **Repeat** di kartu, pill **Repeats** di detail, kemunculan berulang di kalender, pilihan repeat di form | daftar, detail, kalender, form | A4 | `recurrence` ditolak 422 (`t.Never()`), tidak ada kolom seri di tabel `event`. Kelas "Could" (E-16) | rencana | — |
-| Batal / arsip **satu kemunculan** ("hanya kemunculan ini") dan varian sheet `-recurring` | Cancel sheet, Archive sheet | A5 | Bergantung A4; route cancel tidak punya `scope: 'occurrence'｜'series'` | rencana | — |
-| Peran **Note-taker** di daftar hadir | detail, form | A6 | `event_participant` tidak punya kolom peran; `PersonRef` sengaja hanya `{id,name}` | rencana | — |
-| Kaki "Updated \<tanggal\> · by \<nama\>" | detail | A7 | `EventDetail` punya `updatedAt` tapi tidak `updatedBy` | rencana | — |
-| Seluruh alur Rekaman → Outcomes → Results: transkrip, draf tugas, keputusan, open question, sumber, "confirmed by" | Events ⑤–⑨ | A8 | Tidak ada tabel outcomes/draf, `outcomes` ditolak `t.Never()`. Kelas "Could" (E-13) | rencana | — |
-| Cari berdasarkan **lokasi** | kotak cari daftar | A10 | `q` server hanya judul. Menyaring di klien hanya benar untuk halaman yang sudah dimuat | rencana | — |
+| Pengulangan: badge **Repeat** di kartu, pill **Repeats** di detail, kemunculan berulang di kalender, pilihan repeat di form | daftar, detail, kalender, form | A4 | `recurrence` ditolak 422 (`t.Never()`), tidak ada kolom seri di tabel `event`. Kelas "Could" (E-16) | disembunyikan (W3-Events 28 Okt: `list/event-card.tsx`, `detail/event-facts.tsx`, `form/**`) | — |
+| Batal / arsip **satu kemunculan** ("hanya kemunculan ini") dan varian sheet `-recurring` | Cancel sheet, Archive sheet | A5 | Bergantung A4; route cancel tidak punya `scope: 'occurrence'｜'series'` | dihapus (W3-Events: `sheets/which-one.tsx` dan sheet Archive dihapus) | — |
+| Peran **Note-taker** di daftar hadir | detail, form | A6 | `event_participant` tidak punya kolom peran; `PersonRef` sengaja hanya `{id,name}` | disembunyikan (W3-Events 28 Okt: `detail/event-detail.screen.tsx` hanya menandai Creator) | — |
+| Kaki "Updated \<tanggal\> · by \<nama\>" | detail | A7 | `EventDetail` punya `updatedAt` tapi tidak `updatedBy` | diganti (W3-Events: kaki "Created by X · Updated <tgl>", `data/events.detail.ts`) | — |
+| Seluruh alur Rekaman → Outcomes → Results: transkrip, draf tugas, keputusan, open question, sumber, "confirmed by" | Events ⑤–⑨ | A8 | Tidak ada tabel outcomes/draf, `outcomes` ditolak `t.Never()`. Kelas "Could" (E-13) | disembunyikan (W3-Events 28 Okt: tautan dicabut dari kartu dan detail; rute `[id]/{record,recording,outcomes,results}` masih ada di atas data contoh) | — |
+| Cari berdasarkan **lokasi** | kotak cari daftar | A10 | `q` server hanya judul. Menyaring di klien hanya benar untuk halaman yang sudah dimuat | diganti (W3-Events: placeholder "Search event title…", `list/events.screen.tsx`) | — |
+| Tulis notulen (editor notulensi, konfirmasi) | detail | — (`PUT /events/:id/note` ada) | Butuh layar editor + penanganan 409 `NOTE_CONFLICT`; di luar lingkup W3 | disembunyikan (W3-Events 28 Okt: `detail/event-minutes.tsx` hanya membaca) | — |
+| Pemilih **pengingat** | form | B7 | Bukan GAP server (`remindersMinutes` diterima); pemilihnya belum dirancang | disembunyikan (W3-Events 28 Okt: `form/event-details.tsx` menampilkan baca-saja; acara baru = bawaan server) | — |
+| Pindah acara ke **proyek lain** saat Edit | form Edit | E-8 | `PATCH` menolak `projectId` (422) | disembunyikan (W3-Events 28 Okt: `event-project-locked` + petunjuk) | — |
+| Titik kalender bulan sangat padat (> 1.000 acara) | kalender | E-7 | Jendela mengikuti kursor maks 10 halaman × 100 | diganti (W3-Events 28 Okt: `data/events.calendar.ts`) | — |
+| **Cari tamu** oleh Member (acara pribadi) | form, picker tamu | E-9 (baru) | `GET /events/people` tanpa `projectId` mensyaratkan `canCreateProject` → Member 403; dengan `projectId` anggota proyek dikeluarkan dari kandidat | rencana — picker menampilkan pesan server (`form/guest-picker.tsx`); butuh keputusan server | — |
 
 **Catatan:** filter rentang tanggal kalender (A9) **tidak** disembunyikan — K6 memasukkannya ke
 kelompok A yang dibangun. Begitu juga opsi form tugas (Tasks A12), rute hapus permanen Sampah
