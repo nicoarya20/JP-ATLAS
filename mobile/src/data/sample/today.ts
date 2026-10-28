@@ -4,6 +4,3 @@
  * the sample rows read as they were written. test-only
  */
 export const TODAY = '2026-10-07';
-
-/** Greeting in the Home header, from the prototype's sample day (morning). */
-export const GREETING = 'Good morning';

@@ -341,6 +341,8 @@ describe("the server's clock", () => {
     seedSession(APPROVED_USER);
     await openApp('/');
     expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
+    await waitFor(() => expect(homeCalls(stub)).toHaveLength(1));
+    const before = homeCalls(stub).length;
 
     await act(async () => {
       clearSession();
@@ -351,7 +353,7 @@ describe("the server's clock", () => {
     });
 
     expect(await screen.findByTestId('tab-bar')).toBeOnTheScreen();
-    expect(homeCalls(stub)).toHaveLength(1);
-    expect(sessionStore.get().clock).toEqual(TEST_CLOCK);
+    await waitFor(() => expect(sessionStore.get().clock).toEqual(TEST_CLOCK));
+    expect(homeCalls(stub).length - before).toBe(1);
   });
 });

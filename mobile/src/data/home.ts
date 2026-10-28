@@ -1,57 +1,75 @@
-import { eventsStore } from './events.store';
-import { homeAgenda, homeFocus } from './home.focus';
-import { homeStats } from './home.stats';
-import type { HomeData, HomeSources } from './home.types';
-import { getProjectsState } from './projects.state';
-import { ACTIVITY, ASK, BRIEFING, DONE_THIS_WEEK, ME_BY_ROLE, PEOPLE, type Role } from './sample';
-// Sample text until Home reads GET /api/app/home (W3), which sends `now.greeting`. Not a date: TODAY itself is test-only.
-import { GREETING } from './sample/today';
-import { getTasksState } from './tasks.state';
-import { getDecisions, waitingUsers } from './users';
-
 /*
- * Home data in one call, the swap point to the API: today it is built from the live task, event and project stores (so
- * a task moved, canceled or archived in Tasks, an event added or archived in Events, or a project edited or archived
- * in Projects, shows on Home) plus the prototype's sample copy; later it becomes a fetch of GET /api/app/home (the web
- * app's getHome) that returns the same HomeData.
+ * Home in one call: `GET /api/app/home` (`server/home/home.service.ts`, the same answer the web
+ * loader reads).
+ *
+ * `getHome()` is **synchronous** (the user's decision, 26 Oct 2026): it reads the store the fetch
+ * layer filled and returns null while nothing is there, so the screen shows one loading state
+ * instead of the data layer growing a dialect of its own. Every section comes through as the
+ * server's `Widget`, so a single failing query costs its own card and nothing else.
  */
 
-export type { HomeSources } from './home.types';
+import { sessionStore } from '@/session/session.state';
+import { today } from './clock';
+import { monthDay } from './dates';
+import type { GreetingWire } from './home.api';
+import { homeResource, mapWidget, widget } from './home.api';
+import { homeAgenda, homeFocus, homeProjects } from './home.focus';
+import { homeStats } from './home.stats';
+import type { ActivityRow, AskAnswer, DoneTask, HomeData } from './home.types';
+import { instantDate, instantIsOn, instantTime } from './instant';
 
-/** How many Ask Data questions, completed tasks and activity rows each role sees (prototype home.roles.js). */
-const LENGTHS: Record<Role, { asks: number; done: number; activity: number }> = {
-  member: { asks: 2, done: 2, activity: 1 },
-  pm: { asks: 3, done: 4, activity: 3 },
-  admin: { asks: 3, done: 4, activity: 3 },
+/**
+ * The part of the day the server decided, worded in English (K5: an enum is mapped, a sentence is
+ * not). `sore` (15.00-18.00) is still the afternoon in English; `malam` is the evening.
+ */
+const GREETING: Partial<Record<GreetingWire, string>> = {
+  pagi: 'Good morning',
+  siang: 'Good afternoon',
+  sore: 'Good afternoon',
+  malam: 'Good evening',
 };
 
 /**
- * The stores as they are now; a screen passes what it read with useTasks / useEventsState / useProjectsState /
- * useDecisions to re-render on changes.
+ * The signed-in account's name: the first word greets, the whole name labels the avatar.
+ *
+ * GAP H-0: the server's own rule for a greeting name (a nickname, else the first word of the
+ * display name, `server/profile/profile.greeting.ts`) is not on the wire. The account name is the
+ * honest stand-in — the person's own name, from their own session, not a sample row.
  */
-export const homeSources = (): HomeSources => ({
-  tasks: getTasksState(),
-  events: eventsStore.get(),
-  projects: getProjectsState(),
-  decisions: getDecisions(),
-});
+function me(): HomeData['me'] {
+  const full = sessionStore.get().user?.name?.trim() ?? '';
+  return { name: full.split(/\s+/)[0] ?? '', full };
+}
 
-/** Everything Home shows for `role`. */
-export function getHome(role: Role, src: HomeSources = homeSources()): HomeData {
-  const person = PEOPLE[ME_BY_ROLE[role]];
-  const n = LENGTHS[role];
-  const events = src.events.list;
-  const waiting = waitingUsers(src.decisions).length;
+/** When an activity happened: the time for today, else the day — both in the team zone (K2). */
+const whenLabel = (instant: string): string =>
+  instantIsOn(instant, today()) ? instantTime(instant) : monthDay(instantDate(instant));
+
+/** Everything Home shows, or null while the payload has not arrived. */
+export function getHome(): HomeData | null {
+  const wire = homeResource.current();
+  if (!wire) return null;
+  const focus = widget(wire.focus);
+  const done = widget(wire.done);
   return {
-    role,
-    me: { name: person.name, full: person.full },
-    greeting: GREETING,
-    stats: homeStats(role, src, person.name),
-    briefing: BRIEFING,
-    focus: homeFocus(role, src.tasks, person.name, waiting),
-    ask: { ...ASK, questions: ASK.questions.slice(0, n.asks) },
-    agenda: homeAgenda(role, events, src.projects.list, person.name),
-    done: DONE_THIS_WEEK.slice(0, n.done),
-    activity: ACTIVITY.slice(0, n.activity),
+    me: me(),
+    greeting: GREETING[wire.now?.greeting] ?? '',
+    // The Inbox chip waits for the Inbox count resource (Inbox wave); null leaves it out.
+    stats: homeStats(focus, done, null),
+    briefing: mapWidget(widget(wire.briefing), (b) => ({
+      lines: b.lines,
+      updatedLabel: b.updatedLabel,
+    })),
+    focus: mapWidget(focus, homeFocus),
+    // The server always sends its three answers; the prototype's per-role trimming is gone.
+    ask: mapWidget(widget(wire.ask), (answers): AskAnswer[] => answers),
+    agenda: mapWidget(widget(wire.agenda), homeAgenda),
+    projects: mapWidget(widget(wire.projects), homeProjects),
+    done: mapWidget(done, (d): DoneTask[] =>
+      d.items.map((t) => ({ id: t.id, title: t.title, who: `${t.byName} · ${t.dayLabel}` })),
+    ),
+    activity: mapWidget(widget(wire.activity), (rows): ActivityRow[] =>
+      rows.map((a) => ({ id: a.id, text: a.text, meta: `${a.projectName} · ${whenLabel(a.at)}` })),
+    ),
   };
 }

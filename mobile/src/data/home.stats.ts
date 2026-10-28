@@ -1,30 +1,20 @@
-import { today } from './clock';
-import { daysBetween, daysSinceMonday, sameMonth } from './dates';
-import type { EventItem } from './events.shared';
-import { doneOn } from './home.tasks';
-import type { HomeSources, HomeTarget, StatChip, StatKey, StatSub } from './home.types';
-import { respondCards } from './inbox';
-import type { ProjectItem } from './projects.state';
-import type { Role } from './sample';
-import { assigned, dueIn, isOpen, type TaskItem } from './tasks.shared';
-import { type Decisions, waitingUsers } from './users';
-
 /*
- * Home stat chips per role, ported from the prototype (home.stats.js, home.roles.js) on the live tasks, events,
- * projects and Users decisions, against the sample "today".
+ * The stat chips of Home.
+ *
+ * A chip is only shown when the server sends a number that means what its label says (K6: no
+ * invented numbers). "Assigned" is `focus.total` (my open tasks, with `overdueTotal` under it);
+ * "Completed" is `done.total`, worded as what it is — finished this week across my projects, by
+ * anyone (GAP H-3). In Progress and Upcoming come with `GET /api/app/tasks/counts` in the Tasks
+ * wave (H-1, H-2, H-4); the Admin chips have no workspace-wide number on Home (H-5, H-6). The GAPs
+ * and the reasons are in `mobile/docs/phase2-gap-disembunyikan.md`.
  */
-
-type Tasks = readonly TaskItem[];
+import type { HomeDoneWire, HomeFocusWire, Widget } from './home.api';
+import type { HomeTarget, StatChip, StatKey, StatSub } from './home.types';
 
 const TARGET: Record<StatKey, HomeTarget> = {
   assigned: 'tasks.all',
-  inProgress: 'tasks.all',
   completed: 'tasks.all',
-  upcoming: 'events.calendar',
   inbox: 'inbox.respond',
-  active: 'projects.list',
-  overdue: 'tasks.all',
-  awaiting: 'users.approve',
 };
 
 const chip = (key: StatKey, count: number | null, sub: StatSub, alert = false): StatChip => ({
@@ -35,87 +25,37 @@ const chip = (key: StatKey, count: number | null, sub: StatSub, alert = false): 
   target: TARGET[key],
 });
 
-/** True for a date from today to the end of this month. */
-const leftThisMonth = (iso: string) => sameMonth(iso, today()) && daysBetween(today(), iso) >= 0;
-
-/** Line under In Progress: the most urgent thing among the tasks being worked on. */
-function activeSub(active: Tasks): StatSub {
-  const overdue = active.filter((t) => dueIn(t) < 0).length;
-  const dueToday = active.filter((t) => dueIn(t) === 0).length;
-  if (overdue) return { kind: 'overdue', n: overdue };
-  if (dueToday) return { kind: 'dueToday', n: dueToday };
-  if (!active.length) return { kind: 'noneStarted' };
-  const next = [...active].sort((a, b) => dueIn(a) - dueIn(b))[0];
-  return { kind: 'nextDue', date: next.due };
-}
-
-/** Assigned, In Progress and Completed for the signed-in person (Member and PM). */
-function taskChips(tasks: Tasks, me: string): StatChip[] {
-  const mine = tasks.filter((t) => assigned(t, me));
-  const open = mine.filter(isOpen);
-  const overdue = open.filter((t) => dueIn(t) < 0).length;
-  const active = mine.filter((t) => t.status === 'In progress');
-  const done = mine.filter((t) => {
-    const on = doneOn(t);
-    return on !== undefined && daysBetween(today(), on) >= -daysSinceMonday(today());
-  });
-  return [
-    chip(
-      'assigned',
-      open.length,
-      overdue ? { kind: 'overdue', n: overdue } : { kind: 'onTrack' },
-      overdue > 0,
-    ),
-    chip(
-      'inProgress',
-      active.length,
-      activeSub(active),
-      active.some((t) => dueIn(t) < 0),
-    ),
-    chip('completed', done.length, { kind: 'thisWeek' }),
-  ];
-}
-
-/** Upcoming (my open tasks and events not canceled still ahead this month) and Inbox (cards waiting for my response). */
-function aheadChips(
-  tasks: Tasks,
-  events: readonly EventItem[],
-  me: string,
-  role: Role,
-  decided: Decisions,
-): StatChip[] {
-  const dueTasks = tasks.filter((t) => assigned(t, me) && isOpen(t) && leftThisMonth(t.due)).length;
-  // A canceled event stays listed (marked Canceled) but is no longer ahead of me, as in Agenda.
-  const ahead = events.filter(
-    (e) => e.attendees.includes(me) && e.status !== 'Done' && !e.canceled && leftThisMonth(e.date),
-  ).length;
-  const respond = respondCards(role, decided).length;
-  return [
-    chip('upcoming', null, { kind: 'items', n: dueTasks + ahead }),
-    chip('inbox', null, respond ? { kind: 'toRespond', n: respond } : { kind: 'caughtUp' }),
-  ];
-}
-
 /**
- * Admin: workspace health (listed projects that are Active, open tasks past due anywhere, users awaiting approval).
- * Overdue counts the live tasks, so it matches All tasks; the prototype's fixed 3 counted tasks its sample lacks.
+ * The chips Home can stand behind. A section that failed simply has no chip: an empty space is
+ * honest, a zero would not be. `inboxAction` is the Inbox's action count, or null while it has no
+ * source (the chip is then left out).
  */
-const adminChips = (projects: readonly ProjectItem[], tasks: Tasks, decided: Decisions) => [
-  chip('active', projects.filter((p) => p.status === 'Active').length, {
-    kind: 'unit',
-    unit: 'projects',
-  }),
-  chip('overdue', tasks.filter((t) => isOpen(t) && dueIn(t) < 0).length, {
-    kind: 'unit',
-    unit: 'tasks',
-  }),
-  chip('awaiting', waitingUsers(decided).length, { kind: 'unit', unit: 'users' }),
-];
-
-/** Stat chips of a role, in the prototype's order, for `me` (the signed-in person's first name). */
-export function homeStats(role: Role, src: HomeSources, me: string): StatChip[] {
-  const tasks = src.tasks.tasks;
-  const first =
-    role === 'admin' ? adminChips(src.projects.list, tasks, src.decisions) : taskChips(tasks, me);
-  return [...first, ...aheadChips(tasks, src.events.list, me, role, src.decisions)];
+export function homeStats(
+  focus: Widget<HomeFocusWire>,
+  done: Widget<HomeDoneWire>,
+  inboxAction: number | null,
+): StatChip[] {
+  const chips: StatChip[] = [];
+  if (focus.ok) {
+    const { total, overdueTotal } = focus.data;
+    chips.push(
+      chip(
+        'assigned',
+        total,
+        overdueTotal > 0 ? { kind: 'overdue', n: overdueTotal } : { kind: 'onTrack' },
+        overdueTotal > 0,
+      ),
+    );
+  }
+  if (done.ok) chips.push(chip('completed', done.data.total, { kind: 'thisWeekMyProjects' }));
+  if (inboxAction !== null) {
+    chips.push(
+      chip(
+        'inbox',
+        null,
+        inboxAction > 0 ? { kind: 'toRespond', n: inboxAction } : { kind: 'caughtUp' },
+      ),
+    );
+  }
+  return chips;
 }
