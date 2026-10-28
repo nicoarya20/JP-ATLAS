@@ -2,7 +2,6 @@
 // Members tabs read the server (projects.view.ts, projects.view.tabs.ts); this tab stays on the legacy path until the
 // Tasks module reads the server, and the detail does not offer it meanwhile (GAP: Projects Tasks tab).
 import type { Role } from './sample';
-import type { ProjectRole } from './sample/projects.extra';
 import { getTasksList, type TaskCard } from './tasks';
 import { getTasksState, type TasksState } from './tasks.state';
 
@@ -46,6 +45,3 @@ export function getProjectTasks(
     count: `${cards.length} ${cards.length === 1 ? 'task' : 'tasks'}`,
   };
 }
-
-/** Project roles a member can have. */
-export const PROJECT_ROLES_LIST: readonly ProjectRole[] = ['Manager', 'Member', 'Viewer'];

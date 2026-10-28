@@ -4,11 +4,11 @@
 /** Shown under the field (and read as the disabled primary's hint) while the form can't be sent. */
 export const WHY = {
   name: 'Enter a project name.',
-  nameTaken: 'A project with this name already exists.',
   template: 'Choose a template.',
   story: 'Write your story first.',
   next: 'Pick a new deadline.',
   reason: 'Enter a reason.',
+  dueBeforeStart: 'The deadline must be on or after the start date.',
 } as const;
 
 /** Accessible names of the buttons whose visible text carries a symbol. */

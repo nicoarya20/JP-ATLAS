@@ -226,3 +226,37 @@ export const atlasRoutes = (detail: ProjectDetailWire = atlasDetail()) => ({
 });
 
 export const query = (url: string) => Object.fromEntries(new URL(url).searchParams);
+
+/** `GET /api/app/team/picker` rows. */
+export const pickerPeople = () => ({
+  items: [
+    { id: 'u-sari', name: 'Sari Dewi', jobTitle: 'Designer', image: null },
+    { id: 'u-budi', name: 'Budi Santoso', jobTitle: null, image: null },
+  ],
+});
+
+/** `GET /api/app/whoami` of the seeded session user, who may create projects unless told otherwise. */
+export const whoami = (createProject = true) => ({
+  userId: 'u-nico',
+  name: 'Nico Arya',
+  role: 'project_manager',
+  caps: { createProject, createEvent: true, dashboard: false, dev: false },
+});
+
+/** One request as the server got it. */
+export type Sent = { method: string; path: string; body: unknown };
+
+/**
+ * A stub that answers `reply` and writes down what it was sent (method, path, JSON body) in `log`, so a test can
+ * check the order and the bodies of a write's requests.
+ */
+export const recording =
+  (log: Sent[], reply: { status?: number; body?: unknown } = { body: {} }) =>
+  (url: string, init?: RequestInit) => {
+    log.push({
+      method: init?.method ?? 'GET',
+      path: new URL(url).pathname,
+      body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
+    });
+    return reply;
+  };

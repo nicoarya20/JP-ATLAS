@@ -1,3 +1,3 @@
-import { NewProjectScreen } from '@/screens/projects/new/new.screen';
+import { NewProjectIndex } from '@/screens/projects/new/form.screen';
 
-export default NewProjectScreen;
+export default NewProjectIndex;

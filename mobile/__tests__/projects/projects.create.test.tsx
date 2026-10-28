@@ -1,13 +1,27 @@
-// Projects ③–⑦ New project (port of prototype projects.create.test / projects.story.test): three ways with one Cancel,
-// the form (Create waits for a name, the creator stays Manager), story → draft → Create project, the template's
-// estimated end; each Create opens the project with "Project created". A Member is sent away.
+// Projects ③ ⑤–⑦ New project ways still on the sample data (port of prototype projects.create.test /
+// projects.story.test), hidden behind `/projects/new` → the form but reachable by URL: three ways with one Cancel,
+// story → draft → Create project, the template's estimated end; each Create opens the project with "Project
+// created". A Member is sent away. The form itself reads the server: projects.form.test.tsx.
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
+import { serveAuth } from '../helpers/auth-server';
+import { whoami } from '../helpers/projects-fixtures';
 import { openProjects, resetProjectStores } from '../helpers/projects-router';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 resetProjectStores();
 drainToastTimers();
+
+// The ways open the form (whoami) and end on a project (its reads): fetch stays stubbed, so a read with no stub fails
+// here instead of reaching a server.
+let server: ReturnType<typeof serveAuth> | null = null;
+beforeEach(() => {
+  server = serveAuth({ '/api/app/whoami': { body: whoami() } });
+});
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
 
 const button = (name: string | RegExp) => screen.getByRole('button', { name });
 const press = (name: string | RegExp) => fireEvent.press(button(name));
@@ -19,7 +33,7 @@ async function expectCreated() {
 
 describe('New project', () => {
   it('offers three ways, the story one recommended, and one Cancel', async () => {
-    await openProjects('/projects/new');
+    await openProjects('/projects/new/choose');
     expect(screen.getAllByRole('button', { name: /^Choose: / })).toHaveLength(3);
     expect(within(screen.getByTestId('way-story')).getByText('Recommended')).toBeOnTheScreen();
     expect(screen.getAllByRole('button', { name: 'Cancel' })).toHaveLength(1);
@@ -32,32 +46,7 @@ describe('New project', () => {
   });
 
   it('a Member is sent home', async () => {
-    await openProjects('/projects/new', 'member');
-    await waitFor(() => expect(screen).toHavePathname('/'));
-  });
-});
-
-describe('Fill in project form', () => {
-  it('Create project waits for a name; the creator stays Manager', async () => {
-    await openProjects('/projects/new/form');
-    expect(button('Create project')).toBeDisabled();
-    expect(button('Role of Nico Pratama')).toBeDisabled();
-    await fireEvent.changeText(screen.getByLabelText('Project name, required'), 'Leave App');
-    await press('Create project');
-    await expectCreated();
-  });
-
-  it('a quick pick sets the end date from the start', async () => {
-    await openProjects('/projects/new/form');
-    expect(button('End date')).toHaveAccessibilityValue({ text: 'Nov 7' });
-    expect(screen.getByRole('button', { name: '1 mo' })).toBeSelected();
-    await press('1 wk');
-    expect(screen.getByRole('button', { name: '1 wk' })).toBeSelected();
-    expect(button('End date')).toHaveAccessibilityValue({ text: 'Oct 14' });
-  });
-
-  it('a Member is sent home', async () => {
-    await openProjects('/projects/new/form', 'member');
+    await openProjects('/projects/new/choose', 'member');
     await waitFor(() => expect(screen).toHavePathname('/'));
   });
 });

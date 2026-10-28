@@ -51,6 +51,8 @@ export type PhaseCard = {
   /** Tasks of the phase done, 0–100; null when it has none. */
   pct: number | null;
   milestones: ReturnType<typeof milestoneRow>[];
+  /** The step a manager may take here: Complete a phase in progress, Start the first one not started. */
+  step: 'start' | 'complete' | null;
 };
 
 /** The extension categories in the app's words (the manager's own reason is shown beside them). */
@@ -66,6 +68,7 @@ export function getProjectPhases(id: string) {
   const plan = projectPlanResource(id).current();
   if (!plan) return null;
   const phaseIds = new Set(plan.phases.map((p) => p.id));
+  const next = plan.phases.find((p) => p.status === 'not_started')?.id;
   const cards: PhaseCard[] = plan.phases.map((ph, i) => ({
     id: ph.id,
     name: ph.name,
@@ -76,6 +79,7 @@ export function getProjectPhases(id: string) {
     now: ph.status === 'in_progress',
     pct: share(ph.doneCount, ph.taskCount),
     milestones: plan.milestones.filter((m) => m.phaseId === ph.id).map(milestoneRow),
+    step: ph.status === 'in_progress' ? 'complete' : ph.id === next ? 'start' : null,
   }));
   return {
     count: `${cards.length} phase${cards.length === 1 ? '' : 's'}`,

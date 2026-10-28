@@ -59,11 +59,19 @@ export const PHASES = {
   noProgress: 'No tasks in this phase yet',
   history: 'Deadline history',
   none: 'No phases yet.',
+  start: 'Start phase',
+  complete: 'Complete phase',
+  startLabel: (name: string) => `Start phase ${name}`,
+  completeLabel: (name: string) => `Complete phase ${name}`,
+  started: 'Phase started',
+  completed: 'Phase completed',
 } as const;
 
 export const MEMBERS = {
   add: '+ Member',
-  addNotice: 'Pick a member',
+  addTitle: 'Add a member',
+  close: 'Done adding',
+  added: (name: string) => `${name} added`,
   you: '(You)',
   lead: 'Lead',
   role: (name: string) => `Project role of ${name}`,
@@ -79,8 +87,9 @@ export const MEMBERS = {
   ],
   removeTitle: (name: string) => `Remove ${name} from the project?`,
   removeMessage: (name: string, project: string) =>
-    `${name} loses access to “${project}”. Their tasks stay in the project. Their tasks stay assigned to them.`,
+    `${name} loses access to “${project}”. Their tasks stay in the project, still assigned to them.`,
   removeConfirm: 'Remove member',
+  selfRemove: "You can't remove yourself. Ask another manager to do it.",
   removed: 'Member removed',
   roleTitle: (name: string) => `Change ${name}'s role?`,
   roleMessage: (name: string, role: string, project: string) =>
@@ -95,15 +104,8 @@ export const EXTEND = {
   next: 'New deadline',
   after: (date: string) => `New deadline must be after ${date}.`,
   why: 'Why extend?',
-  reasons: [
-    'Scope increased',
-    'Waiting on third party',
-    'Estimate was off',
-    'Short-staffed',
-    'Other',
-  ],
   reason: 'Reason',
-  impact: 'Impact of change',
+  reasonHint: (max: number) => `Up to ${max} characters.`,
   recorded: 'Recorded in Deadline history and Project activity.',
   cancel: 'Cancel',
   save: 'Save',
@@ -119,9 +121,7 @@ export const EDIT = {
   leadHint: "Only this project's Managers can be Lead. Add a Manager in the Members tab.",
   status: 'Status',
   statusHint: 'Status can move to any other, even from Done back to Active.',
-  statuses: ['Draft', 'Active', 'On hold', 'Done', 'Canceled'],
   priority: 'Priority',
-  priorities: ['Low', 'Medium', 'High', 'Critical'],
   start: 'Start date',
   deadline: 'Deadline',
   extendNote:
@@ -129,19 +129,25 @@ export const EDIT = {
   cancel: 'Cancel',
   save: 'Save changes',
   saved: 'Project updated',
+  noChange: 'Nothing has changed yet.',
+  confirmTitle: 'Save these changes?',
+  closes: (name: string, status: string) =>
+    `“${name}” becomes ${status}: it leaves the active projects and stops counting toward deadlines.`,
+  newLead: (lead: string) => `${lead} becomes the Lead and the main manager of the project.`,
 } as const;
 
-export const ARCHIVE = {
-  title: 'Move project to Archive?',
-  lead: (name: string, tasks: string) =>
-    `“${name}” and its ${tasks} leave every list and wait in Archive.`,
-  box: 'Restore brings the project back with all its tasks. Only an Admin can delete it forever.',
+export const TRASH = {
+  title: 'Move project to Trash?',
+  lead: (name: string, tasks: number) =>
+    tasks === 0
+      ? `“${name}” moves to the Trash and leaves every list.`
+      : `“${name}” and its ${tasks} ${tasks === 1 ? 'task' : 'tasks'} move to the Trash and leave every list.`,
+  box: 'Undo right after, or restore it later from the Trash with all its tasks.',
   cancel: 'Cancel',
-  confirm: 'Move to Archive',
-  moved: 'Project moved to Archive',
+  confirm: 'Move to Trash',
+  moved: 'Project moved to Trash',
   undo: 'Undo',
   restored: 'Project restored',
-  goneForever: "This project was deleted forever and can't be restored.",
 } as const;
 
 export const CREATE = {
@@ -181,7 +187,6 @@ export const FORM = {
   descPlaceholder: "Briefly describe the project's goal",
   lead: 'Lead (main manager)',
   status: 'Initial status',
-  statuses: ['Draft', 'Active'],
   statusHint: 'Other statuses can be changed after the project is created.',
   priority: 'Priority',
   start: 'Start date',
@@ -190,10 +195,22 @@ export const FORM = {
   quickPicks: ['1 wk', '2 wk', '1 mo', '3 mo'],
   members: 'Members & roles',
   memberRole: (name: string) => `Role of ${name}`,
-  creatorStays: 'Creator stays Manager',
+  creatorStays: 'You stay a Manager of the project you create.',
+  leadStays: 'The Lead is always a Manager.',
+  removeMember: (name: string) => `Remove ${name}`,
   addMember: '+ Add member',
-  addNotice: 'Pick a member',
-  note: 'The creator automatically becomes Manager and Lead. Default task types created: Task, Bug, Idea (can be changed in Project settings).',
+  leadHint: 'The Lead becomes a Manager. Other managers can be added later in the Members tab.',
+  note: 'You become a Manager of the project. It starts with the task types Task, Bug and Idea.',
+} as const;
+
+/** The people picker of the Members tab and the New project form. */
+export const PICKER = {
+  search: 'Search people by name…',
+  role: 'Joins as',
+  none: 'No one to add matches this name.',
+  noneYet: 'Everyone is already in the project.',
+  add: 'Add',
+  addLabel: (name: string) => `Add ${name}`,
 } as const;
 
 export const STORY = {

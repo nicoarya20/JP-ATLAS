@@ -1,46 +1,30 @@
-// Projects QA pass (W4e) on the screens still on the sample data: Edit refuses another project's name, a primary says
-// why it is off, Create project ends on the list while Atlas is archived. The list and detail read the server now;
-// their screen-reader names are in projects.list.test.tsx and projects.detail.test.tsx.
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+// Projects QA pass (W4e) on the New project ways still on the sample data (hidden, reachable by URL): a primary says
+// why it is off, and the Choose buttons name their way. The server-backed screens' reasons are in
+// projects.form.test.tsx and projects.edit.test.tsx; the list and detail names in projects.list/detail tests.
+import { fireEvent, screen } from '@testing-library/react-native';
 
-import { archiveProject } from '../../src/data/projects.store';
+import { serveAuth } from '../helpers/auth-server';
+import { whoami } from '../helpers/projects-fixtures';
 import { openProjects, resetProjectStores } from '../helpers/projects-router';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 resetProjectStores();
 drainToastTimers();
 
+// The ways open the form (whoami) and end on a project (its reads): fetch stays stubbed, so a read with no stub fails
+// here instead of reaching a server.
+let server: ReturnType<typeof serveAuth> | null = null;
+beforeEach(() => {
+  server = serveAuth({ '/api/app/whoami': { body: whoami() } });
+});
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
+
 const button = (name: string | RegExp) => screen.getByRole('button', { name });
-const press = (name: string | RegExp) => fireEvent.press(button(name));
-// Nothing is mounted yet, so no act(): an act() before renderRouter leaves the router rendering nothing.
-const archiveAtlas = () => void archiveProject('atlas', 'Nico');
 
 describe('names and reasons on the forms', () => {
-  it("Edit: another project's name (any case) is refused under the field and as Save's hint", async () => {
-    await openProjects('/projects/atlas/edit');
-    const name = screen.getByTestId('edit-name');
-    await fireEvent.changeText(name, ' internal TOOLS ');
-    expect(screen.getByText('A project with this name already exists.')).toBeOnTheScreen();
-    expect(button('Save changes')).toBeDisabled();
-    expect(button('Save changes').props.accessibilityHint).toBe(
-      'A project with this name already exists.',
-    );
-    await fireEvent.changeText(name, 'atlas project');
-    expect(screen.queryByText('A project with this name already exists.')).not.toBeOnTheScreen();
-    expect(button('Save changes')).toBeEnabled();
-  });
-
-  it('Form: a blank name says why once touched; Save names the reason from the start', async () => {
-    await openProjects('/projects/new/form');
-    expect(screen.queryByText('Enter a project name.')).not.toBeOnTheScreen();
-    expect(button('Create project').props.accessibilityHint).toBe('Enter a project name.');
-    await fireEvent(screen.getByTestId('form-name'), 'blur');
-    expect(screen.getByText('Enter a project name.')).toBeOnTheScreen();
-    await fireEvent.changeText(screen.getByTestId('form-name'), 'Leave app');
-    expect(screen.queryByText('Enter a project name.')).not.toBeOnTheScreen();
-    expect(button('Create project').props.accessibilityHint).toBeUndefined();
-  });
-
   it('Story: a blank story keeps Build draft off with its reason; the bullets are not read', async () => {
     await openProjects('/projects/new/story');
     expect(screen.getByLabelText("The project's goal")).toBeOnTheScreen();
@@ -59,29 +43,9 @@ describe('names and reasons on the forms', () => {
     expect(button('Create project').props.accessibilityHint).toBe('Enter a project name.');
   });
 
-  it('Extend: a cleared reason says why Save is off', async () => {
-    await openProjects('/projects/atlas/extend');
-    expect(button('Save')).toBeEnabled();
-    await fireEvent.changeText(screen.getByTestId('extend-reason'), ' ');
-    expect(screen.getByText('Enter a reason.')).toBeOnTheScreen();
-    expect(button('Save')).toBeDisabled();
-    expect(button('Save').props.accessibilityHint).toBe('Enter a reason.');
-  });
-
   it('the Choose buttons name their way', async () => {
-    await openProjects('/projects/new');
+    await openProjects('/projects/new/choose');
     expect(button('Choose: Tell us about the project')).toBeOnTheScreen();
     expect(button('Choose: Use a template')).toBeOnTheScreen();
-  });
-});
-
-describe('a project in Archive', () => {
-  it('Create project ends on the Projects list, still saying "Project created"', async () => {
-    archiveAtlas();
-    await openProjects('/projects/new/form');
-    await fireEvent.changeText(screen.getByTestId('form-name'), 'Leave app');
-    await press('Create project');
-    await waitFor(() => expect(screen).toHavePathname('/projects'));
-    expect(screen.getByText('Project created')).toBeOnTheScreen();
   });
 });

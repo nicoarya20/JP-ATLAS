@@ -15,6 +15,9 @@ export const STATUS_LABEL: Record<ProjectStatusWire, string> = {
   canceled: 'Canceled',
 };
 
+/** Statuses that close a project: it can't be extended, and moving to one is confirmed first. */
+export const CLOSING: readonly ProjectStatusWire[] = ['completed', 'canceled'];
+
 /** Status chips in the order the prototype had them; null (All) = no status filter. */
 export const STATUSES: readonly (ProjectStatusWire | null)[] = [
   null,

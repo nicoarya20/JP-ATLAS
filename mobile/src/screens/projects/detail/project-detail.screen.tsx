@@ -1,6 +1,7 @@
 // Projects ⑧–⑪ detail (prototype projects.detail.jsx / projects.tabs.jsx) from the server: the project in the route
-// param `id`, its header and the tab in the param `tab` (overview, phases, members). The project's Tasks tab is not
-// offered until the Tasks module reads the server, so `tab=tasks` opens the Overview (GAP: Projects Tasks tab).
+// param `id`, its header with the ⋯ menu and Extend deadline, and the tab in the param `tab` (overview, phases,
+// members). The project's Tasks tab is not offered until the Tasks module reads the server, so `tab=tasks` opens the
+// Overview (GAP: Projects Tasks tab).
 import { router, useLocalSearchParams } from 'expo-router';
 import { FolderX } from 'lucide-react-native';
 import { useEffect } from 'react';
@@ -16,6 +17,7 @@ import { DetailHead, type DetailTab, DetailTabs, TABS } from './detail-header';
 import { MembersTab } from './members.tab';
 import { OverviewTab } from './overview.tab';
 import { PhasesTab } from './phases.tab';
+import { ExtendButton, ProjectMenu } from './project-menu';
 import { ProjectPage } from './project-page';
 
 const asTab = (t?: string): DetailTab => TABS.find((x) => x === t) ?? 'overview';
@@ -54,13 +56,13 @@ export function ProjectDetailScreen() {
   if (!h) return <NoProject id={id} />;
   const tab = asTab(params.tab);
   return (
-    <ProjectPage testID="screen-project" title={h.name}>
-      <DetailHead h={h} />
+    <ProjectPage testID="screen-project" title={h.name} right={<ProjectMenu h={h} />}>
+      <DetailHead h={h} extra={h.canExtend ? <ExtendButton id={h.id} /> : undefined} />
       <DetailTabs tab={tab} />
       {tab === 'overview' && (
         <OverviewTab id={h.id} onPhases={() => router.setParams({ tab: 'phases' })} />
       )}
-      {tab === 'phases' && <PhasesTab id={h.id} />}
+      {tab === 'phases' && <PhasesTab id={h.id} canEdit={h.can.update === true} />}
       {tab === 'members' && <MembersTab id={h.id} canEdit={h.can.update === true} />}
     </ProjectPage>
   );

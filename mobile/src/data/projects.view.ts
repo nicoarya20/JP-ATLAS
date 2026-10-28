@@ -10,7 +10,7 @@ import { projectActivityResource, projectPlanResource, projectResource } from '.
 import { daysLeftLabel, longDate } from './projects.dates';
 import { NO_DEADLINE, NO_LEAD, NO_TASKS } from './projects.list';
 import { type AttentionReason, projectAttentionResource } from './projects.overview.api';
-import { STATUS_LABEL } from './projects.query';
+import { CLOSING, STATUS_LABEL } from './projects.query';
 import type {
   PhaseStatusWire,
   ProjectCapsWire,
@@ -39,6 +39,8 @@ export type ProjectHead = {
   myRole: ProjectRoleWire | null;
   /** Tasks a move to the Trash takes along (`taskCounts.live`). */
   live: number;
+  /** Extend deadline is offered: the viewer may edit, and the project is open and has a deadline to move. */
+  canExtend: boolean;
 };
 
 /** The header of project id, or null before its detail arrives. */
@@ -59,6 +61,7 @@ export function getProjectHead(id: string): ProjectHead | null {
     can: p.can,
     myRole: p.myRole,
     live: p.taskCounts.live,
+    canExtend: p.can.update === true && !!p.dueDate && !CLOSING.includes(p.status),
   };
 }
 

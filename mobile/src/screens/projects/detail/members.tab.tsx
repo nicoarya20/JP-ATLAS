@@ -1,5 +1,9 @@
 // Project detail ⑪ Members (prototype projects.tabs.jsx ProjectsMembers) from the server: a card per member with
-// their project role, the only-Manager note and what each role means.
+// their project role, the only-Manager note and what each role means. Someone who may edit the project adds people,
+// changes a role and removes a member, each change confirmed first (T2); the Lead stays a Manager, and nobody
+// removes themselves.
+import { useState } from 'react';
+
 import { PersonAvatar } from '@/components/avatar/person-avatar';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { HStack } from '@/components/ui/hstack';
@@ -11,6 +15,8 @@ import { getProjectMembers, type MemberCard as Member } from '@/data/projects.vi
 import { Head, Note, Sec, Soft } from '../parts/display';
 import { Loaded } from '../parts/loaded';
 import { MEMBERS } from '../projects.strings';
+import { MemberAdd } from './member-add';
+import { type Ask, MemberConfirm, MemberEdit } from './member-edit';
 
 /** "Nico Pratama, (You), Lead, Designer, Manager". */
 const who = (m: Member) =>
@@ -18,7 +24,7 @@ const who = (m: Member) =>
     .filter(Boolean)
     .join(', ');
 
-function MemberCard({ m }: { m: Member }) {
+function MemberCard({ m, onAsk }: { m: Member; onAsk: ((a: Ask) => void) | null }) {
   return (
     <Sec testID={`member-${m.userId}`}>
       {/* Avatar, name, (You), Lead, job and role read once, as one stop. */}
@@ -36,22 +42,27 @@ function MemberCard({ m }: { m: Member }) {
           </HStack>
           {!!m.sub && <Note>{m.sub}</Note>}
         </VStack>
-        <Text className="text-subhead font-semibold">{m.roleLabel}</Text>
+        {!onAsk && <Text className="text-subhead font-semibold">{m.roleLabel}</Text>}
       </HStack>
+      {onAsk && <MemberEdit m={m} onAsk={onAsk} />}
+      {onAsk && m.you && <Note>{MEMBERS.selfRemove}</Note>}
     </Sec>
   );
 }
 
 function List({ id, canEdit }: { id: string; canEdit: boolean }) {
+  const [ask, setAsk] = useState<Ask | null>(null);
   const m = getProjectMembers(id);
   if (!m) return null;
   return (
     <>
       <Note>{m.count}</Note>
+      {canEdit && <MemberAdd id={id} />}
       {m.cards.map((c) => (
-        <MemberCard key={c.userId} m={c} />
+        <MemberCard key={c.userId} m={c} onAsk={canEdit ? setAsk : null} />
       ))}
       {canEdit && m.onlyManager && <Soft>{MEMBERS.onlyManager(m.onlyManager)}</Soft>}
+      <MemberConfirm id={id} ask={ask} onClose={() => setAsk(null)} />
     </>
   );
 }
