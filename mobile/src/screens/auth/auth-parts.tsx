@@ -13,13 +13,13 @@ import { SPACING } from '@/theme/tokens';
 import { APP_NAME, BRAND, SIGN_IN, SIGN_IN_FORM } from './auth.strings';
 
 /** Grey box standing in for an image (prototype kit Media). */
-export function Media({ label, small }: { label: string; small?: boolean }) {
+export function Media({ label }: { label: string }) {
   return (
     <View
       accessible
       accessibilityRole="image"
       accessibilityLabel={label}
-      className={`items-center justify-center rounded-card border border-dashed border-input bg-muted ${small ? 'h-16 w-16' : 'h-48 w-full'}`}
+      className="h-48 w-full items-center justify-center rounded-card border border-dashed border-input bg-muted"
     >
       <Text className="text-footnote text-muted-foreground">{label}</Text>
     </View>

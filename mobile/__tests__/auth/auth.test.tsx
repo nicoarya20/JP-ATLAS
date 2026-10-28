@@ -55,30 +55,16 @@ const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvid
 describe('PendingScreen', () => {
   beforeEach(() => seedSession(PENDING_USER));
 
-  test('starts from the signed-in name and address; the address is read-only', async () => {
-    await show(<PendingScreen />);
-
-    expect(screen.getByLabelText('Full name, required')).toHaveProp('value', PENDING_USER.name);
-    const email = screen.getByLabelText('Email (from Google, cannot be changed)');
-    expect(email).toHaveProp('readOnly', true);
-    expect(email).toHaveProp('value', PENDING_USER.email);
-    // Nothing of the sample profile leaks into a real account's form.
-    expect(screen.getByLabelText('Nickname')).toHaveProp('value', '');
-  });
-
-  test('refuses a blank full name', async () => {
+  test('the status card only: no profile form, photo or Save, since the server refuses a pending account', async () => {
     await show(<PendingScreen />);
 
     expect(screen.getByText('Your account is awaiting admin approval')).toBeOnTheScreen();
-    await fireEvent.changeText(screen.getByLabelText('Full name, required'), '  ');
-    await fireEvent.press(screen.getByText('Save profile'));
-    expect(screen.getByText('Enter your full name.')).toBeOnTheScreen();
-    expect(screen.queryByText('Profile saved')).not.toBeOnTheScreen();
-
-    await fireEvent.changeText(screen.getByLabelText('Full name, required'), 'Budi S.');
-    await fireEvent.press(screen.getByText('Save profile'));
-    expect(screen.queryByText('Enter your full name.')).not.toBeOnTheScreen();
-    expect(screen.getByText('Profile saved')).toBeOnTheScreen();
+    expect(screen.getByText('You can open Home once an admin approves you.')).toBeOnTheScreen();
+    expect(screen.getByText('Check status')).toBeOnTheScreen();
+    for (const gone of ['My Profile', 'Change photo', 'Save profile']) {
+      expect(screen.queryByText(gone)).not.toBeOnTheScreen();
+    }
+    expect(screen.queryByLabelText('Full name, required')).not.toBeOnTheScreen();
   });
 
   test('Check status reads the session again and says so when nothing changed', async () => {

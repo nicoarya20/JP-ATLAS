@@ -1,37 +1,25 @@
-// Auth ③ Awaiting approval (prototype auth.pending.jsx): status card and the profile form; no other menus until an
-// Admin approves. Sign out asks first (T2); Check status reads the session again, and the gate lets an approved account
-// through by itself. Name and email come from the session.
+// Auth ③ Awaiting approval (prototype auth.pending.jsx): the status card, with no other menus until an Admin approves.
+// Sign out asks first (T2); Check status reads the session again, and the gate lets an approved account through by
+// itself. The prototype's profile form is not here: the server answers a pending account's `PATCH /api/app/profile`
+// with 403 ACCOUNT_PENDING, so a Save there could only pretend (gap doc §3, "Edit profil di layar Pending").
 import { useState } from 'react';
 
-import { Field } from '@/components/form/field';
 import { useNotice } from '@/components/notice/use-notice';
 import { DetailPage, SectionCard } from '@/components/screen/detail-page';
 import { StatusPill } from '@/components/status/status-pill';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
-import { VStack } from '@/components/ui/vstack';
-import { refreshSession, useSession } from '@/session';
+import { refreshSession } from '@/session';
 
 import { APP_NAME, PENDING } from './auth.strings';
-import { Media } from './auth-parts';
 import { SignOutDialog } from './sign-out';
 
 /** The sign-up waiting for an Admin; the (auth) stack only registers it while the session is `pending`. */
 export function PendingScreen() {
   const notice = useNotice();
-  const { user } = useSession();
-  const [full, setFull] = useState(user?.name ?? '');
-  const [nickname, setNickname] = useState('');
-  const [job, setJob] = useState('');
-  const [division, setDivision] = useState('');
-  const [missing, setMissing] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [checking, setChecking] = useState(false);
-  const save = () => {
-    setMissing(!full.trim());
-    if (full.trim()) notice(PENDING.saved);
-  };
   // Approval happens on the server; this asks again. An approved account leaves this screen because the gate follows
   // the session store, so there is nothing to navigate to here. refreshSession never rejects: a failure lands in the
   // store as `unreachable`, which the root layout turns into the retry screen.
@@ -57,37 +45,6 @@ export function PendingScreen() {
         </HStack>
         <Text className="text-subhead">{PENDING.statusText}</Text>
       </SectionCard>
-      <Text accessibilityRole="header" className="text-section font-semibold">
-        {PENDING.profile}
-      </Text>
-      <HStack className="items-center gap-3">
-        <Media label={PENDING.photo} small />
-        <VStack className="items-start gap-2">
-          <Text className="text-footnote text-muted-foreground">{PENDING.photoFrom}</Text>
-          <Button size="sm" variant="outline" onPress={() => notice(PENDING.changePhotoNotice)}>
-            <ButtonText>{PENDING.changePhoto}</ButtonText>
-          </Button>
-        </VStack>
-      </HStack>
-      <Field
-        label={PENDING.full}
-        required
-        value={full}
-        onChangeText={setFull}
-        error={missing ? PENDING.fullMissing : undefined}
-      />
-      <Field label={PENDING.email} value={user?.email ?? ''} readOnly />
-      <Field label={PENDING.nickname} value={nickname} onChangeText={setNickname} />
-      <Field label={PENDING.job} value={job} onChangeText={setJob} placeholder={PENDING.jobHint} />
-      <Field
-        label={PENDING.division}
-        value={division}
-        onChangeText={setDivision}
-        placeholder={PENDING.divisionHint}
-      />
-      <Button size="lg" onPress={save}>
-        <ButtonText>{PENDING.save}</ButtonText>
-      </Button>
       <Button
         size="lg"
         variant="outline"
