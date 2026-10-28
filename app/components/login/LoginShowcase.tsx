@@ -153,7 +153,9 @@ export function LoginShowcase({ appName, tagline }: { appName: string; tagline: 
       p="xl"
       gap={0}
       justify="center"
-      bg="var(--mantine-primary-color-9)"
+      // A violet gradient (brighter top-left) gives the panel the depth shown in the design; both
+      // stops are atlas palette tokens, so the frozen theme still owns the colour.
+      bg="linear-gradient(145deg, var(--mantine-color-atlas-6), var(--mantine-color-atlas-8))"
       bdrs="lg"
       style={{ overflow: 'hidden' }}
     >
