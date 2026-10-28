@@ -41,23 +41,27 @@ export function LandingHeader({
       }}
     >
       <Container size="lg" py="sm">
-        <Group justify="space-between" wrap="nowrap">
-          <Anchor component={Link} to="/" underline="never" c="inherit">
-            <Group gap="xs" wrap="nowrap">
-              <FiZap size="1.25em" aria-hidden />
-              <Text fw={800} size="lg">
-                {appName}
-              </Text>
-            </Group>
-          </Anchor>
-          <Group gap="lg" visibleFrom="md">
+        <Group wrap="nowrap" gap="sm">
+          {/* Brand and actions each take an equal flex share so the centre nav lands on the page
+              centre (matching the design) instead of drifting toward the wider side. */}
+          <Box flex={1}>
+            <Anchor component={Link} to="/" underline="never" c="inherit">
+              <Group gap="xs" wrap="nowrap" w="fit-content">
+                <FiZap size="1.25em" aria-hidden />
+                <Text fw={800} size="lg">
+                  {appName}
+                </Text>
+              </Group>
+            </Anchor>
+          </Box>
+          <Group gap="lg" visibleFrom="md" wrap="nowrap">
             {LINKS.map((l) => (
               <Anchor key={l.href} href={l.href} size="sm" c="dimmed" underline="never">
                 {l.label}
               </Anchor>
             ))}
           </Group>
-          <Group gap="xs" wrap="nowrap">
+          <Group gap="xs" wrap="nowrap" flex={1} justify="flex-end">
             <Button
               component="a"
               href={GITHUB_URL}
