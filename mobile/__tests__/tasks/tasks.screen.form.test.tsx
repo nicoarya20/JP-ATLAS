@@ -1,22 +1,35 @@
 // Edit task and New task (port of prototype tasks.edit.test / tasks.form.test, items.open): tags are lowercase without
 // duplicates, Save writes the task and goes back; Fill form starts from the first AI draft, Show more folds the extra
 // fields, Save opens the new task; Just write ✦ and Import CSV are modals; a Member may not edit someone else's task.
-import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { router } from 'expo-router';
 
 import { getTask, getTasksState } from '../../src/data/tasks.state';
+import { serveAuth } from '../helpers/auth-server';
+import { tasksServer } from '../helpers/tasks-fixtures';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 resetTaskStores();
 drainToastTimers();
 
+// The forms still write the sample store (W3 writes step); the detail they land on reads the server, which does not
+// know the sample's tasks, so only where they land is checked there.
+let server: ReturnType<typeof serveAuth> | null = null;
+beforeEach(() => {
+  server = serveAuth(tasksServer([]).routes);
+});
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
+
 const button = (name: string) => screen.getByRole('button', { name });
 
-/** Edit task the way it is reached: from the detail's ⋯ menu, so Save goes back to the detail. */
+/** Edit task over its detail, so Save goes back to the detail (the ⋯ menu offers Edit again with the W3 form). */
 async function openEdit(no: number) {
   await openTasks(`/tasks/${no}`);
-  await fireEvent.press(screen.getByTestId('task-menu'));
-  await fireEvent.press(await screen.findByText('Edit task'));
+  await act(() => router.push(`/tasks/${no}/edit`));
   expect(await screen.findByTestId('screen-task-edit')).toBeOnTheScreen();
 }
 
@@ -120,11 +133,10 @@ describe('new task', () => {
     const before = getTasksState().tasks.length;
     await openTasks('/tasks/new/form');
     await fireEvent.press(screen.getByTestId('form-save'));
-    await waitFor(() => expect(screen.getByTestId('screen-task')).toBeOnTheScreen());
     const added = getTasksState().tasks.find((t) => t.title === 'Fix the login page');
     expect(getTasksState().tasks.length).toBe(before + 1);
     expect(added?.status).toBe('To do');
-    expect(screen).toHavePathname(`/tasks/${added?.no}`);
+    await waitFor(() => expect(screen).toHavePathname(`/tasks/${added?.no}`));
   });
 
   it('/tasks/csv previews the rows as cards and imports the ready ones', async () => {

@@ -34,7 +34,7 @@ export const SPOKEN = {
 /** Why a primary button is disabled, shown once the field was touched and read as the button's hint. */
 export const MISSING = {
   title: 'Enter a title to save.',
-  reason: 'Enter a reason to return the task.',
+  reopen: 'Write a reason of at least 3 characters.',
   why: 'Pick why to cancel the task.',
   note: 'Add a note to cancel for Other.',
 } as const;

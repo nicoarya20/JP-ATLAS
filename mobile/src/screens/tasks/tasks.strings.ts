@@ -57,33 +57,39 @@ export const S = {
   detail: {
     title: 'Task detail',
     menu: 'Task actions',
-    menuItem: { edit: 'Edit task', cancel: 'Cancel task', archive: 'Move to Archive' },
-    returnTask: 'Return',
-    restore: 'Restore',
+    menuItem: { cancel: 'Cancel task' },
     description: 'Description',
+    noDescription: 'No description yet.',
     history: 'Chat & history',
-    comment: 'Write a comment… (@name to mention)',
+    noHistory: 'Nothing has happened yet.',
+    loadMore: 'Load more',
+    comment: 'Write a comment…',
     commentLabel: 'Comment',
+    commentMissing: 'Write a comment to send it.',
+    send: 'Send',
     addStep: '+ Add step',
-    stepAdded: 'Step added',
-    attach: '+ Attach evidence',
-    attached: 'Evidence attached',
+    noSteps: 'No steps yet.',
+    stepLabel: 'New step',
+    stepHint: 'Describe the step…',
+    stepSave: 'Add',
+    stepMissing: 'Describe the step to add it.',
+    saving: 'Saving',
+    /** A task whose `can{}` offers nothing: no step, no change, no menu. */
+    viewOnly: 'You can view this task, but not change it.',
+    /** Edit task's evidence photo (the detail shows no evidence until S5, T-9). */
     photo: 'Photo',
-    undo: 'Undo',
-    // Not in the prototype, which never opens a task that is gone: a deep link to one deleted from Archive.
+    // Not in the prototype, which never opens a task that is gone: the server answers a missing, trashed or hidden
+    // task the same way (404).
     missing: 'This task is no longer here.',
-    missingText: 'It may have been deleted from Archive.',
+    missingText: 'It may have been deleted, or you no longer have access to it.',
   },
   sheet: {
-    returnTitle: 'Return task',
-    quick: 'Quick pick (fills the reason)',
     /** Field adds the star of 'Reason *'. */
     reason: 'Reason',
-    reasonHint: 'Explain what needs fixing…',
-    returnNote: (n: number, who: string) =>
-      `The task goes back to In progress and is logged as "Returned ×${n}". ${who} gets a notification.`,
-    cancel: 'Cancel',
-    returnAction: 'Return',
+    reopenTitle: 'Reopen task',
+    reopenHint: 'Why does it need more work?',
+    reopenNote: 'The task goes back to In progress, and the reason is kept in its history.',
+    reopenAction: 'Reopen',
     cancelTitle: 'Cancel task',
     /** Labelled adds the star of 'Why cancel? *'. */
     why: 'Why cancel?',

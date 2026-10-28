@@ -4,7 +4,6 @@ import { findProject } from './projects.state';
 import { type Role, TASK_REVIEWERS } from './sample';
 import type { TaskCard } from './tasks.card';
 import { boardColumns, COLUMNS } from './tasks.columns';
-import { buildTaskDetail, type TaskDetailView } from './tasks.detail';
 import { applyQuery, isFiltered, searchTasks, type TaskQuery } from './tasks.query';
 import { getQuery } from './tasks.query-state';
 import {
@@ -123,10 +122,3 @@ export function getTasksList(
   const groups: TaskCardGroup[] = tasks.length ? [{ title: null, tasks }] : [];
   return { ...base, view, groups, empty: groups.length ? null : 'noMatch' };
 }
-
-/** Detail of task #no for `role`; null when there is no such task. */
-export const getTaskDetail = (
-  role: Role,
-  no: number,
-  s: TasksState = getTasksState(),
-): TaskDetailView | null => buildTaskDetail(s, role, no);

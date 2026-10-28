@@ -50,8 +50,6 @@ export type TaskInfo = {
   hours?: string;
 };
 
-export type DetailVariant = 'todo' | 'progress' | 'review';
-
 /** The prototype's clock, so a change counts as "recently updated" today. */
 export const CLOCK = '09:41';
 /** Today at the prototype's clock, as an `updated` stamp. A function: the server's clock is not in at import time. */
@@ -91,10 +89,6 @@ export const whoLabel = (t: Pick<TaskItem, 'who' | 'also'>) =>
 export const mayChange = (me: PersonInfo, t: Pick<TaskItem, 'who' | 'also'>) =>
   me.role !== 'Member' || assigned(t, me.name);
 
-/** Move to Archive: Managers and Admins for any task, a Member only for tasks they created. */
-export const mayArchive = (me: PersonInfo, x: Pick<TaskInfo, 'by'>) =>
-  me.role !== 'Member' || x.by === me.name;
-
 /** Notice when a Member may not change a task: "Only Nico or Rina can change this task". */
 export const deniedNotice = (t: Pick<TaskItem, 'who' | 'also'>) =>
   `Only ${assignees(t).join(' or ')} can change this task`;
@@ -103,34 +97,8 @@ export const deniedNotice = (t: Pick<TaskItem, 'who' | 'also'>) =>
 export const isOpen = (t: Pick<TaskItem, 'status'>) =>
   t.status !== 'Done' && t.status !== 'Canceled';
 
-/** Detail variant per status: Canceled opens on To do, Done on In progress; each shows the real status. */
-export const detailVariant = (t: Pick<TaskItem, 'status'>): DetailVariant =>
-  t.status === 'In review'
-    ? 'review'
-    : t.status === 'In progress' || t.status === 'Done'
-      ? 'progress'
-      : 'todo';
-
-/** Due line of the detail: the sample note for closed tasks, else "Overdue N days" / "Today" / "Tomorrow" / "Due X". */
-export function dueLabel(t: Pick<TaskItem, 'status' | 'due' | 'when'>): string {
-  if (!isOpen(t)) return t.when;
-  const d = dueIn(t);
-  if (d < 0) return `Overdue ${-d} days`;
-  if (d === 0) return 'Today';
-  return d === 1 ? 'Tomorrow' : `Due ${monthDay(t.due)}`;
-}
-
 /** "1 day late", "3 days late": the facts' due note, and the text a late card shows beside its red date. */
 export const daysLate = (n: number) => `${n} ${n === 1 ? 'day' : 'days'} late`;
-
-/** Note after the due date in the facts: "(2 days late)", "(today)", "(tomorrow)" or none. */
-export function dueNote(t: Pick<TaskItem, 'status' | 'due'>): string {
-  if (!isOpen(t)) return '';
-  const d = dueIn(t);
-  if (d < 0) return `(${daysLate(-d)})`;
-  if (d === 0) return '(today)';
-  return d === 1 ? '(tomorrow)' : '';
-}
 
 /** Reviewer first name of a task, falling back to `fallback` (#17's, as the prototype does) when it has none. */
 const reviewerOf = (x: TaskInfo | undefined, fallback: string) =>
@@ -158,12 +126,6 @@ export function note(
 /** Steps progress "2/3", or null when the task has no steps. */
 export const stepsDone = (steps: readonly TaskStep[]) =>
   steps.length ? `${steps.filter((s) => s.done).length}/${steps.length}` : null;
-
-/** Step checklist title: "Steps 2/3", or "Steps" when there are none. */
-export const stepsTitle = (steps: readonly TaskStep[]) => {
-  const n = stepsDone(steps);
-  return n ? `Steps ${n}` : 'Steps';
-};
 
 /** Due note from a due date: "N days overdue", "Today", "Tomorrow" (when `tomorrow`) or "Due X". */
 export function whenFromDue(due: string, tomorrow: boolean): string {

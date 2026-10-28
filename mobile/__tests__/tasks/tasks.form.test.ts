@@ -1,6 +1,5 @@
 import { resetArchive } from '../../src/data/archive.store';
 import { PROJECTS } from '../../src/data/sample';
-import { getTaskDetail } from '../../src/data/tasks';
 import {
   addTag,
   canSave,
@@ -104,12 +103,6 @@ describe('Edit task', () => {
     expect(taskInfo(getTasksState(), 17).reviewer).toBe('Ayu (Admin)');
   });
 
-  test('turning review on gives the To do detail only Start working', () => {
-    saveTaskEdit('pm', 14, { ...editForm('pm', 14), review: true, reviewer: '' });
-    expect(taskInfo(getTasksState(), 14).reviewer).toBe('Ayu (Admin)');
-    expect(getTaskDetail('pm', 14)?.actions.map((a) => a.key)).toEqual(['start']);
-  });
-
   test('refuses an empty title or a role that may not edit', () => {
     expect(() => saveTaskEdit('pm', 14, { ...editForm('pm', 14), title: ' ' })).toThrow(
       'Cannot save task #14: title and assignee are required',
@@ -149,7 +142,7 @@ describe('New task · Fill form', () => {
     expect(pickProject(f, project('sinar'))).toMatchObject({ who: ['Rina'], phase: '' });
   });
 
-  test('Save adds a To do task whose detail opens', () => {
+  test('Save adds a To do task', () => {
     const f = getTaskForm('pm');
     const no = saveNewTask('pm', f.project, { ...f.initial, who: ['Rina', 'Dodi'] });
     expect(getTask(no)).toMatchObject({
@@ -158,7 +151,8 @@ describe('New task · Fill form', () => {
       also: ['Dodi'],
       project: 'Atlas Project',
     });
-    expect(getTaskDetail('pm', no)?.meta).toBe(`#${no} · Atlas Project · Bug · Development`);
+    expect(getTask(no)).toMatchObject({ type: 'Bug' });
+    expect(taskInfo(getTasksState(), no).phase).toBe('Development');
     expect(taskInfo(getTasksState(), no)).toMatchObject({
       start: '2026-10-07',
       hours: '4',

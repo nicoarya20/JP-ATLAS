@@ -11,12 +11,12 @@ import {
   loadMoreTasks,
   moveOnServer,
   resetTaskLists,
-  TASKS_PAGE,
   taskListResource,
   tasksCountsResource,
   taskWriteTargets,
 } from '@/data/tasks.api';
 import { apiCard } from '@/data/tasks.card';
+import { TASKS_PAGE } from '@/data/tasks.paged';
 import { listParams } from '@/data/tasks.query';
 import { defaultQuery } from '@/data/tasks.query-state';
 

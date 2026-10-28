@@ -1,144 +1,210 @@
-// Task detail and its sheets (port of prototype tasks.detail.actions.test, items.open): a status button changes the
-// task in place, Return and Cancel take a reason in their sheet, Move to Archive goes to All tasks with an Undo snack,
-// and the sheets turn away who may not use them.
+// The task detail against a stubbed /api/app/tasks/:ref (tasks-fixtures): what it shows from the server (meta, due,
+// facts, steps, description, the timeline as English lines), the buttons `can{}` offers with the server's `primary`
+// in lime and a disabled one saying why, a step taken on the server, ticking and adding steps, a comment, Load more of
+// the history, a view-only task, and a task that is not there or failed. The sheets are tasks.screen.sheets.test.tsx.
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
-import { getTask, getTasksState } from '../../src/data/tasks.state';
+import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
+import { activity, comment, DODI, row, tasksServer } from '../helpers/tasks-fixtures';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 resetTaskStores();
 drainToastTimers();
 
-const status = (no: number) => getTask(no)?.status;
-const button = (name: string) => screen.getByRole('button', { name });
+let server: ReturnType<typeof serveAuth> | null = null;
+const serve = (routes: AuthRoutes) => {
+  server = serveAuth(routes);
+  return server;
+};
+afterEach(() => {
+  server?.restore();
+  server = null;
+});
 
-async function menuItem(name: string) {
-  await fireEvent.press(screen.getByTestId('task-menu'));
-  await fireEvent.press(await screen.findByText(name));
-}
+/** #12 late and in progress with two steps and a history; #14 To do with nothing yet; #8 Done. */
+const ROWS = [
+  row(12, {
+    title: 'Fix SSO login',
+    status: 'in_progress',
+    priority: 'high',
+    dueDate: '2026-10-05',
+  }),
+  row(14, { title: 'Write the API spec', dueDate: '2026-10-09', assignee: null }),
+  row(8, { title: 'Ship the onboarding', status: 'done', dueDate: '2026-10-01' }),
+];
+const DETAILS = {
+  8: { completedAt: '2026-10-03T02:00:00.000Z' },
+  12: {
+    description: 'Users on Safari cannot sign in.',
+    checklist: {
+      done: 1,
+      total: 2,
+      items: [
+        { id: 'c-1', text: 'Reproduce it', isDone: true, position: 0 },
+        { id: 'c-2', text: 'Fix the redirect', isDone: false, position: 1 },
+      ],
+    },
+  },
+};
+const TIMELINE = {
+  12: [
+    comment('m-1', 'On it today.', DODI, '2026-10-06T03:00:00.000Z'),
+    activity('a-2', 'priority_changed', { from: 'medium', to: 'high' }),
+    activity(
+      'a-1',
+      'started',
+      { from: 'todo', to: 'in_progress' },
+      DODI,
+      '2026-10-06T02:00:00.000Z',
+    ),
+    activity('a-0', 'created', { number: 12 }, { id: null, name: 'Mantan anggota' }),
+  ],
+};
+const server12 = (over = {}) =>
+  tasksServer(ROWS, { details: DETAILS, timeline: TIMELINE, ...over });
+
+const button = (name: string) => screen.getByRole('button', { name });
+const facts = () => within(screen.getByTestId('task-facts'));
 
 describe('task detail', () => {
-  it('Start working moves a To do task to In progress in place', async () => {
-    await openTasks('/tasks/14');
-    expect(screen.getByTestId('screen-task')).toBeOnTheScreen();
-    await fireEvent.press(button('Start working'));
-    expect(status(14)).toBe('In progress');
-    expect(screen).toHavePathname('/tasks/14');
-    expect(button('Mark done')).toBeOnTheScreen();
-    expect(screen.queryByRole('button', { name: 'Start working' })).not.toBeOnTheScreen();
+  it('shows the task the server sends: meta, due, facts, steps, description and history', async () => {
+    serve(server12().routes);
+    await openTasks('/tasks/12');
+    expect(await screen.findByText('Fix SSO login')).toBeOnTheScreen();
+    expect(screen.getByText('#12 · Atlas Project · Bug · Development')).toBeOnTheScreen();
+    expect(screen.getByText('Overdue 2 days')).toBeOnTheScreen();
+    expect(facts().getByText('Nico Arya')).toBeOnTheScreen();
+    expect(facts().getByText('(2 days late)')).toBeOnTheScreen();
+    expect(facts().getByText('High')).toBeOnTheScreen();
+    expect(facts().getByText('Nico Arya · Oct 1')).toBeOnTheScreen();
+    expect(screen.getByText('Steps 1/2')).toBeOnTheScreen();
+    expect(screen.getByRole('checkbox', { name: 'Reproduce it' })).toBeChecked();
+    expect(screen.getByText('Users on Safari cannot sign in.')).toBeOnTheScreen();
+    expect(await screen.findByText('Dodi Hartono: On it today.')).toBeOnTheScreen();
+    expect(screen.getByText('Nico Arya set the priority to High')).toBeOnTheScreen();
+    expect(screen.getByText('Mantan anggota created this task')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Dodi Hartono started working, Oct 6')).toBeOnTheScreen();
   });
 
-  it('Return needs a reason; a quick pick fills it and the task goes back to In progress', async () => {
-    await openTasks('/tasks/17');
-    await fireEvent.press(screen.getByTestId('task-return'));
-    const sheet = within(await screen.findByTestId('screen-task-return'));
-    expect(sheet.getByTestId('return-send')).toBeDisabled();
-    await fireEvent.press(sheet.getByRole('button', { name: 'Evidence unclear' }));
-    expect(sheet.getByDisplayValue('Evidence unclear')).toBeOnTheScreen();
-    await fireEvent.press(sheet.getByTestId('return-send'));
-    await waitFor(() => expect(screen).toHavePathname('/tasks/17'));
-    expect(status(17)).toBe('In progress');
-    expect(await screen.findByText('Task returned')).toBeOnTheScreen();
+  it('offers what `can{}` shows, the primary in lime, and takes a step on the server', async () => {
+    const s = server12();
+    serve(s.routes);
+    await openTasks('/tasks/12');
+    expect(await screen.findByTestId('task-action-complete')).toBeOnTheScreen();
+    expect(screen.queryByTestId('task-action-start')).not.toBeOnTheScreen();
+    await fireEvent.press(button('Stop working'));
+    expect(await screen.findByText('Stopped working')).toBeOnTheScreen();
+    expect(await screen.findByTestId('task-action-start')).toBeOnTheScreen();
+    expect(s.writes).toEqual([{ method: 'POST', path: 't-12/unstart', body: {} }]);
+    expect(await screen.findByText('Nico Arya stopped working')).toBeOnTheScreen();
   });
 
-  it('Cancel takes a reason (a note for Other), then the detail offers Restore', async () => {
+  it('a step the server greys out is disabled and says why', async () => {
+    const tasks = tasksServer([row(14, { can: { start: true, complete: 'REVIEW_REQUIRED' } })]);
+    serve(tasks.routes);
     await openTasks('/tasks/14');
-    await menuItem('Cancel task');
-    const sheet = within(await screen.findByTestId('screen-task-cancel'));
-    const send = sheet.getByTestId('cancel-send');
+    const done = await screen.findByTestId('task-action-complete');
+    expect(done).toBeDisabled();
+    const why = 'This task needs a review first. Ask for a review before finishing it.';
+    expect(done.props.accessibilityHint).toBe(why);
+    expect(screen.getByText(why)).toBeOnTheScreen();
+  });
+
+  it('a refused step shows the server’s words and leaves the task as it was', async () => {
+    const refuse = {
+      't-12': {
+        status: 409,
+        body: { error: 'Status tugas sudah berubah.', code: 'STATE_CONFLICT' },
+      },
+    };
+    serve(server12({ refuse }).routes);
+    await openTasks('/tasks/12');
+    await fireEvent.press(await screen.findByTestId('task-action-complete'));
+    expect(await screen.findByText('Status tugas sudah berubah.')).toBeOnTheScreen();
+    expect(screen.getByTestId('task-action-complete')).toBeEnabled();
+  });
+
+  it('ticks a step and adds one on the server; the title counts them again', async () => {
+    const s = server12();
+    serve(s.routes);
+    await openTasks('/tasks/12');
+    await fireEvent.press(await screen.findByRole('checkbox', { name: 'Fix the redirect' }));
+    expect(await screen.findByText('Steps 2/2')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('step-add'));
+    expect(screen.getByTestId('step-save')).toBeDisabled();
+    await fireEvent.changeText(screen.getByTestId('step-text'), 'Test on Safari');
+    await fireEvent.press(screen.getByTestId('step-save'));
+    expect(await screen.findByText('Steps 2/3')).toBeOnTheScreen();
+    expect(screen.getByRole('checkbox', { name: 'Test on Safari' })).not.toBeChecked();
+    expect(s.writes).toEqual([
+      { method: 'PATCH', path: 't-12/checklist/c-2', body: { isDone: true } },
+      { method: 'POST', path: 't-12/checklist', body: { text: 'Test on Safari' } },
+    ]);
+  });
+
+  it('sends a comment, which then heads the history', async () => {
+    const s = server12();
+    serve(s.routes);
+    await openTasks('/tasks/12');
+    const send = await screen.findByTestId('comment-send');
     expect(send).toBeDisabled();
-    await fireEvent.press(sheet.getByRole('radio', { name: 'Other' }));
-    expect(send).toBeDisabled();
-    await fireEvent.press(sheet.getByRole('radio', { name: 'No longer needed' }));
-    expect(send).toBeEnabled();
+    expect(send.props.accessibilityHint).toBe('Write a comment to send it.');
+    await fireEvent.changeText(screen.getByTestId('comment-text'), 'Fixed on staging.');
     await fireEvent.press(send);
-    await waitFor(() => expect(screen).toHavePathname('/tasks/14'));
-    expect(status(14)).toBe('Canceled');
-    const note = within(screen.getByTestId('task-note'));
-    await fireEvent.press(note.getByRole('button', { name: 'Restore' }));
-    expect(status(14)).toBe('To do');
+    expect(await screen.findByText('Nico Arya: Fixed on staging.')).toBeOnTheScreen();
+    expect(screen.getByTestId('comment-text').props.value).toBe('');
+    expect(s.writes).toEqual([
+      { method: 'POST', path: 't-12/comments', body: { body: 'Fixed on staging.' } },
+    ]);
   });
 
-  it('Move to Archive opens All tasks with an Undo snack', async () => {
-    await openTasks('/tasks/14');
-    await menuItem('Move to Archive');
-    await waitFor(() => expect(screen).toHavePathname('/tasks'));
-    // The anchor list under a deep-linked task also carries its id, so only the scope is checked.
-    expect(
-      within(screen.getByTestId('tasks-scope')).getByRole('tab', { name: 'All tasks' }),
-    ).toBeSelected();
-    // The detail still archives in the sample store; the list it lands on reads the server, so the
-    // store is checked here rather than the cards (the detail moves to the server in the next step).
-    expect(getTasksState().tasks.some((t) => t.no === 14)).toBe(false);
-    const snack = within(screen.getByTestId('snack'));
-    expect(snack.getByText('Task moved to Archive')).toBeOnTheScreen();
-    await fireEvent.press(snack.getByRole('button', { name: 'Undo' }));
-    expect(await screen.findByText('Task restored')).toBeOnTheScreen();
-    expect(status(14)).toBe('To do');
-  });
-
-  it('a task that is gone says so', async () => {
-    await openTasks('/tasks/999');
-    expect(screen.getByTestId('task-missing')).toBeOnTheScreen();
-    expect(screen.getByText('This task is no longer here.')).toBeOnTheScreen();
-  });
-});
-
-describe('task detail accessibility', () => {
-  it('reads an assignee, an evidence and a history line once each', async () => {
-    await openTasks('/tasks/17');
-    const facts = within(screen.getByTestId('task-facts'));
-    expect(facts.queryAllByLabelText('Dodi Hartono')).toHaveLength(0);
-    expect(facts.getAllByText('Dodi Hartono')).toHaveLength(1);
-    expect(screen.getAllByRole('image', { name: /^Photo, / }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('image', { name: 'Photo' })).not.toBeOnTheScreen();
-    expect(screen.getByLabelText('Dodi started working, Oct 6')).toBeOnTheScreen();
-  });
-
-  it('reads the empty tag list as No tags', async () => {
-    // #9 has no tags in the sample.
-    await openTasks('/tasks/9');
-    expect(within(screen.getByTestId('task-facts')).getByLabelText('No tags')).toBeOnTheScreen();
-  });
-});
-
-describe('task sheets say what is missing', () => {
-  it('Return names the missing reason as its hint, and under the reason once touched', async () => {
-    await openTasks('/tasks/17/return');
-    const send = screen.getByTestId('return-send');
-    expect(send.props.accessibilityHint).toBe('Enter a reason to return the task.');
-    expect(screen.queryByText('Enter a reason to return the task.')).not.toBeOnTheScreen();
-    await fireEvent(screen.getByTestId('return-reason'), 'blur');
-    expect(screen.getByText('Enter a reason to return the task.')).toBeOnTheScreen();
-    await fireEvent.changeText(screen.getByTestId('return-reason'), 'Needs a screenshot');
-    expect(send.props.accessibilityHint).toBeUndefined();
-  });
-
-  it('Cancel names Why cancel? as required, and asks for the note once Other is picked', async () => {
-    await openTasks('/tasks/14/cancel');
-    const send = screen.getByTestId('cancel-send');
-    expect(screen.getByLabelText('Why cancel?, required')).toBeOnTheScreen();
-    expect(send.props.accessibilityHint).toBe('Pick why to cancel the task.');
-    await fireEvent.press(screen.getByRole('radio', { name: 'Other' }));
-    expect(send.props.accessibilityHint).toBe('Add a note to cancel for Other.');
-    expect(screen.getByTestId('cancel-note')).toHaveAccessibleName(
-      'Note (required for Other), required',
+  it('a Done task locks its steps and comments with the reason, and offers Reopen', async () => {
+    serve(server12().routes);
+    await openTasks('/tasks/8');
+    expect(await screen.findByText('Done Oct 3')).toBeOnTheScreen();
+    expect(screen.getByTestId('task-action-reopen')).toBeEnabled();
+    expect(screen.getByTestId('comment-off')).toHaveTextContent(
+      'This is locked while the task is in review, done, or canceled.',
     );
-    await fireEvent(screen.getByTestId('cancel-note'), 'blur');
-    expect(screen.getByText('Add a note to cancel for Other.')).toBeOnTheScreen();
-  });
-});
-
-describe('task sheets turn away', () => {
-  it('a Member opening Return goes home', async () => {
-    await openTasks('/tasks/17/return', 'member');
-    await waitFor(() => expect(screen).toHavePathname('/'));
-    expect(status(17)).toBe('In review');
+    expect(screen.queryByTestId('step-add')).not.toBeOnTheScreen();
   });
 
-  it('Cancel of a task whose menu has no Cancel goes home', async () => {
-    await openTasks('/tasks/12/cancel', 'member');
-    await waitFor(() => expect(screen).toHavePathname('/'));
+  it('Load more brings older history', async () => {
+    const many = Array.from({ length: 30 }, (_, i) => activity(`a-${i}`, 'started'));
+    serve(tasksServer(ROWS, { timeline: { 14: many } }).routes);
+    await openTasks('/tasks/14');
+    await screen.findByTestId('history-more');
+    expect(screen.getAllByText('Nico Arya started working')).toHaveLength(25);
+    await fireEvent.press(screen.getByTestId('history-more'));
+    await waitFor(() => expect(screen.getAllByText('Nico Arya started working')).toHaveLength(30));
+    expect(screen.queryByTestId('history-more')).not.toBeOnTheScreen();
+  });
+
+  it('a task the viewer may only look at says so, without menu or comment box', async () => {
+    serve(tasksServer([row(14, { can: {}, assignee: null })]).routes);
+    await openTasks('/tasks/14');
+    expect(await screen.findByText('You can view this task, but not change it.')).toBeOnTheScreen();
+    expect(screen.queryByTestId('task-menu')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('comment-text')).not.toBeOnTheScreen();
+    expect(facts().getByText('Unassigned')).toBeOnTheScreen();
+  });
+
+  it('a task that is not there says so; a failure offers Try again', async () => {
+    const tasks = tasksServer(ROWS);
+    const s = serve(tasks.routes);
+    await openTasks('/tasks/999');
+    expect(await screen.findByTestId('task-missing')).toBeOnTheScreen();
+    expect(screen.getByText('This task is no longer here.')).toBeOnTheScreen();
+
+    s.use({
+      '/api/app/tasks': { status: 500, body: { error: 'Server sedang sibuk.', code: 'INTERNAL' } },
+    });
+    await fireEvent.press(screen.getByRole('button', { name: 'Back' }));
+    await openTasks('/tasks/14');
+    expect(await screen.findByText('Server sedang sibuk.')).toBeOnTheScreen();
+    s.use(tasks.routes);
+    await fireEvent.press(within(screen.getByTestId('task-failed')).getByRole('button'));
+    expect(await screen.findByText('Write the API spec')).toBeOnTheScreen();
   });
 });

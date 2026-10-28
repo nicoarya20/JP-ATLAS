@@ -1,234 +1,212 @@
-import { monthDay } from './dates';
-import { me, type PersonInfo, person } from './people';
-import type { Role } from './sample';
-import {
-  assignees,
-  type DetailVariant,
-  detailVariant,
-  dueLabel,
-  dueNote,
-  fullName,
-  mayArchive,
-  mayChange,
-  stepsTitle,
-  type TaskInfo,
-  type TaskItem,
-  type TaskProof,
-  type TaskStep,
-} from './tasks.shared';
-import { findTask, type TasksState, taskInfo } from './tasks.state';
-
-/*
- * Task detail in one call (prototype tasks.detail.jsx, tasks.detail.screens.jsx): which variant, which actions and
- * menu items the viewer gets, the facts, the sections and the history. Copy is the prototype's, verbatim.
+/**
+ * Task detail as the screen shows it, built from `GET /api/app/tasks/:ref` (map
+ * `phase2-map-tasks.md` §2c). Nothing about permission is decided here: each button, menu item,
+ * tick box and the comment box follows the task's `can{}` (E-6: `true` = enabled, a code = shown
+ * disabled with its reason from `caps.messages.ts`, absent = hidden) and the main button is the
+ * server's `primary`. Hidden for now: the review steps (S4, T-1), tags (T-8), evidence (T-9) and
+ * Move to Archive (it needs the Trash, gap §1). Days are compared with the server's today (K1);
+ * instants are read in the team's zone (K2).
  */
+import { capReason } from './caps.messages';
+import { today } from './clock';
+import { daysBetween, monthDay } from './dates';
+import { instantDate } from './instant';
+import type { TaskStatus } from './sample';
+import type { TaskDetailWire } from './tasks.detail.wire';
+import { daysLate } from './tasks.shared';
+import {
+  type CapValueWire,
+  PRIORITY_LABEL,
+  type PrimaryActionWire,
+  STATUS_LABEL,
+  type TaskCancelCategoryWire,
+  type TaskCapKeyWire,
+} from './tasks.wire';
 
-export type TaskActionKey =
-  | 'start'
-  | 'markDone'
-  | 'requestReview'
-  | 'reopen'
-  | 'approve'
-  | 'restore';
-export type TaskMenuKey = 'edit' | 'cancel' | 'archive';
+/** The steps the detail's buttons take; Cancel is in the ⋯ menu. */
+export type DetailActionKey = 'start' | 'unstart' | 'complete' | 'reopen' | 'uncancel';
 
-/** One button of the detail; `primary` = the lime main action. Return is a separate flag (it opens a sheet). */
-export type TaskAction = { key: TaskActionKey; label: string; primary: boolean };
+/** One button: `off` is why it is disabled (E-6), null when it can be pressed. */
+export type DetailAction = {
+  key: DetailActionKey;
+  label: string;
+  primary: boolean;
+  off: string | null;
+};
 
-export type TaskFact =
-  | { key: 'assignee'; label: 'Assignee'; people: { name: string; full: string }[] }
+/** A control the server shows (`true` or a code); the reason it is off, or null when enabled. */
+export type Allowed = { off: string | null };
+
+export type DetailFact =
+  | { key: 'assignee'; label: 'Assignee'; name: string | null }
   | { key: 'due'; label: 'Due date'; value: string; note: string }
-  | { key: 'tags'; label: 'Tag'; tags: string[] }
   | {
-      key: 'priority' | 'type' | 'review' | 'reviewer' | 'createdBy';
-      label: 'Priority' | 'Type' | 'Needs review' | 'Reviewer' | 'Created by';
+      key: 'priority' | 'type' | 'phase' | 'review' | 'reviewer' | 'createdBy';
+      label: 'Priority' | 'Type' | 'Phase' | 'Needs review' | 'Reviewer' | 'Created by';
       value: string;
     };
 
-/** In place of the actions: archived, canceled (with Restore when allowed), not the viewer's, or waiting on review. */
-export type TaskStateNote =
-  | { kind: 'archived'; text: string }
-  | { kind: 'canceled'; text: string; restore: boolean }
-  | { kind: 'notYours'; text: string }
-  | { kind: 'waiting'; text: string };
-
-export type TaskSection<T> = { title: string; items: T[] };
-
 export type TaskDetailView = {
-  task: TaskItem;
-  variant: DetailVariant;
+  id: string;
+  no: number;
+  title: string;
+  status: TaskStatus;
   /** "#12 · Atlas Project · Bug · Development". */
   meta: string;
+  /** Under the title: "Overdue 2 days", "Today", "Due Oct 9", "Done Oct 3". */
   due: string;
-  mayChange: boolean;
-  mayArchive: boolean;
-  /** Return sheet (Managers and Admins, In review). */
-  canReturn: boolean;
-  /** ⋯ items; empty = no menu (archived, or nothing allowed). */
-  menu: TaskMenuKey[];
-  actions: TaskAction[];
-  /** "Approve → automatically Done" under Approve / Return. */
-  approveHint: string | null;
-  stateNote: TaskStateNote | null;
-  /** Review request banner: title and "Requested Oct 7". */
-  banner: { title: string; sub: string } | null;
-  /** "The lead is the assignee…" note on In progress. */
-  leadNote: string | null;
-  facts: TaskFact[];
-  /** Steps section; `empty` / `addStep` only on the To do variant. */
-  steps: (TaskSection<TaskStep> & { empty: string | null; addStep: boolean }) | null;
-  evidence: (TaskSection<TaskProof> & { attach: boolean }) | null;
-  description: string;
-  hasDescription: boolean;
-  history: { text: string; when: string; who: string | null }[];
+  /** In the order they show; empty on a canceled task (its note has Restore). */
+  actions: DetailAction[];
+  /** No step, no edit and no menu: the viewer may look but not change it. */
+  viewOnly: boolean;
+  /** A canceled task: why, and Restore when the server offers it. */
+  canceled: { text: string; restore: DetailAction | null } | null;
+  /** ⋯ › Cancel task; null when hidden. */
+  cancel: Allowed | null;
+  facts: DetailFact[];
+  description: string | null;
+  steps: {
+    title: string;
+    items: { id: string; text: string; done: boolean }[];
+    /** Ticking and adding steps (`can.update`); null when hidden. */
+    edit: Allowed | null;
+  };
+  /** The comment box (`can.comment`); null when hidden. */
+  comment: Allowed | null;
 };
 
-const ACTION_LABEL: Record<TaskActionKey, string> = {
+export const DETAIL_TEXT = {
+  unassigned: 'Unassigned',
+  noDue: 'No due date',
+  yes: 'Yes',
+  canceled: (why: string) => `Canceled: ${why}`,
+} as const;
+
+/** The Cancel sheet's reasons, in the prototype's words, each with the category the server takes. */
+export const CANCEL_REASONS: readonly (readonly [TaskCancelCategoryWire, string])[] = [
+  ['duplicate', 'Duplicate / already exists'],
+  ['not_needed', 'No longer needed'],
+  ['out_of_scope', 'Outside the project scope'],
+  ['created_by_mistake', 'Created by mistake'],
+  ['other', 'Other'],
+];
+
+export const cancelLabel = (c: TaskCancelCategoryWire): string =>
+  CANCEL_REASONS.find(([k]) => k === c)?.[1] ?? c;
+
+const LABEL: Record<DetailActionKey, string> = {
   start: 'Start working',
-  markDone: 'Mark done',
-  requestReview: 'Request review',
+  unstart: 'Stop working',
+  complete: 'Mark done',
   reopen: 'Reopen',
-  approve: 'Approve',
-  restore: 'Restore',
+  uncancel: 'Restore',
 };
-const act = (key: TaskActionKey, primary = false): TaskAction => ({
-  key,
-  label: ACTION_LABEL[key],
-  primary,
-});
+// The order the buttons read in; the server's `primary` is drawn lime wherever it falls.
+const ORDER: readonly DetailActionKey[] = ['start', 'complete', 'unstart', 'reopen'];
 
-const firstName = (s: string | undefined) => s?.split(' ')[0];
+const allowed = (value: CapValueWire | undefined): Allowed | null =>
+  value === undefined ? null : { off: capReason(value) };
 
-/** Buttons per variant (Canceled tasks show Restore in their note instead). */
-function actionsOf(v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: PersonInfo): TaskAction[] {
-  if (v === 'todo') return [act('start', true), ...(x.reviewer ? [] : [act('markDone')])];
-  if (v === 'progress') {
-    if (t.status === 'Done') return [act('reopen')];
-    return [x.reviewer ? act('requestReview', true) : act('markDone', true)];
-  }
-  return viewer.role === 'Member' ? [] : [act('approve', true)];
+function action(
+  key: DetailActionKey,
+  can: TaskDetailWire['can'],
+  primary: PrimaryActionWire | null,
+): DetailAction | null {
+  const a = allowed(can[key as TaskCapKeyWire]);
+  return a && { key, label: LABEL[key], primary: primary === key, off: a.off };
 }
 
-function factsOf(s: TasksState, v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: PersonInfo) {
-  const off = viewer.role === 'Member' ? 'Off · you may turn it on' : 'Off · Mark done directly';
-  const review =
-    v === 'review'
-      ? 'Yes · locked while in review'
-      : v === 'progress'
-        ? x.reviewer && `Yes · turned on by ${x.by}`
-        : s.info[t.no] && (x.reviewer ? 'Yes · Request review before Done' : off);
-  const facts: TaskFact[] = [
+const isOpen = (t: TaskDetailWire) => t.status !== 'done' && t.status !== 'canceled';
+
+/** The line under the title. */
+function dueLine(t: TaskDetailWire): string {
+  if (t.status === 'done' && t.completedAt) return `Done ${monthDay(instantDate(t.completedAt))}`;
+  if (t.status === 'canceled' && t.canceledAt)
+    return `Canceled ${monthDay(instantDate(t.canceledAt))}`;
+  if (!t.dueDate) return DETAIL_TEXT.noDue;
+  if (!isOpen(t)) return `Due ${monthDay(t.dueDate)}`;
+  const d = daysBetween(today(), t.dueDate);
+  if (d < 0) return `Overdue ${-d} ${d === -1 ? 'day' : 'days'}`;
+  if (d === 0) return 'Today';
+  return d === 1 ? 'Tomorrow' : `Due ${monthDay(t.dueDate)}`;
+}
+
+/** "(2 days late)", "(today)", "(tomorrow)" after the due date, for an open task. */
+function dueNote(t: TaskDetailWire): string {
+  if (!t.dueDate || !isOpen(t)) return '';
+  const d = daysBetween(today(), t.dueDate);
+  if (d < 0) return `(${daysLate(-d)})`;
+  if (d === 0) return '(today)';
+  return d === 1 ? '(tomorrow)' : '';
+}
+
+function factsOf(t: TaskDetailWire): DetailFact[] {
+  const facts: DetailFact[] = [
+    { key: 'assignee', label: 'Assignee', name: t.assignee?.name ?? null },
     {
-      key: 'assignee',
-      label: 'Assignee',
-      people: assignees(t).map((name) => ({ name, full: fullName(name) })),
+      key: 'due',
+      label: 'Due date',
+      value: t.dueDate ? monthDay(t.dueDate) : DETAIL_TEXT.noDue,
+      note: dueNote(t),
     },
-    { key: 'due', label: 'Due date', value: monthDay(t.due), note: dueNote(t) },
-    { key: 'priority', label: 'Priority', value: t.priority },
-    { key: 'type', label: 'Type', value: t.type },
+    { key: 'priority', label: 'Priority', value: PRIORITY_LABEL[t.priority] },
+    { key: 'type', label: 'Type', value: t.kind.name },
   ];
-  if (review) facts.push({ key: 'review', label: 'Needs review', value: review });
-  if (x.reviewer) facts.push({ key: 'reviewer', label: 'Reviewer', value: x.reviewer });
-  facts.push(
-    { key: 'tags', label: 'Tag', tags: t.tags },
-    { key: 'createdBy', label: 'Created by', value: x.on ? `${x.by} · ${monthDay(x.on)}` : x.by },
-  );
+  if (t.phase) facts.push({ key: 'phase', label: 'Phase', value: t.phase.name });
+  // Read only until review ships (T-1): shown only on a task that already has it.
+  if (t.needsReview) {
+    facts.push({ key: 'review', label: 'Needs review', value: DETAIL_TEXT.yes });
+    if (t.reviewer) facts.push({ key: 'reviewer', label: 'Reviewer', value: t.reviewer.name });
+  }
+  const on = monthDay(instantDate(t.createdAt));
+  if (t.creator)
+    facts.push({ key: 'createdBy', label: 'Created by', value: `${t.creator.name} · ${on}` });
   return facts;
 }
 
-function stateNoteOf(s: TasksState, t: TaskItem, x: TaskInfo, viewer: PersonInfo, mine: boolean) {
-  if (s.archived.includes(t))
-    return { kind: 'archived', text: 'This task is in Archive.' } as const;
-  if (t.status === 'Canceled') {
-    const c = x.canceled;
-    const text = c ? `Canceled by ${c.by}: ${c.reason}` : 'This task was canceled.';
-    return { kind: 'canceled', text, restore: mine } as const;
-  }
-  if (!mine) {
-    const text = `Only ${assignees(t).join(', ')}, the project Manager or an Admin can change this task.`;
-    return { kind: 'notYours', text } as const;
-  }
-  if (t.status === 'In review' && viewer.role === 'Member') {
-    const text =
-      "Waiting for a Manager or Admin. You'll be notified when it's approved or returned.";
-    return { kind: 'waiting', text } as const;
-  }
-  return null;
-}
-
-/** "Dodi asked you to review this task" from the viewer's side; null without a request or reviewer. */
-function bannerOf(x: TaskInfo, viewer: PersonInfo) {
-  const by = firstName(x.reviewer);
-  if (!x.asked || !by) return null;
-  const asker = x.asked.by;
-  const who =
-    asker === viewer.name ? `You asked ${by}` : `${asker} asked ${by === viewer.name ? 'you' : by}`;
-  return { title: `${who} to review this task`, sub: `Requested ${monthDay(x.asked.on)}` };
-}
-
-function stepsOf(v: DetailVariant, x: TaskInfo): TaskDetailView['steps'] {
-  if (v === 'todo') {
-    const empty = x.steps.length ? null : 'No steps yet.';
-    return { title: stepsTitle(x.steps), items: x.steps, empty, addStep: true };
-  }
-  if (!x.steps.length) return null;
-  const all = v === 'review' && x.steps.every((st) => st.done) ? ' ✓' : '';
-  return { title: `${stepsTitle(x.steps)}${all}`, items: x.steps, empty: null, addStep: false };
-}
-
-function evidenceOf(v: DetailVariant, t: TaskItem, x: TaskInfo, viewer: PersonInfo) {
-  if (v === 'todo' || !x.proof.length) return null;
-  const n = x.proof.length;
-  if (v === 'progress') return { title: `Evidence ${n}`, items: x.proof, attach: true };
-  const from = t.who === viewer.name ? 'Your evidence' : `Evidence from ${t.who}`;
-  return { title: `${from} ${n}`, items: x.proof, attach: false };
-}
-
-/** Everything the detail of task #no shows to `role`; null when there is no such task. */
-export function buildTaskDetail(s: TasksState, role: Role, no: number): TaskDetailView | null {
-  const t = findTask(s, no);
-  if (!t) return null;
-  const x = taskInfo(s, no);
-  const viewer = me(role);
-  const v = detailVariant(t);
-  const mine = mayChange(viewer, t);
-  const archives = mayArchive(viewer, x);
-  const archived = s.archived.includes(t);
-  const canceled = t.status === 'Canceled';
-  const stateNote = stateNoteOf(s, t, x, viewer, mine);
-  const showActions = !stateNote;
-  const menu: TaskMenuKey[] = archived
-    ? []
-    : [
-        ...(mine && !canceled ? (['edit', 'cancel'] as const) : []),
-        ...(archives ? (['archive'] as const) : []),
-      ];
-  const reviewing = showActions && v === 'review' && viewer.role !== 'Member';
+function canceledOf(t: TaskDetailWire): TaskDetailView['canceled'] {
+  if (t.status !== 'canceled') return null;
+  const c = t.cancel;
+  const why = c
+    ? c.note
+      ? `${cancelLabel(c.category)} — ${c.note}`
+      : cancelLabel(c.category)
+    : '';
   return {
-    task: t,
-    variant: v,
-    meta: `#${no} · ${t.project} · ${t.type}${x.phase ? ` · ${x.phase}` : ''}`,
-    due: dueLabel(t),
-    mayChange: mine,
-    mayArchive: archives,
-    canReturn: reviewing,
-    menu,
-    actions: showActions ? actionsOf(v, t, x, viewer) : [],
-    approveHint: reviewing ? 'Approve → automatically Done' : null,
-    stateNote,
-    banner: v === 'review' ? bannerOf(x, viewer) : null,
-    leadNote:
-      v === 'progress' && x.reviewer === 'Admin'
-        ? 'The lead is the assignee. Add a second manager so this project has a reviewer.'
-        : null,
-    facts: factsOf(s, v, t, x, viewer),
-    steps: stepsOf(v, x),
-    evidence: evidenceOf(v, t, x, viewer),
-    description: x.desc || 'No description yet.',
-    hasDescription: !!x.desc,
-    history: x.history.map((h) => {
-      const who = h.text.split(/[ :]/)[0];
-      return { text: h.text, when: h.on ? monthDay(h.on) : '', who: person(who) ? who : null };
-    }),
+    text: why ? DETAIL_TEXT.canceled(why) : 'This task was canceled.',
+    restore: action('uncancel', t.can, t.primary),
+  };
+}
+
+/** Everything the detail of `t` shows to whoever asked for it. */
+export function buildTaskDetail(t: TaskDetailWire): TaskDetailView {
+  const canceled = canceledOf(t);
+  const actions = canceled ? [] : ORDER.flatMap((key) => action(key, t.can, t.primary) ?? []);
+  const cancel = allowed(t.can.cancel);
+  const edit = allowed(t.can.update);
+  const done = t.checklist.items.filter((i) => i.isDone).length;
+  return {
+    id: t.id,
+    no: t.number,
+    title: t.title,
+    status: STATUS_LABEL[t.status],
+    meta: [`#${t.number}`, t.project.name, t.kind.name, t.phase?.name]
+      .filter((x): x is string => !!x)
+      .join(' · '),
+    due: dueLine(t),
+    actions,
+    viewOnly: !actions.length && !canceled?.restore && !cancel && !edit,
+    canceled,
+    cancel,
+    facts: factsOf(t),
+    description: t.description?.trim() || null,
+    steps: {
+      title: t.checklist.items.length ? `Steps ${done}/${t.checklist.items.length}` : 'Steps',
+      items: [...t.checklist.items]
+        .sort((a, b) => a.position - b.position)
+        .map((i) => ({ id: i.id, text: i.text, done: i.isDone })),
+      edit,
+    },
+    comment: allowed(t.can.comment),
   };
 }

@@ -1,5 +1,5 @@
-// The app's route tree with every Tasks route, for the Tasks screen tests. The Tasks tab reads the stubbed server
-// (tasks-fixtures); the screens not yet on the API get the role under test.
+// The app's route tree with every Tasks route, for the Tasks screen tests. The Tasks tab, the task detail and its sheets
+// read the stubbed server (tasks-fixtures); the screens not yet on the API get the role under test.
 import { act } from '@testing-library/react-native';
 import { type RenderRouterResult, renderRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
@@ -15,6 +15,7 @@ import { resetArchive } from '../../src/data/archive.store';
 import { forgetAllResources } from '../../src/data/resource';
 import type { Role } from '../../src/data/sample';
 import { resetTaskLists } from '../../src/data/tasks.api';
+import { resetTaskDetails } from '../../src/data/tasks.detail.api';
 import { resetQueries } from '../../src/data/tasks.query-state';
 import { resetTasks } from '../../src/data/tasks.store';
 import { CsvScreen } from '../../src/screens/tasks/csv/csv.screen';
@@ -25,7 +26,7 @@ import { TasksScreen } from '../../src/screens/tasks/list/tasks.screen';
 import { TaskFormScreen } from '../../src/screens/tasks/new/form.screen';
 import { TaskWriteScreen } from '../../src/screens/tasks/new/write.screen';
 import { CancelScreen } from '../../src/screens/tasks/sheets/cancel.screen';
-import { ReturnScreen } from '../../src/screens/tasks/sheets/return.screen';
+import { ReopenScreen } from '../../src/screens/tasks/sheets/reopen.screen';
 
 // The root layout waits for Manrope; jest has no font assets, so report it loaded.
 jest.mock('expo-font', () => ({
@@ -45,10 +46,10 @@ function routes(role: Role) {
     '(tabs)/tasks/_layout': TasksStack,
     '(tabs)/tasks/index': TasksScreen,
     '(tabs)/tasks/filter': TasksFilterScreen,
-    '(tabs)/tasks/[id]/index': () => <TaskDetailScreen role={role} />,
+    '(tabs)/tasks/[id]/index': TaskDetailScreen,
     '(tabs)/tasks/[id]/edit': () => <TaskEditScreen role={role} />,
-    '(tabs)/tasks/[id]/return': () => <ReturnScreen role={role} />,
-    '(tabs)/tasks/[id]/cancel': () => <CancelScreen role={role} />,
+    '(tabs)/tasks/[id]/reopen': ReopenScreen,
+    '(tabs)/tasks/[id]/cancel': CancelScreen,
     'tasks/new/_layout': NewTaskStack,
     'tasks/new/index': TaskWriteScreen,
     'tasks/new/form': () => <TaskFormScreen role={role} />,
@@ -68,6 +69,7 @@ export function resetTaskStores() {
       resetArchive();
       resetQueries();
       resetTaskLists();
+      resetTaskDetails();
       forgetAllResources();
       resetSnack();
     });

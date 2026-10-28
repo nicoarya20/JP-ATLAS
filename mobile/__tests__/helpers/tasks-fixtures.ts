@@ -1,7 +1,8 @@
 // A stubbed `/api/app/tasks` for the Tasks screens: rows as `server/task/task.dto.ts` sends them, and a small server
-// that answers the list (scope, project, status, priority, q, sort, limit, cursor), the counts and the board's
-// workflow steps the way the real one does (map `phase2-map-tasks.md` §0), so a moved card shows up in its new column
-// only because the list was asked again. test-only
+// that answers the list (scope, project, status, priority, q, sort, limit, cursor), the counts, a task's detail and
+// timeline, and the writes (workflow steps, checklist, comments) the way the real one does (map `phase2-map-tasks.md`
+// §0), so a change shows up only because the screen asked again. test-only
+import type { TaskDetailWire, TimelineEntryWire } from '@/data/tasks.detail.wire';
 import { scheduleGroupOf } from '@/data/tasks.list';
 import type {
   ScheduleGroupWire,
@@ -22,11 +23,18 @@ export const DODI = { id: 'u-dodi', name: 'Dodi Hartono' };
 
 /** What the server lets the viewer do on a task of each status, when nothing stands in the way. */
 const CAN: Record<TaskStatusWire, TaskCapsWire> = {
-  todo: { update: true, start: true, complete: true, cancel: true },
-  in_progress: { update: true, unstart: true, complete: true, cancel: true },
-  in_review: { update: true },
-  done: { reopen: true },
-  canceled: { uncancel: true },
+  todo: { update: true, start: true, complete: true, cancel: true, comment: true },
+  in_progress: { update: true, unstart: true, complete: true, cancel: true, comment: true },
+  in_review: { update: true, comment: true },
+  done: { reopen: true, update: 'LOCKED_BY_STATUS', comment: 'LOCKED_BY_STATUS' },
+  canceled: { uncancel: true, update: 'LOCKED_BY_STATUS', comment: 'LOCKED_BY_STATUS' },
+};
+/** The step the server would highlight for a row in each status. */
+const PRIMARY: Partial<Record<TaskStatusWire, TaskListItemWire['primary']>> = {
+  todo: 'start',
+  in_progress: 'complete',
+  done: 'reopen',
+  canceled: 'uncancel',
 };
 
 /** A row of `GET /api/app/tasks`; override what the test is about. */
@@ -70,7 +78,20 @@ const STEP: Record<string, TaskStatusWire> = {
   start: 'in_progress',
   unstart: 'todo',
   complete: 'done',
+  reopen: 'in_progress',
+  cancel: 'canceled',
+  uncancel: 'todo',
 };
+/** `TASK_ACTIVITY` of each step. */
+const DONE_ACTION: Record<string, string> = {
+  start: 'started',
+  unstart: 'unstarted',
+  complete: 'completed',
+  reopen: 'reopened',
+  cancel: 'canceled',
+  uncancel: 'uncanceled',
+};
+const AT = '2026-10-07T02:00:00.000Z'; // 09:00 in Jakarta, the test clock's day
 const SEARCH_NUMBER = /^#?(\d+)$/;
 
 type Options = {
@@ -80,7 +101,57 @@ type Options = {
   refuse?: Record<string, AuthReply>;
   /** Answer the counts with this; default: worked out from the rows. */
   counts?: TaskCountsWire;
+  /** What only a task's detail carries, by task number; default: `detailOf`. */
+  details?: Record<number, Partial<TaskDetailWire>>;
+  /** A task's timeline, newest first, by task number; default: empty. */
+  timeline?: Record<number, TimelineEntryWire[]>;
 };
+
+/** One write the server took: method, path after `/api/app/tasks/`, and the body as sent. */
+export type TaskWrite = { method: string; path: string; body: unknown };
+
+/** The detail of `row`: a Bug in the Development phase, created by Nico on Oct 1, unless `over` says otherwise. */
+export const detailOf = (
+  r: TaskListItemWire,
+  over: Partial<TaskDetailWire> = {},
+): TaskDetailWire => ({
+  ...r,
+  primary: PRIMARY[r.status] ?? null,
+  phase: r.phase ?? { id: 'ph-dev', name: 'Development' },
+  description: null,
+  startDate: null,
+  kind: { id: 'k-bug', name: 'Bug', baseKind: 'issue' },
+  creator: NICO,
+  reviewer: null,
+  needsReview: false,
+  reopenCount: 0,
+  cancel: null,
+  startedAt: null,
+  completedAt: null,
+  canceledAt: null,
+  createdAt: '2026-10-01T03:00:00.000Z',
+  updatedAt: AT,
+  ...over,
+  checklist: over.checklist ?? { ...r.checklist, items: [] },
+});
+
+/** An activity line of the timeline. */
+export const activity = (
+  id: string,
+  action: string,
+  payload: unknown = {},
+  author: { id: string | null; name: string } = NICO,
+  at = AT,
+): TimelineEntryWire => ({ kind: 'activity', id, at, author, action, payload });
+
+/** A comment of the timeline. */
+export const comment = (
+  id: string,
+  body: string,
+  author: { id: string | null; name: string } = NICO,
+  at = AT,
+  editedAt: string | null = null,
+): TimelineEntryWire => ({ kind: 'comment', id, at, author, body, editedAt });
 
 /** The server: `routes` for serveAuth, and the rows as they stand after the steps it took. */
 export function tasksServer(initial: TaskListItemWire[], options: Options = {}) {
@@ -125,26 +196,113 @@ export function tasksServer(initial: TaskListItemWire[], options: Options = {}) 
     for (const r of mine) byStatus[r.status] += 1;
     return { mine: groups, byStatus };
   };
-  const step = (url: string): AuthReply => {
-    const [, id, action] = /\/api\/app\/tasks\/([^/?]+)\/([a-z]+)/.exec(url) ?? [];
-    const refused = options.refuse?.[id];
+  const details = Object.fromEntries(
+    Object.entries(options.details ?? {}).map(([no, d]) => [no, { ...d }]),
+  ) as Record<number, Partial<TaskDetailWire>>;
+  const timelines = Object.fromEntries(
+    Object.entries(options.timeline ?? {}).map(([no, t]) => [no, [...t]]),
+  ) as Record<number, TimelineEntryWire[]>;
+  const writes: TaskWrite[] = [];
+  let made = 0;
+  const notFound: AuthReply = {
+    status: 404,
+    body: { error: 'Tugas tidak ditemukan.', code: 'NOT_FOUND' },
+  };
+  const extra = (no: number) => {
+    details[no] = details[no] ?? {};
+    return details[no];
+  };
+  const find = (ref: string) => rows.find((x) => x.id === ref || String(x.number) === ref);
+  const log = (r: TaskListItemWire, entry: TimelineEntryWire) => {
+    timelines[r.number] = [entry, ...(timelines[r.number] ?? [])];
+  };
+  const step = (r: TaskListItemWire, action: string, body: Record<string, unknown>): AuthReply => {
+    const refused = options.refuse?.[r.id];
     if (refused) return refused;
-    const r = rows.find((x) => x.id === id);
-    if (!r || !STEP[action]) return { status: 404, body: { error: 'Tugas tidak ditemukan.' } };
+    if (!STEP[action]) return notFound;
+    const from = r.status;
     r.status = STEP[action];
     r.can = CAN[r.status];
+    const d = extra(r.number);
+    if (action === 'cancel') {
+      d.cancel = { category: body.category as 'other', note: (body.note as string) ?? null };
+      d.canceledAt = AT;
+    }
+    if (action === 'uncancel') d.cancel = null;
+    if (action === 'complete') d.completedAt = AT;
+    log(r, activity(`a-${++made}`, DONE_ACTION[action], { from, to: r.status, ...body }));
     return {
-      body: { task: { id, number: r.number, status: r.status }, can: { ...r.can, primary: null } },
+      body: {
+        task: { id: r.id, number: r.number, status: r.status },
+        can: { ...r.can, primary: PRIMARY[r.status] ?? null },
+      },
     };
+  };
+  const detail = (r: TaskListItemWire) => {
+    const d = details[r.number] ?? {};
+    return detailOf(r, { ...d, can: { ...r.can, ...d.can } });
+  };
+  const checklist = (
+    r: TaskListItemWire,
+    itemId: string | undefined,
+    body: Record<string, unknown>,
+  ) => {
+    const d = extra(r.number);
+    const items = [...(d.checklist?.items ?? [])];
+    if (itemId) {
+      const i = items.findIndex((x) => x.id === itemId);
+      if (i < 0) return notFound;
+      items[i] = { ...items[i], isDone: !!body.isDone };
+    } else {
+      items.push({
+        id: `c-${++made}`,
+        text: String(body.text),
+        isDone: false,
+        position: items.length,
+      });
+    }
+    const done = items.filter((x) => x.isDone).length;
+    d.checklist = { done, total: items.length, items };
+    r.checklist = { done, total: items.length };
+    return { status: itemId ? 200 : 201, body: { item: items.at(-1), checklist: d.checklist } };
+  };
+  const timeline = (r: TaskListItemWire, url: string) => {
+    const p = new URL(url).searchParams;
+    const all = timelines[r.number] ?? [];
+    const from = Number(p.get('cursor') ?? 0);
+    const to = from + Number(p.get('limit') ?? 25);
+    return {
+      body: { items: all.slice(from, to), nextCursor: to < all.length ? String(to) : null },
+    };
+  };
+  const task = (url: string, init?: RequestInit): AuthReply => {
+    const path = new URL(url).pathname.replace(/^\/api\/app\/tasks\/?/, '');
+    if (!path) return { body: list(url) };
+    const [ref, part, itemId] = path.split('/');
+    const r = find(decodeURIComponent(ref));
+    if (!r) return notFound;
+    const method = init?.method ?? 'GET';
+    if (method === 'GET') return part === 'timeline' ? timeline(r, url) : { body: detail(r) };
+    const body = init?.body ? JSON.parse(String(init.body)) : {};
+    writes.push({ method, path, body });
+    if (part === 'checklist') return checklist(r, itemId, body);
+    if (part === 'comments') {
+      log(r, comment(`m-${++made}`, String(body.body)));
+      return {
+        status: 201,
+        body: { id: `m-${made}`, body: body.body, author: NICO, createdAt: AT, editedAt: null },
+      };
+    }
+    return step(r, part, body);
   };
   const routes: AuthRoutes = {
     '/api/app/tasks/counts': () => ({ body: options.counts ?? counts() }),
     '/api/app/projects': { body: { items: [ATLAS, SINAR], total: 2, page: 1, limit: 100 } },
-    '/api/app/tasks': (url, init) => (init?.method === 'POST' ? step(url) : { body: list(url) }),
+    '/api/app/tasks': task,
   };
   /** The status of task #no on the server now. */
   const status = (no: number) => rows.find((r) => r.number === no)?.status;
-  return { routes, rows, status };
+  return { routes, rows, status, writes };
 }
 
 /** The `GET /api/app/tasks` requests among `calls`, as their query strings without paging. */
