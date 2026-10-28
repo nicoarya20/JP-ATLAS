@@ -148,6 +148,21 @@ Spesifikasi: `docs/phase1-navigation.md` (tab bar, F1a–F1e) dan `docs/phase1-s
 | F1d | Panel More (scrim, Escape a11y, Android back) | Sesi A | ✅ | F1c |
 | F1e | Kaca, reduced motion, a11y (+ aksi increment/decrement, bar sembunyi saat keyboard, hide-descendants Android), QA | Sesi A | ✅ | F1d |
 
+## 6c. Papan Task — Fase 2 (Sambung API, tulis ulang)
+
+Branch: `feature/mobile-api-wiring` (dari `main` `159827b`). Keputusan user 28 Okt 2026: kode Fase 2
+lama (dibatalkan Nico di `2a985b7`) hanya **acuan** — baca lewat `git show 2a985b7^:<path>`, pinjam
+yang terbukti, sesuaikan dengan mobile sekarang. Server tidak diubah: `expo()` + `MOBILE_TRUSTED_ORIGINS`
+sudah ada di `server/auth.ts`, endpoint sama dengan web (`/api/app/*`), kontrak di `/api/docs` (dev).
+Koordinator `pm-dashboard-b1` memegang papan ini dan commit; peer tidak menyentuh git.
+
+| ID | Task | Pemilik | Status | Bergantung |
+|---|---|---|---|---|
+| W1-A | Fondasi API + logika sesi: `src/api/*`, `src/session/*` (kecuali gerbang), dependensi Expo Better Auth, `.env.example`, mock native di `jest.setup.js`, tes | `pm-dashboard-50` | ✅ | — |
+| W1-B | Gerbang login + layar: `use-session-gate.ts`, `app/_layout.tsx`, `app/(auth)/*`, form masuk email+sandi, pending/denied, Cannot reach server, sign out sungguhan, tes | `pm-dashboard-d7` | ✅ | kontrak W1-A |
+| W2 | Fondasi data: jam server (`GET /api/app/home`), helper instan, identitas `userId`, pola `fetch → store → invalidate`, cabut `TODAY` ambient | `pm-dashboard-50` | 🔄 file baru dulu; file lama setelah W1 commit | W1 |
+| W3 | Ganti data contoh per modul: Home, Inbox, Projects, Tasks, Events, Profile, Archive, Team | — | ⏳ | W2 |
+
 ## 7. Pertanyaan Terbuka
 
 - Login dari RN dengan Better Auth (token atau cookie), disepakati dengan rekan sebelum Fase 2.

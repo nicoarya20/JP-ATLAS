@@ -2,6 +2,12 @@
 // (they must go through babel-jest like the Expo packages do).
 const ESM_PACKAGES = [
   '.pnpm',
+  // Better Auth ships ESM only, and so do the packages it re-exports from (src/api/auth.ts).
+  'better-auth',
+  '@better-auth',
+  '@better-fetch',
+  'better-call',
+  'nanostores',
   'react-native',
   '@react-native',
   '@react-native-community',
@@ -39,6 +45,9 @@ module.exports = {
   maxWorkers: MAX_WORKERS,
   testTimeout: TEST_TIMEOUT_MS,
   resolver: '<rootDir>/jest.resolver.js',
+  // jest-expo transforms only `.js`/`.ts(x)`; Better Auth also ships `.mjs` files (e.g.
+  // @better-auth/core/dist/utils/json.mjs), which Jest would otherwise require as CommonJS.
+  transform: { '\\.mjs$': 'babel-jest' },
   // Gesture Handler's official mocks (native module, buttons, v3 gesture detector), then ours.
   setupFiles: [
     '<rootDir>/node_modules/react-native-gesture-handler/jestSetup.js',
