@@ -75,6 +75,7 @@ function ProjectForm({ me }: { me: { id: string; name: string } }) {
   return (
     <DetailPage
       testID="project-form"
+      modal
       title={FORM.title}
       foot={
         <Foot label={CREATE.create} ok={!why && !busy} why={why} onPress={create}>

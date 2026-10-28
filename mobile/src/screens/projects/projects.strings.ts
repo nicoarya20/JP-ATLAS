@@ -158,7 +158,7 @@ export const CREATE = {
 } as const;
 
 export const FORM = {
-  title: 'Fill in project form',
+  title: 'New project',
   name: 'Project name',
   namePlaceholder: 'e.g. Attendance App',
   desc: 'Description',

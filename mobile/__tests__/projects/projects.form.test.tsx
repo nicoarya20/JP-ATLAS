@@ -81,6 +81,9 @@ describe('Fill in project form', () => {
     await act(async () => router.push(FORM));
     expect(await screen.findByTestId('project-form')).toBeOnTheScreen();
     expect(screen).toHavePathname(FORM);
+    // A modal header like New task: the title, and a down chevron that cancels.
+    expect(screen.getByText('New project')).toBeOnTheScreen();
+    expect(screen.getByTestId('detail-back').props.accessibilityLabel).toBe('Cancel');
   });
 
   test('a blank name says why once touched; Create sends what was filled in and opens the project', async () => {
