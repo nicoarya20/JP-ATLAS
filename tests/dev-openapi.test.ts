@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { toOpenAPISchema } from '@elysia/openapi';
 import Elysia, { t } from 'elysia';
-import { CONSOLE_PAGES } from '../app/components/landing/landing.content';
+import { CONSOLE_PAGE_COUNT, CONSOLE_PAGES } from '../app/lib/console-pages';
 import { OPENAPI_ENDPOINT } from '../app/lib/openapi-client';
 import { curlExample, KEY_PLACEHOLDER, sampleBody } from '../app/lib/openapi-curl';
 import { flattenSchema, jsonSchemaOf, typeLabel } from '../app/lib/openapi-schema';
@@ -28,7 +28,6 @@ import routes from '../app/routes';
 import { NAV } from '../app/routes/super/layout';
 import { OPENAPI_PATH, specForKey } from '../server/api/openapi';
 import type { ApiKeyIdentity } from '../server/api-keys/identity';
-import { CONSOLE_PAGE_COUNT } from '../server/landing-stats';
 import { devSidebarBadges } from '../server/sidebar-badges';
 
 const ROOT = path.join(import.meta.dir, '..');
@@ -99,8 +98,8 @@ describe('the page is registered in every place a /dev page must be', () => {
     expect(read('app/components/overview/QuickLinks.tsx')).toContain("to: '/dev/openapi'");
   });
 
-  test('in the marketing console list, and the counted total agrees', () => {
-    expect(CONSOLE_PAGES.map((p) => p.label)).toContain('Spec OpenAPI');
+  test('in the console page catalog, and the counted total agrees', () => {
+    expect(CONSOLE_PAGES).toContain('Spec OpenAPI');
     expect(CONSOLE_PAGES.length).toBe(CONSOLE_PAGE_COUNT);
   });
 
