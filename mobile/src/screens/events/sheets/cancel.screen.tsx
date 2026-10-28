@@ -10,11 +10,11 @@ import { Field } from '@/components/form/field';
 import { FormError } from '@/components/form/form-error';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
+import { writeError } from '@/components/state/write-error';
 import { Text } from '@/components/ui/text';
 import { eventDetailOf } from '@/data/events.detail';
 import { EVENT_CANCEL_REASON_MAX, type EventDetailWire } from '@/data/events.wire';
 import { cancelEvent } from '@/data/events.write';
-import { writeError } from '@/screens/projects/parts/write-run';
 
 import { SHEETS } from '../events.strings';
 import { EventGate } from '../parts/event-gate';

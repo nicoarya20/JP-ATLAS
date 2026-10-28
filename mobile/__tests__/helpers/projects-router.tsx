@@ -1,6 +1,5 @@
 // The app's route tree with every Projects route, for the Projects screen tests. The list, the detail and the write
-// screens read the server (stub it with serveAuth); the hidden New project ways still on the sample data (chooser,
-// story, draft, template) get the role under test.
+// screens read the server (stub it with serveAuth); Settings still gets the role under test.
 import { act } from '@testing-library/react-native';
 import { type RenderRouterResult, renderRouter } from 'expo-router/testing-library';
 import { Text } from 'react-native';
@@ -23,11 +22,7 @@ import { ProjectDetailScreen } from '../../src/screens/projects/detail/project-d
 import { ProjectEditScreen } from '../../src/screens/projects/edit/project-edit.screen';
 import { ProjectsFilterScreen } from '../../src/screens/projects/filter/projects-filter.screen';
 import { ProjectsScreen } from '../../src/screens/projects/list/projects.screen';
-import { ProjectDraftScreen } from '../../src/screens/projects/new/draft.screen';
 import { NewProjectIndex, ProjectFormScreen } from '../../src/screens/projects/new/form.screen';
-import { NewProjectScreen } from '../../src/screens/projects/new/new.screen';
-import { ProjectStoryScreen } from '../../src/screens/projects/new/story.screen';
-import { ProjectTemplateScreen } from '../../src/screens/projects/new/template.screen';
 import {
   ProjectSettingsScreen,
   ProjectTaskFilterScreen,
@@ -66,12 +61,7 @@ function routes(role: Role) {
     '(tabs)/projects/[id]/task-filter': ProjectTaskFilterScreen,
     'projects/new/_layout': NewProjectStack,
     'projects/new/index': NewProjectIndex,
-    // The chooser is hidden (`/projects/new` opens the form); kept reachable here for its own tests.
-    'projects/new/choose': () => <NewProjectScreen role={role} />,
     'projects/new/form': ProjectFormScreen,
-    'projects/new/story': () => <ProjectStoryScreen role={role} />,
-    'projects/new/draft': () => <ProjectDraftScreen role={role} />,
-    'projects/new/template': () => <ProjectTemplateScreen role={role} />,
   };
 }
 

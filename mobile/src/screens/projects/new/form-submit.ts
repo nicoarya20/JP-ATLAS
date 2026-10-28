@@ -5,9 +5,8 @@ import { useState } from 'react';
 
 import { isApiError } from '@/api/errors';
 import { useNotice } from '@/components/notice/use-notice';
+import { writeError } from '@/components/state/write-error';
 import { type CreateProjectBody, createProject } from '@/data/projects.write';
-
-import { writeError } from '../parts/write-run';
 import { CREATE } from '../projects.strings';
 import type { Picked } from './form-members';
 

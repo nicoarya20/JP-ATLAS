@@ -183,7 +183,7 @@ export function ProjectFormScreen() {
 }
 
 /**
- * `/projects/new`: straight to the form. The way chooser (`new.screen.tsx`) and its story, AI draft and template
- * ways stay hidden until the server can draft or copy a project (GAP A-16).
+ * `/projects/new`: straight to the form, the only way to make a project. The way chooser and its story, AI draft and
+ * template ways were removed (no endpoint drafts or copies a project; gap doc §3, P-10).
  */
 export const NewProjectIndex = () => <Redirect href="/projects/new/form" />;

@@ -12,6 +12,7 @@ import { Field } from '@/components/form/field';
 import { FormError } from '@/components/form/form-error';
 import { SelectField } from '@/components/form/select-field';
 import { DetailPage } from '@/components/screen/detail-page';
+import { writeError } from '@/components/state/write-error';
 import { ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { today } from '@/data/clock';
 import { projectMembersResource } from '@/data/projects.api';
@@ -24,11 +25,9 @@ import {
   STATUS_CHOICES,
   unchanged,
 } from '@/data/projects.form';
-
 import { Note } from '../parts/display';
 import { Foot, Labelled } from '../parts/form-bits';
 import { ProjectGate } from '../parts/project-gate';
-import { writeError } from '../parts/write-run';
 import { EDIT } from '../projects.strings';
 import { WHY } from '../projects.strings.added';
 import { confirmOf, useEditSave } from './edit-save';

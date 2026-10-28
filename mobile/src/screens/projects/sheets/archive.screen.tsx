@@ -10,14 +10,13 @@ import { FormError } from '@/components/form/form-error';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
 import { showSnack } from '@/components/snack/use-snack';
+import { writeError } from '@/components/state/write-error';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import type { ProjectDetailWire } from '@/data/projects.wire';
 import { restoreProject, trashProject } from '@/data/projects.write';
-
 import { Soft } from '../parts/display';
 import { ProjectGate } from '../parts/project-gate';
-import { writeError } from '../parts/write-run';
 import { TRASH } from '../projects.strings';
 
 function Trash({ p }: { p: ProjectDetailWire }) {

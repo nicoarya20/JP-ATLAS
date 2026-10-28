@@ -1,13 +1,10 @@
 // Date labels of the Projects screens on ISO dates, in UTC like src/data/dates.ts: "Oct 31, 2026", "Sep 25–Oct 20".
-import { daysBetween, monthDay, toUtc, weekdayMonthDay } from './dates';
+import { daysBetween, monthDay, toUtc } from './dates';
 
 const DAY_MS = 864e5;
 
 /** "Oct 31, 2026". */
 export const longDate = (iso: string) => `${monthDay(iso)}, ${iso.slice(0, 4)}`;
-
-/** "Mon, Oct 12, 2026". */
-export const weekdayLongDate = (iso: string) => `${weekdayMonthDay(iso)}, ${iso.slice(0, 4)}`;
 
 /** The ISO date `n` days after `iso`. */
 export const addDays = (iso: string, n: number) =>

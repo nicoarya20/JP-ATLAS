@@ -1,11 +1,9 @@
-// Form pieces the Projects screens share (prototype projects.parts.jsx): a label above a control, a labelled
-// checkbox, and the Cancel + primary foot whose disabled primary says why.
+// Form pieces the Projects screens share (prototype projects.parts.jsx): a label above a control and the Cancel +
+// primary foot whose disabled primary says why.
 import { router } from 'expo-router';
-import { Check } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 
 import { Button, ButtonText } from '@/components/ui/button';
-import { Checkbox, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from '@/components/ui/checkbox';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 
@@ -39,32 +37,6 @@ export function Labelled({
       {children}
       {hint && <Note>{hint}</Note>}
     </VStack>
-  );
-}
-
-type CheckRowProps = {
-  label: string;
-  value: boolean;
-  onChange: (on: boolean) => void;
-  children?: ReactNode;
-};
-
-/** Checkbox whose label is its accessible name; children replace the visible label. */
-export function CheckRow({ label, value, onChange, children }: CheckRowProps) {
-  return (
-    <Checkbox
-      value={label}
-      // aria-label: gluestack names the checkbox itself and overrides accessibilityLabel
-      aria-label={label}
-      isChecked={value}
-      onChange={onChange}
-      className="min-h-11 flex-1 gap-3"
-    >
-      <CheckboxIndicator>
-        <CheckboxIcon as={Check} />
-      </CheckboxIndicator>
-      {children ?? <CheckboxLabel className="flex-1 text-body">{label}</CheckboxLabel>}
-    </Checkbox>
   );
 }
 

@@ -38,16 +38,6 @@ export const UNREACHABLE = {
   retry: 'Try again',
 } as const;
 
-export const ACCOUNT = {
-  header: 'Sign in with Google',
-  title: 'Choose an account',
-  sub: `to continue to ${APP_NAME}`,
-  other: 'Use another account',
-  otherNotice: 'Opens Google sign-in',
-  share: `To continue, Google will share your name, email address, and profile photo with ${APP_NAME}.`,
-  links: ['English', 'Help', 'Privacy', 'Terms'],
-} as const;
-
 export const DENIED = {
   title: 'Access denied',
   reasonLabel: 'Reason from admin:',

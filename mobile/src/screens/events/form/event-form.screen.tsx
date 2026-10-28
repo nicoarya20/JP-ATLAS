@@ -10,6 +10,7 @@ import { View } from 'react-native';
 import { ConfirmDialog } from '@/components/confirm/confirm-dialog';
 import { FormError } from '@/components/form/form-error';
 import { FailedState, LoadingState } from '@/components/state/section-state';
+import { writeError } from '@/components/state/write-error';
 import { Button, ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { teamTimeZone } from '@/data/clock';
 import { PERSONAL } from '@/data/events.detail';
@@ -17,7 +18,6 @@ import { blankEvent, checkEvent, type EventForm, eventFormOf } from '@/data/even
 import { reminderLabel } from '@/data/events.time';
 import { DEFAULT_REMINDERS, type EventDetailWire, type PersonRefWire } from '@/data/events.wire';
 import { whoamiResource } from '@/data/whoami.api';
-import { writeError } from '@/screens/projects/parts/write-run';
 
 import { FORM } from '../events.strings';
 import { EventGate } from '../parts/event-gate';

@@ -8,11 +8,11 @@ import { isApiError } from '@/api/errors';
 import { ActionMenu, type MenuAction } from '@/components/menu/action-menu';
 import { useNotice } from '@/components/notice/use-notice';
 import { showSnack } from '@/components/snack/use-snack';
+import { writeError } from '@/components/state/write-error';
 import { capMessage } from '@/data/caps.messages';
 import type { EventDetailView } from '@/data/events.detail';
 import { restoreEvent, trashEvent } from '@/data/events.write';
 import type { CapValueWire } from '@/data/tasks.wire';
-import { writeError } from '@/screens/projects/parts/write-run';
 
 import { DETAIL, SHEETS } from '../events.strings';
 

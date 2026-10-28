@@ -13,6 +13,7 @@ import { FormError } from '@/components/form/form-error';
 import { RadioList } from '@/components/form/radio-list';
 import { useNotice } from '@/components/notice/use-notice';
 import { SheetFrame } from '@/components/sheet/sheet-frame';
+import { writeError } from '@/components/state/write-error';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
@@ -22,11 +23,9 @@ import { getProjectHead } from '@/data/projects.view';
 import { EXTENSION_REASON } from '@/data/projects.view.tabs';
 import type { ExtensionReasonWire } from '@/data/projects.wire';
 import { extendDeadline } from '@/data/projects.write';
-
 import { Note } from '../parts/display';
 import { Labelled } from '../parts/form-bits';
 import { ProjectGate } from '../parts/project-gate';
-import { writeError } from '../parts/write-run';
 import { EXTEND } from '../projects.strings';
 import { WHY } from '../projects.strings.added';
 

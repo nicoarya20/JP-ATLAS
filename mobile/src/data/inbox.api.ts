@@ -113,9 +113,9 @@ export function loadMoreInbox(lane: InboxLane): Promise<ResourceState<InboxLaneD
 /**
  * The bell numbers behind the Inbox badges (More tile, Profile row, Home chip).
  *
- * TODO(inbox-badge): the web polls this every 60 s; the app only fetches it on demand and after a
- * read. Polling needs a lifecycle owner (the tab layout, paused when the app is in the background
- * via AppState), which no screen of the Inbox is — agreed as debt with the coordinator, 28 Oct 2026.
+ * The web polls this every 60 s; the app does not poll. It asks again after a read, when the app
+ * returns to the foreground and each time the More panel unfolds (src/navigation/
+ * use-inbox-badge-refresh.ts) — agreed with the coordinator, 28 Oct 2026.
  */
 export const inboxCountResource = resource<InboxCountWire>('inbox:count', () =>
   apiGet<InboxCountWire>('/api/app/inbox/count'),

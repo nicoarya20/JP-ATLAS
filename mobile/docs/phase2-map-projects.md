@@ -59,14 +59,14 @@ fase `not_started|in_progress|done`, kategori perpanjangan `scope_change|depende
 | Baris orang + "My projects" | `projects.people.ts` (`ofWho`, `teammates`) | Tidak ada filter "proyek milik X" (GAP P-2) |
 | Detail header `[id]/index` → `detail/detail-header.tsx` | `getProjectHeader` | `GET /projects/:id` |
 | Tab Overview | `getProjectOverview` | detail + `GET /:id/plan` + `GET /:id/activity?limit=4` + baris perhatian dari `GET /tasks?scope=project&projectId&due=overdue` / `due=today` / `status=in_review` |
-| Tab Tasks + `[id]/task-filter` | `getProjectTasks` | `GET /tasks?scope=project&projectId=…` (peta Tasks) |
+| Tab Tasks + `[id]/task-filter` | ✓ `useTasksList` / `useTasksBoard` (`tasks.list.ts`, scope `project:<id>`) di `detail/tasks.tab.tsx`; `getProjectTasks` + `projects.detail.ts` dihapus | `GET /tasks?scope=project&projectId=…` (peta Tasks); + New task dari `can.createTask` detail; tombol kartu = `primary` server (start/complete/uncancel) → `POST /tasks/:id/<aksi>`, lainnya View; Kanban geser di server (`moveCards`) |
 | Tab Phases | `getProjectPhases` | `GET /:id/plan` + `GET /:id/extensions` |
 | Tab Members | `getProjectMembers` | `GET /:id/members` |
 | Extend `[id]/extend` → `sheets/extend.screen.tsx` | `getProjectExtend` | `POST /:id/extend-deadline` |
 | Edit `[id]/edit` → `edit/project-edit.screen.tsx` | `getProjectEdit`, `editProject` | `PATCH /:id` + bila berubah `POST /:id/status` + `PUT /:id/lead` |
 | Move to Archive `[id]/archive` → `sheets/archive.screen.tsx` | `getProjectArchive`, `archiveProject`, `restoreProject` | `DELETE /projects/:id`, Undo = `POST /trash/project/:id/restore` |
 | Settings `[id]/settings` → `settings/project-tasks-routes.tsx` | `getTaskSettings` (`tasks.settings.ts`) | Baca kinds via `form-options`; **tulis tidak ada** (GAP P-9) |
-| Create `projects/new/{index,form,story,draft,template}` | `getProjectCreate`, `templateDates` | `POST /projects` (jalur Form saja; GAP P-10) |
+| Create `projects/new/{index,form}` | ✓ `form.screen.tsx` + `form-submit.ts`; story/draft/template, pemilih jalan, `getProjectCreate` dan `templateDates` dihapus (GAP P-10) | `POST /projects` (jalur Form saja) |
 
 ---
 
@@ -136,7 +136,7 @@ fase `not_started|in_progress|done`, kategori perpanjangan `scope_change|depende
 |---|---|---|
 | Form (nama, deskripsi, tanggal, priority, status awal, Lead, anggota) | `POST /projects` | ✓; anggota dari `team/picker` |
 | "Default task types: Task, Bug, Idea" | Server membuat `Tugas, Bug, Ide` | Copy (P-8) |
-| Story → Draft ✦, Template, "Save as template" | Tidak ada endpoint AI/template | **GAP P-10** |
+| Story → Draft ✦, Template, "Save as template" | Tidak ada endpoint AI/template | **GAP P-10**: layar dan rutenya dihapus (pulihkan dari `106a33c3`; gap doc §3) |
 | `router.push('/projects/atlas')` | `201 detail.id` | ✓ |
 | Gerbang Member | `whoami.caps.createProject` | ✓ (GAP lama A-17 tertutup) |
 

@@ -7,13 +7,13 @@ import { isApiError } from '@/api/errors';
 import { PersonAvatar } from '@/components/avatar/person-avatar';
 import { SearchField } from '@/components/search/search-field';
 import { FailedState, LoadingState } from '@/components/state/section-state';
+import { writeError } from '@/components/state/write-error';
 import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { searchEventPeople } from '@/data/events.api';
 import type { EventPersonWire } from '@/data/events.wire';
-import { writeError } from '@/screens/projects/parts/write-run';
 
 import { FORM } from '../events.strings';
 import { Note } from '../parts/event-parts';

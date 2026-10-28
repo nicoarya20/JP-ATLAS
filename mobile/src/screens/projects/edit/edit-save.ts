@@ -5,11 +5,10 @@ import { useState } from 'react';
 
 import { isApiError } from '@/api/errors';
 import { useNotice } from '@/components/notice/use-notice';
+import { writeError } from '@/components/state/write-error';
 import type { Choice } from '@/data/projects.form';
 import { CLOSING, STATUS_LABEL } from '@/data/projects.query';
 import { type ProjectChange, saveProject } from '@/data/projects.write';
-
-import { writeError } from '../parts/write-run';
 import { EDIT } from '../projects.strings';
 
 /** The sentences of the T2 confirmation; empty when the change needs none. */

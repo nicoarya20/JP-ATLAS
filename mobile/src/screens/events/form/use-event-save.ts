@@ -5,10 +5,10 @@ import { router } from 'expo-router';
 
 import { useConfirmAction } from '@/components/confirm/use-confirm-action';
 import { useNotice } from '@/components/notice/use-notice';
+import { writeError } from '@/components/state/write-error';
 import { teamTimeZone } from '@/data/clock';
 import { createBody, type EventForm, guestChange, updateBody } from '@/data/events.form';
 import { createEvent, saveEvent } from '@/data/events.write';
-import { writeError } from '@/screens/projects/parts/write-run';
 
 import { FORM } from '../events.strings';
 

@@ -3,6 +3,7 @@
 import { ConfirmDialog } from '@/components/confirm/confirm-dialog';
 import { SelectField } from '@/components/form/select-field';
 import { useNotice } from '@/components/notice/use-notice';
+import { writeError } from '@/components/state/write-error';
 import { Button, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
@@ -12,8 +13,6 @@ import type { MemberCard as Member } from '@/data/projects.view.tabs';
 import type { ProjectRoleWire } from '@/data/projects.wire';
 import { removeMember, setMemberRole } from '@/data/projects.write';
 import { PROJECT_ROLE } from '@/data/team';
-
-import { writeError } from '../parts/write-run';
 import { MEMBERS } from '../projects.strings';
 import { ADDED } from '../projects.strings.added';
 

@@ -7,15 +7,14 @@ import { isApiError } from '@/api/errors';
 import { PersonAvatar } from '@/components/avatar/person-avatar';
 import { SearchField } from '@/components/search/search-field';
 import { FailedState, LoadingState } from '@/components/state/section-state';
+import { writeError } from '@/components/state/write-error';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { type PickerPersonWire, searchPeople } from '@/data/projects.picker.api';
-
 import { PICKER } from '../projects.strings';
 import { Note } from './display';
-import { writeError } from './write-run';
 
 const SEARCH_DEBOUNCE_MS = 300;
 

@@ -27,14 +27,14 @@ export function Media({ label, small }: { label: string; small?: boolean }) {
 }
 
 /** Google mark placeholder (wireframe: a round "G"). */
-export function GoogleMark({ big }: { big?: boolean }) {
+function GoogleMark() {
   return (
     <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      className={`items-center justify-center rounded-full border border-input bg-card ${big ? 'h-10 w-10' : 'h-6 w-6'}`}
+      className="h-6 w-6 items-center justify-center rounded-full border border-input bg-card"
     >
-      <Text className={`font-bold ${big ? 'text-headline' : 'text-footnote'}`}>G</Text>
+      <Text className="text-footnote font-bold">G</Text>
     </View>
   );
 }

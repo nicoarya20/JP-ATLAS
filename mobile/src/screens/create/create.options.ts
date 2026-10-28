@@ -31,7 +31,7 @@ const OPTIONS: readonly CreateOption[] = [
   {
     go: 'projects.new',
     title: 'Project',
-    sub: 'From a story, a template or a form',
+    sub: 'Name, dates and members',
     Icon: FolderPlus,
     tone: 'green',
     cap: (c) => c.createProject,

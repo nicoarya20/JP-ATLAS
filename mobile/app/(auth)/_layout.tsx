@@ -10,9 +10,9 @@ export const unstable_settings = { anchor: 'login' };
  *
  * Which of the three screens exists depends on what the server said about the account, so none of
  * them can be opened by someone it does not apply to: an account awaiting approval only has the
- * waiting screen, a turned-down account only the denied screen, and everyone else the sign-in
- * screens. The account picker stays registered for the Google flow a built app will have; nothing
- * links to it while Google is switched off (src/screens/auth/auth-parts.tsx).
+ * waiting screen, a turned-down account only the denied screen, and everyone else Sign in. Google
+ * sign-in is switched off (src/screens/auth/auth-parts.tsx); its account picker goes with the flow
+ * that will build it, not a sample screen.
  */
 export default function AuthStack() {
   const { status } = useSession();
@@ -21,7 +21,6 @@ export default function AuthStack() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!held} redirectTo={status === 'rejected' ? '/denied' : '/pending'}>
         <Stack.Screen name="login" options={{ gestureEnabled: false }} />
-        <Stack.Screen name="account" />
       </Stack.Protected>
       <Stack.Protected guard={status === 'pending'} redirectTo="/login">
         <Stack.Screen name="pending" />

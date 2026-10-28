@@ -1,19 +1,16 @@
 /**
- * The sign-in screens other than the form itself (that one is sign-in.test.tsx): the Google account
- * picker the prototype walks, the screen for an account awaiting approval, the one for an account
- * that was turned down, and the sign-out dialog.
+ * The sign-in screens other than the form itself (that one is sign-in.test.tsx): the screen for an
+ * account awaiting approval, the one for an account that was turned down, and the sign-out dialog.
  *
  * Nothing here navigates on purpose: from Phase 2 the gate follows the session store, so these
  * screens change what the store says and the router does the rest (gate.test.tsx).
  */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
-import { router } from 'expo-router';
 
 import { resetAuthClient, setAuthHeaders } from '@/api';
 import { resetSessionConnection, sessionStore } from '@/session';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
-import { AccountScreen } from '../../src/screens/auth/account.screen';
 import { DeniedScreen } from '../../src/screens/auth/denied.screen';
 import { PendingScreen } from '../../src/screens/auth/pending.screen';
 import { type AuthRoutes, STORED_COOKIE, serveAuth, sessionPayload } from '../helpers/auth-server';
@@ -54,18 +51,6 @@ afterEach(() => {
 afterAll(() => resetAuthClient());
 
 const show = (ui: React.ReactElement) => render(ui, { wrapper: GluestackUIProvider });
-
-describe('the Google account picker', () => {
-  test('the office account waits for approval; the Gmail account is denied', async () => {
-    await show(<AccountScreen />);
-    await fireEvent.press(screen.getByLabelText('Budi Santoso, budi@kantor.id'));
-    expect(router.replace).toHaveBeenCalledWith('/pending');
-    await fireEvent.press(screen.getByLabelText('Budi Santoso, budi.santoso@gmail.com'));
-    expect(router.push).toHaveBeenCalledWith('/denied');
-    await fireEvent.press(screen.getByText('Use another account'));
-    expect(screen.getByText('Opens Google sign-in')).toBeOnTheScreen();
-  });
-});
 
 describe('PendingScreen', () => {
   beforeEach(() => seedSession(PENDING_USER));
