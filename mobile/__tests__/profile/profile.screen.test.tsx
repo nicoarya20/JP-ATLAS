@@ -6,19 +6,17 @@ import { resetAuthClient, setAuthHeaders } from '@/api';
 import { sessionStore } from '@/session';
 
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
-import { getProfileState, resetProfile } from '../../src/data/profile.store';
 import { forgetAllResources } from '../../src/data/resource';
-import type { Role } from '../../src/data/sample';
 import { ProfileScreen } from '../../src/screens/profile/profile.screen';
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
 import { counts } from '../helpers/inbox-fixtures';
+import { profileRoute } from '../helpers/profile-fixtures';
+import { APPROVED_USER, seedSession } from '../helpers/session-fixtures';
 import { drainToastTimers } from '../helpers/toast-timers';
+import { whoamiRoute } from '../helpers/whoami-fixtures';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
 jest.mock('expo-clipboard', () => ({ setStringAsync: jest.fn() }));
-
-// The signed-in role, as a variable: biome reads a literal `role` prop as an ARIA role.
-const PM: Role = 'pm';
 
 drainToastTimers();
 
@@ -26,7 +24,6 @@ let server: ReturnType<typeof serveAuth> | null = null;
 
 beforeEach(() => {
   forgetAllResources();
-  resetProfile();
   jest.clearAllMocks();
   resetAuthClient();
   setAuthHeaders(null);
@@ -37,23 +34,52 @@ afterEach(() => {
   server = null;
 });
 
-// The Inbox row's count is the server's (`GET /api/app/inbox/count`), served with whatever else a test needs.
-const INBOX_COUNT: AuthRoutes = { '/api/app/inbox/count': { body: counts(3) } };
+// The hero is the server's (`GET /api/app/profile` + whoami's role) and the Inbox row's count too
+// (`GET /api/app/inbox/count`), served with whatever else a test needs.
+const SERVER: AuthRoutes = {
+  ...profileRoute(),
+  ...whoamiRoute('pm'),
+  '/api/app/inbox/count': { body: counts(3) },
+};
 const show = async (routes: AuthRoutes = {}) => {
-  server = serveAuth({ ...INBOX_COUNT, ...routes });
-  const shown = await render(<ProfileScreen role={PM} />, { wrapper: GluestackUIProvider });
+  server = serveAuth({ ...routes, ...SERVER });
+  const shown = await render(<ProfileScreen />, { wrapper: GluestackUIProvider });
   await screen.findByLabelText('Inbox, 3');
+  await screen.findByText('Designer · Product');
   return shown;
 };
 
 describe('ProfileScreen', () => {
-  test('hero: name, role line, Online', async () => {
+  test('hero: the display name and job line from the server; no presence, note or Mute any more', async () => {
     await show();
-    expect(screen.getByRole('header', { name: 'Nico Pratama' })).toBeOnTheScreen();
-    expect(screen.getByText('Project Manager · Product')).toBeOnTheScreen();
-    expect(screen.getByText('Online')).toBeOnTheScreen();
-    // Decorative: the text says it, so the dot is hidden from screen readers.
-    expect(screen.getByTestId('presence-dot', { includeHiddenElements: true })).not.toBeVisible();
+    expect(screen.getByRole('header', { name: 'Nico' })).toBeOnTheScreen();
+    expect(screen.getByText('Designer · Product')).toBeOnTheScreen();
+    expect(screen.queryByText('Online')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('profile-note')).not.toBeOnTheScreen();
+    expect(screen.queryByRole('switch')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('profile-photo', { includeHiddenElements: true }),
+    ).not.toBeOnTheScreen();
+  });
+
+  test('the session photo, when the account has one; the session name until the profile is in', async () => {
+    seedSession({ ...APPROVED_USER, image: 'https://img.example/nico.png' });
+    server = serveAuth({
+      ...whoamiRoute('pm'),
+      '/api/app/inbox/count': { body: counts(0) },
+      '/api/app/profile': {
+        status: 503,
+        body: { error: 'Sedang pemeliharaan.', code: 'MAINTENANCE' },
+      },
+    });
+    await render(<ProfileScreen />, { wrapper: GluestackUIProvider });
+    expect(screen.getByRole('header', { name: 'Nico Arya' })).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('profile-photo', { includeHiddenElements: true }).props.source,
+    ).toEqual({
+      uri: 'https://img.example/nico.png',
+    });
+    expect(await screen.findByText('Project Manager')).toBeOnTheScreen();
   });
 
   test('rows into the tabs close the modal first; My calendar opens inside it', async () => {
@@ -75,24 +101,6 @@ describe('ProfileScreen', () => {
     expect(router.dismiss).toHaveBeenCalledTimes(4);
   });
 
-  test('switches: mute notifications and show me as online', async () => {
-    await show();
-    await fireEvent(
-      screen.getByRole('switch', { name: 'Mute notifications' }),
-      'valueChange',
-      true,
-    );
-    expect(getProfileState().muted).toBe(true);
-    expect(screen.getByText('Teammates see you as Online')).toBeOnTheScreen();
-    await fireEvent(
-      screen.getByRole('switch', { name: 'Show me as online' }),
-      'valueChange',
-      false,
-    );
-    expect(getProfileState().online).toBe(false);
-    expect(screen.getByText('Teammates see you as Offline')).toBeOnTheScreen();
-  });
-
   test('Copy email: copied, refused, or failed with the reason', async () => {
     const copy = jest.mocked(Clipboard.setStringAsync);
     await show();
@@ -108,16 +116,6 @@ describe('ProfileScreen', () => {
     copy.mockRejectedValueOnce(new Error('No clipboard'));
     await fireEvent.press(screen.getByLabelText('Copy email'));
     expect(await screen.findByText('Could not copy the email: No clipboard')).toBeOnTheScreen();
-  });
-
-  test('the note: add, save on submit, then shown as the bubble', async () => {
-    await show();
-    await fireEvent.press(screen.getByTestId('profile-note'));
-    const input = screen.getByTestId('profile-note-input');
-    await fireEvent.changeText(input, 'Heads down until noon');
-    await fireEvent(input, 'submitEditing');
-    expect(getProfileState().note).toBe('Heads down until noon');
-    expect(screen.getByLabelText('Note: Heads down until noon. Edit note')).toBeOnTheScreen();
   });
 
   test('Sign out is the iOS alert red, the Inbox count a red badge (MOBILE_STATUS, not the darker Atlas danger)', async () => {

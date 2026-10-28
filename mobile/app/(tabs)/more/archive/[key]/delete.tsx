@@ -1,9 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { PurgeScreen } from '@/screens/trash/purge.screen';
 
-import { DeleteScreen } from '@/screens/archive/delete.screen';
-
-/** Archive › Delete forever sheet for one entry. */
-export default function ArchiveDeleteRoute() {
-  const { key } = useLocalSearchParams<{ key: string }>();
-  return <DeleteScreen entryKey={key} />;
-}
+/** Trash › Delete forever sheet for one row; `key` is "<kind>-<id>". */
+export default PurgeScreen;

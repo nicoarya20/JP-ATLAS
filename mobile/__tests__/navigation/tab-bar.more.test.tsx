@@ -4,13 +4,12 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { AccessibilityInfo, BackHandler } from 'react-native';
 
-import { getProfile } from '../../src/data/profile';
-import { USER_COUNTS } from '../../src/data/sample';
 import type { Role } from '../../src/data/sample/people';
-import { decide, resetDecisions } from '../../src/data/users';
 import { openApp } from '../helpers/app-router';
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
 import { counts } from '../helpers/inbox-fixtures';
+import { profileRoute } from '../helpers/profile-fixtures';
+import { usersStats } from '../helpers/users-fixtures';
 import { whoamiRoute } from '../helpers/whoami-fixtures';
 
 // The signed-in role, per test (the app reads it from src/data/session until Phase 2 signs in).
@@ -34,23 +33,32 @@ jest.mock('../../src/components/tab-bar/glass-pill', () => {
 });
 afterEach(() => {
   mockRole = 'member';
-  resetDecisions();
   jest.restoreAllMocks();
 });
 
-// The Inbox badge is the server's count (`GET /api/app/inbox/count`): every test serves one, so the panel never
-// reaches a real server; a test about the badge serves its own. The bar reads whoami for its "+", served for the role.
+// The Inbox badge is the server's count (`GET /api/app/inbox/count`) and the Users badge the sign-ups pending
+// (`GET /api/admin/users/stats`): every test serves both, so the panel never reaches a real server; a test about a
+// badge serves its own. whoami gives the bar its "+" and the panel its Users tile (`caps.dashboard`); the profile card
+// reads `GET /api/app/profile`.
 let server: ReturnType<typeof serveAuth> | null = null;
 afterEach(() => {
   server?.restore();
   server = null;
 });
 
+// The profile card names the account by its display name (profileWire), not the session's account name.
+const CARD = 'Nico, open profile';
+
 async function open(path: string, role: Role = 'member', routes?: AuthRoutes) {
   mockRole = role;
   server = serveAuth({
     ...whoamiRoute(role),
-    ...(routes ?? { '/api/app/inbox/count': { body: counts(0) } }),
+    ...profileRoute(),
+    ...(routes ?? {}),
+    '/api/app/inbox/count': routes?.['/api/app/inbox/count'] ?? { body: counts(0) },
+    '/api/admin/users/stats': routes?.['/api/admin/users/stats'] ?? {
+      body: usersStats({ pending: 0 }),
+    },
   });
   await openApp(path);
 }
@@ -104,7 +112,7 @@ describe('More panel', () => {
 
     await pick('More');
 
-    const card = button(`${getProfile('member').me.full}, open profile`);
+    const card = await screen.findByRole('button', { name: CARD });
     await waitFor(() => expect(focus).toHaveBeenCalledWith(expect.anything(), 'focus'));
     // jest's View is a class standing in for the host view: the focused one carries the card's props.
     const target = focus.mock.lastCall?.[0] as unknown as {
@@ -145,7 +153,7 @@ describe('More panel', () => {
 
   it.each([
     ['Team', '/more/team', 'screen-team'],
-    ['Archive', '/more/archive', 'screen-archive'],
+    ['Trash', '/more/archive', 'screen-trash'],
   ])('opens %s and folds itself', async (name, path, testID) => {
     await open('/');
     await pick('More');
@@ -161,19 +169,19 @@ describe('More panel', () => {
     await open('/');
     await pick('More');
 
-    await fireEvent.press(button(`${getProfile('member').me.full}, open profile`));
+    await fireEvent.press(await screen.findByRole('button', { name: CARD }));
 
     expect(screen).toHavePathname('/profile');
     expect(await screen.findByTestId('screen-profile')).toBeOnTheScreen();
     expect(panel()).not.toBeOnTheScreen();
   });
 
-  it('labels the deleted-items tile Archive', async () => {
+  it('labels the deleted-items tile Trash', async () => {
     await open('/');
     await pick('More');
 
-    expect(screen.queryByRole('button', { name: 'Trash' })).not.toBeOnTheScreen();
-    expect(button('Archive')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Archive' })).not.toBeOnTheScreen();
+    expect(button('Trash')).toBeOnTheScreen();
   });
 
   it('folds on another tab and goes there', async () => {
@@ -222,27 +230,24 @@ describe('More panel', () => {
     expect(panel()).not.toBeOnTheScreen();
   });
 
-  it('shows Users with its pending count to Admin only, and opens it', async () => {
-    await open('/', 'admin');
+  it('shows Users with the server’s pending count when whoami opens the dashboard, and opens it', async () => {
+    await open('/', 'admin', { '/api/admin/users/stats': { body: usersStats({ pending: 2 }) } });
     await pick('More');
 
-    await fireEvent.press(button(`Users, ${USER_COUNTS.pending} new`));
+    await fireEvent.press(await screen.findByRole('button', { name: 'Users, 2 new' }));
 
     expect(screen).toHavePathname('/more/users');
     expect(await screen.findByTestId('screen-users')).toBeOnTheScreen();
   });
 
-  it('counts down Users as sign-ups are decided; the Inbox badge stays the server count', async () => {
-    await open('/', 'admin', { '/api/app/inbox/count': { body: counts(3) } });
-    await act(() => decide('sari', 'approved'));
+  it('shows Users without a badge when no one waits or the count is not in', async () => {
+    await open('/', 'admin', {
+      '/api/admin/users/stats': { throws: new TypeError('Network request failed') },
+      '/api/app/inbox/count': { body: counts(3) },
+    });
     await pick('More');
-    expect(button('Users, 1 new')).toBeOnTheScreen();
     expect(await screen.findByRole('button', { name: 'Inbox, 3 new' })).toBeOnTheScreen();
-
-    // The panel stays open: the last decision takes the badge off Users. Inbox cards are the server's to resolve.
-    await act(() => decide('budi', 'rejected'));
     expect(button('Users')).toBeOnTheScreen();
-    expect(button('Inbox, 3 new')).toBeOnTheScreen();
   });
 
   it('shows no Inbox badge while the count is not in, rather than a made-up 0', async () => {
@@ -253,10 +258,15 @@ describe('More panel', () => {
     expect(await screen.findByRole('button', { name: 'Inbox' })).toBeOnTheScreen();
   });
 
-  it.each(['member', 'pm'] as const)('has no Users for %s', async (role) => {
-    await open('/', role);
-    await pick('More');
+  it.each(['member', 'pm'] as const)(
+    'has no Users for %s, and asks nothing of /api/admin',
+    async (role) => {
+      await open('/', role);
+      await pick('More');
 
-    expect(screen.queryByRole('button', { name: /^Users/ })).not.toBeOnTheScreen();
-  });
+      await screen.findByRole('button', { name: CARD });
+      expect(screen.queryByRole('button', { name: /^Users/ })).not.toBeOnTheScreen();
+      expect(server?.calls.some((u) => u.includes('/api/admin/'))).toBe(false);
+    },
+  );
 });

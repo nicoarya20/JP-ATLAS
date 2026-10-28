@@ -1,3 +1,4 @@
-import { ArchiveScreen } from '@/screens/archive/archive.screen';
+import { TrashScreen } from '@/screens/trash/trash.screen';
 
-export default ArchiveScreen;
+/** The Trash; the route keeps its old name, `archive`. */
+export default TrashScreen;

@@ -3,11 +3,8 @@ import { render, screen } from '@testing-library/react-native';
 
 import { CountBadge } from '../../src/components/badge/count-badge';
 import { GluestackUIProvider } from '../../src/components/ui/gluestack-ui-provider';
-import type { Role } from '../../src/data/sample';
 import { moreTiles } from '../../src/screens/more/more.tiles';
-
-// The signed-in role, as a variable: biome reads a literal `role` prop as an ARIA role.
-const ADMIN: Role = 'admin';
+import { CAPS } from '../helpers/whoami-fixtures';
 
 describe('CountBadge', () => {
   test('draws the count in white on the iOS alert red and stays out of the screen reader', async () => {
@@ -19,10 +16,11 @@ describe('CountBadge', () => {
 });
 
 describe('More tiles', () => {
-  test('every tile an Admin sees has its own colour, and Archive is not Inbox’s', () => {
-    const tones = moreTiles(ADMIN).map((t) => t.tone);
+  test('every tile an Admin sees has its own colour, and Trash is not Inbox’s', () => {
+    const tiles = moreTiles(CAPS.admin, { inbox: null, pending: null });
+    const tones = tiles.map((t) => t.tone);
     expect(new Set(tones).size).toBe(tones.length);
-    const tone = (label: string) => moreTiles(ADMIN).find((t) => t.label === label)?.tone;
-    expect(tone('Archive')).not.toBe(tone('Inbox'));
+    const tone = (label: string) => tiles.find((t) => t.label === label)?.tone;
+    expect(tone('Trash')).not.toBe(tone('Inbox'));
   });
 });

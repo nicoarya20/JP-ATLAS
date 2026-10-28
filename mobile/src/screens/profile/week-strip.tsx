@@ -16,7 +16,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { Text } from '@/components/ui/text';
-import type { CalendarDay } from '@/data/profile';
+import type { CalendarDay } from '@/data/profile.calendar';
 import { pageOf, START_PX } from '@/data/profile.calendar.swipe';
 
 import { EASE } from '../../components/tab-bar/tab-bar.motion';

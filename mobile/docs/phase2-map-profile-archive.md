@@ -240,10 +240,29 @@ Endpoint `/api/admin/*` (gerbang `adminContext`, sesi Admin). Tile More dan badg
 | Tab Approval | `GET /api/admin/users?approval=pending` | — |
 | Approve (+ role) | `POST /api/admin/users/:id/approve {role}` | **T2** |
 | Reject (+ alasan) | `POST /api/admin/users/:id/reject {reason}` | **T2** |
-| Tab Roles / ubah role | `GET /api/admin/users?approval=approved` · `PUT /api/admin/users/:id/role` | **T2** |
+| Tab Roles / ubah role | `GET /api/admin/users?approval=approved` · `POST /api/admin/users/:id/role {role}` (bukan `PUT`; diperiksa W3) | **T2** |
 
 Bentuk balasan `/api/admin/users` **belum dipetakan rinci** di sini (GAP U-1). `waitingUsers` yang dipakai
 More/Inbox/Beranda diganti hitungan kartu `user_pending` di Inbox (H-5 di peta Beranda).
+
+
+### 5a. Bentuk balasan (GAP U-1, dipetakan W3 28 Okt dari `server/api/admin-users*.ts`, `server/access/user.policy.ts`)
+
+| Rute | Balasan / badan | Catatan |
+|---|---|---|
+| `GET /api/admin/users?page&limit&search&role&status&approval&days&sort` | `{ users: [{ id, name, email, emailVerified, image, role, banned, banReason, banExpires, approvalStatus, approvalReason, createdAt, lastLoginAt, loginCount, activeSessions, providers }], total, page, limit }` | Halaman bawaan 25, maks 100. Mobile: Approval `approval=pending&sort=oldest`, Roles `approval=approved&sort=name`; `search` dikirim setelah ketikan jeda 300 ms. Tanpa `can{}` per baris (GAP U-4) |
+| `GET /api/admin/users/stats` | `{ total, admins, superAdmins, banned, pending, verified, new7d, active24h }` | Tanpa approved/rejected (GAP U-2). `pending` = badge tile Users |
+| `POST /users/:id/approve {role?}` | `{ ok, user }` | T2 |
+| `POST /users/:id/reject {reason?}` | `{ ok }` | T2; mobile mewajibkan alasan (dikirim ter-trim) |
+| `POST /users/:id/role {role}` | `{ ok }` | T2; Admin hanya memberi `member`/`project_manager`, Super-admin juga `admin` |
+| `POST /users/:id/ban {reason?, expiresIn?}` | `{ ok, revokedSessions }` | T2 "Deactivate"; mobile mengirim `{}` (permanen) |
+| `POST /users/:id/unban` | `{ ok }` | T2 "Reactivate" |
+| `DELETE /users/:id` | — | Khusus Super-admin (`NOT_APP_ROLE`); **tidak ditawarkan** di ponsel |
+
+Tolakan kebijakan: `TARGET_PROTECTED` (Super-admin, atau Admin bila pemanggil bukan Super-admin),
+`SELF_TARGET`, `IMPERSONATING`, peran di luar yang boleh diberikan. Semua `{ error, code }` berbahasa
+Indonesia; mobile menampilkannya apa adanya di dialog T2 (`src/screens/users/users.confirm.tsx` `serverSaid`).
+Implementasi: `src/data/users.admin.{wire,api,view,write}.ts` (kepala berkas menjelaskan kenapa `/api/admin`).
 
 ---
 
@@ -272,4 +291,17 @@ More/Inbox/Beranda diganti hitungan kartu `user_pending` di Inbox (H-5 di peta B
 | C-1 | My calendar | "Kalender saya" tidak ada di server | Saring `participants.isParticipant` di klien | — |
 | C-2 | My calendar | Pengulangan event tak ada di server | Hapus logika `occursOn` berulang; tampilkan event tunggal saja | — |
 | A-1 | Arsip | Nama "Archive" vs Sampah 30 hari | Ganti copy ke "Trash" + tampilkan `daysLeft`, atau pertahankan nama tapi wajib sebut batas 30 hari | **User** |
-| U-1 | Users | Bentuk `/api/admin/users` belum dipetakan | Petakan saat W3 Users dimulai | — |
+| U-1 | Users | Bentuk `/api/admin/users` belum dipetakan | **Dipetakan** §5a (W3, 28 Okt) | — |
+| U-2 | Users | `/users/stats` tak membawa jumlah approved/rejected | Chip dua itu dihapus; tersisa Pending + Deactivated | Server bila chip-nya diinginkan |
+| U-3 | Users | Daftar admin tak membawa jabatan/divisi pendaftar | Kartu tanpa jabatan/divisi | — |
+| U-4 | Users | Daftar admin tak mengirim `can{}` per baris | Klien mencerminkan `user.policy.ts`; server tetap memutuskan, 403 ditampilkan apa adanya | Server bila ingin satu sumber |
+
+## 8. Status W3 (28 Okt 2026)
+
+| § | Status | Berkas |
+|---|---|---|
+| 1 Profil | **disambung**: hero dari `GET /profile` + whoami + foto sesi; Inbox dari `/inbox/count`. P-1/P-2 disembunyikan, P-3 diganti (switch Mute dicabut, dua switch di Settings) | `src/data/profile{,.api,.write}.ts`, `src/screens/profile/*` |
+| 2 Pengaturan + Edit profile | **disambung**: dua switch `GET/PUT /profile/notifications`, Edit profile `PATCH /profile` (tanpa foto, P-5 ditunda; P-4 Phone belum dipakai). S-1 disembunyikan | `src/screens/settings/*` |
+| 3 My calendar | **disambung**: satu jendela `GET /events?from=<Minggu>&to=<Sabtu>` per pekan (cache jendela Events, 8 jendela dibagi dengan tab Events); C-1 `isParticipant`, C-2 dihapus, garis "now" disembunyikan, acara batal tampil dicoret | `src/data/profile.calendar{,.dates}.ts`, `src/screens/profile/{calendar.screen,day-grid,week-strip}.tsx` |
+| 4 Sampah | **disambung**: daftar + filter jenis + Load more, sisa hari, pulihkan, Hapus permanen T3 (hanya `can.purge === true`). A-1: nama "Trash"; rute tetap `/more/archive` | `src/data/trash.*.ts`, `src/screens/trash/*` |
+| 5 Users | **disambung** ke `/api/admin/users*`: Approval/Roles, setujui/tolak/ubah peran/nonaktifkan/aktifkan (semua T2), tile + badge dari `caps.dashboard` + `/users/stats`. Hapus akun disembunyikan | `src/data/users.admin.*.ts`, `src/screens/users/*` |
