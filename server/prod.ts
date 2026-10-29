@@ -32,6 +32,7 @@ import { agentDocResponse, isAgentDoc } from './readme';
 import { isSeoFile, seoResponse } from './seo';
 import { getBranding } from './settings-branding';
 import { maintenanceGate } from './settings-maintenance';
+import { shouldForcePublicHttps } from './web-origins';
 
 registerBundledChangelog(bundledChangelog);
 
@@ -51,6 +52,14 @@ const server = Bun.serve({
     const url = new URL(request.url);
     // Socket IP → internal header, so rate limiting and analytics see the real client.
     stampClientIp(request, bunServer.requestIP(request)?.address);
+
+    // Behind a TLS-terminating proxy/tunnel that forwards over plain HTTP without
+    // x-forwarded-proto: force https for a public (non-loopback) host so auth builds an
+    // https base URL (correct OAuth redirect_uri + secure cookies). localhost stays http.
+    // Done once here so the auth handler and every getSession read see the same scheme.
+    const fwdHost = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+    if (shouldForcePublicHttps(fwdHost, request.headers.get('x-forwarded-proto')))
+      request.headers.set('x-forwarded-proto', 'https');
 
     // API + auth.
     if (url.pathname.startsWith('/api')) {

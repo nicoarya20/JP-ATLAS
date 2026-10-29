@@ -11,6 +11,7 @@ import {
   hostOfUrl,
   isLoopbackHostPort,
   LOCAL_HOST_PATTERNS,
+  shouldForcePublicHttps,
 } from '../server/web-origins';
 
 describe('buildWebAllowedHosts', () => {
@@ -56,6 +57,27 @@ describe('hostOfUrl / isLoopbackHostPort', () => {
       expect(isLoopbackHostPort(h)).toBe(true);
     for (const h of ['simple-pm.wibudev.com', 'example.com:8080'])
       expect(isLoopbackHostPort(h)).toBe(false);
+  });
+});
+
+describe('shouldForcePublicHttps', () => {
+  test('forces https for a public host when the proxy did not mark https', () => {
+    expect(shouldForcePublicHttps('simple-pm.wibudev.com', null)).toBe(true);
+    expect(shouldForcePublicHttps('simple-pm.wibudev.com', 'http')).toBe(true);
+  });
+
+  test('leaves it alone when the proxy already said https', () => {
+    expect(shouldForcePublicHttps('simple-pm.wibudev.com', 'https')).toBe(false);
+  });
+
+  test('never touches loopback hosts (localhost keeps http)', () => {
+    expect(shouldForcePublicHttps('localhost:4007', null)).toBe(false);
+    expect(shouldForcePublicHttps('127.0.0.1:3005', 'http')).toBe(false);
+  });
+
+  test('no host → no change', () => {
+    expect(shouldForcePublicHttps(null, null)).toBe(false);
+    expect(shouldForcePublicHttps(undefined, 'http')).toBe(false);
   });
 });
 

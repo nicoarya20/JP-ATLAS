@@ -53,3 +53,22 @@ export function buildWebAllowedHosts(urls: readonly (string | null | undefined)[
     .filter((h) => !isLoopbackHostPort(h));
   return [...new Set([...LOCAL_HOST_PATTERNS, ...extras])];
 }
+
+/**
+ * Whether to stamp `x-forwarded-proto: https` on an incoming request.
+ *
+ * A reverse proxy / tunnel (frp, ngrok, …) that terminates TLS but forwards to the app over plain
+ * HTTP without `x-forwarded-proto` makes the app build an `http://<domain>` base URL — which breaks
+ * secure cookies and produces an OAuth `redirect_uri` that Google rejects (`redirect_uri_mismatch`,
+ * since only the `https://` callback is registered). For a public (non-loopback) host the scheme is
+ * always https in practice, so force it; localhost stays http (its callback is registered as http
+ * and it is reached directly, not through the proxy). No-op when the proxy already set https.
+ */
+export function shouldForcePublicHttps(
+  forwardedHost: string | null | undefined,
+  forwardedProto: string | null | undefined,
+): boolean {
+  if (!forwardedHost) return false;
+  if (isLoopbackHostPort(forwardedHost)) return false;
+  return forwardedProto !== 'https';
+}
