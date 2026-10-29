@@ -1,4 +1,4 @@
-import { ActionIcon, Anchor, Badge, Box, Group, Stack, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Anchor, Badge, Group, Stack, Text, Tooltip } from '@mantine/core';
 import { FiZap } from 'react-icons/fi';
 import { TbLayoutSidebarLeftCollapse, TbLayoutSidebarLeftExpand } from 'react-icons/tb';
 import { Link } from 'react-router';
@@ -87,37 +87,37 @@ export function BrandHeader({
     );
   }
 
-  // The environment chip lives on the second line so a long "production" label never squeezes the
-  // brand name — side by side both used to truncate ("Si..." / "PROD...") in the fixed-width sidebar.
+  // Row 1 keeps the brand name beside the header icons on one line; the area label + environment
+  // chip drop to row 2 with full width, so a long "production" label never truncates (X1 D2).
   const showEnv = Boolean(env && env !== 'development');
 
   return (
-    <Group justify="space-between" wrap="nowrap" gap="xs" align="center">
-      <Anchor component={Link} to={homePath} underline="never" c="inherit" miw={0}>
-        <Group gap="xs" wrap="nowrap" align="center">
-          <FiZap size="1.5em" aria-hidden />
-          <Box miw={0}>
+    <Stack gap={6}>
+      <Group justify="space-between" wrap="nowrap" gap="xs" align="center">
+        <Anchor component={Link} to={homePath} underline="never" c="inherit" miw={0}>
+          <Group gap="xs" wrap="nowrap" align="center">
+            <FiZap size="1.5em" aria-hidden />
             <Text fw={700} size="lg" lh={1.2} truncate>
               {appName}
             </Text>
-            {(consoleLabel || showEnv) && (
-              <Group gap={6} wrap="nowrap" align="center" mt={2}>
-                {consoleLabel && (
-                  <Text size="xs" c="dimmed" lh={1.2} truncate>
-                    {consoleLabel}
-                    {version ? ` · v${version}` : ''}
-                  </Text>
-                )}
-                <EnvBadge env={env} />
-              </Group>
-            )}
-          </Box>
+          </Group>
+        </Anchor>
+        <Group gap={4} wrap="nowrap">
+          {extra}
+          {toggle}
         </Group>
-      </Anchor>
-      <Group gap={4} wrap="nowrap">
-        {extra}
-        {toggle}
       </Group>
-    </Group>
+      {(consoleLabel || showEnv) && (
+        <Group gap={6} wrap="nowrap" align="center">
+          {consoleLabel && (
+            <Text size="xs" c="dimmed" lh={1.2} truncate>
+              {consoleLabel}
+              {version ? ` · v${version}` : ''}
+            </Text>
+          )}
+          <EnvBadge env={env} />
+        </Group>
+      )}
+    </Stack>
   );
 }
