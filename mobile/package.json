@@ -67,9 +67,5 @@
     "theme:css": "bun scripts/sync-theme-css.ts",
     "test": "jest"
   },
-  "private": true,
-  "trustedDependencies": [
-    "@parcel/watcher",
-    "unrs-resolver"
-  ]
+  "private": true
 }
