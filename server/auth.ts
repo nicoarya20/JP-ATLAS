@@ -10,7 +10,7 @@ import { deleteAvatarObject } from './api/app-avatar';
 import { AUDIT_ACTIONS, audit } from './audit';
 import { db } from './db';
 import * as schema from './db/schema';
-import { env, hasGoogleAuth, isProd, mobileTrustedOrigins } from './env';
+import { env, hasGoogleAuth, isProd, mobileTrustedOrigins, webAllowedHosts } from './env';
 import { logger } from './logger';
 import { CLIENT_IP_HEADER, normalizeIp, resolveClientIp } from './middleware/client-ip';
 import { describeClient, loginMethodFromPath } from './middleware/request-meta';
@@ -22,7 +22,17 @@ const DEFAULT_KEY_TTL_SEC = 90 * 86_400;
 const MAX_KEY_TTL_DAYS = 365;
 
 export const auth = betterAuth({
-  baseURL: env.BETTER_AUTH_URL,
+  // Multi-origin base URL: resolved per request from the host, so cookies and the OAuth callback
+  // use whichever origin the browser actually used — localhost:3005/:4007 in dev, the deployed
+  // domain in prod — without ever editing BETTER_AUTH_URL. `allowedHosts` is the allowlist that
+  // keeps a spoofed Host/x-forwarded-host out (webAllowedHosts: loopback + the canonical domain
+  // from APP_URL/BETTER_AUTH_URL); `fallback` serves server-side calls that carry no request host.
+  // Behind the reverse proxy the scheme comes from x-forwarded-proto (advanced.trustedProxyHeaders).
+  baseURL: {
+    allowedHosts: [...webAllowedHosts],
+    protocol: 'auto',
+    fallback: env.BETTER_AUTH_URL,
+  },
   secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, {
     provider: 'pg',
@@ -128,6 +138,11 @@ export const auth = betterAuth({
   // it falls back to one bucket per path shared by every client.
   advanced: {
     ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
+    // The reverse proxy terminates TLS and forwards the public host+scheme; trust x-forwarded-host
+    // / x-forwarded-proto so the per-request baseURL (above) is the domain the browser used, not
+    // the internal localhost:PORT. Safe because the server must sit behind that proxy (port not
+    // exposed) and allowedHosts still gates which hosts are accepted.
+    trustedProxyHeaders: true,
   },
   // /api/auth/* skips the app limiter; BA's own per-IP limiter (default rules,
   // stricter on sign-in) guards it in production.

@@ -3,6 +3,7 @@ import { parseEmailDomains } from './account/signup-gate';
 import { assertSecretStrength } from './env-secret';
 import { invalidProxyEntries, splitProxyList } from './middleware/trusted-proxy';
 import { buildMobileTrustedOrigins, invalidOriginEntries, splitOriginList } from './mobile-origins';
+import { buildWebAllowedHosts } from './web-origins';
 
 /** Extra origins the mobile app reaches the server as (LAN IP, tunnel, staging). Empty = none. */
 export const MobileTrustedOriginsSchema = z
@@ -85,3 +86,13 @@ export const allowedEmailDomains: ReadonlySet<string> = parseEmailDomains(
 export const mobileTrustedOrigins: readonly string[] = buildMobileTrustedOrigins(
   env.MOBILE_TRUSTED_ORIGINS,
 );
+
+/**
+ * Hosts Better Auth accepts as the web request origin (its dynamic `baseURL.allowedHosts`):
+ * loopback on any port plus the canonical public host from APP_URL / BETTER_AUTH_URL. Lets login
+ * work from localhost:3005, :4007 and the deployed domain without editing .env per switch.
+ */
+export const webAllowedHosts: readonly string[] = buildWebAllowedHosts([
+  env.APP_URL,
+  env.BETTER_AUTH_URL,
+]);
