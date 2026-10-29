@@ -23,6 +23,16 @@ const ENV_COLOR: Record<string, string> = {
   test: 'yellow',
 };
 
+/** Environment chip (hidden in development); shared by the sidebar and the mobile header. */
+export function EnvBadge({ env }: { env?: string }) {
+  if (!env || env === 'development') return null;
+  return (
+    <Badge size="xs" variant="light" color={ENV_COLOR[env] ?? 'gray'} style={{ flexShrink: 0 }}>
+      {env}
+    </Badge>
+  );
+}
+
 /** Brand + area label + environment chip, with the collapse toggle. */
 export function BrandHeader({
   collapsed,
@@ -77,27 +87,29 @@ export function BrandHeader({
     );
   }
 
+  // The environment chip lives on the second line so a long "production" label never squeezes the
+  // brand name — side by side both used to truncate ("Si..." / "PROD...") in the fixed-width sidebar.
+  const showEnv = Boolean(env && env !== 'development');
+
   return (
-    <Group justify="space-between" wrap="nowrap" gap="xs" align="flex-start">
+    <Group justify="space-between" wrap="nowrap" gap="xs" align="center">
       <Anchor component={Link} to={homePath} underline="never" c="inherit" miw={0}>
-        <Group gap="xs" wrap="nowrap" align="flex-start">
+        <Group gap="xs" wrap="nowrap" align="center">
           <FiZap size="1.5em" aria-hidden />
           <Box miw={0}>
-            <Group gap="xs" wrap="nowrap">
-              <Text fw={700} size="lg" lh={1.2} truncate>
-                {appName}
-              </Text>
-              {env && env !== 'development' && (
-                <Badge size="xs" variant="light" color={ENV_COLOR[env] ?? 'gray'}>
-                  {env}
-                </Badge>
-              )}
-            </Group>
-            {consoleLabel && (
-              <Text size="xs" c="dimmed" lh={1.2} truncate>
-                {consoleLabel}
-                {version ? ` · v${version}` : ''}
-              </Text>
+            <Text fw={700} size="lg" lh={1.2} truncate>
+              {appName}
+            </Text>
+            {(consoleLabel || showEnv) && (
+              <Group gap={6} wrap="nowrap" align="center" mt={2}>
+                {consoleLabel && (
+                  <Text size="xs" c="dimmed" lh={1.2} truncate>
+                    {consoleLabel}
+                    {version ? ` · v${version}` : ''}
+                  </Text>
+                )}
+                <EnvBadge env={env} />
+              </Group>
             )}
           </Box>
         </Group>

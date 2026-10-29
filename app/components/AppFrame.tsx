@@ -28,7 +28,7 @@ import {
 import { Link } from 'react-router';
 import type { AppUser } from '~/lib/app-context';
 import { authClient, useSession } from '~/lib/auth-client';
-import { BrandHeader } from './frame/BrandHeader';
+import { BrandHeader, EnvBadge } from './frame/BrandHeader';
 import { NavList } from './frame/NavList';
 import {
   homePath,
@@ -165,6 +165,7 @@ export function AppFrame(props: Props) {
                   · {consoleLabel}
                 </Text>
               )}
+              <EnvBadge env={env} />
             </Group>
           </Link>
           {bell && <div style={{ marginLeft: 'auto', flexShrink: 0 }}>{bell}</div>}
