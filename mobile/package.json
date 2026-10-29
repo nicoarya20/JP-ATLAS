@@ -56,12 +56,12 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "ios:sim": "mkdir -p .logs && expo start --ios 2>&1 | tee .logs/metro.log",
-    "ios:sim:prod": "mkdir -p .logs && expo start --ios --no-dev --minify 2>&1 | tee .logs/metro.log",
-    "web": "expo start --web",
+    "start": "expo start --port 8082",
+    "android": "expo start --port 8082 --android",
+    "ios": "expo start --port 8082 --ios",
+    "ios:sim": "mkdir -p .logs && expo start --port 8082 --ios 2>&1 | tee .logs/metro.log",
+    "ios:sim:prod": "mkdir -p .logs && expo start --port 8082 --ios --no-dev --minify 2>&1 | tee .logs/metro.log",
+    "web": "expo start --port 8082 --web",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "theme:css": "bun scripts/sync-theme-css.ts",
