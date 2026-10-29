@@ -40,3 +40,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Compiled host binary — rebuild with `bun run build:binary` (do not track; ~70MB)
+/simple-pm
