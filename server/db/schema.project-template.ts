@@ -7,13 +7,9 @@
  */
 import { sql } from 'drizzle-orm';
 import { check, index, integer, pgTable, smallint, text } from 'drizzle-orm/pg-core';
-import { PROJECT_PRIORITIES } from '../pm/enums';
+import { PROJECT_PRIORITIES, PROJECT_TEMPLATE_SOURCES } from '../pm/enums';
 import { user } from './schema.auth';
 import { createdAt, oneOf, pk, updatedAt } from './schema.columns';
-
-/** `story` = saved from a "Ceritakan proyeknya" draft; `manual` = typed directly into the template form. */
-export const PROJECT_TEMPLATE_SOURCES = ['story', 'manual'] as const;
-export type ProjectTemplateSource = (typeof PROJECT_TEMPLATE_SOURCES)[number];
 
 /** A reusable project blueprint, owned by one user; `name`/`description` mirror `project`'s limits. */
 export const projectTemplate = pgTable(

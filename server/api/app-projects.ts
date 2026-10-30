@@ -7,6 +7,8 @@ import { toPrincipal } from '../project/membership.query';
 import { getProjectDetail, listProjects, PROJECT_SORTS } from '../project/project.query';
 import { IdParam, oneOf, PageQuery } from './app-common';
 import { appContext } from './app-context';
+import { projectDraftApi } from './app-projects.draft';
+import { projectTemplatesApi } from './app-projects.templates';
 import { projectWriteApi } from './app-projects.write';
 
 const SEARCH_MAX_LENGTH = 100;
@@ -24,6 +26,8 @@ const ListQuery = t.Object({
 
 export const projectsApi = new Elysia({ prefix: '/projects' })
   .use(appContext)
+  .use(projectDraftApi)
+  .use(projectTemplatesApi)
   /**
    * Projects the caller may see: `{ items, total, page, limit }`; a Member asking for `all` gets `mine`.
    * `perhatian=1` keeps active projects that are at risk or late; `rencana=1` adds `plan` to each item.
