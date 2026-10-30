@@ -34,7 +34,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({ loaderData, error }: Route.MetaArgs) {
   const name = loaderData?.branding.appName ?? 'Simple PM';
-  const tagline = loaderData?.branding.appTagline ?? 'Fullstack Template';
+  const tagline = loaderData?.branding.appTagline ?? 'Simple Project Management';
   // Error boundaries reuse the root meta: a 404 must not be titled like the home page.
   if (error) {
     const info = describeError(error);

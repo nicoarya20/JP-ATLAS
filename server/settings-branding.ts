@@ -10,7 +10,7 @@ export type BrandingSettings = {
 
 export const BRANDING_DEFAULTS: Branding = {
   appName: 'Simple PM',
-  appTagline: 'Fullstack Template',
+  appTagline: 'Simple Project Management',
   supportUrl: null,
 };
 

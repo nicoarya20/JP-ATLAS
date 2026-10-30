@@ -15,7 +15,7 @@ import * as branding from '../server/settings-branding';
 const spyBranding = () =>
   spyOn(branding, 'getBranding').mockResolvedValue({
     appName: 'Simple PM',
-    appTagline: 'Fullstack Template',
+    appTagline: 'Simple Project Management',
     supportUrl: null,
   });
 let getBranding: ReturnType<typeof spyBranding>;
