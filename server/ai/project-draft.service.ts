@@ -4,11 +4,10 @@
  * draft, validates it, and lets the code (not the model) match names and compute dates. Logs carry
  * ids, latency and an outcome word only: never the story or the draft itself.
  *
- * TODO(project-draft): model AI diatur lewat profil envman (`envman run claude:nico-opus`) saat
- * sesi implementasi dimulai — konfirmasi ke coordinator apakah ini perlu env var baru atau cukup
- * pakai ANTHROPIC_API_KEY/TASK_AI_MODEL yang sudah ada. Sampai ada jawaban baru, modul ini tetap
- * memakai `aiConfig()` apa adanya (plan §1.1, §11): tidak ada env var model terpisah ditambahkan di
- * sini.
+ * Model/provider settings (plan §1.1): decided to reuse `aiConfig()` exactly as `task-draft.*`
+ * already reads it (`ANTHROPIC_API_KEY`, `TASK_AI_MODEL`, …) — no separate env var for this
+ * feature. `envman run claude:nico-opus` only configured the implementing agent's own session
+ * model and is unrelated to how this module reads its provider settings at runtime.
  */
 import { canCreateProject } from '../access/project.policy';
 import type { Principal } from '../access/types';
