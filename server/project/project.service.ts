@@ -7,19 +7,8 @@ import { and, eq, inArray } from 'drizzle-orm';
 import { canSetLead, type LeadDecision } from '../access/members.policy';
 import { canCreateProject, canManageProject } from '../access/project.policy';
 import type { Principal, ProjectSubject } from '../access/types';
-// Single source of truth for "a project created with phases/tasks in one call" (story-mode and
-// template-mode both funnel through this file, plan §4.9) — not duplicated as separate constants.
-import { PROJECT_DRAFT_PHASES_MAX, PROJECT_DRAFT_TASKS_MAX } from '../ai/project-draft.limits';
 import { isBanActive } from '../ban';
-import {
-  project,
-  projectActivity,
-  projectMember,
-  projectPhase,
-  task,
-  taskKind,
-  user,
-} from '../db/schema';
+import { project, projectActivity, projectMember, taskKind, user } from '../db/schema';
 import { CALENDAR_YEAR_MAX, CALENDAR_YEAR_MIN, isInCalendarRange } from '../metrics/dates';
 import type { ProjectMemberRole, ProjectPriority, ProjectStatus } from '../pm/enums';
 import type { PmCode } from '../pm/errors';
@@ -27,28 +16,17 @@ import { DEFAULT_TASK_KINDS, TASK_REVIEW_UI_ENABLED } from '../pm/limits';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from './membership.query';
 import { PROJECT_INITIAL_STATUSES } from './project.limits';
+import {
+  type CreateProjectPhaseInput,
+  type CreateProjectTaskInput,
+  insertProjectPlan,
+  planProblem,
+} from './project-plan-insert';
+
+export type { CreateProjectPhaseInput, CreateProjectTaskInput } from './project-plan-insert';
 
 /** A write outcome; `error` refines the catalog message of `code` when the cause is specific. */
 export type WriteResult<T> = { ok: true; value: T } | { ok: false; code: PmCode; error?: string };
-
-/** A task inside `CreateProjectInput`, either under a phase or loose; same shape either way. */
-export type CreateProjectTaskInput = {
-  title: string;
-  description?: string | null;
-  priority?: ProjectPriority;
-  /** Matched case-insensitively against this project's task kinds; unmatched or absent falls back to "Tugas". */
-  kindName?: string | null;
-  dueDate?: string | null;
-};
-
-/** A phase inside `CreateProjectInput`, with the tasks the caller places inside it. */
-export type CreateProjectPhaseInput = {
-  name: string;
-  description?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
-  tasks?: ReadonlyArray<CreateProjectTaskInput>;
-};
 
 export type CreateProjectInput = {
   name: string;
@@ -91,11 +69,6 @@ export const PROJECT_WRITE_MESSAGES = {
   DUE_BEFORE_START: 'Tenggat tidak boleh sebelum tanggal mulai. Ubah salah satu tanggalnya.',
   BAD_CANDIDATE:
     'Ada orang yang belum disetujui, sedang diblokir, atau tidak ditemukan. Hapus dari daftar, lalu simpan lagi.',
-  PHASE_NAME_REQUIRED: 'Nama fase wajib diisi. Tulis namanya, lalu simpan lagi.',
-  PHASE_END_BEFORE_START: 'Tanggal selesai fase tidak boleh sebelum tanggal mulainya.',
-  TASK_TITLE_REQUIRED: 'Judul tugas wajib diisi. Tulis judulnya, lalu simpan lagi.',
-  TOO_MANY_PHASES: `Paling banyak ${PROJECT_DRAFT_PHASES_MAX} fase sekaligus. Kurangi jumlahnya, lalu simpan lagi.`,
-  TOO_MANY_TASKS: `Paling banyak ${PROJECT_DRAFT_TASKS_MAX} tugas sekaligus (gabungan semua fase dan tugas lepas). Kurangi jumlahnya, lalu simpan lagi.`,
 } as const;
 
 const invalid = (error: string): WriteResult<never> => ({ ok: false, code: 'VALIDATION', error });
@@ -126,57 +99,6 @@ function dateProblem(start: string | null | undefined, due: string | null | unde
     if (!isInCalendarRange(d)) return PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE;
   }
   return start && due && due < start ? PROJECT_WRITE_MESSAGES.DUE_BEFORE_START : null;
-}
-
-/**
- * The first problem found in `phases`/`looseTasks`, or null; validated here (not only in the route
- * schema) so a bad phase/task date answers the same Indonesian message as the project's own dates
- * (PD-01), and so the cross-array task total is caught even though each array's own `maxItems` is
- * checked independently by the route schema.
- */
-function phasesProblem(
-  phases: ReadonlyArray<CreateProjectPhaseInput> = [],
-  looseTasks: ReadonlyArray<CreateProjectTaskInput> = [],
-): string | null {
-  if (phases.length > PROJECT_DRAFT_PHASES_MAX) return PROJECT_WRITE_MESSAGES.TOO_MANY_PHASES;
-  const taskProblem = (t: CreateProjectTaskInput): string | null => {
-    if (!t.title.trim()) return PROJECT_WRITE_MESSAGES.TASK_TITLE_REQUIRED;
-    if (!t.dueDate) return null;
-    if (!isCalendarDate(t.dueDate)) return PROJECT_WRITE_MESSAGES.BAD_DATE;
-    return isInCalendarRange(t.dueDate) ? null : PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE;
-  };
-  let totalTasks = looseTasks.length;
-  for (const phase of phases) {
-    if (!phase.name.trim()) return PROJECT_WRITE_MESSAGES.PHASE_NAME_REQUIRED;
-    const dates = dateProblem(phase.startDate, phase.endDate);
-    if (dates) {
-      return dates === PROJECT_WRITE_MESSAGES.DUE_BEFORE_START
-        ? PROJECT_WRITE_MESSAGES.PHASE_END_BEFORE_START
-        : dates;
-    }
-    totalTasks += phase.tasks?.length ?? 0;
-    for (const t of phase.tasks ?? []) {
-      const problem = taskProblem(t);
-      if (problem) return problem;
-    }
-  }
-  for (const t of looseTasks) {
-    const problem = taskProblem(t);
-    if (problem) return problem;
-  }
-  return totalTasks > PROJECT_DRAFT_TASKS_MAX ? PROJECT_WRITE_MESSAGES.TOO_MANY_TASKS : null;
-}
-
-/** The id of the task kind named `name` (case-insensitive) among `kinds`, or `fallbackId` when
- * `name` is absent or matches none — "Tugas" is the fallback per plan §4.9 step 5. */
-function resolveKindId(
-  name: string | null | undefined,
-  kinds: ReadonlyArray<{ id: string; name: string }>,
-  fallbackId: string,
-): string {
-  const wanted = name?.trim().toLowerCase();
-  if (!wanted) return fallbackId;
-  return kinds.find((k) => k.name.toLowerCase() === wanted)?.id ?? fallbackId;
 }
 
 /** Member rows of a new project: duplicates dropped (first wins), the creator and the Lead forced to manager. */
@@ -211,8 +133,8 @@ export async function createProject(
   }
   const dates = dateProblem(input.startDate, input.dueDate);
   if (dates) return invalid(dates);
-  const phasesIssue = phasesProblem(input.phases, input.looseTasks);
-  if (phasesIssue) return invalid(phasesIssue);
+  const planIssue = planProblem(input.phases, input.looseTasks);
+  if (planIssue) return invalid(planIssue);
 
   const leadId = input.leadId ?? p.id;
   const roles = memberRoles(p.id, leadId, input);
@@ -269,42 +191,15 @@ export async function createProject(
     if (!fallbackKindId)
       throw new Error(`"Tugas" kind missing right after creating project ${row.id}`);
 
-    const phaseIds: Array<string | null> = [];
-    if (input.phases && input.phases.length > 0) {
-      const phaseRows = await tx
-        .insert(projectPhase)
-        .values(
-          input.phases.map((phase, position) => ({
-            projectId: row.id,
-            name: phase.name.trim(),
-            description: phase.description?.trim() || null,
-            position,
-            startDate: phase.startDate ?? null,
-            endDate: phase.endDate ?? null,
-          })),
-        )
-        .returning({ id: projectPhase.id });
-      phaseIds.push(...phaseRows.map((r) => r.id));
-    }
-
-    const taskRows: (typeof task.$inferInsert)[] = [];
-    const pushTask = (t: CreateProjectTaskInput, phaseId: string | null) =>
-      taskRows.push({
-        projectId: row.id,
-        phaseId,
-        kindId: resolveKindId(t.kindName, kindRows, fallbackKindId),
-        title: t.title.trim(),
-        description: t.description?.trim() || null,
-        priority: t.priority ?? 'medium',
-        createdBy: p.id,
-        dueDate: t.dueDate ?? null,
-        lastActivityAt: now,
-      });
-    input.phases?.forEach((phase, i) => {
-      for (const t of phase.tasks ?? []) pushTask(t, phaseIds[i] ?? null);
+    await insertProjectPlan(tx, {
+      projectId: row.id,
+      creatorId: p.id,
+      now,
+      kindRows,
+      fallbackKindId,
+      phases: input.phases ?? [],
+      looseTasks: input.looseTasks ?? [],
     });
-    for (const t of input.looseTasks ?? []) pushTask(t, null);
-    if (taskRows.length > 0) await tx.insert(task).values(taskRows);
 
     const actorName = people.find((u) => u.id === p.id)?.name ?? null;
     await tx.insert(projectActivity).values({
