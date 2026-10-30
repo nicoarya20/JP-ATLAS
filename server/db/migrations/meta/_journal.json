@@ -169,6 +169,13 @@
       "when": 1792975942619,
       "tag": "0023_leave_period",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793337555977,
+      "tag": "0024_project_template",
+      "breakpoints": true
     }
   ]
 }
