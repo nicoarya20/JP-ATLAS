@@ -78,6 +78,25 @@ describe('project write routes (S1-03)', () => {
   });
 });
 
+describe('project template routes (story/template modes)', () => {
+  test('DELETE a template is session only — the existing "DELETE projects/*" pattern already covers it', () => {
+    expect(isPmKeyDenied('DELETE', '/api/app/projects/templates/t1')).toBe(true);
+    expect(requiredScope('DELETE', '/api/app/projects/templates/t1')).toBeNull();
+  });
+
+  test.each([
+    ['GET', '/api/app/projects/templates', 'app:read'],
+    ['GET', '/api/app/projects/templates/t1', 'app:read'],
+    ['POST', '/api/app/projects/templates', 'app:write'],
+    ['PATCH', '/api/app/projects/templates/t1', 'app:write'],
+    ['POST', '/api/app/projects/templates/t1/use', 'app:write'],
+    ['POST', '/api/app/projects/draft', 'app:write'],
+  ] as const)('%s %s stays open to keys with %s (not in any deny list)', (m, p, scope) => {
+    expect(isPmKeyDenied(m, p)).toBe(false);
+    expect(requiredScope(m, p)).toBe(scope);
+  });
+});
+
 describe('project Trash routes (S1-05)', () => {
   test.each([
     ['DELETE', '/api/app/projects/p1'],

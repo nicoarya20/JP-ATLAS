@@ -1,9 +1,17 @@
 /** Project write routes (`/api/app/projects`): create, edit, change status and hand over the Lead (S1-03). */
 import { Elysia, t } from 'elysia';
+// Same ceiling as the AI draft (plan §4.9): one "create with phases/tasks" shape shared by story-mode,
+// template-mode and the plain form, so an instantiated template never has to be larger than a draft.
+import { PROJECT_DRAFT_PHASES_MAX, PROJECT_DRAFT_TASKS_MAX } from '../ai/project-draft.limits';
+// A kind name here is free text matched case-insensitively (`createProject`), same bound as the
+// draft's own kindName field (`project-draft.schema.ts`) rather than a new constant.
+import { TASK_DRAFT_NAME_MAX } from '../ai/task-draft.limits';
 import { PROJECT_MEMBER_ROLES, PROJECT_PRIORITIES, PROJECT_STATUSES } from '../pm/enums';
 import { fail } from '../pm/respond';
 import { toPrincipal } from '../project/membership.query';
 import {
+  PHASE_DESCRIPTION_MAX,
+  PHASE_NAME_MAX,
   PROJECT_CREATE_MEMBERS_MAX,
   PROJECT_DESCRIPTION_MAX,
   PROJECT_INITIAL_STATUSES,
@@ -17,6 +25,7 @@ import {
   updateProject,
   type WriteResult,
 } from '../project/project.service';
+import { TASK_DESCRIPTION_MAX, TASK_TITLE_MAX } from '../task/task.limits';
 import { IdParam, oneOf } from './app-common';
 import { appContext } from './app-context';
 
@@ -27,6 +36,31 @@ const description = t.Optional(t.Nullable(t.String({ maxLength: PROJECT_DESCRIPT
 // CALENDAR_YEAR_MIN..CALENDAR_YEAR_MAX, with an Indonesian message a shape error cannot give (PD-01).
 const date = t.Optional(t.Nullable(t.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' })));
 const userId = t.String({ minLength: 1 });
+
+/** A task created together with its project, under a phase or loose (plan §4.9). */
+const TaskInput = t.Object(
+  {
+    title: t.String({ minLength: 1, maxLength: TASK_TITLE_MAX }),
+    description: t.Optional(t.Nullable(t.String({ maxLength: TASK_DESCRIPTION_MAX }))),
+    priority: t.Optional(oneOf(PROJECT_PRIORITIES)),
+    // Matched case-insensitively to a task kind by `createProject`; unmatched falls back to "Tugas".
+    kindName: t.Optional(t.Nullable(t.String({ maxLength: TASK_DRAFT_NAME_MAX }))),
+    dueDate: date,
+  },
+  strict,
+);
+
+/** A phase created together with its project, with the tasks the caller places inside it. */
+const PhaseInput = t.Object(
+  {
+    name: t.String({ minLength: 1, maxLength: PHASE_NAME_MAX }),
+    description: t.Optional(t.Nullable(t.String({ maxLength: PHASE_DESCRIPTION_MAX }))),
+    startDate: date,
+    endDate: date,
+    tasks: t.Optional(t.Array(TaskInput, { maxItems: PROJECT_DRAFT_TASKS_MAX })),
+  },
+  strict,
+);
 
 // Unknown keys (`createdBy`, `deletedAt`, `id`, ...) are a 422: nothing outside this list is ever written.
 const CreateBody = t.Object(
@@ -44,6 +78,8 @@ const CreateBody = t.Object(
       }),
     ),
     tasksNeedReviewDefault: t.Optional(t.Boolean()),
+    phases: t.Optional(t.Array(PhaseInput, { maxItems: PROJECT_DRAFT_PHASES_MAX })),
+    looseTasks: t.Optional(t.Array(TaskInput, { maxItems: PROJECT_DRAFT_TASKS_MAX })),
   },
   strict,
 );

@@ -26,6 +26,10 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   'server/access/members.policy.ts':
     'LeadDecision LeadMustBeManager ManagerSetChange canChangeManagerSet canSetLead',
   'server/access/not-visible.ts': 'NotVisible NotVisibleCode notVisible',
+  // Addition for story-mode and template-mode (docs/plans/project-create-story-template.md §2
+  // "menambah"): a template is private, so its own policy never shares a function with project.policy.ts.
+  'server/access/project-template.policy.ts':
+    'TemplateDecision TemplateNotFound canCreateTemplate canUseTemplate',
   'server/access/project.policy.ts':
     'NOT_VISIBLE ProjectDecision ProjectListScope RequestedListScope canCreateProject canManageProject canRestoreProject canTrashProject canViewProject clampListScope matchesProjectScope projectListScope',
   'server/access/review.policy.ts':
@@ -69,7 +73,9 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
     // ("menambah") and recorded as a written decision in 0003-contract-v1-event-urls.md.
     // EXTENSION_REASON_CATEGORIES and PHASE_STATUSES are additions by S5a-01 (P10 L5-01): enum tuples for the
     // project plan tables, nothing existing changes.
-    'APPROVAL_STATUSES ApprovalStatus EVENT_KINDS EVENT_LOCATION_TYPES EVENT_NOTE_STATUSES EVENT_REMINDER_OFFSETS_MIN EXTENSION_REASON_CATEGORIES EventKind EventLocationType EventNoteStatus EventReminderOffset ExtensionReasonCategory PHASE_STATUSES PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES PhaseStatus ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
+    // PROJECT_TEMPLATE_SOURCES is an addition for story-mode and template-mode
+    // (docs/plans/project-create-story-template.md §2 "menambah"): what a saved template was built from.
+    'APPROVAL_STATUSES ApprovalStatus EVENT_KINDS EVENT_LOCATION_TYPES EVENT_NOTE_STATUSES EVENT_REMINDER_OFFSETS_MIN EXTENSION_REASON_CATEGORIES EventKind EventLocationType EventNoteStatus EventReminderOffset ExtensionReasonCategory PHASE_STATUSES PROJECT_CONDITIONS PROJECT_MEMBER_ROLES PROJECT_PRIORITIES PROJECT_STATUSES PROJECT_TEMPLATE_SOURCES PhaseStatus ProjectCondition ProjectMemberRole ProjectPriority ProjectStatus ProjectTemplateSource TASK_BASE_KINDS TASK_CANCEL_CATEGORIES TASK_STATUSES TEXT_SIZES TaskBaseKind TaskCancelCategory TaskStatus TextSize',
   'server/pm/errors.ts':
     'DENY_CODES DenyCode PM_API_CODES PM_ERRORS PmApiCode PmCode PmErrorEntry PmHttp isDenyCode',
   'server/pm/limits.ts':

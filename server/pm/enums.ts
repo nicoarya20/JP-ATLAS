@@ -33,6 +33,10 @@ export type ExtensionReasonCategory = (typeof EXTENSION_REASON_CATEGORIES)[numbe
 export const TASK_BASE_KINDS = ['task', 'issue', 'idea'] as const;
 export type TaskBaseKind = (typeof TASK_BASE_KINDS)[number];
 
+// What a saved project_template was built from: a story-mode draft, or typed in by hand (S0-S2 extension).
+export const PROJECT_TEMPLATE_SOURCES = ['story', 'manual'] as const;
+export type ProjectTemplateSource = (typeof PROJECT_TEMPLATE_SOURCES)[number];
+
 export const TASK_STATUSES = ['todo', 'in_progress', 'in_review', 'done', 'canceled'] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 

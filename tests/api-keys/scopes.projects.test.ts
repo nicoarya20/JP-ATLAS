@@ -26,6 +26,30 @@ describe('project route scopes', () => {
   });
 });
 
+// Story-mode and template-mode (docs/plans/project-create-story-template.md §8): every new route sits
+// under /api/app/projects, so the generic prefix rule maps it without any scopes.ts change — asserted
+// explicitly here so a future change to that rule cannot silently widen or narrow these on its own.
+describe('story-mode and template-mode routes', () => {
+  test.each([
+    ['POST', '/api/app/projects/draft', 'app:write'],
+    ['GET', '/api/app/projects/templates', 'app:read'],
+    ['GET', '/api/app/projects/templates/t1', 'app:read'],
+    ['POST', '/api/app/projects/templates', 'app:write'],
+    ['PATCH', '/api/app/projects/templates/t1', 'app:write'],
+    ['POST', '/api/app/projects/templates/t1/use', 'app:write'],
+  ] as const)('%s %s needs %s', (method, path, scope) => {
+    expect(isPmKeyDenied(method, path)).toBe(false);
+    expect(requiredScope(method, path)).toBe(scope);
+  });
+
+  // DELETE lands in PM_KEY_DENY ("DELETE projects/*"), never reaching a scope: asserted again in
+  // tests/api-keys/scopes.pm.test.ts, which owns that deny list's assertions.
+  test('DELETE a template is denied to every key, not mapped to a scope', () => {
+    expect(isPmKeyDenied('DELETE', '/api/app/projects/templates/t1')).toBe(true);
+    expect(requiredScope('DELETE', '/api/app/projects/templates/t1')).toBeNull();
+  });
+});
+
 describe('member routes are session-only', () => {
   const routes = new Elysia({ prefix: '/api/app' }).use(projectMembersApi).routes;
 

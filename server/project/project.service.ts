@@ -16,6 +16,14 @@ import { DEFAULT_TASK_KINDS, TASK_REVIEW_UI_ENABLED } from '../pm/limits';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from './membership.query';
 import { PROJECT_INITIAL_STATUSES } from './project.limits';
+import {
+  type CreateProjectPhaseInput,
+  type CreateProjectTaskInput,
+  insertProjectPlan,
+  planProblem,
+} from './project-plan-insert';
+
+export type { CreateProjectPhaseInput, CreateProjectTaskInput } from './project-plan-insert';
 
 /** A write outcome; `error` refines the catalog message of `code` when the cause is specific. */
 export type WriteResult<T> = { ok: true; value: T } | { ok: false; code: PmCode; error?: string };
@@ -32,6 +40,13 @@ export type CreateProjectInput = {
   dueDate?: string | null;
   members?: ReadonlyArray<{ userId: string; role: ProjectMemberRole }>;
   tasksNeedReviewDefault?: boolean;
+  /**
+   * Phases (with their own tasks) and loose tasks created together with the project, in the same
+   * transaction (plan §4.9: story-mode and template-mode both build a project this way). Both
+   * optional and backward compatible: omitting them creates a project exactly as before.
+   */
+  phases?: ReadonlyArray<CreateProjectPhaseInput>;
+  looseTasks?: ReadonlyArray<CreateProjectTaskInput>;
 };
 
 /** Fields an edit may change; `undefined` keeps the stored value, `null` clears an optional one. */
@@ -118,6 +133,8 @@ export async function createProject(
   }
   const dates = dateProblem(input.startDate, input.dueDate);
   if (dates) return invalid(dates);
+  const planIssue = planProblem(input.phases, input.looseTasks);
+  if (planIssue) return invalid(planIssue);
 
   const leadId = input.leadId ?? p.id;
   const roles = memberRoles(p.id, leadId, input);
@@ -165,9 +182,25 @@ export async function createProject(
       .values(
         [...roles].map(([userId, role]) => ({ projectId: row.id, userId, role, addedBy: p.id })),
       );
-    await tx
+    const kindRows = await tx
       .insert(taskKind)
-      .values(DEFAULT_TASK_KINDS.map((k, position) => ({ projectId: row.id, ...k, position })));
+      .values(DEFAULT_TASK_KINDS.map((k, position) => ({ projectId: row.id, ...k, position })))
+      .returning({ id: taskKind.id, name: taskKind.name });
+    // DEFAULT_TASK_KINDS[0] is "Tugas" (plan §4.9 step 3/5): the fallback kind for an unmatched or absent kindName.
+    const fallbackKindId = kindRows.find((k) => k.name === DEFAULT_TASK_KINDS[0]?.name)?.id;
+    if (!fallbackKindId)
+      throw new Error(`"Tugas" kind missing right after creating project ${row.id}`);
+
+    await insertProjectPlan(tx, {
+      projectId: row.id,
+      creatorId: p.id,
+      now,
+      kindRows,
+      fallbackKindId,
+      phases: input.phases ?? [],
+      looseTasks: input.looseTasks ?? [],
+    });
+
     const actorName = people.find((u) => u.id === p.id)?.name ?? null;
     await tx.insert(projectActivity).values({
       projectId: row.id,

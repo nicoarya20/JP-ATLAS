@@ -33,6 +33,9 @@ const EXPECTED: Record<string, readonly (string | number)[]> = {
   // S5a-01 (P10 L5-01): enums of the project plan tables, see migration 0019.
   PHASE_STATUSES: ['not_started', 'in_progress', 'done'],
   EXTENSION_REASON_CATEGORIES: ['scope_change', 'dependency', 'resource', 'other'],
+  // Addition for story-mode and template-mode (docs/plans/project-create-story-template.md),
+  // migration 0024: what a saved project_template was built from.
+  PROJECT_TEMPLATE_SOURCES: ['story', 'manual'],
 };
 
 describe('shared enum tuples', () => {
