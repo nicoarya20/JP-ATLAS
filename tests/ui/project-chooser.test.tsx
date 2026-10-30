@@ -9,6 +9,8 @@ import {
   createModeOf,
   PROJECT_CHOOSER_PATH,
   PROJECT_FORM_HREF,
+  PROJECT_STORY_HREF,
+  PROJECT_TEMPLATE_HREF,
 } from '../../app/lib/project-create-mode';
 
 /** Renders under a data router, like the real app: the form card is a router `Link`. */
@@ -34,25 +36,29 @@ describe('createModeOf', () => {
     expect(mode('')).toBe('choose');
   });
 
-  it('opens the form only for ?cara=form', () => {
+  it('opens the matching step for ?cara=form|cerita|template', () => {
     expect(mode('cara=form')).toBe('form');
     expect(mode('cara=form&x=1')).toBe('form');
+    expect(mode('cara=cerita')).toBe('cerita');
+    expect(mode('cara=template')).toBe('template');
   });
 
   it.each([
     ['empty', 'cara='],
     ['a typo', 'cara=fom'],
     ['another case', 'cara=FORM'],
-    ['the AI way, not built yet', 'cara=cerita'],
-    ['the template way, not built yet', 'cara=template'],
     ['an unrelated param', 'form=1'],
   ])('falls back to the chooser for %s, so a stale link never opens half a feature', (_, qs) => {
     expect(mode(qs)).toBe('choose');
   });
 
-  it('keeps the form URL and the chooser URL in step with each other', () => {
+  it('keeps every step URL in step with createModeOf', () => {
     expect(PROJECT_FORM_HREF).toBe(`${PROJECT_CHOOSER_PATH}?cara=form`);
+    expect(PROJECT_STORY_HREF).toBe(`${PROJECT_CHOOSER_PATH}?cara=cerita`);
+    expect(PROJECT_TEMPLATE_HREF).toBe(`${PROJECT_CHOOSER_PATH}?cara=template`);
     expect(createModeOf(new URL(PROJECT_FORM_HREF, 'http://x').searchParams)).toBe('form');
+    expect(createModeOf(new URL(PROJECT_STORY_HREF, 'http://x').searchParams)).toBe('cerita');
+    expect(createModeOf(new URL(PROJECT_TEMPLATE_HREF, 'http://x').searchParams)).toBe('template');
     expect(createModeOf(new URL(PROJECT_CHOOSER_PATH, 'http://x').searchParams)).toBe('choose');
   });
 });
@@ -75,20 +81,18 @@ describe('ProjectCreateChooser', () => {
     );
   });
 
-  it('links only the form card, to the form step', async () => {
+  it('links all three cards, each to its own step', async () => {
     const html = await render(<ProjectCreateChooser />);
-    expect(count(html, '<a ')).toBe(1);
+    expect(count(html, '<a ')).toBe(3);
     expect(html).toContain(`href="${PROJECT_FORM_HREF}"`);
-    expect(count(html, `>${CHOOSER_COPY.choose}<`)).toBe(1);
+    expect(html).toContain(`href="${PROJECT_STORY_HREF}"`);
+    expect(html).toContain(`href="${PROJECT_TEMPLATE_HREF}"`);
+    expect(count(html, `>${CHOOSER_COPY.choose}<`)).toBe(3);
   });
 
-  it('says "Coming soon" on a disabled button for the two ways not built yet', async () => {
+  it('never shows a disabled button: every way is built', async () => {
     const html = await render(<ProjectCreateChooser />);
-    expect(count(html, CHOOSER_COPY.comingSoon)).toBe(2);
-    // Every "Coming soon" button is a real disabled <button>, never a link that goes nowhere.
-    const disabled = html.match(/<button[^>]*disabled[^>]*>[\s\S]*?<\/button>/g) ?? [];
-    expect(disabled).toHaveLength(2);
-    for (const b of disabled) expect(b).toContain(CHOOSER_COPY.comingSoon);
+    expect(html).not.toMatch(/<button[^>]*disabled/);
   });
 
   it('keeps the wireframe wording of the two ways it describes', async () => {

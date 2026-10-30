@@ -6,8 +6,6 @@ export const CHOOSER_COPY = {
   backToChooser: 'Kembali ke pilihan cara',
   recommended: 'Disarankan',
   choose: 'Pilih',
-  /** What the buttons of the ways that are not built yet say; they are disabled, never a dead link. */
-  comingSoon: 'Coming soon',
   form: {
     title: 'Isi form sendiri',
     body: 'Isi data proyek langsung lewat formulir. Hanya nama yang wajib.',

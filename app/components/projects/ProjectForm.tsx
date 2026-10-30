@@ -105,6 +105,8 @@ type Common = {
 type CreateProps = Common & {
   mode?: 'create';
   creator: Person;
+  /** Pre-fills the form (story-mode review, plan §11): only the given fields are overridden. */
+  initialValues?: Partial<ProjectFormValues>;
   /** Resolves with field errors to show, or null when the project was created. */
   onSubmit: (input: ProjectCreateInput) => Promise<FieldErrors | null>;
 };
@@ -137,7 +139,9 @@ export function ProjectForm(props: Props) {
   const [saved, setSaved] = useState(false);
   const form = useForm<ProjectFormValues>({
     mode: 'uncontrolled',
-    initialValues: editing ? props.initial : NEW_PROJECT(props.creator.id),
+    initialValues: editing
+      ? props.initial
+      : { ...NEW_PROJECT(props.creator.id), ...props.initialValues },
     validate: (v) => validateProject(v),
     onValuesChange: () => setDirty(form.isDirty()),
   });

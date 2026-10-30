@@ -1,6 +1,10 @@
 import { Badge, Button, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { Link } from 'react-router';
-import { PROJECT_FORM_HREF } from '~/lib/project-create-mode';
+import {
+  PROJECT_FORM_HREF,
+  PROJECT_STORY_HREF,
+  PROJECT_TEMPLATE_HREF,
+} from '~/lib/project-create-mode';
 import { CHOOSER_COPY } from './project-chooser.copy';
 
 type Way = {
@@ -8,18 +12,17 @@ type Way = {
   title: string;
   body: string;
   note: string;
-  /** Where "Pilih" goes; absent = not built yet, so the button is disabled instead of a dead link. */
-  href?: string;
+  href: string;
   recommended?: boolean;
 };
 
 const WAYS: readonly Way[] = [
   { id: 'form', ...CHOOSER_COPY.form, href: PROJECT_FORM_HREF },
-  { id: 'story', ...CHOOSER_COPY.story, recommended: true },
-  { id: 'template', ...CHOOSER_COPY.template },
+  { id: 'story', ...CHOOSER_COPY.story, href: PROJECT_STORY_HREF, recommended: true },
+  { id: 'template', ...CHOOSER_COPY.template, href: PROJECT_TEMPLATE_HREF },
 ];
 
-/** The three ways to start a project (flow ②); only the form is built, the others say "Coming soon". */
+/** The three ways to start a project (flow ②): form, "Ceritakan proyeknya" and "Pakai template". */
 export function ProjectCreateChooser() {
   return (
     <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
@@ -63,21 +66,14 @@ function WayCard({ way }: { way: Way }) {
             {way.note}
           </Text>
         </Stack>
-        {way.href ? (
-          <Button
-            component={Link}
-            to={way.href}
-            fullWidth
-            variant={way.recommended ? 'filled' : 'default'}
-          >
-            {CHOOSER_COPY.choose}
-          </Button>
-        ) : (
-          // Disabled, and the label says why: nothing to click, nothing that fails silently.
-          <Button fullWidth disabled variant={way.recommended ? 'filled' : 'default'}>
-            {CHOOSER_COPY.comingSoon}
-          </Button>
-        )}
+        <Button
+          component={Link}
+          to={way.href}
+          fullWidth
+          variant={way.recommended ? 'filled' : 'default'}
+        >
+          {CHOOSER_COPY.choose}
+        </Button>
       </Stack>
     </Paper>
   );

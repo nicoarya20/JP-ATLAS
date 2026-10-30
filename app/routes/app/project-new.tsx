@@ -7,6 +7,8 @@ import { toPrincipal } from '@server/project/membership.query';
 import { useEffect, useState } from 'react';
 import { FiLock } from 'react-icons/fi';
 import { data, useNavigate, useSearchParams } from 'react-router';
+import { StoryCreateStep } from '~/components/projects/create/StoryCreateStep';
+import { TemplateCreateStep } from '~/components/projects/create/TemplateCreateStep';
 import { projectHref } from '~/components/projects/ProjectCard';
 import { ProjectCreateChooser } from '~/components/projects/ProjectCreateChooser';
 import { fieldErrors, ProjectForm } from '~/components/projects/ProjectForm';
@@ -57,8 +59,11 @@ export default function ProjectNewPage({ loaderData }: Route.ComponentProps) {
       </PageContainer>
     );
   }
-  // Step ②: the bare URL asks how to start; only `?cara=form` shows the form (step ③).
-  if (createModeOf(search) === 'choose') {
+  const mode = createModeOf(search);
+  const chooserBack = { to: PROJECT_CHOOSER_PATH, label: CHOOSER_COPY.backToChooser };
+
+  // Step ②: the bare URL asks how to start; only a `?cara=...` value shows a step ③ screen.
+  if (mode === 'choose') {
     return (
       <PageContainer>
         <PageHeader title={CHOOSER_COPY.title} description={CHOOSER_COPY.description} back={back} />
@@ -66,13 +71,43 @@ export default function ProjectNewPage({ loaderData }: Route.ComponentProps) {
       </PageContainer>
     );
   }
+  if (mode === 'cerita') {
+    return (
+      <PageContainer>
+        <PageHeader
+          title={CHOOSER_COPY.story.title}
+          description={CHOOSER_COPY.story.body}
+          back={chooserBack}
+        />
+        <StoryCreateStep
+          creator={loaderData.creator}
+          today={loaderData.today}
+          cancelTo={LIST_PATH}
+          onSaved={setSavedId}
+          onBack={() => navigate(PROJECT_CHOOSER_PATH)}
+        />
+      </PageContainer>
+    );
+  }
+  if (mode === 'template') {
+    return (
+      <PageContainer>
+        <PageHeader
+          title={CHOOSER_COPY.template.title}
+          description={CHOOSER_COPY.template.body}
+          back={chooserBack}
+        />
+        <TemplateCreateStep
+          creator={loaderData.creator}
+          today={loaderData.today}
+          onSaved={setSavedId}
+        />
+      </PageContainer>
+    );
+  }
   return (
     <PageContainer>
-      <PageHeader
-        title={FORM_COPY.title}
-        description={FORM_COPY.description}
-        back={{ to: PROJECT_CHOOSER_PATH, label: CHOOSER_COPY.backToChooser }}
-      />
+      <PageHeader title={FORM_COPY.title} description={FORM_COPY.description} back={chooserBack} />
       <ProjectForm
         creator={loaderData.creator}
         today={loaderData.today}

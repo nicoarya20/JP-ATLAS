@@ -90,7 +90,24 @@ export async function fetchProjectMembers(id: string): Promise<ProjectMemberItem
 // ---- Project writes (Eden, S1-03) ----
 
 export type ProjectMemberInput = { userId: string; role: ProjectMemberRole };
-/** POST /projects body; `status` is limited to draft/active at creation (M24). */
+/** A task created together with its project (plan §4.9), under a phase or loose: same shape either way. */
+export type ProjectCreateTaskInput = {
+  title: string;
+  description?: string | null;
+  priority?: ProjectPriority;
+  kindName?: string | null;
+  dueDate?: string | null;
+};
+/** A phase created together with its project, with the tasks the caller places inside it. */
+export type ProjectCreatePhaseInput = {
+  name: string;
+  description?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  tasks?: ProjectCreateTaskInput[];
+};
+/** POST /projects body; `status` is limited to draft/active at creation (M24). `phases`/`looseTasks`
+ * are the story-mode and template-mode extension (plan §4.9): optional, backward compatible. */
 export type ProjectCreateInput = {
   name: string;
   description?: string | null;
@@ -100,6 +117,8 @@ export type ProjectCreateInput = {
   dueDate?: string | null;
   leadId?: string;
   members?: ProjectMemberInput[];
+  phases?: ProjectCreatePhaseInput[];
+  looseTasks?: ProjectCreateTaskInput[];
 };
 /** PATCH /projects/:id body; the due date is editable directly in S1 (KB-3). */
 export type ProjectPatch = Partial<
