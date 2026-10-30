@@ -1,8 +1,10 @@
 /**
- * `POST /api/app/projects/draft` ("Ceritakan proyeknya"), mounted inside `projectsApi` for the
- * `/projects` prefix. It proposes a draft project (name, dates, phases, tasks) and saves nothing;
- * the contract is in `ai/project-draft.types.ts`. Without a provider key it answers 503
- * `AI_DISABLED`, so the app boots and the form keeps working.
+ * `POST /api/app/projects/draft` ("Ceritakan proyeknya"), mounted directly in `app.ts` (its own
+ * `/projects` prefix, sibling of `projectsApi`, same pattern as `app-projects.members.ts`) so this
+ * file stays within the route budget instead of growing `projectsApi` past it. It proposes a draft
+ * project (name, dates, phases, tasks) and saves nothing; the contract is in
+ * `ai/project-draft.types.ts`. Without a provider key it answers 503 `AI_DISABLED`, so the app boots
+ * and the form keeps working.
  */
 import { Elysia, t } from 'elysia';
 import { PROJECT_DRAFT_CODES, PROJECT_DRAFT_MESSAGES } from '../ai/project-draft.limits';
@@ -17,7 +19,7 @@ const HTTP_RATE_LIMITED = 429;
 const HTTP_BAD_GATEWAY = 502;
 const HTTP_UNAVAILABLE = 503;
 
-export const projectDraftApi = new Elysia().use(appContext).post(
+export const projectDraftApi = new Elysia({ prefix: '/projects' }).use(appContext).post(
   '/draft',
   async ({ actor, body, set, status }) => {
     const r = await draftProject(toPrincipal(actor), body, requestClock());

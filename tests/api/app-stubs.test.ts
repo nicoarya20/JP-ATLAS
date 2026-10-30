@@ -15,7 +15,7 @@ const STUB_LABEL = /^\/\/ STUB\((S1|S2)\): diisi irisan .+; hapus dari tes app-s
 /** Every S0B-18 stub is now filled; the list stays so a future stub module has a place to be declared. */
 const STUBS: { file: string; plugin: string; prefix: string }[] = [];
 
-/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S3 I04 inbox, S3 B-06 home, S6 M03 team, S7 E-06 events, S7 E-07 event Trash): no longer stubs, still mounted by app.ts. `leaveApi` left the list with the leave routes in P14 CU-02. */
+/** Plugins slices have filled with routes (S1-02 projects, S1-04 picker, S1-05 trash, S1-06 profile, S2-03 tasks, S2-05 workflow, S2-06 detail, S3 I04 inbox, S3 B-06 home, S6 M03 team, S7 E-06 events, S7 E-07 event Trash): no longer stubs, still mounted by app.ts. `leaveApi` left the list with the leave routes in P14 CU-02. `projectDraftApi`/`projectTemplatesApi` (story-mode and template-mode, docs/plans/project-create-story-template.md) joined as their own modules — not nested in `projectsApi` — so each file stays within the route budget below. */
 const FILLED = [
   // Left app.ts with GAP A-17: whoami answers `caps` now, so it is a feature route like the rest.
   'whoamiApi',
@@ -23,6 +23,8 @@ const FILLED = [
   'inboxApi',
   'homeApi',
   'projectsApi',
+  'projectDraftApi',
+  'projectTemplatesApi',
   'projectMembersApi',
   'teamPickerApi',
   'teamApi',
@@ -119,6 +121,9 @@ describe('module hygiene', () => {
     ['app-context.ts', 90],
     ['app-common.ts', 80],
     ['app-projects.ts', 150],
+    ['app-projects.draft.ts', 150],
+    ['app-projects.templates.ts', 150],
+    ['app-projects.templates.schema.ts', 150],
     ['app-projects.members.ts', 150],
     ['app-profile.ts', 150],
     ['app-tasks.ts', 150],

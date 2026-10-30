@@ -205,6 +205,17 @@ const TARGETS: Target[] = [
         VALUES (${lit(newId())},${lit(p.projectId)},${lit(v)},'alasan')`, // test-only
     }),
   },
+  {
+    tuple: 'PROJECT_TEMPLATE_SOURCES',
+    table: 'project_template',
+    column: 'source',
+    // No project/user parent: a template never references project/task at all (plan §3).
+    plan: (v) => ({
+      setup: [],
+      statement: `INSERT INTO "project_template" ("id","name","source")
+        VALUES (${lit(newId())},'Template uji',${lit(v)})`, // test-only
+    }),
+  },
 ];
 
 // Tuples with no column:

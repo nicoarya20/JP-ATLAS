@@ -1,7 +1,9 @@
 /**
  * Project template routes (`/api/app/projects/templates`, plan §6): list/detail/CRUD and "use"
- * (instantiate). Every route is private to its caller (plan §1.5) — a non-owner and a missing id
- * answer the identical 404, never a 403 (D8-style, `server/access/project-template.policy.ts`).
+ * (instantiate). Mounted directly in `app.ts` with its own full prefix, sibling of `projectsApi`
+ * (same pattern as `app-projects.members.ts`) so this stays within the route budget instead of
+ * growing `projectsApi` past it. Every route is private to its caller (plan §1.5) — a non-owner and
+ * a missing id answer the identical 404, never a 403 (D8-style, `server/access/project-template.policy.ts`).
  */
 import { Elysia } from 'elysia';
 import { PAGE_LIMIT_DEFAULT } from '../pm/limits';
@@ -26,7 +28,7 @@ import {
 
 const HTTP_NO_CONTENT = 204;
 
-export const projectTemplatesApi = new Elysia({ prefix: '/templates' })
+export const projectTemplatesApi = new Elysia({ prefix: '/projects/templates' })
   .use(appContext)
   .derive(({ actor, status }) => {
     const principal = toPrincipal(actor);
