@@ -46,6 +46,10 @@ export function parseDue(v: unknown): DueToken | null {
       const days = asInt(v.days);
       return days === null ? null : { kind: 'offset', days };
     }
+    case 'months': {
+      const months = asInt(v.months);
+      return months === null ? null : { kind: 'months', months };
+    }
     case 'weekday':
       return typeof v.weekday === 'string' && (WEEKDAYS as readonly string[]).includes(v.weekday)
         ? { kind: 'weekday', weekday: v.weekday as Weekday, next: v.next === true }

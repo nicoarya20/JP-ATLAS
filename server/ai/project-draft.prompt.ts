@@ -31,8 +31,9 @@ const nullable = (schema: Record<string, unknown>) => ({ anyOf: [schema, { type:
 const DUE_SCHEMA = nullable({
   type: 'object',
   properties: {
-    kind: { type: 'string', enum: ['offset', 'weekday', 'monthday', 'date'] },
+    kind: { type: 'string', enum: ['offset', 'months', 'weekday', 'monthday', 'date'] },
     days: { type: 'integer' },
+    months: { type: 'integer' },
     weekday: { type: 'string', enum: [...WEEKDAYS] },
     next: { type: 'boolean' },
     day: { type: 'integer' },
@@ -106,14 +107,14 @@ Rules:
 - name: a short project name in the writer's language, at most ${PROJECT_NAME_MAX} characters. description: extra detail only if the story gives it, else null. If the story is too unclear to name any project, set name to null and use "question" instead (see below).
 - startDate/dueDate: never work out a calendar date yourself, only describe what the story says, with the same tokens due dates use (below). null when no date is said.
 - priority: one of the valid priorities, only when the story signals it (penting, urgent: high; genting, kritis: critical; santai, tidak mendesak: low). Otherwise null.
-- phases: at most ${PROJECT_DRAFT_PHASES_MAX} ordered stages of the project the story describes (e.g. "Persiapan", "Pelaksanaan"), each with its own name, optional description, optional startDate/endDate and the tasks that belong to it. Use phases only when the story actually structures the work into stages; a simple project can have zero phases.
+- phases: at most ${PROJECT_DRAFT_PHASES_MAX} ordered stages of the project the story describes (e.g. "Persiapan", "Pelaksanaan"), each with its own name, optional description, optional startDate/endDate and the tasks that belong to it. Use phases only when the story actually structures the work into stages; a simple project can have zero phases. When the story places a phase in time counted from now, give its startDate/endDate as offsets: "minggu pertama" is days 0 to 6, "minggu kedua" days 7 to 13, and so on; "bulan pertama" is months 0 to 1. Otherwise leave them null.
 - looseTasks: tasks the story mentions that do not clearly belong to any phase. The total number of tasks across every phase plus looseTasks must never exceed ${PROJECT_DRAFT_TASKS_MAX}; if the story describes more, keep only the clearest ones.
 - Each task has title (short phrase, at most ${TASK_TITLE_MAX} characters, without a date), description (extra detail only if given, else null), priority (same rule as the project's), kindName (one name from the jenis list, only when the story clearly fits it, e.g. a bug or error: the bug kind; otherwise null) and due (a date token, same rules as startDate/dueDate).
-- due date tokens: {"kind":"offset","days":N} for hari ini (0), besok (1), lusa (2), minggu depan (7). {"kind":"weekday","weekday":"fri","next":false} for "Jumat" or "sebelum Jumat"; "next":true for "Jumat depan". {"kind":"monthday","day":15,"month":null} for "tanggal 15"; give "month" (1-12) when the story names it. {"kind":"date","iso":"YYYY-MM-DD"} only when the story writes a full date with its year. null when no date is said.
+- due date tokens: {"kind":"offset","days":N} for hari ini (0), besok (1), lusa (2), minggu depan (7), N hari/minggu lagi (days). {"kind":"months","months":N} for any span said in months: bulan depan or sebulan lagi (1), 3 bulan dari sekarang (3); never turn months into days. {"kind":"weekday","weekday":"fri","next":false} for "Jumat" or "sebelum Jumat"; "next":true for "Jumat depan". {"kind":"monthday","day":15,"month":null} for "tanggal 15"; give "month" (1-12) when the story names it. {"kind":"date","iso":"YYYY-MM-DD"} only when the story writes a full date with its year. null when no date is said.
 - question: normally null. A short Indonesian question only when the story is too unclear to draft any project at all (then name must be null, phases and looseTasks empty). Do not ask about anything the app can fix itself.
 
 Example. Story: "Mau renovasi dapur. Minggu pertama beli material, minggu kedua bongkar dan pasang, deadline sebulan dari sekarang, prioritas tinggi."
-Draft: {"name":"Renovasi Dapur","dueDate":{"kind":"offset","days":30},"priority":"high","phases":[{"name":"Beli material","tasks":[...]},{"name":"Bongkar dan pasang","tasks":[...]}],...}.`;
+Draft: {"name":"Renovasi Dapur","description":null,"startDate":null,"dueDate":{"kind":"months","months":1},"priority":"high","phases":[{"name":"Beli material","startDate":{"kind":"offset","days":0},"endDate":{"kind":"offset","days":6},"tasks":[...]},{"name":"Bongkar dan pasang","startDate":{"kind":"offset","days":7},"endDate":{"kind":"offset","days":13},"tasks":[...]}],...}.`;
 
 export type PromptInput = { text: string };
 

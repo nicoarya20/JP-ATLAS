@@ -76,7 +76,7 @@ export async function draftProject(
       );
       return refused(PROJECT_DRAFT_CODES.unavailable);
     }
-    const body = composeProjectDraft(parsed, { today: clock.today });
+    const body = composeProjectDraft(parsed, { today: clock.today, story: text });
     logger.info(
       {
         ...log,

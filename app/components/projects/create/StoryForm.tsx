@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { STORY_COPY as COPY } from './story-create.copy';
 
 type Props = {
+  /** The story to start from, e.g. after "Ubah cerita" on the review screen. */
+  initialText?: string;
   loading: boolean;
   /** Seconds left on the shared rate limit (0 = not limited); ticks down from the caller. */
   rateLimitedFor: number;
@@ -12,8 +14,8 @@ type Props = {
   onBack: () => void;
 };
 
-export function StoryForm({ loading, rateLimitedFor, onSubmit, onBack }: Props) {
-  const [text, setText] = useState('');
+export function StoryForm({ initialText = '', loading, rateLimitedFor, onSubmit, onBack }: Props) {
+  const [text, setText] = useState(initialText);
   const trimmed = text.trim();
   const disabledReason = !trimmed
     ? null // empty: disabled with no extra reason, the label already implies it

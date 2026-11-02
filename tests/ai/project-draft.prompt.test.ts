@@ -45,3 +45,12 @@ describe('buildPrompt', () => {
     expect(DRAFT_TOOL.input_schema.properties.looseTasks.maxItems).toBe(PROJECT_DRAFT_TASKS_MAX);
   });
 });
+
+describe('month spans', () => {
+  it('offers a months token and tells the model never to turn months into days', () => {
+    const { system } = buildPrompt({ text: 'x' });
+    expect(system).toContain('{"kind":"months","months":N}');
+    expect(system).toContain('never turn months into days');
+    expect(JSON.stringify(DRAFT_TOOL.input_schema)).toContain('"months"');
+  });
+});
