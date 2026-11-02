@@ -1,13 +1,9 @@
 /**
- * Review screen of "Ceritakan proyeknya" (plan §4.8): the `ProjectForm` pre-filled from the draft,
- * the editable phase/task list, and "Simpan juga sebagai template" — independent of "Buat proyek".
+ * Review screen of "Ceritakan proyeknya" (plan §4.8): the `ProjectForm` pre-filled from the draft
+ * and the editable phase/task list. Templates are saved from a created project, not from this draft.
  */
-import { Alert, Button, Group, Stack, Text } from '@mantine/core';
-import type {
-  ProjectDraft,
-  ProjectDraftPhase,
-  ProjectDraftTask,
-} from '@server/ai/project-draft.types';
+import { Alert, Button, Group, Stack } from '@mantine/core';
+import type { ProjectDraft } from '@server/ai/project-draft.types';
 import type { IsoDate } from '@server/metrics/types';
 import { useState } from 'react';
 import { FiHelpCircle } from 'react-icons/fi';
@@ -24,8 +20,6 @@ import {
   toCreateProjectInput,
 } from './project-draft.flow';
 import { STORY_COPY as COPY } from './story-create.copy';
-import { templateInputFromDraft } from './template-create.flow';
-import { useProjectTemplates } from './useProjectTemplates';
 
 type Person = { id: string; name: string };
 type Props = {
@@ -38,33 +32,6 @@ type Props = {
   cancelTo: string;
 };
 
-/** `edited` (local, with list keys) back to the plain `ProjectDraft` shape "Simpan sebagai template" converts from. */
-function liveDraftOf(edited: EditableDraft): ProjectDraft {
-  const task = (t: EditableDraft['looseTasks'][number]): ProjectDraftTask => ({
-    title: t.title,
-    description: t.description,
-    priority: t.priority,
-    kindName: t.kindName,
-    dueDate: t.dueDate,
-  });
-  const phase = (p: EditableDraft['phases'][number]): ProjectDraftPhase => ({
-    name: p.name,
-    description: p.description,
-    startDate: p.startDate,
-    endDate: p.endDate,
-    tasks: p.tasks.map(task),
-  });
-  return {
-    name: edited.name,
-    description: edited.description || null,
-    startDate: edited.startDate,
-    dueDate: edited.dueDate,
-    priority: edited.priority,
-    phases: edited.phases.map(phase),
-    looseTasks: edited.looseTasks.map(task),
-  };
-}
-
 export function StoryDraftReview({
   draft,
   today,
@@ -75,14 +42,11 @@ export function StoryDraftReview({
   cancelTo,
 }: Props) {
   const [edited, setEdited] = useState(() => editableDraftOf(draft));
-  const templates = useProjectTemplates();
 
   const merge = (input: ProjectCreateInput): ProjectCreateInput => {
     const body = toCreateProjectInput(edited);
     return { ...input, phases: body.phases, looseTasks: body.looseTasks };
   };
-  const saveTemplate = () =>
-    void templates.create.run(templateInputFromDraft(liveDraftOf(edited), today));
 
   return (
     <Stack gap="lg">
@@ -110,15 +74,6 @@ export function StoryDraftReview({
         }}
         onSubmit={async (input) => onCreate(merge(input))}
       />
-      {/* Independent of "Buat proyek" (plan §4.10): one button, no checkbox gate in front of it. */}
-      <Group justify="space-between" wrap="wrap" align="center" gap="xs">
-        <Text size="sm" c="dimmed" style={{ flex: '1 1 240px' }}>
-          {COPY.saveAsTemplateHint}
-        </Text>
-        <Button variant="default" loading={templates.create.loading} onClick={saveTemplate}>
-          {COPY.saveAsTemplate}
-        </Button>
-      </Group>
       <Group justify="flex-start">
         {/* Back to the story form with the text kept; the chooser link is the page header's. */}
         <Button variant="subtle" onClick={onBack} disabled={creating}>

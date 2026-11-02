@@ -25,8 +25,6 @@ export const STORY_COPY = {
   noLooseTasks: 'Tidak ada tugas lepas yang diusulkan.',
   removePhase: 'Hapus fase ini',
   removeTask: 'Hapus tugas ini',
-  saveAsTemplate: 'Simpan sebagai template',
-  saveAsTemplateHint: 'Terpisah dari "Buat proyek": simpan draf ini untuk dipakai lagi nanti.',
   phaseDates: (start: string, end: string) => `${start} – ${end}`,
   phaseFrom: (start: string) => `Mulai ${start}`,
   phaseUntil: (end: string) => `Sampai ${end}`,

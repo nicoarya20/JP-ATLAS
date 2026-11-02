@@ -1,11 +1,13 @@
-/** Copy of "Pakai template" (template-mode): picker, manual form, instantiate form. */
+/** Copy of "Pakai template" (template-mode): picker, instantiate form and "Simpan sebagai template" on a project. */
 export const TEMPLATE_COPY = {
   pickerTitle: 'Pilih template',
   pickerEmpty: 'Belum ada template.',
-  pickerEmptyHint: 'Buat dari cerita AI atau isi manual.',
-  createNew: '+ Bikin template baru',
+  pickerEmptyHint:
+    'Template dibuat dari proyek yang sudah ada. Buka proyek, lalu pilih "Simpan sebagai template".',
+  openProjects: 'Lihat daftar proyek',
   useButton: 'Pakai template',
   deleteButton: 'Hapus template',
+  sourceProject: 'Dari proyek',
   sourceStory: 'Dari cerita AI',
   sourceManual: 'Manual',
   phaseCount: (n: number) => `${n} fase`,
@@ -18,26 +20,23 @@ export const TEMPLATE_COPY = {
   deleteFailed: 'Gagal menghapus template',
   loadFailed: 'Gagal memuat daftar template',
 
-  formTitleNew: 'Bikin template baru',
-  nameLabel: 'Nama template',
-  namePlaceholder: 'Contoh: Renovasi rumah',
-  descriptionLabel: 'Deskripsi',
-  phasesTitle: 'Tahapan',
-  addPhase: '+ Tambah fase',
-  removePhase: 'Hapus fase ini',
-  phaseNamePlaceholder: 'Nama fase',
-  startOffsetLabel: 'Mulai (hari ke-)',
-  endOffsetLabel: 'Selesai (hari ke-)',
-  tasksTitle: 'Tugas',
-  addTask: '+ Tambah tugas',
-  removeTask: 'Hapus tugas ini',
-  taskTitlePlaceholder: 'Judul tugas',
-  dueOffsetLabel: 'Tenggat (hari ke-)',
-  looseTasksTitle: 'Tugas tanpa tahapan',
-  save: 'Simpan template',
-  saved: (name: string) => `Template "${name}" disimpan.`,
-  saveFailed: 'Gagal menyimpan template',
+  saveFromProject: 'Simpan sebagai template',
+  saveDialogTitle: 'Simpan sebagai template',
+  saveDialogHint:
+    'Yang disimpan hanya kerangkanya: tahapan, tugas, dan jarak harinya. Orang, status, dan progres tidak ikut.',
+  saveDialogSubmit: 'Simpan template',
   cancel: 'Batal',
+  saved: (name: string) => `Template "${name}" disimpan.`,
+  savedOmitted: (name: string, phases: number, tasks: number) =>
+    `Template "${name}" disimpan, tetapi ${[
+      phases > 0 ? `${phases} tahapan` : '',
+      tasks > 0 ? `${tasks} tugas` : '',
+    ]
+      .filter(Boolean)
+      .join(' dan ')} tidak ikut karena batas ukuran template.`,
+  saveFailed: 'Gagal menyimpan template. Coba lagi.',
+  nameLabel: 'Nama template',
+  descriptionLabel: 'Deskripsi',
 
   useFormTitle: (name: string) => `Pakai template "${name}"`,
   startDateLabel: 'Tanggal mulai',

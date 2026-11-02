@@ -1,4 +1,4 @@
-/** "Pakai template" (plan §5.1): the caller's own templates, a card each, with the empty state CLAUDE.md UX requires. */
+/** "Pakai template": the caller's own templates, a card each; the empty state points to "Simpan sebagai template" on a project. */
 import {
   ActionIcon,
   Badge,
@@ -19,7 +19,12 @@ import { useProjectTemplates } from './useProjectTemplates';
 
 type Props = {
   onPick: (template: TemplateListItem) => void;
-  onCreateNew: () => void;
+};
+
+const SOURCE_LABEL: Record<TemplateListItem['source'], string> = {
+  project: COPY.sourceProject,
+  story: COPY.sourceStory,
+  manual: COPY.sourceManual,
 };
 
 const dateFormatter = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' });
@@ -43,8 +48,8 @@ function TemplateCard({
             {item.name}
           </Text>
           <Group gap={6} wrap="wrap">
-            <Badge size="sm" variant="light" color={item.source === 'story' ? 'atlas' : 'gray'}>
-              {item.source === 'story' ? COPY.sourceStory : COPY.sourceManual}
+            <Badge size="sm" variant="light" color={item.source === 'manual' ? 'gray' : 'atlas'}>
+              {SOURCE_LABEL[item.source]}
             </Badge>
             <Text size="xs" c="dimmed">
               {COPY.phaseCount(item.phaseCount)} · {COPY.taskCount(item.taskCount)}
@@ -72,7 +77,7 @@ function TemplateCard({
   );
 }
 
-export function TemplatePicker({ onPick, onCreateNew }: Props) {
+export function TemplatePicker({ onPick }: Props) {
   const { data, isLoading } = useQuery({
     queryKey: templateKeys.list(''),
     queryFn: () => fetchTemplates(''),
@@ -81,12 +86,7 @@ export function TemplatePicker({ onPick, onCreateNew }: Props) {
 
   return (
     <Stack gap="md">
-      <Group justify="space-between" wrap="wrap">
-        <Title order={3}>{COPY.pickerTitle}</Title>
-        <Button variant="default" onClick={onCreateNew}>
-          {COPY.createNew}
-        </Button>
-      </Group>
+      <Title order={3}>{COPY.pickerTitle}</Title>
       {isLoading ? (
         <Stack gap="xs">
           <Skeleton height={100} radius="md" />
@@ -97,7 +97,7 @@ export function TemplatePicker({ onPick, onCreateNew }: Props) {
           icon={FiFileText}
           title={COPY.pickerEmpty}
           description={COPY.pickerEmptyHint}
-          action={{ label: COPY.createNew, onClick: onCreateNew }}
+          action={{ label: COPY.openProjects, to: '/app/projects' }}
         />
       ) : (
         <Stack gap="xs">

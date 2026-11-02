@@ -1,8 +1,7 @@
-/** "Pakai template" end to end (plan §5): pick an existing one and use it, or build a new one manually. */
+/** "Pakai template" end to end: pick one of the caller's templates (saved from a project) and use it. */
 import type { IsoDate } from '@server/metrics/types';
 import { useState } from 'react';
 import type { TemplateListItem } from '~/lib/project-templates-api';
-import { TemplateForm } from './TemplateForm';
 import { TemplatePicker } from './TemplatePicker';
 import { TemplateUseForm } from './TemplateUseForm';
 import { useProjectTemplates } from './useProjectTemplates';
@@ -14,7 +13,7 @@ type Props = {
   onSaved: (projectId: string) => void;
 };
 
-type View = { kind: 'picker' } | { kind: 'use'; template: TemplateListItem } | { kind: 'create' };
+type View = { kind: 'picker' } | { kind: 'use'; template: TemplateListItem };
 
 export function TemplateCreateStep({ creator, today, onSaved }: Props) {
   const [view, setView] = useState<View>({ kind: 'picker' });
@@ -36,23 +35,5 @@ export function TemplateCreateStep({ creator, today, onSaved }: Props) {
     );
   }
 
-  if (view.kind === 'create') {
-    return (
-      <TemplateForm
-        saving={templates.create.loading}
-        onCancel={() => setView({ kind: 'picker' })}
-        onSubmit={async (input) => {
-          const res = await templates.create.run(input);
-          if (res.ok) setView({ kind: 'picker' });
-        }}
-      />
-    );
-  }
-
-  return (
-    <TemplatePicker
-      onPick={(template) => setView({ kind: 'use', template })}
-      onCreateNew={() => setView({ kind: 'create' })}
-    />
-  );
+  return <TemplatePicker onPick={(template) => setView({ kind: 'use', template })} />;
 }
