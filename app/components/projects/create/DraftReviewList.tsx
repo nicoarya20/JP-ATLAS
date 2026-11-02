@@ -2,10 +2,11 @@
  * The phases and loose tasks of a story draft, editable inline (rename) or removable, before the
  * project is created (plan §4.8: "AI hanya mengusulkan; pengguna memeriksa draf sebelum proyek dibuat").
  * Dates, priority and kind are shown as read-only hints — the server recomputes them unchanged.
+ * Phase dates are shown too: they are saved with the project, so the user must see them first.
  */
 import { ActionIcon, Badge, Group, Paper, Stack, Text, TextInput } from '@mantine/core';
-import { FiX } from 'react-icons/fi';
-import type { EditableDraft, EditableTask } from './project-draft.flow';
+import { FiCalendar, FiX } from 'react-icons/fi';
+import { type EditableDraft, type EditableTask, phaseDatesLabel } from './project-draft.flow';
 import { STORY_COPY as COPY } from './story-create.copy';
 
 type Props = {
@@ -104,6 +105,12 @@ export function DraftReviewList({
                   >
                     <FiX size="1.25em" aria-hidden />
                   </ActionIcon>
+                </Group>
+                <Group gap={6} wrap="nowrap" c="dimmed">
+                  <FiCalendar size="1.25em" aria-hidden style={{ flexShrink: 0 }} />
+                  <Text size="sm" c="dimmed">
+                    {phaseDatesLabel(phase)}
+                  </Text>
                 </Group>
                 {phase.tasks.length > 0 && (
                   <Stack gap="xs" pl="md">

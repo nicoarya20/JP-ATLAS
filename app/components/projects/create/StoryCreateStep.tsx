@@ -33,6 +33,8 @@ export function StoryCreateStep({ creator, today, cancelTo, onSaved, onBack }: P
   const [draft, setDraft] = useState<ProjectDraft | null>(null);
   const [question, setQuestion] = useState<string | null>(null);
   const [fallbackText, setFallbackText] = useState<string | null>(null);
+  // The last story sent, so "Ubah cerita" on the review screen reopens the form with it.
+  const [story, setStory] = useState('');
   const [rateLimitedFor, setRateLimitedFor] = useState(0);
 
   useEffect(() => {
@@ -51,6 +53,7 @@ export function StoryCreateStep({ creator, today, cancelTo, onSaved, onBack }: P
   };
 
   const compose = async (text: string) => {
+    setStory(text);
     const outcome = await draftHook.compose(text);
     if (outcome.kind === 'ok') {
       setDraft(outcome.body.draft);
@@ -112,6 +115,7 @@ export function StoryCreateStep({ creator, today, cancelTo, onSaved, onBack }: P
 
   return (
     <StoryForm
+      initialText={story}
       loading={draftHook.loading}
       rateLimitedFor={rateLimitedFor}
       onSubmit={compose}

@@ -2,7 +2,7 @@
  * Review screen of "Ceritakan proyeknya" (plan §4.8): the `ProjectForm` pre-filled from the draft,
  * the editable phase/task list, and "Simpan juga sebagai template" — independent of "Buat proyek".
  */
-import { Alert, Button, Checkbox, Group, Stack } from '@mantine/core';
+import { Alert, Button, Group, Stack, Text } from '@mantine/core';
 import type {
   ProjectDraft,
   ProjectDraftPhase,
@@ -75,7 +75,6 @@ export function StoryDraftReview({
   cancelTo,
 }: Props) {
   const [edited, setEdited] = useState(() => editableDraftOf(draft));
-  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const templates = useProjectTemplates();
 
   const merge = (input: ProjectCreateInput): ProjectCreateInput => {
@@ -111,24 +110,19 @@ export function StoryDraftReview({
         }}
         onSubmit={async (input) => onCreate(merge(input))}
       />
-      <Group justify="space-between" wrap="wrap" align="center">
-        <Checkbox
-          label={COPY.saveAsTemplate}
-          checked={saveAsTemplate}
-          onChange={(e) => setSaveAsTemplate(e.currentTarget.checked)}
-        />
-        <Button
-          variant="default"
-          loading={templates.create.loading}
-          disabled={!saveAsTemplate}
-          onClick={saveTemplate}
-        >
+      {/* Independent of "Buat proyek" (plan §4.10): one button, no checkbox gate in front of it. */}
+      <Group justify="space-between" wrap="wrap" align="center" gap="xs">
+        <Text size="sm" c="dimmed" style={{ flex: '1 1 240px' }}>
+          {COPY.saveAsTemplateHint}
+        </Text>
+        <Button variant="default" loading={templates.create.loading} onClick={saveTemplate}>
           {COPY.saveAsTemplate}
         </Button>
       </Group>
       <Group justify="flex-start">
+        {/* Back to the story form with the text kept; the chooser link is the page header's. */}
         <Button variant="subtle" onClick={onBack} disabled={creating}>
-          {COPY.back}
+          {COPY.editStory}
         </Button>
       </Group>
     </Stack>

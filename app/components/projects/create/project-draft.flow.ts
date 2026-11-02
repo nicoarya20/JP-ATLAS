@@ -9,11 +9,13 @@ import type {
   ProjectDraftTask,
 } from '@server/ai/project-draft.types';
 import type { ProjectPriority } from '@server/pm/enums';
+import { formatCalendarDate } from '~/components/ui/DateText';
 import type {
   ProjectCreateInput,
   ProjectCreatePhaseInput,
   ProjectCreateTaskInput,
 } from '~/lib/projects-api';
+import { STORY_COPY } from './story-create.copy';
 
 export type EditableTask = ProjectDraftTask & { key: string };
 export type EditablePhase = Omit<ProjectDraftPhase, 'tasks'> & {
@@ -49,6 +51,16 @@ export function editableDraftOf(draft: ProjectDraft): EditableDraft {
     })),
     looseTasks: draft.looseTasks.map((t) => ({ ...t, key: nextKey() })),
   };
+}
+
+/** The phase's dates as one review line ("7 Okt 2026 – 13 Okt 2026"), so they are seen before saving. */
+export function phaseDatesLabel(p: Pick<EditablePhase, 'startDate' | 'endDate'>): string {
+  const start = p.startDate ? formatCalendarDate(p.startDate) : null;
+  const end = p.endDate ? formatCalendarDate(p.endDate) : null;
+  if (start && end) return STORY_COPY.phaseDates(start, end);
+  if (start) return STORY_COPY.phaseFrom(start);
+  if (end) return STORY_COPY.phaseUntil(end);
+  return STORY_COPY.phaseNoDates;
 }
 
 /** Removes the phase `key`; its tasks go with it (shown to the user as one row, same as the server treats it). */

@@ -9,6 +9,8 @@ export const STORY_COPY = {
   submit: 'Susun draf',
   composing: 'Menyusun draf…',
   back: 'Kembali ke pilihan cara',
+  /** Review screen: back to the story form with the text kept (it drops the draft, not the story). */
+  editStory: 'Ubah cerita',
   fallbackNotice:
     'Ceritakan proyeknya belum bisa dipakai sekarang. Ceritamu sudah dipindahkan ke kolom deskripsi — lanjutkan di form.',
   rateLimited: (seconds: number) => `Terlalu sering memakai ini. Coba lagi dalam ${seconds} detik.`,
@@ -23,7 +25,12 @@ export const STORY_COPY = {
   noLooseTasks: 'Tidak ada tugas lepas yang diusulkan.',
   removePhase: 'Hapus fase ini',
   removeTask: 'Hapus tugas ini',
-  saveAsTemplate: 'Simpan juga sebagai template',
+  saveAsTemplate: 'Simpan sebagai template',
+  saveAsTemplateHint: 'Terpisah dari "Buat proyek": simpan draf ini untuk dipakai lagi nanti.',
+  phaseDates: (start: string, end: string) => `${start} – ${end}`,
+  phaseFrom: (start: string) => `Mulai ${start}`,
+  phaseUntil: (end: string) => `Sampai ${end}`,
+  phaseNoDates: 'Tanpa tanggal',
   submitCreate: 'Buat proyek',
   submitFailed: 'Gagal membuat proyek',
   templateSaved: (name: string) => `Template "${name}" disimpan.`,

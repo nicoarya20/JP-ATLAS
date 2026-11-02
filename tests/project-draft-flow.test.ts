@@ -2,12 +2,14 @@
 import { describe, expect, it } from 'bun:test';
 import {
   editableDraftOf,
+  phaseDatesLabel,
   removePhase,
   removeTask,
   renamePhase,
   renameTask,
   toCreateProjectInput,
 } from '../app/components/projects/create/project-draft.flow';
+import { formatCalendarDate } from '../app/components/ui/DateText';
 import type { ProjectDraft } from '../server/ai/project-draft.types';
 
 const draft: ProjectDraft = {
@@ -109,5 +111,23 @@ describe('removePhase / removeTask / renamePhase / renameTask', () => {
     const renamedTask = renameTask(d, d.looseTasks[0]?.key as string, 'Judul baru');
     expect(renamedTask.looseTasks[0]?.title).toBe('Judul baru');
     expect(renamedTask.phases[0]?.tasks[0]?.title).toBe('Beli cat'); // untouched
+  });
+});
+
+describe('phaseDatesLabel', () => {
+  const s = formatCalendarDate('2026-11-02');
+  const e = formatCalendarDate('2026-11-08');
+
+  it('shows both ends of a phase as one range', () => {
+    expect(phaseDatesLabel({ startDate: '2026-11-02', endDate: '2026-11-08' })).toBe(`${s} – ${e}`);
+  });
+
+  it('names the one end it has', () => {
+    expect(phaseDatesLabel({ startDate: '2026-11-02', endDate: null })).toBe(`Mulai ${s}`);
+    expect(phaseDatesLabel({ startDate: null, endDate: '2026-11-08' })).toBe(`Sampai ${e}`);
+  });
+
+  it('says so when the phase has no dates instead of showing nothing', () => {
+    expect(phaseDatesLabel({ startDate: null, endDate: null })).toBe('Tanpa tanggal');
   });
 });
