@@ -1,6 +1,6 @@
 /** Model output validation (A1): the answer is untrusted, so shape errors reject it and stray values become null. */
 import { describe, expect, it } from 'bun:test';
-import { parseModelOutput } from '../../server/ai/task-draft.schema';
+import { parseDue, parseModelOutput } from '../../server/ai/task-draft.schema';
 import { TASK_DESCRIPTION_MAX, TASK_TITLE_MAX } from '../../server/task/task.limits';
 
 const draft = (over: Record<string, unknown> = {}) => ({
@@ -147,5 +147,13 @@ describe('parseModelOutput titles', () => {
   it('collapses line breaks in a title into one line', () => {
     const out = parseModelOutput({ drafts: [draft({ title: 'Satu\n\n  dua' })], question: null });
     expect(out?.drafts[0]?.title).toBe('Satu dua');
+  });
+});
+
+describe('parseDue months', () => {
+  it('accepts a whole number of months and drops anything else', () => {
+    expect(parseDue({ kind: 'months', months: 3 })).toEqual({ kind: 'months', months: 3 });
+    expect(parseDue({ kind: 'months', months: '3' })).toBeNull();
+    expect(parseDue({ kind: 'months' })).toBeNull();
   });
 });

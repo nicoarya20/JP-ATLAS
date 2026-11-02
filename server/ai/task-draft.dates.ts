@@ -5,7 +5,11 @@
  */
 import type { IsoDate } from '../metrics/dates';
 import { diffDays } from '../metrics/dates';
-import { TASK_DRAFT_DATE_WINDOW_DAYS, TASK_DRAFT_OFFSET_MAX_DAYS } from './task-draft.limits';
+import {
+  TASK_DRAFT_DATE_WINDOW_DAYS,
+  TASK_DRAFT_OFFSET_MAX_DAYS,
+  TASK_DRAFT_OFFSET_MAX_MONTHS,
+} from './task-draft.limits';
 
 /** Monday first, the order of an Indonesian week. */
 export const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -15,6 +19,8 @@ export type Weekday = (typeof WEEKDAYS)[number];
 export type DueToken =
   /** "hari ini" = 0, "besok" = 1, "lusa" = 2, "minggu depan" = 7. */
   | { kind: 'offset'; days: number }
+  /** "sebulan lagi" = 1, "3 bulan dari sekarang" = 3: calendar months, not 30-day blocks. */
+  | { kind: 'months'; months: number }
   /** "Jumat" (`next: false`: the coming Friday, today counts) or "Jumat depan" (`next: true`: Friday of next week). */
   | { kind: 'weekday'; weekday: Weekday; next: boolean }
   /** "tanggal 15" (`month: null`) or "15 November": the next such day from today on. */
@@ -46,6 +52,18 @@ export function addDays(iso: IsoDate, n: number): IsoDate {
   const [y, m, d] = partsOf(iso) ?? [1970, 1, 1];
   const t = new Date(Date.UTC(y, m - 1, d + n));
   return isoOf(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+}
+
+/**
+ * `iso` moved by `n` calendar months; a day the target month lacks becomes its last day
+ * (31 Jan + 1 month = 28/29 Feb), the usual reading of "sebulan lagi".
+ */
+export function addMonths(iso: IsoDate, n: number): IsoDate {
+  const [y, m, d] = partsOf(iso) ?? [1970, 1, 1];
+  const index = m - 1 + n;
+  const ty = y + Math.floor(index / MONTHS_PER_YEAR);
+  const tm = (((index % MONTHS_PER_YEAR) + MONTHS_PER_YEAR) % MONTHS_PER_YEAR) + 1;
+  return isoOf(ty, tm, Math.min(d, daysInMonth(ty, tm)));
 }
 
 /** 0 = Monday ... 6 = Sunday. */
@@ -86,6 +104,12 @@ export function resolveDue(token: DueToken, today: IsoDate): IsoDate | null {
         token.days >= 0 &&
         token.days <= TASK_DRAFT_OFFSET_MAX_DAYS
         ? addDays(today, token.days)
+        : null;
+    case 'months':
+      return Number.isInteger(token.months) &&
+        token.months >= 0 &&
+        token.months <= TASK_DRAFT_OFFSET_MAX_MONTHS
+        ? addMonths(today, token.months)
         : null;
     case 'weekday':
       return WEEKDAYS.includes(token.weekday)

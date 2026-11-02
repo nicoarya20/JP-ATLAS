@@ -1,6 +1,6 @@
 /** Due-date tokens (A1): the code, not the model, turns "besok" or "Jumat" into a date. */
 import { describe, expect, it } from 'bun:test';
-import { addDays, resolveDue } from '../../server/ai/task-draft.dates';
+import { addDays, addMonths, resolveDue } from '../../server/ai/task-draft.dates';
 
 /** Wednesday, the "today" of the Atlas scenario; fixed so no test depends on the machine clock. */
 const WED = '2026-10-07';
@@ -72,5 +72,27 @@ describe('resolveDue', () => {
     expect(resolveDue({ kind: 'date', iso: '20 Nov 2026' }, WED)).toBeNull();
     expect(resolveDue({ kind: 'date', iso: '1999-01-01' }, WED)).toBeNull();
     expect(resolveDue({ kind: 'date', iso: '2099-01-01' }, WED)).toBeNull();
+  });
+});
+
+describe('months tokens', () => {
+  it('moves by calendar months, not 30-day blocks', () => {
+    expect(resolveDue({ kind: 'months', months: 1 }, WED)).toBe('2026-11-07');
+    expect(resolveDue({ kind: 'months', months: 3 }, '2026-11-02')).toBe('2027-02-02');
+    expect(resolveDue({ kind: 'months', months: 0 }, WED)).toBe(WED);
+  });
+
+  it('clamps to the last day of a shorter month, leap years included', () => {
+    expect(addMonths('2027-01-31', 1)).toBe('2027-02-28');
+    expect(addMonths('2028-01-31', 1)).toBe('2028-02-29');
+    expect(addMonths('2026-08-31', 1)).toBe('2026-09-30');
+    expect(addMonths('2026-12-15', 14)).toBe('2028-02-15');
+  });
+
+  it('rejects negative, fractional and too-far month counts', () => {
+    expect(resolveDue({ kind: 'months', months: -1 }, WED)).toBeNull();
+    expect(resolveDue({ kind: 'months', months: 1.5 }, WED)).toBeNull();
+    expect(resolveDue({ kind: 'months', months: 25 }, WED)).toBeNull();
+    expect(resolveDue({ kind: 'months', months: 24 }, WED)).toBe('2028-10-07');
   });
 });
