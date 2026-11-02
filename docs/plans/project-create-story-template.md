@@ -23,7 +23,7 @@ Ditanyakan lewat `ask` sebelum dokumen ini ditulis; jawaban coordinator mengikat
    `envman run claude:nico-opus` di sesi implementasi untuk mengatur model yang dipakai. Jangan
    menebak detail teknis profil `envman` itu. Rencana ini tetap mendesain modul AI baru di atas
    `aiConfig()`/`ai.config.ts` yang **sudah ada** (sama seperti task draft, dibaca dari
-   `ANTHROPIC_API_KEY` + `TASK_AI_MODEL` dkk.) — **tanpa** menambah env var model baru — dan
+   `SIMPLE_PM_AI` + `SIMPLE_PM_AI_MODEL` dkk.) — **tanpa** menambah env var model baru — dan
    mencatat di §11 bahwa agen implementasi wajib menjalankan `envman run claude:nico-opus` sebelum
    mulai coding, serta mengonfirmasi ulang ke coordinator apakah itu berarti perlu env var/model
    terpisah atau cukup pakai yang sudah ada.
@@ -31,11 +31,11 @@ Ditanyakan lewat `ask` sebelum dokumen ini ditulis; jawaban coordinator mengikat
    apa adanya.** Rate limiter per user **tidak boleh dibuat baru** — modul baru mengimpor
    `draftLimiter` yang sudah diekspor dari `server/ai/task-draft.service.ts` (kuota 10
    panggilan/menit/user dipakai bersama antara "Tulis saja" dan "Ceritakan proyeknya"). Budget
-   token ikut `aiConfig().maxTokens` (env `TASK_AI_MAX_TOKENS`, default 1500, maks 8000) — **tidak**
+   token ikut `aiConfig().maxTokens` (env `SIMPLE_PM_AI_MAX_TOKENS`, default 4000, maks 8000) — **tidak**
    ada env token budget terpisah. Lihat §12 untuk open question soal cukup/tidaknya cap 8000.
 3. **Feature flag** — coordinator putuskan sendiri: **tidak ada toggle terpisah.** Mengikuti
    konvensi `aiEnabled()`/`storageEnabled()`: mode story otomatis tidak bisa dipakai selama
-   `ANTHROPIC_API_KEY` kosong (sama seperti fitur AI lain, jatuh ke pesan "belum bisa dipakai, isi
+   `SIMPLE_PM_AI` kosong (sama seperti fitur AI lain, jatuh ke pesan "belum bisa dipakai, isi
    form saja"). Mode template tidak bergantung AI sama sekali, jadi tidak digate apa pun.
 4. **Urutan prioritas** — user: **dikerjakan bersamaan**, satu slice pekerjaan yang mencakup
    story-mode dan template-mode sekaligus (bukan dua slice berurutan). Rencana di bawah disusun
@@ -232,7 +232,7 @@ yang dikirim di `<konteks>` (tidak perlu query DB karena ini daftar statis).
 ### 4.5 Rate limit & token budget
 
 Lihat §1.2: `draftLimiter` yang sama (10/menit/user, dibagi dengan "Tulis saja"), `maxTokens` dari
-`aiConfig()` yang sama (default 1500, bisa dinaikkan lewat `TASK_AI_MAX_TOKENS` sampai 8000). Untuk
+`aiConfig()` yang sama (default 4000, bisa dinaikkan lewat `SIMPLE_PM_AI_MAX_TOKENS` sampai 8000). Untuk
 menjaga output tetap masuk akal di bawah cap: `PROJECT_DRAFT_PHASES_MAX` diusulkan **6** dan
 `PROJECT_DRAFT_TASKS_MAX` diusulkan **20** (lintas semua fase) — jauh di bawah ceiling asli
 (`PHASES_PER_PROJECT = 20`), supaya draf awal tetap ringkas dan nyaman direview, bukan mencoba
@@ -572,8 +572,8 @@ ada `it('should work', () => {})` kosong.
 
 - **TODO wajib ditulis di kode saat implementasi** (bukan diam-diam): `// TODO(project-draft): model
   AI diatur lewat profil envman (`envman run claude:nico-opus`) saat sesi implementasi dimulai —
-  konfirmasi ke coordinator apakah ini perlu env var baru atau cukup pakai ANTHROPIC_API_KEY/
-  TASK_AI_MODEL yang sudah ada.` Ditaruh di `server/ai/project-draft.service.ts` dekat pemanggilan
+  konfirmasi ke coordinator apakah ini perlu env var baru atau cukup pakai SIMPLE_PM_AI/
+  SIMPLE_PM_AI_MODEL yang sudah ada.` Ditaruh di `server/ai/project-draft.service.ts` dekat pemanggilan
   `aiConfig()`, supaya agen implementasi membaca ulang keputusan ini sebelum menulis kode asli.
 - **Sebelum coding dimulai**: jalankan `envman run claude:nico-opus` seperti diminta coordinator
   (§1.1) — langkah ini di luar cakupan dokumen rencana (bukan kode), tapi wajib dicatat sebagai
@@ -602,7 +602,7 @@ rencana ini dan harus ditanya ulang:
 > fallback form lebih sering dari yang diinginkan. Mitigasi yang sudah diusulkan di §4.5
 > (`PROJECT_DRAFT_PHASES_MAX = 6`, `PROJECT_DRAFT_TASKS_MAX = 20`) mengurangi risiko ini tapi belum
 > diverifikasi dengan panggilan model sungguhan — baru bisa dipastikan saat implementasi (butuh
-> `ANTHROPIC_API_KEY` aktif untuk uji coba nyata).
+> `SIMPLE_PM_AI` aktif untuk uji coba nyata).
 
 Pertanyaan tambahan (bukan dari daftar wajib, muncul dari detail desain — tidak memblokir, tapi
 sebaiknya dikonfirmasi sebelum/awal implementasi):

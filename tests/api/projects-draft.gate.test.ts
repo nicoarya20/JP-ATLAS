@@ -57,13 +57,13 @@ describe('permission follows project creation', () => {
 
 describe('provider fallbacks', () => {
   it('answers 503 AI_DISABLED without a key and never calls the provider', async () => {
-    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.SIMPLE_PM_AI;
     auth.as(await f.user({ role: 'project_manager' }));
     const res = await draft();
     expectApiError(res, 503, 'AI_DISABLED');
     expect(res.body.error).toContain('Isi form saja');
     expect(provider.calls).toHaveLength(0);
-    process.env.ANTHROPIC_API_KEY = '   '; // blank counts as unset
+    process.env.SIMPLE_PM_AI = '   '; // blank counts as unset
     expectApiError(await draft(), 503, 'AI_DISABLED');
   });
 

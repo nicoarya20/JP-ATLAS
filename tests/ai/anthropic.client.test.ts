@@ -4,7 +4,7 @@ import { aiConfig } from '../../server/ai/ai.config';
 import { type AiFailure, AiUnavailableError, callTool } from '../../server/ai/anthropic.client';
 import { installProviderStub, jsonResponse, TOOL_NAME, toolUse } from '../support/ai';
 
-const CFG = aiConfig({ ANTHROPIC_API_KEY: 'test-key-not-real', TASK_AI_TIMEOUT_MS: '500' }); // test-only
+const CFG = aiConfig({ SIMPLE_PM_AI: 'test-key-not-real', SIMPLE_PM_AI_TIMEOUT_MS: '500' }); // test-only
 if (!CFG) throw new Error('test config must have a key');
 const CALL = {
   system: 'SYS',
@@ -80,7 +80,7 @@ describe('callTool', () => {
           init.signal?.addEventListener('abort', () => reject(init.signal?.reason));
         }),
     );
-    const slow = aiConfig({ ANTHROPIC_API_KEY: 'k', TASK_AI_TIMEOUT_MS: '30' }); // test-only
+    const slow = aiConfig({ SIMPLE_PM_AI: 'k', SIMPLE_PM_AI_TIMEOUT_MS: '30' }); // test-only
     if (!slow) throw new Error('config');
     expect((await reasonOf(callTool(slow, CALL))).reason).toBe('timeout');
   });
