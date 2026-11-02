@@ -23,6 +23,7 @@ import {
   canWriteNote,
 } from './event.policy';
 import { canCreateProject, canManageProject, canTrashProject } from './project.policy';
+import { canSaveProjectAsTemplate } from './project-template.policy';
 import {
   canApproveTask,
   canChangeReviewer,
@@ -82,7 +83,13 @@ export const TASK_CAP_KEYS = [
 export type TaskCapKey = (typeof TASK_CAP_KEYS)[number];
 
 /** Keys of a project's `can{}`; `untrash` joins with the Trash slice (S6) and `attach` with files (S5). */
-export const PROJECT_CAP_KEYS = ['update', 'trash', 'createTask', 'manageKinds'] as const;
+export const PROJECT_CAP_KEYS = [
+  'update',
+  'trash',
+  'createTask',
+  'manageKinds',
+  'saveAsTemplate',
+] as const;
 export type ProjectCapKey = (typeof PROJECT_CAP_KEYS)[number];
 
 // `restore` is deliberately absent: it needs `now` for the retention check and belongs to the
@@ -185,6 +192,7 @@ export function projectCaps(
     trash: canTrashProject(p, project, m, rules),
     createTask: canCreateTask(p, project, m, rules),
     manageKinds: canManageKinds(p, project, m, rules),
+    saveAsTemplate: canSaveProjectAsTemplate(p, project, m, rules),
   });
 }
 

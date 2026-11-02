@@ -33,8 +33,9 @@ export type ExtensionReasonCategory = (typeof EXTENSION_REASON_CATEGORIES)[numbe
 export const TASK_BASE_KINDS = ['task', 'issue', 'idea'] as const;
 export type TaskBaseKind = (typeof TASK_BASE_KINDS)[number];
 
-// What a saved project_template was built from: a story-mode draft, or typed in by hand (S0-S2 extension).
-export const PROJECT_TEMPLATE_SOURCES = ['story', 'manual'] as const;
+// What a saved project_template was built from: an existing project (the only path the UI offers now),
+// or, on older rows, a story-mode draft or a hand-typed form.
+export const PROJECT_TEMPLATE_SOURCES = ['story', 'manual', 'project'] as const;
 export type ProjectTemplateSource = (typeof PROJECT_TEMPLATE_SOURCES)[number];
 
 export const TASK_STATUSES = ['todo', 'in_progress', 'in_review', 'done', 'canceled'] as const;

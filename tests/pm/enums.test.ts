@@ -35,7 +35,7 @@ const EXPECTED: Record<string, readonly (string | number)[]> = {
   EXTENSION_REASON_CATEGORIES: ['scope_change', 'dependency', 'resource', 'other'],
   // Addition for story-mode and template-mode (docs/plans/project-create-story-template.md),
   // migration 0024: what a saved project_template was built from.
-  PROJECT_TEMPLATE_SOURCES: ['story', 'manual'],
+  PROJECT_TEMPLATE_SOURCES: ['story', 'manual', 'project'],
 };
 
 describe('shared enum tuples', () => {
