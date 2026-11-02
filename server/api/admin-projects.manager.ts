@@ -14,9 +14,10 @@ import { project, projectMember, user } from '../db/schema';
 import { canActOnTarget } from '../permissions';
 import { fail } from '../pm/respond';
 import { inTx, type Tx } from '../pm/tx';
-import { lockProject, logActivity, type WriteResult } from '../project/project.service';
-import { IdParam } from './app-common';
+import { lockProject, logActivity } from '../project/project.service';
+import type { WriteResult } from '../project/project-write.rules';
 import { adminContext, callerOf } from './admin-context';
+import { IdParam } from './app-common';
 
 const Body = t.Object({ userId: t.String({ minLength: 1 }) }, { additionalProperties: false });
 
@@ -52,12 +53,14 @@ export async function setProjectManagerByAdmin(
         .select({ role: user.role })
         .from(user)
         .where(eq(user.id, row.leadId));
-      if (!canActOnTarget(admin.appRole, oldLead?.role)) return { ok: false, code: 'TARGET_PROTECTED' };
+      if (!canActOnTarget(admin.appRole, oldLead?.role))
+        return { ok: false, code: 'TARGET_PROTECTED' };
     }
 
     const [target] = await tx.select({ id: user.id }).from(user).where(eq(user.id, userId));
     if (!target) return { ok: false, code: 'NOT_FOUND' };
-    if (row.leadId === userId) return { ok: true, value: { id: row.id, from: row.leadId, to: userId } };
+    if (row.leadId === userId)
+      return { ok: true, value: { id: row.id, from: row.leadId, to: userId } };
 
     // The new Pengelola must already be a manager-member of this project — the same rule as the
     // product's own lead handover (`canSetLead`), kept deliberately (user decision, AD-13 option A):
@@ -65,7 +68,8 @@ export async function setProjectManagerByAdmin(
     // candidate (AD-17 covers the sole-manager case, not this route). Enforced here too, not only in
     // the picker, so a stale picker cannot smuggle in a non-manager.
     const role = await managerRoleOf(tx, projectId, userId);
-    if (role !== 'manager') return { ok: false, code: role ? 'LEAD_MUST_BE_MANAGER' : 'NOT_MEMBER' };
+    if (role !== 'manager')
+      return { ok: false, code: role ? 'LEAD_MUST_BE_MANAGER' : 'NOT_MEMBER' };
 
     await tx.update(project).set({ leadId: userId }).where(eq(project.id, row.id));
     await logActivity(tx, admin, row.id, 'lead_changed', { from: row.leadId, to: userId });

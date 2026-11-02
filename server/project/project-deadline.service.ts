@@ -8,7 +8,7 @@ import type { Principal } from '../access/types';
 import { project, projectDeadlineExtension } from '../db/schema';
 import type { ExtensionReasonCategory } from '../pm/enums';
 import { EXTENSION_REASON_MAX } from './project.limits';
-import { isCalendarDate, logActivity } from './project.service';
+import { logActivity } from './project.service';
 import {
   checkReason,
   type DeadlineResult,
@@ -19,6 +19,7 @@ import {
 } from './project-deadline.guard';
 import { countExtensions } from './project-deadline.query';
 import { type DeadlineExtensionDto, toDeadlineExtensionDto } from './project-plan.dto';
+import { isCalendarDate } from './project-write.rules';
 
 export type ExtendInput = {
   /** `YYYY-MM-DD`, strictly after the current due date. */

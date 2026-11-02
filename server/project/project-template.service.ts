@@ -18,11 +18,10 @@ import {
   type CreateProjectPhaseInput,
   type CreateProjectTaskInput,
   createProject,
-  isCalendarDate,
-  type WriteResult,
 } from './project.service';
 import type { TemplatePhaseDto, TemplateTaskDto } from './project-template.dto';
 import { getTemplateDetail } from './project-template.query';
+import { isCalendarDate, type WriteResult } from './project-write.rules';
 
 export type TemplateTaskInput = {
   title: string;

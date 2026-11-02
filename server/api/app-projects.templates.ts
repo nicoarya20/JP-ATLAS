@@ -10,7 +10,6 @@ import { PAGE_LIMIT_DEFAULT } from '../pm/limits';
 import { fail } from '../pm/respond';
 import { toPrincipal } from '../project/membership.query';
 import { getProjectDetail } from '../project/project.query';
-import type { WriteResult } from '../project/project.service';
 import { getTemplateDetail, listTemplates } from '../project/project-template.query';
 import {
   createTemplate,
@@ -18,6 +17,7 @@ import {
   updateTemplate,
   useTemplate,
 } from '../project/project-template.service';
+import type { WriteResult } from '../project/project-write.rules';
 import { IdParam } from './app-common';
 import { appContext } from './app-context';
 import {
