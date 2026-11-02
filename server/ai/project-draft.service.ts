@@ -5,7 +5,7 @@
  * ids, latency and an outcome word only: never the story or the draft itself.
  *
  * Model/provider settings (plan §1.1): decided to reuse `aiConfig()` exactly as `task-draft.*`
- * already reads it (`ANTHROPIC_API_KEY`, `TASK_AI_MODEL`, …) — no separate env var for this
+ * already reads it (`SIMPLE_PM_AI`, `SIMPLE_PM_AI_MODEL`, …) — no separate env var for this
  * feature. `envman run claude:nico-opus` only configured the implementing agent's own session
  * model and is unrelated to how this module reads its provider settings at runtime.
  */

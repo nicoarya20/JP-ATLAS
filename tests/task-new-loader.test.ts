@@ -115,7 +115,7 @@ describe('task-new loader', () => {
 });
 
 describe('task-new loader: Tulis saja availability', () => {
-  const KEY = 'ANTHROPIC_API_KEY';
+  const KEY = 'SIMPLE_PM_AI';
   const before = process.env[KEY];
   afterEach(() => {
     if (before === undefined) delete process.env[KEY];

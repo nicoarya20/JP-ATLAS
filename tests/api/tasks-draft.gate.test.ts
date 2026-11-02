@@ -82,13 +82,13 @@ describe('permission follows task creation', () => {
 describe('provider fallbacks', () => {
   it('answers 503 AI_DISABLED without a key and never calls the provider', async () => {
     const w = await world();
-    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.SIMPLE_PM_AI;
     auth.as(w.rina);
     const res = await draft(w.proj.id);
     expectApiError(res, 503, 'AI_DISABLED');
     expect(res.body.error).toContain('Isi form saja');
     expect(provider.calls).toHaveLength(0);
-    process.env.ANTHROPIC_API_KEY = '   '; // blank counts as unset
+    process.env.SIMPLE_PM_AI = '   '; // blank counts as unset
     expectApiError(await draft(w.proj.id), 503, 'AI_DISABLED');
   });
 
