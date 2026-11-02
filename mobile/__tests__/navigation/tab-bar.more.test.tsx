@@ -175,6 +175,22 @@ describe('More panel', () => {
     expect(button('Trash')).toBeOnTheScreen();
   });
 
+  it('lays the tiles out three to a row of the grid as it is now, not as it was first measured', async () => {
+    await open('/');
+    await pick('More');
+    const layout = (width: number) =>
+      fireEvent.layout(screen.getByTestId('more-grid'), { width, height: 170 });
+    const widths = () => screen.getAllByTestId('more-cell').map((c) => c.props.style.width);
+
+    // first laid out across the whole bar, before whoami brings the "+"
+    await layout(344);
+    expect(widths()).toEqual([114, 114, 114, 114]);
+    // the "+" takes its room: three still fit, never past the row (274 / 3 = 91.33)
+    await layout(274);
+    expect(widths()).toEqual([91, 91, 91, 91]);
+    expect(widths()[0] * 3).toBeLessThanOrEqual(274);
+  });
+
   it('folds on another tab and goes there', async () => {
     await open('/');
     await pick('More');

@@ -1,6 +1,6 @@
 import { type Href, router } from 'expo-router';
 import { ChevronRight } from 'lucide-react-native';
-import { type ComponentRef, useEffect, useRef } from 'react';
+import { type ComponentRef, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, type HostInstance, View } from 'react-native';
 
 import { CountBadge } from '@/components/badge/count-badge';
@@ -77,6 +77,10 @@ export function MorePanel({ close }: MorePanelProps) {
     if (dashboard) void usersStatsResource.ensure();
   }, [dashboard]);
   const card = useRef<ComponentRef<typeof Pressable>>(null);
+  // A third of the grid in points, measured: a percentage basis kept the width of the full-width bar it was first laid
+  // out in (no "+" until whoami is in), so the tiles stayed too wide for three once the "+" took its room. Floored, so
+  // three never add up past the row and wrap.
+  const [column, setColumn] = useState(0);
   const { open: unfolded } = usePanel();
   // A screen reader starts on the profile card once the panel has unfolded under it.
   useEffect(() => {
@@ -119,9 +123,13 @@ export function MorePanel({ close }: MorePanelProps) {
           <Icon as={ChevronRight} className="h-[18px] w-[18px] text-muted-foreground" />
         </Pressable>
       </PanelRise>
-      <View className="flex-row flex-wrap gap-y-3">
+      <View
+        testID="more-grid"
+        onLayout={(e) => setColumn(Math.floor(e.nativeEvent.layout.width / 3))}
+        className="flex-row flex-wrap gap-y-3"
+      >
         {moreTiles(caps, { inbox: d.inbox, pending }).map((tile, i) => (
-          <View key={tile.label} className="basis-1/3">
+          <View key={tile.label} testID="more-cell" style={{ width: column }}>
             <PanelRise i={i + 1}>
               <Tile tile={tile} onOpen={() => open(tile.path)} />
             </PanelRise>
