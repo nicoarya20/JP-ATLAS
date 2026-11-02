@@ -133,6 +133,10 @@ export const task = pgTable(
     index('task_assignee_id_status_due_date_idx')
       .on(t.assigneeId, t.status, t.dueDate)
       .where(sql`${t.deletedAt} IS NULL`),
+    // The other half of "mine" (`mineOf`): unassigned tasks belong to their creator until someone is assigned.
+    index('task_created_by_unassigned_idx')
+      .on(t.createdBy, t.status, t.dueDate)
+      .where(sql`${t.assigneeId} IS NULL AND ${t.deletedAt} IS NULL`),
     // "Waiting for my review" only ever reads in_review tasks, the smallest slice of the table.
     index('task_project_id_reviewer_id_idx')
       .on(t.projectId, t.reviewerId)

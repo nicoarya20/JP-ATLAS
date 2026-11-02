@@ -28,6 +28,17 @@ export function visibleTo(scope: ProjectListScope): SQL | undefined {
   );
 }
 
+/**
+ * "Mine" for Tugas saya, its counts and Beranda's My Focus: assigned to me, or unassigned and created by me. The
+ * creator holds an unassigned task only until someone is assigned; from then on it is the assignee's alone.
+ */
+export function mineOf(userId: string): SQL {
+  return or(
+    eq(task.assigneeId, userId),
+    and(isNull(task.assigneeId), eq(task.createdBy, userId)),
+  ) as SQL;
+}
+
 /** Open work only: the statuses shared with the pure `isActive`. */
 export const activeTask = inArray(task.status, [...ACTIVE_STATUSES]);
 

@@ -9,7 +9,7 @@
 
 ## Alur yang didukung
 
-1. **Tugas saya (①)**: tugas aktif yang `assignee_id` = user, dikelompokkan per jadwal. Di atasnya bagian **Menunggu diperiksa saya** untuk Pengelola/Admin.
+1. **Tugas saya (①)**: tugas aktif yang `assignee_id` = user, **atau** yang belum punya pengerja (`assignee_id` kosong) dan dibuat user (`created_by` = user), dikelompokkan per jadwal. Tugas tanpa pengerja dipegang pembuatnya hanya sampai ada rekan yang ditugaskan; setelah itu tugas milik pengerja saja (keputusan QC mobile, 3 Nov 2026; `mineOf` di `server/task/task.sql.ts`). Aturan yang sama dipakai angka per grup dan Fokus saya di Beranda; beban kerja Tim tetap hanya menghitung pengerja. Di atasnya bagian **Menunggu diperiksa saya** untuk Pengelola/Admin.
 2. **Semua tugas (②③)**: semua tugas di proyek yang boleh dilihat user, tampilan List atau Papan. Tugas di Sampah (`deleted_at` terisi) tidak tampil.
 3. **Tugas baru**, tiga cara:
    - **Tulis saja ✦ (⑤)**: user menulis kalimat bebas, AI menyusun satu atau beberapa draf tugas. Tidak ada yang tersimpan sebelum **Simpan** diklik. Saat disimpan, `tasks.source = ai_text` dan tulisan asli dicatat di `task_activities.payload`.
@@ -482,6 +482,7 @@ Jika satu tugas memenuhi beberapa label, baris di daftar hanya menampilkan satu,
 - `tasks(number)` UNIQUE
 - `tasks(project_id, status)`: daftar per proyek + filter status
 - `tasks(assignee_id, status, due_date)`: Tugas saya
+- `tasks(created_by, status, due_date) WHERE assignee_id IS NULL`: Tugas saya, bagian tugas tanpa pengerja yang dibuat user
 - `tasks(reviewer_id, status)`: Menunggu diperiksa saya
 - `tasks(phase_id)`, `tasks(kind_id)`
 - `tasks(status, last_activity_at)`: Mandek

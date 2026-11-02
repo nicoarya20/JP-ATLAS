@@ -32,6 +32,7 @@ import {
   groupCase,
   inGroup,
   liveTask,
+  mineOf,
   onTaskPhase,
   orderBy,
   SORTS,
@@ -47,7 +48,7 @@ const clampLimit = (n: number | undefined) =>
 function filtersOf(p: Principal, i: ListTasksInput, today: string): (SQL | undefined)[] {
   const q = i.q?.trim().slice(0, TASK_SEARCH_MAX);
   return [
-    i.scope === 'mine' ? eq(task.assigneeId, p.id) : undefined,
+    i.scope === 'mine' ? mineOf(p.id) : undefined,
     // Whenever a project is named, not only for `scope=project`: the Proyek filter of the Tugas page sends it with `mine` and `all`.
     i.projectId ? eq(task.projectId, i.projectId) : undefined,
     i.status?.length ? inArray(task.status, [...i.status]) : undefined,
@@ -192,7 +193,7 @@ export async function countTasks(
     .select({ status: task.status, group, n: sql<number>`count(*)::int` })
     .from(task)
     .innerJoin(project, eq(project.id, task.projectId))
-    .where(and(liveTask, visibleTo(projectListScope(p)), eq(task.assigneeId, p.id)))
+    .where(and(liveTask, visibleTo(projectListScope(p)), mineOf(p.id)))
     // Ordinals, not the CASE text: its dates are bind parameters, and Postgres cannot match two
     // copies of an expression that carry different placeholders.
     .groupBy(sql`1`, sql`2`);
