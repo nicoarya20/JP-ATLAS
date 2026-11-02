@@ -10,7 +10,8 @@ import { projectPhase } from '../db/schema';
 import type { PmCode } from '../pm/errors';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from './membership.query';
-import { isCalendarDate, type LockedProject, lockProject, refused } from './project.service';
+import { type LockedProject, lockProject } from './project.service';
+import { isCalendarDate, refused } from './project-write.rules';
 
 /**
  * Limit codes of the plan. They live here, not in the shared `pm/errors.ts` catalog, so the plan

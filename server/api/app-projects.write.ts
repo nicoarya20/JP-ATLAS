@@ -23,8 +23,8 @@ import {
   setProjectLead,
   setProjectStatus,
   updateProject,
-  type WriteResult,
 } from '../project/project.service';
+import type { WriteResult } from '../project/project-write.rules';
 import { TASK_DESCRIPTION_MAX, TASK_TITLE_MAX } from '../task/task.limits';
 import { IdParam, oneOf } from './app-common';
 import { appContext } from './app-context';
