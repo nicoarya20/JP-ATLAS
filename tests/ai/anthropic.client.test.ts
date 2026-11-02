@@ -44,6 +44,26 @@ describe('callTool', () => {
     expect(body.messages).toEqual([{ role: 'user', content: 'secret story text' }]);
   });
 
+  it('sends an OpenRouter key as a bearer token to the OpenRouter Messages endpoint', async () => {
+    const or = aiConfig({ SIMPLE_PM_AI: 'sk-or-v1-not-real' }); // test-only
+    if (!or) throw new Error('test config must have a key');
+    reply(toolUse({ drafts: [] }));
+    expect(await callTool(or, CALL)).toEqual({ drafts: [] });
+    const { url, init, body } = provider.calls[0] ?? { url: '', init: {}, body: null };
+    expect(url).toBe('https://openrouter.ai/api/v1/messages');
+    const headers = init.headers as Record<string, string>;
+    expect(headers.authorization).toBe('Bearer sk-or-v1-not-real');
+    expect(headers['x-api-key']).toBeUndefined();
+    expect(body).toMatchObject({ model: 'anthropic/claude-haiku-5.5' });
+  });
+
+  it('never sends a bearer header for an Anthropic key', async () => {
+    reply(toolUse({ drafts: [] }));
+    await callTool(CFG, CALL);
+    const headers = (provider.calls[0]?.init.headers ?? {}) as Record<string, string>;
+    expect(headers.authorization).toBeUndefined();
+  });
+
   it.each([
     [429, 'rate_limited'],
     [500, 'http_server'],

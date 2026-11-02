@@ -10,6 +10,7 @@ import type { PmCode } from '../pm/errors';
 import { RateLimiter } from '../rate-limit';
 import type { TaskClock } from '../task/task.dto';
 import { aiConfig } from './ai.config';
+import { logProviderFailure } from './ai.failure-log';
 import { AiUnavailableError, callTool } from './anthropic.client';
 import { composeDrafts } from './task-draft.compose';
 import {
@@ -96,10 +97,7 @@ export async function draftTasks(
     return { ok: true, body };
   } catch (e) {
     if (!(e instanceof AiUnavailableError)) throw e;
-    logger.warn(
-      { ...log, latencyMs: latency(), outcome: e.reason, providerStatus: e.httpStatus },
-      'task draft provider unavailable',
-    );
+    logProviderFailure({ ...log, latencyMs: latency() }, e, cfg, 'task draft provider unavailable');
     return refused(TASK_DRAFT_CODES.unavailable);
   }
 }

@@ -2,7 +2,7 @@
  * "Ceritakan proyeknya" end to end (plan §4): the story form, then the draft review, with every AI
  * fallback (disabled, down, rate limited, ambiguous) still ending in a usable plain form.
  */
-import { Alert, Button, Stack } from '@mantine/core';
+import { Alert, Stack } from '@mantine/core';
 import type { ProjectDraft } from '@server/ai/project-draft.types';
 import type { IsoDate } from '@server/metrics/types';
 import { useEffect, useState } from 'react';
@@ -88,6 +88,8 @@ export function StoryCreateStep({ creator, today, cancelTo, onSaved, onBack }: P
   }
 
   // Fallback (AI down) or an open question (story too unclear): a plain form, never a dead end.
+  // No extra "back" button here: the page header already links back to the chooser, and the form
+  // has its own "Batal".
   if (fallbackText !== null || question !== null) {
     return (
       <Stack gap="md">
@@ -104,9 +106,6 @@ export function StoryCreateStep({ creator, today, cancelTo, onSaved, onBack }: P
           initialValues={{ description: fallbackText ?? '' }}
           onSubmit={create_}
         />
-        <Button variant="subtle" onClick={onBack}>
-          {COPY.back}
-        </Button>
       </Stack>
     );
   }

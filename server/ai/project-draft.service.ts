@@ -15,6 +15,7 @@ import { logger } from '../logger';
 import type { PmCode } from '../pm/errors';
 import type { TaskClock } from '../task/task.dto';
 import { aiConfig } from './ai.config';
+import { logProviderFailure } from './ai.failure-log';
 import { AiUnavailableError, callTool } from './anthropic.client';
 import { composeProjectDraft } from './project-draft.compose';
 import { PROJECT_DRAFT_CODES, PROJECT_DRAFT_TEXT_MAX } from './project-draft.limits';
@@ -92,8 +93,10 @@ export async function draftProject(
     return { ok: true, body };
   } catch (e) {
     if (!(e instanceof AiUnavailableError)) throw e;
-    logger.warn(
-      { ...log, latencyMs: latency(), outcome: e.reason, providerStatus: e.httpStatus },
+    logProviderFailure(
+      { ...log, latencyMs: latency() },
+      e,
+      cfg,
       'project draft provider unavailable',
     );
     return refused(PROJECT_DRAFT_CODES.unavailable);
