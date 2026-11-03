@@ -37,3 +37,10 @@ describe('SHEET', () => {
     });
   });
 });
+
+describe('SWAP_IN_PLACE', () => {
+  test('no header and no motion, so a replace does not slide in like a push (New task mode switch)', () => {
+    const { SWAP_IN_PLACE } = loadOn('ios');
+    expect(SWAP_IN_PLACE).toEqual({ headerShown: false, animation: 'none' });
+  });
+});
