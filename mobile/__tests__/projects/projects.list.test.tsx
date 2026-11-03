@@ -10,6 +10,7 @@ import { ProjectsScreen } from '../../src/screens/projects/list/projects.screen'
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
 import { atlasItem, many, page, query, sinarItem } from '../helpers/projects-fixtures';
 import { Providers } from '../helpers/providers';
+import { pullToRefresh, refreshing } from '../helpers/pull-refresh';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
@@ -114,6 +115,30 @@ describe('Projects list', () => {
     expect(cardIds()).toHaveLength(27);
     expect(asked()[1]).toMatchObject({ page: '2', limit: '25' });
     expect(screen.queryByTestId('projects-more')).not.toBeOnTheScreen();
+  });
+
+  test('pulling down asks page one again at the size shown: a project added elsewhere appears', async () => {
+    const s = serve({
+      '/api/app/projects?': (url) =>
+        query(url).page === '2'
+          ? { body: page(many(5, 26), { total: 30, n: 2 }) }
+          : { body: page(many(25), { total: 30 }) },
+    });
+    await showList();
+    await fireEvent.press(await screen.findByTestId('projects-more'));
+    expect(await screen.findByTestId('project-card-p-30')).toBeOnTheScreen();
+    // A new project sorts first; page one of 30 now ends at p-29.
+    s.use({
+      '/api/app/projects?': { body: page([atlasItem(), ...many(29)], { total: 31, limit: 30 }) },
+    });
+
+    await pullToRefresh();
+
+    expect(await screen.findByTestId('project-card-p-atlas')).toBeOnTheScreen();
+    expect(cardIds()).toHaveLength(30);
+    expect(screen.getByText('Showing 30 of 31')).toBeOnTheScreen();
+    expect(asked().at(-1)).toEqual({ scope: 'all', sort: 'due', page: '1', limit: '30' });
+    expect(refreshing()).toBe(false);
   });
 
   test('a failed Load more keeps the cards and says why', async () => {

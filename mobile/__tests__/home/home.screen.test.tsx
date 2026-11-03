@@ -13,6 +13,7 @@ import {
   homeWithout,
   loadHome,
 } from '../helpers/home-fixtures';
+import { pullToRefresh, refreshing } from '../helpers/pull-refresh';
 import { drainToastTimers } from '../helpers/toast-timers';
 
 // Home is rendered on its own (the tab host mounts every tab, see tabs.test.tsx) on the fixture
@@ -253,6 +254,23 @@ describe('HomeScreen · a section that did not load', () => {
       await held;
     });
     expect(await screen.findByRole('header', { name: 'Good morning, Nico' })).toBeTruthy();
+  });
+});
+
+describe('HomeScreen · pull to refresh', () => {
+  test('asks again for Home and the chip counts: a card that failed comes back, the counts move', async () => {
+    await renderHome({ ...homeRoutes(homeWithout('focus')), ...countRoutes(2, 3) });
+    expect(await screen.findByLabelText('In Progress 2, assigned to me')).toBeTruthy();
+    expect(screen.getByTestId('focus-failed')).toBeOnTheScreen();
+    // Elsewhere: the focus query recovers, a task is started, an invite arrives. Nothing here marked these stale.
+    server.use({ ...homeRoutes(), ...countRoutes(3, 4) });
+
+    await pullToRefresh();
+
+    expect(await screen.findByText('#14 Write the API spec')).toBeTruthy();
+    expect(await screen.findByLabelText('In Progress 3, assigned to me')).toBeTruthy();
+    expect(screen.getByLabelText('Inbox, 4 to respond')).toBeTruthy();
+    expect(refreshing()).toBe(false);
   });
 });
 

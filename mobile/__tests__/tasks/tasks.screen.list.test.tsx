@@ -2,9 +2,10 @@
 // boundaries with the server's counts, My / All, opening a card, the search sent once typing rests, NoMatch + Reset,
 // loading, failure and Load more, New task only when the server allows it, and the Filter & sort sheet (projects from
 // the server, draft, Reset, Apply, dot). The data layer is __tests__/data/tasks.*.test.ts.
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
+import { pullToRefresh, refreshing } from '../helpers/pull-refresh';
 import { sheetGone } from '../helpers/sheet-gone';
 import { DODI, listCalls, row, SINAR, tasksServer } from '../helpers/tasks-fixtures';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
@@ -53,8 +54,6 @@ const filterOn = () => filterButton().props.accessibilityValue?.text === 'Filter
 const sheet = () => within(screen.getByTestId('filter-sheet'));
 const tab = (name: string) => within(screen.getByTestId('tasks-scope')).getByRole('tab', { name });
 const searchField = () => screen.getByLabelText('Search title or #number…');
-/** The sheet's pull to refresh: jest's ScrollView keeps `refreshControl` as a prop instead of rendering it. */
-const refresher = () => screen.getByTestId('stacked-scroll').props.refreshControl;
 
 describe('tasks list', () => {
   it("opens My tasks grouped by the server's boundaries, headed with the server's counts", async () => {
@@ -138,11 +137,11 @@ describe('tasks list', () => {
     s.use(tasksServer([...ROWS, row(20, { title: 'Assigned to me meanwhile' })]).routes);
     expect(card(20)).toBeNull();
 
-    await act(() => refresher().props.onRefresh());
+    await pullToRefresh();
 
     expect(await screen.findByTestId('task-card-20')).toBeOnTheScreen();
     expect(heads()).toContain('No date, 2 tasks');
-    await waitFor(() => expect(refresher().props.refreshing).toBe(false));
+    await waitFor(() => expect(refreshing()).toBe(false));
   });
 
   it('Load more brings the next page under the cards', async () => {

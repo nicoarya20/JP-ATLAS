@@ -11,6 +11,7 @@ import {
   syncItem,
 } from '../helpers/events-fixtures';
 import { eventsServer, openEvents } from '../helpers/events-router';
+import { pullToRefresh, refreshing } from '../helpers/pull-refresh';
 import { sheetGone } from '../helpers/sheet-gone';
 import { whoamiAs } from '../helpers/whoami-fixtures';
 
@@ -124,6 +125,20 @@ describe('events list', () => {
     // Grouping is not a filter: no new request, no dot.
     expect(asked()).toEqual(['tab=upcoming&limit=25']);
     expect(filterOn()).toBe(false);
+  });
+
+  it('pulling down asks for the page shown again: an event added elsewhere appears', async () => {
+    serveList(() => ({ body: eventsPage([reviewItem(), syncItem()]) }));
+    await openEvents('/events');
+    await screen.findByTestId('event-card-e-review');
+    expect(card('e-party')).toBeNull();
+    serveList(() => ({ body: eventsPage(ALL) }));
+
+    await pullToRefresh();
+
+    expect(await screen.findByTestId('event-card-e-party')).toBeOnTheScreen();
+    expect(asked()).toEqual(['tab=upcoming&limit=25', 'tab=upcoming&limit=25']);
+    expect(refreshing()).toBe(false);
   });
 
   it('Load more appends the next page', async () => {

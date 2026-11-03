@@ -12,6 +12,7 @@ import {
   syncItem,
 } from '../helpers/events-fixtures';
 import { eventsServer, openEvents } from '../helpers/events-router';
+import { pullToRefresh, refreshing } from '../helpers/pull-refresh';
 import { sheetGone } from '../helpers/sheet-gone';
 
 const server = eventsServer();
@@ -52,7 +53,8 @@ const windows = () =>
       return [p.get('from'), p.get('to'), p.get('kind')].filter(Boolean).join(' ');
     });
 
-beforeEach(() =>
+/** Answers every window with the events of `events` it touches. */
+const serveWindows = (events: EventListItemWire[]) =>
   server.use({
     '/api/app/events/e-kickoff': {
       body: reviewDetail({ id: 'e-kickoff', title: 'Atlas kickoff' }),
@@ -63,14 +65,15 @@ beforeEach(() =>
       const to = p.get('to') ?? '';
       const kind = p.get('kind');
       // The team zone is UTC+7: every fixture starts between 02:00Z and 11:00Z, so the UTC date is the team's date.
-      const items = EVENTS.filter((e) => {
+      const items = events.filter((e) => {
         const day = e.startsAt.slice(0, 10);
         return day >= from && day <= to && (!kind || e.kind === kind);
       });
       return { body: eventsPage(items) };
     },
-  }),
-);
+  });
+
+beforeEach(() => serveWindows(EVENTS));
 
 const grid = () => within(screen.getByTestId('cal-grid'));
 const dates = () =>
@@ -194,6 +197,37 @@ describe('events calendar', () => {
       'radiogroup',
       'Calendar view',
     ]);
+  });
+
+  it('pulling down asks the shown window again: an event added elsewhere gets its dot', async () => {
+    await openCalendar();
+    await tap('Next month');
+    await waitFor(() => expect(dotted()).toEqual([6]));
+    serveWindows([
+      ...EVENTS,
+      partyItem({
+        id: 'e-retro',
+        title: 'Retro',
+        startsAt: '2026-11-12T02:00:00.000Z',
+        endsAt: '2026-11-12T03:00:00.000Z',
+      }),
+    ]);
+
+    await pullToRefresh();
+
+    await waitFor(() => expect(dotted()).toEqual([6, 12]));
+    expect(screen.getByText('November 2026')).toBeOnTheScreen();
+    expect(windows().at(-1)).toBe('2026-11-01 2026-11-30');
+    expect(refreshing()).toBe(false);
+  });
+
+  it('back to the list and to the calendar again opens on today, as before', async () => {
+    await openCalendar();
+    await tap('Next month');
+    await fireEvent.press(screen.getByRole('tab', { name: 'List' }));
+    await fireEvent.press(screen.getByRole('tab', { name: 'Calendar' }));
+    expect(await screen.findByText('October 2026')).toBeOnTheScreen();
+    expect(day('Wed, Oct 7')).toBeSelected();
   });
 
   it('a failed month says so; Try again asks again', async () => {
