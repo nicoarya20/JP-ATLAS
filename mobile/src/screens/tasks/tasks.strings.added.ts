@@ -34,3 +34,10 @@ export const MISSING = {
   why: 'Pick why to cancel the task.',
   note: 'Add a note to cancel for Other.',
 } as const;
+
+/** Switching New task's mode once something is written: what is lost, and the button that clears it. */
+export const LEAVE_MODE = {
+  title: (mode: string) => `Switch to ${mode}?`,
+  message: 'What you wrote here and any drafts will be cleared. The project stays picked.',
+  confirm: 'Clear and switch',
+} as const;
