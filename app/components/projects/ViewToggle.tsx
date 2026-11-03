@@ -24,6 +24,7 @@ export function ViewToggle({ value, onChange }: Props) {
             <Group
               component="span"
               gap="xs"
+              /* nowrap is safe: one icon plus one short word per option */
               wrap="nowrap"
               justify="center"
               title={VIEW_COPY[slug].hint}

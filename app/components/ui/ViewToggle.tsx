@@ -26,6 +26,7 @@ export function ViewToggle<V extends string>({
       size="sm"
       data={options.map(({ value: v, label, icon: Icon }) => ({
         value: v,
+        // nowrap is safe: one icon plus one short word per option
         label: (
           <Group component="span" gap="xs" wrap="nowrap" justify="center">
             <Icon size="1.25em" aria-hidden />
