@@ -36,6 +36,7 @@ describe('story-mode and template-mode routes', () => {
     ['GET', '/api/app/projects/templates/t1', 'app:read'],
     ['POST', '/api/app/projects/templates', 'app:write'],
     ['PATCH', '/api/app/projects/templates/t1', 'app:write'],
+    ['POST', '/api/app/projects/templates/from-project', 'app:write'],
     ['POST', '/api/app/projects/templates/t1/use', 'app:write'],
   ] as const)('%s %s needs %s', (method, path, scope) => {
     expect(isPmKeyDenied(method, path)).toBe(false);

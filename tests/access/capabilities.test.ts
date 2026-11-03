@@ -294,10 +294,17 @@ describe('taskCaps parity with the policies', () => {
 
 describe('projectCaps', () => {
   const expected: Record<string, Record<string, unknown>> = {
-    SA: { update: true, trash: true, createTask: true, manageKinds: true },
-    AD: { update: true, trash: true, createTask: true, manageKinds: true },
-    'PM-K': { update: true, trash: true, createTask: true, manageKinds: true },
-    'PM-X': {}, // read-only: every action hidden
+    SA: { update: true, trash: true, createTask: true, manageKinds: true, saveAsTemplate: true },
+    AD: { update: true, trash: true, createTask: true, manageKinds: true, saveAsTemplate: true },
+    'PM-K': {
+      update: true,
+      trash: true,
+      createTask: true,
+      manageKinds: true,
+      saveAsTemplate: true,
+    },
+    // Read-only: every write is hidden. Saving a template only copies what a PM already sees, so it stays.
+    'PM-X': { saveAsTemplate: true },
     'M-K': { update: true, trash: 'ROLE_CANNOT_TRASH', createTask: true, manageKinds: true },
     AG: { createTask: true },
     PT: {},

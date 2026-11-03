@@ -10,6 +10,7 @@ import { PAGE_LIMIT_DEFAULT } from '../pm/limits';
 import { fail } from '../pm/respond';
 import { toPrincipal } from '../project/membership.query';
 import { getProjectDetail } from '../project/project.query';
+import { saveProjectAsTemplate } from '../project/project-template.from-project';
 import { getTemplateDetail, listTemplates } from '../project/project-template.query';
 import {
   createTemplate,
@@ -21,6 +22,7 @@ import type { WriteResult } from '../project/project-write.rules';
 import { IdParam } from './app-common';
 import { appContext } from './app-context';
 import {
+  SaveFromProjectBody,
   SaveTemplateBody,
   TemplateListQuery,
   UseTemplateBody,
@@ -73,7 +75,24 @@ export const projectTemplatesApi = new Elysia({ prefix: '/projects/templates' })
     },
     { params: IdParam },
   )
-  /** Saves a new template (manual form, or "Simpan sebagai template" from a story draft). */
+  /**
+   * "Simpan sebagai template": copies the structure of a project the caller can see (phases, tasks,
+   * day offsets; no people or progress). `omitted` reports what a template's size cap left out.
+   */
+  .post(
+    '/from-project',
+    async ({ actor, body, status }) => {
+      const principal = toPrincipal(actor);
+      const { projectId, ...overrides } = body;
+      const result = await saveProjectAsTemplate(principal, projectId, overrides);
+      if (!result.ok) return fail(status, result.code, { error: result.error });
+      const detail = await getTemplateDetail(principal, result.value.id);
+      if (!detail) return fail(status, 'NOT_FOUND');
+      return status(201, { ...detail, omitted: result.value.omitted });
+    },
+    { body: SaveFromProjectBody },
+  )
+  /** Saves a new template from an explicit body (kept for API clients; the app saves from a project). */
   .post(
     '/',
     async ({ actor, body, replyTemplate }) =>

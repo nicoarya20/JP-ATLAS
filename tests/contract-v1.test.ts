@@ -29,7 +29,7 @@ const EXPORT_SNAPSHOT: Record<string, string> = {
   // Addition for story-mode and template-mode (docs/plans/project-create-story-template.md §2
   // "menambah"): a template is private, so its own policy never shares a function with project.policy.ts.
   'server/access/project-template.policy.ts':
-    'TemplateDecision TemplateNotFound canCreateTemplate canUseTemplate',
+    'TemplateDecision TemplateNotFound canCreateTemplate canSaveProjectAsTemplate canUseTemplate',
   'server/access/project.policy.ts':
     'NOT_VISIBLE ProjectDecision ProjectListScope RequestedListScope canCreateProject canManageProject canRestoreProject canTrashProject canViewProject clampListScope matchesProjectScope projectListScope',
   'server/access/review.policy.ts':

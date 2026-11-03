@@ -1,14 +1,11 @@
-/** Project template writes with `loading`, toasts and the T2 delete confirm (CLAUDE.md UX §1). */
+/** Project template writes (use, delete) with `loading`, toasts and the T2 delete confirm (CLAUDE.md UX §1). */
 import { useQueryClient } from '@tanstack/react-query';
 import { confirmAction } from '~/components/ui/confirmAction';
 import {
   applyTemplate,
-  createTemplate,
   deleteTemplate,
-  type SaveTemplateInput,
   templateKeys,
   type UseTemplateInput,
-  updateTemplate,
 } from '~/lib/project-templates-api';
 import { useApiMutation } from '~/lib/use-api-mutation';
 import { TEMPLATE_COPY } from './template-create.copy';
@@ -16,21 +13,6 @@ import { TEMPLATE_COPY } from './template-create.copy';
 export function useProjectTemplates() {
   const queryClient = useQueryClient();
   const refresh = () => queryClient.invalidateQueries({ queryKey: templateKeys.all });
-
-  const create = useApiMutation({
-    mutationFn: (input: SaveTemplateInput) => createTemplate(input),
-    successMessage: (saved) => TEMPLATE_COPY.saved(saved.name),
-    errorTitle: TEMPLATE_COPY.saveFailed,
-    onSuccess: refresh,
-  });
-
-  const update = useApiMutation({
-    mutationFn: ({ id, input }: { id: string; input: SaveTemplateInput }) =>
-      updateTemplate(id, input),
-    successMessage: (saved) => TEMPLATE_COPY.saved(saved.name),
-    errorTitle: TEMPLATE_COPY.saveFailed,
-    onSuccess: refresh,
-  });
 
   const remove = useApiMutation({
     mutationFn: ({ id }: { id: string; name: string }) => deleteTemplate(id),
@@ -47,8 +29,6 @@ export function useProjectTemplates() {
   });
 
   return {
-    create,
-    update,
     use: apply,
     remove: {
       ...remove,

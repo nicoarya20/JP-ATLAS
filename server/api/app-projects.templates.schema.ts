@@ -75,3 +75,13 @@ export const UseTemplateBody = t.Object(
   },
   strict,
 );
+
+/** Body of `POST /templates/from-project` ("Simpan sebagai template"): which project, and optional overrides. */
+export const SaveFromProjectBody = t.Object(
+  {
+    projectId: t.String({ minLength: 1 }),
+    name: t.Optional(t.String({ minLength: 1, maxLength: PROJECT_NAME_MAX })),
+    description: t.Optional(t.Nullable(t.String({ maxLength: PROJECT_DESCRIPTION_MAX }))),
+  },
+  strict,
+);
