@@ -12,6 +12,7 @@ import {
   newTaskForm,
   phaseOptions,
   pickFormProject,
+  touchedNewForm,
 } from '../../src/data/tasks.form';
 import { detailOf, row } from '../helpers/tasks-fixtures';
 import { FORM_PROJECTS, MEMBERS } from '../helpers/tasks-form-fixtures';
@@ -95,6 +96,16 @@ describe('New task', () => {
     });
     const shared = { ...ATLAS_FORM, id: 'p-copy' };
     expect(pickFormProject({ ...f, kindId: 'k-idea' }, shared).kindId).toBe('k-idea');
+  });
+
+  test('a form is touched once it holds more than a blank one in its project', () => {
+    const blank = newTaskForm(ATLAS_FORM, TODAY);
+    expect(touchedNewForm(blank, ATLAS_FORM, TODAY)).toBe(false);
+    expect(touchedNewForm({ ...blank, title: '   ' }, ATLAS_FORM, TODAY)).toBe(false);
+    expect(touchedNewForm(pickFormProject(blank, SINAR_FORM), SINAR_FORM, TODAY)).toBe(false);
+    expect(touchedNewForm({ ...blank, title: 'Fix login' }, ATLAS_FORM, TODAY)).toBe(true);
+    expect(touchedNewForm({ ...blank, priority: 'high' }, ATLAS_FORM, TODAY)).toBe(true);
+    expect(touchedNewForm({ ...blank, startDate: null }, ATLAS_FORM, TODAY)).toBe(true);
   });
 
   test('Save needs a title and a start no later than the due date', () => {

@@ -1,5 +1,5 @@
 // The Just write ✦ / Fill form switch at the top of New task: the other mode replaces the screen, on the same project.
-// What was written here does not go along, so with `unsaved` the switch asks first (UX §1 T2: text and drafts are lost).
+// What was written or filled in here does not go along, so with `unsaved` the switch asks first (UX §1 T2).
 import { router } from 'expo-router';
 import { useState } from 'react';
 
@@ -44,7 +44,7 @@ export function ModeSwitch({ value, project, unsaved }: ModeSwitchProps) {
         open={asking !== null}
         onClose={() => setAsking(null)}
         title={LEAVE_MODE.title(MODE_NAMES[asking ?? 1])}
-        message={LEAVE_MODE.message}
+        message={LEAVE_MODE.message[value]}
         confirmLabel={LEAVE_MODE.confirm}
         onConfirm={() => go(asking ?? 1)}
         danger

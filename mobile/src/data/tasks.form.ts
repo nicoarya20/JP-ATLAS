@@ -96,6 +96,10 @@ export const pickFormProject = (f: TaskForm, project: FormProjectWire): TaskForm
   phaseId: null,
 });
 
+/** Whether New task's form holds anything beyond a blank form in `project` (what switching to Just write would drop). */
+export const touchedNewForm = (f: TaskForm, project: FormProjectWire, today: string): boolean =>
+  editChanges(newTaskForm(project, today), f) !== null;
+
 /** What keeps Save off: a blank title, or a start after the due date (both refused by the server too). */
 export type FormProblem = 'title' | 'dates';
 export function formProblem(

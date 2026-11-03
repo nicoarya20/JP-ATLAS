@@ -20,6 +20,7 @@ import {
   phaseOptions,
   pickFormProject,
   TITLE_MAX,
+  touchedNewForm,
 } from '@/data/tasks.form';
 import type { FormProjectWire } from '@/data/tasks.form.api';
 import { createTask } from '@/data/tasks.form.write';
@@ -91,7 +92,7 @@ export function NewTaskForm({ projects, initialId, initialTitle }: Props) {
   );
   return (
     <TaskPage modal title={F.newTitle} foot={foot} testID="screen-task-form">
-      <ModeSwitch value={1} project={project.id} />
+      <ModeSwitch value={1} project={project.id} unsaved={touchedNewForm(f, project, today)} />
       <Labelled required label={F.project}>
         <SelectField
           required
