@@ -129,7 +129,7 @@ Pesan galat simpan (`PHONE_FORMAT_ERROR`, galat validasi) dan galat avatar ("Uku
 |---|---|---|
 | Simpan profil | `PATCH /profile` | Tidak perlu; loading di tombol Save, notice sukses/gagal |
 | Switch notifikasi | `PUT /profile/notifications` | Tidak perlu; optimistis + rollback |
-| Ganti foto | `POST /avatar` | Tidak perlu; butuh pemilih gambar (GAP P-5) |
+| Ganti foto | `POST /avatar` | Tidak perlu: foto baru hanya ditahan sampai Save, Cancel membatalkannya (P-5 disambung 3 Nov) |
 | Hapus foto | `DELETE /avatar` | **T2** ("Remove your photo?") — tidak masuk Sampah |
 | Hapus akun | Better Auth `/delete-user` + `GET /profile/delete-check` | Hanya Super-admin; **tidak ada di mobile** — biarkan di web |
 
@@ -285,7 +285,7 @@ Implementasi: `src/data/users.admin.{wire,api,view,write}.ts` (kepala berkas men
 | P-2 | Profil | Presence (`online`) tak ada | Hilangkan; jangan klaim dilihat rekan | **User/Nico** |
 | P-3 | Profil | Satu switch Mute vs dua switch server | Hapus switch Mute di profil; dua switch di Settings sudah cocok | **User** |
 | P-4 | Edit profile | `phone` ada di server, tak ada di form | Tambah bidang Phone (`inputMode="tel"`) | User |
-| P-5 | Edit profile | Unggah foto butuh pemilih gambar; mobile belum punya `expo-image-picker` | Tambah dependensi (Rule 10) atau tunda | **User** |
+| P-5 | Edit profile | Unggah foto butuh pemilih gambar | **Selesai 3 Nov**: user meminta fiturnya; `expo-image-picker` ~58.0.10 ditambahkan (Expo SDK 58, MIT) | User |
 | P-6 | Profil | `ProfileView` tak memuat `image` | Pakai `user.image` sesi; atau server menambah | — |
 | S-1 | Settings (Admin) | AI features, retensi rekaman, default reminder, Roles and permissions tak ada di `/api/app` | Sembunyikan grup Team settings di Fase 2 (fitur AI/rekaman belum ada) | **User** |
 | C-1 | My calendar | "Kalender saya" tidak ada di server | Saring `participants.isParticipant` di klien | — |
