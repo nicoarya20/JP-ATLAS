@@ -85,6 +85,8 @@ describe('tasks list', () => {
     expect(screen).toHaveSearchParams({ scope: 'all' });
     expect(await screen.findByTestId('task-card-15')).toBeOnTheScreen();
     expect(heads()).toEqual([]);
+    // no Select tick: nothing reads what it picks (docs/phase2-gap-disembunyikan.md)
+    expect(screen.queryAllByRole('checkbox')).toEqual([]);
   });
 
   it('opens the tapped card’s detail', async () => {

@@ -18,7 +18,6 @@ export const SPOKEN = {
   selectIn: (status: string) => `Select tasks in ${status}`,
   stopIn: (status: string) => `Stop selecting in ${status}`,
   addTo: (status: string) => `Add task to ${status}`,
-  selectTask: (no: number, title: string) => `Select #${no} ${title}`,
   scope: 'Scope',
   view: 'View',
   /** The buttons whose visible text starts with "+" or ends with "✦". */
