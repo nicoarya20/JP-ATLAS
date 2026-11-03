@@ -24,6 +24,8 @@ export const profile = pgTable(
     phone: text('phone'),
     jobTitle: text('job_title'),
     department: text('department'),
+    // Short status note beside the photo on the mobile profile; NULL = no note (GAP P-1).
+    note: text('note'),
     // Accessibility: text scale chosen by the user (KEPUTUSAN Q13: new accounts start at 'normal').
     textSize: text('text_size').notNull().default('normal'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

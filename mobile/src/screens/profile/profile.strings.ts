@@ -18,6 +18,18 @@ export const PROFILE = {
   signOut: 'Sign out',
 } as const;
 
+/** The status note beside the photo (prototype profile.note.jsx). */
+export const NOTE = {
+  add: '+ Add a note',
+  addLabel: 'Add a note',
+  editLabel: (note: string) => `Note: ${note}. Edit note`,
+  placeholder: "What's on your mind?",
+  input: 'Note',
+  saved: 'Note saved',
+  cleared: 'Note cleared',
+  failed: (why: string) => `Note not saved. ${why}`,
+} as const;
+
 export const CALENDAR = {
   title: 'My calendar',
   previous: 'Previous week',

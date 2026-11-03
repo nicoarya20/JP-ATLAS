@@ -13,6 +13,7 @@ export const profileWire = (over: Partial<ProfileWire> = {}): ProfileWire => ({
   phone: null,
   jobTitle: 'Designer',
   department: 'Product',
+  note: null,
   textSize: 'normal',
   ...over,
 });

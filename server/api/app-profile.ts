@@ -1,4 +1,4 @@
-/** Own-profile routes (`/api/app/profile`): read, edit contact details and the text size; notification switches and the delete-account check live in `app-profile.*.ts`. */
+/** Own-profile routes (`/api/app/profile`): read, edit contact details, the status note and the text size; notification switches and the delete-account check live in `app-profile.*.ts`. */
 import { Elysia, t } from 'elysia';
 import { TEXT_SIZES } from '../pm/enums';
 import { fail } from '../pm/respond';
@@ -8,6 +8,7 @@ import {
   PROFILE_DEPARTMENT_MAX,
   PROFILE_NAME_MAX,
   PROFILE_NICKNAME_MAX,
+  PROFILE_NOTE_MAX,
   PROFILE_PHONE_MAX,
   PROFILE_TITLE_MAX,
 } from '../profile/profile.rules';
@@ -26,6 +27,7 @@ const ProfileBody = t.Object({
   phone: text(PROFILE_PHONE_MAX),
   jobTitle: text(PROFILE_TITLE_MAX),
   department: text(PROFILE_DEPARTMENT_MAX),
+  note: text(PROFILE_NOTE_MAX),
   // Not t.UnionEnum: it defaults to the first value, which would reset the size on every PATCH.
   textSize: t.Optional(t.Union(TEXT_SIZES.map((size) => t.Literal(size)))),
 });

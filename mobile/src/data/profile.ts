@@ -14,6 +14,8 @@ export type ProfileData = {
   /** `displayName`, else the account name; the session's name until the profile is in. */
   full: string;
   email: string;
+  /** The status note beside the photo, "" for none; undefined until the profile is in (nothing to edit yet). */
+  note?: string;
   /** "Project Manager · Product", plus " · Admin" for an Admin; parts the profile leaves empty are left out. */
   line: string;
   /** The account photo from the session (ProfileView has none, GAP P-6), loadable as is; null draws the initials. */
@@ -47,6 +49,7 @@ export function profileData(
     full: p?.displayName ?? p?.name ?? user?.name ?? '',
     email: p?.email ?? user?.email ?? '',
     line: lineOf(p, who),
+    ...(p ? { note: p.note ?? '' } : {}),
     image: photoUrl(user?.image ?? null),
     inbox,
   };

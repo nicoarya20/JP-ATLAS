@@ -9,6 +9,7 @@ export {
   PROFILE_DEPARTMENT_MAX,
   PROFILE_NAME_MAX,
   PROFILE_NICKNAME_MAX,
+  PROFILE_NOTE_MAX,
   PROFILE_PHONE_MAX,
   PROFILE_TITLE_MAX,
 } from './profile.rules';
@@ -20,6 +21,7 @@ export type ProfilePatch = {
   phone?: string | null;
   jobTitle?: string | null;
   department?: string | null;
+  note?: string | null;
   textSize?: TextSize;
 };
 
@@ -36,10 +38,11 @@ export type ProfileView = {
   phone: string | null;
   jobTitle: string | null;
   department: string | null;
+  note: string | null;
   textSize: TextSize;
 };
 
-const TEXT_FIELDS = ['displayName', 'nickname', 'phone', 'jobTitle', 'department'] as const;
+const TEXT_FIELDS = ['displayName', 'nickname', 'phone', 'jobTitle', 'department', 'note'] as const;
 
 /** Trims a text field; blank means "clear it", so the column stays NULL instead of ''. */
 function cleanText(value: string | null): string | null {
@@ -69,6 +72,7 @@ function toView(account: { id: string; name: string; email: string }, row: Row):
     phone: row?.phone ?? null,
     jobTitle: row?.jobTitle ?? null,
     department: row?.department ?? null,
+    note: row?.note ?? null,
     textSize: isTextSize(row?.textSize) ? row.textSize : DEFAULT_TEXT_SIZE,
   };
 }

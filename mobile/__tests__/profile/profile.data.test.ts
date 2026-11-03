@@ -129,6 +129,7 @@ describe('profileData', () => {
       full: 'Nico',
       email: 'nico@kantor.id',
       line: 'Designer · Product',
+      note: '',
       image: 'https://img/nico.png',
       inbox: 3,
     });
@@ -147,6 +148,7 @@ describe('profileData', () => {
   test('before the profile is in: the session’s name and email, no line until whoami', () => {
     const d = profileData(null, null, session, null);
     expect(d).toMatchObject({ full: 'Nico Arya', email: 'nico@kantor.id', line: '', inbox: null });
+    expect(d.note).toBeUndefined();
   });
 
   test('a photo uploaded here (a server path) is loaded from the server; none draws the initials', () => {

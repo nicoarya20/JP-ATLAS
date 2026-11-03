@@ -50,12 +50,11 @@ const show = async (routes: AuthRoutes = {}) => {
 };
 
 describe('ProfileScreen', () => {
-  test('hero: the display name and job line from the server; no presence, note or Mute any more', async () => {
+  test('hero: the display name and job line from the server; no presence or Mute any more', async () => {
     await show();
     expect(screen.getByRole('header', { name: 'Nico' })).toBeOnTheScreen();
     expect(screen.getByText('Designer · Product')).toBeOnTheScreen();
     expect(screen.queryByText('Online')).not.toBeOnTheScreen();
-    expect(screen.queryByTestId('profile-note')).not.toBeOnTheScreen();
     expect(screen.queryByRole('switch')).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId('profile-photo', { includeHiddenElements: true }),

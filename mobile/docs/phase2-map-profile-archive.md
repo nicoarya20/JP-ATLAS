@@ -281,7 +281,7 @@ Implementasi: `src/data/users.admin.{wire,api,view,write}.ts` (kepala berkas men
 
 | # | Layar | Masalah | Usulan | Butuh keputusan |
 |---|---|---|---|---|
-| P-1 | Profil | Catatan status (`note`) tak ada di server | Hilangkan, atau server tambah kolom + bidang `ProfileView`/`ProfileBody` | **User/Nico** |
+| P-1 | Profil | Catatan status (`note`) tak ada di server | **Selesai 3 Nov**: kolom `profile.note` + bidang `ProfileView`/`ProfileBody` (user memutuskan kita yang menambah; koordinasi ke Nico oleh user) | User |
 | P-2 | Profil | Presence (`online`) tak ada | Hilangkan; jangan klaim dilihat rekan | **User/Nico** |
 | P-3 | Profil | Satu switch Mute vs dua switch server | Hapus switch Mute di profil; dua switch di Settings sudah cocok | **User** |
 | P-4 | Edit profile | `phone` ada di server, tak ada di form | Tambah bidang Phone (`inputMode="tel"`) | User |
