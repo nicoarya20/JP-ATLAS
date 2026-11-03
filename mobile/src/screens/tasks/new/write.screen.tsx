@@ -80,7 +80,7 @@ function JustWrite({
       foot={w.drafts ? foot : undefined}
       testID="screen-task-write"
     >
-      <ModeSwitch value={0} project={project.id} />
+      <ModeSwitch value={0} project={project.id} unsaved={!blank || !!w.drafts} />
       <Labelled required label={W.project}>
         <SelectField
           required

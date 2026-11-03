@@ -66,6 +66,33 @@ describe('new task · fill form', () => {
     });
   });
 
+  it('switching to Just write with something filled in asks first; Clear and switch leaves it', async () => {
+    serve(tasksServer(ROWS).routes);
+    await openForm('/tasks/new/form?project=p-sinar');
+    const justWrite = () =>
+      within(screen.getByTestId('new-mode')).getByRole('tab', { name: 'Just write' });
+    await fireEvent.changeText(screen.getByTestId('field-title'), 'Fix login');
+    await fireEvent.press(justWrite());
+    const ask = within(await screen.findByTestId('new-mode-confirm'));
+    expect(ask.getByText('Switch to Just write?')).toBeOnTheScreen();
+    expect(
+      ask.getByText('What you filled in here will be cleared. The project stays picked.'),
+    ).toBeOnTheScreen();
+    await fireEvent.press(ask.getByText('Cancel'));
+    expect(screen).toHavePathname('/tasks/new/form');
+    expect(screen.getByTestId('field-title').props.value).toBe('Fix login');
+
+    await fireEvent.press(justWrite());
+    await fireEvent.press(
+      within(await screen.findByTestId('new-mode-confirm')).getByTestId('confirm-action'),
+    );
+    expect(await screen.findByTestId('write-project')).toBeOnTheScreen();
+    expect(screen).toHavePathname('/tasks/new');
+    expect(screen.getByTestId('write-project').props.accessibilityValue).toEqual({
+      text: 'PT Sinar Website',
+    });
+  });
+
   it('opens on the first project; Save waits for a title, sends what is set and opens the new task', async () => {
     const tasks = tasksServer(ROWS);
     serve(tasks.routes);

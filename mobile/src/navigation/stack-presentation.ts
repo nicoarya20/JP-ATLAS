@@ -39,5 +39,14 @@ export const SHEET: NativeStackNavigationOptions = OWN_SHEET ? OWN_SHEET_ROUTE :
 /** A prototype modal screen (create and edit flows): slides up over the screen it opened from. */
 export const MODAL: NativeStackNavigationOptions = { presentation: 'modal' };
 
+/**
+ * Screens inside one modal that swap in place (router.replace), like New task's Just write ✦ / Fill form switch: no
+ * header and no motion, since a native stack slides a replace in from the side like a push.
+ */
+export const SWAP_IN_PLACE: NativeStackNavigationOptions = {
+  headerShown: false,
+  animation: 'none',
+};
+
 /** A screen the person must not swipe away from (sign-in). */
 export const NO_SWIPE: NativeStackNavigationOptions = { gestureEnabled: false };
