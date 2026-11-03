@@ -27,7 +27,7 @@ export function ViewToggle<V extends string>({
       data={options.map(({ value: v, label, icon: Icon }) => ({
         value: v,
         label: (
-          <Group component="span" gap="xs" justify="center">
+          <Group component="span" gap="xs" wrap="nowrap" justify="center">
             <Icon size="1.25em" aria-hidden />
             {label}
           </Group>
