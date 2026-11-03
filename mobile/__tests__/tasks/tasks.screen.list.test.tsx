@@ -2,7 +2,7 @@
 // boundaries with the server's counts, My / All, opening a card, the search sent once typing rests, NoMatch + Reset,
 // loading, failure and Load more, New task only when the server allows it, and the Filter & sort sheet (projects from
 // the server, draft, Reset, Apply, dot). The data layer is __tests__/data/tasks.*.test.ts.
-import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
 import { sheetGone } from '../helpers/sheet-gone';
@@ -53,6 +53,8 @@ const filterOn = () => filterButton().props.accessibilityValue?.text === 'Filter
 const sheet = () => within(screen.getByTestId('filter-sheet'));
 const tab = (name: string) => within(screen.getByTestId('tasks-scope')).getByRole('tab', { name });
 const searchField = () => screen.getByLabelText('Search title or #number…');
+/** The sheet's pull to refresh: jest's ScrollView keeps `refreshControl` as a prop instead of rendering it. */
+const refresher = () => screen.getByTestId('stacked-scroll').props.refreshControl;
 
 describe('tasks list', () => {
   it("opens My tasks grouped by the server's boundaries, headed with the server's counts", async () => {
@@ -125,6 +127,22 @@ describe('tasks list', () => {
     s.use(tasks.routes);
     await fireEvent.press(within(screen.getByTestId('tasks-failed')).getByRole('button'));
     expect(await screen.findByTestId('task-card-12')).toBeOnTheScreen();
+  });
+
+  it('pulling the list down asks the server again: a task assigned meanwhile shows, with the new count', async () => {
+    const s = serve(tasksServer(ROWS).routes);
+    await openTasks('/tasks');
+    expect(await screen.findByTestId('task-card-16')).toBeOnTheScreen();
+    expect(heads()).toContain('No date, 1 task');
+    // someone else assigns #20 to me; nothing in this app wrote it, so nothing marked the list stale
+    s.use(tasksServer([...ROWS, row(20, { title: 'Assigned to me meanwhile' })]).routes);
+    expect(card(20)).toBeNull();
+
+    await act(() => refresher().props.onRefresh());
+
+    expect(await screen.findByTestId('task-card-20')).toBeOnTheScreen();
+    expect(heads()).toContain('No date, 2 tasks');
+    await waitFor(() => expect(refresher().props.refreshing).toBe(false));
   });
 
   it('Load more brings the next page under the cards', async () => {

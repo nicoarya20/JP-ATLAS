@@ -294,3 +294,20 @@ describe('kanban columns', () => {
     expect(await screen.findByTestId('board-card-14')).toBeOnTheScreen();
   });
 });
+
+describe('kanban pull to refresh', () => {
+  it('asks every column again: a task started elsewhere shows in its new column', async () => {
+    await open();
+    expect(inColumn('To do', 9)).toBeOnTheScreen();
+    // a teammate starts #9 on the web; nothing on this phone marked the board stale
+    const moved = ROWS.map((r) => (r.number === 9 ? { ...r, status: 'in_progress' as const } : r));
+    server?.use(tasksServer(moved).routes);
+
+    const refresher = () => screen.getByTestId('stacked-scroll').props.refreshControl;
+    await act(() => refresher().props.onRefresh());
+
+    await waitFor(() => expect(inColumn('In progress', 9)).toBeOnTheScreen());
+    expect(inColumn('To do', 9)).toBeNull();
+    await waitFor(() => expect(refresher().props.refreshing).toBe(false));
+  });
+});

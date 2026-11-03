@@ -2,8 +2,8 @@
 // search block under it, and the content as a rounded canvas sheet laid over both. Scrolling the sheet up pushes the
 // search block away into a header icon (use-search-collapse).
 import { Search } from 'lucide-react-native';
-import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { type ReactNode, useState } from 'react';
+import { RefreshControl, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -37,6 +37,8 @@ type StackedScreenProps = {
   pinned?: ReactNode;
   /** px the pinned row's content loses when compact (it styles itself from usePinnedProgress()); default 0. */
   pinnedShrink?: number;
+  /** Pull to refresh: the spinner stays until the returned promise settles. Without it the sheet does not refresh. */
+  onRefresh?: () => Promise<unknown>;
   children: ReactNode;
   testID?: string;
 };
@@ -49,9 +51,16 @@ export function StackedScreen({
   onFind,
   pinned,
   pinnedShrink = 0,
+  onRefresh,
   children,
   testID,
 }: StackedScreenProps) {
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = () => {
+    if (!onRefresh || refreshing) return;
+    setRefreshing(true);
+    void onRefresh().finally(() => setRefreshing(false));
+  };
   const top = useSafeAreaInsets().top;
   const bottom = useTabBarInset() + SPACING.md;
   const fold = useSearchCollapse(pinnedShrink + PIN_PAD_SHRINK);
@@ -96,6 +105,11 @@ export function StackedScreen({
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1 }}
         className="flex-1"
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl testID="stacked-refresh" refreshing={refreshing} onRefresh={refresh} />
+          ) : undefined
+        }
       >
         <Animated.View
           testID="stacked-find-block"
