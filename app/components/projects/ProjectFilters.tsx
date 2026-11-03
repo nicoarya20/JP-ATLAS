@@ -99,7 +99,7 @@ export function ProjectFilters({ filters, canSeeAll, onChange }: Props) {
             onChange={(v) => onChange({ [P.scope]: orDefault(v, DEFAULT_PROJECT_FILTERS.lingkup) })}
           />
         )}
-        <Group ml="auto">
+        <Group ml="auto" flex="none">
           <ViewToggle
             value={filters.tampilan}
             onChange={(v) => onChange({ [P.view]: orDefault(v, DEFAULT_PROJECT_FILTERS.tampilan) })}

@@ -24,6 +24,8 @@ export const TASK_DRAFT_RATE_WINDOW_MS = 60_000;
 
 /** A relative due date further than this many days ahead is not a plausible due date (null). */
 export const TASK_DRAFT_OFFSET_MAX_DAYS = 730;
+/** Same horizon in calendar months, for "3 bulan lagi" (`{ kind: 'months' }`). */
+export const TASK_DRAFT_OFFSET_MAX_MONTHS = 24;
 /** An explicit date more than this many days from today (either way) is dropped (null). */
 export const TASK_DRAFT_DATE_WINDOW_DAYS = 3650;
 

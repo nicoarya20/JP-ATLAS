@@ -14,12 +14,11 @@ import { toPrincipal } from '../../server/project/membership.query';
 import {
   type CreateProjectInput,
   createProject,
-  isCalendarDate,
-  PROJECT_WRITE_MESSAGES,
   setProjectLead,
   setProjectStatus,
   updateProject,
 } from '../../server/project/project.service';
+import { isCalendarDate, PROJECT_WRITE_MESSAGES } from '../../server/project/project-write.rules';
 import { createCleaner } from '../support/cleanup';
 import { createFactory } from '../support/factory.task';
 import type { TestUser } from '../support/factory.user';

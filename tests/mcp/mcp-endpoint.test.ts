@@ -229,14 +229,26 @@ describeIf('tool: check_file_health', () => {
       available: boolean;
       summary: { scanned: number };
       over: unknown[];
-      contextHazards: Array<{ path: string; hazard: string; advice: string }>;
+      contextHazards: Array<{ path: string; estTokens: number; hazard: string; advice: string }>;
     };
     expect(body.available).toBe(true);
     expect(body.summary.scanned).toBeGreaterThan(20);
     expect(body.over.length).toBeLessThanOrEqual(5);
-    expect(body.contextHazards.some((h) => h.path === 'bun.lock' && h.hazard === 'danger')).toBe(
-      true,
-    );
+    // Which files rank highest depends on what the repo holds today (docs, lockfiles, snapshots),
+    // so assert the shape of the list rather than a particular path in it.
+    const hazards = body.contextHazards;
+    expect(hazards.length).toBeGreaterThan(0);
+    expect(hazards.length).toBeLessThanOrEqual(5);
+    for (const h of hazards) expect(['caution', 'danger']).toContain(h.hazard);
+    const tokens = hazards.map((h) => h.estTokens);
+    expect(tokens).toEqual([...tokens].sort((a, b) => b - a));
+  });
+
+  test('flags the lockfile as dangerous context when asked for it directly', async () => {
+    const { text } = await callTool('check_file_health', { path: 'bun.lock' });
+    const body = JSON.parse(text) as { found: boolean; file: { hazard: string } };
+    expect(body.found).toBe(true);
+    expect(body.file.hazard).toBe('danger');
   });
 
   test('reports a single file with read advice', async () => {

@@ -13,7 +13,7 @@ import {
 } from '../project/member.service';
 import { toPrincipal } from '../project/membership.query';
 import { listProjectMembers } from '../project/project.query';
-import type { WriteResult } from '../project/project.service';
+import type { WriteResult } from '../project/project-write.rules';
 import { IdParam, oneOf } from './app-common';
 import { appContext } from './app-context';
 

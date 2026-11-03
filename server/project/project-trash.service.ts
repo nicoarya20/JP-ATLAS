@@ -19,13 +19,8 @@ import { getMetrics } from '../pm/metrics-env';
 import { isLive } from '../pm/soft-delete';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from './membership.query';
-import {
-  type LockedProject,
-  lockProject,
-  logActivity,
-  refused,
-  type WriteResult,
-} from './project.service';
+import { type LockedProject, lockProject, logActivity } from './project.service';
+import { refused, type WriteResult } from './project-write.rules';
 
 /** The project that moved and how many of its tasks moved with it. */
 export type TrashChange = { id: string; tasks: number };

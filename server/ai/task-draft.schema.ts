@@ -38,12 +38,17 @@ export function cleanText(v: unknown, max: number): string | null {
 
 const asInt = (v: unknown): number | null => (Number.isInteger(v) ? (v as number) : null);
 
-function parseDue(v: unknown): DueToken | null {
+/** Reused by `project-draft.schema.ts`: the token shape is the same due-date vocabulary either way. */
+export function parseDue(v: unknown): DueToken | null {
   if (!isObj(v)) return null;
   switch (v.kind) {
     case 'offset': {
       const days = asInt(v.days);
       return days === null ? null : { kind: 'offset', days };
+    }
+    case 'months': {
+      const months = asInt(v.months);
+      return months === null ? null : { kind: 'months', months };
     }
     case 'weekday':
       return typeof v.weekday === 'string' && (WEEKDAYS as readonly string[]).includes(v.weekday)

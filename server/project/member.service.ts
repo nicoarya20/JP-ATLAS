@@ -17,13 +17,8 @@ import {
   emitProjectRoleChanged,
 } from '../notification/emit.project';
 import { inTx, type Tx } from '../pm/tx';
-import {
-  type LockedProject,
-  lockProject,
-  logActivity,
-  refused,
-  type WriteResult,
-} from './project.service';
+import { type LockedProject, lockProject, logActivity } from './project.service';
+import { refused, type WriteResult } from './project-write.rules';
 
 // User-facing Indonesian; each one says what to do next ("Pengelola utama" is the Lead, P3 §1).
 export const MEMBER_WRITE_MESSAGES = {
