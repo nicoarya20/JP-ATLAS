@@ -1,5 +1,6 @@
 // Profile ① and ② from the server's answers: the hero (name, line, photo) and My calendar's week and day blocks, cut
 // from `GET /api/app/events` in the team's zone (Jakarta). Today is the test clock's Wed, Oct 7, 2026.
+import { apiUrl } from '../../src/api/client';
 import { profileData } from '../../src/data/profile';
 import { blocksOn, getMyCalendar } from '../../src/data/profile.calendar';
 import {
@@ -146,5 +147,13 @@ describe('profileData', () => {
   test('before the profile is in: the session’s name and email, no line until whoami', () => {
     const d = profileData(null, null, session, null);
     expect(d).toMatchObject({ full: 'Nico Arya', email: 'nico@kantor.id', line: '', inbox: null });
+  });
+
+  test('a photo uploaded here (a server path) is loaded from the server; none draws the initials', () => {
+    const path = '/api/storage/avatars/u-nico/5f1c.jpg'; // test-only
+    const uploaded = { ...APPROVED_USER, image: path };
+    expect(profileData(null, null, uploaded, null).image).toBe(apiUrl(path));
+    expect(apiUrl(path)).toMatch(/^https?:\/\/.+\/api\/storage\/avatars\//);
+    expect(profileData(null, null, APPROVED_USER, null).image).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 // Profile ① for the screens (prototype profile.main.jsx): my name, hero line, photo and the Inbox count, from the
 // server (`GET /api/app/profile` + whoami's role + the session's photo). My calendar is `profile.calendar.ts`.
+import { apiUrl } from '@/api/client';
 import { type SessionUser, sessionStore } from '@/session/session.state';
 
 import { useInboxActionCount } from './inbox.api';
@@ -15,13 +16,17 @@ export type ProfileData = {
   email: string;
   /** "Project Manager · Product", plus " · Admin" for an Admin; parts the profile leaves empty are left out. */
   line: string;
-  /** The account photo from the session (ProfileView has none, GAP P-6); null draws the initials. */
+  /** The account photo from the session (ProfileView has none, GAP P-6), loadable as is; null draws the initials. */
   image: string | null;
   /** Open cards in Inbox › Needs your response, from `GET /inbox/count`; null while it is not in (no badge). */
   inbox: number | null;
 };
 
 const ADMIN_ROLES = new Set(['admin', 'super-admin']);
+
+/** A photo the phone can load: a photo uploaded here is a server path (`/api/storage/avatars/…`), Google's is a URL. */
+export const photoUrl = (image: string | null): string | null =>
+  image?.startsWith('/') ? apiUrl(image) : image;
 
 /** The hero line from the profile's job and division, and the account role for an Admin (or when nothing else). */
 function lineOf(p: ProfileWire | null, who: WhoamiWire | null): string {
@@ -42,7 +47,7 @@ export function profileData(
     full: p?.displayName ?? p?.name ?? user?.name ?? '',
     email: p?.email ?? user?.email ?? '',
     line: lineOf(p, who),
-    image: user?.image ?? null,
+    image: photoUrl(user?.image ?? null),
     inbox,
   };
 }

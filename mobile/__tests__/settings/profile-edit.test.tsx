@@ -1,6 +1,6 @@
 // Settings ② Edit profile against `GET/PATCH /api/app/profile`: the form starts from the server, Role (whoami) and
 // Email are read-only, Save sends the four fields and closes, a refusal stays on the form, fields stop at the server's
-// limits, and no Change photo (GAP P-5).
+// limits. The photo is `profile-edit.photo.test.tsx`.
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
@@ -15,6 +15,7 @@ import { drainToastTimers } from '../helpers/toast-timers';
 import { whoamiRoute } from '../helpers/whoami-fixtures';
 
 jest.mock('expo-router', () => require('../helpers/router-mock').routerMock());
+jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
 
 drainToastTimers();
 
@@ -51,7 +52,7 @@ async function show(
 const save = () => act(async () => fireEvent.press(screen.getByText('Save')));
 
 describe('ProfileEditScreen', () => {
-  test('starts from the server; role and email are read-only with the reason; no Change photo', async () => {
+  test('starts from the server; role and email are read-only with the reason', async () => {
     await show();
     expect(screen.getByLabelText(/^Full name/)).toHaveDisplayValue('Nico');
     expect(screen.getByLabelText('Job title')).toHaveDisplayValue('Designer');
@@ -64,7 +65,6 @@ describe('ProfileEditScreen', () => {
     expect(
       screen.getByText("Email comes from your Google account and can't be changed."),
     ).toBeOnTheScreen();
-    expect(screen.queryByText(/photo/i)).not.toBeOnTheScreen();
   });
 
   test('Save sends the four fields, says so and closes', async () => {
