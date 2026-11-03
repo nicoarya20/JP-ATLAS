@@ -142,6 +142,36 @@ describe('Just write ✦', () => {
     expect(screen).toHavePathname('/tasks/new');
   });
 
+  it('switching to Fill form with a story written asks first; Cancel keeps it, Clear and switch leaves it', async () => {
+    serve({ body: DRAFTS });
+    await openTasks('/tasks/new?project=p-sinar');
+    const fillForm = () =>
+      within(screen.getByTestId('new-mode')).getByRole('tab', { name: 'Fill form' });
+    await fireEvent.changeText(await screen.findByTestId('write-text'), 'Dodi fixes login');
+    await fireEvent.press(fillForm());
+    const ask = within(await screen.findByTestId('new-mode-confirm'));
+    expect(ask.getByText('Switch to Fill form?')).toBeOnTheScreen();
+    expect(
+      ask.getByText(
+        'What you wrote here and any drafts will be cleared. The project stays picked.',
+      ),
+    ).toBeOnTheScreen();
+    await fireEvent.press(ask.getByText('Cancel'));
+    expect(screen.queryByTestId('new-mode-confirm')).not.toBeOnTheScreen();
+    expect(screen).toHavePathname('/tasks/new');
+    expect(screen.getByTestId('write-text').props.value).toBe('Dodi fixes login');
+
+    await fireEvent.press(fillForm());
+    await fireEvent.press(
+      within(await screen.findByTestId('new-mode-confirm')).getByTestId('confirm-action'),
+    );
+    expect(await screen.findByTestId('form-project')).toBeOnTheScreen();
+    expect(screen).toHavePathname('/tasks/new/form');
+    expect(screen.getByTestId('form-project').props.accessibilityValue).toEqual({
+      text: 'PT Sinar Website',
+    });
+  });
+
   it('without AI the story moves to Fill form as the title, with the server’s notice', async () => {
     const off = 'Tulis saja belum diaktifkan di aplikasi ini. Isi form saja.';
     serve({ status: 503, body: { error: off, code: 'AI_DISABLED' } });

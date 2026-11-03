@@ -1,6 +1,7 @@
 // Projects ① list (prototype projects.list.jsx) from `GET /api/app/projects`: the stacked Projects tab with the name
 // search and the Filter & sort icon, then the project cards and "Load more". The server decides which projects the
-// viewer sees (a Member only their own). New project is the tab bar "+".
+// viewer sees (a Member only their own). New project is the tab bar "+". Pulling the sheet down asks page one again,
+// as many projects as are shown (projects.api.ts).
 import { router } from 'expo-router';
 import { FolderOpen } from 'lucide-react-native';
 import { useEffect } from 'react';
@@ -46,6 +47,7 @@ export function ProjectsScreen() {
           onPress={() => router.push('/projects/filter')}
         />
       }
+      onRefresh={() => projectsResource.reload()}
     >
       {!data ? (
         state.phase === 'failed' ? (

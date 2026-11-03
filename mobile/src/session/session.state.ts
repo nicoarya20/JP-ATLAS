@@ -135,6 +135,11 @@ export function setSessionClock(clock: SessionClock): void {
   sessionStore.set((prev) => ({ ...prev, clock }));
 }
 
+/** Records my new profile photo, as `POST /api/app/avatar` answered it; the rest of the account stays. */
+export function setSessionImage(image: string | null): void {
+  sessionStore.set((prev) => (prev.user ? { ...prev, user: { ...prev.user, image } } : prev));
+}
+
 /** Back to signed out, with nothing of the account left in memory. */
 export function clearSession(): void {
   sessionStore.set({ ...INITIAL_SESSION, status: 'signed-out' });

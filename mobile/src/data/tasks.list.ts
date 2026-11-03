@@ -112,7 +112,7 @@ const pageOf = (params: string, s: ResourceState<TaskListPageWire>): PageView =>
 const narrowed = (q: TaskQuery, search: string) => isFiltered(q) || !!search.trim();
 
 /** "My tasks, nothing narrowed": the only list the server's counts describe. */
-const plainMine = (scope: TaskScope, q: TaskQuery, search: string) =>
+export const plainMine = (scope: TaskScope, q: TaskQuery, search: string) =>
   scope === 'mine' && !narrowed(q, search);
 
 function myGroups(
@@ -155,12 +155,12 @@ function myGroups(
 }
 
 /** The statuses a board column asks for, or null when the status filter leaves it out. */
-const columnStatus = (q: TaskQuery, c: BoardColumn) => {
+export const columnStatus = (q: TaskQuery, c: BoardColumn) => {
   const wire = STATUS_WIRE[c.status];
   return q.status && !queryStatuses(q).includes(wire) ? null : [wire];
 };
 
-type ListOptions = { scope: TaskScope; query: TaskQuery; search: string };
+export type ListOptions = { scope: TaskScope; query: TaskQuery; search: string };
 
 /** My tasks or All tasks as a list, kept up to date: fetches what is missing. */
 export function useTasksList({

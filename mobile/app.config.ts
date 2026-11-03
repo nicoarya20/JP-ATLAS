@@ -37,6 +37,15 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    // Profile photo (Edit profile): the library only. The camera and microphone are never asked for.
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'Simple PM opens your photos so you can choose a profile photo.',
+        cameraPermission: false,
+        microphonePermission: false,
+      },
+    ],
     [
       'expo-splash-screen',
       {

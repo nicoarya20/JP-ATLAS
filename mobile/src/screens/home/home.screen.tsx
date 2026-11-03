@@ -35,7 +35,8 @@ const go = (href: Href) => router.navigate(href);
  * Briefing, My Focus, Ask Data, Agenda & Projects, completed tasks and activity.
  *
  * Everything comes from one `GET /api/app/home`, read out of the store by `getHome()`. Each card is a section of that payload, so a single failing query shows
- * "Try again" on its own card; only a payload that never arrived replaces the whole screen. The
+ * "Try again" on its own card; only a payload that never arrived replaces the whole screen. Pulling
+ * the sheet down asks again for Home and the counts its chips read. The
  * signed-in role is not a prop any more: what Home may show is the server's answer, not the
  * screen's guess.
  */
@@ -59,6 +60,9 @@ export function HomeScreen({ onOpen = go }: HomeScreenProps) {
   const retry = () => {
     void homeResource.reload();
   };
+  // Reloads, not ensure(): what changed elsewhere (a task assigned to me) is a change no write here marked stale.
+  const refresh = () =>
+    Promise.all([homeResource.reload(), tasksCountsResource.reload(), inboxCountResource.reload()]);
   const search = () => notice(S.searchLater);
 
   const runAction = async (task: FocusTask) => {
@@ -75,7 +79,7 @@ export function HomeScreen({ onOpen = go }: HomeScreenProps) {
 
   if (!data) {
     return (
-      <StackedScreen testID="screen-home" title={S.title}>
+      <StackedScreen testID="screen-home" title={S.title} onRefresh={refresh}>
         {state.phase === 'failed' ? (
           <FailedState testID="home-failed" message={state.error?.message} onRetry={retry} />
         ) : (
@@ -104,6 +108,7 @@ export function HomeScreen({ onOpen = go }: HomeScreenProps) {
       onFind={search}
       pinned={<HomeStats stats={data.stats} line={line} onLine={setLine} onOpen={onOpen} />}
       pinnedShrink={statFold(line)}
+      onRefresh={refresh}
     >
       <BriefingSection briefing={data.briefing} onRetry={retry} />
       <FocusSection

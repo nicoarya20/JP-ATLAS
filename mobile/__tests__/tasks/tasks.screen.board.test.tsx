@@ -12,6 +12,7 @@ import { capMessage } from '../../src/data/caps.messages';
 import { HOLD_MS } from '../../src/data/tasks.radial';
 import * as moveMenuState from '../../src/screens/tasks/board/move-menu.state';
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
+import { pullToRefresh, refreshing } from '../helpers/pull-refresh';
 import { DODI, locked, row, tasksServer } from '../helpers/tasks-fixtures';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
 import { drainToastTimers } from '../helpers/toast-timers';
@@ -292,5 +293,21 @@ describe('kanban columns', () => {
     expect(screen.queryByTestId('task-board')).not.toBeOnTheScreen();
     await fireEvent.press(within(screen.getByTestId('no-match')).getByRole('button'));
     expect(await screen.findByTestId('board-card-14')).toBeOnTheScreen();
+  });
+});
+
+describe('kanban pull to refresh', () => {
+  it('asks every column again: a task started elsewhere shows in its new column', async () => {
+    await open();
+    expect(inColumn('To do', 9)).toBeOnTheScreen();
+    // a teammate starts #9 on the web; nothing on this phone marked the board stale
+    const moved = ROWS.map((r) => (r.number === 9 ? { ...r, status: 'in_progress' as const } : r));
+    server?.use(tasksServer(moved).routes);
+
+    await pullToRefresh();
+
+    await waitFor(() => expect(inColumn('In progress', 9)).toBeOnTheScreen());
+    expect(inColumn('To do', 9)).toBeNull();
+    await waitFor(() => expect(refreshing()).toBe(false));
   });
 });

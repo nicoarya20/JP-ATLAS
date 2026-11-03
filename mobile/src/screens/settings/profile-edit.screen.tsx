@@ -1,6 +1,6 @@
 // Settings ② Edit profile (prototype settings.profile.jsx): name, nickname, job and division, saved with
-// `PATCH /api/app/profile`; Role (set by an Admin, from whoami) and Email (from Google) are read-only. The photo is
-// shown but not changed here: uploading one needs an image picker, deferred (GAP P-5).
+// `PATCH /api/app/profile`; Role (set by an Admin, from whoami) and Email (from Google) are read-only. A new photo
+// (GAP P-5, `profile-photo.tsx`) is picked here and uploaded first on Save, with `POST /api/app/avatar`.
 import { type Href, router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 
@@ -10,16 +10,16 @@ import { useNotice } from '@/components/notice/use-notice';
 import { DetailPage } from '@/components/screen/detail-page';
 import { FailedState, LoadingState } from '@/components/state/section-state';
 import { writeError } from '@/components/state/write-error';
-import { Avatar, AvatarFallbackText, AvatarImage } from '@/components/ui/avatar';
 import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button';
-import { VStack } from '@/components/ui/vstack';
 import { useProfileData } from '@/data/profile';
 import { PROFILE_MAX, type ProfileWire, profileResource } from '@/data/profile.api';
-import { saveProfile } from '@/data/profile.write';
+import type { PickedPhoto } from '@/data/profile.photo';
+import { saveProfile, uploadPhoto } from '@/data/profile.write';
 import { ACCOUNT_ROLE } from '@/data/team.person';
 import { roleOf } from '@/data/users.admin.wire';
 import { whoamiResource } from '@/data/whoami.api';
 
+import { ProfilePhoto, photoError } from './profile-photo';
 import { PROFILE_EDIT as P } from './settings.strings';
 
 /** Edit profile opened from the profile modal, which closes on the way here (it sits over the tabs). */
@@ -40,6 +40,7 @@ function Form({ p, close }: { p: ProfileWire; close: () => void }) {
   const [nickname, setNickname] = useState(p.nickname ?? '');
   const [title, setTitle] = useState(p.jobTitle ?? '');
   const [division, setDivision] = useState(p.department ?? '');
+  const [photo, setPhoto] = useState<PickedPhoto | null>(null);
   const [missing, setMissing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +51,16 @@ function Form({ p, close }: { p: ProfileWire; close: () => void }) {
     setBusy(true);
     setError(null);
     try {
+      // The photo first: a refused one keeps the form open with the fields not yet sent, so Save tries both again.
+      if (photo) {
+        await uploadPhoto(photo);
+        setPhoto(null);
+      }
       // Blank clears a field; the server keeps it as null.
       await saveProfile({ displayName: full, nickname, jobTitle: title, department: division });
     } catch (e) {
       // Handled: the reason stays on the form and Save can be pressed again.
-      setError(writeError(e));
+      setError(photoError(e) ?? writeError(e));
       setBusy(false);
       return;
     }
@@ -81,18 +87,13 @@ function Form({ p, close }: { p: ProfileWire; close: () => void }) {
   );
   return (
     <DetailPage testID="screen-profile-edit" title={P.title} foot={foot}>
-      <VStack className="items-center">
-        <Avatar
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          className="h-20 w-20 bg-accent"
-        >
-          <AvatarFallbackText className="text-page font-semibold text-accent-foreground">
-            {full || p.name}
-          </AvatarFallbackText>
-          {d.image ? <AvatarImage source={{ uri: d.image }} /> : null}
-        </Avatar>
-      </VStack>
+      <ProfilePhoto
+        name={full || p.name}
+        image={d.image}
+        picked={photo}
+        onPick={setPhoto}
+        busy={busy}
+      />
       <Field
         label={P.full}
         required
