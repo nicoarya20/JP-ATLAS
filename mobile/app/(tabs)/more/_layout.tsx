@@ -1,11 +1,13 @@
 import { Stack } from 'expo-router';
 
 import { SHEET } from '@/navigation/stack-presentation';
+import { useFreshMoreStack } from '@/navigation/use-fresh-more-stack';
 
 /** More tab stack: the screens the More panel opens (docs/phase1-screens.md §3.2). Its index only redirects home. */
 export default function MoreStack() {
+  const fresh = useFreshMoreStack();
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false }} screenListeners={fresh}>
       <Stack.Screen name="index" />
       <Stack.Screen name="inbox" />
       <Stack.Screen name="team/index" />
