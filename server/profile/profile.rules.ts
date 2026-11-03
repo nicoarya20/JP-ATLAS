@@ -6,6 +6,8 @@ export const PROFILE_NICKNAME_MAX = 30;
 export const PROFILE_TITLE_MAX = 80;
 export const PROFILE_DEPARTMENT_MAX = 80;
 export const PROFILE_PHONE_MAX = 30;
+/** The short status note beside the photo on the mobile profile ("Back from leave"). */
+export const PROFILE_NOTE_MAX = 60;
 
 /** Digits plus the usual separators of a phone number ("+62 812-3456-7890", "(021) 555.01"); blank clears it. */
 const PHONE_FORMAT = /^[0-9+().\-\s]*$/;
