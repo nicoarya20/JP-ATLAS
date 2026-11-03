@@ -63,7 +63,9 @@ export function Seg({
             accessibilityState={radio ? { checked: on } : { selected: on }}
             onPress={() => onChange(i)}
             hitSlop={SLOP}
-            className={`min-h-8 flex-1 items-center justify-center rounded-control px-2 ${lines > 1 ? 'py-1' : ''} ${on ? 'border border-border bg-card' : ''}`}
+            // Every segment carries the 1 pt border (clear until picked) and 7 pt padding (px-2 less the border), so
+            // picking one never narrows its label: "Needs your response (0)" wrapped only while it was the picked tab.
+            className={`min-h-8 flex-1 items-center justify-center rounded-control border px-[7px] ${lines > 1 ? 'py-1' : ''} ${on ? 'border-border bg-card' : 'border-transparent'}`}
           >
             {icon ? (
               <Icon

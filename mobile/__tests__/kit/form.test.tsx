@@ -120,6 +120,23 @@ describe('Chips, MultiChips and Seg', () => {
     expect(tab.props.hitSlop).toEqual({ top: 6, bottom: 6 });
   });
 
+  test('picking a Seg segment does not narrow its label (same border and padding either way)', async () => {
+    await show(
+      <Seg
+        lines={2}
+        items={['Needs your response (0)', 'Latest updates']}
+        value={0}
+        onChange={jest.fn()}
+      />,
+    );
+    const box = (name: string) =>
+      String(screen.getByRole('tab', { name }).props.className)
+        .split(' ')
+        .filter((c) => c === 'border' || c.startsWith('px-') || c.startsWith('py-'));
+    expect(box('Needs your response (0)')).toEqual(box('Latest updates'));
+    expect(box('Latest updates')).toContain('border');
+  });
+
   test('Seg labels stay on one line unless lines lets a long one wrap to two', async () => {
     const items = ['Needs your response (3)', 'Updates'];
     await show(<Seg items={items} value={0} onChange={jest.fn()} />);
