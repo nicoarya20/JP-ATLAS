@@ -2,6 +2,7 @@
 // stacked header with the search and the Filter & sort icon, the My tasks / All tasks and List / Kanban switches pinned
 // under it (route params `scope` and `view`), then the list or the board (tasks-body.tsx). Switching My / All starts the
 // other list from its own default query; List / Kanban keeps it. Typing searches once the text rests (use-settled.ts).
+// Pulling the sheet down asks the server again (tasks.refresh.ts).
 import { router, useLocalSearchParams } from 'expo-router';
 import { List, SquareKanban } from 'lucide-react-native';
 import { useState } from 'react';
@@ -11,6 +12,7 @@ import { Seg } from '@/components/form/seg';
 import { StackedScreen } from '@/components/screen/stacked-screen';
 import { HStack } from '@/components/ui/hstack';
 import { resetQuery, useQuery } from '@/data/tasks.query-state';
+import { refreshTasks } from '@/data/tasks.refresh';
 
 import { TasksSearchField } from '../filter/tasks-search';
 import { useSettled } from '../filter/use-settled';
@@ -43,6 +45,7 @@ export function TasksScreen() {
     <StackedScreen
       testID="screen-tasks"
       title={S.title}
+      onRefresh={() => refreshTasks(view, { scope, query, search: sent })}
       find={<TasksSearchField scope={scope} value={search} onChangeText={setSearch} />}
       pinned={
         <HStack className="items-center gap-2">

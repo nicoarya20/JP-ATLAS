@@ -59,20 +59,25 @@ export type EventsCalendarView = {
 export const stepCalendar = (view: CalendarView, picked: string, by: number) =>
   view === 'week' ? addDays(picked, 7 * by) : stepMonth(picked, by);
 
+/** What the calendar shows: Month or Week, around the picked date. */
+export type CalendarPick = { view: CalendarView; picked: string };
+
+/** The dates the calendar around `picked` shows, and the window resource that holds their events. */
+export function calendarWindow({ view, picked, query }: CalendarPick & { query: EventsQuery }) {
+  const dates = view === 'week' ? weekOf(picked) : monthOf(picked);
+  const first = dates[0] ?? picked;
+  const last = dates[dates.length - 1] ?? picked;
+  const res = eventsWindowResource(first, last, eventsParams(query, '', { calendar: true }));
+  return { dates, first, res };
+}
+
 /** The calendar around `picked`, kept up to date: fetches the window it shows. */
 export function useEventsCalendar({
   view,
   picked,
   query,
-}: {
-  view: CalendarView;
-  picked: string;
-  query: EventsQuery;
-}): EventsCalendarView {
-  const dates = view === 'week' ? weekOf(picked) : monthOf(picked);
-  const first = dates[0] ?? picked;
-  const last = dates[dates.length - 1] ?? picked;
-  const res = eventsWindowResource(first, last, eventsParams(query, '', { calendar: true }));
+}: CalendarPick & { query: EventsQuery }): EventsCalendarView {
+  const { dates, first, res } = calendarWindow({ view, picked, query });
   const state = res.useSnapshot();
   useEffect(() => {
     void res.ensure();

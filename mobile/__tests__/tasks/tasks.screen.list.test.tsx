@@ -5,6 +5,7 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 
 import { type AuthRoutes, serveAuth } from '../helpers/auth-server';
+import { pullToRefresh, refreshing } from '../helpers/pull-refresh';
 import { sheetGone } from '../helpers/sheet-gone';
 import { DODI, listCalls, row, SINAR, tasksServer } from '../helpers/tasks-fixtures';
 import { openTasks, resetTaskStores } from '../helpers/tasks-router';
@@ -125,6 +126,22 @@ describe('tasks list', () => {
     s.use(tasks.routes);
     await fireEvent.press(within(screen.getByTestId('tasks-failed')).getByRole('button'));
     expect(await screen.findByTestId('task-card-12')).toBeOnTheScreen();
+  });
+
+  it('pulling the list down asks the server again: a task assigned meanwhile shows, with the new count', async () => {
+    const s = serve(tasksServer(ROWS).routes);
+    await openTasks('/tasks');
+    expect(await screen.findByTestId('task-card-16')).toBeOnTheScreen();
+    expect(heads()).toContain('No date, 1 task');
+    // someone else assigns #20 to me; nothing in this app wrote it, so nothing marked the list stale
+    s.use(tasksServer([...ROWS, row(20, { title: 'Assigned to me meanwhile' })]).routes);
+    expect(card(20)).toBeNull();
+
+    await pullToRefresh();
+
+    expect(await screen.findByTestId('task-card-20')).toBeOnTheScreen();
+    expect(heads()).toContain('No date, 2 tasks');
+    await waitFor(() => expect(refreshing()).toBe(false));
   });
 
   it('Load more brings the next page under the cards', async () => {

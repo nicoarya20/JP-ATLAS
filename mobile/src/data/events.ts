@@ -2,6 +2,7 @@
 // fetch what they show (events.list.ts, events.calendar.ts), the detail a view of one event (events.detail.ts).
 export {
   type CalendarDay,
+  type CalendarPick,
   type CalendarView,
   type EventsCalendarView,
   stepCalendar,
