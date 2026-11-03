@@ -1,0 +1,2 @@
+-- Why: Tugas saya kini memuat tugas tanpa pengerja yang dibuat si pengguna; index parsial menjaga query mineOf tetap cepat
+CREATE INDEX IF NOT EXISTS "task_created_by_unassigned_idx" ON "task" USING btree ("created_by","status","due_date") WHERE "task"."assignee_id" IS NULL AND "task"."deleted_at" IS NULL;

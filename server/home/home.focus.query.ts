@@ -1,6 +1,6 @@
 /**
  * "My Focus": my open tasks (`todo`, `in_progress`) most urgent first, plus the tasks waiting for my
- * review. Visibility is the Tugas menu's own (`visibleTo`), so a task listed here is one the Tugas page
+ * review. "Mine" is `mineOf`, so an unassigned task I created counts until someone is assigned. Visibility is the Tugas menu's own (`visibleTo`), so a task listed here is one the Tugas page
  * lists too. The totals ride along as window counts, so the page needs no second query to say
  * "Lihat semua tugas (9)" or to write the briefing. Statements: the focus rows, the review rows
  * (parallel), then the viewer's memberships of the projects on screen, which decide the row button.
@@ -18,7 +18,7 @@ import type { IsoDate } from '../metrics/types';
 import type { TaskStatus } from '../pm/enums';
 import type { Executor } from '../pm/tx';
 import { loadMembership } from '../project/membership.query';
-import { liveTask, SORTS, visibleTo } from '../task/task.sql';
+import { liveTask, mineOf, SORTS, visibleTo } from '../task/task.sql';
 import { HOME_FOCUS_MAX, HOME_REVIEW_MAX } from './home.config';
 import type { HomeFocus, HomeFocusTask, HomeReviewTask } from './home.dto';
 
@@ -96,7 +96,7 @@ export async function getFocus(
       })
       .from(task)
       .innerJoin(project, eq(project.id, task.projectId))
-      .where(and(liveTask, visible, eq(task.assigneeId, p.id), inArray(task.status, [...WORKABLE])))
+      .where(and(liveTask, visible, mineOf(p.id), inArray(task.status, [...WORKABLE])))
       // Most urgent first: earliest due date (none last), then the highest priority, then id for a total order.
       .orderBy(sql`${SORTS.due.expr} ASC NULLS LAST`, sql`${SORTS.priority.expr} ASC`, asc(task.id))
       .limit(HOME_FOCUS_MAX),

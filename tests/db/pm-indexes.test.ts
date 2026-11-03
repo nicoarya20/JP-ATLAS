@@ -4,7 +4,7 @@ import { db } from '../../server/db';
 import { introspectDrizzleSchema } from '../../server/db/schema-introspect';
 
 // Index contract of the 8 PM tables (R02 §3.2 + §3.7). Primary keys are checked separately because Postgres lists
-// them as indexes too; the 15 below are the secondary and unique ones. `where` is the partial-index predicate.
+// them as indexes too; the 16 below are the secondary and unique ones. `where` is the partial-index predicate.
 const TAG = 'pm_indexes_contract';
 type ExpectedIndex = { table: string; columns: string[]; unique: boolean; where?: string };
 const LIVE = 'deleted_at IS NULL';
@@ -45,6 +45,13 @@ const EXPECTED_INDEXES: Record<string, ExpectedIndex> = {
     columns: ['assignee_id', 'status', 'due_date'],
     unique: false,
     where: LIVE,
+  },
+  // The other half of "mine" (`mineOf`): unassigned tasks are their creator's until someone is assigned.
+  task_created_by_unassigned_idx: {
+    table: 'task',
+    columns: ['created_by', 'status', 'due_date'],
+    unique: false,
+    where: `assignee_id IS NULL AND ${LIVE}`,
   },
   task_project_id_reviewer_id_idx: {
     table: 'task',
@@ -247,6 +254,13 @@ describe('PM index contract (R02 §3.2 / §3.7)', () => {
       `SELECT id FROM task WHERE assignee_id = '${TAG}-user' AND status = 'in_progress' AND deleted_at IS NULL ORDER BY due_date`,
     );
     expect(used).toEqual(['task_assignee_id_status_due_date_idx']);
+  });
+
+  it('"unassigned tasks I created" is served by task_created_by_unassigned_idx', async () => {
+    const used = await explainIndexes(
+      `SELECT id FROM task WHERE assignee_id IS NULL AND created_by = '${TAG}-user' AND status = 'todo' AND deleted_at IS NULL ORDER BY due_date`,
+    );
+    expect(used).toEqual(['task_created_by_unassigned_idx']);
   });
 
   it('control: a query on an unindexed column uses no index even with seq scans disabled', async () => {
