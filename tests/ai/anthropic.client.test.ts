@@ -4,7 +4,7 @@ import { aiConfig } from '../../server/ai/ai.config';
 import { type AiFailure, AiUnavailableError, callTool } from '../../server/ai/anthropic.client';
 import { installProviderStub, jsonResponse, TOOL_NAME, toolUse } from '../support/ai';
 
-const CFG = aiConfig({ ANTHROPIC_API_KEY: 'test-key-not-real', TASK_AI_TIMEOUT_MS: '500' }); // test-only
+const CFG = aiConfig({ SIMPLE_PM_AI: 'test-key-not-real', SIMPLE_PM_AI_TIMEOUT_MS: '500' }); // test-only
 if (!CFG) throw new Error('test config must have a key');
 const CALL = {
   system: 'SYS',
@@ -44,6 +44,26 @@ describe('callTool', () => {
     expect(body.messages).toEqual([{ role: 'user', content: 'secret story text' }]);
   });
 
+  it('sends an OpenRouter key as a bearer token to the OpenRouter Messages endpoint', async () => {
+    const or = aiConfig({ SIMPLE_PM_AI: 'sk-or-v1-not-real' }); // test-only
+    if (!or) throw new Error('test config must have a key');
+    reply(toolUse({ drafts: [] }));
+    expect(await callTool(or, CALL)).toEqual({ drafts: [] });
+    const { url, init, body } = provider.calls[0] ?? { url: '', init: {}, body: null };
+    expect(url).toBe('https://openrouter.ai/api/v1/messages');
+    const headers = init.headers as Record<string, string>;
+    expect(headers.authorization).toBe('Bearer sk-or-v1-not-real');
+    expect(headers['x-api-key']).toBeUndefined();
+    expect(body).toMatchObject({ model: 'anthropic/claude-haiku-5.5' });
+  });
+
+  it('never sends a bearer header for an Anthropic key', async () => {
+    reply(toolUse({ drafts: [] }));
+    await callTool(CFG, CALL);
+    const headers = (provider.calls[0]?.init.headers ?? {}) as Record<string, string>;
+    expect(headers.authorization).toBeUndefined();
+  });
+
   it.each([
     [429, 'rate_limited'],
     [500, 'http_server'],
@@ -80,7 +100,7 @@ describe('callTool', () => {
           init.signal?.addEventListener('abort', () => reject(init.signal?.reason));
         }),
     );
-    const slow = aiConfig({ ANTHROPIC_API_KEY: 'k', TASK_AI_TIMEOUT_MS: '30' }); // test-only
+    const slow = aiConfig({ SIMPLE_PM_AI: 'k', SIMPLE_PM_AI_TIMEOUT_MS: '30' }); // test-only
     if (!slow) throw new Error('config');
     expect((await reasonOf(callTool(slow, CALL))).reason).toBe('timeout');
   });

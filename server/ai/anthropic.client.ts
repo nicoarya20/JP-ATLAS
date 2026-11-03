@@ -1,5 +1,6 @@
 /**
- * Minimal Anthropic Messages API client over `fetch` (no SDK, no new package). It forces one tool
+ * Minimal Anthropic Messages API client over `fetch` (no SDK, no new package); also serves
+ * OpenRouter, whose Messages endpoint takes the same body with a bearer key. It forces one tool
  * call and returns that call's input as untrusted JSON. Every failure is an `AiUnavailableError`
  * whose message carries only a reason and a status number: never the prompt, the answer or the
  * provider's error body, so nothing the user wrote can reach a log through here.
@@ -48,6 +49,13 @@ function failureOfStatus(code: number): AiFailure {
   return code >= HTTP_SERVER_ERROR_MIN ? 'http_server' : 'http_client';
 }
 
+/** The key in the header its provider expects (Anthropic `x-api-key`, OpenRouter bearer). */
+function authHeader(cfg: AiConfig): Record<string, string> {
+  return cfg.auth === 'bearer'
+    ? { authorization: `Bearer ${cfg.apiKey}` }
+    : { 'x-api-key': cfg.apiKey };
+}
+
 /** Sends one request and returns the `input` of the forced tool call; throws `AiUnavailableError` otherwise. */
 export async function callTool(cfg: AiConfig, call: ToolCall): Promise<unknown> {
   let res: Response;
@@ -56,7 +64,7 @@ export async function callTool(cfg: AiConfig, call: ToolCall): Promise<unknown> 
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': cfg.apiKey,
+        ...authHeader(cfg),
         'anthropic-version': API_VERSION,
       },
       body: JSON.stringify({

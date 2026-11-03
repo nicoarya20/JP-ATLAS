@@ -1,6 +1,6 @@
 /** Membership and reviewer-pool queries (S0B-10): query count, non-members, ban/approval filters, principal mapping. */
 import { afterAll, afterEach, describe, expect, it } from 'bun:test';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { db, schema } from '../../server/db';
 import type { Actor } from '../../server/guard';
@@ -61,7 +61,10 @@ describe('loadMembership', () => {
     const [row] = await db
       .select({ createdAt: schema.projectMember.createdAt })
       .from(schema.projectMember)
-      .where(eq(schema.projectMember.userId, me.id));
+      // `me` belongs to p1 and p2; without the project filter either row may come back first.
+      .where(
+        and(eq(schema.projectMember.userId, me.id), eq(schema.projectMember.projectId, p1.id)),
+      );
     const joinedAt = (await loadMembership(me.id, [p1.id])).get(p1.id)?.joinedAt;
     expect(joinedAt).toBeInstanceOf(Date);
     expect(joinedAt?.getTime()).toBe(row?.createdAt.getTime());

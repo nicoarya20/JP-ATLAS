@@ -4,21 +4,32 @@
  * No `audit()`: these are ordinary project changes, recorded in `project_activity` instead.
  */
 import { and, eq, inArray } from 'drizzle-orm';
-import { canSetLead, type LeadDecision } from '../access/members.policy';
+import { canSetLead } from '../access/members.policy';
 import { canCreateProject, canManageProject } from '../access/project.policy';
 import type { Principal, ProjectSubject } from '../access/types';
 import { isBanActive } from '../ban';
 import { project, projectActivity, projectMember, taskKind, user } from '../db/schema';
-import { CALENDAR_YEAR_MAX, CALENDAR_YEAR_MIN, isInCalendarRange } from '../metrics/dates';
 import type { ProjectMemberRole, ProjectPriority, ProjectStatus } from '../pm/enums';
-import type { PmCode } from '../pm/errors';
 import { DEFAULT_TASK_KINDS, TASK_REVIEW_UI_ENABLED } from '../pm/limits';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from './membership.query';
 import { PROJECT_INITIAL_STATUSES } from './project.limits';
+import {
+  type CreateProjectPhaseInput,
+  type CreateProjectTaskInput,
+  insertProjectPlan,
+  planProblem,
+} from './project-plan-insert';
 
-/** A write outcome; `error` refines the catalog message of `code` when the cause is specific. */
-export type WriteResult<T> = { ok: true; value: T } | { ok: false; code: PmCode; error?: string };
+import {
+  dateProblem,
+  invalid,
+  PROJECT_WRITE_MESSAGES,
+  refused,
+  type WriteResult,
+} from './project-write.rules';
+
+export type { CreateProjectPhaseInput, CreateProjectTaskInput } from './project-plan-insert';
 
 export type CreateProjectInput = {
   name: string;
@@ -32,6 +43,13 @@ export type CreateProjectInput = {
   dueDate?: string | null;
   members?: ReadonlyArray<{ userId: string; role: ProjectMemberRole }>;
   tasksNeedReviewDefault?: boolean;
+  /**
+   * Phases (with their own tasks) and loose tasks created together with the project, in the same
+   * transaction (plan §4.9: story-mode and template-mode both build a project this way). Both
+   * optional and backward compatible: omitting them creates a project exactly as before.
+   */
+  phases?: ReadonlyArray<CreateProjectPhaseInput>;
+  looseTasks?: ReadonlyArray<CreateProjectTaskInput>;
 };
 
 /** Fields an edit may change; `undefined` keeps the stored value, `null` clears an optional one. */
@@ -42,49 +60,6 @@ export type UpdateProjectInput = {
   startDate?: string | null;
   dueDate?: string | null;
 };
-
-// User-facing Indonesian; each one says what to do next.
-export const PROJECT_WRITE_MESSAGES = {
-  NAME_REQUIRED: 'Nama proyek wajib diisi. Tulis nama proyeknya, lalu simpan lagi.',
-  INITIAL_STATUS: 'Proyek baru hanya bisa berstatus Draf atau Berjalan. Pilih salah satunya.',
-  REVIEW_UNAVAILABLE:
-    'Pemeriksaan tugas belum tersedia. Matikan pilihan "Tugas baru perlu diperiksa", lalu simpan lagi.',
-  BAD_DATE: 'Tanggal tidak valid. Pilih tanggal dari kalender, lalu simpan lagi.',
-  DATE_OUT_OF_RANGE: `Tahun tanggal harus antara ${CALENDAR_YEAR_MIN} dan ${CALENDAR_YEAR_MAX}. Periksa tahunnya, lalu simpan lagi.`,
-  DUE_BEFORE_START: 'Tenggat tidak boleh sebelum tanggal mulai. Ubah salah satu tanggalnya.',
-  BAD_CANDIDATE:
-    'Ada orang yang belum disetujui, sedang diblokir, atau tidak ditemukan. Hapus dari daftar, lalu simpan lagi.',
-} as const;
-
-const invalid = (error: string): WriteResult<never> => ({ ok: false, code: 'VALIDATION', error });
-
-/** Refused decision to result; a hidden project answers NOT_FOUND so it looks missing (D8). */
-export function refused(d: Exclude<LeadDecision, { ok: true }>): WriteResult<never> {
-  return { ok: false, code: d.code === 'NOT_VISIBLE' ? 'NOT_FOUND' : d.code };
-}
-
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** True for a real calendar date such as `2026-02-28`; `2026-02-30` is false. */
-export function isCalendarDate(s: string): boolean {
-  if (!ISO_DATE.test(s)) return false;
-  const d = new Date(`${s}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
-}
-
-/**
- * The date problem of a start/due pair, or null; ISO strings compare correctly as text. The year
- * range is checked here and not in the route schema, so a mistyped year answers in Indonesian
- * instead of a shape error (PD-01).
- */
-function dateProblem(start: string | null | undefined, due: string | null | undefined) {
-  for (const d of [start, due]) {
-    if (!d) continue;
-    if (!isCalendarDate(d)) return PROJECT_WRITE_MESSAGES.BAD_DATE;
-    if (!isInCalendarRange(d)) return PROJECT_WRITE_MESSAGES.DATE_OUT_OF_RANGE;
-  }
-  return start && due && due < start ? PROJECT_WRITE_MESSAGES.DUE_BEFORE_START : null;
-}
 
 /** Member rows of a new project: duplicates dropped (first wins), the creator and the Lead forced to manager. */
 function memberRoles(creatorId: string, leadId: string, input: CreateProjectInput) {
@@ -118,6 +93,8 @@ export async function createProject(
   }
   const dates = dateProblem(input.startDate, input.dueDate);
   if (dates) return invalid(dates);
+  const planIssue = planProblem(input.phases, input.looseTasks);
+  if (planIssue) return invalid(planIssue);
 
   const leadId = input.leadId ?? p.id;
   const roles = memberRoles(p.id, leadId, input);
@@ -165,9 +142,25 @@ export async function createProject(
       .values(
         [...roles].map(([userId, role]) => ({ projectId: row.id, userId, role, addedBy: p.id })),
       );
-    await tx
+    const kindRows = await tx
       .insert(taskKind)
-      .values(DEFAULT_TASK_KINDS.map((k, position) => ({ projectId: row.id, ...k, position })));
+      .values(DEFAULT_TASK_KINDS.map((k, position) => ({ projectId: row.id, ...k, position })))
+      .returning({ id: taskKind.id, name: taskKind.name });
+    // DEFAULT_TASK_KINDS[0] is "Tugas" (plan §4.9 step 3/5): the fallback kind for an unmatched or absent kindName.
+    const fallbackKindId = kindRows.find((k) => k.name === DEFAULT_TASK_KINDS[0]?.name)?.id;
+    if (!fallbackKindId)
+      throw new Error(`"Tugas" kind missing right after creating project ${row.id}`);
+
+    await insertProjectPlan(tx, {
+      projectId: row.id,
+      creatorId: p.id,
+      now,
+      kindRows,
+      fallbackKindId,
+      phases: input.phases ?? [],
+      looseTasks: input.looseTasks ?? [],
+    });
+
     const actorName = people.find((u) => u.id === p.id)?.name ?? null;
     await tx.insert(projectActivity).values({
       projectId: row.id,

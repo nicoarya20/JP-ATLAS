@@ -34,8 +34,9 @@ export const DRAFT_TOOL = {
             due: nullable({
               type: 'object',
               properties: {
-                kind: { type: 'string', enum: ['offset', 'weekday', 'monthday', 'date'] },
+                kind: { type: 'string', enum: ['offset', 'months', 'weekday', 'monthday', 'date'] },
                 days: { type: 'integer' },
+                months: { type: 'integer' },
                 weekday: { type: 'string', enum: [...WEEKDAYS] },
                 next: { type: 'boolean' },
                 day: { type: 'integer' },
@@ -65,7 +66,7 @@ Rules:
 - One draft per distinct piece of work; one paragraph can hold several tasks. At most ${TASK_DRAFTS_MAX} drafts.
 - title: a short phrase in the writer's language, at most ${TASK_TITLE_MAX} characters, without the person's name or the date. description: extra detail only if the story gives it, else null.
 - assignee: the person's name exactly as written in the story (for example "Rina"), or "${ME_MARKER}" when the writer says they do it themself (saya, aku), else null. Never invent a name and never swap it for a member you think is meant: the app matches the name itself.
-- due: never work out a calendar date yourself, only describe what the story says. {"kind":"offset","days":N} for hari ini (0), besok (1), lusa (2), minggu depan (7). {"kind":"weekday","weekday":"fri","next":false} for "Jumat" or "sebelum Jumat"; "next":true for "Jumat depan". {"kind":"monthday","day":15,"month":null} for "tanggal 15"; give "month" (1-12) when the story names it. {"kind":"date","iso":"YYYY-MM-DD"} only when the story writes a full date with its year. null when no date is said.
+- due: never work out a calendar date yourself, only describe what the story says. {"kind":"offset","days":N} for hari ini (0), besok (1), lusa (2), minggu depan (7), N hari/minggu lagi (days). {"kind":"months","months":N} for any span said in months: bulan depan or sebulan lagi (1), 3 bulan dari sekarang (3); never turn months into days. {"kind":"weekday","weekday":"fri","next":false} for "Jumat" or "sebelum Jumat"; "next":true for "Jumat depan". {"kind":"monthday","day":15,"month":null} for "tanggal 15"; give "month" (1-12) when the story names it. {"kind":"date","iso":"YYYY-MM-DD"} only when the story writes a full date with its year. null when no date is said.
 - priority: one of the valid priorities, only when the story signals it (penting, urgent: high; genting, kritis: critical; santai, tidak mendesak: low). Otherwise null.
 - kind: one name from the jenis list, only when the story clearly fits it (a bug or error: the bug kind). Otherwise null.
 - question: normally null. A short Indonesian question only when the story is too unclear to make any draft. Do not ask which person is meant: the app asks that itself.

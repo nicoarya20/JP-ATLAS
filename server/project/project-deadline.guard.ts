@@ -9,8 +9,9 @@ import { user } from '../db/schema';
 import type { PmCode } from '../pm/errors';
 import { inTx, type Tx } from '../pm/tx';
 import { loadMembership } from './membership.query';
-import { type LockedProject, lockProject, refused } from './project.service';
+import { type LockedProject, lockProject } from './project.service';
 import { DEADLINE_ERRORS, type DeadlineCode } from './project-deadline.errors';
+import { refused } from './project-write.rules';
 
 /** Like `WriteResult`, with the deadline codes this slice adds. */
 export type DeadlineResult<T> =

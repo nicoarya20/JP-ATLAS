@@ -34,14 +34,14 @@ export function installDraftHarness(tag: string) {
   const cleaner = createCleaner();
   const f = createFactory(cleaner, { tag });
   const saved = {
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-    ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL,
+    SIMPLE_PM_AI: process.env.SIMPLE_PM_AI,
+    SIMPLE_PM_AI_BASE_URL: process.env.SIMPLE_PM_AI_BASE_URL,
   };
 
   beforeEach(() => {
     auth.as(null);
-    process.env.ANTHROPIC_API_KEY = FAKE_KEY;
-    process.env.ANTHROPIC_BASE_URL = 'http://provider.invalid'; // test-only: nothing resolves it
+    process.env.SIMPLE_PM_AI = FAKE_KEY;
+    process.env.SIMPLE_PM_AI_BASE_URL = 'http://provider.invalid'; // test-only: nothing resolves it
     resetApiLimiters();
     draftLimiter.reset();
     freezeAt(ATLAS_NOW);
